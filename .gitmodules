@@ -1,0 +1,6 @@
+[submodule "solvers/boolector"]
+	path = solvers/boolector
+	url = https://github.com/Boolector/boolector.git
+[submodule "solvers/cvc4"]
+	path = solvers/cvc4
+	url = https://github.com/CVC4/CVC4.git
