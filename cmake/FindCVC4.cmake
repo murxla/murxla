@@ -4,7 +4,7 @@
 #  CVC4_LIBRARIES   - Libraries needed to use CVC4
 
 if(NOT CVC4_HOME)
-  set(CVC4_HOME ${PROJECT_SOURCE_DIR}/solvers/cvc4/build/install)
+  set(CVC4_HOME ${PROJECT_SOURCE_DIR}/deps)
   set(CHECK_SYSTEM_VERSION TRUE)
 endif()
 
