@@ -12,7 +12,7 @@ namespace btor {
 class BtorAction : public Action
 {
  public:
-  explicit BtorAction(BtorSolverManager* smgr, const char* id)
+  BtorAction(BtorSolverManager* smgr, const std::string& id)
       : Action(id), d_smgr(smgr)
   {
   }
@@ -24,7 +24,7 @@ class BtorAction : public Action
 class BtorActionNew : public BtorAction
 {
  public:
-  explicit BtorActionNew(BtorSolverManager* smgr, const char* id)
+  BtorActionNew(BtorSolverManager* smgr, const std::string& id)
       : BtorAction(smgr, id)
   {
   }
@@ -35,7 +35,7 @@ class BtorActionNew : public BtorAction
 class BtorActionDelete : public BtorAction
 {
  public:
-  explicit BtorActionDelete(BtorSolverManager* smgr, const char* id)
+  BtorActionDelete(BtorSolverManager* smgr, const std::string& id)
       : BtorAction(smgr, id)
   {
   }

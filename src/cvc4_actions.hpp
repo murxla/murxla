@@ -12,7 +12,7 @@ namespace cvc4 {
 class CVC4Action : public Action
 {
  public:
-  explicit CVC4Action(CVC4SolverManager* smgr, const char* id)
+  CVC4Action(CVC4SolverManager* smgr, const std::string& id)
       : Action(id), d_smgr(smgr)
   {
   }
@@ -24,7 +24,7 @@ class CVC4Action : public Action
 class CVC4ActionNew : public CVC4Action
 {
  public:
-  explicit CVC4ActionNew(CVC4SolverManager* smgr, const char* id)
+  CVC4ActionNew(CVC4SolverManager* smgr, const std::string& id)
       : CVC4Action(smgr, id)
   {
   }
@@ -35,7 +35,7 @@ class CVC4ActionNew : public CVC4Action
 class CVC4ActionDelete : public CVC4Action
 {
  public:
-  explicit CVC4ActionDelete(CVC4SolverManager* smgr, const char* id)
+  CVC4ActionDelete(CVC4SolverManager* smgr, const std::string& id)
       : CVC4Action(smgr, id)
   {
   }

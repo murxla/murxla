@@ -13,7 +13,7 @@ class Action
 {
  public:
   Action() = delete;
-  explicit Action(const char* id) : d_id(id) {}
+  Action(const std::string& id) : d_id(id) {}
   virtual void run() {}
   // virtual void untrace(const char* s) {}
   std::string getId() const { return d_id; }

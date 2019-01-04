@@ -1,4 +1,6 @@
+#include "btor_actions.hpp"
 #include "btor_solver_manager.hpp"
+#include "cvc4_actions.hpp"
 #include "cvc4_solver_manager.hpp"
 #include "fsm.hpp"
 
@@ -29,16 +31,24 @@ void test_btor_smgr()
   boolector_release(btor, y);
 }
 
-void test_btor_fsm()
+void
+test_btor_fsm()
 {
   btor::BtorSolverManager smgr;
   smgr.set_solver(boolector_new());
-  FSM btor_fsm;
-  State *init_state = btor_fsm.new_state();
-  State *final_state = btor_fsm.new_state();
-  btor_fsm.set_init_state(init_state);
-  btor_fsm.set_final_state(final_state);
-  State *some_state = btor_fsm.new_state();
+
+  FSM fsm;
+  State* s_init  = fsm.new_state();
+  State* s_final = fsm.new_state();
+  fsm.set_init_state(s_init);
+  fsm.set_final_state(s_final);
+  State* s_some = fsm.new_state();
+
+  btor::BtorActionNew* a_new = new btor::BtorActionNew(&smgr, "new");
+  btor::BtorActionDelete* a_delete =
+      new btor::BtorActionDelete(&smgr, "delete");
+  s_some->add(a_new, 10, s_final);
+  s_some->add(a_delete, 10, nullptr);
 }
 #endif
 
@@ -62,20 +72,29 @@ void test_cvc4_smgr()
   smgr.add_term(y);
 }
 
-void test_cvc4_fsm()
+void
+test_cvc4_fsm()
 {
   cvc4::CVC4SolverManager smgr;
   smgr.set_solver(new CVC4::api::Solver());
-  FSM cvc4_fsm;
-  State *init_state = cvc4_fsm.new_state();
-  State *final_state = cvc4_fsm.new_state();
-  cvc4_fsm.set_init_state(init_state);
-  cvc4_fsm.set_final_state(final_state);
-  State *some_state = cvc4_fsm.new_state();
+
+  FSM fsm;
+  State* s_init  = fsm.new_state();
+  State* s_final = fsm.new_state();
+  fsm.set_init_state(s_init);
+  fsm.set_final_state(s_final);
+  State* s_some = fsm.new_state();
+
+  cvc4::CVC4ActionNew* a_new = new cvc4::CVC4ActionNew(&smgr, "new");
+  cvc4::CVC4ActionDelete* a_delete =
+      new cvc4::CVC4ActionDelete(&smgr, "delete");
+  s_some->add(a_new, 10, s_final);
+  s_some->add(a_delete, 10, nullptr);
 }
 #endif
 
-int main(int argc, char* argv[])
+int
+main(int argc, char* argv[])
 {
 #ifdef SMTMBT_USE_BOOLECTOR
   test_btor_smgr();
