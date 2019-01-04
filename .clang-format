@@ -1,7 +1,10 @@
 ---
-Language:        Cpp
-BasedOnStyle:  Google
+Language: Cpp
+BasedOnStyle: Google
+SpaceAfterCStyleCast: true
+AlignConsecutiveAssignments: true
 AllowShortCaseLabelsOnASingleLine: true
+AlwaysBreakAfterReturnType: TopLevelDefinitions
 BinPackArguments: false
 BinPackParameters: false
 BreakBeforeBinaryOperators: NonAssignment
@@ -15,5 +18,6 @@ BraceWrapping:
   BeforeCatch: true
   BeforeElse: true
 BreakBeforeBraces: Custom
+CommentPragmas: '^\w*(:param|:return|\.\. note)'
 ...
 
