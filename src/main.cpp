@@ -1,5 +1,6 @@
 #include "btor_solver_manager.hpp"
 #include "cvc4_solver_manager.hpp"
+#include "fsm.hpp"
 
 using namespace smtmbt;
 
@@ -27,6 +28,18 @@ void test_btor_smgr()
   boolector_release(btor, x);
   boolector_release(btor, y);
 }
+
+void test_btor_fsm()
+{
+  btor::BtorSolverManager smgr;
+  smgr.set_solver(boolector_new());
+  FSM btor_fsm;
+  State *init_state = btor_fsm.new_state();
+  State *final_state = btor_fsm.new_state();
+  btor_fsm.set_init_state(init_state);
+  btor_fsm.set_final_state(final_state);
+  State *some_state = btor_fsm.new_state();
+}
 #endif
 
 #ifdef SMTMBT_USE_CVC4
@@ -48,11 +61,29 @@ void test_cvc4_smgr()
   smgr.add_term(x);
   smgr.add_term(y);
 }
+
+void test_cvc4_fsm()
+{
+  cvc4::CVC4SolverManager smgr;
+  smgr.set_solver(new CVC4::api::Solver());
+  FSM cvc4_fsm;
+  State *init_state = cvc4_fsm.new_state();
+  State *final_state = cvc4_fsm.new_state();
+  cvc4_fsm.set_init_state(init_state);
+  cvc4_fsm.set_final_state(final_state);
+  State *some_state = cvc4_fsm.new_state();
+}
 #endif
 
 int main(int argc, char* argv[])
 {
+#ifdef SMTMBT_USE_BOOLECTOR
   test_btor_smgr();
+  test_btor_fsm();
+#endif
+#ifdef SMTMBT_USE_CVC4
   test_cvc4_smgr();
+  test_cvc4_fsm();
+#endif
   return 0;
 }
