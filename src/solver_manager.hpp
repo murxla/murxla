@@ -16,7 +16,7 @@ class SolverManager
  public:
   using TermMap = std::unordered_map<TTerm, size_t, THashTerm>;
 
-  SolverManager() : d_solver(nullptr), d_terms(){};
+  SolverManager() : d_solver(nullptr), d_terms() {}
   // TODO: copy/assignment constructors?
   ~SolverManager() = default;
 
