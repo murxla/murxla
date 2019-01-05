@@ -5,14 +5,16 @@ namespace smtmbt {
 void
 State::add(Action* a, uint32_t weight, State* next)
 {
-  d_actions.push_back(ActionTuple(a, weight, next));
+  d_actions.emplace_back(ActionTuple(a, next));
+  d_weights.push_back(weight);
 }
 
-State*
-State::pick()
+void
+State::run()
 {
-  // TODO
-  return nullptr;
+  if (d_actions.empty()) return;
+  uint32_t idx = s_rng.pick_weighted_uint32(d_weights);
+  d_actions[idx].d_action->run();
 }
 
 State*

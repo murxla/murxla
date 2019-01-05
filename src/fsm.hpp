@@ -6,14 +6,19 @@
 #include <string>
 #include <vector>
 
+#include "util.hpp"
+
 namespace smtmbt {
 class State;
+
+static RNGenerator s_rng;  // TODO seeded init
 
 class Action
 {
  public:
   Action() = delete;
   Action(const std::string& id) : d_id(id) {}
+  virtual ~Action() = default;
   virtual void run() {}
   // virtual void untrace(const char* s) {}
   std::string getId() const { return d_id; }
@@ -24,11 +29,10 @@ class Action
 
 struct ActionTuple
 {
-  ActionTuple(Action* a, uint32_t weight, State* next)
-      : d_action(a), d_weight(weight), d_next(next){};
+  ActionTuple(Action* a, State* next)
+      : d_action(a), d_next(next){};
 
   std::unique_ptr<Action> d_action;
-  uint32_t d_weight;
   State* d_next;
 };
 
@@ -36,10 +40,11 @@ class State
 {
  public:
   void add(Action* action, uint32_t weight, State* next);
+  void run();
 
  private:
-  State* pick();
   std::vector<ActionTuple> d_actions;
+  std::vector<uint32_t> d_weights;
 };
 
 class FSM

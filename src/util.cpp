@@ -5,7 +5,8 @@
 
 namespace smtmbt {
 
-uint32_t SeedGenerator::next()
+uint32_t
+SeedGenerator::next()
 {
   uint32_t cur_seed;
   cur_seed = d_seed;
@@ -16,6 +17,19 @@ uint32_t SeedGenerator::next()
   d_seed += cur_seed;
   d_seed *= 38259643;
   return cur_seed;
+}
+
+uint32_t
+RNGenerator::next_uint32()
+{
+  return d_uint32_dist(d_rng);
+}
+
+uint32_t
+RNGenerator::pick_weighted_uint32(std::vector<uint32_t>& weights)
+{
+  std::discrete_distribution<uint32_t> dist(weights.begin(), weights.end());
+  return dist(d_rng);
 }
 
 }  // namespace smtmbt

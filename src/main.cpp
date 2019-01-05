@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "btor_actions.hpp"
 #include "btor_solver_manager.hpp"
 #include "cvc4_actions.hpp"
@@ -49,6 +51,9 @@ test_btor_fsm()
       new btor::BtorActionDelete(&smgr, "delete");
   s_some->add(a_new, 10, s_final);
   s_some->add(a_delete, 10, nullptr);
+  s_init->run();
+  s_some->run();
+  s_final->run();
 }
 #endif
 
@@ -90,6 +95,9 @@ test_cvc4_fsm()
       new cvc4::CVC4ActionDelete(&smgr, "delete");
   s_some->add(a_new, 10, s_final);
   s_some->add(a_delete, 10, nullptr);
+  s_init->run();
+  s_some->run();
+  s_final->run();
 }
 #endif
 
