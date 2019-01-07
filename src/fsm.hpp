@@ -40,7 +40,7 @@ class State
 {
  public:
   void add(Action* action, uint32_t weight, State* next);
-  void run();
+  State* run();
 
  private:
   std::vector<ActionTuple> d_actions;
@@ -52,13 +52,11 @@ class FSM
  public:
   State* new_state();
   void set_init_state(State* init_state);
-  void set_final_state(State* final_state);
   void run();
 
  private:
   std::vector<std::unique_ptr<State>> d_states;
   State* d_cur_state;
-  State* d_final_state;
 };
 
 }  // namespace smtmbt
