@@ -29,6 +29,28 @@ class RNGenerator
     std::discrete_distribution<uint32_t> d_uint32_dist;
 };
 
+class AbortStream
+{
+ public:
+  AbortStream();
+  ~AbortStream();
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+};
+
+class OstreamVoider
+{
+ public:
+  OstreamVoider() {}
+  void operator&(std::ostream&) {}
+};
+
+#define SMTMBT_ABORT(cond) \
+  !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()
+
 }  // namespace smtmbt
 
 #endif

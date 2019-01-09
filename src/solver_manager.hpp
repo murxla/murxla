@@ -6,6 +6,20 @@
 
 namespace smtmbt {
 
+class Action
+{
+ public:
+  Action() = delete;
+  Action(const std::string& id) : d_id(id) {}
+  virtual ~Action() = default;
+  virtual void run() {}
+  // virtual void untrace(const char* s) {}
+  const std::string& get_id() const { return d_id; }
+
+ private:
+  std::string d_id;
+};
+
 template <typename TSolver,
           typename TTerm,
           typename TSort,
@@ -46,14 +60,33 @@ class SolverManager
 
   TSort pick_sort(/* TODO: TheoryId */) {}
 
+  template <class T>
+  T* new_action()
+  {
+    static_assert(std::is_base_of<Action, T>::value,
+                  "expected class (derived from) Action");
+    T* action             = new T(this);
+    const std::string& id = action->get_id();
+    if (d_actions.find(id) == d_actions.end())
+    {
+      d_actions[id].reset(action);
+    }
+    else
+    {
+      delete action;
+    }
+    return static_cast<T*>(d_actions[id].get());
+  }
+
  protected:
   /* Solver specific implementations. */
   virtual TTerm copy_term(TTerm term) { return term; }
   virtual TSort copy_sort(TSort sort) { return sort; }
   virtual TSort get_sort(TTerm term) = 0;
 
-  std::unordered_map<TSort, TermMap, THashSort> d_terms;
   TSolver d_solver;
+  std::unordered_map<TSort, TermMap, THashSort> d_terms;
+  std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
 };
 
 }  // namespace smtmbt

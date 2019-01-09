@@ -4,7 +4,6 @@
 #ifdef SMTMBT_USE_BOOLECTOR
 
 #include "btor_solver_manager.hpp"
-#include "fsm.hpp"
 
 namespace smtmbt {
 namespace btor {
@@ -12,8 +11,13 @@ namespace btor {
 class BtorAction : public Action
 {
  public:
-  BtorAction(BtorSolverManager* smgr, const std::string& id)
-      : Action(id), d_smgr(smgr)
+  BtorAction(SolverManager<Btor*,
+                           BoolectorNode*,
+                           BoolectorSort,
+                           BoolectorNodeHashFunc,
+                           BoolectorSortHashFunc>* smgr,
+             const std::string& id)
+      : Action(id), d_smgr(static_cast<BtorSolverManager*>(smgr))
   {
   }
 
@@ -24,8 +28,12 @@ class BtorAction : public Action
 class BtorActionNew : public BtorAction
 {
  public:
-  BtorActionNew(BtorSolverManager* smgr, const std::string& id)
-      : BtorAction(smgr, id)
+  BtorActionNew(SolverManager<Btor*,
+                              BoolectorNode*,
+                              BoolectorSort,
+                              BoolectorNodeHashFunc,
+                              BoolectorSortHashFunc>* smgr)
+      : BtorAction(smgr, "new")
   {
   }
   void run() override;
@@ -35,8 +43,12 @@ class BtorActionNew : public BtorAction
 class BtorActionDelete : public BtorAction
 {
  public:
-  BtorActionDelete(BtorSolverManager* smgr, const std::string& id)
-      : BtorAction(smgr, id)
+  BtorActionDelete(SolverManager<Btor*,
+                                 BoolectorNode*,
+                                 BoolectorSort,
+                                 BoolectorNodeHashFunc,
+                                 BoolectorSortHashFunc>* smgr)
+      : BtorAction(smgr, "delete")
   {
   }
   void run() override;

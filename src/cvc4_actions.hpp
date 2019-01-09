@@ -4,7 +4,6 @@
 #ifdef SMTMBT_USE_CVC4
 
 #include "cvc4_solver_manager.hpp"
-#include "fsm.hpp"
 
 namespace smtmbt {
 namespace cvc4 {
@@ -12,8 +11,13 @@ namespace cvc4 {
 class CVC4Action : public Action
 {
  public:
-  CVC4Action(CVC4SolverManager* smgr, const std::string& id)
-      : Action(id), d_smgr(smgr)
+  CVC4Action(SolverManager<CVC4::api::Solver*,
+                           CVC4::api::Term,
+                           CVC4::api::Sort,
+                           CVC4::api::TermHashFunction,
+                           CVC4::api::SortHashFunction>* smgr,
+             const std::string& id)
+      : Action(id), d_smgr(static_cast<CVC4SolverManager*>(smgr))
   {
   }
 
@@ -24,8 +28,12 @@ class CVC4Action : public Action
 class CVC4ActionNew : public CVC4Action
 {
  public:
-  CVC4ActionNew(CVC4SolverManager* smgr, const std::string& id)
-      : CVC4Action(smgr, id)
+  CVC4ActionNew(SolverManager<CVC4::api::Solver*,
+                              CVC4::api::Term,
+                              CVC4::api::Sort,
+                              CVC4::api::TermHashFunction,
+                              CVC4::api::SortHashFunction>* smgr)
+      : CVC4Action(smgr, "new")
   {
   }
   void run() override;
@@ -35,8 +43,12 @@ class CVC4ActionNew : public CVC4Action
 class CVC4ActionDelete : public CVC4Action
 {
  public:
-  CVC4ActionDelete(CVC4SolverManager* smgr, const std::string& id)
-      : CVC4Action(smgr, id)
+  CVC4ActionDelete(SolverManager<CVC4::api::Solver*,
+                                 CVC4::api::Term,
+                                 CVC4::api::Sort,
+                                 CVC4::api::TermHashFunction,
+                                 CVC4::api::SortHashFunction>* smgr)
+      : CVC4Action(smgr, "delete")
   {
   }
   void run() override;

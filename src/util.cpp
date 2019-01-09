@@ -1,7 +1,9 @@
 #include "util.hpp"
 
+#include <stdlib.h>
 #include <unistd.h>
 #include <ctime>
+#include <iostream>
 
 namespace smtmbt {
 
@@ -30,6 +32,27 @@ RNGenerator::pick_weighted_uint32(std::vector<uint32_t>& weights)
 {
   std::discrete_distribution<uint32_t> dist(weights.begin(), weights.end());
   return dist(d_rng);
+}
+
+AbortStream::AbortStream() { stream() << "smtmbt: ERROR: "; }
+
+AbortStream::~AbortStream()
+{
+  flush();
+  std::abort();
+}
+
+std::ostream&
+AbortStream::stream()
+{
+  return std::cerr;
+}
+
+void
+AbortStream::flush()
+{
+  stream() << std::endl;
+  stream().flush();
 }
 
 }  // namespace smtmbt

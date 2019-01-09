@@ -9,7 +9,8 @@ CVC4SolverManager::~CVC4SolverManager()
   delete d_solver;
 }
 
-CVC4::api::Sort CVC4SolverManager::get_sort(CVC4::api::Term term)
+CVC4::api::Sort
+CVC4SolverManager::get_sort(CVC4::api::Term term)
 {
   return term.getSort();
 }

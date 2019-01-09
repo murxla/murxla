@@ -40,15 +40,16 @@ test_btor_fsm()
   smgr.set_solver(boolector_new());
 
   FSM fsm;
-  State* snew    = fsm.new_state();
-  State* sdelete = fsm.new_state();
+  State* snew    = fsm.new_state("new");
+  State* sdelete = fsm.new_state("delete");
   fsm.set_init_state(snew);
 
-  btor::BtorActionNew* a_new = new btor::BtorActionNew(&smgr, "new");
-  btor::BtorActionDelete* a_delete =
-      new btor::BtorActionDelete(&smgr, "delete");
-  snew->add(a_new, 10, sdelete);
-  sdelete->add(a_delete, 10, nullptr);
+  btor::BtorActionNew* a_new       = smgr.new_action<btor::BtorActionNew>();
+  btor::BtorActionDelete* a_delete = smgr.new_action<btor::BtorActionDelete>();
+  snew->add_action(a_new, 10, sdelete);
+  sdelete->add_action(a_delete, 10);
+  sdelete->add_action(a_new, 10);
+  fsm.check_states();
   fsm.run();
 }
 #endif
@@ -84,11 +85,11 @@ test_cvc4_fsm()
   State* sdelete = fsm.new_state();
   fsm.set_init_state(snew);
 
-  cvc4::CVC4ActionNew* a_new = new cvc4::CVC4ActionNew(&smgr, "new");
-  cvc4::CVC4ActionDelete* a_delete =
-      new cvc4::CVC4ActionDelete(&smgr, "delete");
-  snew->add(a_new, 10, sdelete);
-  sdelete->add(a_delete, 10, nullptr);
+  cvc4::CVC4ActionNew* a_new       = smgr.new_action<cvc4::CVC4ActionNew>();
+  cvc4::CVC4ActionDelete* a_delete = smgr.new_action<cvc4::CVC4ActionDelete>();
+  snew->add_action(a_new, 10, sdelete);
+  sdelete->add_action(a_delete, 10);
+  snew->add_action(a_new, 10);
   fsm.run();
 }
 #endif
