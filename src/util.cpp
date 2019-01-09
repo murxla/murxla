@@ -34,6 +34,26 @@ RNGenerator::pick_weighted_uint32(std::vector<uint32_t>& weights)
   return dist(d_rng);
 }
 
+TraceStream::TraceStream() { stream(); }
+
+TraceStream::~TraceStream()
+{
+  flush();
+}
+
+std::ostream&
+TraceStream::stream()
+{
+  return std::cout;
+}
+
+void
+TraceStream::flush()
+{
+  stream() << std::endl;
+  stream().flush();
+}
+
 AbortStream::AbortStream() { stream() << "smtmbt: ERROR: "; }
 
 AbortStream::~AbortStream()

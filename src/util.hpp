@@ -29,11 +29,25 @@ class RNGenerator
     std::discrete_distribution<uint32_t> d_uint32_dist;
 };
 
+class TraceStream
+{
+ public:
+  TraceStream();
+  ~TraceStream();
+  TraceStream(const TraceStream& astream) = default;
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+};
+
 class AbortStream
 {
  public:
   AbortStream();
   ~AbortStream();
+  AbortStream(const AbortStream& astream) = default;
 
   std::ostream& stream();
 
@@ -44,9 +58,12 @@ class AbortStream
 class OstreamVoider
 {
  public:
-  OstreamVoider() {}
-  void operator&(std::ostream&) {}
+  OstreamVoider() = default;
+  void operator&(std::ostream& ostream) {}
 };
+
+#define SMTMBT_TRACE \
+  OstreamVoider() & TraceStream().stream()
 
 #define SMTMBT_ABORT(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()
