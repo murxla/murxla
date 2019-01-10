@@ -25,6 +25,7 @@ class BtorAction : public Action
 
 /* -------------------------------------------------------------------------- */
 
+// void boolector_new ();
 class BtorActionNew : public BtorAction
 {
  public:
@@ -40,6 +41,7 @@ class BtorActionNew : public BtorAction
   // void untrace(const char* s) override;
 };
 
+// void boolector_delete (Btor *btor);
 class BtorActionDelete : public BtorAction
 {
  public:
@@ -56,16 +58,248 @@ class BtorActionDelete : public BtorAction
   // void untrace(const char* s) override;
 };
 
+// Btor *boolector_clone (Btor *btor);
+// void boolector_set_term (Btor *btor, int32_t (*fun) (void *), void *state);
+// int32_t boolector_terminate (Btor *btor);
+// void boolector_set_abort (void (*fun) (const char* msg));
+// void boolector_set_msg_prefix (Btor *btor, const char *prefix);
+// uint32_t boolector_get_refs (Btor *btor);
+// void boolector_reset_time (Btor *btor);
+// void boolector_reset_stats (Btor *btor);
+// void boolector_print_stats (Btor *btor);
+// void boolector_set_trapi (Btor *btor, FILE *apitrace);
+// FILE *boolector_get_trapi (Btor *btor);
+// void boolector_push (Btor *btor, uint32_t level);
+// void boolector_pop (Btor *btor, uint32_t level);
+// void boolector_assert (Btor *btor, BoolectorNode *node);
+// void boolector_assume (Btor *btor, BoolectorNode *node);
+// bool boolector_failed (Btor *btor, BoolectorNode *node);
+// BoolectorNode **boolector_get_failed_assumptions (Btor *btor);
+
+// void boolector_fixate_assumptions (Btor *btor);
+class BtorActionFixateAssumptions : public BtorAction
+{
+ public:
+  BtorActionFixateAssumptions(BtorSolverManagerBase* smgr)
+      : BtorAction(smgr, "fixate_assumptions")
+  {
+  }
+
+  void run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    boolector_fixate_assumptions(d_smgr->get_solver());
+  }
+  // void untrace(const char* s) override;
+};
+
+// void boolector_reset_assumptions (Btor *btor);
+class BtorActionResetAssumptions : public BtorAction
+{
+ public:
+  BtorActionResetAssumptions(BtorSolverManagerBase* smgr)
+      : BtorAction(smgr, "reset_assumptions")
+  {
+  }
+
+  void run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    boolector_reset_assumptions(d_smgr->get_solver());
+  }
+};
+
+// int32_t boolector_sat (Btor *btor);
+class BtorActionSat : public BtorAction
+{
+ public:
+  BtorActionSat(BtorSolverManagerBase* smgr) : BtorAction(smgr, "sat") {}
+
+  void run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    boolector_sat(d_smgr->get_solver());
+  }
+};
+
+// int32_t boolector_limited_sat (Btor *btor, int32_t lod_limit, int32_t sat_limit);
+// int32_t boolector_simplify (Btor *btor);
+// void boolector_set_sat_solver (Btor *btor, const char *solver);
+// void boolector_set_opt (Btor *btor, BtorOption opt, uint32_t val);
+// uint32_t boolector_get_opt (Btor *btor, BtorOption opt);
+// uint32_t boolector_get_opt_min (Btor *btor, BtorOption opt);
+// uint32_t boolector_get_opt_max (Btor *btor, BtorOption opt);
+// uint32_t boolector_get_opt_dflt (Btor *btor, BtorOption opt);
+// const char *boolector_get_opt_lng (Btor *btor, BtorOption opt);
+// const char *boolector_get_opt_shrt (Btor *btor, BtorOption opt);
+// const char *boolector_get_opt_desc (Btor *btor, BtorOption opt);
+// bool boolector_has_opt (Btor *Btor, BtorOption opt);
+// BtorOption boolector_first_opt (Btor *btor);
+// BtorOption boolector_next_opt (Btor *btor, BtorOption opt);
+// BoolectorNode *boolector_copy (Btor *btor, BoolectorNode *node);
+// void boolector_release (Btor *btor, BoolectorNode *node);
+
+// void boolector_release_all (Btor *btor);
+class BtorActionReleaseAll : public BtorAction
+{
+ public:
+  BtorActionReleaseAll(BtorSolverManagerBase* smgr)
+      : BtorAction(smgr, "release_all")
+  {
+  }
+
+  void run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    boolector_release_all(d_smgr->get_solver());
+  }
+};
+
+// BoolectorNode *boolector_true (Btor *btor);
+// BoolectorNode *boolector_false (Btor *btor);
+// BoolectorNode *boolector_implies (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_eq (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_ne (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_const (Btor *btor, const char *bits);
+// BoolectorNode *boolector_constd (Btor *btor, BoolectorSort sort, const char *str);
+// BoolectorNode *boolector_consth (Btor *btor, BoolectorSort sort, const char *str);
+// BoolectorNode *boolector_zero (Btor *btor, BoolectorSort sort);
+// BoolectorNode *boolector_ones (Btor *btor, BoolectorSort sort);
+// BoolectorNode *boolector_one (Btor *btor, BoolectorSort sort);
+// BoolectorNode *boolector_unsigned_int (Btor *btor, uint32_t u, BoolectorSort sort);
+// BoolectorNode *boolector_int (Btor *btor, int32_t i, BoolectorSort sort);
+// BoolectorNode *boolector_var (Btor *btor, BoolectorSort sort, const char *symbol);
+// BoolectorNode *boolector_array (Btor *btor, BoolectorSort sort, const char *symbol);
+// BoolectorNode *boolector_uf (Btor *btor, BoolectorSort sort, const char *symbol);
+// BoolectorNode *boolector_not (Btor *btor, BoolectorNode *node);
+// BoolectorNode *boolector_neg (Btor *btor, BoolectorNode *node);
+// BoolectorNode *boolector_redor (Btor *btor, BoolectorNode *node);
+// BoolectorNode *boolector_redxor (Btor *btor, BoolectorNode *node);
+// BoolectorNode *boolector_redand (Btor *btor, BoolectorNode *node);
+// BoolectorNode *boolector_slice (Btor *btor, BoolectorNode *node, uint32_t upper, uint32_t lower);
+// BoolectorNode *boolector_uext (Btor *btor, BoolectorNode *node, uint32_t width);
+// BoolectorNode *boolector_sext (Btor *btor, BoolectorNode *node, uint32_t width);
+// BoolectorNode *boolector_xor (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_xnor (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_and (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_nand (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_or (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_nor (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_add (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_uaddo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_saddo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_mul (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_umulo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_smulo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_ult (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_slt (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_ulte (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_slte (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_ugt (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_sgt (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_ugte (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_sgte (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_sll (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_srl (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_sra (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_rol (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_ror (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_sub (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_usubo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_ssubo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_udiv (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_sdiv (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_sdivo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_urem (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_srem (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_smod (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_concat (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// BoolectorNode *boolector_read (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index);
+// BoolectorNode *boolector_write (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index, BoolectorNode *n_value);
+// BoolectorNode *boolector_cond (Btor *btor, BoolectorNode *n_cond, BoolectorNode *n_then, BoolectorNode *n_else);
+// BoolectorNode *boolector_param (Btor *btor, BoolectorSort sort, const char *symbol);
+// BoolectorNode *boolector_fun (Btor *btor, BoolectorNode **param_nodes, uint32_t paramc, BoolectorNode *node);
+// BoolectorNode *boolector_apply (Btor *btor, BoolectorNode **arg_nodes, uint32_t argc, BoolectorNode *n_fun);
+// BoolectorNode *boolector_inc (Btor *btor, BoolectorNode *node);
+// BoolectorNode *boolector_dec (Btor *btor, BoolectorNode *node);
+// BoolectorNode *boolector_forall (Btor *btor, BoolectorNode *params[], uint32_t paramc, BoolectorNode *body);
+// BoolectorNode *boolector_exists (Btor *btor, BoolectorNode *param[], uint32_t paramc, BoolectorNode *body);
+// Btor *boolector_get_btor (BoolectorNode *node);
+// int32_t boolector_get_id (Btor *btor, BoolectorNode *node);
+// BoolectorSort boolector_get_sort (Btor *btor, const BoolectorNode *node);
+// BoolectorSort boolector_fun_get_domain_sort (Btor *btor, const BoolectorNode *node);
+// BoolectorSort boolector_fun_get_codomain_sort (Btor *btor, const BoolectorNode *node);
+// BoolectorNode *boolector_match_node_by_id (Btor *btor, int32_t id);
+// BoolectorNode *boolector_match_node_by_symbol (Btor *btor, const char *symbol);
+// BoolectorNode *boolector_match_node (Btor *btor, BoolectorNode *node);
+// const char *boolector_get_symbol (Btor *btor, BoolectorNode *node);
+// void boolector_set_symbol (Btor *btor, BoolectorNode *node, const char *symbol);
+// uint32_t boolector_get_width (Btor *btor, BoolectorNode *node);
+// uint32_t boolector_get_index_width (Btor *btor, BoolectorNode *n_array);
+// const char *boolector_get_bits (Btor *btor, BoolectorNode *node);
+// void boolector_free_bits (Btor *btor, const char *bits);
+// uint32_t boolector_get_fun_arity (Btor *btor, BoolectorNode *node);
+// bool boolector_is_const (Btor *btor, BoolectorNode *node);
+// bool boolector_is_var (Btor *btor, BoolectorNode *node);
+// bool boolector_is_array (Btor *btor, BoolectorNode *node);
+// bool boolector_is_array_var (Btor *btor, BoolectorNode *node);
+// bool boolector_is_param (Btor *btor, BoolectorNode *node);
+// bool boolector_is_bound_param (Btor *btor, BoolectorNode *node);
+// bool boolector_is_uf (Btor *btor, BoolectorNode *node);
+// bool boolector_is_fun (Btor *btor, BoolectorNode *node);
+// int32_t boolector_fun_sort_check (Btor *btor, BoolectorNode **arg_nodes, uint32_t argc, BoolectorNode *n_fun);
+// const char *boolector_bv_assignment (Btor *btor, BoolectorNode *node);
+// void boolector_free_bv_assignment (Btor *btor, const char *assignment);
+// void boolector_array_assignment (Btor *btor, BoolectorNode *n_array, char ***indices, char ***values, uint32_t *size);
+// void boolector_free_array_assignment (Btor *btor, char **indices, char **values, uint32_t size);
+// void boolector_uf_assignment (Btor *btor, BoolectorNode *n_uf, char ***args, char ***values, uint32_t *size);
+// void boolector_free_uf_assignment (Btor *btor, char **args, char **values, uint32_t size);
+// void boolector_print_model (Btor *btor, char *format, FILE *file);
+// BoolectorSort boolector_bool_sort (Btor *btor);
+// BoolectorSort boolector_bitvec_sort (Btor *btor, uint32_t width);
+// BoolectorSort boolector_fun_sort (Btor *btor, BoolectorSort *domain, uint32_t arity, BoolectorSort codomain);
+// BoolectorSort boolector_array_sort (Btor *btor, BoolectorSort index, BoolectorSort element);
+// BoolectorSort boolector_copy_sort (Btor *btor, BoolectorSort sort);
+// void boolector_release_sort (Btor *btor, BoolectorSort sort);
+// bool boolector_is_equal_sort (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+// bool boolector_is_array_sort (Btor *btor, BoolectorSort sort);
+// bool boolector_is_bitvec_sort (Btor *btor, BoolectorSort sort);
+// bool boolector_is_fun_sort (Btor *btor, BoolectorSort sort);
+// int32_t boolector_parse (Btor *btor, FILE *infile, const char *infile_name, FILE *outfile, char **error_msg, int32_t *status);
+// int32_t boolector_parse_btor (Btor *btor, FILE *infile, const char *infile_name, FILE *outfile, char **error_msg, int32_t *status);
+// int32_t boolector_parse_btor2 (Btor *btor, FILE *infile, const char *infile_name, FILE *outfile, char **error_msg, int32_t *status);
+// int32_t boolector_parse_smt1 (Btor *btor, FILE
+// *infile, const char *infile_name, FILE *outfile, char **error_msg, int32_t
+// *status); int32_t boolector_parse_smt2 (Btor *btor, FILE *infile, const char
+// *infile_name, FILE *outfile, char **error_msg, int32_t *status);
+// void boolector_dump_btor_node (Btor *btor, FILE *file, BoolectorNode *node);
+// void boolector_dump_btor (Btor *btor, FILE *file);
+#if 0
+// void boolector_dump_btor2 (Btor * btor, FILE * file);
+#endif
+// void boolector_dump_smt2_node (Btor *btor, FILE *file, BoolectorNode *node);
+// void boolector_dump_smt2 (Btor *btor, FILE *file);
+// void boolector_dump_aiger_ascii (Btor *btor, FILE *file, bool merge_roots);
+// void boolector_dump_aiger_binary (Btor *btor, FILE *file, bool merge_roots);
+// const char *boolector_copyright (Btor *btor);
+// const char *boolector_version (Btor *btor);
 /* -------------------------------------------------------------------------- */
 
-size_t BoolectorNodeHashFunc::operator()(const BoolectorNode* n) const
+size_t
+BoolectorNodeHashFunc::operator()(const BoolectorNode* n) const
 {
   Btor* btor = boolector_get_btor(const_cast<BoolectorNode*>(n));
   int32_t id = boolector_get_id(btor, const_cast<BoolectorNode*>(n));
   return std::hash<int32_t>{}(id);
 }
 
-size_t BoolectorSortHashFunc::operator()(const BoolectorSort s) const
+size_t
+BoolectorSortHashFunc::operator()(const BoolectorSort s) const
 {
   return std::hash<BoolectorSort>{}(s);
 }
@@ -92,17 +326,20 @@ BtorSolverManager::~BtorSolverManager()
   }
 }
 
-BoolectorNode* BtorSolverManager::copy_term(BoolectorNode* term)
+BoolectorNode*
+BtorSolverManager::copy_term(BoolectorNode* term)
 {
   return boolector_copy(d_solver, term);
 }
 
-BoolectorSort BtorSolverManager::copy_sort(BoolectorSort sort)
+BoolectorSort
+BtorSolverManager::copy_sort(BoolectorSort sort)
 {
   return boolector_copy_sort(d_solver, sort);
 }
 
-BoolectorSort BtorSolverManager::get_sort(BoolectorNode* term)
+BoolectorSort
+BtorSolverManager::get_sort(BoolectorNode* term)
 {
   return boolector_get_sort(d_solver, term);
 }
@@ -111,16 +348,22 @@ void
 BtorSolverManager::configure()
 {
   /* Actions ................................................................ */
-  auto anew    = new_action<BtorActionNew>();
   auto adelete = new_action<BtorActionDelete>();
+  auto anew    = new_action<BtorActionNew>();
+  auto asat    = new_action<BtorActionSat>();
 
   /* States ................................................................. */
-  auto snew    = d_fsm.new_state("new");
   auto sdelete = d_fsm.new_state("delete");
+  auto snew    = d_fsm.new_state("new");
+  auto ssat    = d_fsm.new_state("sat");
 
   /* Transitions ............................................................ */
-  snew->add_action(anew, 10, sdelete);
+  snew->add_action(anew, 10, ssat);
+  ssat->add_action(asat, 10, sdelete);
   sdelete->add_action(adelete, 10);
+  // TODO reset_assumptions
+  // TODO fixate_assumptions
+  // TODO release_all
 
   /* Initial State .......................................................... */
   d_fsm.set_init_state(snew);
