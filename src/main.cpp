@@ -19,11 +19,13 @@ void test_btor_smgr()
   BoolectorNode* x = boolector_var(btor, bv32, "x");
   BoolectorNode* y = boolector_var(btor, bv31, "y");
 
+#if 0
   smgr.add_sort(bv32);
   smgr.add_sort(bv31);
 
   smgr.add_term(x);
   smgr.add_term(y);
+#endif
 
   boolector_release_sort(btor, bv32);
   boolector_release_sort(btor, bv31);
@@ -36,21 +38,7 @@ test_btor_fsm()
 {
   btor::BtorSolverManager smgr;
   smgr.set_solver(boolector_new());
-
-  FSM fsm;
-  State* snew    = fsm.new_state("new");
-  State* sdelete = fsm.new_state("delete");
-  fsm.set_init_state(snew);
-
-#if 0
-  btor::BtorActionNew* a_new       = smgr.new_action<btor::BtorActionNew>();
-  btor::BtorActionDelete* a_delete = smgr.new_action<btor::BtorActionDelete>();
-  snew->add_action(a_new, 10, sdelete);
-  sdelete->add_action(a_delete, 10);
-  sdelete->add_action(a_new, 10);
-  fsm.check_states();
-  fsm.run();
-#endif
+  smgr.run();
 }
 #endif
 
@@ -67,11 +55,13 @@ void test_cvc4_smgr()
   CVC4::api::Term x = cvc4->mkVar("x", bv32);
   CVC4::api::Term y = cvc4->mkVar("y", bv32);
 
+#if 0
   smgr.add_sort(bv32);
   smgr.add_sort(bv31);
 
   smgr.add_term(x);
   smgr.add_term(y);
+#endif
 }
 
 void
@@ -79,20 +69,7 @@ test_cvc4_fsm()
 {
   cvc4::CVC4SolverManager smgr;
   smgr.set_solver(new CVC4::api::Solver());
-
-  FSM fsm;
-  State* snew    = fsm.new_state();
-  State* sdelete = fsm.new_state();
-  fsm.set_init_state(snew);
-
-#if 0
-  cvc4::CVC4ActionNew* a_new       = smgr.new_action<cvc4::CVC4ActionNew>();
-  cvc4::CVC4ActionDelete* a_delete = smgr.new_action<cvc4::CVC4ActionDelete>();
-  snew->add_action(a_new, 10, sdelete);
-  sdelete->add_action(a_delete, 10);
-  snew->add_action(a_new, 10);
-  fsm.run();
-#endif
+  smgr.run();
 }
 #endif
 

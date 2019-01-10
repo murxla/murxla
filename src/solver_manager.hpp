@@ -4,6 +4,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "fsm.hpp"
+
 namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
@@ -34,13 +36,18 @@ class SolverManager
  public:
   using TermMap = std::unordered_map<TTerm, size_t, THashTerm>;
 
-  SolverManager() : d_solver(nullptr), d_terms() {}
+  SolverManager() : d_solver(nullptr), d_terms(), d_actions(), d_fsm() {}
   // TODO: copy/assignment constructors?
   ~SolverManager() = default;
 
   void set_solver(TSolver s) { d_solver = s; }
 
   TSolver get_solver() { return d_solver; }
+
+  void run() { d_fsm.run(); }
+
+ protected:
+  virtual void configure() = 0;
 
   void add_term(TTerm term)
   {
@@ -82,7 +89,6 @@ class SolverManager
     return static_cast<T*>(d_actions[id].get());
   }
 
- protected:
   /* Solver specific implementations. */
   virtual TTerm copy_term(TTerm term) { return term; }
   virtual TSort copy_sort(TSort sort) { return sort; }
@@ -91,6 +97,7 @@ class SolverManager
   TSolver d_solver;
   std::unordered_map<TSort, TermMap, THashSort> d_terms;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
+  FSM d_fsm;
 };
 
 /* -------------------------------------------------------------------------- */

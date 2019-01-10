@@ -27,10 +27,11 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
                                                CVC4::api::SortHashFunction>
 {
  public:
-  CVC4SolverManager() = default;
+  CVC4SolverManager() { configure(); }
   ~CVC4SolverManager();
 
  protected:
+  void configure() override;
   CVC4::api::Sort get_sort(CVC4::api::Term term) override;
 };
 

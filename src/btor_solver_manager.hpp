@@ -35,10 +35,11 @@ using BtorSolverManagerBase = SolverManager<Btor *,
 class BtorSolverManager : public BtorSolverManagerBase
 {
  public:
-  BtorSolverManager() = default;
+  BtorSolverManager() { configure(); };
   ~BtorSolverManager();
 
  protected:
+  void configure() override;
   BoolectorNode *copy_term(BoolectorNode *term) override;
   BoolectorSort copy_sort(BoolectorSort sort) override;
   BoolectorSort get_sort(BoolectorNode *term) override;

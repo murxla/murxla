@@ -68,6 +68,25 @@ CVC4SolverManager::get_sort(CVC4::api::Term term)
   return term.getSort();
 }
 
+void
+CVC4SolverManager::configure()
+{
+  /* Actions ................................................................ */
+  auto anew    = new_action<CVC4ActionNew>();
+  auto adelete = new_action<CVC4ActionDelete>();
+
+  /* States ................................................................. */
+  auto snew    = d_fsm.new_state("new");
+  auto sdelete = d_fsm.new_state("delete");
+
+  /* Transitions ............................................................ */
+  snew->add_action(anew, 10, sdelete);
+  sdelete->add_action(adelete, 10);
+
+  /* Initial State .......................................................... */
+  d_fsm.set_init_state(snew);
+}
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace cvc4

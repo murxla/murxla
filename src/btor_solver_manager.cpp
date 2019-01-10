@@ -107,6 +107,25 @@ BoolectorSort BtorSolverManager::get_sort(BoolectorNode* term)
   return boolector_get_sort(d_solver, term);
 }
 
+void
+BtorSolverManager::configure()
+{
+  /* Actions ................................................................ */
+  auto anew    = new_action<BtorActionNew>();
+  auto adelete = new_action<BtorActionDelete>();
+
+  /* States ................................................................. */
+  auto snew    = d_fsm.new_state("new");
+  auto sdelete = d_fsm.new_state("delete");
+
+  /* Transitions ............................................................ */
+  snew->add_action(anew, 10, sdelete);
+  sdelete->add_action(adelete, 10);
+
+  /* Initial State .......................................................... */
+  d_fsm.set_init_state(snew);
+}
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace btor

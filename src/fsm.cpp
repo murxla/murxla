@@ -59,6 +59,8 @@ FSM::check_states()
 void
 FSM::run()
 {
+  check_states();
+
   State* s = d_cur_state;
   while (s != nullptr)
   {
