@@ -7,10 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "solver_manager.hpp"
 #include "util.hpp"
 
 namespace smtmbt {
+class Action;
 class State;
 
 static RNGenerator s_rng;  // TODO seeded init

@@ -5,6 +5,8 @@
 #include <sstream>
 #include <unordered_set>
 
+#include "solver_manager.hpp"
+
 namespace smtmbt {
 
 void
