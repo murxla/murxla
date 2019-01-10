@@ -19,7 +19,7 @@ State::add_action(Action* a, uint32_t weight, State* next)
 State*
 State::run()
 {
-  if (d_actions.empty()) return 0;  // TODO disallow?
+  assert(!d_actions.empty());
   uint32_t idx = s_rng.pick_weighted_uint32(d_weights);
   d_actions[idx].d_action->run();
   return d_actions[idx].d_next;
