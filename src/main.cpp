@@ -1,8 +1,6 @@
 #include <iostream>
 
-#include "btor_actions.hpp"
 #include "btor_solver_manager.hpp"
-#include "cvc4_actions.hpp"
 #include "cvc4_solver_manager.hpp"
 #include "fsm.hpp"
 
@@ -44,6 +42,7 @@ test_btor_fsm()
   State* sdelete = fsm.new_state("delete");
   fsm.set_init_state(snew);
 
+#if 0
   btor::BtorActionNew* a_new       = smgr.new_action<btor::BtorActionNew>();
   btor::BtorActionDelete* a_delete = smgr.new_action<btor::BtorActionDelete>();
   snew->add_action(a_new, 10, sdelete);
@@ -51,6 +50,7 @@ test_btor_fsm()
   sdelete->add_action(a_new, 10);
   fsm.check_states();
   fsm.run();
+#endif
 }
 #endif
 
@@ -85,12 +85,14 @@ test_cvc4_fsm()
   State* sdelete = fsm.new_state();
   fsm.set_init_state(snew);
 
+#if 0
   cvc4::CVC4ActionNew* a_new       = smgr.new_action<cvc4::CVC4ActionNew>();
   cvc4::CVC4ActionDelete* a_delete = smgr.new_action<cvc4::CVC4ActionDelete>();
   snew->add_action(a_new, 10, sdelete);
   sdelete->add_action(a_delete, 10);
   snew->add_action(a_new, 10);
   fsm.run();
+#endif
 }
 #endif
 

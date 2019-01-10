@@ -10,6 +10,8 @@
 namespace smtmbt {
 namespace btor {
 
+/* -------------------------------------------------------------------------- */
+
 struct BoolectorNodeHashFunc
 {
   size_t operator()(const BoolectorNode *n) const;
@@ -20,11 +22,17 @@ struct BoolectorSortHashFunc
   size_t operator()(const BoolectorSort s) const;
 };
 
-class BtorSolverManager : public SolverManager<Btor *,
-                                               BoolectorNode *,
-                                               BoolectorSort,
-                                               BoolectorNodeHashFunc,
-                                               BoolectorSortHashFunc>
+/* -------------------------------------------------------------------------- */
+
+using BtorSolverManagerBase = SolverManager<Btor *,
+                                            BoolectorNode *,
+                                            BoolectorSort,
+                                            BoolectorNodeHashFunc,
+                                            BoolectorSortHashFunc>;
+
+/* -------------------------------------------------------------------------- */
+
+class BtorSolverManager : public BtorSolverManagerBase
 {
  public:
   BtorSolverManager() = default;
@@ -35,6 +43,8 @@ class BtorSolverManager : public SolverManager<Btor *,
   BoolectorSort copy_sort(BoolectorSort sort) override;
   BoolectorSort get_sort(BoolectorNode *term) override;
 };
+
+/* -------------------------------------------------------------------------- */
 
 }  // namespace btor
 }  // namespace smtmbt

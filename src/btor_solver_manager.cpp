@@ -1,10 +1,62 @@
 #include "btor_solver_manager.hpp"
 
+#include <cassert>
 #include <functional>
 #include <iostream>
 
+#include "util.hpp"
+
 namespace smtmbt {
 namespace btor {
+
+/* -------------------------------------------------------------------------- */
+
+class BtorAction : public Action
+{
+ public:
+  BtorAction(BtorSolverManagerBase* smgr, const std::string& id)
+      : Action(id), d_smgr(static_cast<BtorSolverManager*>(smgr))
+  {
+  }
+
+ protected:
+  BtorSolverManager* d_smgr;
+};
+
+/* -------------------------------------------------------------------------- */
+
+class BtorActionNew : public BtorAction
+{
+ public:
+  BtorActionNew(BtorSolverManagerBase* smgr) : BtorAction(smgr, "new") {}
+
+  void run() override
+  {
+    SMTMBT_TRACE << get_id();
+    Btor* btor = d_smgr->get_solver();
+    if (btor != nullptr) boolector_delete(btor);
+    d_smgr->set_solver(boolector_new());
+  }
+  // void untrace(const char* s) override;
+};
+
+class BtorActionDelete : public BtorAction
+{
+ public:
+  BtorActionDelete(BtorSolverManagerBase* smgr) : BtorAction(smgr, "delete") {}
+
+  void run() override
+  {
+    SMTMBT_TRACE << get_id();
+    Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    boolector_delete(btor);
+    d_smgr->set_solver(nullptr);
+  }
+  // void untrace(const char* s) override;
+};
+
+/* -------------------------------------------------------------------------- */
 
 size_t BoolectorNodeHashFunc::operator()(const BoolectorNode* n) const
 {
@@ -17,6 +69,8 @@ size_t BoolectorSortHashFunc::operator()(const BoolectorSort s) const
 {
   return std::hash<BoolectorSort>{}(s);
 }
+
+/* -------------------------------------------------------------------------- */
 
 BtorSolverManager::~BtorSolverManager()
 {
@@ -52,6 +106,8 @@ BoolectorSort BtorSolverManager::get_sort(BoolectorNode* term)
 {
   return boolector_get_sort(d_solver, term);
 }
+
+/* -------------------------------------------------------------------------- */
 
 }  // namespace btor
 }  // namespace smtmbt

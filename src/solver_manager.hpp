@@ -6,6 +6,8 @@
 
 namespace smtmbt {
 
+/* -------------------------------------------------------------------------- */
+
 class Action
 {
  public:
@@ -19,6 +21,8 @@ class Action
  private:
   std::string d_id;
 };
+
+/* -------------------------------------------------------------------------- */
 
 template <typename TSolver,
           typename TTerm,
@@ -88,6 +92,8 @@ class SolverManager
   std::unordered_map<TSort, TermMap, THashSort> d_terms;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
 };
+
+/* -------------------------------------------------------------------------- */
 
 }  // namespace smtmbt
 #endif
