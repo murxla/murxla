@@ -19,7 +19,7 @@ mkdir -p "$deps_dir"
   ./contrib/setup-lingeling.sh
 
   rm build -rf
-  ./configure.sh --prefix "$deps_dir"
+  ./configure.sh -g --asan --prefix "$deps_dir"
   cd build || exit 1
   make install -j $(nproc)
 )
@@ -30,7 +30,7 @@ mkdir -p "$deps_dir"
   ./contrib/get-antlr-3.4
 
   rm build -rf
-  ./configure.sh --prefix="$deps_dir"
+  ./configure.sh debug --asan --prefix="$deps_dir"
   cd build || exit 1
   make install -j $(nproc)
 )
