@@ -37,6 +37,7 @@ class BtorSolverManager : public BtorSolverManagerBase
  public:
   BtorSolverManager() { configure(); };
   ~BtorSolverManager();
+  void clear();
 
  protected:
   void configure() override;

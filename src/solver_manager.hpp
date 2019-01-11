@@ -46,8 +46,13 @@ class SolverManager
 
   void run() { d_fsm.run(); }
 
- protected:
-  virtual void configure() = 0;
+  void add_sort(TSort sort)
+  {
+    if (d_terms.find(sort) == d_terms.end())
+    {
+      d_terms.emplace(copy_sort(sort), TermMap());
+    }
+  }
 
   void add_term(TTerm term)
   {
@@ -59,15 +64,10 @@ class SolverManager
     }
   }
 
-  TTerm pick_term(/* TODO: TheoryId */) {}
+ protected:
+  virtual void configure() = 0;
 
-  void add_sort(TSort sort)
-  {
-    if (d_terms.find(sort) == d_terms.end())
-    {
-      d_terms.emplace(copy_sort(sort), TermMap());
-    }
-  }
+  TTerm pick_term(/* TODO: TheoryId */) {}
 
   TSort pick_sort(/* TODO: TheoryId */) {}
 

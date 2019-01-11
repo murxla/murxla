@@ -50,8 +50,9 @@ class BtorActionDelete : public BtorAction
   void run() override
   {
     SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    d_smgr->clear();
     Btor* btor = d_smgr->get_solver();
-    assert(btor);
     boolector_delete(btor);
     d_smgr->set_solver(nullptr);
   }
@@ -160,7 +161,41 @@ class BtorActionReleaseAll : public BtorAction
 };
 
 // BoolectorNode *boolector_true (Btor *btor);
+class BtorActionTrue : public BtorAction
+{
+ public:
+  BtorActionTrue(BtorSolverManagerBase* smgr) : BtorAction(smgr, "true") {}
+
+  void run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    Btor* btor = d_smgr->get_solver();
+    BoolectorNode* res = boolector_true(btor);
+    d_smgr->add_term(res);
+    boolector_release(btor, res);
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorNode *boolector_false (Btor *btor);
+class BtorActionFalse : public BtorAction
+{
+ public:
+  BtorActionFalse(BtorSolverManagerBase* smgr) : BtorAction(smgr, "false") {}
+
+  void run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    Btor* btor = d_smgr->get_solver();
+    BoolectorNode* res = boolector_false(btor);
+    d_smgr->add_term(res);
+    boolector_release(btor, res);
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorNode *boolector_implies (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_eq (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
@@ -306,8 +341,10 @@ BoolectorSortHashFunc::operator()(const BoolectorSort s) const
 
 /* -------------------------------------------------------------------------- */
 
-BtorSolverManager::~BtorSolverManager()
+void
+BtorSolverManager::clear()
 {
+  assert(d_terms.empty() || d_solver);
   BoolectorSort sort;
   BtorSolverManager::TermMap tmap;
   for (auto& p : d_terms)
@@ -320,6 +357,13 @@ BtorSolverManager::~BtorSolverManager()
       boolector_release(d_solver, p.first);
     }
   }
+  d_terms.clear();
+}
+
+BtorSolverManager::~BtorSolverManager()
+{
+  clear();
+
   if (d_solver != nullptr)
   {
     boolector_delete(d_solver);
@@ -349,16 +393,26 @@ BtorSolverManager::configure()
 {
   /* Actions ................................................................ */
   auto adelete = new_action<BtorActionDelete>();
+  auto afalse  = new_action<BtorActionFalse>();
+  auto afixa   = new_action<BtorActionFixateAssumptions>();
   auto anew    = new_action<BtorActionNew>();
+  auto relall  = new_action<BtorActionReleaseAll>();
+  auto aresa   = new_action<BtorActionResetAssumptions>();
   auto asat    = new_action<BtorActionSat>();
+  auto atrue   = new_action<BtorActionTrue>();
 
   /* States ................................................................. */
+  auto screate = d_fsm.new_state("create");
   auto sdelete = d_fsm.new_state("delete");
   auto snew    = d_fsm.new_state("new");
   auto ssat    = d_fsm.new_state("sat");
 
   /* Transitions ............................................................ */
-  snew->add_action(anew, 10, ssat);
+  snew->add_action(anew, 10, screate);
+  screate->add_action(atrue, 10, screate);
+  screate->add_action(atrue, 10, ssat);
+  screate->add_action(afalse, 10, screate);
+  screate->add_action(afalse, 10, ssat);
   ssat->add_action(asat, 10, sdelete);
   sdelete->add_action(adelete, 10);
   // TODO reset_assumptions
