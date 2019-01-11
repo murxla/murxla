@@ -294,7 +294,7 @@ size_t
 BoolectorNodeHashFunc::operator()(const BoolectorNode* n) const
 {
   Btor* btor = boolector_get_btor(const_cast<BoolectorNode*>(n));
-  int32_t id = boolector_get_id(btor, const_cast<BoolectorNode*>(n));
+  int32_t id = boolector_get_node_id(btor, const_cast<BoolectorNode*>(n));
   return std::hash<int32_t>{}(id);
 }
 
