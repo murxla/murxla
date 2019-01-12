@@ -59,6 +59,7 @@ class CVC4ActionDelete : public CVC4Action
 CVC4SolverManager::~CVC4SolverManager()
 {
   d_terms.clear();
+  d_sorts.clear();
   delete d_solver;
 }
 

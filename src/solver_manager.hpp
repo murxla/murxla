@@ -1,12 +1,19 @@
 #ifndef __SMTMBT__SOLVER_MANAGER_H
 #define __SMTMBT__SOLVER_MANAGER_H
 
+#include <cassert>
 #include <memory>
 #include <unordered_map>
 
 #include "fsm.hpp"
 
 namespace smtmbt {
+
+enum TheoryId
+{
+  THEORY_BOOL,
+  THEORY_BV,
+};
 
 /* -------------------------------------------------------------------------- */
 
@@ -35,6 +42,7 @@ class SolverManager
 {
  public:
   using TermMap = std::unordered_map<TTerm, size_t, THashTerm>;
+  using SortMap = std::unordered_map<TSort, TermMap, THashSort>;
 
   SolverManager() : d_solver(nullptr), d_terms(), d_actions(), d_fsm() {}
   // TODO: copy/assignment constructors?
@@ -46,30 +54,94 @@ class SolverManager
 
   void run() { d_fsm.run(); }
 
-  void add_sort(TSort sort)
+  void add_term(TTerm term, TheoryId theory)
   {
-    if (d_terms.find(sort) == d_terms.end())
+    TSort sort = get_sort(term);
+    add_sort(sort, theory);
+
+    assert(d_terms.find(theory) != d_terms.end());
+
+    SortMap& smap = d_terms[theory];
+    assert(smap.find(sort) != smap.end());
+    if (smap[sort].find(term) == smap[sort].end())
     {
-      d_terms.emplace(copy_sort(sort), TermMap());
+      smap[sort].emplace(copy_term(term), 0);
+    }
+    else
+    {
+      smap[sort][term] += 1;
     }
   }
 
-  void add_term(TTerm term)
+  void add_sort(TSort sort, TheoryId theory)
   {
-    TSort sort = get_sort(term);
-    add_sort(sort);
-    if (d_terms[sort].find(term) == d_terms[sort].end())
+    if (d_terms.find(theory) == d_terms.end())
     {
-      d_terms[sort].emplace(copy_term(term), 0);
+      d_terms.emplace(theory, SortMap());
     }
+
+    SortMap& map = d_terms[theory];
+    if (map.find(sort) == map.end())
+    {
+      map.emplace(copy_sort(sort), TermMap());
+      d_sorts.emplace(sort, theory);
+    }
+  }
+
+  TTerm pick_term()
+  {
+    TheoryId theory = pick_theory();
+    return pick_term(theory);
+  }
+
+  TTerm pick_term(TheoryId theory)
+  {
+    assert(d_terms.find(theory) != d_terms.end());
+    TSort sort = pick_sort(theory);
+    return pick_term(sort);
+  }
+
+  TTerm pick_term(TSort sort)
+  {
+    TheoryId theory = get_theory(sort);
+    TermMap& map    = d_terms[theory][sort];
+    assert(!map.empty());
+    auto it = map.begin();
+    if (map.size() > 1)
+    {
+      std::advance(it, rng.next_uint32() % map.size());
+    }
+    // TODO: increment ref counter
+    return it->first;
+  }
+
+  TSort pick_sort()
+  {
+    TheoryId theory = pick_theory();
+    pick_sort(theory);
+  }
+
+  TSort pick_sort(TheoryId theory)
+  {
+    SortMap& map = d_terms[theory];
+    assert(!map.empty());
+
+    auto it = map.begin();
+    if (map.size() > 1)
+    {
+      std::advance(it, rng.next_uint32() % map.size());
+    }
+    return it->first;
+  }
+
+  TheoryId get_theory(TSort sort)
+  {
+    assert(d_sorts.find(sort) != d_sorts.end());
+    return d_sorts[sort];
   }
 
  protected:
   virtual void configure() = 0;
-
-  TTerm pick_term(/* TODO: TheoryId */) {}
-
-  TSort pick_sort(/* TODO: TheoryId */) {}
 
   template <class T>
   T* new_action()
@@ -94,10 +166,21 @@ class SolverManager
   virtual TSort copy_sort(TSort sort) { return sort; }
   virtual TSort get_sort(TTerm term) = 0;
 
-  TSolver d_solver;
-  std::unordered_map<TSort, TermMap, THashSort> d_terms;
-  std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
   FSM d_fsm;
+  TSolver d_solver;
+  std::unordered_map<TSort, TheoryId, THashSort> d_sorts;
+  std::unordered_map<TheoryId, SortMap> d_terms;
+
+ private:
+  RNGenerator rng; // TODO: initialze with seed
+  std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
+
+  TheoryId pick_theory()
+  {
+    auto it = d_terms.begin();
+    std::advance(it, rng.next_uint32() % d_terms.size());
+    return it->first;
+  }
 };
 
 /* -------------------------------------------------------------------------- */

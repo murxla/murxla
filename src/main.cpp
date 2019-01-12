@@ -18,19 +18,34 @@ void test_btor_smgr()
   BoolectorSort bv31 = boolector_bitvec_sort(btor, 31);
   BoolectorNode* x = boolector_var(btor, bv32, "x");
   BoolectorNode* y = boolector_var(btor, bv31, "y");
+  BoolectorNode* z = boolector_var(btor, bv32, "z");
 
-#if 0
-  smgr.add_sort(bv32);
-  smgr.add_sort(bv31);
+#if 1
+  smgr.add_term(x, THEORY_BV);
+  smgr.add_term(y, THEORY_BV);
+  smgr.add_term(y, THEORY_BV);
+  smgr.add_term(z, THEORY_BV);
 
-  smgr.add_term(x);
-  smgr.add_term(y);
+  BoolectorNode* n0 = smgr.pick_term(bv32);
+  BoolectorNode* n1 = smgr.pick_term(bv32);
+
+  BoolectorNode* eq = boolector_eq(btor, n0, n1);
+  smgr.add_term(eq, THEORY_BOOL);
+
+  BoolectorNode *n2 = smgr.pick_term(THEORY_BOOL);
+  BoolectorNode *n3 = smgr.pick_term(THEORY_BOOL);
+  BoolectorNode *a = boolector_and(btor, n2, n3);
+  smgr.add_term(a, THEORY_BOOL);
+
 #endif
 
   boolector_release_sort(btor, bv32);
   boolector_release_sort(btor, bv31);
   boolector_release(btor, x);
   boolector_release(btor, y);
+  boolector_release(btor, z);
+  boolector_release(btor, eq);
+  boolector_release(btor, a);
 }
 
 void
@@ -55,12 +70,12 @@ void test_cvc4_smgr()
   CVC4::api::Term x = cvc4->mkVar("x", bv32);
   CVC4::api::Term y = cvc4->mkVar("y", bv32);
 
-#if 0
-  smgr.add_sort(bv32);
-  smgr.add_sort(bv31);
+#if 1
+  smgr.add_sort(bv32, THEORY_BV);
+  smgr.add_sort(bv31, THEORY_BV);
 
-  smgr.add_term(x);
-  smgr.add_term(y);
+  smgr.add_term(x, THEORY_BV);
+  smgr.add_term(y, THEORY_BV);
 #endif
 }
 

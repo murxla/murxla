@@ -172,7 +172,7 @@ class BtorActionTrue : public BtorAction
     assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
     BoolectorNode* res = boolector_true(btor);
-    d_smgr->add_term(res);
+    d_smgr->add_term(res, THEORY_BOOL);
     boolector_release(btor, res);
   }
   // void untrace(const char* s) override;
@@ -190,7 +190,7 @@ class BtorActionFalse : public BtorAction
     assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
     BoolectorNode* res = boolector_false(btor);
-    d_smgr->add_term(res);
+    d_smgr->add_term(res, THEORY_BOOL);
     boolector_release(btor, res);
   }
   // void untrace(const char* s) override;
@@ -345,16 +345,22 @@ void
 BtorSolverManager::clear()
 {
   assert(d_terms.empty() || d_solver);
+  TheoryId theory;
   BoolectorSort sort;
+  BtorSolverManager::SortMap smap;
   BtorSolverManager::TermMap tmap;
+
   for (auto& p : d_terms)
   {
-    std::tie(sort, tmap) = p;
-    boolector_release_sort(d_solver, sort);
-
-    for (auto& p : tmap)
+    std::tie(theory, smap) = p;
+    for (auto& p : smap)
     {
-      boolector_release(d_solver, p.first);
+      std::tie(sort, tmap) = p;
+      boolector_release_sort(d_solver, sort);
+      for (auto& p : tmap)
+      {
+        boolector_release(d_solver, p.first);
+      }
     }
   }
   d_terms.clear();
