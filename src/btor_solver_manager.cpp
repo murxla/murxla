@@ -457,11 +457,15 @@ BtorSolverManager::configure()
 
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, screate);
-  screate->add_action(atrue, 10, screate);
+
+  screate->add_action(atrue, 20, screate);
   screate->add_action(afalse, 10, screate);
-  screate->add_action(noaction, 5, ssat);
+  screate->add_action(noaction, 1, ssat);
+
   ssat->add_action(asat, 10, sdelete);
+
   sdelete->add_action(adelete, 10);
+
   // TODO reset_assumptions
   // TODO fixate_assumptions
   // TODO release_all

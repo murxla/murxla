@@ -44,7 +44,7 @@ class SolverManager
   using TermMap = std::unordered_map<TTerm, size_t, THashTerm>;
   using SortMap = std::unordered_map<TSort, TermMap, THashSort>;
 
-  SolverManager() : d_solver(nullptr), d_terms(), d_actions(), d_fsm() {}
+  SolverManager() : d_solver(nullptr) {}
   // TODO: copy/assignment constructors?
   ~SolverManager() = default;
 
@@ -109,7 +109,7 @@ class SolverManager
     auto it = map.begin();
     if (map.size() > 1)
     {
-      std::advance(it, rng.next_uint32() % map.size());
+      std::advance(it, d_rng.next_uint32() % map.size());
     }
     // TODO: increment ref counter
     return it->first;
@@ -129,7 +129,7 @@ class SolverManager
     auto it = map.begin();
     if (map.size() > 1)
     {
-      std::advance(it, rng.next_uint32() % map.size());
+      std::advance(it, d_rng.next_uint32() % map.size());
     }
     return it->first;
   }
@@ -139,6 +139,8 @@ class SolverManager
     assert(d_sorts.find(sort) != d_sorts.end());
     return d_sorts[sort];
   }
+
+  void set_rng(RNGenerator rng) { d_rng = rng; }
 
  protected:
   virtual void configure() = 0;
@@ -172,13 +174,13 @@ class SolverManager
   std::unordered_map<TheoryId, SortMap> d_terms;
 
  private:
-  RNGenerator rng; // TODO: initialze with seed
+  RNGenerator d_rng;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
 
   TheoryId pick_theory()
   {
     auto it = d_terms.begin();
-    std::advance(it, rng.next_uint32() % d_terms.size());
+    std::advance(it, d_rng.next_uint32() % d_terms.size());
     return it->first;
   }
 };

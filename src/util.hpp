@@ -20,8 +20,9 @@ class SeedGenerator
 class RNGenerator
 {
   public:
-    uint32_t next_uint32();
-    uint32_t pick_weighted_uint32(std::vector<uint32_t>& weights);
+   explicit RNGenerator(uint32_t seed = 0) : d_seed(seed) { d_rng.seed(seed); }
+   uint32_t next_uint32();
+   uint32_t pick_weighted_uint32(std::vector<uint32_t>& weights);
 
   private:
     uint32_t d_seed;
