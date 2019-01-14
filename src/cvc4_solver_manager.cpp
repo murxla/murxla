@@ -28,12 +28,13 @@ class CVC4ActionNew : public CVC4Action
  public:
   CVC4ActionNew(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "new") {}
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     CVC4::api::Solver* cvc4 = d_smgr->get_solver();
     if (cvc4 != nullptr) delete (cvc4);
     d_smgr->set_solver(new CVC4::api::Solver());
+    return true;
   }
   // void untrace(const char* s) override;
 };
@@ -43,13 +44,14 @@ class CVC4ActionDelete : public CVC4Action
  public:
   CVC4ActionDelete(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "delete") {}
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     CVC4::api::Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     delete (cvc4);
     d_smgr->set_solver(nullptr);
+    return true;
   }
   // void untrace(const char* s) override;
 };

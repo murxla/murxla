@@ -23,7 +23,7 @@ class Action
   Action() = delete;
   Action(const std::string& id) : d_id(id) {}
   virtual ~Action() = default;
-  virtual void run() = 0;
+  virtual bool run() = 0;
   // virtual void untrace(const char* s) {}
   const std::string& get_id() const { return d_id; }
 

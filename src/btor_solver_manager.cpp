@@ -25,18 +25,27 @@ class BtorAction : public Action
 
 /* -------------------------------------------------------------------------- */
 
+// This action is only used to make transitions without executing any action.
+class BtorActionNone : public BtorAction
+{
+ public:
+  BtorActionNone(BtorSolverManagerBase* smgr) : BtorAction(smgr, "") {}
+  bool run() override { return true; }
+};
+
 // void boolector_new ();
 class BtorActionNew : public BtorAction
 {
  public:
   BtorActionNew(BtorSolverManagerBase* smgr) : BtorAction(smgr, "new") {}
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     if (btor != nullptr) boolector_delete(btor);
     d_smgr->set_solver(boolector_new());
+    return true;
   }
   // void untrace(const char* s) override;
 };
@@ -47,7 +56,7 @@ class BtorActionDelete : public BtorAction
  public:
   BtorActionDelete(BtorSolverManagerBase* smgr) : BtorAction(smgr, "delete") {}
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     assert(d_smgr->get_solver());
@@ -55,6 +64,7 @@ class BtorActionDelete : public BtorAction
     Btor* btor = d_smgr->get_solver();
     boolector_delete(btor);
     d_smgr->set_solver(nullptr);
+    return true;
   }
   // void untrace(const char* s) override;
 };
@@ -86,11 +96,12 @@ class BtorActionFixateAssumptions : public BtorAction
   {
   }
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     assert(d_smgr->get_solver());
     boolector_fixate_assumptions(d_smgr->get_solver());
+    return true;
   }
   // void untrace(const char* s) override;
 };
@@ -104,11 +115,12 @@ class BtorActionResetAssumptions : public BtorAction
   {
   }
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     assert(d_smgr->get_solver());
     boolector_reset_assumptions(d_smgr->get_solver());
+    return true;
   }
 };
 
@@ -118,11 +130,12 @@ class BtorActionSat : public BtorAction
  public:
   BtorActionSat(BtorSolverManagerBase* smgr) : BtorAction(smgr, "sat") {}
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     assert(d_smgr->get_solver());
     boolector_sat(d_smgr->get_solver());
+    return true;
   }
 };
 
@@ -152,11 +165,12 @@ class BtorActionReleaseAll : public BtorAction
   {
   }
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     assert(d_smgr->get_solver());
     boolector_release_all(d_smgr->get_solver());
+    return true;
   }
 };
 
@@ -166,7 +180,7 @@ class BtorActionTrue : public BtorAction
  public:
   BtorActionTrue(BtorSolverManagerBase* smgr) : BtorAction(smgr, "true") {}
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     assert(d_smgr->get_solver());
@@ -174,6 +188,7 @@ class BtorActionTrue : public BtorAction
     BoolectorNode* res = boolector_true(btor);
     d_smgr->add_term(res, THEORY_BOOL);
     boolector_release(btor, res);
+    return true;
   }
   // void untrace(const char* s) override;
 };
@@ -184,7 +199,7 @@ class BtorActionFalse : public BtorAction
  public:
   BtorActionFalse(BtorSolverManagerBase* smgr) : BtorAction(smgr, "false") {}
 
-  void run() override
+  bool run() override
   {
     SMTMBT_TRACE << get_id();
     assert(d_smgr->get_solver());
@@ -192,11 +207,31 @@ class BtorActionFalse : public BtorAction
     BoolectorNode* res = boolector_false(btor);
     d_smgr->add_term(res, THEORY_BOOL);
     boolector_release(btor, res);
+    return true;
   }
   // void untrace(const char* s) override;
 };
 
 // BoolectorNode *boolector_implies (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+class BtorActionImplies : public BtorAction
+{
+ public:
+  BtorActionImplies(BtorSolverManagerBase* smgr) : BtorAction(smgr, "implies") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    Btor* btor = d_smgr->get_solver();
+    BoolectorNode* a = d_smgr->pick_term(THEORY_BOOL);
+    BoolectorNode* b = d_smgr->pick_term(THEORY_BOOL);
+    BoolectorNode* res = boolector_implies(btor, a, b);
+    d_smgr->add_term(res, THEORY_BOOL);
+    boolector_release(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 // BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_eq (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_ne (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
@@ -401,11 +436,14 @@ BtorSolverManager::configure()
   auto adelete = new_action<BtorActionDelete>();
   auto afalse  = new_action<BtorActionFalse>();
   auto afixa   = new_action<BtorActionFixateAssumptions>();
+  auto aimp    = new_action<BtorActionImplies>();
   auto anew    = new_action<BtorActionNew>();
   auto relall  = new_action<BtorActionReleaseAll>();
   auto aresa   = new_action<BtorActionResetAssumptions>();
   auto asat    = new_action<BtorActionSat>();
   auto atrue   = new_action<BtorActionTrue>();
+
+  auto noaction = new_action<BtorActionNone>();
 
   /* States ................................................................. */
   auto screate = d_fsm.new_state("create");
@@ -416,9 +454,9 @@ BtorSolverManager::configure()
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, screate);
   screate->add_action(atrue, 10, screate);
-  screate->add_action(atrue, 10, ssat);
   screate->add_action(afalse, 10, screate);
-  screate->add_action(afalse, 10, ssat);
+  screate->add_action(noaction, 5, ssat);
+
   ssat->add_action(asat, 10, sdelete);
   sdelete->add_action(adelete, 10);
   // TODO reset_assumptions

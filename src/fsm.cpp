@@ -21,8 +21,11 @@ State::run()
 {
   assert(!d_actions.empty());
   uint32_t idx = s_rng.pick_weighted_uint32(d_weights);
-  d_actions[idx].d_action->run();
-  return d_actions[idx].d_next;
+  if (d_actions[idx].d_action->run())
+  {
+    return d_actions[idx].d_next;
+  }
+  return this;
 }
 
 State*
