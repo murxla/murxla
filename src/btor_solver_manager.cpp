@@ -433,15 +433,19 @@ void
 BtorSolverManager::configure()
 {
   /* Actions ................................................................ */
+  /* create/delete solver */
   auto adelete = new_action<BtorActionDelete>();
-  auto afalse  = new_action<BtorActionFalse>();
-  auto afixa   = new_action<BtorActionFixateAssumptions>();
-  auto aimp    = new_action<BtorActionImplies>();
   auto anew    = new_action<BtorActionNew>();
+  /* make consts */
+  auto afalse  = new_action<BtorActionFalse>();
+  auto atrue   = new_action<BtorActionTrue>();
+  /* make terms */
+  auto aimp    = new_action<BtorActionImplies>();
+  /* commands */
+  auto afixa   = new_action<BtorActionFixateAssumptions>();
   auto relall  = new_action<BtorActionReleaseAll>();
   auto aresa   = new_action<BtorActionResetAssumptions>();
   auto asat    = new_action<BtorActionSat>();
-  auto atrue   = new_action<BtorActionTrue>();
 
   auto noaction = new_action<BtorActionNone>();
 

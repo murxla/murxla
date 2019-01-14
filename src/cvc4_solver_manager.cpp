@@ -431,11 +431,14 @@ void
 CVC4SolverManager::configure()
 {
   /* Actions ................................................................ */
-  auto achecksat = new_action<CVC4ActionCheckSat>();
-  auto adelete   = new_action<CVC4ActionDelete>();
-  auto amktrue   = new_action<CVC4ActionMkTrue>();
-  auto amkfalse  = new_action<CVC4ActionMkFalse>();
+  /* create/delete solver */
   auto anew      = new_action<CVC4ActionNew>();
+  auto adelete   = new_action<CVC4ActionDelete>();
+  /* make consts */
+  auto amkfalse  = new_action<CVC4ActionMkFalse>();
+  auto amktrue   = new_action<CVC4ActionMkTrue>();
+  /* commands */
+  auto achecksat = new_action<CVC4ActionCheckSat>();
 
   auto noaction = new_action<CVC4ActionNone>();
 
