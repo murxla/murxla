@@ -101,6 +101,12 @@ class SolverManager
     return pick_term(sort);
   }
 
+  TTerm pick_term(TTerm term)
+  {
+    TSort sort = get_sort(term);
+    return pick_term(sort);
+  }
+
   TTerm pick_term(TSort sort)
   {
     TheoryId theory = get_theory(sort);
