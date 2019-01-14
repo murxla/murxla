@@ -23,6 +23,14 @@ class CVC4Action : public Action
 
 /* -------------------------------------------------------------------------- */
 
+/* This action is only used to make transitions without executing any action. */
+class CVC4ActionNone : public CVC4Action
+{
+ public:
+  CVC4ActionNone(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "") {}
+  bool run() override { return true; }
+};
+
 class CVC4ActionNew : public CVC4Action
 {
  public:
@@ -278,8 +286,39 @@ class CVC4ActionDelete : public CVC4Action
 // OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg);
 // OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg);
 // OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
+
 // Term Solver::mkTrue() const;
+class CVC4ActionMkTrue : public CVC4Action
+{
+ public:
+  CVC4ActionMkTrue(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTrue") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    CVC4::api::Term res = d_smgr->get_solver()->mkTrue();
+    d_smgr->add_term(res, THEORY_BOOL);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Term Solver::mkFalse() const;
+class CVC4ActionMkFalse : public CVC4Action
+{
+ public:
+  CVC4ActionMkFalse(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkFalse") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    CVC4::api::Term res = d_smgr->get_solver()->mkFalse();
+    d_smgr->add_term(res, THEORY_BOOL);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Term Solver::mkBoolean(bool val) const;
 // Term Solver::mkPi() const;
 // Term Solver::mkReal(const char* s) const;
@@ -322,7 +361,23 @@ class CVC4ActionDelete : public CVC4Action
 // Term Solver::mkBoundVar(Sort sort) const;
 // Term Solver::simplify(const Term& t);
 // void Solver::assertFormula(Term term) const;
+
 // Result Solver::checkSat() const;
+class CVC4ActionCheckSat : public CVC4Action
+{
+ public:
+  CVC4ActionCheckSat(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "checkSat") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    // TODO query result
+    (void)d_smgr->get_solver()->checkSat();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Result Solver::checkSatAssuming(Term assumption) const;
 // Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const;
 // Result Solver::checkValid() const;
@@ -376,15 +431,26 @@ void
 CVC4SolverManager::configure()
 {
   /* Actions ................................................................ */
-  auto anew    = new_action<CVC4ActionNew>();
-  auto adelete = new_action<CVC4ActionDelete>();
+  auto achecksat = new_action<CVC4ActionCheckSat>();
+  auto adelete   = new_action<CVC4ActionDelete>();
+  auto amktrue   = new_action<CVC4ActionMkTrue>();
+  auto amkfalse  = new_action<CVC4ActionMkFalse>();
+  auto anew      = new_action<CVC4ActionNew>();
+
+  auto noaction = new_action<CVC4ActionNone>();
 
   /* States ................................................................. */
-  auto snew    = d_fsm.new_state("new");
+  auto screate = d_fsm.new_state("create");
   auto sdelete = d_fsm.new_state("delete");
+  auto snew    = d_fsm.new_state("new");
+  auto ssat    = d_fsm.new_state("sat");
 
   /* Transitions ............................................................ */
-  snew->add_action(anew, 10, sdelete);
+  snew->add_action(anew, 10, screate);
+  screate->add_action(amktrue, 10, screate);
+  screate->add_action(amkfalse, 10, screate);
+  screate->add_action(noaction, 5, ssat);
+  ssat->add_action(achecksat, 10, sdelete);
   sdelete->add_action(adelete, 10);
 
   /* Initial State .......................................................... */

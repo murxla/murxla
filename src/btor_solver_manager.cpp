@@ -25,7 +25,7 @@ class BtorAction : public Action
 
 /* -------------------------------------------------------------------------- */
 
-// This action is only used to make transitions without executing any action.
+/* This action is only used to make transitions without executing any action. */
 class BtorActionNone : public BtorAction
 {
  public:
@@ -456,7 +456,6 @@ BtorSolverManager::configure()
   screate->add_action(atrue, 10, screate);
   screate->add_action(afalse, 10, screate);
   screate->add_action(noaction, 5, ssat);
-
   ssat->add_action(asat, 10, sdelete);
   sdelete->add_action(adelete, 10);
   // TODO reset_assumptions
