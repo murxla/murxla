@@ -44,6 +44,13 @@ class SolverManager
   using TermMap = std::unordered_map<TTerm, size_t, THashTerm>;
   using SortMap = std::unordered_map<TSort, TermMap, THashSort>;
 
+  /* Statistics. */
+  struct Stats
+  {
+    uint32_t inputs = 0;  /* constants, variables */
+    uint32_t terms  = 0;   /* all terms, including inputs */
+  };
+
   SolverManager() : d_solver(nullptr) {}
   // TODO: copy/assignment constructors?
   ~SolverManager() = default;
@@ -53,6 +60,12 @@ class SolverManager
   TSolver get_solver() { return d_solver; }
 
   void run() { d_fsm.run(); }
+
+  void add_input(TTerm term, TheoryId theory)
+  {
+    d_stats.inputs += 1;
+    add_term (term, theory);
+  }
 
   void add_term(TTerm term, TheoryId theory)
   {
@@ -148,6 +161,8 @@ class SolverManager
 
   void set_rng(RNGenerator rng) { d_rng = rng; }
 
+  Stats d_stats;
+
  protected:
   virtual void configure() = 0;
 
@@ -185,6 +200,7 @@ class SolverManager
 
   TheoryId pick_theory()
   {
+    assert(d_terms.size());
     auto it = d_terms.begin();
     std::advance(it, d_rng.next_uint32() % d_terms.size());
     return it->first;
