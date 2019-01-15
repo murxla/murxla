@@ -29,6 +29,7 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
  public:
   CVC4SolverManager() { configure(); }
   ~CVC4SolverManager();
+  void clear();
 
  protected:
   void configure() override;

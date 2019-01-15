@@ -23,13 +23,38 @@ class CVC4Action : public Action
 
 /* -------------------------------------------------------------------------- */
 
-/* This action is only used to make transitions without executing any action. */
+/* Transition-only actions (these actions are only used to make transitions
+ * without executing any action). */
+
+/**
+ * Default transition action (no condition checked).
+ *
+ * State:      any state if applicable
+ * Transition: unconditional
+ */
 class CVC4ActionNone : public CVC4Action
 {
  public:
   CVC4ActionNone(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "") {}
   bool run() override { return true; }
 };
+
+/**
+ * Transition from creating inputs to the next state.
+ *
+ * State:      create inputs
+ * Transition: if there exists at least one input
+ */
+class CVC4ActionNoneCreateInputs : public CVC4Action
+{
+ public:
+  CVC4ActionNoneCreateInputs(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "")
+  {
+  }
+  bool run() override { return d_smgr->d_stats.inputs > 0; }
+};
+
+/* -------------------------------------------------------------------------- */
 
 class CVC4ActionNew : public CVC4Action
 {
@@ -56,8 +81,9 @@ class CVC4ActionDelete : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    d_smgr->clear();
     assert(cvc4);
-    delete (cvc4);
+    delete cvc4;
     d_smgr->set_solver(nullptr);
     return true;
   }
@@ -297,7 +323,7 @@ class CVC4ActionMkTrue : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     CVC4::api::Term res = d_smgr->get_solver()->mkTrue();
-    d_smgr->add_term(res, THEORY_BOOL);
+    d_smgr->add_input(res, THEORY_BOOL);
     return true;
   }
   // void untrace(const char* s) override;
@@ -307,13 +333,15 @@ class CVC4ActionMkTrue : public CVC4Action
 class CVC4ActionMkFalse : public CVC4Action
 {
  public:
-  CVC4ActionMkFalse(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkFalse") {}
+  CVC4ActionMkFalse(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkFalse")
+  {
+  }
 
   bool run() override
   {
     SMTMBT_TRACE << get_id();
     CVC4::api::Term res = d_smgr->get_solver()->mkFalse();
-    d_smgr->add_term(res, THEORY_BOOL);
+    d_smgr->add_input(res, THEORY_BOOL);
     return true;
   }
   // void untrace(const char* s) override;
@@ -414,10 +442,16 @@ class CVC4ActionCheckSat : public CVC4Action
 
 /* -------------------------------------------------------------------------- */
 
-CVC4SolverManager::~CVC4SolverManager()
+void
+CVC4SolverManager::clear()
 {
   d_terms.clear();
   d_sorts.clear();
+}
+
+CVC4SolverManager::~CVC4SolverManager()
+{
+  clear();
   delete d_solver;
 }
 
@@ -439,20 +473,26 @@ CVC4SolverManager::configure()
   auto amktrue   = new_action<CVC4ActionMkTrue>();
   /* commands */
   auto achecksat = new_action<CVC4ActionCheckSat>();
-
-  auto noaction = new_action<CVC4ActionNone>();
+  /* transitions */
+  auto tinputs = new_action<CVC4ActionNoneCreateInputs>();
+  auto tnone   = new_action<CVC4ActionNone>();
 
   /* States ................................................................. */
-  auto screate = d_fsm.new_state("create");
   auto sdelete = d_fsm.new_state("delete");
+  auto sinputs = d_fsm.new_state("create inputs");
   auto snew    = d_fsm.new_state("new");
   auto ssat    = d_fsm.new_state("sat");
+  auto sterms  = d_fsm.new_state("create terms");
 
   /* Transitions ............................................................ */
-  snew->add_action(anew, 10, screate);
-  screate->add_action(amktrue, 10, screate);
-  screate->add_action(amkfalse, 10, screate);
-  screate->add_action(noaction, 5, ssat);
+  snew->add_action(anew, 10, sinputs);
+
+  sinputs->add_action(amktrue, 10, sinputs);
+  sinputs->add_action(amkfalse, 10, sinputs);
+  sinputs->add_action(tinputs, 10, sterms);
+
+  sterms->add_action(tnone, 5, ssat);
+
   ssat->add_action(achecksat, 10, sdelete);
   sdelete->add_action(adelete, 10);
 

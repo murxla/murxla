@@ -485,6 +485,7 @@ BtorSolverManager::clear()
     }
   }
   d_terms.clear();
+  d_sorts.clear();
 }
 
 BtorSolverManager::~BtorSolverManager()
