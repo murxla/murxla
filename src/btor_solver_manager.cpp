@@ -25,13 +25,38 @@ class BtorAction : public Action
 
 /* -------------------------------------------------------------------------- */
 
-/* This action is only used to make transitions without executing any action. */
+/* Transition-only actions (these actions are only used to make transitions
+ * without executing any action). */
+
+/**
+ * Default transition action (no condition checked).
+ *
+ * State:      any state if applicable
+ * Transition: unconditional
+ */
 class BtorActionNone : public BtorAction
 {
  public:
   BtorActionNone(BtorSolverManagerBase* smgr) : BtorAction(smgr, "") {}
   bool run() override { return true; }
 };
+
+/**
+ * Transition from creating inputs to the next state.
+ *
+ * State:      create inputs
+ * Transition: if there exists at least one input
+ */
+class BtorActionNoneCreateInputs : public BtorAction
+{
+ public:
+  BtorActionNoneCreateInputs(BtorSolverManagerBase* smgr) : BtorAction(smgr, "")
+  {
+  }
+  bool run() override { return d_smgr->d_stats.inputs > 0; }
+};
+
+/* -------------------------------------------------------------------------- */
 
 // void boolector_new ();
 class BtorActionNew : public BtorAction
@@ -186,7 +211,7 @@ class BtorActionTrue : public BtorAction
     assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
     BoolectorNode* res = boolector_true(btor);
-    d_smgr->add_term(res, THEORY_BOOL);
+    d_smgr->add_input(res, THEORY_BOOL);
     boolector_release(btor, res);
     return true;
   }
@@ -205,7 +230,7 @@ class BtorActionFalse : public BtorAction
     assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
     BoolectorNode* res = boolector_false(btor);
-    d_smgr->add_term(res, THEORY_BOOL);
+    d_smgr->add_input(res, THEORY_BOOL);
     boolector_release(btor, res);
     return true;
   }
@@ -232,9 +257,70 @@ class BtorActionImplies : public BtorAction
   }
   // void untrace(const char* s) override;
 };
+
 // BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+class BtorActionIff : public BtorAction
+{
+ public:
+  BtorActionIff(BtorSolverManagerBase* smgr) : BtorAction(smgr, "iff") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    Btor* btor = d_smgr->get_solver();
+    BoolectorNode* a = d_smgr->pick_term(THEORY_BOOL);
+    BoolectorNode* b = d_smgr->pick_term(THEORY_BOOL);
+    BoolectorNode* res = boolector_iff(btor, a, b);
+    d_smgr->add_term(res, THEORY_BOOL);
+    boolector_release(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorNode *boolector_eq (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+class BtorActionEq : public BtorAction
+{
+ public:
+  BtorActionEq(BtorSolverManagerBase* smgr) : BtorAction(smgr, "eq") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    Btor* btor = d_smgr->get_solver();
+    BoolectorNode* a = d_smgr->pick_term();
+    BoolectorNode* b = d_smgr->pick_term(a);
+    BoolectorNode* res = boolector_eq(btor, a, b);
+    d_smgr->add_term(res, THEORY_BOOL);
+    boolector_release(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorNode *boolector_ne (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
+class BtorActionNe : public BtorAction
+{
+ public:
+  BtorActionNe(BtorSolverManagerBase* smgr) : BtorAction(smgr, "ne") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    assert(d_smgr->get_solver());
+    Btor* btor = d_smgr->get_solver();
+    BoolectorNode* a = d_smgr->pick_term();
+    BoolectorNode* b = d_smgr->pick_term(a);
+    BoolectorNode* res = boolector_ne(btor, a, b);
+    d_smgr->add_term(res, THEORY_BOOL);
+    boolector_release(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorNode *boolector_const (Btor *btor, const char *bits);
 // BoolectorNode *boolector_constd (Btor *btor, BoolectorSort sort, const char *str);
 // BoolectorNode *boolector_consth (Btor *btor, BoolectorSort sort, const char *str);
@@ -440,27 +526,38 @@ BtorSolverManager::configure()
   auto afalse  = new_action<BtorActionFalse>();
   auto atrue   = new_action<BtorActionTrue>();
   /* make terms */
+  auto aeq     = new_action<BtorActionEq>();
+  auto aiff    = new_action<BtorActionIff>();
   auto aimp    = new_action<BtorActionImplies>();
+  auto ane     = new_action<BtorActionNe>();
   /* commands */
   auto afixa   = new_action<BtorActionFixateAssumptions>();
   auto relall  = new_action<BtorActionReleaseAll>();
   auto aresa   = new_action<BtorActionResetAssumptions>();
   auto asat    = new_action<BtorActionSat>();
-
-  auto noaction = new_action<BtorActionNone>();
+  /* transitions */
+  auto tinputs = new_action<BtorActionNoneCreateInputs>();
+  auto tnone   = new_action<BtorActionNone>();
 
   /* States ................................................................. */
-  auto screate = d_fsm.new_state("create");
   auto sdelete = d_fsm.new_state("delete");
+  auto sinputs = d_fsm.new_state("create inputs");
   auto snew    = d_fsm.new_state("new");
   auto ssat    = d_fsm.new_state("sat");
+  auto sterms  = d_fsm.new_state("create terms");
 
   /* Transitions ............................................................ */
-  snew->add_action(anew, 10, screate);
+  snew->add_action(anew, 10, sinputs);
 
-  screate->add_action(atrue, 20, screate);
-  screate->add_action(afalse, 10, screate);
-  screate->add_action(noaction, 1, ssat);
+  sinputs->add_action(atrue, 20, sinputs);
+  sinputs->add_action(afalse, 20, sinputs);
+  sinputs->add_action(tinputs, 10, sterms);
+
+  sterms->add_action(aeq, 10, sterms);
+  sterms->add_action(aiff, 10, sterms);
+  sterms->add_action(aimp, 10, sterms);
+  sterms->add_action(ane, 10, sterms);
+  sterms->add_action(tnone, 1, ssat);
 
   ssat->add_action(asat, 10, sdelete);
 
