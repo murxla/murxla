@@ -12,7 +12,7 @@ namespace smtmbt {
 void
 State::add_action(Action* a, uint32_t weight, State* next)
 {
-  d_actions.emplace_back(ActionTuple(a, next));
+  d_actions.emplace_back(ActionTuple(a, next == nullptr ? this : next));
   d_weights.push_back(weight);
 }
 
@@ -29,9 +29,9 @@ State::run(RNGenerator& rng)
 }
 
 State*
-FSM::new_state(std::string id)
+FSM::new_state(std::string id, bool is_final)
 {
-  d_states.emplace_back(new State(id));
+  d_states.emplace_back(new State(id, is_final));
   return d_states.back().get();
 }
 
@@ -47,6 +47,7 @@ FSM::check_states()
   /* check for infinite loop */
   for (const auto& s : d_states)
   {
+    if (s->is_final()) continue;
     assert(s->d_actions.size());
     std::unordered_set<State*> next_states;
     for (const auto& a : s->d_actions)
@@ -65,7 +66,7 @@ FSM::run()
   check_states();
 
   State* s = d_cur_state;
-  while (s != nullptr)
+  while (!s->is_final())
   {
     s = s->run(d_rng);
   }

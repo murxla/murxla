@@ -518,19 +518,20 @@ CVC4SolverManager::configure()
   auto snew    = d_fsm.new_state("new");
   auto ssat    = d_fsm.new_state("sat");
   auto sterms  = d_fsm.new_state("create terms");
+  auto sfinal  = d_fsm.new_state("final", true);
 
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, sinputs);
 
-  sinputs->add_action(amktrue, 10, sinputs);
-  sinputs->add_action(amkfalse, 10, sinputs);
+  sinputs->add_action(amktrue, 10);
+  sinputs->add_action(amkfalse, 10);
   sinputs->add_action(tinputs, 10, sterms);
 
-  sterms->add_action(amkterm0, 10, sterms);
+  sterms->add_action(amkterm0, 10);
   sterms->add_action(tnone, 5, ssat);
 
   ssat->add_action(achecksat, 10, sdelete);
-  sdelete->add_action(adelete, 10);
+  sdelete->add_action(adelete, 10, sfinal);
 
   /* Initial State .......................................................... */
   d_fsm.set_init_state(snew);

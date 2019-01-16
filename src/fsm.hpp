@@ -27,14 +27,16 @@ class State
   friend class FSM;
 
  public:
-  State() : d_id("") {}
-  State(std::string& id) : d_id(id) {}
+  State() : d_id(""), d_is_final(false) {}
+  State(std::string& id, bool is_final) : d_id(id), d_is_final(is_final) {}
   const std::string& get_id() { return d_id; }
+  bool is_final() { return d_is_final; }
   State* run(RNGenerator& rng);
   void add_action(Action* action, uint32_t weight, State* next = nullptr);
 
  private:
   std::string d_id;
+  bool d_is_final;
   std::vector<ActionTuple> d_actions;
   std::vector<uint32_t> d_weights;
 };
@@ -44,7 +46,7 @@ class FSM
  public:
   FSM(RNGenerator& rng) : d_rng(rng) {}
   FSM() = delete;
-  State* new_state(std::string id = "");
+  State* new_state(std::string id = "", bool is_final = false);
   void set_init_state(State* init_state);
   void check_states();
   void run();

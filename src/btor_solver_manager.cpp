@@ -547,23 +547,24 @@ BtorSolverManager::configure()
   auto snew    = d_fsm.new_state("new");
   auto ssat    = d_fsm.new_state("sat");
   auto sterms  = d_fsm.new_state("create terms");
+  auto sfinal  = d_fsm.new_state("final", true);
 
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, sinputs);
 
-  sinputs->add_action(atrue, 20, sinputs);
-  sinputs->add_action(afalse, 20, sinputs);
+  sinputs->add_action(atrue, 20);
+  sinputs->add_action(afalse, 20);
   sinputs->add_action(tinputs, 10, sterms);
 
-  sterms->add_action(aeq, 10, sterms);
-  sterms->add_action(aiff, 10, sterms);
-  sterms->add_action(aimp, 10, sterms);
-  sterms->add_action(ane, 10, sterms);
+  sterms->add_action(aeq, 10);
+  sterms->add_action(aiff, 10);
+  sterms->add_action(aimp, 10);
+  sterms->add_action(ane, 10);
   sterms->add_action(tnone, 1, ssat);
 
   ssat->add_action(asat, 10, sdelete);
 
-  sdelete->add_action(adelete, 10);
+  sdelete->add_action(adelete, 10, sfinal);
 
   // TODO reset_assumptions
   // TODO fixate_assumptions
