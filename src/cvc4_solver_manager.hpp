@@ -27,7 +27,8 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
                                                CVC4::api::SortHashFunction>
 {
  public:
-  CVC4SolverManager() { configure(); }
+  CVC4SolverManager(RNGenerator& rng) : SolverManager(rng) { configure(); }
+  CVC4SolverManager() = delete;
   ~CVC4SolverManager();
   void clear();
 

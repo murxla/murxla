@@ -35,7 +35,8 @@ using BtorSolverManagerBase = SolverManager<Btor *,
 class BtorSolverManager : public BtorSolverManagerBase
 {
  public:
-  BtorSolverManager() { configure(); };
+  BtorSolverManager(RNGenerator &rng) : SolverManager(rng) { configure(); };
+  BtorSolverManager() = delete;
   ~BtorSolverManager();
   void clear();
 

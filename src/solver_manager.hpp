@@ -51,7 +51,7 @@ class SolverManager
     uint32_t terms  = 0;   /* all terms, including inputs */
   };
 
-  SolverManager() : d_solver(nullptr) {}
+  SolverManager(RNGenerator& rng) : d_fsm(rng), d_solver(nullptr), d_rng(rng) {}
   // TODO: copy/assignment constructors?
   ~SolverManager() = default;
 
@@ -159,7 +159,7 @@ class SolverManager
     return d_sorts[sort];
   }
 
-  void set_rng(RNGenerator rng) { d_rng = rng; }
+  void set_rng(RNGenerator& rng) { d_rng = rng; }
 
   Stats d_stats;
 
@@ -195,7 +195,7 @@ class SolverManager
   std::unordered_map<TheoryId, SortMap> d_terms;
 
  private:
-  RNGenerator d_rng;
+  RNGenerator& d_rng;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
 
   TheoryId pick_theory()

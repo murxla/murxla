@@ -17,10 +17,10 @@ State::add_action(Action* a, uint32_t weight, State* next)
 }
 
 State*
-State::run()
+State::run(RNGenerator& rng)
 {
   assert(!d_actions.empty());
-  uint32_t idx = s_rng.pick_weighted_uint32(d_weights);
+  uint32_t idx = rng.pick_weighted_uint32(d_weights);
   if (d_actions[idx].d_action->run())
   {
     return d_actions[idx].d_next;
@@ -67,7 +67,7 @@ FSM::run()
   State* s = d_cur_state;
   while (s != nullptr)
   {
-    s = s->run();
+    s = s->run(d_rng);
   }
 }
 

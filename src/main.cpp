@@ -22,9 +22,9 @@ enum Result
 
 #ifdef SMTMBT_USE_BOOLECTOR
 void
-test_btor_smgr()
+test_btor_smgr(RNGenerator& rng)
 {
-  btor::BtorSolverManager smgr;
+  btor::BtorSolverManager smgr(rng);
 
   smgr.set_solver(boolector_new());
   Btor* btor = smgr.get_solver();
@@ -64,9 +64,9 @@ test_btor_smgr()
 }
 
 void
-test_btor_fsm()
+test_btor_fsm(RNGenerator& rng)
 {
-  btor::BtorSolverManager smgr;
+  btor::BtorSolverManager smgr(rng);
   smgr.set_solver(boolector_new());
   smgr.run();
 }
@@ -74,9 +74,9 @@ test_btor_fsm()
 
 #ifdef SMTMBT_USE_CVC4
 void
-test_cvc4_smgr()
+test_cvc4_smgr(RNGenerator& rng)
 {
-  cvc4::CVC4SolverManager smgr;
+  cvc4::CVC4SolverManager smgr(rng);
 
   smgr.set_solver(new CVC4::api::Solver());
   CVC4::api::Solver* cvc4 = smgr.get_solver();
@@ -96,9 +96,9 @@ test_cvc4_smgr()
 }
 
 void
-test_cvc4_fsm()
+test_cvc4_fsm(RNGenerator& rng)
 {
-  cvc4::CVC4SolverManager smgr;
+  cvc4::CVC4SolverManager smgr(rng);
   smgr.set_solver(new CVC4::api::Solver());
   smgr.run();
 }
@@ -107,13 +107,14 @@ test_cvc4_fsm()
 void
 test()
 {
+  RNGenerator rng;
 #ifdef SMTMBT_USE_BOOLECTOR
-  test_btor_smgr();
-  test_btor_fsm();
+  test_btor_smgr(rng);
+  test_btor_fsm(rng);
 #endif
 #ifdef SMTMBT_USE_CVC4
-  test_cvc4_smgr();
-  test_cvc4_fsm();
+  test_cvc4_smgr(rng);
+  test_cvc4_fsm(rng);
 #endif
 }
 
@@ -209,13 +210,13 @@ run(uint32_t seed, Options& options)
 
     if (options.use_btor)
     {
-      btor::BtorSolverManager mgr;
+      btor::BtorSolverManager mgr(rng);
       mgr.set_rng(rng);
       mgr.run();
     }
     else if (options.use_cvc4)
     {
-      cvc4::CVC4SolverManager mgr;
+      cvc4::CVC4SolverManager mgr(rng);
       mgr.set_rng(rng);
       mgr.run();
     }
