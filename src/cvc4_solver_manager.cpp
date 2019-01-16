@@ -13,11 +13,20 @@ class CVC4Action : public Action
 {
  public:
   CVC4Action(CVC4SolverManagerBase* smgr, const std::string& id)
-      : Action(id), d_smgr(static_cast<CVC4SolverManager*>(smgr))
+      : Action(smgr->get_rng(), id),
+        d_smgr(static_cast<CVC4SolverManager*>(smgr))
   {
   }
 
  protected:
+  CVC4::api::Kind pick_kind(std::vector<CVC4::api::Kind>& kinds)
+  {
+    assert(kinds.size());
+    auto it = kinds.begin();
+    std::advance(it, d_rng.next_uint32() % kinds.size());
+    return *it;
+  }
+
   CVC4SolverManager* d_smgr;
 };
 
@@ -297,7 +306,31 @@ class CVC4ActionDelete : public CVC4Action
 // Sort Solver::mkUninterpretedSort(const std::string& symbol) const;
 // Sort Solver::mkSortConstructorSort(const std::string& symbol, size_t arity) const;
 // Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const;
+
 // Term Solver::mkTerm(Kind kind) const;
+class CVC4ActionMkTerm0 : public CVC4Action
+{
+ public:
+  CVC4ActionMkTerm0(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm0")
+  {
+    // TODO (no BV and BOOL kinds match this, thus empty for now)
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    TheoryId theory         = d_smgr->pick_theory();
+    if (d_kinds.find(theory) == d_kinds.end()) return true;
+    d_smgr->add_term(cvc4->mkTerm(pick_kind(d_kinds[theory])), theory);
+    return true;
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  std::unordered_map<TheoryId, std::vector<CVC4::api::Kind>> d_kinds;
+};
+
 // Term Solver::mkTerm(Kind kind, Sort sort) const;
 // Term Solver::mkTerm(Kind kind, Term child) const;
 // Term Solver::mkTerm(Kind kind, Term child1, Term child2) const;
@@ -471,6 +504,8 @@ CVC4SolverManager::configure()
   /* make consts */
   auto amkfalse  = new_action<CVC4ActionMkFalse>();
   auto amktrue   = new_action<CVC4ActionMkTrue>();
+  /* make terms */
+  auto amkterm0 = new_action<CVC4ActionMkTerm0>();
   /* commands */
   auto achecksat = new_action<CVC4ActionCheckSat>();
   /* transitions */
@@ -491,6 +526,7 @@ CVC4SolverManager::configure()
   sinputs->add_action(amkfalse, 10, sinputs);
   sinputs->add_action(tinputs, 10, sterms);
 
+  sterms->add_action(amkterm0, 10, sterms);
   sterms->add_action(tnone, 5, ssat);
 
   ssat->add_action(achecksat, 10, sdelete);

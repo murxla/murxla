@@ -21,11 +21,14 @@ class Action
 {
  public:
   Action() = delete;
-  Action(const std::string& id) : d_id(id) {}
+  Action(RNGenerator& rng, const std::string& id) : d_rng(rng), d_id(id) {}
   virtual ~Action() = default;
   virtual bool run() = 0;
   // virtual void untrace(const char* s) {}
   const std::string& get_id() const { return d_id; }
+
+ protected:
+  RNGenerator& d_rng;
 
  private:
   std::string d_id;
@@ -58,6 +61,8 @@ class SolverManager
   void set_solver(TSolver s) { d_solver = s; }
 
   TSolver get_solver() { return d_solver; }
+
+  RNGenerator& get_rng() { return d_rng; }
 
   void run() { d_fsm.run(); }
 
@@ -153,6 +158,14 @@ class SolverManager
     return it->first;
   }
 
+  TheoryId pick_theory()
+  {
+    assert(d_terms.size());
+    auto it = d_terms.begin();
+    std::advance(it, d_rng.next_uint32() % d_terms.size());
+    return it->first;
+  }
+
   TheoryId get_theory(TSort sort)
   {
     assert(d_sorts.find(sort) != d_sorts.end());
@@ -197,14 +210,6 @@ class SolverManager
  private:
   RNGenerator& d_rng;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
-
-  TheoryId pick_theory()
-  {
-    assert(d_terms.size());
-    auto it = d_terms.begin();
-    std::advance(it, d_rng.next_uint32() % d_terms.size());
-    return it->first;
-  }
 };
 
 /* -------------------------------------------------------------------------- */

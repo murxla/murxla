@@ -15,7 +15,8 @@ class BtorAction : public Action
 {
  public:
   BtorAction(BtorSolverManagerBase* smgr, const std::string& id)
-      : Action(id), d_smgr(static_cast<BtorSolverManager*>(smgr))
+      : Action(smgr->get_rng(), id),
+        d_smgr(static_cast<BtorSolverManager*>(smgr))
   {
   }
 
