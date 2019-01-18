@@ -31,10 +31,10 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
   CVC4SolverManager() = delete;
   ~CVC4SolverManager();
   void clear();
+  CVC4::api::Sort get_sort(CVC4::api::Term term) override;
 
  protected:
   void configure() override;
-  CVC4::api::Sort get_sort(CVC4::api::Term term) override;
 };
 
 /* -------------------------------------------------------------------------- */

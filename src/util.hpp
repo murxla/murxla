@@ -27,7 +27,7 @@ class RNGenerator
   private:
     uint32_t d_seed;
     std::mt19937 d_rng;
-    std::discrete_distribution<uint32_t> d_uint32_dist;
+    std::uniform_int_distribution<uint32_t> d_uint32_dist;
 };
 
 class TraceStream

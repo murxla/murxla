@@ -39,12 +39,12 @@ class BtorSolverManager : public BtorSolverManagerBase
   BtorSolverManager() = delete;
   ~BtorSolverManager();
   void clear();
+  BoolectorSort get_sort(BoolectorNode *term) override;
 
  protected:
   void configure() override;
   BoolectorNode *copy_term(BoolectorNode *term) override;
   BoolectorSort copy_sort(BoolectorSort sort) override;
-  BoolectorSort get_sort(BoolectorNode *term) override;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -1,8 +1,10 @@
 #include "cvc4_solver_manager.hpp"
 
 #include <cassert>
+#include <iostream>
 
 #include "util.hpp"
+
 
 namespace smtmbt {
 namespace cvc4 {
@@ -19,11 +21,41 @@ class CVC4Action : public Action
   }
 
  protected:
-  CVC4::api::Kind pick_kind(std::vector<CVC4::api::Kind>& kinds)
+  struct KindData
+  {
+    KindData(CVC4::api::Kind kind, TheoryId theory)
+        : d_kind(kind), d_theory(theory)
+    {
+    }
+    CVC4::api::Kind d_kind; /* The Kind. */
+    TheoryId d_theory;      /* The theory of the term of this kind. */
+  };
+
+  KindData& pick_kind(std::vector<KindData>& kinds)
   {
     assert(kinds.size());
     auto it = kinds.begin();
     std::advance(it, d_rng.next_uint32() % kinds.size());
+    return *it;
+  }
+
+  KindData& pick_kind(std::vector<KindData>& kinds1, std::vector<KindData>& kinds2)
+  {
+    assert(kinds1.size());
+    assert (kinds2.size());
+    size_t sz1 = kinds1.size();
+    uint32_t n = d_rng.next_uint32() % (sz1 + kinds2.size());
+    std::vector<KindData>::iterator it;
+    if (n >= sz1)
+    {
+      n -= sz1;
+      it = kinds2.begin();
+    }
+    else
+    {
+      it = kinds1.begin();
+    }
+    std::advance(it, n);
     return *it;
   }
 
@@ -313,29 +345,311 @@ class CVC4ActionMkTerm0 : public CVC4Action
  public:
   CVC4ActionMkTerm0(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm0")
   {
+    /* Note that this function is a special case since it does not expect term
+     * arguments. We treat this as if the theory of the arguments is the same
+     * as the theory of the created term. */
     // TODO (no BV and BOOL kinds match this, thus empty for now)
   }
 
   bool run() override
   {
     SMTMBT_TRACE << get_id();
+    /* Pick theory of term argument(s). Note that this function is a special
+     * case since it does not expect term arguments. We treat this as if the
+     * theory of the arguments is the same as the theory of the created term. */
+    TheoryId theory_args = d_smgr->pick_theory();
+    /* Nothing to do if no kind with term arguments of picked theory exists. */
+    if (d_kinds.find(theory_args) == d_kinds.end()) return true;
     CVC4::api::Solver* cvc4 = d_smgr->get_solver();
-    TheoryId theory         = d_smgr->pick_theory();
-    if (d_kinds.find(theory) == d_kinds.end()) return true;
-    d_smgr->add_term(cvc4->mkTerm(pick_kind(d_kinds[theory])), theory);
+    /* Pick kind that expects arguments of picked theory. (See note above.) */
+    KindData& kd = pick_kind(d_kinds[theory_args]);
+    d_smgr->add_term(cvc4->mkTerm(kd.d_kind), kd.d_theory);
     return true;
   }
   // void untrace(const char* s) override;
 
  private:
-  std::unordered_map<TheoryId, std::vector<CVC4::api::Kind>> d_kinds;
+  /**
+   * Mapping from TheoryId of the term arguments to this function to Kind and
+   * TheoryId of the created term.
+   *
+   * Note that this function is a special case since it does not expect term
+   * arguments. We treat this as if the theory of the arguments is the same
+   * as the theory of the created term.
+   */
+  std::unordered_map<TheoryId, std::vector<KindData>> d_kinds;
 };
 
 // Term Solver::mkTerm(Kind kind, Sort sort) const;
+class CVC4ActionMkTerm0Sort : public CVC4Action
+{
+ public:
+  CVC4ActionMkTerm0Sort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkTerm0Sort")
+  {
+    /* Note that this function is a special case since it does not expect term
+     * arguments. We treat this as if the theory of the arguments is the same
+     * as the theory of the created term.*/
+    // TODO (no BV and BOOL kinds match this, thus empty for now)
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    /* Pick theory of term argument(s). Note that this function is a special
+     * case since it does not expect term arguments. We treat this as if the
+     * theory of the arguments is the same as the theory of the created term. */
+    TheoryId theory_args = d_smgr->pick_theory();
+    /* Nothing to do if no kind with term arguments of picked theory exists. */
+    if (d_kinds.find(theory_args) == d_kinds.end()) return true;
+    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    /* Pick kind that expects arguments of picked theory. (See note above.) */
+    KindData& kd = pick_kind(d_kinds[theory_args]);
+    d_smgr->add_term(cvc4->mkTerm(kd.d_kind, d_smgr->pick_sort(theory_args)),
+                     kd.d_theory);
+    return true;
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  /**
+   * Mapping from TheoryId of the term arguments to this function to Kind and
+   * TheoryId of the created term.
+   *
+   * Note that this function is a special case since it does not expect term
+   * arguments. We treat this as if the theory of the arguments is the same
+   * as the theory of the created term.
+   */
+  std::unordered_map<TheoryId, std::vector<KindData>> d_kinds;
+};
+
 // Term Solver::mkTerm(Kind kind, Term child) const;
+class CVC4ActionMkTerm1 : public CVC4Action
+{
+ public:
+  CVC4ActionMkTerm1(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm1")
+  {
+    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::NOT, THEORY_BOOL);
+
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_NOT, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_NEG, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_REDOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_REDAND, THEORY_BV);
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    /* Pick theory of term argument(s).*/
+    TheoryId theory_args = d_smgr->pick_theory();
+    /* Nothing to do if no kind with term arguments of picked theory exists. */
+    if (d_kinds.find(theory_args) == d_kinds.end()) return true;
+    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    /* Pick kind that expects arguments of picked theory. */
+    KindData& kd = pick_kind(d_kinds[theory_args]);
+    /* Pick child term. */
+    CVC4::api::Term child = d_smgr->pick_term(theory_args);
+    /* Create term. */
+    CVC4::api::Term res = cvc4->mkTerm(kd.d_kind, child);
+    d_smgr->add_term(res, kd.d_theory);
+    return true;
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  /* Mapping from TheoryId of the term arguments to this function to Kind and
+   * TheoryId of the created term. */
+  std::unordered_map<TheoryId, std::vector<KindData>> d_kinds;
+};
+
 // Term Solver::mkTerm(Kind kind, Term child1, Term child2) const;
+class CVC4ActionMkTerm2 : public CVC4Action
+{
+ public:
+  CVC4ActionMkTerm2(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm2")
+  {
+    d_kinds[THEORY_ALL].emplace_back(CVC4::api::Kind::EQUAL, THEORY_BOOL);
+    d_kinds[THEORY_ALL].emplace_back(CVC4::api::Kind::DISTINCT, THEORY_BOOL);
+
+    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::AND, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::OR, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::XOR, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::IMPLIES, THEORY_BOOL);
+
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_CONCAT,
+                                    THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_AND, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_OR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_XOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_NAND, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_NOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_XNOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_COMP, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_MULT, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_PLUS, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SUB, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UDIV, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UREM, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SDIV, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SREM, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SMOD, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UDIV_TOTAL,
+                                    THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UREM_TOTAL,
+                                    THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SHL, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_LSHR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ASHR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ULT,
+                                    THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ULE,
+                                    THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UGT,
+                                    THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UGE,
+                                    THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SLT,
+                                    THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SLE,
+                                    THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SGT,
+                                    THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SGE,
+                                    THEORY_BOOL);
+//    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ULTBV,
+//                                    THEORY_BV);
+//    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SLTBV,
+//                                    THEORY_BV);
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    /* Pick theory of term argument(s).*/
+    TheoryId theory_args = d_smgr->pick_theory();
+    /* Nothing to do if no kind with term arguments of picked theory exists. */
+    if (d_kinds.find(theory_args) == d_kinds.end()) return true;
+    /* Pick kind that expects arguments of picked theory. */
+    KindData& kd = pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
+    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    /* Pick child terms. */
+    CVC4::api::Term child1 = d_smgr->pick_term(theory_args);
+    CVC4::api::Term child2;
+    switch (kd.d_kind)
+    {
+      case CVC4::api::Kind::BITVECTOR_CONCAT:
+        child2 = d_smgr->pick_term(theory_args);
+        break;
+      default: child2 = d_smgr->pick_term(d_smgr->get_sort(child1));
+    }
+    /* Create term. */
+    CVC4::api::Term res = cvc4->mkTerm(kd.d_kind, child1, child2);
+    d_smgr->add_term(res, kd.d_theory);
+    return true;
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  std::unordered_map<TheoryId, std::vector<KindData>> d_kinds;
+};
+
+#if 0
 // Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const;
+class CVC4ActionMkTerm3 : public CVC4Action
+{
+ public:
+  CVC4ActionMkTerm3(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTermN")
+  {
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::DISTINCT);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::AND);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::OR);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::ITE);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_CONCAT,
+                                    THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_AND, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_OR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_XOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_MULT, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_PLUS, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ITE, THEORY_BV);
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    TODO
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  /* Mapping from TheoryId of the term arguments to this function to Kind and
+   * TheoryId of the created term. */
+  std::unordered_map<TheoryId, std::vector<KindData>> d_kinds;
+};
+
 // Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const;
+class CVC4ActionMkTermN : public CVC4Action
+{
+ public:
+  CVC4ActionMkTermN(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTermN")
+  {
+    TODO, ARITY!
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::EQUAL);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::DISTINCT);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::AND);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::IMPLIES);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::OR);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::XOR);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::IMPLIES);
+    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::ITE);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_CONCAT);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_AND);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_OR);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_XOR);
+
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_NAND);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_NOR);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_XNOR);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_COMP);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_MULT);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_PLUS);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SUB);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UDIV);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UREM);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SDIV);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SREM);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SMOD);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UDIV_TOTAL);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UREM_TOTAL);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SHL);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_LSHR);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_ASHR);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_ULT);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_ULE);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UGT);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UGE);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SLT);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SLE);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SGT);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SGE);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_ULTBV);
+    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SLTBV);
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    TODO
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  /* Mapping from TheoryId of the term arguments to this function to Kind and
+   * TheoryId of the created term. */
+  std::unordered_map<KindData> d_kinds;
+};
+#endif
+
 // Term Solver::mkTerm(OpTerm opTerm, Term child) const;
 // Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const;
 // Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const;
@@ -488,7 +802,7 @@ CVC4SolverManager::~CVC4SolverManager()
   delete d_solver;
 }
 
-CVC4::api::Sort
+  CVC4::api::Sort
 CVC4SolverManager::get_sort(CVC4::api::Term term)
 {
   return term.getSort();
@@ -506,6 +820,9 @@ CVC4SolverManager::configure()
   auto amktrue   = new_action<CVC4ActionMkTrue>();
   /* make terms */
   auto amkterm0 = new_action<CVC4ActionMkTerm0>();
+  auto amkterm0sort = new_action<CVC4ActionMkTerm0Sort>();
+  auto amkterm1 = new_action<CVC4ActionMkTerm1>();
+  auto amkterm2 = new_action<CVC4ActionMkTerm2>();
   /* commands */
   auto achecksat = new_action<CVC4ActionCheckSat>();
   /* transitions */
@@ -528,6 +845,9 @@ CVC4SolverManager::configure()
   sinputs->add_action(tinputs, 10, sterms);
 
   sterms->add_action(amkterm0, 10);
+  sterms->add_action(amkterm0sort, 10);
+  sterms->add_action(amkterm1, 10);
+  sterms->add_action(amkterm2, 20);
   sterms->add_action(tnone, 5, ssat);
 
   ssat->add_action(achecksat, 10, sdelete);

@@ -13,6 +13,7 @@ enum TheoryId
 {
   THEORY_BOOL,
   THEORY_BV,
+  THEORY_ALL,
 };
 
 /* -------------------------------------------------------------------------- */
@@ -61,6 +62,8 @@ class SolverManager
   void set_solver(TSolver s) { d_solver = s; }
 
   TSolver get_solver() { return d_solver; }
+
+  void set_rng(RNGenerator& rng) { d_rng = rng; }
 
   RNGenerator& get_rng() { return d_rng; }
 
@@ -115,6 +118,7 @@ class SolverManager
   TTerm pick_term(TheoryId theory)
   {
     assert(d_terms.find(theory) != d_terms.end());
+    if (theory == THEORY_ALL) theory = pick_theory();
     TSort sort = pick_sort(theory);
     return pick_term(sort);
   }
@@ -150,6 +154,8 @@ class SolverManager
     SortMap& map = d_terms[theory];
     assert(!map.empty());
 
+    if (theory == THEORY_ALL) theory = pick_theory();
+
     auto it = map.begin();
     if (map.size() > 1)
     {
@@ -172,7 +178,7 @@ class SolverManager
     return d_sorts[sort];
   }
 
-  void set_rng(RNGenerator& rng) { d_rng = rng; }
+  virtual TSort get_sort(TTerm term) = 0;
 
   Stats d_stats;
 
@@ -200,7 +206,6 @@ class SolverManager
   /* Solver specific implementations. */
   virtual TTerm copy_term(TTerm term) { return term; }
   virtual TSort copy_sort(TSort sort) { return sort; }
-  virtual TSort get_sort(TTerm term) = 0;
 
   FSM d_fsm;
   TSolver d_solver;
