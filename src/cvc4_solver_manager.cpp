@@ -5,6 +5,7 @@
 
 #include "util.hpp"
 
+using namespace CVC4::api;
 
 namespace smtmbt {
 namespace cvc4 {
@@ -23,11 +24,8 @@ class CVC4Action : public Action
  protected:
   struct KindData
   {
-    KindData(CVC4::api::Kind kind, TheoryId theory)
-        : d_kind(kind), d_theory(theory)
-    {
-    }
-    CVC4::api::Kind d_kind; /* The Kind. */
+    KindData(Kind kind, TheoryId theory) : d_kind(kind), d_theory(theory) {}
+    Kind d_kind;            /* The Kind. */
     TheoryId d_theory;      /* The theory of the term of this kind. */
   };
 
@@ -105,9 +103,9 @@ class CVC4ActionNew : public CVC4Action
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    Solver* cvc4 = d_smgr->get_solver();
     if (cvc4 != nullptr) delete (cvc4);
-    d_smgr->set_solver(new CVC4::api::Solver());
+    d_smgr->set_solver(new Solver());
     return true;
   }
   // void untrace(const char* s) override;
@@ -121,7 +119,7 @@ class CVC4ActionDelete : public CVC4Action
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    Solver* cvc4 = d_smgr->get_solver();
     d_smgr->clear();
     assert(cvc4);
     delete cvc4;
@@ -360,7 +358,7 @@ class CVC4ActionMkTerm0 : public CVC4Action
     TheoryId theory_args = d_smgr->pick_theory();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()) return true;
-    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    Solver* cvc4 = d_smgr->get_solver();
     /* Pick kind that expects arguments of picked theory. (See note above.) */
     KindData& kd = pick_kind(d_kinds[theory_args]);
     d_smgr->add_term(cvc4->mkTerm(kd.d_kind), kd.d_theory);
@@ -402,7 +400,7 @@ class CVC4ActionMkTerm0Sort : public CVC4Action
     TheoryId theory_args = d_smgr->pick_theory();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()) return true;
-    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    Solver* cvc4 = d_smgr->get_solver();
     /* Pick kind that expects arguments of picked theory. (See note above.) */
     KindData& kd = pick_kind(d_kinds[theory_args]);
     d_smgr->add_term(cvc4->mkTerm(kd.d_kind, d_smgr->pick_sort(theory_args)),
@@ -429,12 +427,12 @@ class CVC4ActionMkTerm1 : public CVC4Action
  public:
   CVC4ActionMkTerm1(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm1")
   {
-    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::NOT, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(Kind::NOT, THEORY_BOOL);
 
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_NOT, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_NEG, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_REDOR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_REDAND, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_NOT, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_NEG, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_REDOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_REDAND, THEORY_BV);
   }
 
   bool run() override
@@ -444,13 +442,13 @@ class CVC4ActionMkTerm1 : public CVC4Action
     TheoryId theory_args = d_smgr->pick_theory();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()) return true;
-    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    Solver* cvc4 = d_smgr->get_solver();
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = pick_kind(d_kinds[theory_args]);
     /* Pick child term. */
-    CVC4::api::Term child = d_smgr->pick_term(theory_args);
+    Term child = d_smgr->pick_term(theory_args);
     /* Create term. */
-    CVC4::api::Term res = cvc4->mkTerm(kd.d_kind, child);
+    Term res = cvc4->mkTerm(kd.d_kind, child);
     d_smgr->add_term(res, kd.d_theory);
     return true;
   }
@@ -468,58 +466,47 @@ class CVC4ActionMkTerm2 : public CVC4Action
  public:
   CVC4ActionMkTerm2(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm2")
   {
-    d_kinds[THEORY_ALL].emplace_back(CVC4::api::Kind::EQUAL, THEORY_BOOL);
-    d_kinds[THEORY_ALL].emplace_back(CVC4::api::Kind::DISTINCT, THEORY_BOOL);
+    d_kinds[THEORY_ALL].emplace_back(Kind::EQUAL, THEORY_BOOL);
+    d_kinds[THEORY_ALL].emplace_back(Kind::DISTINCT, THEORY_BOOL);
 
-    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::AND, THEORY_BOOL);
-    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::OR, THEORY_BOOL);
-    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::XOR, THEORY_BOOL);
-    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::IMPLIES, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(Kind::AND, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(Kind::OR, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(Kind::XOR, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(Kind::IMPLIES, THEORY_BOOL);
 
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_CONCAT,
-                                    THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_AND, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_OR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_XOR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_NAND, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_NOR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_XNOR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_COMP, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_MULT, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_PLUS, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SUB, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UDIV, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UREM, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SDIV, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SREM, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SMOD, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UDIV_TOTAL,
-                                    THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UREM_TOTAL,
-                                    THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SHL, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_LSHR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ASHR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ULT,
-                                    THEORY_BOOL);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ULE,
-                                    THEORY_BOOL);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UGT,
-                                    THEORY_BOOL);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_UGE,
-                                    THEORY_BOOL);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SLT,
-                                    THEORY_BOOL);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SLE,
-                                    THEORY_BOOL);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SGT,
-                                    THEORY_BOOL);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SGE,
-                                    THEORY_BOOL);
-//    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ULTBV,
-//                                    THEORY_BV);
-//    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_SLTBV,
-//                                    THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_CONCAT, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_AND, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_OR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_XOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_NAND, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_NOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_XNOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_COMP, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_MULT, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_PLUS, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SUB, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_UDIV, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_UREM, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SDIV, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SREM, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SMOD, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_UDIV_TOTAL, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_UREM_TOTAL, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SHL, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_LSHR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_ASHR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_ULT, THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_ULE, THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_UGT, THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_UGE, THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SLT, THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SLE, THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SGT, THEORY_BOOL);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SGE, THEORY_BOOL);
+    //    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_ULTBV,
+    //                                    THEORY_BV);
+    //    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_SLTBV,
+    //                                    THEORY_BV);
   }
 
   bool run() override
@@ -531,19 +518,19 @@ class CVC4ActionMkTerm2 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()) return true;
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
-    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    Solver* cvc4 = d_smgr->get_solver();
     /* Pick child terms. */
-    CVC4::api::Term child1 = d_smgr->pick_term(theory_args);
-    CVC4::api::Term child2;
+    Term child1 = d_smgr->pick_term(theory_args);
+    Term child2;
     switch (kd.d_kind)
     {
-      case CVC4::api::Kind::BITVECTOR_CONCAT:
+      case Kind::BITVECTOR_CONCAT:
         child2 = d_smgr->pick_term(theory_args);
         break;
       default: child2 = d_smgr->pick_term(d_smgr->get_sort(child1));
     }
     /* Create term. */
-    CVC4::api::Term res = cvc4->mkTerm(kd.d_kind, child1, child2);
+    Term res = cvc4->mkTerm(kd.d_kind, child1, child2);
     d_smgr->add_term(res, kd.d_theory);
     return true;
   }
@@ -559,20 +546,19 @@ class CVC4ActionMkTerm3 : public CVC4Action
  public:
   CVC4ActionMkTerm3(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm3")
   {
-    d_kinds[THEORY_ALL].emplace_back(CVC4::api::Kind::DISTINCT, THEORY_BOOL);
-    d_kinds[THEORY_ALL].emplace_back(CVC4::api::Kind::ITE, THEORY_ALL);
+    d_kinds[THEORY_ALL].emplace_back(Kind::DISTINCT, THEORY_BOOL);
+    d_kinds[THEORY_ALL].emplace_back(Kind::ITE, THEORY_ALL);
 
-    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::AND, THEORY_BOOL);
-    d_kinds[THEORY_BOOL].emplace_back(CVC4::api::Kind::OR, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(Kind::AND, THEORY_BOOL);
+    d_kinds[THEORY_BOOL].emplace_back(Kind::OR, THEORY_BOOL);
 
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_CONCAT,
-                                    THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_AND, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_OR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_XOR, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_MULT, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_PLUS, THEORY_BV);
-    d_kinds[THEORY_BV].emplace_back(CVC4::api::Kind::BITVECTOR_ITE, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_CONCAT, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_AND, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_OR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_XOR, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_MULT, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_PLUS, THEORY_BV);
+    d_kinds[THEORY_BV].emplace_back(Kind::BITVECTOR_ITE, THEORY_BV);
   }
 
   bool run() override
@@ -584,20 +570,20 @@ class CVC4ActionMkTerm3 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()) return true;
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
-    CVC4::api::Solver* cvc4 = d_smgr->get_solver();
+    Solver* cvc4 = d_smgr->get_solver();
     /* Pick child terms. */
-    CVC4::api::Term child1 = d_smgr->pick_term(theory_args);
-    CVC4::api::Term child2, child3;
+    Term child1 = d_smgr->pick_term(theory_args);
+    Term child2, child3;
     TheoryId theory_term =
         kd.d_theory == THEORY_ALL ? theory_args : kd.d_theory;
 
     switch (kd.d_kind)
     {
-      case CVC4::api::Kind::BITVECTOR_CONCAT:
+      case Kind::BITVECTOR_CONCAT:
         child2 = d_smgr->pick_term(theory_args);
         child3 = d_smgr->pick_term(theory_args);
         break;
-      case CVC4::api::Kind::ITE:
+      case Kind::ITE:
         child1 = d_smgr->pick_term(THEORY_BOOL);
         child2 = d_smgr->pick_term(theory_args);
         child3 = d_smgr->pick_term(d_smgr->get_sort(child2));
@@ -607,7 +593,7 @@ class CVC4ActionMkTerm3 : public CVC4Action
         child3    = d_smgr->pick_term(sort);
     }
     /* Create term. */
-    CVC4::api::Term res = cvc4->mkTerm(kd.d_kind, child1, child2, child3);
+    Term res = cvc4->mkTerm(kd.d_kind, child1, child2, child3);
     d_smgr->add_term(res, theory_term);
     return true;
   }
@@ -627,46 +613,46 @@ class CVC4ActionMkTermN : public CVC4Action
   CVC4ActionMkTermN(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTermN")
   {
     TODO, ARITY!
-    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::EQUAL);
-    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::DISTINCT);
-    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::AND);
-    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::IMPLIES);
-    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::OR);
-    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::XOR);
-    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::IMPLIES);
-    d_kinds[THEORY_BOOL].push_back(CVC4::api::Kind::ITE);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_CONCAT);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_AND);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_OR);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_XOR);
+    d_kinds[THEORY_BOOL].push_back(Kind::EQUAL);
+    d_kinds[THEORY_BOOL].push_back(Kind::DISTINCT);
+    d_kinds[THEORY_BOOL].push_back(Kind::AND);
+    d_kinds[THEORY_BOOL].push_back(Kind::IMPLIES);
+    d_kinds[THEORY_BOOL].push_back(Kind::OR);
+    d_kinds[THEORY_BOOL].push_back(Kind::XOR);
+    d_kinds[THEORY_BOOL].push_back(Kind::IMPLIES);
+    d_kinds[THEORY_BOOL].push_back(Kind::ITE);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_CONCAT);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_AND);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_OR);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_XOR);
 
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_NAND);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_NOR);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_XNOR);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_COMP);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_MULT);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_PLUS);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SUB);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UDIV);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UREM);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SDIV);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SREM);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SMOD);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UDIV_TOTAL);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UREM_TOTAL);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SHL);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_LSHR);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_ASHR);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_ULT);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_ULE);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UGT);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_UGE);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SLT);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SLE);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SGT);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SGE);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_ULTBV);
-    d_kinds[THEORY_BV].push_back(CVC4::api::Kind::BITVECTOR_SLTBV);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_NAND);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_NOR);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_XNOR);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_COMP);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_MULT);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_PLUS);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SUB);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UDIV);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UREM);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SDIV);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SREM);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SMOD);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UDIV_TOTAL);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UREM_TOTAL);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SHL);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_LSHR);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ASHR);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULT);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULE);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UGT);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UGE);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLT);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLE);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SGT);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SGE);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULTBV);
+    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLTBV);
   }
 
   bool run() override
@@ -702,7 +688,7 @@ class CVC4ActionMkTrue : public CVC4Action
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    CVC4::api::Term res = d_smgr->get_solver()->mkTrue();
+    Term res = d_smgr->get_solver()->mkTrue();
     d_smgr->add_input(res, THEORY_BOOL);
     return true;
   }
@@ -720,7 +706,7 @@ class CVC4ActionMkFalse : public CVC4Action
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    CVC4::api::Term res = d_smgr->get_solver()->mkFalse();
+    Term res = d_smgr->get_solver()->mkFalse();
     d_smgr->add_input(res, THEORY_BOOL);
     return true;
   }
@@ -835,8 +821,8 @@ CVC4SolverManager::~CVC4SolverManager()
   delete d_solver;
 }
 
-  CVC4::api::Sort
-CVC4SolverManager::get_sort(CVC4::api::Term term)
+Sort
+CVC4SolverManager::get_sort(Term term)
 {
   return term.getSort();
 }
