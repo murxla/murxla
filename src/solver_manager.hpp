@@ -209,11 +209,11 @@ class SolverManager
 
   FSM d_fsm;
   TSolver d_solver;
+  RNGenerator& d_rng;
   std::unordered_map<TSort, TheoryId, THashSort> d_sorts;
   std::unordered_map<TheoryId, SortMap> d_terms;
 
  private:
-  RNGenerator& d_rng;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
 };
 
