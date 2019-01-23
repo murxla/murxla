@@ -28,7 +28,7 @@ RNGenerator::next_uint32()
 }
 
 uint32_t
-RNGenerator::pick_weighted_uint32(std::vector<uint32_t>& weights)
+RNGenerator::pick_uint32_weighted(std::vector<uint32_t>& weights)
 {
   std::discrete_distribution<uint32_t> dist(weights.begin(), weights.end());
   return dist(d_rng);

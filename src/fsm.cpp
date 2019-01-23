@@ -20,7 +20,7 @@ State*
 State::run(RNGenerator& rng)
 {
   assert(!d_actions.empty());
-  uint32_t idx = rng.pick_weighted_uint32(d_weights);
+  uint32_t idx = rng.pick_uint32_weighted(d_weights);
   if (d_actions[idx].d_action->run())
   {
     return d_actions[idx].d_next;
