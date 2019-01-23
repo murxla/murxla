@@ -854,7 +854,7 @@ CVC4SolverManager::pick_kind(std::vector<Kind>& kinds)
 {
   assert(kinds.size());
   auto it = kinds.begin();
-  std::advance(it, d_rng.next_uint32() % kinds.size());
+  std::advance(it, d_rng.pick_uint32() % kinds.size());
   Kind kind = *it;
   assert(d_all_kinds.find(kind) != d_all_kinds.end());
   return d_all_kinds[kind];
@@ -867,7 +867,7 @@ CVC4SolverManager::pick_kind(std::vector<Kind>& kinds1,
   assert(kinds1.size() || kinds2.size());
   size_t sz1 = kinds1.size();
   size_t sz2 = kinds2.size();
-  uint32_t n = d_rng.next_uint32() % (sz1 + sz2);
+  uint32_t n = d_rng.pick_uint32() % (sz1 + sz2);
   std::vector<Kind>::iterator it;
   if (sz2 == 0 || n < sz1)
   {

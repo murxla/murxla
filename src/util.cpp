@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <ctime>
 #include <iostream>
+#include <limits>
 
 namespace smtmbt {
 
@@ -22,9 +23,21 @@ SeedGenerator::next()
 }
 
 uint32_t
-RNGenerator::next_uint32()
+RNGenerator::pick_uint32()
 {
   return d_uint32_dist(d_rng);
+}
+
+uint32_t
+RNGenerator::pick_uint32(uint32_t from, uint32_t to)
+{
+  uint32_t res = pick_uint32();
+
+  from = from == UINT32_MAX ? UINT32_MAX - 1 : from;
+  to   = to == UINT32_MAX ? UINT32_MAX - 1 : to;
+  res %= to - from + 1;
+  res += from;
+  return res;
 }
 
 uint32_t

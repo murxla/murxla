@@ -137,7 +137,7 @@ class SolverManager
     auto it = map.begin();
     if (map.size() > 1)
     {
-      std::advance(it, d_rng.next_uint32() % map.size());
+      std::advance(it, d_rng.pick_uint32() % map.size());
     }
     // TODO: increment ref counter
     return it->first;
@@ -159,7 +159,7 @@ class SolverManager
     auto it = map.begin();
     if (map.size() > 1)
     {
-      std::advance(it, d_rng.next_uint32() % map.size());
+      std::advance(it, d_rng.pick_uint32() % map.size());
     }
     return it->first;
   }
@@ -168,7 +168,7 @@ class SolverManager
   {
     assert(d_terms.size());
     auto it = d_terms.begin();
-    std::advance(it, d_rng.next_uint32() % d_terms.size());
+    std::advance(it, d_rng.pick_uint32() % d_terms.size());
     return it->first;
   }
 
