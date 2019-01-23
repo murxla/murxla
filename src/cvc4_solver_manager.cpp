@@ -408,13 +408,11 @@ class CVC4ActionMkTerm1 : public CVC4Action
  public:
   CVC4ActionMkTerm1(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm1")
   {
-    auto all_kinds = d_smgr->get_all_kinds();
-
-    d_kinds[THEORY_BOOL].push_back(Kind::NOT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_NOT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_NEG);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_REDAND);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_REDOR);
+    for (const auto& k : d_smgr->get_all_kinds())
+    {
+      if (k.second.d_arity == 1)
+        d_kinds[k.second.d_theory_args].push_back(k.first);
+    }
   }
 
   bool run() override
@@ -453,45 +451,11 @@ class CVC4ActionMkTerm2 : public CVC4Action
  public:
   CVC4ActionMkTerm2(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm2")
   {
-    d_kinds[THEORY_ALL].push_back(Kind::EQUAL);
-    d_kinds[THEORY_ALL].push_back(Kind::DISTINCT);
-
-    d_kinds[THEORY_BOOL].push_back(Kind::AND);
-    d_kinds[THEORY_BOOL].push_back(Kind::OR);
-    d_kinds[THEORY_BOOL].push_back(Kind::XOR);
-    d_kinds[THEORY_BOOL].push_back(Kind::IMPLIES);
-
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_CONCAT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_AND);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_OR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_XOR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_NAND);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_NOR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_XNOR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_COMP);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_MULT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_PLUS);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SUB);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UDIV);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UREM);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SDIV);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SREM);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SMOD);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UDIV_TOTAL);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UREM_TOTAL);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SHL);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_LSHR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ASHR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULE);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UGT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UGE);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLE);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SGT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SGE);
-    // d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULTBV);
-    // d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLTBV);
+    for (const auto& k : d_smgr->get_all_kinds())
+    {
+      if (k.second.d_arity == -1 || k.second.d_arity == 2)
+        d_kinds[k.second.d_theory_args].push_back(k.first);
+    }
   }
 
   bool run() override
@@ -536,19 +500,11 @@ class CVC4ActionMkTerm3 : public CVC4Action
  public:
   CVC4ActionMkTerm3(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm3")
   {
-    d_kinds[THEORY_ALL].push_back(Kind::DISTINCT);
-    d_kinds[THEORY_ALL].push_back(Kind::ITE);
-
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_AND);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_OR);
-
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_CONCAT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_AND);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_OR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_XOR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_MULT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_PLUS);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ITE);
+    for (const auto& k : d_smgr->get_all_kinds())
+    {
+      if (k.second.d_arity == -1 || k.second.d_arity == 3)
+        d_kinds[k.second.d_theory_args].push_back(k.first);
+    }
   }
 
   bool run() override
@@ -607,47 +563,11 @@ class CVC4ActionMkTermN : public CVC4Action
  public:
   CVC4ActionMkTermN(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTermN")
   {
-    TODO, ARITY!
-    d_kinds[THEORY_BOOL].push_back(Kind::EQUAL);
-    d_kinds[THEORY_BOOL].push_back(Kind::DISTINCT);
-    d_kinds[THEORY_BOOL].push_back(Kind::AND);
-    d_kinds[THEORY_BOOL].push_back(Kind::IMPLIES);
-    d_kinds[THEORY_BOOL].push_back(Kind::OR);
-    d_kinds[THEORY_BOOL].push_back(Kind::XOR);
-    d_kinds[THEORY_BOOL].push_back(Kind::IMPLIES);
-    d_kinds[THEORY_BOOL].push_back(Kind::ITE);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_CONCAT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_AND);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_OR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_XOR);
-
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_NAND);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_NOR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_XNOR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_COMP);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_MULT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_PLUS);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SUB);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UDIV);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UREM);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SDIV);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SREM);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SMOD);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UDIV_TOTAL);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UREM_TOTAL);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SHL);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_LSHR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ASHR);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULE);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UGT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_UGE);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLE);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SGT);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SGE);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_ULTBV);
-    d_kinds[THEORY_BV].push_back(Kind::BITVECTOR_SLTBV);
+    for (const auto& k : d_smgr->get_all_kinds())
+    {
+      if (k.second.d_arity == -1 || k.second.d_arity >= 1)
+        d_kinds[k.second.d_theory_args].push_back(k.first);
+    }
   }
 
   bool run() override
@@ -873,6 +793,7 @@ CVC4SolverManager::configure_kinds()
   SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SGE, 2, THEORY_BOOL, THEORY_BV);
   // SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_ULTBV, 2, THEORY_BV, THEORY_BV);
   // SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SLTBV, 2, THEORY_BV, THEORY_BV);
+  std::cout << "all kinds " << get_all_kinds().size() << std::endl;
 }
 
 void
