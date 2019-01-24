@@ -415,7 +415,7 @@ class CVC4ActionMkTerm1 : public CVC4Action
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
-      if (k.second.d_arity == 1)
+      if (k.second.d_arity == 1 && !k.second.d_parameterized)
         d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
@@ -459,8 +459,9 @@ class CVC4ActionMkTerm2 : public CVC4Action
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
-      if (k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
-          || k.second.d_arity == 2)
+      if ((k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
+           || k.second.d_arity == 2)
+          && !k.second.d_parameterized)
         d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
@@ -484,9 +485,7 @@ class CVC4ActionMkTerm2 : public CVC4Action
     Term child2;
     switch (kd.d_kind)
     {
-      case Kind::BITVECTOR_CONCAT:
-        child2 = d_smgr->pick_term(theory_args);
-        break;
+      case BITVECTOR_CONCAT: child2 = d_smgr->pick_term(theory_args); break;
       default: child2 = d_smgr->pick_term(d_smgr->get_sort(child1));
     }
     /* Create term. */
@@ -512,8 +511,9 @@ class CVC4ActionMkTerm3 : public CVC4Action
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
-      if (k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
-          || k.second.d_arity == 3)
+      if ((k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
+           || k.second.d_arity == 3)
+          && !k.second.d_parameterized)
         d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
@@ -537,11 +537,11 @@ class CVC4ActionMkTerm3 : public CVC4Action
     Term child2, child3;
     switch (kd.d_kind)
     {
-      case Kind::BITVECTOR_CONCAT:
+      case BITVECTOR_CONCAT:
         child2 = d_smgr->pick_term(theory_args);
         child3 = d_smgr->pick_term(theory_args);
         break;
-      case Kind::ITE:
+      case ITE:
         child1 = d_smgr->pick_term(THEORY_BOOL);
         child2 = d_smgr->pick_term(theory_args);
         child3 = d_smgr->pick_term(d_smgr->get_sort(child2));
@@ -575,8 +575,9 @@ class CVC4ActionMkTermN : public CVC4Action
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
-      if (k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
-          || k.second.d_arity >= 1)
+      if ((k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
+           || k.second.d_arity >= 1)
+          && !k.second.d_parameterized)
         d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
@@ -606,10 +607,10 @@ class CVC4ActionMkTermN : public CVC4Action
     {
       switch (kd.d_kind)
       {
-        case Kind::BITVECTOR_CONCAT:
+        case BITVECTOR_CONCAT:
           children.push_back(d_smgr->pick_term(theory_args));
           break;
-        case Kind::ITE:
+        case ITE:
           if (children.empty())
             children.push_back(d_smgr->pick_term(THEORY_BOOL));
           else if (children.size() == 1)
@@ -800,57 +801,59 @@ CVC4SolverManager::get_sort(Term term)
   return term.getSort();
 }
 
-#define SMTMBT_CVC4_ADD_KIND(kind, arity, theory_term, theory_arg) \
-  d_all_kinds.emplace(kind, KindData(kind, arity, theory_term, theory_arg));
+#define SMTMBT_CVC4_ADD_KIND(                            \
+    kind, arity, parameterized, theory_term, theory_arg) \
+  d_all_kinds.emplace(                                   \
+      kind, KindData(kind, arity, parameterized, theory_term, theory_arg));
 
 void
 CVC4SolverManager::configure_kinds()
 {
-  SMTMBT_CVC4_ADD_KIND(Kind::DISTINCT, -1, THEORY_BOOL, THEORY_ALL);
-  SMTMBT_CVC4_ADD_KIND(Kind::EQUAL, 2, THEORY_BOOL, THEORY_ALL);
-  SMTMBT_CVC4_ADD_KIND(Kind::ITE, 3, THEORY_ALL, THEORY_ALL);
+  SMTMBT_CVC4_ADD_KIND(DISTINCT, -1, false, THEORY_BOOL, THEORY_ALL);
+  SMTMBT_CVC4_ADD_KIND(EQUAL, 2, false, THEORY_BOOL, THEORY_ALL);
+  SMTMBT_CVC4_ADD_KIND(ITE, 3, false, THEORY_ALL, THEORY_ALL);
 
-  SMTMBT_CVC4_ADD_KIND(Kind::AND, -1, THEORY_BOOL, THEORY_BOOL);
-  SMTMBT_CVC4_ADD_KIND(Kind::OR, -1, THEORY_BOOL, THEORY_BOOL);
-  SMTMBT_CVC4_ADD_KIND(Kind::NOT, 1, THEORY_BOOL, THEORY_BOOL);
-  SMTMBT_CVC4_ADD_KIND(Kind::XOR, 2, THEORY_BOOL, THEORY_BOOL);
-  SMTMBT_CVC4_ADD_KIND(Kind::IMPLIES, 2, THEORY_BOOL, THEORY_BOOL);
+  SMTMBT_CVC4_ADD_KIND(AND, -1, false, THEORY_BOOL, THEORY_BOOL);
+  SMTMBT_CVC4_ADD_KIND(OR, -1, false, THEORY_BOOL, THEORY_BOOL);
+  SMTMBT_CVC4_ADD_KIND(NOT, 1, false, THEORY_BOOL, THEORY_BOOL);
+  SMTMBT_CVC4_ADD_KIND(XOR, 2, false, THEORY_BOOL, THEORY_BOOL);
+  SMTMBT_CVC4_ADD_KIND(IMPLIES, 2, false, THEORY_BOOL, THEORY_BOOL);
 
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_CONCAT, -1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_AND, -1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_OR, -1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_XOR, -1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_MULT, -1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_PLUS, -1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_NOT, 1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_NEG, 1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_REDOR, 1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_REDAND, 1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_NAND, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_NOR, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_XNOR, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_COMP, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SUB, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_UDIV, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_UREM, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SDIV, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SREM, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SMOD, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_UDIV_TOTAL, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_UREM_TOTAL, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SHL, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_LSHR, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_ASHR, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_ULT, 2, THEORY_BOOL, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_ULE, 2, THEORY_BOOL, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_UGT, 2, THEORY_BOOL, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_UGE, 2, THEORY_BOOL, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SLT, 2, THEORY_BOOL, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SLE, 2, THEORY_BOOL, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SGT, 2, THEORY_BOOL, THEORY_BV);
-  SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SGE, 2, THEORY_BOOL, THEORY_BV);
-  // SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_ULTBV, 2, THEORY_BV, THEORY_BV);
-  // SMTMBT_CVC4_ADD_KIND(Kind::BITVECTOR_SLTBV, 2, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_CONCAT, -1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_AND, -1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_OR, -1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_XOR, -1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_MULT, -1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_PLUS, -1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_NOT, 1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_NEG, 1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_REDOR, 1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_REDAND, 1, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_NAND, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_NOR, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_XNOR, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_COMP, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SUB, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_UDIV, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_UREM, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SDIV, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SREM, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SMOD, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_UDIV_TOTAL, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_UREM_TOTAL, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SHL, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_LSHR, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_ASHR, 2, false, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_ULT, 2, false, THEORY_BOOL, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_ULE, 2, false, THEORY_BOOL, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_UGT, 2, false, THEORY_BOOL, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_UGE, 2, false, THEORY_BOOL, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SLT, 2, false, THEORY_BOOL, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SLE, 2, false, THEORY_BOOL, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SGT, 2, false, THEORY_BOOL, THEORY_BV);
+  SMTMBT_CVC4_ADD_KIND(BITVECTOR_SGE, 2, false, THEORY_BOOL, THEORY_BV);
+  // SMTMBT_CVC4_ADD_KIND(BITVECTOR_ULTBV, 2, false, THEORY_BV, THEORY_BV);
+  // SMTMBT_CVC4_ADD_KIND(BITVECTOR_SLTBV, 2, false, THEORY_BV, THEORY_BV);
   std::cout << "all kinds " << get_all_kinds().size() << std::endl;
 }
 

@@ -18,6 +18,7 @@ struct KindData
 {
   KindData(CVC4::api::Kind kind = CVC4::api::UNDEFINED_KIND,
            uint32_t arity       = 0,
+           bool parameterized   = false,
            TheoryId theory_term = THEORY_BOOL,
            TheoryId theory_args = THEORY_BOOL)
       : d_kind(kind),
@@ -36,6 +37,7 @@ struct KindData
 
   CVC4::api::Kind d_kind; /* The Kind. */
   int32_t d_arity;        /* The arity of this kind. */
+  bool d_parameterized;   /* Is this kind a parameterized kind? */
   TheoryId d_theory_term; /* The theory of a term of this kind. */
   TheoryId d_theory_args; /* The theory of the term arguments of this kind. */
 };
