@@ -2,6 +2,7 @@
 #define __SMTMBT__SOLVER_MANAGER_H
 
 #include <cassert>
+#include <iostream>
 #include <memory>
 #include <unordered_map>
 
@@ -111,15 +112,29 @@ class SolverManager
 
   TTerm pick_term()
   {
-    TheoryId theory = pick_theory();
+    TheoryId theory;
+    do
+    {
+      theory = pick_theory();
+    } while (!has_term(theory));
     return pick_term(theory);
   }
 
   TTerm pick_term(TheoryId theory)
   {
     assert(d_terms.find(theory) != d_terms.end());
-    if (theory == THEORY_ALL) theory = pick_theory();
-    TSort sort = pick_sort(theory);
+    if (theory == THEORY_ALL)
+    {
+      do
+      {
+        theory = pick_theory();
+      } while (!has_term(theory));
+    }
+    TSort sort;
+    do
+    {
+      sort = pick_sort(theory);
+    } while (!has_term(sort));
     return pick_term(sort);
   }
 
@@ -142,6 +157,28 @@ class SolverManager
     // TODO: increment ref counter
     return it->first;
   }
+
+  bool has_term(TheoryId theory)
+  {
+    if (theory == THEORY_ALL)
+    {
+      for (const auto t : d_terms)
+      {
+        for (const auto s : t.second)
+        {
+          if (!s.second.empty()) return true;
+        }
+      }
+      return false;
+    }
+    for (const auto s : d_terms[theory])
+    {
+      if (!s.second.empty()) return true;
+    }
+    return false;
+  }
+
+  bool has_term(TSort sort) { return !d_terms[get_theory(sort)][sort].empty(); }
 
   TSort pick_sort()
   {

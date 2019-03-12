@@ -6,6 +6,9 @@
 
 #include "util.hpp"
 
+#define SMTMBT_BTOR_BW_MIN 1
+#define SMTMBT_BTOR_BW_MAX 128
+
 namespace smtmbt {
 namespace btor {
 
@@ -85,9 +88,9 @@ class BtorActionDelete : public BtorAction
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
     d_smgr->clear();
     Btor* btor = d_smgr->get_solver();
+    assert(btor);
     boolector_delete(btor);
     d_smgr->set_solver(nullptr);
     return true;
@@ -209,8 +212,8 @@ class BtorActionTrue : public BtorAction
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
+    assert(btor);
     BoolectorNode* res = boolector_true(btor);
     d_smgr->add_input(res, THEORY_BOOL);
     boolector_release(btor, res);
@@ -228,8 +231,8 @@ class BtorActionFalse : public BtorAction
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
+    assert(btor);
     BoolectorNode* res = boolector_false(btor);
     d_smgr->add_input(res, THEORY_BOOL);
     boolector_release(btor, res);
@@ -247,8 +250,9 @@ class BtorActionImplies : public BtorAction
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    if (!d_smgr->has_term(THEORY_BOOL)) return false;
     BoolectorNode* a = d_smgr->pick_term(THEORY_BOOL);
     BoolectorNode* b = d_smgr->pick_term(THEORY_BOOL);
     BoolectorNode* res = boolector_implies(btor, a, b);
@@ -268,8 +272,9 @@ class BtorActionIff : public BtorAction
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    if (!d_smgr->has_term(THEORY_BOOL)) return false;
     BoolectorNode* a = d_smgr->pick_term(THEORY_BOOL);
     BoolectorNode* b = d_smgr->pick_term(THEORY_BOOL);
     BoolectorNode* res = boolector_iff(btor, a, b);
@@ -289,8 +294,9 @@ class BtorActionEq : public BtorAction
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    if (!d_smgr->has_term(THEORY_ALL)) return false;
     BoolectorNode* a = d_smgr->pick_term();
     BoolectorNode* b = d_smgr->pick_term(a);
     BoolectorNode* res = boolector_eq(btor, a, b);
@@ -310,8 +316,9 @@ class BtorActionNe : public BtorAction
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
     Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    if (!d_smgr->has_term(THEORY_ALL)) return false;
     BoolectorNode* a = d_smgr->pick_term();
     BoolectorNode* b = d_smgr->pick_term(a);
     BoolectorNode* res = boolector_ne(btor, a, b);
@@ -418,7 +425,31 @@ class BtorActionNe : public BtorAction
 // void boolector_free_uf_assignment (Btor *btor, char **args, char **values, uint32_t size);
 // void boolector_print_model (Btor *btor, char *format, FILE *file);
 // BoolectorSort boolector_bool_sort (Btor *btor);
+
 // BoolectorSort boolector_bitvec_sort (Btor *btor, uint32_t width);
+class BtorActionBVSort : public BtorAction
+{
+ public:
+  BtorActionBVSort(BtorSolverManagerBase* smgr)
+      : BtorAction(smgr, "bitvec_sort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    RNGenerator& rng  = d_smgr->get_rng();
+    uint32_t bw       = rng.pick_uint32(SMTMBT_BTOR_BW_MIN, SMTMBT_BTOR_BW_MAX);
+    BoolectorSort res = boolector_bitvec_sort(btor, bw);
+    d_smgr->add_sort(res, THEORY_BV);
+    boolector_release_sort(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorSort boolector_fun_sort (Btor *btor, BoolectorSort *domain, uint32_t arity, BoolectorSort codomain);
 // BoolectorSort boolector_array_sort (Btor *btor, BoolectorSort index, BoolectorSort element);
 // BoolectorSort boolector_copy_sort (Btor *btor, BoolectorSort sort);
@@ -527,6 +558,8 @@ BtorSolverManager::configure()
   /* make consts */
   auto afalse  = new_action<BtorActionFalse>();
   auto atrue   = new_action<BtorActionTrue>();
+  /* make sort */
+  auto abvsort = new_action<BtorActionBVSort>();
   /* make terms */
   auto aeq     = new_action<BtorActionEq>();
   auto aiff    = new_action<BtorActionIff>();
@@ -554,6 +587,7 @@ BtorSolverManager::configure()
 
   sinputs->add_action(atrue, 20);
   sinputs->add_action(afalse, 20);
+  sinputs->add_action(abvsort, 20);
   sinputs->add_action(tinputs, 10, sterms);
 
   sterms->add_action(aeq, 10);
