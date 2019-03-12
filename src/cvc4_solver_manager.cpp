@@ -359,54 +359,6 @@ class CVC4ActionMkTerm0 : public CVC4Action
   std::unordered_map<TheoryId, std::vector<Kind>> d_kinds;
 };
 
-// Term Solver::mkTerm(Kind kind, Sort sort) const;
-class CVC4ActionMkTerm0Sort : public CVC4Action
-{
- public:
-  CVC4ActionMkTerm0Sort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkTerm0Sort")
-  {
-    /* Note that this function is a special case since it does not expect term
-     * arguments. We treat this as if the theory of the arguments is the same
-     * as the theory of the created term.*/
-    // TODO (no BV and BOOL kinds match this, thus empty for now)
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    /* Pick theory of term argument(s). Note that this function is a special
-     * case since it does not expect term arguments. We treat this as if the
-     * theory of the arguments is the same as the theory of the created term. */
-    TheoryId theory_args = d_smgr->pick_theory();
-    /* Nothing to do if no kind with term arguments of picked theory exists. */
-    if (d_kinds.find(theory_args) == d_kinds.end()
-        && d_kinds.find(THEORY_ALL) == d_kinds.end())
-    {
-      return true;
-    }
-    Solver* cvc4 = d_smgr->get_solver();
-    /* Pick kind that expects arguments of picked theory. (See note above.) */
-    KindData& kd = d_smgr->pick_kind(d_kinds[theory_args]);
-    Term res     = cvc4->mkTerm(kd.d_kind, d_smgr->pick_sort(theory_args));
-    d_smgr->add_term(
-        res, kd.d_theory_term == THEORY_ALL ? theory_args : kd.d_theory_term);
-    return true;
-  }
-  // void untrace(const char* s) override;
-
- private:
-  /**
-   * Mapping from TheoryId of the term arguments to this function to Kinds
-   * of the created term that expect arguments of this theory.
-   *
-   * Note that this function is a special case since it does not expect term
-   * arguments. We treat this as if the theory of the arguments is the same
-   * as the theory of the created term.
-   */
-  std::unordered_map<TheoryId, std::vector<Kind>> d_kinds;
-};
-
 // Term Solver::mkTerm(Kind kind, Term child) const;
 class CVC4ActionMkTerm1 : public CVC4Action
 {
@@ -871,7 +823,6 @@ CVC4SolverManager::configure()
   auto amktrue   = new_action<CVC4ActionMkTrue>();
   /* make terms */
   auto amkterm0 = new_action<CVC4ActionMkTerm0>();
-  auto amkterm0sort = new_action<CVC4ActionMkTerm0Sort>();
   auto amkterm1 = new_action<CVC4ActionMkTerm1>();
   auto amkterm2 = new_action<CVC4ActionMkTerm2>();
   auto amkterm3     = new_action<CVC4ActionMkTerm3>();
@@ -898,7 +849,6 @@ CVC4SolverManager::configure()
   sinputs->add_action(tinputs, 10, sterms);
 
   sterms->add_action(amkterm0, 10);
-  sterms->add_action(amkterm0sort, 10);
   sterms->add_action(amkterm1, 10);
   sterms->add_action(amkterm2, 20);
   sterms->add_action(amkterm3, 20);
