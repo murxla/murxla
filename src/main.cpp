@@ -179,16 +179,20 @@ run(uint32_t seed, Options& options)
 {
   int status, devnull;
   Result result;
-  pid_t pid;
+  pid_t pid = 0;
 
   RNGenerator rng(seed);
 
   result = RESULT_UNKNOWN;
 
-  pid = fork();
-  if (pid == -1)
+  /* If seeded run in main process. */
+  if (options.seed == 0)
   {
-    die("Fork failed.");
+    pid = fork();
+    if (pid == -1)
+    {
+      die("Fork failed.");
+    }
   }
 
   /* parent */
@@ -259,11 +263,11 @@ main(int argc, char* argv[])
 
   bool is_seeded = options.seed > 0;
   SeedGenerator sg(options.seed);
-  uint32_t seed;
+  uint32_t seed, num_runs = 0;
   do
   {
     seed = sg.next();
-    std::cout << seed << "\r" << std::flush;
+    std::cout << num_runs << " " << seed << "\r" << std::flush;
     res = run(seed, options);
   } while (!is_seeded);
 
