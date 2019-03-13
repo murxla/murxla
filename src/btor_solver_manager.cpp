@@ -683,24 +683,24 @@ BtorSolverManager::configure()
   auto adelete = new_action<BtorActionDelete>();
   auto anew    = new_action<BtorActionNew>();
   /* make consts */
-  auto afalse  = new_action<BtorActionFalse>();
-  auto atrue   = new_action<BtorActionTrue>();
+  auto afalse = new_action<BtorActionFalse>();
+  auto atrue  = new_action<BtorActionTrue>();
   auto aone   = new_action<BtorActionBVOne>();
-  auto aones   = new_action<BtorActionBVOnes>();
-  auto azero   = new_action<BtorActionBVZero>();
+  auto aones  = new_action<BtorActionBVOnes>();
+  auto azero  = new_action<BtorActionBVZero>();
   /* make sort */
   auto aboolsort = new_action<BtorActionBoolSort>();
   auto abvsort   = new_action<BtorActionBVSort>();
   /* make terms */
-  auto aeq     = new_action<BtorActionEq>();
-  auto aiff    = new_action<BtorActionIff>();
-  auto aimp    = new_action<BtorActionImplies>();
-  auto ane     = new_action<BtorActionNe>();
+  auto aeq  = new_action<BtorActionEq>();
+  auto aiff = new_action<BtorActionIff>();
+  auto aimp = new_action<BtorActionImplies>();
+  auto ane  = new_action<BtorActionNe>();
   /* commands */
-  auto afixa   = new_action<BtorActionFixateAssumptions>();
-  auto relall  = new_action<BtorActionReleaseAll>();
-  auto aresa   = new_action<BtorActionResetAssumptions>();
-  auto asat    = new_action<BtorActionSat>();
+  auto afixa  = new_action<BtorActionFixateAssumptions>();
+  auto relall = new_action<BtorActionReleaseAll>();
+  auto aresa  = new_action<BtorActionResetAssumptions>();
+  auto asat   = new_action<BtorActionSat>();
   /* transitions */
   auto tinputs = new_action<BtorActionNoneCreateInputs>();
   auto tnone   = new_action<BtorActionNone>();
@@ -718,6 +718,7 @@ BtorSolverManager::configure()
 
   sinputs->add_action(atrue, 20);
   sinputs->add_action(afalse, 20);
+  sinputs->add_action(aboolsort, 2);
   sinputs->add_action(abvsort, 20);
   sinputs->add_action(azero, 20);
   sinputs->add_action(aone, 20);
