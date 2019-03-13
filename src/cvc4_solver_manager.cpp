@@ -306,14 +306,6 @@ class CVC4ActionDelete : public CVC4Action
 // Sort Solver::mkSortConstructorSort(const std::string& symbol, size_t arity) const;
 // Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const;
 
-class CVC4ActionMkTerm : public CVC4Action
-{
- public:
-  CVC4ActionMkTerm(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm") {}
-
- protected:
-};
-
 // Term Solver::mkTerm(Kind kind) const;
 class CVC4ActionMkTerm0 : public CVC4Action
 {
