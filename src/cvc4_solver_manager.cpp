@@ -14,6 +14,9 @@ namespace cvc4 {
 
 #define SMTMBT_CVC4_MKTERM_N_ARGS -1
 
+#define SMTMBT_CVC4_BW_MIN 1
+#define SMTMBT_CVC4_BW_MAX 128
+
 /* -------------------------------------------------------------------------- */
 
 class CVC4Action : public Action
@@ -293,7 +296,30 @@ class CVC4ActionDelete : public CVC4Action
 // Sort Solver::getRoundingmodeSort() const;
 // Sort Solver::getStringSort() const;
 // Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const;
+
 // Sort Solver::mkBitVectorSort(uint32_t size) const;
+class CVC4ActionMkBitVectorSort : public CVC4Action
+{
+ public:
+  CVC4ActionMkBitVectorSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBitVectorSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    Solver* cvc4 = d_smgr->get_solver();
+    assert(cvc4);
+    RNGenerator& rng = d_smgr->get_rng();
+    uint32_t bw      = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
+    Sort res         = cvc4->mkBitVectorSort(bw);
+    d_smgr->add_sort(res, THEORY_BV);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 // Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const;
 // Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const;
@@ -324,12 +350,12 @@ class CVC4ActionMkTerm0 : public CVC4Action
     /* Pick theory of term argument(s). Note that this function is a special
      * case since it does not expect term arguments. We treat this as if the
      * theory of the arguments is the same as the theory of the created term. */
-    TheoryId theory_args = d_smgr->pick_theory();
+    TheoryId theory_args = d_smgr->pick_theory_with_terms();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     Solver* cvc4 = d_smgr->get_solver();
     /* Pick kind that expects arguments of picked theory. (See note above.) */
@@ -368,12 +394,12 @@ class CVC4ActionMkTerm1 : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     /* Pick theory of term argument(s).*/
-    TheoryId theory_args = d_smgr->pick_theory();
+    TheoryId theory_args = d_smgr->pick_theory_with_terms();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     Solver* cvc4 = d_smgr->get_solver();
     /* Pick kind that expects arguments of picked theory. */
@@ -414,12 +440,12 @@ class CVC4ActionMkTerm2 : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     /* Pick theory of term argument(s).*/
-    TheoryId theory_args = d_smgr->pick_theory();
+    TheoryId theory_args = d_smgr->pick_theory_with_terms();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -466,12 +492,12 @@ class CVC4ActionMkTerm3 : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     /* Pick theory of term argument(s).*/
-    TheoryId theory_args = d_smgr->pick_theory();
+    TheoryId theory_args = d_smgr->pick_theory_with_terms();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -530,12 +556,12 @@ class CVC4ActionMkTermN : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     /* Pick theory of term argument(s).*/
-    TheoryId theory_args = d_smgr->pick_theory();
+    TheoryId theory_args = d_smgr->pick_theory_with_terms();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -815,17 +841,19 @@ CVC4SolverManager::configure()
 
   /* Actions ................................................................ */
   /* create/delete solver */
-  auto anew      = new_action<CVC4ActionNew>();
-  auto adelete   = new_action<CVC4ActionDelete>();
+  auto anew    = new_action<CVC4ActionNew>();
+  auto adelete = new_action<CVC4ActionDelete>();
   /* make consts */
-  auto amkfalse  = new_action<CVC4ActionMkFalse>();
-  auto amktrue   = new_action<CVC4ActionMkTrue>();
+  auto amkfalse = new_action<CVC4ActionMkFalse>();
+  auto amktrue  = new_action<CVC4ActionMkTrue>();
+  /* make sort */
+  auto amkbvsort = new_action<CVC4ActionMkBitVectorSort>();
   /* make terms */
   auto amkterm0 = new_action<CVC4ActionMkTerm0>();
   auto amkterm1 = new_action<CVC4ActionMkTerm1>();
   auto amkterm2 = new_action<CVC4ActionMkTerm2>();
-  auto amkterm3     = new_action<CVC4ActionMkTerm3>();
-  auto amktermn     = new_action<CVC4ActionMkTermN>();
+  auto amkterm3 = new_action<CVC4ActionMkTerm3>();
+  auto amktermn = new_action<CVC4ActionMkTermN>();
   /* commands */
   auto achecksat = new_action<CVC4ActionCheckSat>();
   /* transitions */
@@ -843,6 +871,7 @@ CVC4SolverManager::configure()
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, sinputs);
 
+  sinputs->add_action(amkbvsort, 20);
   sinputs->add_action(amktrue, 10);
   sinputs->add_action(amkfalse, 10);
   sinputs->add_action(tinputs, 10, sterms);

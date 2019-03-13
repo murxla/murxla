@@ -121,7 +121,7 @@ class SolverManager
   TTerm pick_term()
   {
     TheoryId theory;
-    theory = pick_theory_with_term();
+    theory = pick_theory_with_terms();
     return pick_term(theory);
   }
 
@@ -130,10 +130,10 @@ class SolverManager
     assert(d_terms.find(theory) != d_terms.end());
     if (theory == THEORY_ALL)
     {
-      theory = pick_theory_with_term();
+      theory = pick_theory_with_terms();
     }
     TSort sort;
-    sort = pick_sort_with_term(theory);
+    sort = pick_sort_with_terms(theory);
     return pick_term(sort);
   }
 
@@ -201,18 +201,18 @@ class SolverManager
     return *it;
   }
 
-  TSort pick_sort_with_term()
+  TSort pick_sort_with_terms()
   {
-    TheoryId theory = pick_theory_with_term();
-    pick_sort_with_term(theory);
+    TheoryId theory = pick_theory_with_terms();
+    pick_sort_with_terms(theory);
   }
 
-  TSort pick_sort_with_term(TheoryId theory)
+  TSort pick_sort_with_terms(TheoryId theory)
   {
     SortMap& map = d_terms[theory];
     assert(!map.empty());
 
-    if (theory == THEORY_ALL) theory = pick_theory_with_term();
+    if (theory == THEORY_ALL) theory = pick_theory_with_terms();
 
     auto it = map.begin();
     if (map.size() > 1)
@@ -236,7 +236,7 @@ class SolverManager
     return it->first;
   }
 
-  TheoryId pick_theory_with_term()
+  TheoryId pick_theory_with_terms()
   {
     assert(d_terms.size());
     auto it = d_terms.begin();
