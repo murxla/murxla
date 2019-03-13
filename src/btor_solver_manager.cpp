@@ -359,7 +359,47 @@ class BtorActionBVZero : public BtorAction
 };
 
 // BoolectorNode *boolector_ones (Btor *btor, BoolectorSort sort);
+class BtorActionBVOnes : public BtorAction
+{
+ public:
+  BtorActionBVOnes(BtorSolverManagerBase* smgr) : BtorAction(smgr, "ones") {}
+
+  bool run() override
+  {
+    d_smgr->ensure_sort(THEORY_BV);
+    SMTMBT_TRACE << get_id();
+    Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    BoolectorSort s = d_smgr->pick_sort(THEORY_BV);
+    BoolectorNode* res = boolector_ones(btor, s);
+    d_smgr->add_term(res, THEORY_BV);
+    boolector_release(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorNode *boolector_one (Btor *btor, BoolectorSort sort);
+class BtorActionBVOne : public BtorAction
+{
+ public:
+  BtorActionBVOne(BtorSolverManagerBase* smgr) : BtorAction(smgr, "one") {}
+
+  bool run() override
+  {
+    d_smgr->ensure_sort(THEORY_BV);
+    SMTMBT_TRACE << get_id();
+    Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    BoolectorSort s = d_smgr->pick_sort(THEORY_BV);
+    BoolectorNode* res = boolector_one(btor, s);
+    d_smgr->add_term(res, THEORY_BV);
+    boolector_release(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorNode *boolector_unsigned_int (Btor *btor, uint32_t u, BoolectorSort sort);
 // BoolectorNode *boolector_int (Btor *btor, int32_t i, BoolectorSort sort);
 // BoolectorNode *boolector_var (Btor *btor, BoolectorSort sort, const char *symbol);
@@ -645,6 +685,8 @@ BtorSolverManager::configure()
   /* make consts */
   auto afalse  = new_action<BtorActionFalse>();
   auto atrue   = new_action<BtorActionTrue>();
+  auto aone   = new_action<BtorActionBVOne>();
+  auto aones   = new_action<BtorActionBVOnes>();
   auto azero   = new_action<BtorActionBVZero>();
   /* make sort */
   auto aboolsort = new_action<BtorActionBoolSort>();
@@ -678,6 +720,8 @@ BtorSolverManager::configure()
   sinputs->add_action(afalse, 20);
   sinputs->add_action(abvsort, 20);
   sinputs->add_action(azero, 20);
+  sinputs->add_action(aone, 20);
+  sinputs->add_action(aones, 20);
   sinputs->add_action(tinputs, 10, sterms);
 
   sterms->add_action(aeq, 10);
