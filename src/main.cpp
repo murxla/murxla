@@ -267,8 +267,9 @@ main(int argc, char* argv[])
   do
   {
     seed = sg.next();
-    std::cout << num_runs << " " << seed << "\r" << std::flush;
+    std::cout << num_runs++ << " " << seed;
     res = run(seed, options);
+    std::cout << "\r" << std::flush;
   } while (!is_seeded);
 
   return 0;
