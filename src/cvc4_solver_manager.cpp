@@ -288,13 +288,133 @@ class CVC4ActionDelete : public CVC4Action
 
 ////// Solver
 // Solver& Solver::operator=(const Solver&) = delete;
+
 // Sort Solver::getNullSort() const;
+class CVC4ActionGetNullSort : public CVC4Action
+{
+ public:
+  CVC4ActionGetNullSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "getNullSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    (void) d_smgr->get_solver()->getNullSort();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Sort Solver::getBooleanSort() const;
+class CVC4ActionGetBooleanSort : public CVC4Action
+{
+ public:
+  CVC4ActionGetBooleanSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "getBooleanSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    (void) d_smgr->get_solver()->getBooleanSort();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Sort Solver::getIntegerSort() const;
+class CVC4ActionGetIntegerSort : public CVC4Action
+{
+ public:
+  CVC4ActionGetIntegerSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "getIntegerSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    (void) d_smgr->get_solver()->getIntegerSort();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Sort Solver::getRealSort() const;
+class CVC4ActionGetRealSort : public CVC4Action
+{
+ public:
+  CVC4ActionGetRealSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "getRealSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    (void) d_smgr->get_solver()->getRealSort();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Sort Solver::getRegExpSort() const;
+class CVC4ActionGetRegExpSort : public CVC4Action
+{
+ public:
+  CVC4ActionGetRegExpSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "getRegExpSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    (void) d_smgr->get_solver()->getRegExpSort();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Sort Solver::getRoundingmodeSort() const;
+class CVC4ActionGetRoundingmodeSort : public CVC4Action
+{
+ public:
+  CVC4ActionGetRoundingmodeSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "getRoundingmodeSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    (void) d_smgr->get_solver()->getRoundingmodeSort();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Sort Solver::getStringSort() const;
+class CVC4ActionGetStringSort : public CVC4Action
+{
+ public:
+  CVC4ActionGetStringSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "getStringSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    (void) d_smgr->get_solver()->getStringSort();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const;
 
 // Sort Solver::mkBitVectorSort(uint32_t size) const;
@@ -846,6 +966,14 @@ CVC4SolverManager::configure()
   /* make consts */
   auto amkfalse = new_action<CVC4ActionMkFalse>();
   auto amktrue  = new_action<CVC4ActionMkTrue>();
+  /* get sort */
+  auto amgetboolsort   = new_action<CVC4ActionGetBooleanSort>();
+  auto amgetintsort    = new_action<CVC4ActionGetIntegerSort>();
+  auto amgetnullsort   = new_action<CVC4ActionGetNullSort>();
+  auto amgetrealsort   = new_action<CVC4ActionGetRealSort>();
+  auto amgetregexpsort = new_action<CVC4ActionGetRegExpSort>();
+  auto amgetrmsort     = new_action<CVC4ActionGetRoundingmodeSort>();
+  auto amgetstringsort = new_action<CVC4ActionGetStringSort>();
   /* make sort */
   auto amkbvsort = new_action<CVC4ActionMkBitVectorSort>();
   /* make terms */
@@ -871,11 +999,25 @@ CVC4SolverManager::configure()
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, sinputs);
 
+  sinputs->add_action(amgetboolsort, 2);
+  sinputs->add_action(amgetintsort, 2);
+  sinputs->add_action(amgetnullsort, 2);
+  sinputs->add_action(amgetrealsort, 2);
+  sinputs->add_action(amgetregexpsort, 2);
+  sinputs->add_action(amgetrmsort, 2);
+  sinputs->add_action(amgetstringsort, 2);
   sinputs->add_action(amkbvsort, 20);
   sinputs->add_action(amktrue, 10);
   sinputs->add_action(amkfalse, 10);
   sinputs->add_action(tinputs, 10, sterms);
 
+  sterms->add_action(amgetboolsort, 2);
+  sterms->add_action(amgetintsort, 2);
+  sterms->add_action(amgetnullsort, 2);
+  sterms->add_action(amgetrealsort, 2);
+  sterms->add_action(amgetregexpsort, 2);
+  sterms->add_action(amgetrmsort, 2);
+  sterms->add_action(amgetstringsort, 2);
   sterms->add_action(amkterm0, 10);
   sterms->add_action(amkterm1, 10);
   sterms->add_action(amkterm2, 20);
