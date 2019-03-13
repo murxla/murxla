@@ -49,6 +49,7 @@ class SolverManager
  public:
   using TermMap = std::unordered_map<TTerm, size_t, THashTerm>;
   using SortMap = std::unordered_map<TSort, TermMap, THashSort>;
+  using SortSet = std::unordered_set<TSort, THashSort>;
 
   /* Statistics. */
   struct Stats
@@ -194,8 +195,8 @@ class SolverManager
     assert(d_theory2sorts.find(theory) != d_theory2sorts.end());
     assert(!d_theory2sorts[theory].empty());
 
-    std::unordered_set<TSort, THashSort> set = d_theory2sorts[theory];
-    auto it                                  = set.begin();
+    SortSet& set = d_theory2sorts[theory];
+    auto it      = set.begin();
     std::advance(it, d_rng.pick_uint32() % set.size());
     return *it;
   }
@@ -285,8 +286,7 @@ class SolverManager
   TSolver d_solver;
   RNGenerator& d_rng;
   /* Map theory -> sorts. */
-  std::unordered_map<TheoryId, std::unordered_set<TSort, THashSort>>
-      d_theory2sorts;
+  std::unordered_map<TheoryId, SortSet> d_theory2sorts;
   /* Map sort -> theory. */
   std::unordered_map<TSort, TheoryId, THashSort> d_sorts2theory;
   /* Map theory -> (sort -> terms). */
