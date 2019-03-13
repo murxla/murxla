@@ -241,11 +241,11 @@ run(uint32_t seed, Options& options)
   switch (result)
   {
     case RESULT_OK: break;
-    case RESULT_ERROR: std::cout << " error" << std::endl; break;
-    case RESULT_SIGNAL: std::cout << " signal" << std::endl; break;
+    case RESULT_ERROR: std::cout << std::flush << " error" << std::endl; break;
+    case RESULT_SIGNAL: std::cout << std::flush <<" signal" << std::endl; break;
     default:
       assert(result == RESULT_UNKNOWN);
-      std::cout << " unknown" << std::endl;
+      std::cout << std::flush << " unknown" << std::endl;
   }
 
   return result;
