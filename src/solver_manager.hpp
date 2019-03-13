@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "fsm.hpp"
 
@@ -81,42 +82,45 @@ class SolverManager
     TSort sort = get_sort(term);
     add_sort(sort, theory);
 
-    assert(d_terms.find(theory) != d_terms.end());
-
-    SortMap& smap = d_terms[theory];
-    assert(smap.find(sort) != smap.end());
-    if (smap[sort].find(term) == smap[sort].end())
-    {
-      smap[sort].emplace(copy_term(term), 0);
-    }
-    else
-    {
-      smap[sort][term] += 1;
-    }
-  }
-
-  void add_sort(TSort sort, TheoryId theory)
-  {
     if (d_terms.find(theory) == d_terms.end())
     {
       d_terms.emplace(theory, SortMap());
     }
 
+    assert(d_terms.find(theory) != d_terms.end());
+
     SortMap& map = d_terms[theory];
-    if (map.find(sort) == map.end())
+    map.emplace(sort, TermMap());
+
+    assert(map.find(sort) != map.end());
+    if (map[sort].find(term) == map[sort].end())
     {
-      map.emplace(copy_sort(sort), TermMap());
-      d_sorts.emplace(sort, theory);
+      map[sort].emplace(copy_term(term), 0);
     }
+    else
+    {
+      map[sort][term] += 1;
+    }
+  }
+
+  void add_sort(TSort sort, TheoryId theory)
+  {
+    if (d_sorts2theory.find(sort) == d_sorts2theory.end())
+    {
+      d_sorts2theory.emplace(copy_sort(sort), theory);
+    }
+
+    if (d_theory2sorts.find(theory) == d_theory2sorts.end())
+    {
+      d_theory2sorts.emplace(theory, std::unordered_set<TSort, THashSort>());
+    }
+    d_theory2sorts[theory].emplace(sort);
   }
 
   TTerm pick_term()
   {
     TheoryId theory;
-    do
-    {
-      theory = pick_theory();
-    } while (!has_term(theory));
+    theory = pick_theory_with_term();
     return pick_term(theory);
   }
 
@@ -125,16 +129,10 @@ class SolverManager
     assert(d_terms.find(theory) != d_terms.end());
     if (theory == THEORY_ALL)
     {
-      do
-      {
-        theory = pick_theory();
-      } while (!has_term(theory));
+      theory = pick_theory_with_term();
     }
     TSort sort;
-    do
-    {
-      sort = pick_sort(theory);
-    } while (!has_term(sort));
+    sort = pick_sort_with_term(theory);
     return pick_term(sort);
   }
 
@@ -147,7 +145,9 @@ class SolverManager
   TTerm pick_term(TSort sort)
   {
     TheoryId theory = get_theory(sort);
-    TermMap& map    = d_terms[theory][sort];
+    assert(d_terms.find(theory) != d_terms.end());
+    assert(d_terms[theory].find(sort) != d_terms[theory].end());
+    TermMap& map = d_terms[theory][sort];
     assert(!map.empty());
     auto it = map.begin();
     if (map.size() > 1)
@@ -171,6 +171,9 @@ class SolverManager
       }
       return false;
     }
+
+    if (d_terms.find(theory) == d_terms.end()) return false;
+
     for (const auto s : d_terms[theory])
     {
       if (!s.second.empty()) return true;
@@ -188,10 +191,27 @@ class SolverManager
 
   TSort pick_sort(TheoryId theory)
   {
+    assert(d_theory2sorts.find(theory) != d_theory2sorts.end());
+    assert(!d_theory2sorts[theory].empty());
+
+    std::unordered_set<TSort, THashSort> set = d_theory2sorts[theory];
+    auto it                                  = set.begin();
+    std::advance(it, d_rng.pick_uint32() % set.size());
+    return *it;
+  }
+
+  TSort pick_sort_with_term()
+  {
+    TheoryId theory = pick_theory_with_term();
+    pick_sort_with_term(theory);
+  }
+
+  TSort pick_sort_with_term(TheoryId theory)
+  {
     SortMap& map = d_terms[theory];
     assert(!map.empty());
 
-    if (theory == THEORY_ALL) theory = pick_theory();
+    if (theory == THEORY_ALL) theory = pick_theory_with_term();
 
     auto it = map.begin();
     if (map.size() > 1)
@@ -201,21 +221,38 @@ class SolverManager
     return it->first;
   }
 
+  bool has_sort(TheoryId theory)
+  {
+    if (d_theory2sorts.find(theory) == d_theory2sorts.end()) return false;
+    return !d_theory2sorts[theory].empty();
+  }
+
   TheoryId pick_theory()
+  {
+    assert(d_theory2sorts.size());
+    auto it = d_theory2sorts.begin();
+    std::advance(it, d_rng.pick_uint32() % d_theory2sorts.size());
+    return it->first;
+  }
+
+  TheoryId pick_theory_with_term()
   {
     assert(d_terms.size());
     auto it = d_terms.begin();
     std::advance(it, d_rng.pick_uint32() % d_terms.size());
+    assert(!it->second.empty());
     return it->first;
   }
 
   TheoryId get_theory(TSort sort)
   {
-    assert(d_sorts.find(sort) != d_sorts.end());
-    return d_sorts[sort];
+    assert(d_sorts2theory.find(sort) != d_sorts2theory.end());
+    return d_sorts2theory[sort];
   }
 
   virtual TSort get_sort(TTerm term) = 0;
+
+  virtual void ensure_sort(TheoryId theory) = 0;
 
   Stats d_stats;
 
@@ -247,7 +284,12 @@ class SolverManager
   FSM d_fsm;
   TSolver d_solver;
   RNGenerator& d_rng;
-  std::unordered_map<TSort, TheoryId, THashSort> d_sorts;
+  /* Map theory -> sorts. */
+  std::unordered_map<TheoryId, std::unordered_set<TSort, THashSort>>
+      d_theory2sorts;
+  /* Map sort -> theory. */
+  std::unordered_map<TSort, TheoryId, THashSort> d_sorts2theory;
+  /* Map theory -> (sort -> terms). */
   std::unordered_map<TheoryId, SortMap> d_terms;
 
  private:

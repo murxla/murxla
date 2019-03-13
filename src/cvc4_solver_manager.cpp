@@ -738,7 +738,8 @@ void
 CVC4SolverManager::clear()
 {
   d_terms.clear();
-  d_sorts.clear();
+  d_sorts2theory.clear();
+  d_theory2sorts.clear();
 }
 
 CVC4SolverManager::~CVC4SolverManager()
@@ -751,6 +752,12 @@ Sort
 CVC4SolverManager::get_sort(Term term)
 {
   return term.getSort();
+}
+
+void
+CVC4SolverManager::ensure_sort(TheoryId theory)
+{
+  // TODO
 }
 
 #define SMTMBT_CVC4_ADD_KIND(                            \

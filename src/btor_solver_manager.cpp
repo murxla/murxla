@@ -73,7 +73,11 @@ class BtorActionNew : public BtorAction
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     if (btor != nullptr) boolector_delete(btor);
-    d_smgr->set_solver(boolector_new());
+    btor = boolector_new();
+    d_smgr->set_solver(btor);
+    BoolectorSort bsort = boolector_bool_sort(btor);
+    d_smgr->add_sort(bsort, THEORY_BV);
+    d_smgr->set_bool_sort(bsort);
     return true;
   }
   // void untrace(const char* s) override;
@@ -215,7 +219,7 @@ class BtorActionTrue : public BtorAction
     Btor* btor = d_smgr->get_solver();
     assert(btor);
     BoolectorNode* res = boolector_true(btor);
-    d_smgr->add_input(res, THEORY_BOOL);
+    d_smgr->add_input(res, THEORY_BV);
     boolector_release(btor, res);
     return true;
   }
@@ -234,7 +238,7 @@ class BtorActionFalse : public BtorAction
     Btor* btor = d_smgr->get_solver();
     assert(btor);
     BoolectorNode* res = boolector_false(btor);
-    d_smgr->add_input(res, THEORY_BOOL);
+    d_smgr->add_input(res, THEORY_BV);
     boolector_release(btor, res);
     return true;
   }
@@ -249,14 +253,15 @@ class BtorActionImplies : public BtorAction
 
   bool run() override
   {
+    BoolectorSort bsort = d_smgr->get_bool_sort();
+    if (!d_smgr->has_term(bsort)) return false;
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     assert(btor);
-    if (!d_smgr->has_term(THEORY_BOOL)) return false;
-    BoolectorNode* a = d_smgr->pick_term(THEORY_BOOL);
-    BoolectorNode* b = d_smgr->pick_term(THEORY_BOOL);
+    BoolectorNode* a   = d_smgr->pick_term(bsort);
+    BoolectorNode* b   = d_smgr->pick_term(bsort);
     BoolectorNode* res = boolector_implies(btor, a, b);
-    d_smgr->add_term(res, THEORY_BOOL);
+    d_smgr->add_term(res, THEORY_BV);
     boolector_release(btor, res);
     return true;
   }
@@ -271,14 +276,15 @@ class BtorActionIff : public BtorAction
 
   bool run() override
   {
+    BoolectorSort bsort = d_smgr->get_bool_sort();
+    if (!d_smgr->has_term(bsort)) return false;
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     assert(btor);
-    if (!d_smgr->has_term(THEORY_BOOL)) return false;
-    BoolectorNode* a = d_smgr->pick_term(THEORY_BOOL);
-    BoolectorNode* b = d_smgr->pick_term(THEORY_BOOL);
+    BoolectorNode* a   = d_smgr->pick_term(bsort);
+    BoolectorNode* b   = d_smgr->pick_term(bsort);
     BoolectorNode* res = boolector_iff(btor, a, b);
-    d_smgr->add_term(res, THEORY_BOOL);
+    d_smgr->add_term(res, THEORY_BV);
     boolector_release(btor, res);
     return true;
   }
@@ -296,11 +302,10 @@ class BtorActionEq : public BtorAction
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     assert(btor);
-    if (!d_smgr->has_term(THEORY_ALL)) return false;
     BoolectorNode* a = d_smgr->pick_term();
     BoolectorNode* b = d_smgr->pick_term(a);
     BoolectorNode* res = boolector_eq(btor, a, b);
-    d_smgr->add_term(res, THEORY_BOOL);
+    d_smgr->add_term(res, THEORY_BV);
     boolector_release(btor, res);
     return true;
   }
@@ -318,11 +323,10 @@ class BtorActionNe : public BtorAction
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     assert(btor);
-    if (!d_smgr->has_term(THEORY_ALL)) return false;
     BoolectorNode* a = d_smgr->pick_term();
     BoolectorNode* b = d_smgr->pick_term(a);
     BoolectorNode* res = boolector_ne(btor, a, b);
-    d_smgr->add_term(res, THEORY_BOOL);
+    d_smgr->add_term(res, THEORY_BV);
     boolector_release(btor, res);
     return true;
   }
@@ -332,7 +336,28 @@ class BtorActionNe : public BtorAction
 // BoolectorNode *boolector_const (Btor *btor, const char *bits);
 // BoolectorNode *boolector_constd (Btor *btor, BoolectorSort sort, const char *str);
 // BoolectorNode *boolector_consth (Btor *btor, BoolectorSort sort, const char *str);
+
 // BoolectorNode *boolector_zero (Btor *btor, BoolectorSort sort);
+class BtorActionBVZero : public BtorAction
+{
+ public:
+  BtorActionBVZero(BtorSolverManagerBase* smgr) : BtorAction(smgr, "zero") {}
+
+  bool run() override
+  {
+    d_smgr->ensure_sort(THEORY_BV);
+    SMTMBT_TRACE << get_id();
+    Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    BoolectorSort s    = d_smgr->pick_sort(THEORY_BV);
+    BoolectorNode* res = boolector_zero(btor, s);
+    d_smgr->add_term(res, THEORY_BV);
+    boolector_release(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // BoolectorNode *boolector_ones (Btor *btor, BoolectorSort sort);
 // BoolectorNode *boolector_one (Btor *btor, BoolectorSort sort);
 // BoolectorNode *boolector_unsigned_int (Btor *btor, uint32_t u, BoolectorSort sort);
@@ -424,7 +449,28 @@ class BtorActionNe : public BtorAction
 // void boolector_uf_assignment (Btor *btor, BoolectorNode *n_uf, char ***args, char ***values, uint32_t *size);
 // void boolector_free_uf_assignment (Btor *btor, char **args, char **values, uint32_t size);
 // void boolector_print_model (Btor *btor, char *format, FILE *file);
+
 // BoolectorSort boolector_bool_sort (Btor *btor);
+class BtorActionBoolSort : public BtorAction
+{
+ public:
+  BtorActionBoolSort(BtorSolverManagerBase* smgr)
+      : BtorAction(smgr, "bool_sort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    Btor* btor = d_smgr->get_solver();
+    assert(btor);
+    BoolectorSort res = boolector_bool_sort(btor);
+    d_smgr->add_sort(res, THEORY_BV);
+    boolector_release_sort(btor, res);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 // BoolectorSort boolector_bitvec_sort (Btor *btor, uint32_t width);
 class BtorActionBVSort : public BtorAction
@@ -509,7 +555,6 @@ BtorSolverManager::clear()
     for (auto& p : smap)
     {
       std::tie(sort, tmap) = p;
-      boolector_release_sort(d_solver, sort);
       for (auto& p : tmap)
       {
         boolector_release(d_solver, p.first);
@@ -517,7 +562,19 @@ BtorSolverManager::clear()
     }
   }
   d_terms.clear();
-  d_sorts.clear();
+  for (auto& p : d_sorts2theory)
+  {
+    std::tie(sort, theory) = p;
+    boolector_release_sort(d_solver, sort);
+  }
+  d_sorts2theory.clear();
+  d_theory2sorts.clear();
+
+  if (get_bool_sort())
+  {
+    boolector_release_sort(d_solver, get_bool_sort());
+    set_bool_sort(0);
+  }
 }
 
 BtorSolverManager::~BtorSolverManager()
@@ -548,6 +605,36 @@ BtorSolverManager::get_sort(BoolectorNode* term)
   return boolector_get_sort(d_solver, term);
 }
 
+BoolectorSort
+BtorSolverManager::get_bool_sort()
+{
+  return d_bool_sort;
+}
+
+void
+BtorSolverManager::set_bool_sort(BoolectorSort sort)
+{
+  d_bool_sort = sort;
+}
+
+void
+BtorSolverManager::ensure_sort(TheoryId theory)
+{
+  assert(theory != THEORY_ALL);
+
+  if (!has_sort(theory))
+  {
+    switch (theory)
+    {
+      case THEORY_BV:
+        BtorActionBVSort(this).run();
+        assert(has_sort(theory));
+        break;
+      default: assert(theory == THEORY_BV); BtorActionBoolSort(this).run();
+    }
+  }
+}
+
 void
 BtorSolverManager::configure()
 {
@@ -558,8 +645,10 @@ BtorSolverManager::configure()
   /* make consts */
   auto afalse  = new_action<BtorActionFalse>();
   auto atrue   = new_action<BtorActionTrue>();
+  auto azero   = new_action<BtorActionBVZero>();
   /* make sort */
-  auto abvsort = new_action<BtorActionBVSort>();
+  auto aboolsort = new_action<BtorActionBoolSort>();
+  auto abvsort   = new_action<BtorActionBVSort>();
   /* make terms */
   auto aeq     = new_action<BtorActionEq>();
   auto aiff    = new_action<BtorActionIff>();
@@ -588,6 +677,7 @@ BtorSolverManager::configure()
   sinputs->add_action(atrue, 20);
   sinputs->add_action(afalse, 20);
   sinputs->add_action(abvsort, 20);
+  sinputs->add_action(azero, 20);
   sinputs->add_action(tinputs, 10, sterms);
 
   sterms->add_action(aeq, 10);
