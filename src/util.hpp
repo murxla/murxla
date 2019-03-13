@@ -24,11 +24,14 @@ class RNGenerator
    uint32_t pick_uint32();
    uint32_t pick_uint32(uint32_t from, uint32_t to);
    uint32_t pick_uint32_weighted(std::vector<uint32_t>& weights);
+   uint64_t pick_uint64();
+   uint64_t pick_uint64(uint64_t from, uint64_t to);
 
   private:
     uint32_t d_seed;
     std::mt19937 d_rng;
     std::uniform_int_distribution<uint32_t> d_uint32_dist;
+    std::uniform_int_distribution<uint64_t> d_uint64_dist;
 };
 
 class TraceStream

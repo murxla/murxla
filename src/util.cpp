@@ -47,6 +47,24 @@ RNGenerator::pick_uint32_weighted(std::vector<uint32_t>& weights)
   return dist(d_rng);
 }
 
+uint64_t
+RNGenerator::pick_uint64()
+{
+  return d_uint64_dist(d_rng);
+}
+
+uint64_t
+RNGenerator::pick_uint64(uint64_t from, uint64_t to)
+{
+  uint64_t res = pick_uint64();
+
+  from = from == UINT64_MAX ? UINT64_MAX - 1 : from;
+  to   = to == UINT64_MAX ? UINT64_MAX - 1 : to;
+  res %= to - from + 1;
+  res += from;
+  return res;
+}
+
 TraceStream::TraceStream() { stream(); }
 
 TraceStream::~TraceStream()
