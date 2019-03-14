@@ -134,7 +134,11 @@ class SolverManager
     }
     TSort sort;
     sort = pick_sort_with_terms(theory);
-    return pick_term(sort);
+    assert(get_theory(sort) == theory);
+    TTerm res = pick_term(sort);
+    assert(get_sort(res) == sort);
+    assert(get_theory(get_sort(res)) == theory);
+    return res;
   }
 
   TTerm pick_term(TTerm term)
