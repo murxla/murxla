@@ -887,7 +887,28 @@ class CVC4ActionMkBitVector1 : public CVC4Action
 // Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const;
 // Term Solver::mkBoundVar(Sort sort) const;
 // Term Solver::simplify(const Term& t);
+
 // void Solver::assertFormula(Term term) const;
+class CVC4ActionAssertFormula : public CVC4Action
+{
+ public:
+  CVC4ActionAssertFormula(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "assertFormula")
+  {
+  }
+
+  bool run() override
+  {
+    if (!d_smgr->has_term(THEORY_BOOL)) return false;
+    SMTMBT_TRACE << get_id();
+    Solver* cvc4 = d_smgr->get_solver();
+    assert(cvc4);
+    Term f = d_smgr->pick_term(THEORY_BOOL);
+    cvc4->assertFormula(f);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 // Result Solver::checkSat() const;
 class CVC4ActionCheckSat : public CVC4Action
@@ -1054,12 +1075,14 @@ CVC4SolverManager::configure()
   auto amkterm3 = new_action<CVC4ActionMkTerm3>();
   auto amktermn = new_action<CVC4ActionMkTermN>();
   /* commands */
+  auto aassert   = new_action<CVC4ActionAssertFormula>();
   auto achecksat = new_action<CVC4ActionCheckSat>();
   /* transitions */
   auto tinputs = new_action<CVC4ActionNoneCreateInputs>();
   auto tnone   = new_action<CVC4ActionNone>();
 
   /* States ................................................................. */
+  auto sassert = d_fsm.new_state("assert");
   auto sdelete = d_fsm.new_state("delete");
   auto sinputs = d_fsm.new_state("create inputs");
   auto snew    = d_fsm.new_state("new");
@@ -1070,18 +1093,24 @@ CVC4SolverManager::configure()
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, sinputs);
 
-  sinputs->add_action(amgetboolsort, 2);
-  sinputs->add_action(amgetintsort, 2);
-  sinputs->add_action(amgetnullsort, 2);
-  sinputs->add_action(amgetrealsort, 2);
-  sinputs->add_action(amgetregexpsort, 2);
-  sinputs->add_action(amgetrmsort, 2);
-  sinputs->add_action(amgetstringsort, 2);
-  sinputs->add_action(amkbv1, 10);
-  sinputs->add_action(amkbvsort, 2);
+  sinputs->add_action(amgetboolsort, 1);
+  sinputs->add_action(amgetintsort, 1);
+  sinputs->add_action(amgetnullsort, 1);
+  sinputs->add_action(amgetrealsort, 1);
+  sinputs->add_action(amgetregexpsort, 1);
+  sinputs->add_action(amgetrmsort, 1);
+  sinputs->add_action(amgetstringsort, 1);
+  //sinputs->add_action(amkbv1, 10);
+  //sinputs->add_action(amkbvsort, 2);
   sinputs->add_action(amktrue, 10);
   sinputs->add_action(amkfalse, 10);
   sinputs->add_action(tinputs, 10, sterms);
+  sinputs->add_action(tinputs, 10, sassert);
+
+  sassert->add_action(aassert, 10);
+  sassert->add_action(aassert, 5, sinputs);
+  sassert->add_action(aassert, 20, sterms);
+  sassert->add_action(aassert, 2, ssat);
 
   sterms->add_action(amgetboolsort, 2);
   sterms->add_action(amgetintsort, 2);
@@ -1095,7 +1124,8 @@ CVC4SolverManager::configure()
   sterms->add_action(amkterm2, 20);
   sterms->add_action(amkterm3, 20);
   sterms->add_action(amktermn, 20);
-  sterms->add_action(tnone, 5, ssat);
+  sterms->add_action(tnone, 5, sassert);
+  sterms->add_action(tnone, 2, ssat);
 
   ssat->add_action(achecksat, 10, sdelete);
   sdelete->add_action(adelete, 10, sfinal);
