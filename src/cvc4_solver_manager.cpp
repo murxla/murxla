@@ -847,11 +847,19 @@ class CVC4ActionMkBitVector1 : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     RNGenerator& rng = d_smgr->get_rng();
-    uint32_t bw      = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
-    uint64_t val     = rng.pick_uint64();
     Solver* cvc4     = d_smgr->get_solver();
     assert(cvc4);
-    Term res = cvc4->mkBitVector(bw, val);
+    uint32_t bw  = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
+    Term res;
+    if (rng.pick_with_prob(1))
+    {
+      res = cvc4->mkBitVector(bw);
+    }
+    else
+    {
+      uint64_t val = rng.pick_uint64();
+      res          = cvc4->mkBitVector(bw, val);
+    }
     d_smgr->add_input(res, THEORY_BV);
     return true;
   }

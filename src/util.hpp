@@ -6,6 +6,8 @@
 
 namespace smtmbt {
 
+#define SMTMBT_PROB_MAX 1000  /* Maximum probability 100% = 1000. */
+
 class SeedGenerator
 {
  public:
@@ -26,6 +28,8 @@ class RNGenerator
    uint32_t pick_uint32_weighted(std::vector<uint32_t>& weights);
    uint64_t pick_uint64();
    uint64_t pick_uint64(uint64_t from, uint64_t to);
+   /* Pick with given probability, 100% = 1000. */
+   bool pick_with_prob(uint32_t prob);
 
   private:
     uint32_t d_seed;

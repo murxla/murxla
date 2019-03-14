@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <cassert>
 #include <ctime>
 #include <iostream>
 #include <limits>
@@ -63,6 +64,14 @@ RNGenerator::pick_uint64(uint64_t from, uint64_t to)
   res %= to - from + 1;
   res += from;
   return res;
+}
+
+bool
+RNGenerator::pick_with_prob(uint32_t prob)
+{
+  assert (prob <= SMTMBT_PROB_MAX);
+  uint32_t r = pick_uint32(0, SMTMBT_PROB_MAX - 1);
+  return r < prob;
 }
 
 TraceStream::TraceStream() { stream(); }
