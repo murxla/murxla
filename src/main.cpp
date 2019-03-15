@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <stdarg.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <iostream>
@@ -12,12 +13,22 @@
 
 using namespace smtmbt;
 
+static Options g_options;
+
 enum Result
 {
   RESULT_ERROR,
   RESULT_OK,
   RESULT_SIGNAL,
+  RESULT_TIMEOUT,
   RESULT_UNKNOWN,
+};
+
+enum ExitCodes
+{
+  EXIT_ERROR,
+  EXIT_OK,
+  EXIT_TIMEOUT,
 };
 
 #ifdef SMTMBT_USE_BOOLECTOR
@@ -121,11 +132,98 @@ test()
 /*****************************************************************************/
 
 static void
+warn(const char* msg, ...)
+{
+  assert(msg);
+  va_list list;
+  va_start(list, msg);
+  fprintf(stdout, "[smtmbt] ");
+  vfprintf(stdout, msg, list);
+  fprintf(stdout, "\n");
+  va_end(list);
+  fflush(stdout);
+}
+
+static void
+warn(const std::string& msg)
+{
+  warn(msg.c_str());
+}
+
+static void
 die(const std::string& msg)
 {
-  std::cerr << msg << std::endl;
-  exit(EXIT_FAILURE);
+  warn(msg);
+  exit(EXIT_ERROR);
 }
+
+/*****************************************************************************/
+
+static void (*sig_int_handler)(int32_t);
+static void (*sig_segv_handler)(int32_t);
+static void (*sig_abrt_handler)(int32_t);
+static void (*sig_term_handler)(int32_t);
+static void (*sig_bus_handler)(int32_t);
+static void (*sig_alrm_handler)(int32_t);
+
+static void
+reset_signal_handlers(void)
+{
+  (void) signal(SIGINT, sig_int_handler);
+  (void) signal(SIGSEGV, sig_segv_handler);
+  (void) signal(SIGABRT, sig_abrt_handler);
+  (void) signal(SIGTERM, sig_term_handler);
+  (void) signal(SIGBUS, sig_bus_handler);
+}
+
+static void
+catch_signal(int32_t signal)
+{
+  static int32_t caught_signal = 0;
+  if (!caught_signal)
+  {
+    caught_signal = signal;
+  }
+  reset_signal_handlers();
+  raise(signal);
+  exit(EXIT_ERROR);
+}
+
+static void
+set_signal_handlers(void)
+{
+  sig_int_handler  = signal(SIGINT, catch_signal);
+  sig_segv_handler = signal(SIGSEGV, catch_signal);
+  sig_abrt_handler = signal(SIGABRT, catch_signal);
+  sig_term_handler = signal(SIGTERM, catch_signal);
+  sig_bus_handler  = signal(SIGBUS, catch_signal);
+}
+
+static void
+reset_alarm(void)
+{
+  alarm(0);
+  (void) signal(SIGALRM, sig_alrm_handler);
+}
+
+static void
+catch_alarm(int32_t signal)
+{
+  (void) signal;
+  assert(signal == SIGALRM);
+  reset_alarm();
+  exit(EXIT_TIMEOUT);
+}
+
+static void
+set_alarm(void)
+{
+  sig_alrm_handler = signal(SIGALRM, catch_alarm);
+  assert(g_options.time > 0);
+  alarm(g_options.time);
+}
+
+/*****************************************************************************/
 
 void
 parse_options(Options& options, int argc, char* argv[])
@@ -142,6 +240,9 @@ parse_options(Options& options, int argc, char* argv[])
 
     ("s,seed", "Seed for random number generator",
      cxxopts::value<uint32_t>(options.seed))
+
+    ("t,time", "Time limit for MBT runs",
+     cxxopts::value<uint32_t>(options.time))
 
     ("v,verbosity", "Verbosity level",
      cxxopts::value<uint32_t>(options.verbosity))
@@ -198,11 +299,17 @@ run(uint32_t seed, Options& options)
   /* parent */
   if (pid)
   {
+    reset_alarm();
     wait(&status);
   }
   /* child */
   else
   {
+    if (g_options.time)
+    {
+      set_alarm();
+    }
+
     if (options.seed == 0)
     {
       /* redirect stdout and stderr of child process to /dev/null */
@@ -225,13 +332,19 @@ run(uint32_t seed, Options& options)
       mgr.run();
     }
 
-    exit(EXIT_SUCCESS);
+    exit(EXIT_OK);
   }
 
   if (WIFEXITED(status))
   {
     int exit_code = WEXITSTATUS(status);
-    result        = (exit_code == EXIT_SUCCESS) ? RESULT_OK : RESULT_ERROR;
+    switch (exit_code)
+    {
+      case EXIT_OK: result = RESULT_OK; break;
+      case EXIT_ERROR: result = RESULT_ERROR; break;
+      case EXIT_TIMEOUT: result = RESULT_TIMEOUT; break;
+      default: result = RESULT_UNKNOWN;
+    }
   }
   else if (WIFSIGNALED(status))
   {
@@ -242,7 +355,13 @@ run(uint32_t seed, Options& options)
   {
     case RESULT_OK: break;
     case RESULT_ERROR: std::cout << std::flush << " error" << std::endl; break;
-    case RESULT_SIGNAL: std::cout << std::flush <<" signal" << std::endl; break;
+    case RESULT_SIGNAL:
+      std::cout << std::flush << " signal" << std::endl;
+      break;
+    case RESULT_TIMEOUT:
+      std::cout << std::flush << " timed out after " << g_options.time
+                << " seconds " << std::endl;
+      break;
     default:
       assert(result == RESULT_UNKNOWN);
       std::cout << std::flush << " unknown" << std::endl;
@@ -257,18 +376,17 @@ main(int argc, char* argv[])
   //  test();
 
   Result res;
-  Options options;
 
-  parse_options(options, argc, argv);
+  parse_options(g_options, argc, argv);
 
-  bool is_seeded = options.seed > 0;
-  SeedGenerator sg(options.seed);
+  bool is_seeded = g_options.seed > 0;
+  SeedGenerator sg(g_options.seed);
   uint32_t seed, num_runs = 0;
   do
   {
     seed = sg.next();
     std::cout << num_runs++ << " " << seed;
-    res = run(seed, options);
+    res = run(seed, g_options);
     std::cout << "\r" << std::flush;
   } while (!is_seeded);
 

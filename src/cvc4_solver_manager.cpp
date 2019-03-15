@@ -1100,8 +1100,8 @@ CVC4SolverManager::configure()
   sinputs->add_action(amgetregexpsort, 1);
   sinputs->add_action(amgetrmsort, 1);
   sinputs->add_action(amgetstringsort, 1);
-  //sinputs->add_action(amkbv1, 10);
-  //sinputs->add_action(amkbvsort, 2);
+  sinputs->add_action(amkbv1, 10);
+  sinputs->add_action(amkbvsort, 2);
   sinputs->add_action(amktrue, 10);
   sinputs->add_action(amkfalse, 10);
   sinputs->add_action(tinputs, 10, sterms);

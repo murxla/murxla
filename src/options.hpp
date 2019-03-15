@@ -8,7 +8,9 @@ namespace smtmbt {
 struct Options
 {
   uint32_t seed      = 0;
+  bool seeded        = false;
   uint32_t verbosity = 0;
+  uint32_t time      = 0;
 
   bool use_btor = false;
   bool use_cvc4 = false;
