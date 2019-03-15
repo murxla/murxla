@@ -15,7 +15,7 @@ namespace cvc4 {
 #define SMTMBT_CVC4_MKTERM_N_ARGS -1
 
 #define SMTMBT_CVC4_BW_MIN 1
-#define SMTMBT_CVC4_BW_MAX 64
+#define SMTMBT_CVC4_BW_MAX 128
 
 /* -------------------------------------------------------------------------- */
 
@@ -489,7 +489,7 @@ class CVC4ActionMkTerm0 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return false;
+      return true;
     }
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
@@ -534,7 +534,7 @@ class CVC4ActionMkTerm1 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return false;
+      return true;
     }
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
@@ -581,7 +581,7 @@ class CVC4ActionMkTerm2 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return false;
+      return true;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -634,7 +634,7 @@ class CVC4ActionMkTerm3 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return false;
+      return true;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -650,7 +650,7 @@ class CVC4ActionMkTerm3 : public CVC4Action
         child3 = d_smgr->pick_term(theory_args);
         break;
       case ITE:
-        if (!d_smgr->has_term(THEORY_BOOL)) return false;
+        if (!d_smgr->has_term(THEORY_BOOL)) return true;
         child1 = d_smgr->pick_term(THEORY_BOOL);
         child2 = d_smgr->pick_term(theory_args);
         child3 = d_smgr->pick_term(d_smgr->get_sort(child2));
@@ -700,7 +700,7 @@ class CVC4ActionMkTermN : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return false;
+      return true;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -723,7 +723,7 @@ class CVC4ActionMkTermN : public CVC4Action
         case ITE:
           if (children.empty())
           {
-            if (!d_smgr->has_term(THEORY_BOOL)) return false;
+            if (!d_smgr->has_term(THEORY_BOOL)) return true;
             children.push_back(d_smgr->pick_term(THEORY_BOOL));
           }
           else if (children.size() == 1)
@@ -835,11 +835,11 @@ class CVC4ActionMkFalse : public CVC4Action
 // Term Solver::mkUniverseSet(Sort sort) const;
 
 // Term Solver::mkBitVector(uint32_t size, uint64_t val = 0) const;
-class CVC4ActionMkBitVector1 : public CVC4Action
+class CVC4ActionMkBitVector0 : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVector1(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVector1")
+  CVC4ActionMkBitVector0(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBitVector0")
   {
   }
 
@@ -867,11 +867,11 @@ class CVC4ActionMkBitVector1 : public CVC4Action
 };
 
 // Term Solver::mkBitVector(const char* s, uint32_t base = 2) const;
-class CVC4ActionMkBitVector2 : public CVC4Action
+class CVC4ActionMkBitVector1 : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVector2(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVector2")
+  CVC4ActionMkBitVector1(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBitVector1")
   {
   }
 
@@ -881,8 +881,10 @@ class CVC4ActionMkBitVector2 : public CVC4Action
     RNGenerator& rng = d_smgr->get_rng();
     Solver* cvc4     = d_smgr->get_solver();
     assert(cvc4);
-    uint32_t bw = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
-    uint32_t r  = rng.pick_uint32(0, 2);
+    /* Functions RNGenerator::pick_XX_str allow max. size of 64 bit. */
+    uint32_t bw = rng.pick_uint32(
+        SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX > 64 ? 64 : SMTMBT_CVC4_BW_MAX);
+    uint32_t r = rng.pick_uint32(0, 2);
     Term res;
     switch (r)
     {
@@ -918,11 +920,11 @@ class CVC4ActionMkBitVector2 : public CVC4Action
 };
 
 // Term Solver::mkBitVector(const std::string& s, uint32_t base = 2) const;
-class CVC4ActionMkBitVector3 : public CVC4Action
+class CVC4ActionMkBitVector2 : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVector3(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVector3")
+  CVC4ActionMkBitVector2(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBitVector2")
   {
   }
 
@@ -932,7 +934,9 @@ class CVC4ActionMkBitVector3 : public CVC4Action
     RNGenerator& rng = d_smgr->get_rng();
     Solver* cvc4     = d_smgr->get_solver();
     assert(cvc4);
-    uint32_t bw = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
+    /* Functions RNGenerator::pick_XX_str allow max. size of 64 bit. */
+    uint32_t bw = rng.pick_uint32(
+        SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX > 64 ? 64 : SMTMBT_CVC4_BW_MAX);
     uint32_t r  = rng.pick_uint32(0, 2);
     Term res;
     switch (r)
@@ -966,7 +970,105 @@ class CVC4ActionMkBitVector3 : public CVC4Action
 };
 
 // Term Solver::mkBitVector(uint32_t size, const char* s, uint32_t base) const;
+class CVC4ActionMkBitVector3 : public CVC4Action
+{
+ public:
+  CVC4ActionMkBitVector3(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBitVector3")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    RNGenerator& rng = d_smgr->get_rng();
+    Solver* cvc4     = d_smgr->get_solver();
+    assert(cvc4);
+    /* Functions RNGenerator::pick_XX_str allow max. size of 64 bit. */
+    uint32_t bw = rng.pick_uint32(
+        SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX > 64 ? 64 : SMTMBT_CVC4_BW_MAX);
+    uint32_t r = rng.pick_uint32(0, 2);
+    Term res;
+    switch (r)
+    {
+      case 0:
+      {
+        std::string s = rng.pick_bin_str(bw);
+        const char* c = s.c_str();
+        res           = cvc4->mkBitVector(bw, c, 2);
+      }
+      break;
+
+      case 1:
+      {
+        std::string s = rng.pick_dec_str(bw);
+        const char* c = s.c_str();
+        res           = cvc4->mkBitVector(bw, c, 10);
+      }
+      break;
+
+      default:
+      {
+        assert(r == 2);
+        std::string s = rng.pick_hex_str(bw);
+        const char* c = s.c_str();
+        res           = cvc4->mkBitVector(bw, c, 16);
+      }
+    }
+    d_smgr->add_input(res, THEORY_BV);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
+class CVC4ActionMkBitVector4 : public CVC4Action
+{
+ public:
+  CVC4ActionMkBitVector4(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBitVector4")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    RNGenerator& rng = d_smgr->get_rng();
+    Solver* cvc4     = d_smgr->get_solver();
+    assert(cvc4);
+    /* Functions RNGenerator::pick_XX_str allow max. size of 64 bit. */
+    uint32_t bw = rng.pick_uint32(
+        SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX > 64 ? 64 : SMTMBT_CVC4_BW_MAX);
+    uint32_t r = rng.pick_uint32(0, 2);
+    Term res;
+    switch (r)
+    {
+      case 0:
+      {
+        std::string s = rng.pick_bin_str(bw);
+        res           = cvc4->mkBitVector(bw, s, 2);
+      }
+      break;
+
+      case 1:
+      {
+        std::string s = rng.pick_dec_str(bw);
+        res           = cvc4->mkBitVector(bw, s, 10);
+      }
+      break;
+
+      default:
+      {
+        assert(r == 2);
+        std::string s = rng.pick_hex_str(bw);
+        res           = cvc4->mkBitVector(bw, s, 16);
+      }
+    }
+    d_smgr->add_input(res, THEORY_BV);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 // Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const;
 // Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const;
@@ -995,8 +1097,8 @@ class CVC4ActionAssertFormula : public CVC4Action
 
   bool run() override
   {
-    if (!d_smgr->has_term(THEORY_BOOL)) return false;
     SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_term(THEORY_BOOL)) return true;
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     Term f = d_smgr->pick_term(THEORY_BOOL);
@@ -1151,9 +1253,11 @@ CVC4SolverManager::configure()
   auto anew    = new_action<CVC4ActionNew>();
   auto adelete = new_action<CVC4ActionDelete>();
   /* make consts */
+  auto amkbv0   = new_action<CVC4ActionMkBitVector0>();
   auto amkbv1   = new_action<CVC4ActionMkBitVector1>();
   auto amkbv2   = new_action<CVC4ActionMkBitVector2>();
   auto amkbv3   = new_action<CVC4ActionMkBitVector3>();
+  auto amkbv4   = new_action<CVC4ActionMkBitVector4>();
   auto amkfalse = new_action<CVC4ActionMkFalse>();
   auto amktrue  = new_action<CVC4ActionMkTrue>();
   /* get sort */
@@ -1198,9 +1302,11 @@ CVC4SolverManager::configure()
   sinputs->add_action(amgetregexpsort, 1);
   sinputs->add_action(amgetrmsort, 1);
   sinputs->add_action(amgetstringsort, 1);
+  sinputs->add_action(amkbv0, 10);
   sinputs->add_action(amkbv1, 10);
   sinputs->add_action(amkbv2, 10);
   sinputs->add_action(amkbv3, 10);
+  sinputs->add_action(amkbv4, 10);
   sinputs->add_action(amkbvsort, 2);
   sinputs->add_action(amktrue, 10);
   sinputs->add_action(amkfalse, 10);
