@@ -2,10 +2,12 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <bitset>
 #include <cassert>
 #include <ctime>
 #include <iostream>
 #include <limits>
+#include <sstream>
 
 namespace smtmbt {
 
@@ -63,6 +65,22 @@ RNGenerator::pick_uint64(uint64_t from, uint64_t to)
   to   = to == UINT64_MAX ? UINT64_MAX - 1 : to;
   res %= to - from + 1;
   res += from;
+  return res;
+}
+
+std::string
+RNGenerator::pick_bin_str(uint32_t size)
+{
+  uint32_t n = static_cast<uint32_t>(std::ceil(size/32.0));
+  uint32_t val;
+  std::stringstream ss;
+  for (uint32_t i = 0; i < n; i++)
+  {
+    val = pick_uint32();
+    ss << std::bitset<32>(val).to_string();
+  }
+  std::string res = ss.str();
+  res.resize(size);
   return res;
 }
 

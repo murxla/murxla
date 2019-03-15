@@ -28,6 +28,8 @@ class RNGenerator
    uint32_t pick_uint32_weighted(std::vector<uint32_t>& weights);
    uint64_t pick_uint64();
    uint64_t pick_uint64(uint64_t from, uint64_t to);
+   /* Pick binary string of given size. */
+   std::string pick_bin_str(uint32_t size);
    /* Pick with given probability, 100% = 1000. */
    bool pick_with_prob(uint32_t prob);
 

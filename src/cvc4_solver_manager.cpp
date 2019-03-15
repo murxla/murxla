@@ -15,7 +15,7 @@ namespace cvc4 {
 #define SMTMBT_CVC4_MKTERM_N_ARGS -1
 
 #define SMTMBT_CVC4_BW_MIN 1
-#define SMTMBT_CVC4_BW_MAX 128
+#define SMTMBT_CVC4_BW_MAX 64
 
 /* -------------------------------------------------------------------------- */
 
@@ -849,7 +849,7 @@ class CVC4ActionMkBitVector1 : public CVC4Action
     RNGenerator& rng = d_smgr->get_rng();
     Solver* cvc4     = d_smgr->get_solver();
     assert(cvc4);
-    uint32_t bw  = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
+    uint32_t bw = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
     Term res;
     if (rng.pick_with_prob(1))
     {
@@ -867,6 +867,36 @@ class CVC4ActionMkBitVector1 : public CVC4Action
 };
 
 // Term Solver::mkBitVector(const char* s, uint32_t base = 2) const;
+class CVC4ActionMkBitVector2 : public CVC4Action
+{
+ public:
+  CVC4ActionMkBitVector2(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBitVector2")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    RNGenerator& rng = d_smgr->get_rng();
+    Solver* cvc4     = d_smgr->get_solver();
+    assert(cvc4);
+    uint32_t bw = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
+    Term res;
+    std::string s = rng.pick_bin_str(bw);
+    if (rng.pick_with_prob(1))
+    {
+      res = cvc4->mkBitVector(s);
+    }
+    else
+    {
+      res = cvc4->mkBitVector(s, 2);
+    }
+    d_smgr->add_input(res, THEORY_BV);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 // Term Solver::mkBitVector(const std::string& s, uint32_t base = 2) const;
 // Term Solver::mkBitVector(uint32_t size, const char* s, uint32_t base) const;
@@ -1056,6 +1086,7 @@ CVC4SolverManager::configure()
   auto adelete = new_action<CVC4ActionDelete>();
   /* make consts */
   auto amkbv1   = new_action<CVC4ActionMkBitVector1>();
+  auto amkbv2   = new_action<CVC4ActionMkBitVector2>();
   auto amkfalse = new_action<CVC4ActionMkFalse>();
   auto amktrue  = new_action<CVC4ActionMkTrue>();
   /* get sort */
@@ -1101,6 +1132,7 @@ CVC4SolverManager::configure()
   sinputs->add_action(amgetrmsort, 1);
   sinputs->add_action(amgetstringsort, 1);
   sinputs->add_action(amkbv1, 10);
+  sinputs->add_action(amkbv2, 10);
   sinputs->add_action(amkbvsort, 2);
   sinputs->add_action(amktrue, 10);
   sinputs->add_action(amkfalse, 10);
