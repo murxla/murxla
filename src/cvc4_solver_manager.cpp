@@ -889,6 +889,57 @@ class CVC4ActionMkBitVector2 : public CVC4Action
       case 0:
       {
         std::string s = rng.pick_bin_str(bw);
+        const char* c = s.c_str();
+        res           = rng.pick_with_prob(500) ? cvc4->mkBitVector(c)
+                                      : cvc4->mkBitVector(c, 2);
+      }
+      break;
+
+      case 1:
+      {
+        std::string s = rng.pick_dec_str(bw);
+        const char* c = s.c_str();
+        res           = cvc4->mkBitVector(c, 10);
+      }
+      break;
+
+      default:
+      {
+        assert(r == 2);
+        std::string s = rng.pick_hex_str(bw);
+        const char* c = s.c_str();
+        res           = cvc4->mkBitVector(c, 16);
+      }
+    }
+    d_smgr->add_input(res, THEORY_BV);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
+// Term Solver::mkBitVector(const std::string& s, uint32_t base = 2) const;
+class CVC4ActionMkBitVector3 : public CVC4Action
+{
+ public:
+  CVC4ActionMkBitVector3(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBitVector3")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    RNGenerator& rng = d_smgr->get_rng();
+    Solver* cvc4     = d_smgr->get_solver();
+    assert(cvc4);
+    uint32_t bw = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
+    uint32_t r  = rng.pick_uint32(0, 2);
+    Term res;
+    switch (r)
+    {
+      case 0:
+      {
+        std::string s = rng.pick_bin_str(bw);
         res = rng.pick_with_prob(500) ? res = cvc4->mkBitVector(s)
                                       : cvc4->mkBitVector(s, 2);
       }
@@ -914,7 +965,6 @@ class CVC4ActionMkBitVector2 : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Term Solver::mkBitVector(const std::string& s, uint32_t base = 2) const;
 // Term Solver::mkBitVector(uint32_t size, const char* s, uint32_t base) const;
 // Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
 
@@ -1103,6 +1153,7 @@ CVC4SolverManager::configure()
   /* make consts */
   auto amkbv1   = new_action<CVC4ActionMkBitVector1>();
   auto amkbv2   = new_action<CVC4ActionMkBitVector2>();
+  auto amkbv3   = new_action<CVC4ActionMkBitVector3>();
   auto amkfalse = new_action<CVC4ActionMkFalse>();
   auto amktrue  = new_action<CVC4ActionMkTrue>();
   /* get sort */
@@ -1149,6 +1200,7 @@ CVC4SolverManager::configure()
   sinputs->add_action(amgetstringsort, 1);
   sinputs->add_action(amkbv1, 10);
   sinputs->add_action(amkbv2, 10);
+  sinputs->add_action(amkbv3, 10);
   sinputs->add_action(amkbvsort, 2);
   sinputs->add_action(amktrue, 10);
   sinputs->add_action(amkfalse, 10);
