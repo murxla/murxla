@@ -34,6 +34,8 @@ RNGenerator::pick_uint32()
 uint32_t
 RNGenerator::pick_uint32(uint32_t from, uint32_t to)
 {
+  assert(from <= to);
+
   uint32_t res = pick_uint32();
 
   from = from == UINT32_MAX ? UINT32_MAX - 1 : from;
@@ -59,6 +61,8 @@ RNGenerator::pick_uint64()
 uint64_t
 RNGenerator::pick_uint64(uint64_t from, uint64_t to)
 {
+  assert(from <= to);
+
   uint64_t res = pick_uint64();
 
   from = from == UINT64_MAX ? UINT64_MAX - 1 : from;
@@ -71,6 +75,8 @@ RNGenerator::pick_uint64(uint64_t from, uint64_t to)
 std::string
 RNGenerator::pick_bin_str(uint32_t size)
 {
+  assert(size);
+
   uint32_t n = static_cast<uint32_t>(std::ceil(size/32.0));
   uint32_t val;
   std::stringstream ss;
@@ -82,6 +88,26 @@ RNGenerator::pick_bin_str(uint32_t size)
   std::string res = ss.str();
   res.resize(size);
   return res;
+}
+
+std::string
+RNGenerator::pick_dec_str(uint32_t size)
+{
+  assert(size);
+  assert(size <= 64); /* else we need a multi-precision int lib */
+  std::stringstream ss;
+  ss << std::dec << std::strtoull(pick_bin_str(size).c_str(), nullptr, 2);
+  return ss.str();
+}
+
+std::string
+RNGenerator::pick_hex_str(uint32_t size)
+{
+  assert(size);
+  assert(size <= 64); /* else we need a multi-precision int lib */
+  std::stringstream ss;
+  ss << std::hex << std::strtoull(pick_bin_str(size).c_str(), nullptr, 2);
+  return ss.str();
 }
 
 bool

@@ -30,6 +30,10 @@ class RNGenerator
    uint64_t pick_uint64(uint64_t from, uint64_t to);
    /* Pick binary string of given size. */
    std::string pick_bin_str(uint32_t size);
+   /* Pick decimal string of given (binary) size. */
+   std::string pick_dec_str(uint32_t size);
+   /* Pick hexadecimal string of given (binary) size. */
+   std::string pick_hex_str(uint32_t size);
    /* Pick with given probability, 100% = 1000. */
    bool pick_with_prob(uint32_t prob);
 

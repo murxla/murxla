@@ -882,15 +882,31 @@ class CVC4ActionMkBitVector2 : public CVC4Action
     Solver* cvc4     = d_smgr->get_solver();
     assert(cvc4);
     uint32_t bw = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
+    uint32_t r  = rng.pick_uint32(0, 2);
     Term res;
-    std::string s = rng.pick_bin_str(bw);
-    if (rng.pick_with_prob(1))
+    switch (r)
     {
-      res = cvc4->mkBitVector(s);
-    }
-    else
-    {
-      res = cvc4->mkBitVector(s, 2);
+      case 0:
+      {
+        std::string s = rng.pick_bin_str(bw);
+        res = rng.pick_with_prob(500) ? res = cvc4->mkBitVector(s)
+                                      : cvc4->mkBitVector(s, 2);
+      }
+      break;
+
+      case 1:
+      {
+        std::string s = rng.pick_dec_str(bw);
+        res           = cvc4->mkBitVector(s, 10);
+      }
+      break;
+
+      default:
+      {
+        assert(r == 2);
+        std::string s = rng.pick_hex_str(bw);
+        res           = cvc4->mkBitVector(s, 16);
+      }
     }
     d_smgr->add_input(res, THEORY_BV);
     return true;
