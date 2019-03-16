@@ -21,7 +21,9 @@ State::run(RNGenerator& rng)
 {
   assert(!d_actions.empty());
   uint32_t idx = rng.pick_uint32_weighted(d_weights);
-  if (d_actions[idx].d_action->run())
+  ActionTuple& atup = d_actions[idx];
+  if (atup.d_action->run()
+      && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
   {
     return d_actions[idx].d_next;
   }
@@ -29,9 +31,9 @@ State::run(RNGenerator& rng)
 }
 
 State*
-FSM::new_state(std::string id, bool is_final)
+FSM::new_state(std::string id, std::function<bool(void)> fun, bool is_final)
 {
-  d_states.emplace_back(new State(id, is_final));
+  d_states.emplace_back(new State(id, fun, is_final));
   return d_states.back().get();
 }
 

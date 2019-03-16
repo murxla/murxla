@@ -2,6 +2,7 @@
 #define __SMTMBT__FSM_HPP_INCLUDED
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -28,17 +29,23 @@ class State
 
  public:
   State() : d_id(""), d_is_final(false) {}
-  State(std::string& id, bool is_final) : d_id(id), d_is_final(is_final) {}
+  State(std::string& id, std::function<bool(void)> fun, bool is_final)
+      : d_id(id), f_precond(fun), d_is_final(is_final)
+  {
+  }
+
   const std::string& get_id() { return d_id; }
   bool is_final() { return d_is_final; }
   State* run(RNGenerator& rng);
   void add_action(Action* action, uint32_t weight, State* next = nullptr);
+  void set_precondition();
 
  private:
   std::string d_id;
   bool d_is_final;
   std::vector<ActionTuple> d_actions;
   std::vector<uint32_t> d_weights;
+  std::function<bool(void)> f_precond;
 };
 
 class FSM
@@ -46,7 +53,11 @@ class FSM
  public:
   FSM(RNGenerator& rng) : d_rng(rng) {}
   FSM() = delete;
-  State* new_state(std::string id = "", bool is_final = false);
+
+  State* new_state(std::string id                = "",
+                   std::function<bool(void)> fun = nullptr,
+                   bool is_final                 = false);
+
   void set_init_state(State* init_state);
   void check_states();
   void run();

@@ -711,7 +711,7 @@ BtorSolverManager::configure()
   auto snew    = d_fsm.new_state("new");
   auto ssat    = d_fsm.new_state("sat");
   auto sterms  = d_fsm.new_state("create terms");
-  auto sfinal  = d_fsm.new_state("final", true);
+  auto sfinal  = d_fsm.new_state("final", nullptr, true);
 
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, sinputs);

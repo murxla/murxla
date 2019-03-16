@@ -16,6 +16,7 @@ namespace cvc4 {
 
 #define SMTMBT_CVC4_BW_MIN 1
 #define SMTMBT_CVC4_BW_MAX 128
+#define SMTMBT_CVC4_NTERMS_MIN 20
 
 /* -------------------------------------------------------------------------- */
 
@@ -489,7 +490,7 @@ class CVC4ActionMkTerm0 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
@@ -534,7 +535,7 @@ class CVC4ActionMkTerm1 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
@@ -581,7 +582,7 @@ class CVC4ActionMkTerm2 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -634,7 +635,7 @@ class CVC4ActionMkTerm3 : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -650,7 +651,7 @@ class CVC4ActionMkTerm3 : public CVC4Action
         child3 = d_smgr->pick_term(theory_args);
         break;
       case ITE:
-        if (!d_smgr->has_term(THEORY_BOOL)) return true;
+        if (!d_smgr->has_term(THEORY_BOOL)) return false;
         child1 = d_smgr->pick_term(THEORY_BOOL);
         child2 = d_smgr->pick_term(theory_args);
         child3 = d_smgr->pick_term(d_smgr->get_sort(child2));
@@ -700,7 +701,7 @@ class CVC4ActionMkTermN : public CVC4Action
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
     {
-      return true;
+      return false;
     }
     /* Pick kind that expects arguments of picked theory. */
     KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
@@ -723,7 +724,7 @@ class CVC4ActionMkTermN : public CVC4Action
         case ITE:
           if (children.empty())
           {
-            if (!d_smgr->has_term(THEORY_BOOL)) return true;
+            if (!d_smgr->has_term(THEORY_BOOL)) return false;
             children.push_back(d_smgr->pick_term(THEORY_BOOL));
           }
           else if (children.size() == 1)
@@ -1098,7 +1099,7 @@ class CVC4ActionAssertFormula : public CVC4Action
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    if (!d_smgr->has_term(THEORY_BOOL)) return true;
+    if (!d_smgr->has_term(THEORY_BOOL)) return false;
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     Term f = d_smgr->pick_term(THEORY_BOOL);
@@ -1282,15 +1283,15 @@ CVC4SolverManager::configure()
   /* transitions */
   auto tinputs = new_action<CVC4ActionNoneCreateInputs>();
   auto tnone   = new_action<CVC4ActionNone>();
-
   /* States ................................................................. */
-  auto sassert = d_fsm.new_state("assert");
+  auto sassert = d_fsm.new_state(
+      "assert", [this]() { return this->has_term(THEORY_BOOL); });
   auto sdelete = d_fsm.new_state("delete");
   auto sinputs = d_fsm.new_state("create inputs");
   auto snew    = d_fsm.new_state("new");
   auto ssat    = d_fsm.new_state("sat");
   auto sterms  = d_fsm.new_state("create terms");
-  auto sfinal  = d_fsm.new_state("final", true);
+  auto sfinal  = d_fsm.new_state("final", nullptr, true);
 
   /* Transitions ............................................................ */
   snew->add_action(anew, 10, sinputs);
@@ -1313,7 +1314,7 @@ CVC4SolverManager::configure()
   sinputs->add_action(tinputs, 10, sterms);
   sinputs->add_action(tinputs, 10, sassert);
 
-  sassert->add_action(aassert, 10);
+  sassert->add_action(aassert, 2);
   sassert->add_action(aassert, 5, sinputs);
   sassert->add_action(aassert, 20, sterms);
   sassert->add_action(aassert, 2, ssat);

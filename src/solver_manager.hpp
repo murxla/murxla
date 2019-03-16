@@ -80,6 +80,8 @@ class SolverManager
 
   void add_term(TTerm term, TheoryId theory)
   {
+    d_stats.terms += 1;
+
     TSort sort = get_sort(term);
     add_sort(sort, theory);
 
@@ -289,6 +291,7 @@ class SolverManager
   FSM d_fsm;
   TSolver d_solver;
   RNGenerator& d_rng;
+
   /* Map theory -> sorts. */
   std::unordered_map<TheoryId, SortSet> d_theory2sorts;
   /* Map sort -> theory. */
