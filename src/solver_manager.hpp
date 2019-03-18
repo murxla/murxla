@@ -228,6 +228,8 @@ class SolverManager
     return it->first;
   }
 
+  bool has_sort() { return !d_sorts2theory.empty(); }
+
   bool has_sort(TheoryId theory)
   {
     if (d_theory2sorts.find(theory) == d_theory2sorts.end()) return false;

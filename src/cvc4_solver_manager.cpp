@@ -1081,7 +1081,29 @@ class CVC4ActionMkBitVector4 : public CVC4Action
 // Term Solver::mkAbstractValue(const std::string& index) const;
 // Term Solver::mkAbstractValue(uint64_t index) const;
 // Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
+
 // Term Solver::mkVar(const std::string& symbol, Sort sort) const;
+class CVC4ActionMkVar : public CVC4Action
+{
+ public:
+  CVC4ActionMkVar(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkVar") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    Solver* cvc4 = d_smgr->get_solver();
+    assert(cvc4);
+    // TODO generate random symbol string
+    if (!d_smgr->has_sort()) return false;
+    TheoryId theory = d_smgr->pick_theory();
+    Sort sort       = d_smgr->pick_sort(theory);
+    Term res        = cvc4->mkVar("", sort);
+    d_smgr->add_input(res, theory);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Term Solver::mkVar(Sort sort) const;
 // Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const;
 // Term Solver::mkBoundVar(Sort sort) const;
@@ -1261,6 +1283,7 @@ CVC4SolverManager::configure()
   auto amkbv4   = new_action<CVC4ActionMkBitVector4>();
   auto amkfalse = new_action<CVC4ActionMkFalse>();
   auto amktrue  = new_action<CVC4ActionMkTrue>();
+  auto amkvar   = new_action<CVC4ActionMkVar>();
   /* get sort */
   auto amgetboolsort   = new_action<CVC4ActionGetBooleanSort>();
   auto amgetintsort    = new_action<CVC4ActionGetIntegerSort>();
@@ -1311,6 +1334,7 @@ CVC4SolverManager::configure()
   sinputs->add_action(amkbvsort, 2);
   sinputs->add_action(amktrue, 10);
   sinputs->add_action(amkfalse, 10);
+  sinputs->add_action(amkvar, 10);
   sinputs->add_action(tinputs, 10, sterms);
   sinputs->add_action(tinputs, 10, sassert);
 
