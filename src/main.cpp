@@ -94,8 +94,8 @@ test_cvc4_smgr(RNGenerator& rng)
 
   CVC4::api::Sort bv32 = cvc4->mkBitVectorSort(32);
   CVC4::api::Sort bv31 = cvc4->mkBitVectorSort(31);
-  CVC4::api::Term x    = cvc4->mkVar("x", bv32);
-  CVC4::api::Term y    = cvc4->mkVar("y", bv32);
+  CVC4::api::Term x    = cvc4->mkVar(bv32, "x");
+  CVC4::api::Term y    = cvc4->mkVar(bv32, "y");
 
 #if 1
   smgr.add_sort(bv32, THEORY_BV);

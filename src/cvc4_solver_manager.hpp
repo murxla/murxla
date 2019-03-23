@@ -7,7 +7,7 @@
 
 #include <unordered_map>
 
-#include "api/cvc4cpp.h"
+#include "cvc4/api/cvc4cpp.h"
 
 namespace smtmbt {
 namespace cvc4 {

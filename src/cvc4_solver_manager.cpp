@@ -1097,16 +1097,14 @@ class CVC4ActionMkVar : public CVC4Action
     if (!d_smgr->has_sort()) return false;
     TheoryId theory = d_smgr->pick_theory();
     Sort sort       = d_smgr->pick_sort(theory);
-    Term res        = cvc4->mkVar("", sort);
+    Term res        = cvc4->mkVar(sort, "");
     d_smgr->add_input(res, theory);
     return true;
   }
   // void untrace(const char* s) override;
 };
 
-// Term Solver::mkVar(Sort sort) const;
-// Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const;
-// Term Solver::mkBoundVar(Sort sort) const;
+// Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const;
 // Term Solver::simplify(const Term& t);
 
 // void Solver::assertFormula(Term term) const;

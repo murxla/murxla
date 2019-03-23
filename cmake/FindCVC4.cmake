@@ -9,7 +9,7 @@ if(NOT CVC4_HOME)
 endif()
 
 find_path(CVC4_INCLUDE_DIR
-  NAMES api/cvc4cpp.h
+  NAMES cvc4/api/cvc4cpp.h
   PATHS ${CVC4_HOME}/include
   NO_DEFAULT_PATH
 )
