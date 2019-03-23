@@ -345,7 +345,7 @@ class BtorActionBVZero : public BtorAction
 
   bool run() override
   {
-    d_smgr->ensure_sort(THEORY_BV);
+    if (!d_smgr->has_sort(THEORY_BV)) return false;
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     assert(btor);
@@ -366,7 +366,7 @@ class BtorActionBVOnes : public BtorAction
 
   bool run() override
   {
-    d_smgr->ensure_sort(THEORY_BV);
+    if (!d_smgr->has_sort(THEORY_BV)) return false;
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     assert(btor);
@@ -387,7 +387,7 @@ class BtorActionBVOne : public BtorAction
 
   bool run() override
   {
-    d_smgr->ensure_sort(THEORY_BV);
+    if (!d_smgr->has_sort(THEORY_BV)) return false;
     SMTMBT_TRACE << get_id();
     Btor* btor = d_smgr->get_solver();
     assert(btor);
@@ -657,24 +657,6 @@ void
 BtorSolverManager::set_bool_sort(BoolectorSort sort)
 {
   d_bool_sort = sort;
-}
-
-void
-BtorSolverManager::ensure_sort(TheoryId theory)
-{
-  assert(theory != THEORY_ALL);
-
-  if (!has_sort(theory))
-  {
-    switch (theory)
-    {
-      case THEORY_BV:
-        BtorActionBVSort(this).run();
-        assert(has_sort(theory));
-        break;
-      default: assert(theory == THEORY_BV); BtorActionBoolSort(this).run();
-    }
-  }
 }
 
 void

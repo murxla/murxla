@@ -42,7 +42,6 @@ class BtorSolverManager : public BtorSolverManagerBase
   BoolectorSort get_sort(BoolectorNode *term) override;
   BoolectorSort get_bool_sort();
   void set_bool_sort(BoolectorSort sort);
-  void ensure_sort(TheoryId theory) override;
 
  protected:
   void configure() override;

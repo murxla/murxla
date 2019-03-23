@@ -1205,12 +1205,6 @@ CVC4SolverManager::get_sort(Term term)
   return term.getSort();
 }
 
-void
-CVC4SolverManager::ensure_sort(TheoryId theory)
-{
-  // TODO
-}
-
 #define SMTMBT_CVC4_ADD_KIND(                            \
     kind, arity, parameterized, theory_term, theory_arg) \
   d_all_kinds.emplace(                                   \

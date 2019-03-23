@@ -64,7 +64,6 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
   ~CVC4SolverManager();
   void clear();
   CVC4::api::Sort get_sort(CVC4::api::Term term) override;
-  void ensure_sort(TheoryId theory) override;
   KindData& pick_kind(std::vector<CVC4::api::Kind>& kinds);
   KindData& pick_kind(std::vector<CVC4::api::Kind>& kinds1,
                       std::vector<CVC4::api::Kind>& kinds2);

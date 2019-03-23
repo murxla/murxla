@@ -261,8 +261,6 @@ class SolverManager
 
   virtual TSort get_sort(TTerm term) = 0;
 
-  virtual void ensure_sort(TheoryId theory) = 0;
-
   Stats d_stats;
 
  protected:
