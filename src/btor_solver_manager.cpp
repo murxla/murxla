@@ -400,6 +400,8 @@ class BtorActionBVOne : public BtorAction
   // void untrace(const char* s) override;
 };
 
+// BoolectorNode *boolector_min_signed (Btor *btor, BoolectorSort sort);
+// BoolectorNode *boolector_max_signed (Btor *btor, BoolectorSort sort);
 // BoolectorNode *boolector_unsigned_int (Btor *btor, uint32_t u, BoolectorSort sort);
 // BoolectorNode *boolector_int (Btor *btor, int32_t i, BoolectorSort sort);
 // BoolectorNode *boolector_var (Btor *btor, BoolectorSort sort, const char *symbol);
