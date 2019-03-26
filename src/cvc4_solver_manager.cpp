@@ -804,6 +804,7 @@ class CVC4ActionMkTermN : public CVC4Action
 // Term Solver::mkTuple(const std::vector<Sort>& sorts, const std::vector<Term>& terms) const;
 // OpTerm Solver::mkOpTerm(Kind kind, Kind k);
 // OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg);
+
 // OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg);
 class CVC4ActionMkOpTermUint1 : public CVC4Action
 {
@@ -881,51 +882,55 @@ class CVC4ActionMkOpTermUint1 : public CVC4Action
 };
 
 // OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
-#if 0
-class CVC4ActionMkOpTermUint1 : public CVC4Action
+class CVC4ActionMkOpTermUint2 : public CVC4Action
 {
  public:
-  CVC4ActionMkOpTermUint1(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkOpTermUint1")
+  CVC4ActionMkOpTermUint2(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkOpTermUint2")
   {
     for (const auto& k : d_smgr->get_all_op_kinds_uint())
     {
       if (k.second.d_nparams == 2)
-        d_kinds.push_back(k.first);
+        d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
 
   bool run() override
   {
     SMTMBT_TRACE << get_id();
+    /* Pick theory of term argument(s).*/
+    TheoryId theory_args = d_smgr->pick_theory();
+    /* Nothing to do if no kind with term arguments of picked theory exists. */
+    if (d_kinds.find(theory_args) == d_kinds.end()
+        && d_kinds.find(THEORY_ALL) == d_kinds.end())
+    {
+      return false;
+    }
+    assert(d_kinds.find(theory_args) == d_kinds.end()
+           || d_kinds[theory_args].size() > 0);
+    assert(d_kinds.find(THEORY_ALL) == d_kinds.end()
+           || d_kinds[THEORY_ALL].size() > 0);
+    /* Pick kind that expects arguments of picked theory. */
+    KindData& kd = d_kinds.find(THEORY_ALL) == d_kinds.end()
+                       ? d_smgr->pick_op_kind_uint(d_kinds[theory_args])
+                       : d_smgr->pick_op_kind_uint(d_kinds[theory_args],
+                                                   d_kinds[THEORY_ALL]);
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     RNGenerator& rng = d_smgr->get_rng();
-    /* Pick kind. */
-    KindData& kd = d_smgr->pick_op_kind(d_all_op_kinds_uint, d_kinds);
+    uint32_t n0, n1;
     /* Pick parameter value. */
-    OpTerm res;
     switch (kd.d_kind)
     {
-      case BITVECTOR_EXTRACT_OP:
-        /* Only create extracts for existing argument sorts. */
-        if (!d_smgr->has_sort(THEORY_BV)) return false;
-        Sort sort = d_smgr->pick_sort_with_terms(THEORY_BV);
-        uint32_t hi = rng.pick_uint32(0, sort.getBVSize());
-        uint32_t lo = rng.pick_uint32(0, hi);
-        res = 
-
-
-
-        break;
       default:
-
+        assert(kd.d_kind == BITVECTOR_EXTRACT_OP);
+        uint32_t n0 = rng.pick_uint32(0, SMTMBT_CVC4_BW_MAX);  // high
+        uint32_t n1 = rng.pick_uint32(0, n0);                  // low
     }
     /* Create term. */
-    Term res = cvc4->mkTerm(kd.d_kind, child);
+    OpTerm res = cvc4->mkOpTerm(kd.d_kind, n0, n1);
     std::cout << "res " << res << std::endl;
-    d_smgr->add_term(
-        res, kd.d_theory_term == THEORY_ALL ? theory_args : kd.d_theory_term);
+    d_smgr->add_op_term(res, theory_args);
     return true;
   }
   // void untrace(const char* s) override;
@@ -933,9 +938,8 @@ class CVC4ActionMkOpTermUint1 : public CVC4Action
  private:
   /* Mapping from TheoryId of the term arguments to this function to Kinds
    * of the created operator term that expect arguments of this theory. */
-  CVC4KindVector d_kinds;
+  std::unordered_map<TheoryId, CVC4KindVector> d_kinds;
 };
-#endif
 
 // Term Solver::mkTrue() const;
 class CVC4ActionMkTrue : public CVC4Action
@@ -1562,6 +1566,7 @@ CVC4SolverManager::configure()
   auto amkbvsort = new_action<CVC4ActionMkBitVectorSort>();
   /* make operator terms */
   auto amkoptermuint1 = new_action<CVC4ActionMkOpTermUint1>();
+  auto amkoptermuint2 = new_action<CVC4ActionMkOpTermUint2>();
   /* make terms */
   auto amkterm0 = new_action<CVC4ActionMkTerm0>();
   auto amkterm1 = new_action<CVC4ActionMkTerm1>();
@@ -1619,6 +1624,7 @@ CVC4SolverManager::configure()
   sterms->add_action(amgetrmsort, 2);
   sterms->add_action(amgetstringsort, 2);
   sterms->add_action(amkoptermuint1, 5);
+  sterms->add_action(amkoptermuint2, 5);
   sterms->add_action(amkterm0, 10);
   sterms->add_action(amkterm1, 10);
   sterms->add_action(amkterm2, 20);
