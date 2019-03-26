@@ -822,7 +822,7 @@ class CVC4ActionMkOpTermUint1 : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     /* Pick theory of term argument(s).*/
-    TheoryId theory_args = d_smgr->pick_theory_with_terms();
+    TheoryId theory_args = d_smgr->pick_theory();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     if (d_kinds.find(theory_args) == d_kinds.end()
         && d_kinds.find(THEORY_ALL) == d_kinds.end())
