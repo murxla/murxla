@@ -499,6 +499,8 @@ class CVC4ActionMkTerm0 : public CVC4Action
     {
       return false;
     }
+    assert(d_kinds.find(theory_args) == d_kinds.end()
+           || d_kinds[theory_args].size() > 0);
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     /* Pick kind that expects arguments of picked theory. (See note above.) */
@@ -544,6 +546,8 @@ class CVC4ActionMkTerm1 : public CVC4Action
     {
       return false;
     }
+    assert(d_kinds.find(theory_args) == d_kinds.end()
+           || d_kinds[theory_args].size() > 0);
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     /* Pick kind that expects arguments of picked theory. */
@@ -591,8 +595,15 @@ class CVC4ActionMkTerm2 : public CVC4Action
     {
       return false;
     }
+    assert(d_kinds.find(theory_args) == d_kinds.end()
+           || d_kinds[theory_args].size() > 0);
+    assert(d_kinds.find(THEORY_ALL) == d_kinds.end()
+           || d_kinds[THEORY_ALL].size() > 0);
     /* Pick kind that expects arguments of picked theory. */
-    KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
+    KindData& kd =
+        d_kinds.find(THEORY_ALL) == d_kinds.end()
+            ? d_smgr->pick_kind(d_kinds[theory_args])
+            : d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     /* Pick child terms. */
@@ -644,8 +655,15 @@ class CVC4ActionMkTerm3 : public CVC4Action
     {
       return false;
     }
+    assert(d_kinds.find(theory_args) == d_kinds.end()
+           || d_kinds[theory_args].size() > 0);
+    assert(d_kinds.find(THEORY_ALL) == d_kinds.end()
+           || d_kinds[THEORY_ALL].size() > 0);
     /* Pick kind that expects arguments of picked theory. */
-    KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
+    KindData& kd =
+        d_kinds.find(THEORY_ALL) == d_kinds.end()
+            ? d_smgr->pick_kind(d_kinds[theory_args])
+            : d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     /* Pick child terms. */
@@ -710,8 +728,15 @@ class CVC4ActionMkTermN : public CVC4Action
     {
       return false;
     }
+    assert(d_kinds.find(theory_args) == d_kinds.end()
+           || d_kinds[theory_args].size() > 0);
+    assert(d_kinds.find(THEORY_ALL) == d_kinds.end()
+           || d_kinds[THEORY_ALL].size() > 0);
     /* Pick kind that expects arguments of picked theory. */
-    KindData& kd = d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
+    KindData& kd =
+        d_kinds.find(THEORY_ALL) == d_kinds.end()
+            ? d_smgr->pick_kind(d_kinds[theory_args])
+            : d_smgr->pick_kind(d_kinds[theory_args], d_kinds[THEORY_ALL]);
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     /* Pick arity. */
@@ -804,9 +829,15 @@ class CVC4ActionMkOpTermUint1 : public CVC4Action
     {
       return false;
     }
+    assert(d_kinds.find(theory_args) == d_kinds.end()
+           || d_kinds[theory_args].size() > 0);
+    assert(d_kinds.find(THEORY_ALL) == d_kinds.end()
+           || d_kinds[THEORY_ALL].size() > 0);
     /* Pick kind that expects arguments of picked theory. */
-    KindData& kd =
-        d_smgr->pick_op_kind_uint(d_kinds[theory_args], d_kinds[THEORY_ALL]);
+    KindData& kd = d_kinds.find(THEORY_ALL) == d_kinds.end()
+                       ? d_smgr->pick_op_kind_uint(d_kinds[theory_args])
+                       : d_smgr->pick_op_kind_uint(d_kinds[theory_args],
+                                                   d_kinds[THEORY_ALL]);
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     RNGenerator& rng = d_smgr->get_rng();
@@ -1385,7 +1416,6 @@ CVC4SolverManager::add_op_term(OpTerm op_term, TheoryId theory)
   assert(d_op_terms.find(theory) != d_op_terms.end());
 
   CVC4OpTermMap& map = d_op_terms[theory];
-  assert(map.find(op_term) != map.end());
   if (map.find(op_term) == map.end())
   {
     map.emplace(op_term, 0);
@@ -1408,6 +1438,9 @@ CVC4SolverManager::clear()
   d_terms.clear();
   d_sorts2theory.clear();
   d_theory2sorts.clear();
+  d_op_terms.clear();
+  d_all_kinds.clear();
+  d_all_op_kinds_uint.clear();
 }
 
 CVC4SolverManager::~CVC4SolverManager()
