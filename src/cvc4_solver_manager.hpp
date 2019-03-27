@@ -98,6 +98,7 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
    * arguments to
    *   - the kind
    *   - its arity
+   *   - its number of parameters (must be 0)
    *   - the theory of the term arguments of this kind.
    *   - the theory of a term of this kind.
    */
@@ -108,6 +109,7 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
    * their term arguments to
    *   - the kind
    *   - its arity
+   *   - its number of parameters
    *   - the theory of the term arguments of this kind.
    *   - the theory of a term of this kind.
    */

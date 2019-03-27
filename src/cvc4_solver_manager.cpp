@@ -530,7 +530,7 @@ class CVC4ActionMkTerm1 : public CVC4Action
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
-      if (k.second.d_arity == 1 && k.second.d_nparams > 0)
+      if (k.second.d_arity == 1 && k.second.d_nparams == 0)
         d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
@@ -579,7 +579,7 @@ class CVC4ActionMkTerm2 : public CVC4Action
     {
       if ((k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
            || k.second.d_arity == 2)
-          && k.second.d_nparams > 0)
+          && k.second.d_nparams == 0)
         d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
@@ -639,7 +639,7 @@ class CVC4ActionMkTerm3 : public CVC4Action
     {
       if ((k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
            || k.second.d_arity == 3)
-          && k.second.d_nparams > 0)
+          && k.second.d_nparams == 0)
         d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
@@ -712,7 +712,7 @@ class CVC4ActionMkTermN : public CVC4Action
     {
       if ((k.second.d_arity == SMTMBT_CVC4_MKTERM_N_ARGS
            || k.second.d_arity >= 1)
-          && k.second.d_nparams > 0)
+          && k.second.d_nparams == 0)
         d_kinds[k.second.d_theory_args].push_back(k.first);
     }
   }
