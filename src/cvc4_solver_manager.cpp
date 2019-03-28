@@ -924,8 +924,8 @@ class CVC4ActionMkOpTermUint2 : public CVC4Action
     {
       default:
         assert(kd.d_kind == BITVECTOR_EXTRACT_OP);
-        uint32_t n0 = rng.pick_uint32(0, SMTMBT_CVC4_BW_MAX);  // high
-        uint32_t n1 = rng.pick_uint32(0, n0);                  // low
+        n0 = rng.pick_uint32(0, SMTMBT_CVC4_BW_MAX);  // high
+        n1 = rng.pick_uint32(0, n0);                  // low
     }
     /* Create term. */
     OpTerm res = cvc4->mkOpTerm(kd.d_kind, n0, n1);
