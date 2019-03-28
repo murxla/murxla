@@ -16,12 +16,14 @@ namespace cvc4 {
 
 struct KindData
 {
-  KindData(CVC4::api::Kind kind = CVC4::api::UNDEFINED_KIND,
-           uint32_t arity       = 0,
-           uint32_t nparams     = 0,
-           TheoryId theory_term = THEORY_BOOL,
-           TheoryId theory_args = THEORY_BOOL)
+  KindData(CVC4::api::Kind kind       = CVC4::api::UNDEFINED_KIND,
+           CVC4::api::Kind param_kind = CVC4::api::UNDEFINED_KIND,
+           uint32_t arity             = 0,
+           uint32_t nparams           = 0,
+           TheoryId theory_term       = THEORY_BOOL,
+           TheoryId theory_args       = THEORY_BOOL)
       : d_kind(kind),
+        d_param_kind(param_kind),
         d_arity(arity),
         d_nparams(nparams),
         d_theory_term(theory_term),
@@ -36,11 +38,18 @@ struct KindData
             && d_theory_args == other.d_theory_args);
   }
 
-  CVC4::api::Kind d_kind; /* The Kind. */
-  uint32_t d_arity;       /* The arity of this kind. */
-  uint32_t d_nparams;     /* The number of parameters if parameterized. */
-  TheoryId d_theory_term; /* The theory of a term of this kind. */
-  TheoryId d_theory_args; /* The theory of the term arguments of this kind. */
+  /* The Kind. */
+  CVC4::api::Kind d_kind;
+  /* For operator kinds, the corresponding parameterized kind. */
+  CVC4::api::Kind d_param_kind;
+  /* The arity of this kind. */
+  uint32_t d_arity;
+  /* The number of parameters if parameterized. */
+  uint32_t d_nparams;
+  /* The theory of a term of this kind. */
+  TheoryId d_theory_term;
+  /* The theory of the term arguments of this kind. */
+  TheoryId d_theory_args;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -64,8 +73,10 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
                                                CVC4::api::SortHashFunction>
 {
  public:
-  using CVC4OpTermMap = std::
+  using OpTermMap = std::
       unordered_map<CVC4::api::OpTerm, size_t, CVC4::api::OpTermHashFunction>;
+  using CVC4OpTermMap = std::
+      unordered_map<CVC4::api::Kind, OpTermMap, CVC4::api::KindHashFunction>;
   CVC4SolverManager(RNGenerator& rng) : SolverManager(rng) { configure(); }
   CVC4SolverManager() = delete;
   ~CVC4SolverManager();
@@ -78,7 +89,9 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
   auto get_all_kinds() { return d_all_kinds; }
   auto get_all_op_kinds_uint() { return d_all_op_kinds_uint; }
 
-  void add_op_term(CVC4::api::OpTerm op_term, TheoryId theory);
+  void add_op_term(CVC4::api::Kind kind,
+                   CVC4::api::OpTerm op_term,
+                   TheoryId theory);
   CVC4::api::OpTerm pick_op_term();
   CVC4::api::OpTerm pick_op_term(TheoryId theory);
   bool has_op_term(TheoryId theory);

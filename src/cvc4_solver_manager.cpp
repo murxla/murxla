@@ -870,7 +870,7 @@ class CVC4ActionMkOpTermUint1 : public CVC4Action
     /* Create term. */
     OpTerm res = cvc4->mkOpTerm(kd.d_kind, n);
     std::cout << "res " << res << std::endl;
-    d_smgr->add_op_term(res, theory_args);
+    d_smgr->add_op_term(kd.d_param_kind, res, theory_args);
     return true;
   }
   // void untrace(const char* s) override;
@@ -930,7 +930,7 @@ class CVC4ActionMkOpTermUint2 : public CVC4Action
     /* Create term. */
     OpTerm res = cvc4->mkOpTerm(kd.d_kind, n0, n1);
     std::cout << "res " << res << std::endl;
-    d_smgr->add_op_term(res, theory_args);
+    d_smgr->add_op_term(kd.d_param_kind, res, theory_args);
     return true;
   }
   // void untrace(const char* s) override;
@@ -1411,7 +1411,7 @@ CVC4SolverManager::pick_op_kind_uint(CVC4KindVector& kinds1,
 }
 
 void
-CVC4SolverManager::add_op_term(OpTerm op_term, TheoryId theory)
+CVC4SolverManager::add_op_term(Kind kind, OpTerm op_term, TheoryId theory)
 {
   if (d_op_terms.find(theory) == d_op_terms.end())
   {
@@ -1420,13 +1420,17 @@ CVC4SolverManager::add_op_term(OpTerm op_term, TheoryId theory)
   assert(d_op_terms.find(theory) != d_op_terms.end());
 
   CVC4OpTermMap& map = d_op_terms[theory];
-  if (map.find(op_term) == map.end())
+  if (map.find(kind) == map.end())
   {
-    map.emplace(op_term, 0);
+    map.emplace(kind, OpTermMap());
+  }
+  if (map[kind].find(op_term) == map[kind].end())
+  {
+    map[kind].emplace(op_term, 0);
   }
   else
   {
-    map[op_term] += 1;
+    map[kind][op_term] += 1;
   }
 }
 
@@ -1460,16 +1464,25 @@ CVC4SolverManager::get_sort(Term term)
 }
 
 #define SMTMBT_CVC4_ADD_KIND(kind, arity, theory_term, theory_arg) \
-  d_all_kinds.emplace(kind, KindData(kind, arity, 0, theory_term, theory_arg));
+  d_all_kinds.emplace(                                             \
+      kind,                                                        \
+      KindData(kind, UNDEFINED_KIND, arity, 0, theory_term, theory_arg));
 
-#define SMTMBT_CVC4_ADD_OP_KIND(                        \
-    map, kind, arity, nparams, theory_term, theory_arg) \
-  map.emplace(kind, KindData(kind, arity, nparams, theory_term, theory_arg));
+#define SMTMBT_CVC4_ADD_OP_KIND(                                    \
+    map, kind, param_kind, arity, nparams, theory_term, theory_arg) \
+  map.emplace(                                                      \
+      kind,                                                         \
+      KindData(kind, param_kind, arity, nparams, theory_term, theory_arg));
 
-#define SMTMBT_CVC4_ADD_OP_KIND_UINT(              \
-    kind, arity, nparams, theory_term, theory_arg) \
-  SMTMBT_CVC4_ADD_OP_KIND(                         \
-      d_all_op_kinds_uint, kind, arity, nparams, theory_term, theory_arg)
+#define SMTMBT_CVC4_ADD_OP_KIND_UINT(                          \
+    kind, param_kind, arity, nparams, theory_term, theory_arg) \
+  SMTMBT_CVC4_ADD_OP_KIND(d_all_op_kinds_uint,                 \
+                          kind,                                \
+                          param_kind,                          \
+                          arity,                               \
+                          nparams,                             \
+                          theory_term,                         \
+                          theory_arg)
 
 void
 CVC4SolverManager::configure_kinds()
@@ -1524,16 +1537,33 @@ CVC4SolverManager::configure_kinds()
 
   /* Operator kinds --------------------------------------------------------- */
   SMTMBT_CVC4_ADD_OP_KIND_UINT(
-      BITVECTOR_EXTRACT_OP, 1, 2, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_OP_KIND_UINT(BITVECTOR_REPEAT_OP, 1, 1, THEORY_BV, THEORY_BV);
+      BITVECTOR_EXTRACT_OP, BITVECTOR_EXTRACT, 1, 2, THEORY_BV, THEORY_BV);
   SMTMBT_CVC4_ADD_OP_KIND_UINT(
-      BITVECTOR_ZERO_EXTEND_OP, 1, 1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_OP_KIND_UINT(
-      BITVECTOR_SIGN_EXTEND_OP, 1, 1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_OP_KIND_UINT(
-      BITVECTOR_ROTATE_LEFT_OP, 1, 1, THEORY_BV, THEORY_BV);
-  SMTMBT_CVC4_ADD_OP_KIND_UINT(
-      BITVECTOR_ROTATE_RIGHT_OP, 1, 1, THEORY_BV, THEORY_BV);
+      BITVECTOR_REPEAT_OP, BITVECTOR_REPEAT, 1, 1, THEORY_BV, THEORY_BV);
+  SMTMBT_CVC4_ADD_OP_KIND_UINT(BITVECTOR_ZERO_EXTEND_OP,
+                               BITVECTOR_ZERO_EXTEND,
+                               1,
+                               1,
+                               THEORY_BV,
+                               THEORY_BV);
+  SMTMBT_CVC4_ADD_OP_KIND_UINT(BITVECTOR_SIGN_EXTEND_OP,
+                               BITVECTOR_SIGN_EXTEND,
+                               1,
+                               1,
+                               THEORY_BV,
+                               THEORY_BV);
+  SMTMBT_CVC4_ADD_OP_KIND_UINT(BITVECTOR_ROTATE_LEFT_OP,
+                               BITVECTOR_ROTATE_LEFT,
+                               1,
+                               1,
+                               THEORY_BV,
+                               THEORY_BV);
+  SMTMBT_CVC4_ADD_OP_KIND_UINT(BITVECTOR_ROTATE_RIGHT_OP,
+                               BITVECTOR_ROTATE_RIGHT,
+                               1,
+                               1,
+                               THEORY_BV,
+                               THEORY_BV);
 }
 
 void
