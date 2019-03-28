@@ -16,14 +16,14 @@ namespace cvc4 {
 
 struct KindData
 {
-  KindData(CVC4::api::Kind kind       = CVC4::api::UNDEFINED_KIND,
-           CVC4::api::Kind param_kind = CVC4::api::UNDEFINED_KIND,
-           uint32_t arity             = 0,
-           uint32_t nparams           = 0,
-           TheoryId theory_term       = THEORY_BOOL,
-           TheoryId theory_args       = THEORY_BOOL)
+  KindData(CVC4::api::Kind kind    = CVC4::api::UNDEFINED_KIND,
+           CVC4::api::Kind op_kind = CVC4::api::UNDEFINED_KIND,
+           uint32_t arity          = 0,
+           uint32_t nparams        = 0,
+           TheoryId theory_term    = THEORY_BOOL,
+           TheoryId theory_args    = THEORY_BOOL)
       : d_kind(kind),
-        d_param_kind(param_kind),
+        d_op_kind(op_kind),
         d_arity(arity),
         d_nparams(nparams),
         d_theory_term(theory_term),
@@ -41,7 +41,7 @@ struct KindData
   /* The Kind. */
   CVC4::api::Kind d_kind;
   /* For operator kinds, the corresponding parameterized kind. */
-  CVC4::api::Kind d_param_kind;
+  CVC4::api::Kind d_op_kind;
   /* The arity of this kind. */
   uint32_t d_arity;
   /* The number of parameters if parameterized. */
@@ -87,14 +87,7 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
   KindData& pick_op_kind_uint(CVC4KindVector& kinds);
   KindData& pick_op_kind_uint(CVC4KindVector& kinds1, CVC4KindVector& kinds2);
   auto get_all_kinds() { return d_all_kinds; }
-  auto get_all_op_kinds_uint() { return d_all_op_kinds_uint; }
-
-  void add_op_term(CVC4::api::Kind kind,
-                   CVC4::api::OpTerm op_term,
-                   TheoryId theory);
-  CVC4::api::OpTerm pick_op_term();
-  CVC4::api::OpTerm pick_op_term(TheoryId theory);
-  bool has_op_term(TheoryId theory);
+  CVC4::api::OpTerm mkOpTerm(CVC4::api::Kind kind, CVC4::api::Term term);
 
  protected:
   void configure() override;
@@ -116,20 +109,6 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
    *   - the theory of a term of this kind.
    */
   CVC4KindMap d_all_kinds;
-
-  /**
-   * Mapping for all CVC4 operator kinds with uint32 parameters from TheoryId of
-   * their term arguments to
-   *   - the kind
-   *   - its arity
-   *   - its number of parameters
-   *   - the theory of the term arguments of this kind.
-   *   - the theory of a term of this kind.
-   */
-  CVC4KindMap d_all_op_kinds_uint;
-
-  /* Map theory -> opterms. */
-  std::unordered_map<TheoryId, CVC4OpTermMap> d_op_terms;
 };
 
 /* -------------------------------------------------------------------------- */
