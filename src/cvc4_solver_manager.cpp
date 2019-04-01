@@ -110,192 +110,191 @@ class CVC4ActionDelete : public CVC4Action
 };
 
 ////// Result
-// bool Result::isSat() const;
-// bool Result::isUnsat() const;
-// bool Result::isSatUnknown() const;
-// bool Result::isValid() const;
-// bool Result::isInvalid() const;
-// bool Result::isValidUnknown() const;
-// bool Result::operator==(const Result& r) const;
-// bool Result::operator!=(const Result& r) const;
-// std::string Result::getUnknownExplanation() const;
-// std::string Result::toString() const;
-// std::ostream& operator<<(std::ostream& out, const Result& r);
+// TODO bool Result::isSat() const;
+// TODO bool Result::isUnsat() const;
+// TODO bool Result::isSatUnknown() const;
+// TODO bool Result::isValid() const;
+// TODO bool Result::isInvalid() const;
+// TODO bool Result::isValidUnknown() const;
+// TODO bool Result::operator==(const Result& r) const;
+// TODO bool Result::operator!=(const Result& r) const;
+// TODO std::string Result::getUnknownExplanation() const;
+// TODO std::string Result::toString() const;
+// TODO std::ostream& operator<<(std::ostream& out, const Result& r);
 
 ////// Sort
-// bool Sort::operator==(const Sort& s) const;
-// bool Sort::operator!=(const Sort& s) const;
-// bool Sort::isNull() const;
-// bool Sort::isBoolean() const;
-// bool Sort::isInteger() const;
-// bool Sort::isReal() const;
-// bool Sort::isString() const;
-// bool Sort::isRegExp() const;
-// bool Sort::isRoundingMode() const;
-// bool Sort::isBitVector() const;
-// bool Sort::isFloatingPoint() const;
-// bool Sort::isDatatype() const;
-// bool Sort::isParametricDatatype() const;
-// bool Sort::isFunction() const;
-// bool Sort::isPredicate() const;
-// bool Sort::isTuple() const;
-// bool Sort::isRecord() const;
-// bool Sort::isArray() const;
-// bool Sort::isSet() const;
-// bool Sort::isUninterpretedSort() const;
-// bool Sort::isSortConstructor() const;
-// bool Sort::isFirstClass() const;
-// bool Sort::isFunctionLike() const;
-// Datatype Sort::getDatatype() const;
-// Sort Sort::instantiate(const std::vector<Sort>& params) const;
-// void Sort::toStream(std::ostream& out) const;
-// std::string Sort:: toString() const;
+// TODO bool Sort::operator==(const Sort& s) const;
+// TODO bool Sort::operator!=(const Sort& s) const;
+// TODO bool Sort::isNull() const;
+// TODO bool Sort::isBoolean() const;
+// TODO bool Sort::isInteger() const;
+// TODO bool Sort::isReal() const;
+// TODO bool Sort::isString() const;
+// TODO bool Sort::isRegExp() const;
+// TODO bool Sort::isRoundingMode() const;
+// TODO bool Sort::isBitVector() const;
+// TODO bool Sort::isFloatingPoint() const;
+// TODO bool Sort::isDatatype() const;
+// TODO bool Sort::isParametricDatatype() const;
+// TODO bool Sort::isFunction() const;
+// TODO bool Sort::isPredicate() const;
+// TODO bool Sort::isTuple() const;
+// TODO bool Sort::isRecord() const;
+// TODO bool Sort::isArray() const;
+// TODO bool Sort::isSet() const;
+// TODO bool Sort::isUninterpretedSort() const;
+// TODO bool Sort::isSortConstructor() const;
+// TODO bool Sort::isFirstClass() const;
+// TODO bool Sort::isFunctionLike() const;
+// TODO Datatype Sort::getDatatype() const;
+// TODO Sort Sort::instantiate(const std::vector<Sort>& params) const;
+// TODO void Sort::toStream(std::ostream& out) const;
+// TODO std::string Sort:: toString() const;
 
 //// Function sort
-// size_t Sort:: getFunctionArity() const;
-// std::vector<Sort> Sort::getFunctionDomainSorts() const;
-// Sort Sort::getFunctionCodomainSort() const;
+// TODO size_t Sort:: getFunctionArity() const;
+// TODO std::vector<Sort> Sort::getFunctionDomainSorts() const;
+// TODO Sort Sort::getFunctionCodomainSort() const;
 
 //// Array sort
-// Sort Sort::getArrayIndexSort() const;
-// Sort Sort::getArrayElementSort() const;
+// TODO Sort Sort::getArrayIndexSort() const;
+// TODO Sort Sort::getArrayElementSort() const;
 
 // Set sort
-// Sort Sort::getSetElementSort() const;
+// TODO Sort Sort::getSetElementSort() const;
 
 //// Uninterpreted sort
-// std::string Sort::getUninterpretedSortName() const;
-// bool Sort::isUninterpretedSortParameterized() const;
-// std::vector<Sort> Sort::getUninterpretedSortParamSorts() const;
+// TODO std::string Sort::getUninterpretedSortName() const;
+// TODO bool Sort::isUninterpretedSortParameterized() const;
+// TODO std::vector<Sort> Sort::getUninterpretedSortParamSorts() const;
 
 // Sort constructor sort
-// std::string Sort::getSortConstructorName() const;
-// size_t Sort::getSortConstructorArity() const;
+// TODO std::string Sort::getSortConstructorName() const;
+// TODO size_t Sort::getSortConstructorArity() const;
 
 //// Bit-vector sort
-// uint32_t Sort::getBVSize() const;
+// TODO uint32_t Sort::getBVSize() const;
 
 //// Floating-point sort
-// uint32_t Sort::getFPExponentSize() const;
-// uint32_t Sort::getFPSignificandSize() const;
+// TODO uint32_t Sort::getFPExponentSize() const;
+// TODO uint32_t Sort::getFPSignificandSize() const;
 
 //// Datatype sort
-// std::vector<Sort> Sort::getDatatypeParamSorts() const;
-// size_t Sort::getDatatypeArity() const;
+// TODO std::vector<Sort> Sort::getDatatypeParamSorts() const;
+// TODO size_t Sort::getDatatypeArity() const;
 
 //// Tuple sort
-// size_t Sort::getTupleLength() const;
-// std::vector<Sort> Sort::getTupleSorts() const;
-// std::ostream& operator<<(std::ostream& out, const Sort& s);
+// TODO size_t Sort::getTupleLength() const;
+// TODO std::vector<Sort> Sort::getTupleSorts() const;
+// TODO std::ostream& operator<<(std::ostream& out, const Sort& s);
 
 ////// Term
-// bool Term::operator==(const Term& t) const;
-// bool Term::operator!=(const Term& t) const;
-// Kind Term::getKind() const;
-// Sort Term::getSort() const;
-// bool Term::isNull() const;
-// Term Term::notTerm() const;
-// Term Term::andTerm(const Term& t) const;
-// Term Term::orTerm(const Term& t) const;
-// Term Term::xorTerm(const Term& t) const;
-// Term Term::eqTerm(const Term& t) const;
-// Term Term::impTerm(const Term& t) const;
-// Term Term::iteTerm(const Term& then_t, const Term& else_t) const;
-// std::string Term::toString() const;
+// TODO bool Term::operator==(const Term& t) const;
+// TODO bool Term::operator!=(const Term& t) const;
+// TODO Kind Term::getKind() const;
+// TODO Sort Term::getSort() const;
+// TODO bool Term::isNull() const;
+// TODO Term Term::notTerm() const;
+// TODO Term Term::andTerm(const Term& t) const;
+// TODO Term Term::orTerm(const Term& t) const;
+// TODO Term Term::xorTerm(const Term& t) const;
+// TODO Term Term::eqTerm(const Term& t) const;
+// TODO Term Term::impTerm(const Term& t) const;
+// TODO Term Term::iteTerm(const Term& then_t, const Term& else_t) const;
+// TODO std::string Term::toString() const;
 
 //// Term::const_iterator
-// const_iterator& Term::const_iterator::operator=(const const_iterator& it);
-// bool Term::const_iterator::operator==(const const_iterator& it) const;
-// bool Term::const_iterator::operator!=(const const_iterator& it) const;
-// const_iterator& Term::const_iterator::operator++();
-// const_iterator Term::const_iterator::operator++(int);
-// Term Term::const_iterator::operator*() const;
+// TODO const_iterator& Term::const_iterator::operator=(const const_iterator& it);
+// TODO bool Term::const_iterator::operator==(const const_iterator& it) const;
+// TODO bool Term::const_iterator::operator!=(const const_iterator& it) const;
+// TODO const_iterator& Term::const_iterator::operator++();
+// TODO const_iterator Term::const_iterator::operator++(int);
+// TODO Term Term::const_iterator::operator*() const;
 
-// const_iterator Term::begin() const;
-// const_iterator Term::end() const;
+// TODO const_iterator Term::begin() const;
+// TODO const_iterator Term::end() const;
 
-// std::ostream& operator<<(std::ostream& out, const Term& t);
-// std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
-// std::ostream& operator<<(std::ostream& out, const std::set<Term>& set) ;
-// std::ostream& operator<<(std::ostream& out, const std::unordered_set<Term, TermHashFunction>& unordered_set);
-// template <typename V> std::ostream& operator<<(std::ostream& out, const std::map<Term, V>& map);
-// template <typename V> std::ostream& operator<<(std::ostream& out, const std::unordered_map<Term, V, TermHashFunction>& unordered_map);
+// TODO std::ostream& operator<<(std::ostream& out, const Term& t);
+// TODO std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
+// TODO std::ostream& operator<<(std::ostream& out, const std::set<Term>& set) ;
+// TODO std::ostream& operator<<(std::ostream& out, const std::unordered_set<Term, TermHashFunction>& unordered_set);
+// TODO template <typename V> std::ostream& operator<<(std::ostream& out, const std::map<Term, V>& map);
+// TODO template <typename V> std::ostream& operator<<(std::ostream& out, const std::unordered_map<Term, V, TermHashFunction>& unordered_map);
 
 
 //// OpTerm
-// bool OpTerm::operator==(const OpTerm& t) const;
-// bool OpTerm::operator!=(const OpTerm& t) const;
-// Kind OpTerm::getKind() const;
-// Sort OpTerm::getSort() const;
-// bool OpTerm::isNull() const;
-// std::string OpTerm::toString() const;
-// std::ostream& OpTerm::operator<<(std::ostream& out, const OpTerm& t);
+// TODO bool OpTerm::operator==(const OpTerm& t) const;
+// TODO bool OpTerm::operator!=(const OpTerm& t) const;
+// TODO Kind OpTerm::getKind() const;
+// TODO Sort OpTerm::getSort() const;
+// TODO bool OpTerm::isNull() const;
+// TODO std::string OpTerm::toString() const;
+// TODO std::ostream& OpTerm::operator<<(std::ostream& out, const OpTerm& t);
 
 ////// DatatypeSelectorDecl
-// std::string DatatypeSelectorDecl::toString() const;
+// TODO std::string DatatypeSelectorDecl::toString() const;
 
 ////// DatatypeConstructorDecl
-// void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl& stor);
-// std::string DatatypeConstructorDecl::toString() const;
+// TODO void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl& stor);
+// TODO std::string DatatypeConstructorDecl::toString() const;
 
 ////// DatatypeDecl
-// void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor);
-// size_t DatatyepDecl::getNumConstructors() const;
-// bool DatatypeDecl::isParametric() const;
-// std::string DatatypeDecl::toString() const;
+// TODO void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor);
+// TODO size_t DatatyepDecl::getNumConstructors() const;
+// TODO bool DatatypeDecl::isParametric() const;
+// TODO std::string DatatypeDecl::toString() const;
 
 ////// DatatypeSelector
-// std::string DatatypeSelector::toString() const;
+// TODO std::string DatatypeSelector::toString() const;
 
 ////// DatatypeConstructor
-// bool DatatypeConstructor::isResolved() const;
-// Term DatatypeConstructor::getConstructorTerm() const;
-// DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const;
-// DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const;
-// Term DatatypeConstructor::getSelectorTerm(const std::string& name) const;
-// std::string DatatypeConstructor::toString() const;
+// TODO bool DatatypeConstructor::isResolved() const;
+// TODO Term DatatypeConstructor::getConstructorTerm() const;
+// TODO DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const;
+// TODO DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const;
+// TODO Term DatatypeConstructor::getSelectorTerm(const std::string& name) const;
+// TODO std::string DatatypeConstructor::toString() const;
 
 ////// DatatypeConstructor::const_iterator
-// const_iterator& DatatypeConstructor::const_iterator::operator=(const const_iterator& it);
-// bool DatatypeConstructor::const_iterator::operator==(const const_iterator& it) const;
-// bool DatatypeConstructor::const_iterator::operator!=(const const_iterator& it) const;
-// const_iterator& DatatypeConstructor::const_iterator::operator++();
-// const_iterator DatatypeConstructor::const_iterator::operator++(int);
-// const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const;
-// const DatatypeSelector* DatatypeConstructor::const_iterator::operator->() const;
-// const_iterator DatatypeConstructor::begin() const;
-// const_iterator DatatypeConstructor::end() const;
+// TODO const_iterator& DatatypeConstructor::const_iterator::operator=(const const_iterator& it);
+// TODO bool DatatypeConstructor::const_iterator::operator==(const const_iterator& it) const;
+// TODO bool DatatypeConstructor::const_iterator::operator!=(const const_iterator& it) const;
+// TODO const_iterator& DatatypeConstructor::const_iterator::operator++();
+// TODO const_iterator DatatypeConstructor::const_iterator::operator++(int);
+// TODO const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const;
+// TODO const DatatypeSelector* DatatypeConstructor::const_iterator::operator->() const;
+// TODO const_iterator DatatypeConstructor::begin() const;
+// TODO const_iterator DatatypeConstructor::end() const;
 
 ////// Datatype
-// DatatypeConstructor Datatype::operator[](size_t idx) const;
-// DatatypeConstructor Datatype::operator[](const std::string& name) const;
-// DatatypeConstructor Datatype::getConstructor(const std::string& name) const;
-// Term Datatype::getConstructorTerm(const std::string& name) const;
-// size_t Datatype::getNumConstructors() const;
-// bool Datatype::isParametric() const;
-// std::string Datatype::toString() const;
+// TODO DatatypeConstructor Datatype::operator[](size_t idx) const;
+// TODO DatatypeConstructor Datatype::operator[](const std::string& name) const;
+// TODO DatatypeConstructor Datatype::getConstructor(const std::string& name) const;
+// TODO Term Datatype::getConstructorTerm(const std::string& name) const;
+// TODO size_t Datatype::getNumConstructors() const;
+// TODO bool Datatype::isParametric() const;
+// TODO std::string Datatype::toString() const;
 
 ////// Datatype::const_iterator
-//const_iterator& Datatype::const_iterator::operator=(const const_iterator& it);
-// bool Datatype::const_iterator::operator==(const const_iterator& it) const;
-// bool Datatype::const_iterator::operator!=(const const_iterator& it) const;
-// const_iterator& Datatype::const_iterator::operator++();
-// const_iterator Datatype::const_iterator::operator++(int);
-// const DatatypeConstructor& Datatype::const_iterator::operator*() const;
-// const DatatypeConstructor* Datatype::const_iterator::operator->() const;
+// TODO const_iterator& Datatype::const_iterator::operator=(const const_iterator& it);
+// TODO bool Datatype::const_iterator::operator==(const const_iterator& it) const;
+// TODO bool Datatype::const_iterator::operator!=(const const_iterator& it) const;
+// TODO const_iterator& Datatype::const_iterator::operator++();
+// TODO const_iterator Datatype::const_iterator::operator++(int);
+// TODO const DatatypeConstructor& Datatype::const_iterator::operator*() const;
+// TODO const DatatypeConstructor* Datatype::const_iterator::operator->() const;
 
-// const_iterator Datatype::begin() const;
-// const_iterator Datatype::end() const;
-// std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl);
-// std::ostream& operator<<(std::ostream& out, const DatatypeConstructorDecl& ctordecl);
-// std::ostream& operator<<(std::ostream& out, const DatatypeSelectorDecl& stordecl);
-// std::ostream& operator<<(std::ostream& out, const Datatype& dtype);
-// std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor);
-// std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor);
+// TODO const_iterator Datatype::begin() const;
+// TODO const_iterator Datatype::end() const;
+// TODO std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl);
+// TODO std::ostream& operator<<(std::ostream& out, const DatatypeConstructorDecl& ctordecl);
+// TODO std::ostream& operator<<(std::ostream& out, const DatatypeSelectorDecl& stordecl);
+// TODO std::ostream& operator<<(std::ostream& out, const Datatype& dtype);
+// TODO std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor);
+// TODO std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor);
 
 
 ////// Solver
-// Solver& Solver::operator=(const Solver&) = delete;
 
 // Sort Solver::getNullSort() const;
 class CVC4ActionGetNullSort : public CVC4Action
@@ -437,7 +436,7 @@ class CVC4ActionGetStringSort : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const;
+// TODO Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const;
 
 // Sort Solver::mkBitVectorSort(uint32_t size) const;
 class CVC4ActionMkBitVectorSort : public CVC4Action
@@ -462,17 +461,17 @@ class CVC4ActionMkBitVectorSort : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
-// Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const;
-// Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const;
-// Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const;
-// Sort Solver::mkParamSort(const std::string& symbol) const;
-// Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const;
-// Sort Solver::mkRecordSort(const std::vector<std::pair<std::string, Sort>>& fields) const;
-// Sort Solver::mkSetSort(Sort elemSort) const;
-// Sort Solver::mkUninterpretedSort(const std::string& symbol) const;
-// Sort Solver::mkSortConstructorSort(const std::string& symbol, size_t arity) const;
-// Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const;
+// TODO Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
+// TODO Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const;
+// TODO Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const;
+// TODO Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const;
+// TODO Sort Solver::mkParamSort(const std::string& symbol) const;
+// TODO Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const;
+// TODO Sort Solver::mkRecordSort(const std::vector<std::pair<std::string, Sort>>& fields) const;
+// TODO Sort Solver::mkSetSort(Sort elemSort) const;
+// TODO Sort Solver::mkUninterpretedSort(const std::string& symbol) const;
+// TODO Sort Solver::mkSortConstructorSort(const std::string& symbol, size_t arity) const;
+// TODO Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const;
 
 // Term Solver::mkTerm(Kind kind) const;
 class CVC4ActionMkTerm0 : public CVC4Action
@@ -861,12 +860,12 @@ class CVC4ActionMkTermOp1 : public CVC4Action
   std::unordered_map<TheoryId, CVC4KindVector> d_kinds;
 };
 
-// Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2)
-// const; Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term
-// child2, Term child3) const; Term Solver::mkTerm(Kind kind, OpTerm opTerm,
-// const std::vector<Term>& children) const; Term Solver::mkTuple(const
-// std::vector<Sort>& sorts, const std::vector<Term>& terms) const; Term
-// Solver::mkTrue() const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3) const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, const std::vector<Term>& children) const;
+// TODO Term Solver::mkTuple(const std::vector<Sort>& sorts, const std::vector<Term>& terms) const;
+
+// Term Solver::mkTrue() const;
 class CVC4ActionMkTrue : public CVC4Action
 {
  public:
@@ -926,26 +925,26 @@ class CVC4ActionMkBoolean : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Term Solver::mkPi() const;
-// Term Solver::mkReal(const char* s) const;
-// Term Solver::mkReal(const std::string& s) const;
-// Term Solver::mkReal(int32_t val) const;
-// Term Solver::mkReal(int64_t val) const;
-// Term Solver::mkReal(uint32_t val) const;
-// Term Solver::mkReal(uint64_t val) const;
-// Term Solver::mkReal(int32_t num, int32_t den) const;
-// Term Solver::mkReal(int64_t num, int64_t den) const;
-// Term Solver::mkReal(uint32_t num, uint32_t den) const;
-// Term Solver::mkReal(uint64_t num, uint64_t den) const;
-// Term Solver::mkRegexpEmpty() const;
-// Term Solver::mkRegexpSigma() const;
-// Term Solver::mkEmptySet(Sort s) const;
-// Term Solver::mkSepNil(Sort sort) const;
-// Term Solver::mkString(const char* s, bool useEscSequences = false) const;
-// Term Solver::mkString(const std::string& s, bool useEscSequences = false) const;
-// Term Solver::mkString(const unsigned char c) const;
-// Term Solver::mkString(const std::vector<unsigned>& s) const;
-// Term Solver::mkUniverseSet(Sort sort) const;
+// TODO Term Solver::mkPi() const;
+// TODO Term Solver::mkReal(const char* s) const;
+// TODO Term Solver::mkReal(const std::string& s) const;
+// TODO Term Solver::mkReal(int32_t val) const;
+// TODO Term Solver::mkReal(int64_t val) const;
+// TODO Term Solver::mkReal(uint32_t val) const;
+// TODO Term Solver::mkReal(uint64_t val) const;
+// TODO Term Solver::mkReal(int32_t num, int32_t den) const;
+// TODO Term Solver::mkReal(int64_t num, int64_t den) const;
+// TODO Term Solver::mkReal(uint32_t num, uint32_t den) const;
+// TODO Term Solver::mkReal(uint64_t num, uint64_t den) const;
+// TODO Term Solver::mkRegexpEmpty() const;
+// TODO Term Solver::mkRegexpSigma() const;
+// TODO Term Solver::mkEmptySet(Sort s) const;
+// TODO Term Solver::mkSepNil(Sort sort) const;
+// TODO Term Solver::mkString(const char* s, bool useEscSequences = false) const;
+// TODO Term Solver::mkString(const std::string& s, bool useEscSequences = false) const;
+// TODO Term Solver::mkString(const unsigned char c) const;
+// TODO Term Solver::mkString(const std::vector<unsigned>& s) const;
+// TODO Term Solver::mkUniverseSet(Sort sort) const;
 
 // Term Solver::mkBitVector(uint32_t size, uint64_t val = 0) const;
 class CVC4ActionMkBitVector0 : public CVC4Action
@@ -1183,16 +1182,16 @@ class CVC4ActionMkBitVector4 : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const;
-// Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const;
-// Term Solver::mkNaN(uint32_t exp, uint32_t sig) const;
-// Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const;
-// Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const;
-// Term Solver::mkRoundingMode(RoundingMode rm) const;
-// Term Solver::mkUninterpretedConst(Sort sort, int32_t index) const;
-// Term Solver::mkAbstractValue(const std::string& index) const;
-// Term Solver::mkAbstractValue(uint64_t index) const;
-// Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
+// TODO Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const;
+// TODO Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const;
+// TODO Term Solver::mkNaN(uint32_t exp, uint32_t sig) const;
+// TODO Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const;
+// TODO Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const;
+// TODO Term Solver::mkRoundingMode(RoundingMode rm) const;
+// TODO Term Solver::mkUninterpretedConst(Sort sort, int32_t index) const;
+// TODO Term Solver::mkAbstractValue(const std::string& index) const;
+// TODO Term Solver::mkAbstractValue(uint64_t index) const;
+// TODO Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
 
 // Term Solver::mkVar(const std::string& symbol, Sort sort) const;
 class CVC4ActionMkVar : public CVC4Action
@@ -1216,8 +1215,8 @@ class CVC4ActionMkVar : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const;
-// Term Solver::simplify(const Term& t);
+// TODO Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const;
+// TODO Term Solver::simplify(const Term& t);
 
 // void Solver::assertFormula(Term term) const;
 class CVC4ActionAssertFormula : public CVC4Action
@@ -1259,39 +1258,39 @@ class CVC4ActionCheckSat : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Result Solver::checkSatAssuming(Term assumption) const;
-// Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const;
-// Result Solver::checkValid() const;
-// Result Solver::checkValidAssuming(Term assumption) const;
-// Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const;
-// Term Solver::declareConst(const std::string& symbol, Sort sort) const;
-// Sort Solver::declareDatatype( const std::string& symbol, const std::vector<DatatypeConstructorDecl>& ctors) const;
-// Term Solver::declareFun(const std::string& symbol, Sort sort) const;
-// Term Solver::declareFun(const std::string& symbol, const std::vector<Sort>& sorts, Sort sort) const;
-// Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const;
-// Term Solver::defineFun(const std::string& symbol, const std::vector<Term>& bound_vars, Sort sort, Term term) const;
-// Term Solver::defineFun(Term fun, const std::vector<Term>& bound_vars, Term term) const;
-// Term Solver::defineFunRec(const std::string& symbol, const std::vector<Term>& bound_vars, Sort sort, Term term) const;
-// Term Solver::defineFunRec(Term fun, const std::vector<Term>& bound_vars, Term term) const;
-// void Solver::defineFunsRec(const std::vector<Term>& funs, const std::vector<std::vector<Term>>& bound_vars, const std::vector<Term>& terms) const;
-// void Solver::echo(std::ostream& out, const std::string& str) const;
-// std::vector<Term> Solver::getAssertions() const;
-// std::vector<std::pair<Term, Term>> Solver::getAssignment() const;
-// std::string Solver::getInfo(const std::string& flag) const;
-// std::string Solver::getOption(const std::string& option) const;
-// std::vector<Term> Solver::getUnsatAssumptions() const;
-// std::vector<Term> Solver::getUnsatCore() const;
-// Term Solver::getValue(Term term) const;
-// std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
-// void Solver::pop(uint32_t nscopes = 1) const;
-// void Solver::printModel(std::ostream& out) const;
-// void Solver::push(uint32_t nscopes = 1) const;
-// void Solver::reset() const;
-// void Solver::resetAssertions() const;
-// void Solver::setInfo(const std::string& keyword, const std::string& value) const;
-// void Solver::setLogic(const std::string& logic) const;
-// void Solver::setOption(const std::string& option, const std::string& value) const;
-// Term Solver::ensureTermSort(const Term& t, const Sort& s) const;
+// TODO Result Solver::checkSatAssuming(Term assumption) const;
+// TODO Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const;
+// TODO Result Solver::checkValid() const;
+// TODO Result Solver::checkValidAssuming(Term assumption) const;
+// TODO Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const;
+// TODO Term Solver::declareConst(const std::string& symbol, Sort sort) const;
+// TODO Sort Solver::declareDatatype( const std::string& symbol, const std::vector<DatatypeConstructorDecl>& ctors) const;
+// TODO Term Solver::declareFun(const std::string& symbol, Sort sort) const;
+// TODO Term Solver::declareFun(const std::string& symbol, const std::vector<Sort>& sorts, Sort sort) const;
+// TODO Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const;
+// TODO Term Solver::defineFun(const std::string& symbol, const std::vector<Term>& bound_vars, Sort sort, Term term) const;
+// TODO Term Solver::defineFun(Term fun, const std::vector<Term>& bound_vars, Term term) const;
+// TODO Term Solver::defineFunRec(const std::string& symbol, const std::vector<Term>& bound_vars, Sort sort, Term term) const;
+// TODO Term Solver::defineFunRec(Term fun, const std::vector<Term>& bound_vars, Term term) const;
+// TODO void Solver::defineFunsRec(const std::vector<Term>& funs, const std::vector<std::vector<Term>>& bound_vars, const std::vector<Term>& terms) const;
+// TODO void Solver::echo(std::ostream& out, const std::string& str) const;
+// TODO std::vector<Term> Solver::getAssertions() const;
+// TODO std::vector<std::pair<Term, Term>> Solver::getAssignment() const;
+// TODO std::string Solver::getInfo(const std::string& flag) const;
+// TODO std::string Solver::getOption(const std::string& option) const;
+// TODO std::vector<Term> Solver::getUnsatAssumptions() const;
+// TODO std::vector<Term> Solver::getUnsatCore() const;
+// TODO Term Solver::getValue(Term term) const;
+// TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
+// TODO void Solver::pop(uint32_t nscopes = 1) const;
+// TODO void Solver::printModel(std::ostream& out) const;
+// TODO void Solver::push(uint32_t nscopes = 1) const;
+// TODO void Solver::reset() const;
+// TODO void Solver::resetAssertions() const;
+// TODO void Solver::setInfo(const std::string& keyword, const std::string& value) const;
+// TODO void Solver::setLogic(const std::string& logic) const;
+// TODO void Solver::setOption(const std::string& option, const std::string& value) const;
+// TODO Term Solver::ensureTermSort(const Term& t, const Sort& s) const;
 
 /* -------------------------------------------------------------------------- */
 
@@ -1343,14 +1342,11 @@ CVC4SolverManager::pick_kind(CVC4KindVector& kinds1, CVC4KindVector& kinds2)
   return pick_kind(d_all_kinds, kinds1, kinds2);
 }
 
-//  OpTerm pick_op_term();
-//  OpTerm pick_op_term(TheoryId theory);
-//  bool has_op_term(TheoryId theory);
-
 /* -------------------------------------------------------------------------- */
 
-// OpTerm Solver::mkOpTerm(Kind kind, Kind k);
-// OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg);
+// TODO OpTerm Solver::mkOpTerm(Kind kind, Kind k);
+// TODO OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg);
+
 // OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg);
 // OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
 OpTerm
@@ -1411,9 +1407,7 @@ CVC4SolverManager::clear()
   d_terms.clear();
   d_sorts2theory.clear();
   d_theory2sorts.clear();
-  // d_op_terms.clear();
   d_all_kinds.clear();
-  // d_all_op_kinds_uint.clear();
 }
 
 CVC4SolverManager::~CVC4SolverManager()
