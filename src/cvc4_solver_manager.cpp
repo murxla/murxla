@@ -1281,7 +1281,28 @@ class CVC4ActionCheckSat : public CVC4Action
 
 // TODO Result Solver::checkSatAssuming(Term assumption) const;
 // TODO Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const;
-// TODO Result Solver::checkValid() const;
+
+// Result Solver::checkValid() const;
+class CVC4ActionCheckValid : public CVC4Action
+{
+ public:
+  CVC4ActionCheckValid(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "checkValid")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    // TODO query result
+    Solver* cvc4 = d_smgr->get_solver();
+    assert(cvc4);
+    (void) cvc4->checkValid();
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO Result Solver::checkValidAssuming(Term assumption) const;
 // TODO Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const;
 // TODO Term Solver::declareConst(const std::string& symbol, Sort sort) const;
@@ -1582,6 +1603,7 @@ CVC4SolverManager::configure()
   auto aassert   = new_action<CVC4ActionAssertFormula>();
   auto asimp     = new_action<CVC4ActionSimplify>();
   auto achecksat = new_action<CVC4ActionCheckSat>();
+  auto acheckval = new_action<CVC4ActionCheckValid>();
   /* transitions */
   auto tinputs = new_action<CVC4ActionNoneCreateInputs>();
   auto tnone   = new_action<CVC4ActionNone>();
@@ -1641,6 +1663,7 @@ CVC4SolverManager::configure()
   sterms->add_action(tnone, 2, ssat);
 
   ssat->add_action(achecksat, 10, sdelete);
+  ssat->add_action(acheckval, 2, sdelete);
   sdelete->add_action(adelete, 10, sfinal);
 
   /* Initial State .......................................................... */
