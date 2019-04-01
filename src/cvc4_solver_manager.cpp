@@ -1216,7 +1216,28 @@ class CVC4ActionMkVar : public CVC4Action
 };
 
 // TODO Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const;
-// TODO Term Solver::simplify(const Term& t);
+
+// Term Solver::simplify(const Term& t);
+class CVC4ActionSimplify : public CVC4Action
+{
+ public:
+  CVC4ActionSimplify(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "simplify")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    Solver* cvc4 = d_smgr->get_solver();
+    assert(cvc4);
+    TheoryId theory = d_smgr->pick_theory_with_terms();
+    Term term       = d_smgr->pick_term(theory);
+    Term res        = cvc4->simplify(term);
+    d_smgr->add_input(res, theory);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 // void Solver::assertFormula(Term term) const;
 class CVC4ActionAssertFormula : public CVC4Action
@@ -1559,6 +1580,7 @@ CVC4SolverManager::configure()
   auto amktermop1 = new_action<CVC4ActionMkTermOp1>();
   /* commands */
   auto aassert   = new_action<CVC4ActionAssertFormula>();
+  auto asimp     = new_action<CVC4ActionSimplify>();
   auto achecksat = new_action<CVC4ActionCheckSat>();
   /* transitions */
   auto tinputs = new_action<CVC4ActionNoneCreateInputs>();
@@ -1614,6 +1636,7 @@ CVC4SolverManager::configure()
   sterms->add_action(amkterm3, 20);
   sterms->add_action(amktermn, 20);
   sterms->add_action(amktermop1, 20);
+  sterms->add_action(asimp, 2);
   sterms->add_action(tnone, 5, sassert);
   sterms->add_action(tnone, 2, ssat);
 
