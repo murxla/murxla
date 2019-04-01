@@ -131,7 +131,27 @@ class CVC4ActionSolverDelete : public CVC4Action
 ////// Sort
 // TODO bool Sort::operator==(const Sort& s) const;
 // TODO bool Sort::operator!=(const Sort& s) const;
-// TODO bool Sort::isNull() const;
+
+// bool Sort::isNull() const;
+class CVC4ActionSortIsNull : public CVC4Action
+{
+ public:
+  CVC4ActionSortIsNull(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "sortIsNull")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_sort()) return false;
+    TheoryId theory = d_smgr->pick_theory();
+    Sort sort       = d_smgr->pick_sort(theory);
+    assert(sort.isNull() == (sort == Sort()));
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 // bool Sort::isBoolean() const;
 class CVC4ActionSortIsBoolean : public CVC4Action
@@ -1661,6 +1681,7 @@ CVC4SolverManager::configure()
 
   /* Sort Actions ........................................................ */
   auto a_sort_isbool = new_action<CVC4ActionSortIsBoolean>();
+  auto a_sort_isnull = new_action<CVC4ActionSortIsNull>();
 
   /* Solver Actions ...................................................... */
   /* create/delete solver */
@@ -1725,6 +1746,7 @@ CVC4SolverManager::configure()
   /* State: create inputs ................................................ */
   /* sort actions */
   s_inputs->add_action(a_sort_isbool, 1);
+  s_inputs->add_action(a_sort_isnull, 1);
   /* solver actions */
   s_inputs->add_action(a_solver_getboolsort, 1);
   s_inputs->add_action(a_solver_getintsort, 1);
