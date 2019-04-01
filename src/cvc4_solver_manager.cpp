@@ -126,7 +126,29 @@ class CVC4ActionDelete : public CVC4Action
 // TODO bool Sort::operator==(const Sort& s) const;
 // TODO bool Sort::operator!=(const Sort& s) const;
 // TODO bool Sort::isNull() const;
-// TODO bool Sort::isBoolean() const;
+
+// bool Sort::isBoolean() const;
+class CVC4ActionSortIsBoolean : public CVC4Action
+{
+ public:
+  CVC4ActionSortIsBoolean(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "sortIsBoolean")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_sort()) return false;
+    TheoryId theory = d_smgr->pick_theory();
+    Sort sort       = d_smgr->pick_sort(theory);
+    bool expected   = theory == THEORY_BOOL ? true : false;
+    assert(sort.isBoolean() == expected);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO bool Sort::isInteger() const;
 // TODO bool Sort::isReal() const;
 // TODO bool Sort::isString() const;
@@ -1568,7 +1590,14 @@ CVC4SolverManager::configure()
 {
   configure_kinds();
 
-  /* Actions ................................................................ */
+  /* --------------------------------------------------------------------- */
+  /* Actions                                                               */
+  /* --------------------------------------------------------------------- */
+
+  /* Sort Actions ........................................................ */
+  auto a_sort_isbool = new_action<CVC4ActionSortIsBoolean>();
+
+  /* Solver Actions ...................................................... */
   /* create/delete solver */
   auto anew    = new_action<CVC4ActionNew>();
   auto adelete = new_action<CVC4ActionDelete>();
@@ -1607,7 +1636,11 @@ CVC4SolverManager::configure()
   /* transitions */
   auto tinputs = new_action<CVC4ActionNoneCreateInputs>();
   auto tnone   = new_action<CVC4ActionNone>();
-  /* States ................................................................. */
+
+  /* --------------------------------------------------------------------- */
+  /* States                                                                */
+  /* --------------------------------------------------------------------- */
+
   auto sassert = d_fsm.new_state(
       "assert", [this]() { return this->has_term(THEORY_BOOL); });
   auto sdelete = d_fsm.new_state("delete");
@@ -1617,9 +1650,17 @@ CVC4SolverManager::configure()
   auto sterms  = d_fsm.new_state("create terms");
   auto sfinal  = d_fsm.new_state("final", nullptr, true);
 
-  /* Transitions ............................................................ */
+  /* --------------------------------------------------------------------- */
+  /* Transitions                                                           */
+  /* --------------------------------------------------------------------- */
+
+  /* State: new .......................................................... */
   snew->add_action(anew, 10, sinputs);
 
+  /* State: create inputs ................................................ */
+  /* sort actions */
+  sinputs->add_action(a_sort_isbool, 1);
+  /* solver actions */
   sinputs->add_action(amgetboolsort, 1);
   sinputs->add_action(amgetintsort, 1);
   sinputs->add_action(amgetnullsort, 1);
@@ -1637,14 +1678,17 @@ CVC4SolverManager::configure()
   sinputs->add_action(amkfalse, 2);
   sinputs->add_action(amkbool, 2);
   sinputs->add_action(amkvar, 10);
+  /* empty transitions */
   sinputs->add_action(tinputs, 10, sterms);
   sinputs->add_action(tinputs, 10, sassert);
 
+  /* State: assert ....................................................... */
   sassert->add_action(aassert, 2);
   sassert->add_action(aassert, 5, sinputs);
   sassert->add_action(aassert, 20, sterms);
   sassert->add_action(aassert, 2, ssat);
 
+  /* State: create terms ................................................. */
   sterms->add_action(amgetboolsort, 2);
   sterms->add_action(amgetintsort, 2);
   sterms->add_action(amgetnullsort, 2);
@@ -1662,11 +1706,15 @@ CVC4SolverManager::configure()
   sterms->add_action(tnone, 5, sassert);
   sterms->add_action(tnone, 2, ssat);
 
+  /* State: sat .......................................................... */
   ssat->add_action(achecksat, 10, sdelete);
   ssat->add_action(acheckval, 2, sdelete);
   sdelete->add_action(adelete, 10, sfinal);
 
-  /* Initial State .......................................................... */
+  /* --------------------------------------------------------------------- */
+  /* Initial State                                                         */
+  /* --------------------------------------------------------------------- */
+
   d_fsm.set_init_state(snew);
 }
 
