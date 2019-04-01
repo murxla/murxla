@@ -905,6 +905,27 @@ class CVC4ActionMkFalse : public CVC4Action
 };
 
 // Term Solver::mkBoolean(bool val) const;
+class CVC4ActionMkBoolean : public CVC4Action
+{
+ public:
+  CVC4ActionMkBoolean(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "mkBoolean")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    RNGenerator& rng = d_smgr->get_rng();
+    Solver* cvc4     = d_smgr->get_solver();
+    assert(cvc4);
+    Term res = cvc4->mkBoolean(rng.pick_with_prob(500) ? true : false);
+    d_smgr->add_input(res, THEORY_BOOL);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // Term Solver::mkPi() const;
 // Term Solver::mkReal(const char* s) const;
 // Term Solver::mkReal(const std::string& s) const;
@@ -1516,6 +1537,7 @@ CVC4SolverManager::configure()
   auto anew    = new_action<CVC4ActionNew>();
   auto adelete = new_action<CVC4ActionDelete>();
   /* make consts */
+  auto amkbool  = new_action<CVC4ActionMkBoolean>();
   auto amkbv0   = new_action<CVC4ActionMkBitVector0>();
   auto amkbv1   = new_action<CVC4ActionMkBitVector1>();
   auto amkbv2   = new_action<CVC4ActionMkBitVector2>();
@@ -1573,8 +1595,9 @@ CVC4SolverManager::configure()
   sinputs->add_action(amkbv3, 10);
   sinputs->add_action(amkbv4, 10);
   sinputs->add_action(amkbvsort, 2);
-  sinputs->add_action(amktrue, 10);
-  sinputs->add_action(amkfalse, 10);
+  sinputs->add_action(amktrue, 2);
+  sinputs->add_action(amkfalse, 2);
+  sinputs->add_action(amkbool, 2);
   sinputs->add_action(amkvar, 10);
   sinputs->add_action(tinputs, 10, sterms);
   sinputs->add_action(tinputs, 10, sassert);
