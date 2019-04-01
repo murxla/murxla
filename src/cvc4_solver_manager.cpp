@@ -75,10 +75,13 @@ class CVC4ActionNoneCreateInputs : public CVC4Action
 
 /* -------------------------------------------------------------------------- */
 
-class CVC4ActionNew : public CVC4Action
+class CVC4ActionSolverNew : public CVC4Action
 {
  public:
-  CVC4ActionNew(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "new") {}
+  CVC4ActionSolverNew(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverNew")
+  {
+  }
 
   bool run() override
   {
@@ -91,10 +94,13 @@ class CVC4ActionNew : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-class CVC4ActionDelete : public CVC4Action
+class CVC4ActionSolverDelete : public CVC4Action
 {
  public:
-  CVC4ActionDelete(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "delete") {}
+  CVC4ActionSolverDelete(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverDelete")
+  {
+  }
 
   bool run() override
   {
@@ -110,9 +116,9 @@ class CVC4ActionDelete : public CVC4Action
 };
 
 ////// Result
-// TODO bool Result::isSat() const;
+// TODO bool Result::is_sat() const;
 // TODO bool Result::isUnsat() const;
-// TODO bool Result::isSatUnknown() const;
+// TODO bool Result::is_satUnknown() const;
 // TODO bool Result::isValid() const;
 // TODO bool Result::isInvalid() const;
 // TODO bool Result::isValidUnknown() const;
@@ -226,7 +232,8 @@ class CVC4ActionSortIsBoolean : public CVC4Action
 // TODO std::string Term::toString() const;
 
 //// Term::const_iterator
-// TODO const_iterator& Term::const_iterator::operator=(const const_iterator& it);
+// TODO const_iterator& Term::const_iterator::operator=(const const_iterator&
+// it);
 // TODO bool Term::const_iterator::operator==(const const_iterator& it) const;
 // TODO bool Term::const_iterator::operator!=(const const_iterator& it) const;
 // TODO const_iterator& Term::const_iterator::operator++();
@@ -237,12 +244,15 @@ class CVC4ActionSortIsBoolean : public CVC4Action
 // TODO const_iterator Term::end() const;
 
 // TODO std::ostream& operator<<(std::ostream& out, const Term& t);
-// TODO std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
+// TODO std::ostream& operator<<(std::ostream& out, const std::vector<Term>&
+// vector);
 // TODO std::ostream& operator<<(std::ostream& out, const std::set<Term>& set) ;
-// TODO std::ostream& operator<<(std::ostream& out, const std::unordered_set<Term, TermHashFunction>& unordered_set);
-// TODO template <typename V> std::ostream& operator<<(std::ostream& out, const std::map<Term, V>& map);
-// TODO template <typename V> std::ostream& operator<<(std::ostream& out, const std::unordered_map<Term, V, TermHashFunction>& unordered_map);
-
+// TODO std::ostream& operator<<(std::ostream& out, const
+// std::unordered_set<Term, TermHashFunction>& unordered_set);
+// TODO template <typename V> std::ostream& operator<<(std::ostream& out, const
+// std::map<Term, V>& map);
+// TODO template <typename V> std::ostream& operator<<(std::ostream& out, const
+// std::unordered_map<Term, V, TermHashFunction>& unordered_map);
 
 //// OpTerm
 // TODO bool OpTerm::operator==(const OpTerm& t) const;
@@ -257,7 +267,8 @@ class CVC4ActionSortIsBoolean : public CVC4Action
 // TODO std::string DatatypeSelectorDecl::toString() const;
 
 ////// DatatypeConstructorDecl
-// TODO void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl& stor);
+// TODO void DatatypeConstructorDecl::addSelector(const DatatypeSelectorDecl&
+// stor);
 // TODO std::string DatatypeConstructorDecl::toString() const;
 
 ////// DatatypeDecl
@@ -272,35 +283,47 @@ class CVC4ActionSortIsBoolean : public CVC4Action
 ////// DatatypeConstructor
 // TODO bool DatatypeConstructor::isResolved() const;
 // TODO Term DatatypeConstructor::getConstructorTerm() const;
-// TODO DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const;
-// TODO DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const;
-// TODO Term DatatypeConstructor::getSelectorTerm(const std::string& name) const;
+// TODO DatatypeSelector DatatypeConstructor::operator[](const std::string&
+// name) const;
+// TODO DatatypeSelector DatatypeConstructor::getSelector(const std::string&
+// name) const;
+// TODO Term DatatypeConstructor::getSelectorTerm(const std::string& name)
+// const;
 // TODO std::string DatatypeConstructor::toString() const;
 
 ////// DatatypeConstructor::const_iterator
-// TODO const_iterator& DatatypeConstructor::const_iterator::operator=(const const_iterator& it);
-// TODO bool DatatypeConstructor::const_iterator::operator==(const const_iterator& it) const;
-// TODO bool DatatypeConstructor::const_iterator::operator!=(const const_iterator& it) const;
+// TODO const_iterator& DatatypeConstructor::const_iterator::operator=(const
+// const_iterator& it);
+// TODO bool DatatypeConstructor::const_iterator::operator==(const
+// const_iterator& it) const;
+// TODO bool DatatypeConstructor::const_iterator::operator!=(const
+// const_iterator& it) const;
 // TODO const_iterator& DatatypeConstructor::const_iterator::operator++();
 // TODO const_iterator DatatypeConstructor::const_iterator::operator++(int);
-// TODO const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const;
-// TODO const DatatypeSelector* DatatypeConstructor::const_iterator::operator->() const;
+// TODO const DatatypeSelector& DatatypeConstructor::const_iterator::operator*()
+// const;
+// TODO const DatatypeSelector*
+// DatatypeConstructor::const_iterator::operator->() const;
 // TODO const_iterator DatatypeConstructor::begin() const;
 // TODO const_iterator DatatypeConstructor::end() const;
 
 ////// Datatype
 // TODO DatatypeConstructor Datatype::operator[](size_t idx) const;
 // TODO DatatypeConstructor Datatype::operator[](const std::string& name) const;
-// TODO DatatypeConstructor Datatype::getConstructor(const std::string& name) const;
+// TODO DatatypeConstructor Datatype::getConstructor(const std::string& name)
+// const;
 // TODO Term Datatype::getConstructorTerm(const std::string& name) const;
 // TODO size_t Datatype::getNumConstructors() const;
 // TODO bool Datatype::isParametric() const;
 // TODO std::string Datatype::toString() const;
 
 ////// Datatype::const_iterator
-// TODO const_iterator& Datatype::const_iterator::operator=(const const_iterator& it);
-// TODO bool Datatype::const_iterator::operator==(const const_iterator& it) const;
-// TODO bool Datatype::const_iterator::operator!=(const const_iterator& it) const;
+// TODO const_iterator& Datatype::const_iterator::operator=(const
+// const_iterator& it);
+// TODO bool Datatype::const_iterator::operator==(const const_iterator& it)
+// const;
+// TODO bool Datatype::const_iterator::operator!=(const const_iterator& it)
+// const;
 // TODO const_iterator& Datatype::const_iterator::operator++();
 // TODO const_iterator Datatype::const_iterator::operator++(int);
 // TODO const DatatypeConstructor& Datatype::const_iterator::operator*() const;
@@ -309,21 +332,24 @@ class CVC4ActionSortIsBoolean : public CVC4Action
 // TODO const_iterator Datatype::begin() const;
 // TODO const_iterator Datatype::end() const;
 // TODO std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl);
-// TODO std::ostream& operator<<(std::ostream& out, const DatatypeConstructorDecl& ctordecl);
-// TODO std::ostream& operator<<(std::ostream& out, const DatatypeSelectorDecl& stordecl);
+// TODO std::ostream& operator<<(std::ostream& out, const
+// DatatypeConstructorDecl& ctordecl);
+// TODO std::ostream& operator<<(std::ostream& out, const DatatypeSelectorDecl&
+// stordecl);
 // TODO std::ostream& operator<<(std::ostream& out, const Datatype& dtype);
-// TODO std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor);
-// TODO std::ostream& operator<<(std::ostream& out, const DatatypeSelector& stor);
-
+// TODO std::ostream& operator<<(std::ostream& out, const DatatypeConstructor&
+// ctor);
+// TODO std::ostream& operator<<(std::ostream& out, const DatatypeSelector&
+// stor);
 
 ////// Solver
 
 // Sort Solver::getNullSort() const;
-class CVC4ActionGetNullSort : public CVC4Action
+class CVC4ActionSolverGetNullSort : public CVC4Action
 {
  public:
-  CVC4ActionGetNullSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "getNullSort")
+  CVC4ActionSolverGetNullSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverGetNullSort")
   {
   }
 
@@ -339,11 +365,11 @@ class CVC4ActionGetNullSort : public CVC4Action
 };
 
 // Sort Solver::getBooleanSort() const;
-class CVC4ActionGetBooleanSort : public CVC4Action
+class CVC4ActionSolverGetBooleanSort : public CVC4Action
 {
  public:
-  CVC4ActionGetBooleanSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "getBooleanSort")
+  CVC4ActionSolverGetBooleanSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverGetBooleanSort")
   {
   }
 
@@ -359,11 +385,11 @@ class CVC4ActionGetBooleanSort : public CVC4Action
 };
 
 // Sort Solver::getIntegerSort() const;
-class CVC4ActionGetIntegerSort : public CVC4Action
+class CVC4ActionSolverGetIntegerSort : public CVC4Action
 {
  public:
-  CVC4ActionGetIntegerSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "getIntegerSort")
+  CVC4ActionSolverGetIntegerSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverGetIntegerSort")
   {
   }
 
@@ -379,11 +405,11 @@ class CVC4ActionGetIntegerSort : public CVC4Action
 };
 
 // Sort Solver::getRealSort() const;
-class CVC4ActionGetRealSort : public CVC4Action
+class CVC4ActionSolverGetRealSort : public CVC4Action
 {
  public:
-  CVC4ActionGetRealSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "getRealSort")
+  CVC4ActionSolverGetRealSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverGetRealSort")
   {
   }
 
@@ -399,11 +425,11 @@ class CVC4ActionGetRealSort : public CVC4Action
 };
 
 // Sort Solver::getRegExpSort() const;
-class CVC4ActionGetRegExpSort : public CVC4Action
+class CVC4ActionSolverGetRegExpSort : public CVC4Action
 {
  public:
-  CVC4ActionGetRegExpSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "getRegExpSort")
+  CVC4ActionSolverGetRegExpSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverGetRegExpSort")
   {
   }
 
@@ -419,11 +445,11 @@ class CVC4ActionGetRegExpSort : public CVC4Action
 };
 
 // Sort Solver::getRoundingmodeSort() const;
-class CVC4ActionGetRoundingmodeSort : public CVC4Action
+class CVC4ActionSolverGetRoundingmodeSort : public CVC4Action
 {
  public:
-  CVC4ActionGetRoundingmodeSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "getRoundingmodeSort")
+  CVC4ActionSolverGetRoundingmodeSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverGetRoundingmodeSort")
   {
   }
 
@@ -439,11 +465,11 @@ class CVC4ActionGetRoundingmodeSort : public CVC4Action
 };
 
 // Sort Solver::getStringSort() const;
-class CVC4ActionGetStringSort : public CVC4Action
+class CVC4ActionSolverGetStringSort : public CVC4Action
 {
  public:
-  CVC4ActionGetStringSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "getStringSort")
+  CVC4ActionSolverGetStringSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverGetStringSort")
   {
   }
 
@@ -461,11 +487,11 @@ class CVC4ActionGetStringSort : public CVC4Action
 // TODO Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const;
 
 // Sort Solver::mkBitVectorSort(uint32_t size) const;
-class CVC4ActionMkBitVectorSort : public CVC4Action
+class CVC4ActionSolverMkBitVectorSort : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVectorSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVectorSort")
+  CVC4ActionSolverMkBitVectorSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkBitVectorSort")
   {
   }
 
@@ -486,20 +512,24 @@ class CVC4ActionMkBitVectorSort : public CVC4Action
 // TODO Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 // TODO Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const;
 // TODO Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const;
-// TODO Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const;
+// TODO Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort
+// codomain) const;
 // TODO Sort Solver::mkParamSort(const std::string& symbol) const;
 // TODO Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const;
-// TODO Sort Solver::mkRecordSort(const std::vector<std::pair<std::string, Sort>>& fields) const;
+// TODO Sort Solver::mkRecordSort(const std::vector<std::pair<std::string,
+// Sort>>& fields) const;
 // TODO Sort Solver::mkSetSort(Sort elemSort) const;
 // TODO Sort Solver::mkUninterpretedSort(const std::string& symbol) const;
-// TODO Sort Solver::mkSortConstructorSort(const std::string& symbol, size_t arity) const;
+// TODO Sort Solver::mkSortConstructorSort(const std::string& symbol, size_t
+// arity) const;
 // TODO Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const;
 
 // Term Solver::mkTerm(Kind kind) const;
-class CVC4ActionMkTerm0 : public CVC4Action
+class CVC4ActionSolverMkTerm0 : public CVC4Action
 {
  public:
-  CVC4ActionMkTerm0(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm0")
+  CVC4ActionSolverMkTerm0(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkTerm0")
   {
     /* Note that this function is a special case since it does not expect term
      * arguments. We treat this as if the theory of the arguments is the same
@@ -549,10 +579,11 @@ class CVC4ActionMkTerm0 : public CVC4Action
 };
 
 // Term Solver::mkTerm(Kind kind, Term child) const;
-class CVC4ActionMkTerm1 : public CVC4Action
+class CVC4ActionSolverMkTerm1 : public CVC4Action
 {
  public:
-  CVC4ActionMkTerm1(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm1")
+  CVC4ActionSolverMkTerm1(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkTerm1")
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
@@ -599,10 +630,11 @@ class CVC4ActionMkTerm1 : public CVC4Action
 };
 
 // Term Solver::mkTerm(Kind kind, Term child1, Term child2) const;
-class CVC4ActionMkTerm2 : public CVC4Action
+class CVC4ActionSolverMkTerm2 : public CVC4Action
 {
  public:
-  CVC4ActionMkTerm2(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm2")
+  CVC4ActionSolverMkTerm2(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkTerm2")
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
@@ -659,10 +691,11 @@ class CVC4ActionMkTerm2 : public CVC4Action
 };
 
 // Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const;
-class CVC4ActionMkTerm3 : public CVC4Action
+class CVC4ActionSolverMkTerm3 : public CVC4Action
 {
  public:
-  CVC4ActionMkTerm3(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTerm3")
+  CVC4ActionSolverMkTerm3(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkTerm3")
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
@@ -731,11 +764,11 @@ class CVC4ActionMkTerm3 : public CVC4Action
 };
 
 // Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const;
-class CVC4ActionMkTermN : public CVC4Action
+class CVC4ActionSolverMkTermN : public CVC4Action
 {
  public:
-  CVC4ActionMkTermN(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkTermN"), d_max_arity(11)
+  CVC4ActionSolverMkTermN(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkTermN"), d_max_arity(11)
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
@@ -827,11 +860,11 @@ class CVC4ActionMkTermN : public CVC4Action
 };
 
 // Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child) const;
-class CVC4ActionMkTermOp1 : public CVC4Action
+class CVC4ActionSolverMkTermOp1 : public CVC4Action
 {
  public:
-  CVC4ActionMkTermOp1(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkTermOp1")
+  CVC4ActionSolverMkTermOp1(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkTermOp1")
   {
     for (const auto& k : d_smgr->get_all_kinds())
     {
@@ -882,16 +915,23 @@ class CVC4ActionMkTermOp1 : public CVC4Action
   std::unordered_map<TheoryId, CVC4KindVector> d_kinds;
 };
 
-// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const;
-// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3) const;
-// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, const std::vector<Term>& children) const;
-// TODO Term Solver::mkTuple(const std::vector<Sort>& sorts, const std::vector<Term>& terms) const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2)
+// const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2,
+// Term child3) const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, const std::vector<Term>&
+// children) const;
+// TODO Term Solver::mkTuple(const std::vector<Sort>& sorts, const
+// std::vector<Term>& terms) const;
 
 // Term Solver::mkTrue() const;
-class CVC4ActionMkTrue : public CVC4Action
+class CVC4ActionSolverMkTrue : public CVC4Action
 {
  public:
-  CVC4ActionMkTrue(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkTrue") {}
+  CVC4ActionSolverMkTrue(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkTrue")
+  {
+  }
 
   bool run() override
   {
@@ -906,10 +946,11 @@ class CVC4ActionMkTrue : public CVC4Action
 };
 
 // Term Solver::mkFalse() const;
-class CVC4ActionMkFalse : public CVC4Action
+class CVC4ActionSolverMkFalse : public CVC4Action
 {
  public:
-  CVC4ActionMkFalse(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkFalse")
+  CVC4ActionSolverMkFalse(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkFalse")
   {
   }
 
@@ -926,11 +967,11 @@ class CVC4ActionMkFalse : public CVC4Action
 };
 
 // Term Solver::mkBoolean(bool val) const;
-class CVC4ActionMkBoolean : public CVC4Action
+class CVC4ActionSolverMkBoolean : public CVC4Action
 {
  public:
-  CVC4ActionMkBoolean(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBoolean")
+  CVC4ActionSolverMkBoolean(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkBoolean")
   {
   }
 
@@ -962,18 +1003,20 @@ class CVC4ActionMkBoolean : public CVC4Action
 // TODO Term Solver::mkRegexpSigma() const;
 // TODO Term Solver::mkEmptySet(Sort s) const;
 // TODO Term Solver::mkSepNil(Sort sort) const;
-// TODO Term Solver::mkString(const char* s, bool useEscSequences = false) const;
-// TODO Term Solver::mkString(const std::string& s, bool useEscSequences = false) const;
+// TODO Term Solver::mkString(const char* s, bool useEscSequences = false)
+// const;
+// TODO Term Solver::mkString(const std::string& s, bool useEscSequences =
+// false) const;
 // TODO Term Solver::mkString(const unsigned char c) const;
 // TODO Term Solver::mkString(const std::vector<unsigned>& s) const;
 // TODO Term Solver::mkUniverseSet(Sort sort) const;
 
 // Term Solver::mkBitVector(uint32_t size, uint64_t val = 0) const;
-class CVC4ActionMkBitVector0 : public CVC4Action
+class CVC4ActionSolverMkBitVector0 : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVector0(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVector0")
+  CVC4ActionSolverMkBitVector0(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkBitVector0")
   {
   }
 
@@ -1001,11 +1044,11 @@ class CVC4ActionMkBitVector0 : public CVC4Action
 };
 
 // Term Solver::mkBitVector(const char* s, uint32_t base = 2) const;
-class CVC4ActionMkBitVector1 : public CVC4Action
+class CVC4ActionSolverMkBitVector1 : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVector1(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVector1")
+  CVC4ActionSolverMkBitVector1(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkBitVector1")
   {
   }
 
@@ -1054,11 +1097,11 @@ class CVC4ActionMkBitVector1 : public CVC4Action
 };
 
 // Term Solver::mkBitVector(const std::string& s, uint32_t base = 2) const;
-class CVC4ActionMkBitVector2 : public CVC4Action
+class CVC4ActionSolverMkBitVector2 : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVector2(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVector2")
+  CVC4ActionSolverMkBitVector2(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkBitVector2")
   {
   }
 
@@ -1071,7 +1114,7 @@ class CVC4ActionMkBitVector2 : public CVC4Action
     /* Functions RNGenerator::pick_XX_str allow max. size of 64 bit. */
     uint32_t bw = rng.pick_uint32(
         SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX > 64 ? 64 : SMTMBT_CVC4_BW_MAX);
-    uint32_t r  = rng.pick_uint32(0, 2);
+    uint32_t r = rng.pick_uint32(0, 2);
     Term res;
     switch (r)
     {
@@ -1104,11 +1147,11 @@ class CVC4ActionMkBitVector2 : public CVC4Action
 };
 
 // Term Solver::mkBitVector(uint32_t size, const char* s, uint32_t base) const;
-class CVC4ActionMkBitVector3 : public CVC4Action
+class CVC4ActionSolverMkBitVector3 : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVector3(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVector3")
+  CVC4ActionSolverMkBitVector3(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkBitVector3")
   {
   }
 
@@ -1156,11 +1199,11 @@ class CVC4ActionMkBitVector3 : public CVC4Action
 };
 
 // Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
-class CVC4ActionMkBitVector4 : public CVC4Action
+class CVC4ActionSolverMkBitVector4 : public CVC4Action
 {
  public:
-  CVC4ActionMkBitVector4(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "mkBitVector4")
+  CVC4ActionSolverMkBitVector4(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkBitVector4")
   {
   }
 
@@ -1213,13 +1256,17 @@ class CVC4ActionMkBitVector4 : public CVC4Action
 // TODO Term Solver::mkUninterpretedConst(Sort sort, int32_t index) const;
 // TODO Term Solver::mkAbstractValue(const std::string& index) const;
 // TODO Term Solver::mkAbstractValue(uint64_t index) const;
-// TODO Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
+// TODO Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val)
+// const;
 
 // Term Solver::mkVar(const std::string& symbol, Sort sort) const;
-class CVC4ActionMkVar : public CVC4Action
+class CVC4ActionSolverMkVar : public CVC4Action
 {
  public:
-  CVC4ActionMkVar(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "mkVar") {}
+  CVC4ActionSolverMkVar(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkVar")
+  {
+  }
 
   bool run() override
   {
@@ -1240,10 +1287,11 @@ class CVC4ActionMkVar : public CVC4Action
 // TODO Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const;
 
 // Term Solver::simplify(const Term& t);
-class CVC4ActionSimplify : public CVC4Action
+class CVC4ActionSolverSimplify : public CVC4Action
 {
  public:
-  CVC4ActionSimplify(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "simplify")
+  CVC4ActionSolverSimplify(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverSimplify")
   {
   }
 
@@ -1262,11 +1310,11 @@ class CVC4ActionSimplify : public CVC4Action
 };
 
 // void Solver::assertFormula(Term term) const;
-class CVC4ActionAssertFormula : public CVC4Action
+class CVC4ActionSolverAssertFormula : public CVC4Action
 {
  public:
-  CVC4ActionAssertFormula(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "assertFormula")
+  CVC4ActionSolverAssertFormula(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverAssertFormula")
   {
   }
 
@@ -1284,10 +1332,13 @@ class CVC4ActionAssertFormula : public CVC4Action
 };
 
 // Result Solver::checkSat() const;
-class CVC4ActionCheckSat : public CVC4Action
+class CVC4ActionSolverCheckSat : public CVC4Action
 {
  public:
-  CVC4ActionCheckSat(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "checkSat") {}
+  CVC4ActionSolverCheckSat(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverCheckSat")
+  {
+  }
 
   bool run() override
   {
@@ -1302,14 +1353,15 @@ class CVC4ActionCheckSat : public CVC4Action
 };
 
 // TODO Result Solver::checkSatAssuming(Term assumption) const;
-// TODO Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const;
+// TODO Result Solver::checkSatAssuming(const std::vector<Term>& assumptions)
+// const;
 
 // Result Solver::checkValid() const;
-class CVC4ActionCheckValid : public CVC4Action
+class CVC4ActionSolverCheckValid : public CVC4Action
 {
  public:
-  CVC4ActionCheckValid(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "checkValid")
+  CVC4ActionSolverCheckValid(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverCheckValid")
   {
   }
 
@@ -1326,17 +1378,27 @@ class CVC4ActionCheckValid : public CVC4Action
 };
 
 // TODO Result Solver::checkValidAssuming(Term assumption) const;
-// TODO Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const;
+// TODO Result Solver::checkValidAssuming(const std::vector<Term>& assumptions)
+// const;
 // TODO Term Solver::declareConst(const std::string& symbol, Sort sort) const;
-// TODO Sort Solver::declareDatatype( const std::string& symbol, const std::vector<DatatypeConstructorDecl>& ctors) const;
+// TODO Sort Solver::declareDatatype( const std::string& symbol, const
+// std::vector<DatatypeConstructorDecl>& ctors) const;
 // TODO Term Solver::declareFun(const std::string& symbol, Sort sort) const;
-// TODO Term Solver::declareFun(const std::string& symbol, const std::vector<Sort>& sorts, Sort sort) const;
-// TODO Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const;
-// TODO Term Solver::defineFun(const std::string& symbol, const std::vector<Term>& bound_vars, Sort sort, Term term) const;
-// TODO Term Solver::defineFun(Term fun, const std::vector<Term>& bound_vars, Term term) const;
-// TODO Term Solver::defineFunRec(const std::string& symbol, const std::vector<Term>& bound_vars, Sort sort, Term term) const;
-// TODO Term Solver::defineFunRec(Term fun, const std::vector<Term>& bound_vars, Term term) const;
-// TODO void Solver::defineFunsRec(const std::vector<Term>& funs, const std::vector<std::vector<Term>>& bound_vars, const std::vector<Term>& terms) const;
+// TODO Term Solver::declareFun(const std::string& symbol, const
+// std::vector<Sort>& sorts, Sort sort) const;
+// TODO Sort Solver::declareSort(const std::string& symbol, uint32_t arity)
+// const;
+// TODO Term Solver::defineFun(const std::string& symbol, const
+// std::vector<Term>& bound_vars, Sort sort, Term term) const;
+// TODO Term Solver::defineFun(Term fun, const std::vector<Term>& bound_vars,
+// Term term) const;
+// TODO Term Solver::defineFunRec(const std::string& symbol, const
+// std::vector<Term>& bound_vars, Sort sort, Term term) const;
+// TODO Term Solver::defineFunRec(Term fun, const std::vector<Term>& bound_vars,
+// Term term) const;
+// TODO void Solver::defineFunsRec(const std::vector<Term>& funs, const
+// std::vector<std::vector<Term>>& bound_vars, const std::vector<Term>& terms)
+// const;
 // TODO void Solver::echo(std::ostream& out, const std::string& str) const;
 // TODO std::vector<Term> Solver::getAssertions() const;
 // TODO std::vector<std::pair<Term, Term>> Solver::getAssignment() const;
@@ -1345,15 +1407,18 @@ class CVC4ActionCheckValid : public CVC4Action
 // TODO std::vector<Term> Solver::getUnsatAssumptions() const;
 // TODO std::vector<Term> Solver::getUnsatCore() const;
 // TODO Term Solver::getValue(Term term) const;
-// TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
+// TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms)
+// const;
 // TODO void Solver::pop(uint32_t nscopes = 1) const;
 // TODO void Solver::printModel(std::ostream& out) const;
 // TODO void Solver::push(uint32_t nscopes = 1) const;
 // TODO void Solver::reset() const;
 // TODO void Solver::resetAssertions() const;
-// TODO void Solver::setInfo(const std::string& keyword, const std::string& value) const;
+// TODO void Solver::setInfo(const std::string& keyword, const std::string&
+// value) const;
 // TODO void Solver::setLogic(const std::string& logic) const;
-// TODO void Solver::setOption(const std::string& option, const std::string& value) const;
+// TODO void Solver::setOption(const std::string& option, const std::string&
+// value) const;
 // TODO Term Solver::ensureTermSort(const Term& t, const Sort& s) const;
 
 /* -------------------------------------------------------------------------- */
@@ -1599,43 +1664,43 @@ CVC4SolverManager::configure()
 
   /* Solver Actions ...................................................... */
   /* create/delete solver */
-  auto anew    = new_action<CVC4ActionNew>();
-  auto adelete = new_action<CVC4ActionDelete>();
+  auto a_solver_new    = new_action<CVC4ActionSolverNew>();
+  auto a_solver_delete = new_action<CVC4ActionSolverDelete>();
   /* make consts */
-  auto amkbool  = new_action<CVC4ActionMkBoolean>();
-  auto amkbv0   = new_action<CVC4ActionMkBitVector0>();
-  auto amkbv1   = new_action<CVC4ActionMkBitVector1>();
-  auto amkbv2   = new_action<CVC4ActionMkBitVector2>();
-  auto amkbv3   = new_action<CVC4ActionMkBitVector3>();
-  auto amkbv4   = new_action<CVC4ActionMkBitVector4>();
-  auto amkfalse = new_action<CVC4ActionMkFalse>();
-  auto amktrue  = new_action<CVC4ActionMkTrue>();
-  auto amkvar   = new_action<CVC4ActionMkVar>();
+  auto a_solver_mkbool  = new_action<CVC4ActionSolverMkBoolean>();
+  auto a_solver_mkbv0   = new_action<CVC4ActionSolverMkBitVector0>();
+  auto a_solver_mkbv1   = new_action<CVC4ActionSolverMkBitVector1>();
+  auto a_solver_mkbv2   = new_action<CVC4ActionSolverMkBitVector2>();
+  auto a_solver_mkbv3   = new_action<CVC4ActionSolverMkBitVector3>();
+  auto a_solver_mkbv4   = new_action<CVC4ActionSolverMkBitVector4>();
+  auto a_solver_mkfalse = new_action<CVC4ActionSolverMkFalse>();
+  auto a_solver_mktrue  = new_action<CVC4ActionSolverMkTrue>();
+  auto a_solver_mkvar   = new_action<CVC4ActionSolverMkVar>();
   /* get sort */
-  auto amgetboolsort   = new_action<CVC4ActionGetBooleanSort>();
-  auto amgetintsort    = new_action<CVC4ActionGetIntegerSort>();
-  auto amgetnullsort   = new_action<CVC4ActionGetNullSort>();
-  auto amgetrealsort   = new_action<CVC4ActionGetRealSort>();
-  auto amgetregexpsort = new_action<CVC4ActionGetRegExpSort>();
-  auto amgetrmsort     = new_action<CVC4ActionGetRoundingmodeSort>();
-  auto amgetstringsort = new_action<CVC4ActionGetStringSort>();
+  auto a_solver_getboolsort   = new_action<CVC4ActionSolverGetBooleanSort>();
+  auto a_solver_getintsort    = new_action<CVC4ActionSolverGetIntegerSort>();
+  auto a_solver_getnullsort   = new_action<CVC4ActionSolverGetNullSort>();
+  auto a_solver_getrealsort   = new_action<CVC4ActionSolverGetRealSort>();
+  auto a_solver_getregexpsort = new_action<CVC4ActionSolverGetRegExpSort>();
+  auto a_solver_getrmsort = new_action<CVC4ActionSolverGetRoundingmodeSort>();
+  auto a_solver_getstringsort = new_action<CVC4ActionSolverGetStringSort>();
   /* make sort */
-  auto amkbvsort = new_action<CVC4ActionMkBitVectorSort>();
+  auto a_solver_mkbvsort = new_action<CVC4ActionSolverMkBitVectorSort>();
   /* make terms */
-  auto amkterm0   = new_action<CVC4ActionMkTerm0>();
-  auto amkterm1   = new_action<CVC4ActionMkTerm1>();
-  auto amkterm2   = new_action<CVC4ActionMkTerm2>();
-  auto amkterm3   = new_action<CVC4ActionMkTerm3>();
-  auto amktermn   = new_action<CVC4ActionMkTermN>();
-  auto amktermop1 = new_action<CVC4ActionMkTermOp1>();
+  auto a_solver_mkterm0   = new_action<CVC4ActionSolverMkTerm0>();
+  auto a_solver_mkterm1   = new_action<CVC4ActionSolverMkTerm1>();
+  auto a_solver_mkterm2   = new_action<CVC4ActionSolverMkTerm2>();
+  auto a_solver_mkterm3   = new_action<CVC4ActionSolverMkTerm3>();
+  auto a_solver_mktermn   = new_action<CVC4ActionSolverMkTermN>();
+  auto a_solver_mktermop1 = new_action<CVC4ActionSolverMkTermOp1>();
   /* commands */
-  auto aassert   = new_action<CVC4ActionAssertFormula>();
-  auto asimp     = new_action<CVC4ActionSimplify>();
-  auto achecksat = new_action<CVC4ActionCheckSat>();
-  auto acheckval = new_action<CVC4ActionCheckValid>();
+  auto a_solver_assert   = new_action<CVC4ActionSolverAssertFormula>();
+  auto a_solver_simp     = new_action<CVC4ActionSolverSimplify>();
+  auto a_solver_checksat = new_action<CVC4ActionSolverCheckSat>();
+  auto a_solver_checkval = new_action<CVC4ActionSolverCheckValid>();
   /* transitions */
-  auto tinputs = new_action<CVC4ActionNoneCreateInputs>();
-  auto tnone   = new_action<CVC4ActionNone>();
+  auto t_inputs = new_action<CVC4ActionNoneCreateInputs>();
+  auto t_none   = new_action<CVC4ActionNone>();
 
   /* --------------------------------------------------------------------- */
   /* States                                                                */
@@ -1643,79 +1708,83 @@ CVC4SolverManager::configure()
 
   auto sassert = d_fsm.new_state(
       "assert", [this]() { return this->has_term(THEORY_BOOL); });
-  auto sdelete = d_fsm.new_state("delete");
-  auto sinputs = d_fsm.new_state("create inputs");
-  auto snew    = d_fsm.new_state("new");
-  auto ssat    = d_fsm.new_state("sat");
-  auto sterms  = d_fsm.new_state("create terms");
-  auto sfinal  = d_fsm.new_state("final", nullptr, true);
+  auto s_delete = d_fsm.new_state("delete");
+  auto s_inputs = d_fsm.new_state("create inputs");
+  auto s_new    = d_fsm.new_state("new");
+  auto s_sat    = d_fsm.new_state("sat");
+  auto s_terms  = d_fsm.new_state("create terms");
+  auto sfinal   = d_fsm.new_state("final", nullptr, true);
 
   /* --------------------------------------------------------------------- */
   /* Transitions                                                           */
   /* --------------------------------------------------------------------- */
 
   /* State: new .......................................................... */
-  snew->add_action(anew, 10, sinputs);
+  s_new->add_action(a_solver_new, 10, s_inputs);
 
   /* State: create inputs ................................................ */
   /* sort actions */
-  sinputs->add_action(a_sort_isbool, 1);
+  s_inputs->add_action(a_sort_isbool, 1);
   /* solver actions */
-  sinputs->add_action(amgetboolsort, 1);
-  sinputs->add_action(amgetintsort, 1);
-  sinputs->add_action(amgetnullsort, 1);
-  sinputs->add_action(amgetrealsort, 1);
-  sinputs->add_action(amgetregexpsort, 1);
-  sinputs->add_action(amgetrmsort, 1);
-  sinputs->add_action(amgetstringsort, 1);
-  sinputs->add_action(amkbv0, 10);
-  sinputs->add_action(amkbv1, 10);
-  sinputs->add_action(amkbv2, 10);
-  sinputs->add_action(amkbv3, 10);
-  sinputs->add_action(amkbv4, 10);
-  sinputs->add_action(amkbvsort, 2);
-  sinputs->add_action(amktrue, 2);
-  sinputs->add_action(amkfalse, 2);
-  sinputs->add_action(amkbool, 2);
-  sinputs->add_action(amkvar, 10);
+  s_inputs->add_action(a_solver_getboolsort, 1);
+  s_inputs->add_action(a_solver_getintsort, 1);
+  s_inputs->add_action(a_solver_getnullsort, 1);
+  s_inputs->add_action(a_solver_getrealsort, 1);
+  s_inputs->add_action(a_solver_getregexpsort, 1);
+  s_inputs->add_action(a_solver_getrmsort, 1);
+  s_inputs->add_action(a_solver_getstringsort, 1);
+  s_inputs->add_action(a_solver_mkbv0, 10);
+  s_inputs->add_action(a_solver_mkbv1, 10);
+  s_inputs->add_action(a_solver_mkbv2, 10);
+  s_inputs->add_action(a_solver_mkbv3, 10);
+  s_inputs->add_action(a_solver_mkbv4, 10);
+  s_inputs->add_action(a_solver_mkbvsort, 2);
+  s_inputs->add_action(a_solver_mktrue, 2);
+  s_inputs->add_action(a_solver_mkfalse, 2);
+  s_inputs->add_action(a_solver_mkbool, 2);
+  s_inputs->add_action(a_solver_mkvar, 10);
   /* empty transitions */
-  sinputs->add_action(tinputs, 10, sterms);
-  sinputs->add_action(tinputs, 10, sassert);
+  s_inputs->add_action(t_inputs, 10, s_terms);
+  s_inputs->add_action(t_inputs, 10, sassert);
 
   /* State: assert ....................................................... */
-  sassert->add_action(aassert, 2);
-  sassert->add_action(aassert, 5, sinputs);
-  sassert->add_action(aassert, 20, sterms);
-  sassert->add_action(aassert, 2, ssat);
+  /* solver actions */
+  sassert->add_action(a_solver_assert, 2);
+  sassert->add_action(a_solver_assert, 5, s_inputs);
+  sassert->add_action(a_solver_assert, 20, s_terms);
+  sassert->add_action(a_solver_assert, 2, s_sat);
 
   /* State: create terms ................................................. */
-  sterms->add_action(amgetboolsort, 2);
-  sterms->add_action(amgetintsort, 2);
-  sterms->add_action(amgetnullsort, 2);
-  sterms->add_action(amgetrealsort, 2);
-  sterms->add_action(amgetregexpsort, 2);
-  sterms->add_action(amgetrmsort, 2);
-  sterms->add_action(amgetstringsort, 2);
-  sterms->add_action(amkterm0, 10);
-  sterms->add_action(amkterm1, 10);
-  sterms->add_action(amkterm2, 20);
-  sterms->add_action(amkterm3, 20);
-  sterms->add_action(amktermn, 20);
-  sterms->add_action(amktermop1, 20);
-  sterms->add_action(asimp, 2);
-  sterms->add_action(tnone, 5, sassert);
-  sterms->add_action(tnone, 2, ssat);
+  /* solver actions */
+  s_terms->add_action(a_solver_getboolsort, 2);
+  s_terms->add_action(a_solver_getintsort, 2);
+  s_terms->add_action(a_solver_getnullsort, 2);
+  s_terms->add_action(a_solver_getrealsort, 2);
+  s_terms->add_action(a_solver_getregexpsort, 2);
+  s_terms->add_action(a_solver_getrmsort, 2);
+  s_terms->add_action(a_solver_getstringsort, 2);
+  s_terms->add_action(a_solver_mkterm0, 10);
+  s_terms->add_action(a_solver_mkterm1, 10);
+  s_terms->add_action(a_solver_mkterm2, 20);
+  s_terms->add_action(a_solver_mkterm3, 20);
+  s_terms->add_action(a_solver_mktermn, 20);
+  s_terms->add_action(a_solver_mktermop1, 20);
+  s_terms->add_action(a_solver_simp, 2);
+  /* empty transitions */
+  s_terms->add_action(t_none, 5, sassert);
+  s_terms->add_action(t_none, 2, s_sat);
 
   /* State: sat .......................................................... */
-  ssat->add_action(achecksat, 10, sdelete);
-  ssat->add_action(acheckval, 2, sdelete);
-  sdelete->add_action(adelete, 10, sfinal);
+  /* solver actions */
+  s_sat->add_action(a_solver_checksat, 10, s_delete);
+  s_sat->add_action(a_solver_checkval, 2, s_delete);
+  s_delete->add_action(a_solver_delete, 10, sfinal);
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */
   /* --------------------------------------------------------------------- */
 
-  d_fsm.set_init_state(snew);
+  d_fsm.set_init_state(s_new);
 }
 
 /* -------------------------------------------------------------------------- */
