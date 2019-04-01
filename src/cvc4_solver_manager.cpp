@@ -180,7 +180,29 @@ class CVC4ActionSortIsBoolean : public CVC4Action
 // TODO bool Sort::isString() const;
 // TODO bool Sort::isRegExp() const;
 // TODO bool Sort::isRoundingMode() const;
-// TODO bool Sort::isBitVector() const;
+
+// bool Sort::isBitVector() const;
+class CVC4ActionSortIsBitVector : public CVC4Action
+{
+ public:
+  CVC4ActionSortIsBitVector(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "sortIsBitVector")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_sort()) return false;
+    TheoryId theory = d_smgr->pick_theory();
+    Sort sort       = d_smgr->pick_sort(theory);
+    bool expected   = theory == THEORY_BV ? true : false;
+    assert(sort.isBitVector() == expected);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO bool Sort::isFloatingPoint() const;
 // TODO bool Sort::isDatatype() const;
 // TODO bool Sort::isParametricDatatype() const;
@@ -1681,6 +1703,7 @@ CVC4SolverManager::configure()
 
   /* Sort Actions ........................................................ */
   auto a_sort_isbool = new_action<CVC4ActionSortIsBoolean>();
+  auto a_sort_isbv   = new_action<CVC4ActionSortIsBitVector>();
   auto a_sort_isnull = new_action<CVC4ActionSortIsNull>();
 
   /* Solver Actions ...................................................... */
@@ -1746,6 +1769,7 @@ CVC4SolverManager::configure()
   /* State: create inputs ................................................ */
   /* sort actions */
   s_inputs->add_action(a_sort_isbool, 1);
+  s_inputs->add_action(a_sort_isbv, 1);
   s_inputs->add_action(a_sort_isnull, 1);
   /* solver actions */
   s_inputs->add_action(a_solver_getboolsort, 1);
