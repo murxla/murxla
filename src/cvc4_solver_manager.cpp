@@ -151,7 +151,27 @@ class CVC4ActionSortOpEq : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// TODO bool Sort::operator!=(const Sort& s) const;
+// bool Sort::operator!=(const Sort& s) const;
+class CVC4ActionSortOpNe : public CVC4Action
+{
+ public:
+  CVC4ActionSortOpNe(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "SortOpNe")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_sort()) return false;
+    Sort s0 = d_smgr->pick_sort();
+    assert(!s0.isNull());
+    Sort s1 = d_smgr->pick_sort();
+    assert(!s1.isNull());
+    (void) (s0 != s1);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 // bool Sort::isNull() const;
 class CVC4ActionSortIsNull : public CVC4Action
@@ -1809,6 +1829,7 @@ CVC4SolverManager::configure()
   auto a_sort_isnull    = new_action<CVC4ActionSortIsNull>();
   auto a_sort_getbvsize = new_action<CVC4ActionSortGetBVSize>();
   auto a_sort_opeq      = new_action<CVC4ActionSortOpEq>();
+  auto a_sort_opne      = new_action<CVC4ActionSortOpNe>();
 
   /* Term Actions ....................................................... */
   auto a_term_getkind = new_action<CVC4ActionTermGetKind>();
@@ -1882,6 +1903,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_isnull, 1);
   s_inputs->add_action(a_sort_getbvsize, 1);
   s_inputs->add_action(a_sort_opeq, 1);
+  s_inputs->add_action(a_sort_opne, 1);
   /* term actions */
   s_inputs->add_action(a_term_getkind, 1);
   s_inputs->add_action(a_term_opeq, 1);
@@ -1922,6 +1944,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_isnull, 1);
   s_inputs->add_action(a_sort_getbvsize, 1);
   s_inputs->add_action(a_sort_opeq, 1);
+  s_inputs->add_action(a_sort_opne, 1);
   /* term actions */
   s_inputs->add_action(a_term_getkind, 1);
   s_inputs->add_action(a_term_opeq, 1);
