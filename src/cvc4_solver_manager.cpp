@@ -521,7 +521,30 @@ class CVC4ActionTermXorTerm : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// TODO Term Term::eqTerm(const Term& t) const;
+// Term Term::eqTerm(const Term& t) const;
+class CVC4ActionTermEqTerm : public CVC4Action
+{
+ public:
+  CVC4ActionTermEqTerm(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "TermEqTerm")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_term(THEORY_BOOL)) return false;
+    Term t   = d_smgr->pick_term(THEORY_BOOL);
+    Term res = d_smgr->pick_term(THEORY_BOOL).eqTerm(t);
+    assert(d_smgr->get_sort(res)
+           == (static_cast<Solver*>(d_smgr->get_solver())->getBooleanSort()));
+    assert(d_smgr->has_sort(d_smgr->get_sort(res)));
+    d_smgr->add_term(res, THEORY_BOOL);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO Term Term::impTerm(const Term& t) const;
 // TODO Term Term::iteTerm(const Term& then_t, const Term& else_t) const;
 // TODO std::string Term::toString() const;
@@ -1963,15 +1986,16 @@ CVC4SolverManager::configure()
   auto a_sort_opne      = new_action<CVC4ActionSortOpNe>();
 
   /* Term Actions ....................................................... */
+  auto a_term_andterm = new_action<CVC4ActionTermAndTerm>();
+  auto a_term_eqterm  = new_action<CVC4ActionTermEqTerm>();
   auto a_term_getkind = new_action<CVC4ActionTermGetKind>();
   auto a_term_getsort = new_action<CVC4ActionTermGetSort>();
   auto a_term_isnull  = new_action<CVC4ActionTermIsNull>();
   auto a_term_notterm = new_action<CVC4ActionTermNotTerm>();
-  auto a_term_andterm = new_action<CVC4ActionTermAndTerm>();
-  auto a_term_orterm  = new_action<CVC4ActionTermOrTerm>();
-  auto a_term_xorterm = new_action<CVC4ActionTermXorTerm>();
   auto a_term_opeq    = new_action<CVC4ActionTermOpEq>();
   auto a_term_opne    = new_action<CVC4ActionTermOpNe>();
+  auto a_term_orterm  = new_action<CVC4ActionTermOrTerm>();
+  auto a_term_xorterm = new_action<CVC4ActionTermXorTerm>();
 
   /* Solver Actions ...................................................... */
   /* create/delete solver */
@@ -2085,15 +2109,16 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_opeq, 1);
   s_inputs->add_action(a_sort_opne, 1);
   /* term actions */
+  s_inputs->add_action(a_term_andterm, 1);
+  s_inputs->add_action(a_term_eqterm, 1);
   s_inputs->add_action(a_term_getkind, 1);
   s_inputs->add_action(a_term_getsort, 1);
   s_inputs->add_action(a_term_isnull, 1);
   s_inputs->add_action(a_term_notterm, 1);
-  s_inputs->add_action(a_term_andterm, 1);
-  s_inputs->add_action(a_term_orterm, 1);
-  s_inputs->add_action(a_term_xorterm, 1);
   s_inputs->add_action(a_term_opeq, 1);
   s_inputs->add_action(a_term_opne, 1);
+  s_inputs->add_action(a_term_orterm, 1);
+  s_inputs->add_action(a_term_xorterm, 1);
   /* solver actions */
   s_terms->add_action(a_solver_getboolsort, 2);
   s_terms->add_action(a_solver_getintsort, 2);
