@@ -243,7 +243,25 @@ class CVC4ActionSortIsBitVector : public CVC4Action
 // TODO size_t Sort::getSortConstructorArity() const;
 
 //// Bit-vector sort
-// TODO uint32_t Sort::getBVSize() const;
+// uint32_t Sort::getBVSize() const;
+class CVC4ActionSortGetBVSize : public CVC4Action
+{
+ public:
+  CVC4ActionSortGetBVSize(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "sortGetBVSize")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_sort(THEORY_BV)) return false;
+    Sort sort = d_smgr->pick_sort(THEORY_BV);
+    assert(sort.getBVSize() > 0);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 //// Floating-point sort
 // TODO uint32_t Sort::getFPExponentSize() const;
@@ -1702,9 +1720,10 @@ CVC4SolverManager::configure()
   /* --------------------------------------------------------------------- */
 
   /* Sort Actions ........................................................ */
-  auto a_sort_isbool = new_action<CVC4ActionSortIsBoolean>();
-  auto a_sort_isbv   = new_action<CVC4ActionSortIsBitVector>();
-  auto a_sort_isnull = new_action<CVC4ActionSortIsNull>();
+  auto a_sort_isbool    = new_action<CVC4ActionSortIsBoolean>();
+  auto a_sort_isbv      = new_action<CVC4ActionSortIsBitVector>();
+  auto a_sort_isnull    = new_action<CVC4ActionSortIsNull>();
+  auto a_sort_getbvsize = new_action<CVC4ActionSortGetBVSize>();
 
   /* Solver Actions ...................................................... */
   /* create/delete solver */
@@ -1771,6 +1790,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_isbool, 1);
   s_inputs->add_action(a_sort_isbv, 1);
   s_inputs->add_action(a_sort_isnull, 1);
+  s_inputs->add_action(a_sort_getbvsize, 1);
   /* solver actions */
   s_inputs->add_action(a_solver_getboolsort, 1);
   s_inputs->add_action(a_solver_getintsort, 1);
@@ -1801,6 +1821,11 @@ CVC4SolverManager::configure()
   sassert->add_action(a_solver_assert, 2, s_sat);
 
   /* State: create terms ................................................. */
+  /* sort actions */
+  s_inputs->add_action(a_sort_isbool, 1);
+  s_inputs->add_action(a_sort_isbv, 1);
+  s_inputs->add_action(a_sort_isnull, 1);
+  s_inputs->add_action(a_sort_getbvsize, 1);
   /* solver actions */
   s_terms->add_action(a_solver_getboolsort, 2);
   s_terms->add_action(a_solver_getintsort, 2);
