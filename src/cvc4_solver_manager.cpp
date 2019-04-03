@@ -449,7 +449,30 @@ class CVC4ActionTermNotTerm : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// TODO Term Term::andTerm(const Term& t) const;
+// Term Term::andTerm(const Term& t) const;
+class CVC4ActionTermAndTerm : public CVC4Action
+{
+ public:
+  CVC4ActionTermAndTerm(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "TermAndTerm")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_term(THEORY_BOOL)) return false;
+    Term t   = d_smgr->pick_term(THEORY_BOOL);
+    Term res = d_smgr->pick_term(THEORY_BOOL).andTerm(t);
+    assert(d_smgr->get_sort(res)
+           == (static_cast<Solver*>(d_smgr->get_solver())->getBooleanSort()));
+    assert(d_smgr->has_sort(d_smgr->get_sort(res)));
+    d_smgr->add_term(res, THEORY_BOOL);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO Term Term::orTerm(const Term& t) const;
 // TODO Term Term::xorTerm(const Term& t) const;
 // TODO Term Term::eqTerm(const Term& t) const;
@@ -1898,6 +1921,7 @@ CVC4SolverManager::configure()
   auto a_term_getsort = new_action<CVC4ActionTermGetSort>();
   auto a_term_isnull  = new_action<CVC4ActionTermIsNull>();
   auto a_term_notterm = new_action<CVC4ActionTermNotTerm>();
+  auto a_term_andterm = new_action<CVC4ActionTermAndTerm>();
   auto a_term_opeq    = new_action<CVC4ActionTermOpEq>();
   auto a_term_opne    = new_action<CVC4ActionTermOpNe>();
 
@@ -2017,6 +2041,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_term_getsort, 1);
   s_inputs->add_action(a_term_isnull, 1);
   s_inputs->add_action(a_term_notterm, 1);
+  s_inputs->add_action(a_term_andterm, 1);
   s_inputs->add_action(a_term_opeq, 1);
   s_inputs->add_action(a_term_opne, 1);
   /* solver actions */
