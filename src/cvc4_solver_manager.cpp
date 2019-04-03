@@ -384,7 +384,28 @@ class CVC4ActionTermGetKind : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// TODO Sort Term::getSort() const;
+// Sort Term::getSort() const;
+class CVC4ActionTermGetSort : public CVC4Action
+{
+ public:
+  CVC4ActionTermGetSort(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "TermGetSort")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_term()) return false;
+    Sort sort = d_smgr->pick_sort_with_terms();
+    Term term = d_smgr->pick_term(sort);
+    assert(!term.isNull());
+    assert(term.getSort() == sort);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO bool Term::isNull() const;
 // TODO Term Term::notTerm() const;
 // TODO Term Term::andTerm(const Term& t) const;
@@ -1833,6 +1854,7 @@ CVC4SolverManager::configure()
 
   /* Term Actions ....................................................... */
   auto a_term_getkind = new_action<CVC4ActionTermGetKind>();
+  auto a_term_getsort = new_action<CVC4ActionTermGetSort>();
   auto a_term_opeq    = new_action<CVC4ActionTermOpEq>();
   auto a_term_opne    = new_action<CVC4ActionTermOpNe>();
 
@@ -1906,6 +1928,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_opne, 1);
   /* term actions */
   s_inputs->add_action(a_term_getkind, 1);
+  s_inputs->add_action(a_term_getsort, 1);
   s_inputs->add_action(a_term_opeq, 1);
   s_inputs->add_action(a_term_opne, 1);
   /* solver actions */
@@ -1947,6 +1970,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_opne, 1);
   /* term actions */
   s_inputs->add_action(a_term_getkind, 1);
+  s_inputs->add_action(a_term_getsort, 1);
   s_inputs->add_action(a_term_opeq, 1);
   s_inputs->add_action(a_term_opne, 1);
   /* solver actions */
