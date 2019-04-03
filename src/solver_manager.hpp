@@ -195,7 +195,7 @@ class SolverManager
   TSort pick_sort()
   {
     TheoryId theory = pick_theory();
-    pick_sort(theory);
+    return pick_sort(theory);
   }
 
   TSort pick_sort(TheoryId theory)
@@ -212,7 +212,7 @@ class SolverManager
   TSort pick_sort_with_terms()
   {
     TheoryId theory = pick_theory_with_terms();
-    pick_sort_with_terms(theory);
+    return pick_sort_with_terms(theory);
   }
 
   TSort pick_sort_with_terms(TheoryId theory)
