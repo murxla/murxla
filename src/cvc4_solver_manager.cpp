@@ -129,7 +129,28 @@ class CVC4ActionSolverDelete : public CVC4Action
 // TODO std::ostream& operator<<(std::ostream& out, const Result& r);
 
 ////// Sort
-// TODO bool Sort::operator==(const Sort& s) const;
+// bool Sort::operator==(const Sort& s) const;
+class CVC4ActionSortOpEq : public CVC4Action
+{
+ public:
+  CVC4ActionSortOpEq(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "SortOpEq")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_sort()) return false;
+    Sort s0 = d_smgr->pick_sort();
+    assert(!s0.isNull());
+    Sort s1 = d_smgr->pick_sort();
+    assert(!s1.isNull());
+    (void) (s0 == s1);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO bool Sort::operator!=(const Sort& s) const;
 
 // bool Sort::isNull() const;
@@ -1787,6 +1808,7 @@ CVC4SolverManager::configure()
   auto a_sort_isbv      = new_action<CVC4ActionSortIsBitVector>();
   auto a_sort_isnull    = new_action<CVC4ActionSortIsNull>();
   auto a_sort_getbvsize = new_action<CVC4ActionSortGetBVSize>();
+  auto a_sort_opeq      = new_action<CVC4ActionSortOpEq>();
 
   /* Term Actions ....................................................... */
   auto a_term_getkind = new_action<CVC4ActionTermGetKind>();
@@ -1859,6 +1881,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_isbv, 1);
   s_inputs->add_action(a_sort_isnull, 1);
   s_inputs->add_action(a_sort_getbvsize, 1);
+  s_inputs->add_action(a_sort_opeq, 1);
   /* term actions */
   s_inputs->add_action(a_term_getkind, 1);
   s_inputs->add_action(a_term_opeq, 1);
@@ -1898,6 +1921,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_isbv, 1);
   s_inputs->add_action(a_sort_isnull, 1);
   s_inputs->add_action(a_sort_getbvsize, 1);
+  s_inputs->add_action(a_sort_opeq, 1);
   /* term actions */
   s_inputs->add_action(a_term_getkind, 1);
   s_inputs->add_action(a_term_opeq, 1);
