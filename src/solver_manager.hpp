@@ -165,19 +165,21 @@ class SolverManager
     return it->first;
   }
 
+  bool has_term()
+  {
+    for (const auto t : d_terms)
+    {
+      for (const auto s : t.second)
+      {
+        if (!s.second.empty()) return true;
+      }
+    }
+    return false;
+  }
+
   bool has_term(TheoryId theory)
   {
-    if (theory == THEORY_ALL)
-    {
-      for (const auto t : d_terms)
-      {
-        for (const auto s : t.second)
-        {
-          if (!s.second.empty()) return true;
-        }
-      }
-      return false;
-    }
+    if (theory == THEORY_ALL) return has_term();
 
     if (d_terms.find(theory) == d_terms.end()) return false;
 

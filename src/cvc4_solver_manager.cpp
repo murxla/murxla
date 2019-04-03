@@ -277,7 +277,28 @@ class CVC4ActionSortGetBVSize : public CVC4Action
 // TODO std::ostream& operator<<(std::ostream& out, const Sort& s);
 
 ////// Term
-// TODO bool Term::operator==(const Term& t) const;
+// bool Term::operator==(const Term& t) const;
+class CVC4ActionTermOpEq : public CVC4Action
+{
+ public:
+  CVC4ActionTermOpEq(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "TermOpEq")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_term()) return false;
+    Term t0 = d_smgr->pick_term();
+    assert(!t0.isNull());
+    Term t1 = d_smgr->pick_term();
+    assert(!t1.isNull());
+    (void) (t0 == t1);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO bool Term::operator!=(const Term& t) const;
 // TODO Kind Term::getKind() const;
 // TODO Sort Term::getSort() const;
@@ -1725,6 +1746,9 @@ CVC4SolverManager::configure()
   auto a_sort_isnull    = new_action<CVC4ActionSortIsNull>();
   auto a_sort_getbvsize = new_action<CVC4ActionSortGetBVSize>();
 
+  /* Term Actions ....................................................... */
+  auto a_term_opeq = new_action<CVC4ActionTermOpEq>();
+
   /* Solver Actions ...................................................... */
   /* create/delete solver */
   auto a_solver_new    = new_action<CVC4ActionSolverNew>();
@@ -1791,6 +1815,8 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_isbv, 1);
   s_inputs->add_action(a_sort_isnull, 1);
   s_inputs->add_action(a_sort_getbvsize, 1);
+  /* term actions */
+  s_inputs->add_action(a_term_opeq, 1);
   /* solver actions */
   s_inputs->add_action(a_solver_getboolsort, 1);
   s_inputs->add_action(a_solver_getintsort, 1);
@@ -1826,6 +1852,8 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_sort_isbv, 1);
   s_inputs->add_action(a_sort_isnull, 1);
   s_inputs->add_action(a_sort_getbvsize, 1);
+  /* term actions */
+  s_inputs->add_action(a_term_opeq, 1);
   /* solver actions */
   s_terms->add_action(a_solver_getboolsort, 2);
   s_terms->add_action(a_solver_getintsort, 2);
