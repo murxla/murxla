@@ -232,6 +232,11 @@ class SolverManager
 
   bool has_sort() { return !d_sorts2theory.empty(); }
 
+  bool has_sort(TSort sort)
+  {
+    return d_sorts2theory.find(sort) != d_sorts2theory.end();
+  }
+
   bool has_sort(TheoryId theory)
   {
     if (d_theory2sorts.find(theory) == d_theory2sorts.end()) return false;
@@ -257,7 +262,7 @@ class SolverManager
 
   TheoryId get_theory(TSort sort)
   {
-    assert(d_sorts2theory.find(sort) != d_sorts2theory.end());
+    assert(has_sort(sort));
     return d_sorts2theory[sort];
   }
 
