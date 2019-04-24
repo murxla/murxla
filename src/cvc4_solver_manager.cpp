@@ -682,7 +682,36 @@ class CVC4ActionOpTermOpNe : public CVC4Action
   CVC4KindVector d_kinds;
 };
 
-// TODO Kind OpTerm::getKind() const;
+// Kind OpTerm::getKind() const;
+class CVC4ActionOpTermGetKind : public CVC4Action
+{
+ public:
+  CVC4ActionOpTermGetKind(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "OpTermGetKind")
+  {
+    for (const auto& k : d_smgr->get_all_kinds())
+    {
+      if (k.second.d_nparams > 0) d_kinds.push_back(k.first);
+    }
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_op_term()) return false;
+    OpTerm t = d_smgr->pick_op_term();
+    assert(!t.isNull());
+    assert(t.getKind() != UNDEFINED_KIND);
+    assert(t.getKind() != INTERNAL_KIND);
+    return true;
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  /* Vector of parameterized Kinds. */
+  CVC4KindVector d_kinds;
+};
+
 // TODO Sort OpTerm::getSort() const;
 // TODO bool OpTerm::isNull() const;
 // TODO std::string OpTerm::toString() const;
@@ -2118,8 +2147,9 @@ CVC4SolverManager::configure()
   auto a_term_xorterm = new_action<CVC4ActionTermXorTerm>();
 
   /* OpTerm Actions ...................................................... */
-  auto a_opterm_opeq = new_action<CVC4ActionOpTermOpEq>();
-  auto a_opterm_opne = new_action<CVC4ActionOpTermOpNe>();
+  auto a_opterm_getkind = new_action<CVC4ActionOpTermGetKind>();
+  auto a_opterm_opeq    = new_action<CVC4ActionOpTermOpEq>();
+  auto a_opterm_opne    = new_action<CVC4ActionOpTermOpNe>();
 
   /* Solver Actions ...................................................... */
   /* create/delete solver */
@@ -2196,6 +2226,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_term_opeq, 1);
   s_inputs->add_action(a_term_opne, 1);
   /* opterm actions */
+  s_inputs->add_action(a_opterm_getkind, 1);
   s_inputs->add_action(a_opterm_opeq, 1);
   s_inputs->add_action(a_opterm_opne, 1);
   /* solver actions */
@@ -2249,6 +2280,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_term_orterm, 1);
   s_inputs->add_action(a_term_xorterm, 1);
   /* opterm actions */
+  s_inputs->add_action(a_opterm_getkind, 1);
   s_inputs->add_action(a_opterm_opeq, 1);
   s_inputs->add_action(a_opterm_opne, 1);
   /* solver actions */
