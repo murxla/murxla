@@ -651,7 +651,37 @@ class CVC4ActionOpTermOpEq : public CVC4Action
   CVC4KindVector d_kinds;
 };
 
-// TODO bool OpTerm::operator!=(const OpTerm& t) const;
+// bool OpTerm::operator!=(const OpTerm& t) const;
+class CVC4ActionOpTermOpNe : public CVC4Action
+{
+ public:
+  CVC4ActionOpTermOpNe(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "OpTermOpNe")
+  {
+    for (const auto& k : d_smgr->get_all_kinds())
+    {
+      if (k.second.d_nparams > 0) d_kinds.push_back(k.first);
+    }
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_op_term()) return false;
+    OpTerm t0 = d_smgr->pick_op_term();
+    assert(!t0.isNull());
+    OpTerm t1 = d_smgr->pick_op_term();
+    assert(!t1.isNull());
+    (void) (t0 != t1);
+    return true;
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  /* Vector of parameterized Kinds. */
+  CVC4KindVector d_kinds;
+};
+
 // TODO Kind OpTerm::getKind() const;
 // TODO Sort OpTerm::getSort() const;
 // TODO bool OpTerm::isNull() const;
@@ -2087,6 +2117,7 @@ CVC4SolverManager::configure()
 
   /* OpTerm Actions ...................................................... */
   auto a_opterm_opeq = new_action<CVC4ActionOpTermOpEq>();
+  auto a_opterm_opne = new_action<CVC4ActionOpTermOpNe>();
 
   /* Solver Actions ...................................................... */
   /* create/delete solver */
@@ -2164,6 +2195,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_term_opne, 1);
   /* opterm actions */
   s_inputs->add_action(a_opterm_opeq, 1);
+  s_inputs->add_action(a_opterm_opne, 1);
   /* solver actions */
   s_inputs->add_action(a_solver_getboolsort, 1);
   s_inputs->add_action(a_solver_getintsort, 1);
@@ -2216,6 +2248,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_term_xorterm, 1);
   /* opterm actions */
   s_inputs->add_action(a_opterm_opeq, 1);
+  s_inputs->add_action(a_opterm_opne, 1);
   /* solver actions */
   s_terms->add_action(a_solver_getboolsort, 2);
   s_terms->add_action(a_solver_getintsort, 2);
