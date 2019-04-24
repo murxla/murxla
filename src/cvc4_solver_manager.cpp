@@ -1958,6 +1958,7 @@ CVC4SolverManager::mkOpTerm(Kind kind, Term term)
       n1  = rng.pick_uint32(0, n0);                    // low
       res = cvc4->mkOpTerm(d_all_kinds[kind].d_op_kind, n0, n1);
   }
+  d_op_terms.push_back(res);
   std::cout << "res " << res << std::endl;
   return res;
 }
@@ -1968,6 +1969,7 @@ void
 CVC4SolverManager::clear()
 {
   d_terms.clear();
+  d_op_terms.clear();
   d_sorts2theory.clear();
   d_theory2sorts.clear();
   d_all_kinds.clear();
