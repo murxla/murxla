@@ -375,18 +375,21 @@ main(int argc, char* argv[])
 {
   //  test();
 
-  Result res;
+  uint32_t seed, num_runs = 0;
+
+  set_signal_handlers();
 
   parse_options(g_options, argc, argv);
 
   bool is_seeded = g_options.seed > 0;
   SeedGenerator sg(g_options.seed);
-  uint32_t seed, num_runs = 0;
+
   do
   {
     seed = sg.next();
     std::cout << num_runs++ << " " << seed;
-    res = run(seed, g_options);
+    Result res = run(seed, g_options);
+    // TODO do something based on res?
     std::cout << "\r" << std::flush;
   } while (!is_seeded);
 

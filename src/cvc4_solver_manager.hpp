@@ -18,7 +18,7 @@ struct KindData
 {
   KindData(CVC4::api::Kind kind    = CVC4::api::UNDEFINED_KIND,
            CVC4::api::Kind op_kind = CVC4::api::UNDEFINED_KIND,
-           uint32_t arity          = 0,
+           int32_t arity           = 0,
            uint32_t nparams        = 0,
            TheoryId theory_term    = THEORY_BOOL,
            TheoryId theory_args    = THEORY_BOOL)
@@ -43,7 +43,7 @@ struct KindData
   /* For operator kinds, the corresponding parameterized kind. */
   CVC4::api::Kind d_op_kind;
   /* The arity of this kind. */
-  uint32_t d_arity;
+  int32_t d_arity;
   /* The number of parameters if parameterized. */
   uint32_t d_nparams;
   /* The theory of a term of this kind. */

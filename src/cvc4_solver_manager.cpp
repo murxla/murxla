@@ -1167,13 +1167,13 @@ class CVC4ActionSolverMkTermN : public CVC4Action
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
     /* Pick arity. */
-    uint32_t arity = kd.d_arity;
+    int32_t arity = kd.d_arity;
     assert(arity != 0);
     if (arity == SMTMBT_CVC4_MKTERM_N_ARGS)
       arity = d_rng.pick_uint32(2, d_max_arity);
     /* Pick child terms. */
     std::vector<Term> children;
-    for (size_t i = 0; i < arity; ++i)
+    for (int32_t i = 0; i < arity; ++i)
     {
       switch (kd.d_kind)
       {

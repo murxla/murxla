@@ -30,7 +30,7 @@ class State
  public:
   State() : d_id(""), d_is_final(false) {}
   State(std::string& id, std::function<bool(void)> fun, bool is_final)
-      : d_id(id), f_precond(fun), d_is_final(is_final)
+      : d_id(id), d_is_final(is_final), f_precond(fun)
   {
   }
 
@@ -43,9 +43,9 @@ class State
  private:
   std::string d_id;
   bool d_is_final;
+  std::function<bool(void)> f_precond;
   std::vector<ActionTuple> d_actions;
   std::vector<uint32_t> d_weights;
-  std::function<bool(void)> f_precond;
 };
 
 class FSM

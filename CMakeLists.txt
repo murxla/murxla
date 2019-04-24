@@ -26,6 +26,8 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
   add_check_cxx_flag("-O3")
 endif()
 
+add_check_cxx_flag("-Wall")
+
 #if(ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
   # otherwise the -fsanitize=address check will fail while linking.

@@ -686,9 +686,9 @@ BtorSolverManager::configure()
   auto aimp = new_action<BtorActionImplies>();
   auto ane  = new_action<BtorActionNe>();
   /* commands */
-  auto afixa  = new_action<BtorActionFixateAssumptions>();
-  auto relall = new_action<BtorActionReleaseAll>();
-  auto aresa  = new_action<BtorActionResetAssumptions>();
+  // auto afixa  = new_action<BtorActionFixateAssumptions>();
+  // auto relall = new_action<BtorActionReleaseAll>();
+  // auto aresa  = new_action<BtorActionResetAssumptions>();
   auto asat   = new_action<BtorActionSat>();
   /* transitions */
   auto tinputs = new_action<BtorActionNoneCreateInputs>();
