@@ -620,7 +620,37 @@ class CVC4ActionTermIteTerm : public CVC4Action
 // std::unordered_map<Term, V, TermHashFunction>& unordered_map);
 
 //// OpTerm
-// TODO bool OpTerm::operator==(const OpTerm& t) const;
+// bool OpTerm::operator==(const OpTerm& t) const;
+class CVC4ActionOpTermOpEq : public CVC4Action
+{
+ public:
+  CVC4ActionOpTermOpEq(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "OpTermOpEq")
+  {
+    for (const auto& k : d_smgr->get_all_kinds())
+    {
+      if (k.second.d_nparams > 0) d_kinds.push_back(k.first);
+    }
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_op_term()) return false;
+    OpTerm t0 = d_smgr->pick_op_term();
+    assert(!t0.isNull());
+    OpTerm t1 = d_smgr->pick_op_term();
+    assert(!t1.isNull());
+    (void) (t0 == t1);
+    return true;
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  /* Vector of parameterized Kinds. */
+  CVC4KindVector d_kinds;
+};
+
 // TODO bool OpTerm::operator!=(const OpTerm& t) const;
 // TODO Kind OpTerm::getKind() const;
 // TODO Sort OpTerm::getSort() const;
@@ -1836,6 +1866,15 @@ CVC4SolverManager::pick_kind(CVC4KindVector& kinds1, CVC4KindVector& kinds2)
   return pick_kind(d_all_kinds, kinds1, kinds2);
 }
 
+OpTerm&
+CVC4SolverManager::pick_op_term()
+{
+  assert(d_op_terms.size());
+  auto it = d_op_terms.begin();
+  std::advance(it, d_rng.pick_uint32() % d_op_terms.size());
+  return *it;
+}
+
 /* -------------------------------------------------------------------------- */
 
 // TODO OpTerm Solver::mkOpTerm(Kind kind, Kind k);
@@ -2046,6 +2085,9 @@ CVC4SolverManager::configure()
   auto a_term_orterm  = new_action<CVC4ActionTermOrTerm>();
   auto a_term_xorterm = new_action<CVC4ActionTermXorTerm>();
 
+  /* OpTerm Actions ...................................................... */
+  auto a_opterm_opeq = new_action<CVC4ActionOpTermOpEq>();
+
   /* Solver Actions ...................................................... */
   /* create/delete solver */
   auto a_solver_new    = new_action<CVC4ActionSolverNew>();
@@ -2120,6 +2162,8 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_term_isnull, 1);
   s_inputs->add_action(a_term_opeq, 1);
   s_inputs->add_action(a_term_opne, 1);
+  /* opterm actions */
+  s_inputs->add_action(a_opterm_opeq, 1);
   /* solver actions */
   s_inputs->add_action(a_solver_getboolsort, 1);
   s_inputs->add_action(a_solver_getintsort, 1);
@@ -2170,6 +2214,8 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_term_opne, 1);
   s_inputs->add_action(a_term_orterm, 1);
   s_inputs->add_action(a_term_xorterm, 1);
+  /* opterm actions */
+  s_inputs->add_action(a_opterm_opeq, 1);
   /* solver actions */
   s_terms->add_action(a_solver_getboolsort, 2);
   s_terms->add_action(a_solver_getintsort, 2);

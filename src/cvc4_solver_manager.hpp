@@ -73,10 +73,6 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
                                                CVC4::api::SortHashFunction>
 {
  public:
-  using OpTermMap = std::
-      unordered_map<CVC4::api::OpTerm, size_t, CVC4::api::OpTermHashFunction>;
-  using CVC4OpTermMap = std::
-      unordered_map<CVC4::api::Kind, OpTermMap, CVC4::api::KindHashFunction>;
   CVC4SolverManager(RNGenerator& rng) : SolverManager(rng) { configure(); }
   CVC4SolverManager() = delete;
   ~CVC4SolverManager();
@@ -89,6 +85,17 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
   auto get_all_kinds() { return d_all_kinds; }
   CVC4::api::OpTerm mkOpTerm(CVC4::api::Kind kind, CVC4::api::Term term);
 
+  /**
+   * Pick random OpTerm from list of generated OpTerms.
+   * This is only used for API calls on OpTerms.
+   */
+  CVC4::api::OpTerm& pick_op_term();
+
+  /**
+   * Return true if the list of generated OpTerms is not empty.
+   */
+  bool has_op_term() { return !d_op_terms.empty(); }
+
  protected:
   void configure() override;
 
@@ -98,7 +105,6 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
   KindData& pick_kind(CVC4KindMap& map,
                       CVC4KindVector& kinds1,
                       CVC4KindVector& kinds2);
-
   /**
    * Mapping for all (non-operator) CVC4 kinds from TheoryId of their term
    * arguments to
@@ -109,6 +115,12 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
    *   - the theory of a term of this kind.
    */
   CVC4KindMap d_all_kinds;
+
+  /**
+   * List of all generated OpTerms.
+   * This list is only used for API calls on OpTerms.
+   */
+  std::vector<CVC4::api::OpTerm> d_op_terms;
 };
 
 /* -------------------------------------------------------------------------- */
