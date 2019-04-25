@@ -741,7 +741,34 @@ class CVC4ActionOpTermGetSort : public CVC4Action
   CVC4KindVector d_kinds;
 };
 
-// TODO bool OpTerm::isNull() const;
+// bool OpTerm::isNull() const;
+class CVC4ActionOpTermIsNull : public CVC4Action
+{
+ public:
+  CVC4ActionOpTermIsNull(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "OpTermIsNull")
+  {
+    for (const auto& k : d_smgr->get_all_kinds())
+    {
+      if (k.second.d_nparams > 0) d_kinds.push_back(k.first);
+    }
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr->has_op_term()) return false;
+    OpTerm t = d_smgr->pick_op_term();
+    assert(!t.isNull());
+    return true;
+  }
+  // void untrace(const char* s) override;
+
+ private:
+  /* Vector of parameterized Kinds. */
+  CVC4KindVector d_kinds;
+};
+
 // TODO std::string OpTerm::toString() const;
 // TODO std::ostream& OpTerm::operator<<(std::ostream& out, const OpTerm& t);
 
@@ -2177,6 +2204,7 @@ CVC4SolverManager::configure()
   /* OpTerm Actions ...................................................... */
   auto a_opterm_getkind = new_action<CVC4ActionOpTermGetKind>();
   auto a_opterm_getsort = new_action<CVC4ActionOpTermGetSort>();
+  auto a_opterm_isnull  = new_action<CVC4ActionOpTermIsNull>();
   auto a_opterm_opeq    = new_action<CVC4ActionOpTermOpEq>();
   auto a_opterm_opne    = new_action<CVC4ActionOpTermOpNe>();
 
@@ -2257,6 +2285,7 @@ CVC4SolverManager::configure()
   /* opterm actions */
   s_inputs->add_action(a_opterm_getkind, 1);
   s_inputs->add_action(a_opterm_getsort, 1);
+  s_inputs->add_action(a_opterm_isnull, 1);
   s_inputs->add_action(a_opterm_opeq, 1);
   s_inputs->add_action(a_opterm_opne, 1);
   /* solver actions */
@@ -2312,6 +2341,7 @@ CVC4SolverManager::configure()
   /* opterm actions */
   s_terms->add_action(a_opterm_getkind, 1);
   s_terms->add_action(a_opterm_getsort, 1);
+  s_terms->add_action(a_opterm_isnull, 1);
   s_terms->add_action(a_opterm_opeq, 1);
   s_terms->add_action(a_opterm_opne, 1);
   /* solver actions */
