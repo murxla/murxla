@@ -1021,16 +1021,13 @@ class CVC4ActionSolverMkBitVectorSort : public CVC4Action
 // TODO Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 // TODO Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const;
 // TODO Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const;
-// TODO Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort
-// codomain) const;
+// TODO Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const;
 // TODO Sort Solver::mkParamSort(const std::string& symbol) const;
 // TODO Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const;
-// TODO Sort Solver::mkRecordSort(const std::vector<std::pair<std::string,
-// Sort>>& fields) const;
+// TODO Sort Solver::mkRecordSort(const std::vector<std::pair<std::string, Sort>>& fields) const;
 // TODO Sort Solver::mkSetSort(Sort elemSort) const;
 // TODO Sort Solver::mkUninterpretedSort(const std::string& symbol) const;
-// TODO Sort Solver::mkSortConstructorSort(const std::string& symbol, size_t
-// arity) const;
+// TODO Sort Solver::mkSortConstructorSort(const std::string& symbol, size_t arity) const;
 // TODO Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const;
 
 // Term Solver::mkTerm(Kind kind) const;
@@ -1424,14 +1421,10 @@ class CVC4ActionSolverMkTermOp1 : public CVC4Action
   std::unordered_map<TheoryId, CVC4KindVector> d_kinds;
 };
 
-// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2)
-// const;
-// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2,
-// Term child3) const;
-// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, const std::vector<Term>&
-// children) const;
-// TODO Term Solver::mkTuple(const std::vector<Sort>& sorts, const
-// std::vector<Term>& terms) const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3) const;
+// TODO Term Solver::mkTerm(Kind kind, OpTerm opTerm, const std::vector<Term>& children) const;
+// TODO Term Solver::mkTuple(const std::vector<Sort>& sorts, const std::vector<Term>& terms) const;
 
 // Term Solver::mkTrue() const;
 class CVC4ActionSolverMkTrue : public CVC4Action
@@ -1512,10 +1505,8 @@ class CVC4ActionSolverMkBoolean : public CVC4Action
 // TODO Term Solver::mkRegexpSigma() const;
 // TODO Term Solver::mkEmptySet(Sort s) const;
 // TODO Term Solver::mkSepNil(Sort sort) const;
-// TODO Term Solver::mkString(const char* s, bool useEscSequences = false)
-// const;
-// TODO Term Solver::mkString(const std::string& s, bool useEscSequences =
-// false) const;
+// TODO Term Solver::mkString(const char* s, bool useEscSequences = false) const;
+// TODO Term Solver::mkString(const std::string& s, bool useEscSequences = false) const;
 // TODO Term Solver::mkString(const unsigned char c) const;
 // TODO Term Solver::mkString(const std::vector<unsigned>& s) const;
 // TODO Term Solver::mkUniverseSet(Sort sort) const;
@@ -1765,8 +1756,7 @@ class CVC4ActionSolverMkBitVector4 : public CVC4Action
 // TODO Term Solver::mkUninterpretedConst(Sort sort, int32_t index) const;
 // TODO Term Solver::mkAbstractValue(const std::string& index) const;
 // TODO Term Solver::mkAbstractValue(uint64_t index) const;
-// TODO Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val)
-// const;
+// TODO Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
 
 // Term Solver::mkVar(const std::string& symbol, Sort sort) const;
 class CVC4ActionSolverMkVar : public CVC4Action
@@ -1862,8 +1852,7 @@ class CVC4ActionSolverCheckSat : public CVC4Action
 };
 
 // TODO Result Solver::checkSatAssuming(Term assumption) const;
-// TODO Result Solver::checkSatAssuming(const std::vector<Term>& assumptions)
-// const;
+// TODO Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const;
 
 // Result Solver::checkValid() const;
 class CVC4ActionSolverCheckValid : public CVC4Action
@@ -1887,27 +1876,17 @@ class CVC4ActionSolverCheckValid : public CVC4Action
 };
 
 // TODO Result Solver::checkValidAssuming(Term assumption) const;
-// TODO Result Solver::checkValidAssuming(const std::vector<Term>& assumptions)
-// const;
+// TODO Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const;
 // TODO Term Solver::declareConst(const std::string& symbol, Sort sort) const;
-// TODO Sort Solver::declareDatatype( const std::string& symbol, const
-// std::vector<DatatypeConstructorDecl>& ctors) const;
+// TODO Sort Solver::declareDatatype( const std::string& symbol, const std::vector<DatatypeConstructorDecl>& ctors) const;
 // TODO Term Solver::declareFun(const std::string& symbol, Sort sort) const;
-// TODO Term Solver::declareFun(const std::string& symbol, const
-// std::vector<Sort>& sorts, Sort sort) const;
-// TODO Sort Solver::declareSort(const std::string& symbol, uint32_t arity)
-// const;
-// TODO Term Solver::defineFun(const std::string& symbol, const
-// std::vector<Term>& bound_vars, Sort sort, Term term) const;
-// TODO Term Solver::defineFun(Term fun, const std::vector<Term>& bound_vars,
-// Term term) const;
-// TODO Term Solver::defineFunRec(const std::string& symbol, const
-// std::vector<Term>& bound_vars, Sort sort, Term term) const;
-// TODO Term Solver::defineFunRec(Term fun, const std::vector<Term>& bound_vars,
-// Term term) const;
-// TODO void Solver::defineFunsRec(const std::vector<Term>& funs, const
-// std::vector<std::vector<Term>>& bound_vars, const std::vector<Term>& terms)
-// const;
+// TODO Term Solver::declareFun(const std::string& symbol, const std::vector<Sort>& sorts, Sort sort) const;
+// TODO Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const;
+// TODO Term Solver::defineFun(const std::string& symbol, const std::vector<Term>& bound_vars, Sort sort, Term term) const;
+// TODO Term Solver::defineFun(Term fun, const std::vector<Term>& bound_vars, Term term) const;
+// TODO Term Solver::defineFunRec(const std::string& symbol, const std::vector<Term>& bound_vars, Sort sort, Term term) const;
+// TODO Term Solver::defineFunRec(Term fun, const std::vector<Term>& bound_vars, Term term) const;
+// TODO void Solver::defineFunsRec(const std::vector<Term>& funs, const std::vector<std::vector<Term>>& bound_vars, const std::vector<Term>& terms) const;
 // TODO void Solver::echo(std::ostream& out, const std::string& str) const;
 // TODO std::vector<Term> Solver::getAssertions() const;
 // TODO std::vector<std::pair<Term, Term>> Solver::getAssignment() const;
@@ -1916,18 +1895,15 @@ class CVC4ActionSolverCheckValid : public CVC4Action
 // TODO std::vector<Term> Solver::getUnsatAssumptions() const;
 // TODO std::vector<Term> Solver::getUnsatCore() const;
 // TODO Term Solver::getValue(Term term) const;
-// TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms)
-// const;
+// TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
 // TODO void Solver::pop(uint32_t nscopes = 1) const;
 // TODO void Solver::printModel(std::ostream& out) const;
 // TODO void Solver::push(uint32_t nscopes = 1) const;
 // TODO void Solver::reset() const;
 // TODO void Solver::resetAssertions() const;
-// TODO void Solver::setInfo(const std::string& keyword, const std::string&
-// value) const;
+// TODO void Solver::setInfo(const std::string& keyword, const std::string& value) const;
 // TODO void Solver::setLogic(const std::string& logic) const;
-// TODO void Solver::setOption(const std::string& option, const std::string&
-// value) const;
+// TODO void Solver::setOption(const std::string& option, const std::string& value) const;
 // TODO Term Solver::ensureTermSort(const Term& t, const Sort& s) const;
 
 /* -------------------------------------------------------------------------- */
