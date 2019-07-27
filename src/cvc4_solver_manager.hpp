@@ -76,14 +76,26 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
   CVC4SolverManager(RNGenerator& rng) : SolverManager(rng) { configure(); }
   CVC4SolverManager() = delete;
   ~CVC4SolverManager();
+
   void clear();
+
+  auto get_all_kinds() { return d_all_kinds; }
+
+  uint32_t get_nscopes() { return d_nscopes; }
+  void push_nscopes(uint32_t n) { d_nscopes += n; }
+  void pop_nscopes(uint32_t n) { d_nscopes -= n; }
+
+  void set_incremental(bool b) { d_incremental = b; }
+  bool get_incremental() { return d_incremental; }
+
   CVC4::api::Sort get_sort(CVC4::api::Term term) override;
+
+  CVC4::api::OpTerm mkOpTerm(CVC4::api::Kind kind, CVC4::api::Term term);
+
   KindData& pick_kind(CVC4KindVector& kinds);
   KindData& pick_kind(CVC4KindVector& kinds1, CVC4KindVector& kinds2);
   KindData& pick_op_kind_uint(CVC4KindVector& kinds);
   KindData& pick_op_kind_uint(CVC4KindVector& kinds1, CVC4KindVector& kinds2);
-  auto get_all_kinds() { return d_all_kinds; }
-  CVC4::api::OpTerm mkOpTerm(CVC4::api::Kind kind, CVC4::api::Term term);
 
   /**
    * Pick random OpTerm from list of generated OpTerms.
@@ -105,6 +117,13 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
   KindData& pick_kind(CVC4KindMap& map,
                       CVC4KindVector& kinds1,
                       CVC4KindVector& kinds2);
+
+  /* Enable/disable incremental solving. */
+  bool d_incremental;
+
+  /* Number of pushed scopes. */
+  uint32_t d_nscopes;
+
   /**
    * Mapping for all (non-operator) CVC4 kinds from TheoryId of their term
    * arguments to

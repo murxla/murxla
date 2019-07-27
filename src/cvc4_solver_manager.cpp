@@ -16,7 +16,11 @@ namespace cvc4 {
 
 #define SMTMBT_CVC4_BW_MIN 1
 #define SMTMBT_CVC4_BW_MAX 128
+
 #define SMTMBT_CVC4_NTERMS_MIN 20
+
+#define SMTMBT_CVC4_NPUSH_MIN 1
+#define SMTMBT_CVC4_NPUSH_MAX 5
 
 #define SMTMBT_CVC4_BV_REPEAT_N_MIN 1
 #define SMTMBT_CVC4_BV_REPEAT_N_MAX 5
@@ -88,7 +92,17 @@ class CVC4ActionSolverNew : public CVC4Action
     SMTMBT_TRACE << get_id();
     Solver* cvc4 = d_smgr->get_solver();
     if (cvc4 != nullptr) delete (cvc4);
-    d_smgr->set_solver(new Solver());
+    cvc4 = new Solver();
+    d_smgr->set_solver(cvc4);
+
+    //////
+    // TODO we will need a state to (randomly) select/configure options
+    /* Enable/disable incremental solving. */
+    bool inc = d_rng.pick_with_prob(500);
+    d_smgr->set_incremental(inc);
+    cvc4->setOption("incremental", inc ? "true" : "false");
+    //////
+
     return true;
   }
   // void untrace(const char* s) override;
@@ -1799,6 +1813,7 @@ class CVC4ActionSolverSimplify : public CVC4Action
     SMTMBT_TRACE << get_id();
     Solver* cvc4 = d_smgr->get_solver();
     assert(cvc4);
+    if (!d_smgr->has_term()) return false;
     TheoryId theory = d_smgr->pick_theory_with_terms();
     Term term       = d_smgr->pick_term(theory);
     Term res        = cvc4->simplify(term);
@@ -1844,6 +1859,7 @@ class CVC4ActionSolverCheckSat : public CVC4Action
     SMTMBT_TRACE << get_id();
     // TODO query result
     Solver* cvc4 = d_smgr->get_solver();
+    if (cvc4->getOption("incremental") == "false") return false;
     assert(cvc4);
     (void) cvc4->checkSat();
     return true;
@@ -1868,6 +1884,7 @@ class CVC4ActionSolverCheckValid : public CVC4Action
     SMTMBT_TRACE << get_id();
     // TODO query result
     Solver* cvc4 = d_smgr->get_solver();
+    if (cvc4->getOption("incremental") == "false") return false;
     assert(cvc4);
     (void) cvc4->checkValid();
     return true;
@@ -1898,7 +1915,31 @@ class CVC4ActionSolverCheckValid : public CVC4Action
 // TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
 // TODO void Solver::pop(uint32_t nscopes = 1) const;
 // TODO void Solver::printModel(std::ostream& out) const;
-// TODO void Solver::push(uint32_t nscopes = 1) const;
+
+// void Solver::push(uint32_t nscopes = 1) const;
+class CVC4ActionSolverPush : public CVC4Action
+{
+ public:
+  CVC4ActionSolverPush(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverPush")
+  {
+  }
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    RNGenerator& rng = d_smgr->get_rng();
+    Solver* cvc4     = d_smgr->get_solver();
+    if (cvc4->getOption("incremental") == "false") return false;
+    assert(cvc4);
+    uint32_t n = rng.pick_uint32(SMTMBT_CVC4_NPUSH_MIN, SMTMBT_CVC4_NPUSH_MAX);
+    cvc4->push(n);
+    d_smgr->push_nscopes(n);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 // TODO void Solver::reset() const;
 // TODO void Solver::resetAssertions() const;
 // TODO void Solver::setInfo(const std::string& keyword, const std::string& value) const;
@@ -2217,9 +2258,10 @@ CVC4SolverManager::configure()
   auto a_solver_mktermop1 = new_action<CVC4ActionSolverMkTermOp1>();
   /* commands */
   auto a_solver_assert   = new_action<CVC4ActionSolverAssertFormula>();
-  auto a_solver_simp     = new_action<CVC4ActionSolverSimplify>();
   auto a_solver_checksat = new_action<CVC4ActionSolverCheckSat>();
   auto a_solver_checkval = new_action<CVC4ActionSolverCheckValid>();
+  auto a_solver_push     = new_action<CVC4ActionSolverPush>();
+  auto a_solver_simp     = new_action<CVC4ActionSolverSimplify>();
   /* transitions */
   auto t_inputs = new_action<CVC4ActionNoneCreateInputs>();
   auto t_none   = new_action<CVC4ActionNone>();
@@ -2228,14 +2270,17 @@ CVC4SolverManager::configure()
   /* States                                                                */
   /* --------------------------------------------------------------------- */
 
-  auto sassert = d_fsm.new_state(
+  auto s_assert = d_fsm.new_state(
       "assert", [this]() { return this->has_term(THEORY_BOOL); });
   auto s_delete = d_fsm.new_state("delete");
   auto s_inputs = d_fsm.new_state("create inputs");
   auto s_new    = d_fsm.new_state("new");
-  auto s_sat    = d_fsm.new_state("sat");
-  auto s_terms  = d_fsm.new_state("create terms");
-  auto sfinal   = d_fsm.new_state("final", nullptr, true);
+  // auto s_pushpop =
+  //    d_fsm.new_state("pushpop", [this]() { return this->d_incremental; });
+  auto s_pushpop = d_fsm.new_state("pushpop");
+  auto s_sat     = d_fsm.new_state("sat");
+  auto s_terms   = d_fsm.new_state("create terms");
+  auto s_final   = d_fsm.new_state("final", nullptr, true);
 
   /* --------------------------------------------------------------------- */
   /* Transitions                                                           */
@@ -2282,16 +2327,19 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_solver_mkfalse, 2);
   s_inputs->add_action(a_solver_mkbool, 2);
   s_inputs->add_action(a_solver_mkvar, 10);
+  s_inputs->add_action(a_solver_simp, 2);
   /* empty transitions */
+  s_inputs->add_action(t_inputs, 10, s_assert);
+  s_inputs->add_action(t_inputs, 10, s_pushpop);
   s_inputs->add_action(t_inputs, 10, s_terms);
-  s_inputs->add_action(t_inputs, 10, sassert);
 
   /* State: assert ....................................................... */
   /* solver actions */
-  sassert->add_action(a_solver_assert, 2);
-  sassert->add_action(a_solver_assert, 5, s_inputs);
-  sassert->add_action(a_solver_assert, 20, s_terms);
-  sassert->add_action(a_solver_assert, 2, s_sat);
+  s_assert->add_action(a_solver_assert, 20);
+  s_assert->add_action(t_none, 5, s_inputs);
+  s_assert->add_action(t_none, 2, s_pushpop);
+  s_assert->add_action(t_none, 2, s_sat);
+  s_assert->add_action(t_none, 10, s_terms);
 
   /* State: create terms ................................................. */
   /* sort actions */
@@ -2336,14 +2384,33 @@ CVC4SolverManager::configure()
   s_terms->add_action(a_solver_mktermop1, 20);
   s_terms->add_action(a_solver_simp, 2);
   /* empty transitions */
-  s_terms->add_action(t_none, 5, sassert);
+  s_terms->add_action(t_none, 5, s_assert);
+  s_terms->add_action(t_none, 2, s_pushpop);
   s_terms->add_action(t_none, 2, s_sat);
+
+  /* State: push / pop ................................................... */
+  /* sort actions */
+  s_pushpop->add_action(a_solver_push, 5);
+  /* empty transitions */
+  s_pushpop->add_action(t_none, 1, s_assert);
+  s_pushpop->add_action(t_none, 1, s_inputs);
+  s_pushpop->add_action(t_none, 1, s_sat);
+  s_pushpop->add_action(t_none, 1, s_terms);
 
   /* State: sat .......................................................... */
   /* solver actions */
-  s_sat->add_action(a_solver_checksat, 10, s_delete);
-  s_sat->add_action(a_solver_checkval, 2, s_delete);
-  s_delete->add_action(a_solver_delete, 10, sfinal);
+  s_sat->add_action(a_solver_checksat, 5);
+  s_sat->add_action(a_solver_checkval, 5);
+  /* empty transitions */
+  s_sat->add_action(t_none, 5, s_assert);
+  s_sat->add_action(t_none, 5, s_delete);
+  s_sat->add_action(t_none, 5, s_inputs);
+  s_sat->add_action(t_none, 5, s_pushpop);
+  s_sat->add_action(t_none, 5, s_terms);
+
+  /* State: delete ....................................................... */
+  /* solver actions */
+  s_delete->add_action(a_solver_delete, 10, s_final);
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */
