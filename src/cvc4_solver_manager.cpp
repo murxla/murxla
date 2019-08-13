@@ -1772,12 +1772,12 @@ class CVC4ActionSolverMkBitVector4 : public CVC4Action
 // TODO Term Solver::mkAbstractValue(uint64_t index) const;
 // TODO Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
 
-// Term Solver::mkVar(const std::string& symbol, Sort sort) const;
-class CVC4ActionSolverMkVar : public CVC4Action
+// Term Solver::mkConst(const std::string& symbol, Sort sort) const;
+class CVC4ActionSolverMkConst : public CVC4Action
 {
  public:
-  CVC4ActionSolverMkVar(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "solverMkVar")
+  CVC4ActionSolverMkConst(CVC4SolverManagerBase* smgr)
+      : CVC4Action(smgr, "solverMkConst")
   {
   }
 
@@ -1790,14 +1790,14 @@ class CVC4ActionSolverMkVar : public CVC4Action
     if (!d_smgr->has_sort()) return false;
     TheoryId theory = d_smgr->pick_theory();
     Sort sort       = d_smgr->pick_sort(theory);
-    Term res        = cvc4->mkVar(sort, "");
+    Term res        = cvc4->mkConst(sort, "");
     d_smgr->add_input(res, theory);
     return true;
   }
   // void untrace(const char* s) override;
 };
 
-// TODO Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const;
+// TODO Term Solver::mkVar(Sort sort, const std::string& symbol) const;
 
 // Term Solver::simplify(const Term& t);
 class CVC4ActionSolverSimplify : public CVC4Action
@@ -2238,7 +2238,7 @@ CVC4SolverManager::configure()
   auto a_solver_mkbv4   = new_action<CVC4ActionSolverMkBitVector4>();
   auto a_solver_mkfalse = new_action<CVC4ActionSolverMkFalse>();
   auto a_solver_mktrue  = new_action<CVC4ActionSolverMkTrue>();
-  auto a_solver_mkvar   = new_action<CVC4ActionSolverMkVar>();
+  auto a_solver_mkConst   = new_action<CVC4ActionSolverMkConst>();
   /* get sort */
   auto a_solver_getboolsort   = new_action<CVC4ActionSolverGetBooleanSort>();
   auto a_solver_getintsort    = new_action<CVC4ActionSolverGetIntegerSort>();
@@ -2326,7 +2326,7 @@ CVC4SolverManager::configure()
   s_inputs->add_action(a_solver_mktrue, 2);
   s_inputs->add_action(a_solver_mkfalse, 2);
   s_inputs->add_action(a_solver_mkbool, 2);
-  s_inputs->add_action(a_solver_mkvar, 10);
+  s_inputs->add_action(a_solver_mkConst, 10);
   s_inputs->add_action(a_solver_simp, 2);
   /* empty transitions */
   s_inputs->add_action(t_inputs, 10, s_assert);
