@@ -6,8 +6,8 @@
 
 #include <cxxopts.hpp>
 
-#include "btor_solver_manager.hpp"
-#include "cvc4_solver_manager.hpp"
+#include "btor_solver.hpp"
+#include "cvc4_solver.hpp"
 #include "fsm.hpp"
 #include "options.hpp"
 
@@ -35,6 +35,7 @@ enum ExitCodes
 void
 test_btor_smgr(RNGenerator& rng)
 {
+#if 0
   btor::BtorSolverManager smgr(rng);
 
   smgr.set_solver(boolector_new());
@@ -72,14 +73,17 @@ test_btor_smgr(RNGenerator& rng)
   boolector_release(btor, z);
   boolector_release(btor, eq);
   boolector_release(btor, a);
+#endif
 }
 
 void
 test_btor_fsm(RNGenerator& rng)
 {
+#if 0
   btor::BtorSolverManager smgr(rng);
   smgr.set_solver(boolector_new());
   smgr.run();
+#endif
 }
 #endif
 
@@ -87,6 +91,7 @@ test_btor_fsm(RNGenerator& rng)
 void
 test_cvc4_smgr(RNGenerator& rng)
 {
+#if 0
   cvc4::CVC4SolverManager smgr(rng);
 
   smgr.set_solver(new CVC4::api::Solver());
@@ -104,20 +109,24 @@ test_cvc4_smgr(RNGenerator& rng)
   smgr.add_term(x, THEORY_BV);
   smgr.add_term(y, THEORY_BV);
 #endif
+#endif
 }
 
 void
 test_cvc4_fsm(RNGenerator& rng)
 {
+#if 0
   cvc4::CVC4SolverManager smgr(rng);
   smgr.set_solver(new CVC4::api::Solver());
   smgr.run();
+#endif
 }
 #endif
 
 void
 test()
 {
+#if 0
   RNGenerator rng;
 #ifdef SMTMBT_USE_BOOLECTOR
   test_btor_smgr(rng);
@@ -126,6 +135,7 @@ test()
 #ifdef SMTMBT_USE_CVC4
   test_cvc4_smgr(rng);
   test_cvc4_fsm(rng);
+#endif
 #endif
 }
 
@@ -319,18 +329,20 @@ run(uint32_t seed, Options& options)
       close(devnull);
     }
 
+    Solver *solver= nullptr;
+
     if (options.use_btor)
     {
-      btor::BtorSolverManager mgr(rng);
-      mgr.set_rng(rng);
-      mgr.run();
+      solver = new btor::BtorSolver();
     }
     else if (options.use_cvc4)
     {
-      cvc4::CVC4SolverManager mgr(rng);
-      mgr.set_rng(rng);
-      mgr.run();
+      solver = new cvc4::CVC4Solver();
     }
+
+    FSM fsm(rng, solver);
+    fsm.configure();
+    fsm.run();
 
     exit(EXIT_OK);
   }

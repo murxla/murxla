@@ -7,7 +7,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "fsm.hpp"
+#include "solver.hpp"
+#include "util.hpp"
 
 namespace smtmbt {
 
@@ -22,24 +23,79 @@ enum TheoryId
 
 /* -------------------------------------------------------------------------- */
 
-class Action
+class SolverManager
 {
  public:
-  Action() = delete;
-  Action(RNGenerator& rng, const std::string& id) : d_rng(rng), d_id(id) {}
-  virtual ~Action()  = default;
-  virtual bool run() = 0;
-  // virtual void untrace(const char* s) {}
-  const std::string& get_id() const { return d_id; }
+  using TermMap = std::unordered_map<Term, size_t, HashTerm>;
+  using SortMap = std::unordered_map<Sort, TermMap, HashSort>;
+  using SortSet = std::unordered_set<Sort, HashSort>;
+
+  /* Statistics. */
+  struct Stats
+  {
+    uint32_t inputs = 0; /* constants, variables */
+    uint32_t terms  = 0; /* all terms, including inputs */
+  };
+
+  SolverManager(Solver* solver, RNGenerator& rng) : d_solver(solver), d_rng(rng)
+  {
+  }
+  ~SolverManager() = default;
+
+  Solver& get_solver();
+
+  void set_rng(RNGenerator& rng);
+  RNGenerator& get_rng();
+
+  void add_input(Term term, TheoryId theory);
+  void add_term(Term term, TheoryId theory);
+  void add_sort(Sort sort, TheoryId theory);
+
+  Term pick_term();
+  Term pick_term(TheoryId theory);
+  Term pick_term(Term term);
+  Term pick_term(Sort sort);
+
+  bool has_term();
+  bool has_term(TheoryId theory);
+  bool has_term(Sort sort);
+
+  Sort pick_sort();
+  Sort pick_sort(TheoryId theory);
+  Sort pick_sort_with_terms();
+  Sort pick_sort_with_terms(TheoryId theory);
+
+  bool has_sort();
+  bool has_sort(Sort sort);
+  bool has_sort(TheoryId theory);
+
+  TheoryId pick_theory();
+  TheoryId pick_theory_with_terms();
+
+  TheoryId get_theory(Sort sort);
+
+  Stats d_stats;
 
  protected:
+  // TODO: move that to class AbsTerm AbsSort
+  /* Solver specific implementations. */
+  //  virtual Term copy_term(Term term);
+  //  virtual Sort copy_sort(Sort sort);
+
+  std::unique_ptr<Solver> d_solver;
   RNGenerator& d_rng;
 
- private:
-  std::string d_id;
+  /* Map theory -> sorts. */
+  std::unordered_map<TheoryId, SortSet> d_theory2sorts;
+  /* Map sort -> theory. */
+  std::unordered_map<Sort, TheoryId, HashSort> d_sorts2theory;
+  /* Map theory -> (sort -> terms). */
+  std::unordered_map<TheoryId, SortMap> d_terms;
 };
 
 /* -------------------------------------------------------------------------- */
+
+#if 0
 
 template <typename TSolver,
           typename TTerm,
@@ -581,6 +637,7 @@ SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::copy_sort(
 {
   return sort;
 }
+#endif
 
 /* -------------------------------------------------------------------------- */
 

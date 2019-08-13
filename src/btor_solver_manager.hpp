@@ -10,6 +10,8 @@
 namespace smtmbt {
 namespace btor {
 
+#if 0
+
 /* -------------------------------------------------------------------------- */
 
 struct BoolectorNodeHashFunc
@@ -53,6 +55,8 @@ class BtorSolverManager : public BtorSolverManagerBase
 };
 
 /* -------------------------------------------------------------------------- */
+
+#endif
 
 }  // namespace btor
 }  // namespace smtmbt

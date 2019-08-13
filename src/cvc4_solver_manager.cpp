@@ -10,6 +10,8 @@ using namespace CVC4::api;
 namespace smtmbt {
 namespace cvc4 {
 
+#if 0
+
 /* -------------------------------------------------------------------------- */
 
 #define SMTMBT_CVC4_MKTERM_N_ARGS -1
@@ -2420,6 +2422,8 @@ CVC4SolverManager::configure()
 }
 
 /* -------------------------------------------------------------------------- */
+
+#endif
 
 }  // namespace cvc4
 }  // namespace smtmbt

@@ -1,8 +1,9 @@
 set(smtmbt_src_files
-  btor_solver_manager.cpp
-  cvc4_solver_manager.cpp
+  btor_solver.cpp
+  cvc4_solver.cpp
   fsm.cpp
   main.cpp
+  solver_manager.cpp
   util.cpp
 )
 

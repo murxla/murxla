@@ -8,16 +8,40 @@
 #include <unordered_map>
 #include <vector>
 
+#include "solver_manager.hpp"
 #include "util.hpp"
 
 namespace smtmbt {
-class Action;
 class State;
+
+class Action
+{
+ public:
+  Action() = delete;
+  Action(SolverManager& smgr, const std::string& id)
+      : d_rng(smgr.get_rng()),
+        d_solver(smgr.get_solver()),
+        d_smgr(smgr),
+        d_id(id)
+  {
+  }
+  virtual ~Action()  = default;
+  virtual bool run() = 0;
+  // virtual void untrace(const char* s) {}
+  const std::string& get_id() const { return d_id; }
+
+ protected:
+  RNGenerator& d_rng;
+  Solver& d_solver;
+  SolverManager& d_smgr;
+
+ private:
+  std::string d_id;
+};
 
 struct ActionTuple
 {
-  ActionTuple(Action* a, State* next)
-      : d_action(a), d_next(next){};
+  ActionTuple(Action* a, State* next) : d_action(a), d_next(next){};
 
   Action* d_action;
   State* d_next;
@@ -51,22 +75,47 @@ class State
 class FSM
 {
  public:
-  FSM(RNGenerator& rng) : d_rng(rng) {}
+  FSM(RNGenerator& rng, Solver* solver) : d_smgr(solver, rng), d_rng(rng) {}
   FSM() = delete;
 
   State* new_state(std::string id                = "",
                    std::function<bool(void)> fun = nullptr,
                    bool is_final                 = false);
 
+  template <class T>
+  T* new_action();
+
   void set_init_state(State* init_state);
   void check_states();
   void run();
+  void configure();
 
  private:
+  SolverManager d_smgr;
   RNGenerator& d_rng;
   std::vector<std::unique_ptr<State>> d_states;
+  std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
   State* d_cur_state;
 };
+
+template <class T>
+T*
+FSM::new_action()
+{
+  static_assert(std::is_base_of<Action, T>::value,
+                "expected class (derived from) Action");
+  T* action             = new T(d_smgr);
+  const std::string& id = action->get_id();
+  if (d_actions.find(id) == d_actions.end())
+  {
+    d_actions[id].reset(action);
+  }
+  else
+  {
+    delete action;
+  }
+  return static_cast<T*>(d_actions[id].get());
+}
 
 }  // namespace smtmbt
 #endif

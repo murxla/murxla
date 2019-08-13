@@ -12,6 +12,8 @@
 namespace smtmbt {
 namespace cvc4 {
 
+#if 0
+
 /* -------------------------------------------------------------------------- */
 
 struct KindData
@@ -143,6 +145,8 @@ class CVC4SolverManager : public SolverManager<CVC4::api::Solver*,
 };
 
 /* -------------------------------------------------------------------------- */
+
+#endif
 
 }  // namespace cvc4
 }  // namespace smtmbt

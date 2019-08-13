@@ -12,6 +12,8 @@
 namespace smtmbt {
 namespace btor {
 
+#if 0
+
 /* -------------------------------------------------------------------------- */
 
 class BtorAction : public Action
@@ -733,6 +735,8 @@ BtorSolverManager::configure()
 }
 
 /* -------------------------------------------------------------------------- */
+
+#endif
 
 }  // namespace btor
 }  // namespace smtmbt
