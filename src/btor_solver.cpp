@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "boolector.h"
+#include "boolector/boolector.h"
 
 namespace smtmbt {
 namespace btor {
