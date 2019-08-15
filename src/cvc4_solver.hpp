@@ -35,6 +35,8 @@ class CVC4Sort : public AbsSort
 class CVC4Solver : public Solver
 {
  public:
+  CVC4Solver(RNGenerator& rng) : Solver(rng) {}
+
   void new_solver() override;
 
   void delete_solver() override;

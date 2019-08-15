@@ -2,7 +2,10 @@
 #define __SMTMBT__OP_H
 
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
+
+#include "theory.hpp"
 
 namespace smtmbt {
 
@@ -99,6 +102,45 @@ enum OpKind
 
 };
 
+struct OpKindHashFunction
+{
+  size_t operator()(OpKind kind) const { return kind; }
+};
+
+struct OpKindData
+{
+  OpKindData(OpKind kind          = UNDEFINED,
+             int32_t arity        = 0,
+             uint32_t nparams     = 0,
+             TheoryId theory_term = THEORY_BOOL,
+             TheoryId theory_args = THEORY_BOOL)
+      : d_kind(kind),
+        d_arity(arity),
+        d_nparams(nparams),
+        d_theory_term(theory_term),
+        d_theory_args(theory_args)
+  {
+  }
+
+  bool operator==(const OpKindData& other) const
+  {
+    return (d_kind == other.d_kind && d_arity == other.d_arity
+            && d_theory_term == other.d_theory_term
+            && d_theory_args == other.d_theory_args);
+  }
+
+  /* The Kind. */
+  OpKind d_kind;
+  /* The arity of this kind. */
+  int32_t d_arity;
+  /* The number of parameters if parameterized. */
+  uint32_t d_nparams;
+  /* The theory of a term of this kind. */
+  TheoryId d_theory_term;
+  /* The theory of the term arguments of this kind. */
+  TheoryId d_theory_args;
+};
+
 struct Op
 {
   Op() : d_kind(OpKind::UNDEFINED), d_indices(){};
@@ -119,6 +161,9 @@ struct Op
   //  /* The theory of the term arguments of this kind. */
   //  TheoryId d_theory_args;
 };
+
+using OpKindMap = std::unordered_map<OpKind, OpKindData, OpKindHashFunction>;
+using OpKindVector = std::vector<OpKind>;
 
 }  // namespace smtmbt
 

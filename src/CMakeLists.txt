@@ -3,7 +3,9 @@ set(smtmbt_src_files
   cvc4_solver.cpp
   fsm.cpp
   main.cpp
+  solver.cpp
   solver_manager.cpp
+  sort.cpp
   util.cpp
 )
 

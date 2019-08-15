@@ -95,7 +95,10 @@ FSM::run()
   }
 }
 
-/* Defaul Actions ...................................................... */
+
+/* ========================================================================== */
+/* Default Actions                                                            */
+/* ========================================================================== */
 
 class ActionNew : public Action
 {
@@ -134,25 +137,40 @@ class ActionDelete : public Action
   // void untrace(const char* s) override;
 };
 
-class ActionMkBitVectorSort : public Action
+class ActionMkSort : public Action
 {
  public:
-  ActionMkBitVectorSort(SolverManager& smgr) : Action(smgr, "mkBitVectorSort")
+  ActionMkSort(SolverManager& smgr) : Action(smgr, "mkSort")
   {
+    for (const auto& k : d_solver.get_sort_kinds())
+    {
+      d_kinds[k.second.d_theory].push_back(k.first);
+    }
   }
 
   bool run() override
   {
     SMTMBT_TRACE << get_id();
+    Sort res;
+
+    // TODO pick sortkind
+    // TODO swwitch over sort kind
     uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
-    Sort res    = d_solver.mk_sort(SortKind::BIT_VECTOR, bw);
+    res    = d_solver.mk_sort(SortKind::BIT_VECTOR, bw);
     d_smgr.add_sort(res, THEORY_BV);
     return true;
   }
   // void untrace(const char* s) override;
+
+ private:
+  /* Mapping from TheoryId of the sort to SortKinds of that theory. */
+  std::unordered_map<TheoryId, SortKindVector> d_kinds;
 };
 
-/* Configure default FSM ............................................... */
+
+/* ========================================================================== */
+/* Configure default FSM                                                      */
+/* ========================================================================== */
 
 void
 FSM::configure()
@@ -164,7 +182,7 @@ FSM::configure()
   auto a_new    = new_action<ActionNew>();
   auto a_delete = new_action<ActionDelete>();
 
-  auto a_mkbvsort = new_action<ActionMkBitVectorSort>();
+  auto a_mksort = new_action<ActionMkSort>();
 
   /* --------------------------------------------------------------------- */
   /* States                                                                */
@@ -181,15 +199,16 @@ FSM::configure()
   /* --------------------------------------------------------------------- */
 
   /* State: new .......................................................... */
-  s_new->add_action(a_new, 10, s_delete);
+  s_new->add_action(a_new, 10, s_inputs);
+
+  /* State: create inputs ................................................ */
+  /* sort actions */
+  s_inputs->add_action(a_mksort, 2, s_delete);
 
   /* State: delete ....................................................... */
   /* solver actions */
   s_delete->add_action(a_delete, 10, s_final);
 
-  /* State: create inputs ................................................ */
-  /* sort actions */
-  s_inputs->add_action(a_mkbvsort, 2);
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */

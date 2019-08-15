@@ -322,6 +322,7 @@ run(uint32_t seed, Options& options)
 
     if (options.seed == 0)
     {
+      set_signal_handlers();
       /* redirect stdout and stderr of child process to /dev/null */
       devnull = open("/dev/null", O_WRONLY);
       dup2(devnull, STDOUT_FILENO);
@@ -333,11 +334,11 @@ run(uint32_t seed, Options& options)
 
     if (options.use_btor)
     {
-      solver = new btor::BtorSolver();
+      solver = new btor::BtorSolver(rng);
     }
     else if (options.use_cvc4)
     {
-      solver = new cvc4::CVC4Solver();
+      solver = new cvc4::CVC4Solver(rng);
     }
 
     FSM fsm(rng, solver);
@@ -388,8 +389,6 @@ main(int argc, char* argv[])
   //  test();
 
   uint32_t seed, num_runs = 0;
-
-  set_signal_handlers();
 
   parse_options(g_options, argc, argv);
 

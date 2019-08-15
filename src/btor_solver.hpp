@@ -33,6 +33,8 @@ class BtorSort : public AbsSort
 class BtorSolver : public Solver
 {
  public:
+  BtorSolver(RNGenerator& rng) : Solver(rng) {}
+
   void new_solver() override;
 
   void delete_solver() override;

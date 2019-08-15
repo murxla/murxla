@@ -8,18 +8,10 @@
 #include <unordered_set>
 
 #include "solver.hpp"
+#include "theory.hpp"
 #include "util.hpp"
 
 namespace smtmbt {
-
-/* -------------------------------------------------------------------------- */
-
-enum TheoryId
-{
-  THEORY_BOOL,
-  THEORY_BV,
-  THEORY_ALL,
-};
 
 /* -------------------------------------------------------------------------- */
 
