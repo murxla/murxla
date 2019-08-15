@@ -57,6 +57,19 @@ class TraceStream
   void flush();
 };
 
+class WarnStream
+{
+ public:
+  WarnStream();
+  ~WarnStream();
+  WarnStream(const WarnStream& astream) = default;
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+};
+
 class AbortStream
 {
  public:
@@ -79,6 +92,9 @@ class OstreamVoider
 
 #define SMTMBT_TRACE \
   OstreamVoider() & TraceStream().stream()
+
+#define SMTMBT_WARN(cond) \
+  !(cond) ? (void) 0 : OstreamVoider() & WarnStream().stream()
 
 #define SMTMBT_ABORT(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()

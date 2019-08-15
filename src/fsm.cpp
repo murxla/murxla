@@ -43,13 +43,16 @@ FSM::new_state(std::string id, std::function<bool(void)> fun, bool is_final)
 void
 FSM::set_init_state(State* init_state)
 {
+  d_init_state = init_state;
   d_cur_state = init_state;
 }
 
 void
 FSM::check_states()
 {
-  /* check for infinite loop */
+  State* no_next_state = nullptr;
+  std::unordered_set<State*> all_next_states;
+
   for (const auto& s : d_states)
   {
     if (s->is_final()) continue;
@@ -60,9 +63,24 @@ FSM::check_states()
       State* next = a.d_next;
       if (next != s.get()) next_states.insert(next);
     }
-    SMTMBT_ABORT(next_states.empty())
-        << "infinite loop in state '" << s->get_id() << "'";
+    if (!no_next_state && next_states.empty()) no_next_state = s.get();
+    all_next_states.insert(next_states.begin(), next_states.end());
   }
+
+  /* check for unreachable state */
+  for (const auto& s : d_states)
+  {
+    SMTMBT_WARN(s.get() != d_init_state
+                && all_next_states.find(s.get()) == all_next_states.end())
+        << "unreachable state '" << s->get_id() << "'";
+  }
+
+  /* check for infinite loop */
+  SMTMBT_ABORT(
+      no_next_state
+      && (no_next_state == d_init_state
+          || all_next_states.find(no_next_state) != all_next_states.end()))
+      << "infinite loop in state '" << no_next_state->get_id() << "'";
 }
 
 void

@@ -75,7 +75,13 @@ class State
 class FSM
 {
  public:
-  FSM(RNGenerator& rng, Solver* solver) : d_smgr(solver, rng), d_rng(rng) {}
+  FSM(RNGenerator& rng, Solver* solver)
+      : d_smgr(solver, rng),
+        d_rng(rng),
+        d_init_state(nullptr),
+        d_cur_state(nullptr)
+  {
+  }
   FSM() = delete;
 
   State* new_state(std::string id                = "",
@@ -95,6 +101,7 @@ class FSM
   RNGenerator& d_rng;
   std::vector<std::unique_ptr<State>> d_states;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
+  State* d_init_state;
   State* d_cur_state;
 };
 

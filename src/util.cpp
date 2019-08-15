@@ -138,6 +138,23 @@ TraceStream::flush()
   stream().flush();
 }
 
+WarnStream::WarnStream() { stream() << "smtmbt: WARNING: "; }
+
+WarnStream::~WarnStream() { flush(); }
+
+std::ostream&
+WarnStream::stream()
+{
+  return std::cout;
+}
+
+void
+WarnStream::flush()
+{
+  stream() << std::endl;
+  stream().flush();
+}
+
 AbortStream::AbortStream() { stream() << "smtmbt: ERROR: "; }
 
 AbortStream::~AbortStream()
