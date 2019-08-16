@@ -1,6 +1,45 @@
 #include "solver_manager.hpp"
+#include <algorithm>
 
 namespace smtmbt {
+
+/* -------------------------------------------------------------------------- */
+
+SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
+    : d_solver(solver), d_rng(rng)
+{
+  TheoryIdVector solver_theories = d_solver->get_supported_theories();
+
+  TheoryIdVector all_theories;
+  for (int32_t t = 0; t < THEORY_ALL; ++t)
+    all_theories.push_back(static_cast<TheoryId>(t));
+
+  // TODO filter out based on enabled theories enabled via CLI
+
+  d_enabled_theories = TheoryIdVector(all_theories.size());
+
+  std::sort(all_theories.begin(), all_theories.end());
+  std::sort(solver_theories.begin(), solver_theories.end());
+
+  auto it = std::set_intersection(all_theories.begin(),
+                                  all_theories.end(),
+                                  solver_theories.begin(),
+                                  solver_theories.end(),
+                                  d_enabled_theories.begin());
+  d_enabled_theories.resize(it - d_enabled_theories.begin());
+}
+
+/* -------------------------------------------------------------------------- */
+
+void
+SolverManager::clear()
+{
+  d_theory2sorts.clear();
+  d_sorts2theory.clear();
+  d_terms.clear();
+}
+
+/* -------------------------------------------------------------------------- */
 
 Solver&
 SolverManager::get_solver()
@@ -65,7 +104,7 @@ SolverManager::add_sort(Sort sort, TheoryId theory)
 {
   if (d_sorts2theory.find(sort) == d_sorts2theory.end())
   {
-    d_sorts2theory.emplace(sort->copy(), theory);
+    d_sorts2theory.emplace(sort, theory);
   }
 
   if (d_theory2sorts.find(theory) == d_theory2sorts.end())
@@ -164,7 +203,7 @@ SolverManager::has_term(Sort sort)
 Sort
 SolverManager::pick_sort()
 {
-  TheoryId theory = pick_theory();
+  TheoryId theory = pick_theory_with_sorts();
   return pick_sort(theory);
 }
 
@@ -226,6 +265,15 @@ SolverManager::has_sort(TheoryId theory)
 
 TheoryId
 SolverManager::pick_theory()
+{
+  assert(d_enabled_theories.size());
+  auto it = d_enabled_theories.begin();
+  std::advance(it, d_rng.pick_uint32() % d_enabled_theories.size());
+  return *it;
+}
+
+TheoryId
+SolverManager::pick_theory_with_sorts()
 {
   assert(d_theory2sorts.size());
   auto it = d_theory2sorts.begin();

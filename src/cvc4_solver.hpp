@@ -24,18 +24,18 @@ class CVC4Term : public AbsTerm
 class CVC4Sort : public AbsSort
 {
  public:
-  CVC4Sort(CVC4::api::Sort sort) : d_sort(sort){};
+  CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort);
   ~CVC4Sort() override;
   std::size_t hash() const override;
-  CVC4Sort* copy() const override;
  private:
+  CVC4::api::Solver* d_solver;
   CVC4::api::Sort d_sort;
 };
 
 class CVC4Solver : public Solver
 {
  public:
-  CVC4Solver(RNGenerator& rng) : Solver(rng) {}
+  CVC4Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
 
   void new_solver() override;
 
@@ -70,10 +70,8 @@ class CVC4Solver : public Solver
   {  // TODO:
     return nullptr;
   }
-  Sort mk_sort(SortKind kind) const
-  {  // TODO:
-    return nullptr;
-  }
+
+  Sort mk_sort(SortKind kind) const override;
   Sort mk_sort(SortKind kind, uint32_t size) const override;
 
   Sort mk_sort(SortKind kind, std::vector<Sort>& sorts, Sort sort) const
@@ -121,7 +119,6 @@ class CVC4Solver : public Solver
   //
   //
  private:
-  // RNG?
   CVC4::api::Solver* d_solver;
 };
 

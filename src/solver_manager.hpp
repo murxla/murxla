@@ -29,10 +29,10 @@ class SolverManager
     uint32_t terms  = 0; /* all terms, including inputs */
   };
 
-  SolverManager(Solver* solver, RNGenerator& rng) : d_solver(solver), d_rng(rng)
-  {
-  }
+  SolverManager(Solver* solver, RNGenerator& rng);
   ~SolverManager() = default;
+
+  void clear();
 
   Solver& get_solver();
 
@@ -62,6 +62,7 @@ class SolverManager
   bool has_sort(TheoryId theory);
 
   TheoryId pick_theory();
+  TheoryId pick_theory_with_sorts();
   TheoryId pick_theory_with_terms();
 
   TheoryId get_theory(Sort sort);
@@ -76,6 +77,8 @@ class SolverManager
 
   std::unique_ptr<Solver> d_solver;
   RNGenerator& d_rng;
+
+  TheoryIdVector d_enabled_theories;
 
   /* Map theory -> sorts. */
   std::unordered_map<TheoryId, SortSet> d_theory2sorts;
@@ -142,7 +145,7 @@ class SolverManager
   bool has_sort(TSort sort);
   bool has_sort(TheoryId theory);
 
-  TheoryId pick_theory();
+  TheoryId pick_theory_with_sorts();
   TheoryId pick_theory_with_terms();
 
   TheoryId get_theory(TSort sort);
@@ -443,7 +446,7 @@ template <typename TSolver,
 TSort
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::pick_sort()
 {
-  TheoryId theory = pick_theory();
+  TheoryId theory = pick_theory_with_sorts();
   return pick_sort(theory);
 }
 
@@ -543,7 +546,7 @@ template <typename TSolver,
           typename THashTerm,
           typename THashSort>
 TheoryId
-SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::pick_theory()
+SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::pick_theory_with_sorts()
 {
   assert(d_theory2sorts.size());
   auto it = d_theory2sorts.begin();

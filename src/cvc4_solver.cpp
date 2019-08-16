@@ -9,7 +9,9 @@ using namespace CVC4;
 namespace smtmbt {
 namespace cvc4 {
 
-/* CVC4Term */
+/* -------------------------------------------------------------------------- */
+/* CVC4Term                                                                   */
+/* -------------------------------------------------------------------------- */
 
 CVC4Term::~CVC4Term()
 {
@@ -30,8 +32,14 @@ CVC4Term::copy() const
   return nullptr;
 }
 
+/* -------------------------------------------------------------------------- */
+/* CVC4Sort                                                                   */
+/* -------------------------------------------------------------------------- */
 
-/* CVC4Sort */
+CVC4Sort::CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort)
+    : d_solver(cvc4), d_sort(sort)
+{
+}
 
 CVC4Sort::~CVC4Sort()
 {
@@ -41,18 +49,12 @@ CVC4Sort::~CVC4Sort()
 std::size_t
 CVC4Sort::hash() const
 {
-  // TODO
-  return 0;
+  return CVC4::api::SortHashFunction()(d_sort);
 }
 
-CVC4Sort *
-CVC4Sort::copy() const
-{
-  // TODO
-  return nullptr;
-}
-
-/* CVC4Solver */
+/* -------------------------------------------------------------------------- */
+/* CVC4Solver                                                                 */
+/* -------------------------------------------------------------------------- */
 
 void
 CVC4Solver::new_solver()
@@ -76,17 +78,30 @@ CVC4Solver::is_initialized() const
 }
 
 Sort
+CVC4Solver::mk_sort(SortKind kind) const
+{
+  CVC4::api::Sort res;
+  switch (kind)
+  {
+    case SortKind::BOOLEAN: res = d_solver->getBooleanSort(); break;
+
+    default: assert(false);
+  }
+  return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, res));
+}
+
+Sort
 CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
 {
   Sort res = nullptr;
   switch (kind)
   {
     case BIT_VECTOR:
-      res = new CVC4Sort(d_solver->mkBitVectorSort(size));
+      res = std::shared_ptr<CVC4Sort>(
+          new CVC4Sort(d_solver, d_solver->mkBitVectorSort(size)));
       break;
 
-    default:
-      break;
+    default: assert(false);
   }
   return res;
 }

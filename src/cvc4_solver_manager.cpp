@@ -202,7 +202,7 @@ class CVC4ActionSortIsNull : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     if (!d_smgr->has_sort()) return false;
-    TheoryId theory = d_smgr->pick_theory();
+    TheoryId theory = d_smgr->pick_theory_with_sorts();
     Sort sort       = d_smgr->pick_sort(theory);
     assert(sort.isNull() == (sort == Sort()));
     return true;
@@ -223,7 +223,7 @@ class CVC4ActionSortIsBoolean : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     if (!d_smgr->has_sort()) return false;
-    TheoryId theory = d_smgr->pick_theory();
+    TheoryId theory = d_smgr->pick_theory_with_sorts();
     Sort sort       = d_smgr->pick_sort(theory);
     bool expected   = theory == THEORY_BOOL ? true : false;
     assert(sort.isBoolean() == expected);
@@ -251,7 +251,7 @@ class CVC4ActionSortIsBitVector : public CVC4Action
   {
     SMTMBT_TRACE << get_id();
     if (!d_smgr->has_sort()) return false;
-    TheoryId theory = d_smgr->pick_theory();
+    TheoryId theory = d_smgr->pick_theory_with_sorts();
     Sort sort       = d_smgr->pick_sort(theory);
     bool expected   = theory == THEORY_BV ? true : false;
     assert(sort.isBitVector() == expected);
@@ -889,26 +889,6 @@ class CVC4ActionSolverGetNullSort : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Sort Solver::getBooleanSort() const;
-class CVC4ActionSolverGetBooleanSort : public CVC4Action
-{
- public:
-  CVC4ActionSolverGetBooleanSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "solverGetBooleanSort")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Solver* cvc4 = d_smgr->get_solver();
-    assert(cvc4);
-    (void) cvc4->getBooleanSort();
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // Sort Solver::getIntegerSort() const;
 class CVC4ActionSolverGetIntegerSort : public CVC4Action
 {
@@ -1010,29 +990,6 @@ class CVC4ActionSolverGetStringSort : public CVC4Action
 };
 
 // TODO Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const;
-
-// Sort Solver::mkBitVectorSort(uint32_t size) const;
-class CVC4ActionSolverMkBitVectorSort : public CVC4Action
-{
- public:
-  CVC4ActionSolverMkBitVectorSort(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "solverMkBitVectorSort")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Solver* cvc4 = d_smgr->get_solver();
-    assert(cvc4);
-    RNGenerator& rng = d_smgr->get_rng();
-    uint32_t bw      = rng.pick_uint32(SMTMBT_CVC4_BW_MIN, SMTMBT_CVC4_BW_MAX);
-    Sort res         = cvc4->mkBitVectorSort(bw);
-    d_smgr->add_sort(res, THEORY_BV);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
 
 // TODO Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
 // TODO Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const;
@@ -1790,7 +1747,7 @@ class CVC4ActionSolverMkConst : public CVC4Action
     assert(cvc4);
     // TODO generate random symbol string
     if (!d_smgr->has_sort()) return false;
-    TheoryId theory = d_smgr->pick_theory();
+    TheoryId theory = d_smgr->pick_theory_with_sorts();
     Sort sort       = d_smgr->pick_sort(theory);
     Term res        = cvc4->mkConst(sort, "");
     d_smgr->add_input(res, theory);

@@ -1,11 +1,12 @@
 #ifndef __SMTMBT__SOLVER_H
 #define __SMTMBT__SOLVER_H
 
+#include <cassert>
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <cassert>
 
 #include "op.hpp"
 #include "sort.hpp"
@@ -35,10 +36,9 @@ class AbsSort
   AbsSort(){};
   virtual ~AbsSort(){};
   virtual std::size_t hash() const = 0;
-  virtual AbsSort* copy() const = 0;
 };
 
-using Sort = AbsSort*;
+using Sort = std::shared_ptr<AbsSort>;
 
 struct HashSort
 {
@@ -63,6 +63,8 @@ class Solver
   virtual void new_solver() = 0;
   virtual void delete_solver() = 0;
   virtual bool is_initialized() const = 0;
+
+  virtual TheoryIdVector get_supported_theories() const;
 
   virtual void set_opt(const std::string& opt, bool value) const = 0;
 
@@ -94,7 +96,7 @@ class Solver
 
   OpKindMap& get_op_kinds();
   SortKindMap& get_sort_kinds();
-  SortKindData& pick_sort_kind(SortKindVector& kinds);
+  SortKind pick_sort_kind(SortKindVector& kinds);
 
   //
   // get_model()
@@ -107,7 +109,6 @@ class Solver
   RNGenerator& d_rng;
 
  private:
-  // RNG
   template <typename TKind,
             typename TKindData,
             typename TKindMap,

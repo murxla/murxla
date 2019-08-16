@@ -499,52 +499,6 @@ class BtorActionBVOne : public BtorAction
 // void boolector_free_uf_assignment (Btor *btor, char **args, char **values, uint32_t size);
 // void boolector_print_model (Btor *btor, char *format, FILE *file);
 
-// BoolectorSort boolector_bool_sort (Btor *btor);
-class BtorActionBoolSort : public BtorAction
-{
- public:
-  BtorActionBoolSort(BtorSolverManagerBase* smgr)
-      : BtorAction(smgr, "bool_sort")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorSort res = boolector_bool_sort(btor);
-    d_smgr->add_sort(res, THEORY_BV);
-    boolector_release_sort(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// BoolectorSort boolector_bitvec_sort (Btor *btor, uint32_t width);
-class BtorActionBVSort : public BtorAction
-{
- public:
-  BtorActionBVSort(BtorSolverManagerBase* smgr)
-      : BtorAction(smgr, "bitvec_sort")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    RNGenerator& rng  = d_smgr->get_rng();
-    uint32_t bw       = rng.pick_uint32(SMTMBT_BTOR_BW_MIN, SMTMBT_BTOR_BW_MAX);
-    BoolectorSort res = boolector_bitvec_sort(btor, bw);
-    d_smgr->add_sort(res, THEORY_BV);
-    boolector_release_sort(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // BoolectorSort boolector_fun_sort (Btor *btor, BoolectorSort *domain, uint32_t arity, BoolectorSort codomain);
 // BoolectorSort boolector_array_sort (Btor *btor, BoolectorSort index, BoolectorSort element);
 // BoolectorSort boolector_copy_sort (Btor *btor, BoolectorSort sort);
@@ -579,12 +533,6 @@ BoolectorNodeHashFunc::operator()(const BoolectorNode* n) const
   Btor* btor = boolector_get_btor(const_cast<BoolectorNode*>(n));
   int32_t id = boolector_get_node_id(btor, const_cast<BoolectorNode*>(n));
   return std::hash<int32_t>{}(id);
-}
-
-size_t
-BoolectorSortHashFunc::operator()(const BoolectorSort s) const
-{
-  return std::hash<BoolectorSort>{}(s);
 }
 
 /* -------------------------------------------------------------------------- */

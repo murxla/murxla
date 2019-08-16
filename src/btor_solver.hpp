@@ -4,6 +4,9 @@
 #define __SMTMBT__BTOR_SOLVER_H
 
 #include "solver.hpp"
+#include "theory.hpp"
+
+#include "boolector/boolector.h"
 
 extern "C" {
 struct Btor;
@@ -24,22 +27,27 @@ class BtorTerm : public AbsTerm
 class BtorSort : public AbsSort
 {
  public:
-  BtorSort(){};
+  BtorSort(Btor* btor, BoolectorSort sort);
   ~BtorSort() override;
   std::size_t hash() const override;
-  BtorSort* copy() const override;
+
+ private:
+  Btor* d_solver;
+  BoolectorSort d_sort;
 };
 
 class BtorSolver : public Solver
 {
  public:
-  BtorSolver(RNGenerator& rng) : Solver(rng) {}
+  BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
 
   void new_solver() override;
 
   void delete_solver() override;
 
   bool is_initialized() const override;
+
+  TheoryIdVector get_supported_theories() const override;
 
   void set_opt(const std::string& opt, bool value) const
   {  // TODO:
@@ -68,14 +76,10 @@ class BtorSolver : public Solver
   {  // TODO:
     return nullptr;
   }
-  Sort mk_sort(SortKind kind) const
-  {  // TODO:
-    return nullptr;
-  }
-  Sort mk_sort(SortKind kind, uint32_t size) const
-  {  // TODO:
-    return nullptr;
-  }
+
+  Sort mk_sort(SortKind kind) const override;
+  Sort mk_sort(SortKind kind, uint32_t size) const override;
+
   Sort mk_sort(SortKind kind, std::vector<Sort>& sorts, Sort sort) const
   {  // TODO:
     return nullptr;
@@ -121,7 +125,6 @@ class BtorSolver : public Solver
   //
   //
  private:
-  // RNG?
   Btor* d_solver;
 };
 

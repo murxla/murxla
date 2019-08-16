@@ -6,6 +6,7 @@ set(smtmbt_src_files
   solver.cpp
   solver_manager.cpp
   sort.cpp
+  theory.cpp
   util.cpp
 )
 

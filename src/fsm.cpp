@@ -131,6 +131,7 @@ class ActionDelete : public Action
   bool run() override
   {
     SMTMBT_TRACE << get_id();
+    d_smgr.clear();
     d_solver.delete_solver();
     return true;
   }
@@ -152,12 +153,22 @@ class ActionMkSort : public Action
   {
     SMTMBT_TRACE << get_id();
     Sort res;
-
-    // TODO pick sortkind
-    // TODO swwitch over sort kind
-    uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
-    res    = d_solver.mk_sort(SortKind::BIT_VECTOR, bw);
-    d_smgr.add_sort(res, THEORY_BV);
+    TheoryId theory = d_smgr.pick_theory();
+    std::cout << "picked theory " << theory << std::endl;
+    SortKind kind = d_solver.pick_sort_kind(d_kinds[theory]);
+    std::cout << "picked sort " << kind << std::endl;
+    switch (kind)
+    {
+      case SortKind::BIT_VECTOR:
+      {
+        uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
+        res         = d_solver.mk_sort(SortKind::BIT_VECTOR, bw);
+      }
+      break;
+      case SortKind::BOOLEAN: res = d_solver.mk_sort(SortKind::BOOLEAN); break;
+      default: assert(false);
+    }
+    d_smgr.add_sort(res, theory);
     return true;
   }
   // void untrace(const char* s) override;
