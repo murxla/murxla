@@ -18,8 +18,7 @@ if(Boolector_FOUND)
 endif()
 
 if(CVC4_FOUND)
-  target_link_libraries(smtmbt ${CVC4_LIBRARIES})
-  target_include_directories(smtmbt PRIVATE ${CVC4_INCLUDE_DIR})
+  target_link_libraries(smtmbt CVC4::cvc4)
   target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_CVC4)
 endif()
 
