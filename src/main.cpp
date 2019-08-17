@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <iostream>
+#include <sstream>
 
 #include <cxxopts.hpp>
 
@@ -364,20 +365,23 @@ run(uint32_t seed, Options& options)
     result = RESULT_SIGNAL;
   }
 
+  std::stringstream info;
   switch (result)
   {
     case RESULT_OK: break;
-    case RESULT_ERROR: std::cout << std::flush << " error" << std::endl; break;
-    case RESULT_SIGNAL:
-      std::cout << std::flush << " signal" << std::endl;
-      break;
+    case RESULT_ERROR: info << " error"; break;
+    case RESULT_SIGNAL: info << " signal"; break;
     case RESULT_TIMEOUT:
-      std::cout << std::flush << " timed out after " << g_options.time
-                << " seconds " << std::endl;
+      info << " timed out after " << g_options.time << " seconds ";
       break;
     default:
       assert(result == RESULT_UNKNOWN);
-      std::cout << std::flush << " unknown" << std::endl;
+      info << " unknown";
+  }
+
+  if (!info.str().empty())
+  {
+    std::cout << std::flush << info.str() << std::endl;
   }
 
   return result;
