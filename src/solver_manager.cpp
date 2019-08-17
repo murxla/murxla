@@ -5,28 +5,92 @@ namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
 
-SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
-    : d_solver(solver), d_rng(rng)
+#define SMTMBT_ADD_SORT_KIND(kind, arity, theory) \
+  d_sort_kinds.emplace(kind, SortKindData(kind, arity, theory));
+
+void
+SolverManager::add_enabled_theories()
 {
+  /* Get theories supported by enabled solver. */
   TheoryIdVector solver_theories = d_solver->get_supported_theories();
 
+  /* Get all theories supported by MBT. */
   TheoryIdVector all_theories;
   for (int32_t t = 0; t < THEORY_ALL; ++t)
     all_theories.push_back(static_cast<TheoryId>(t));
 
   // TODO filter out based on enabled theories enabled via CLI
 
-  d_enabled_theories = TheoryIdVector(all_theories.size());
-
+  /* We need to sort these for intersection. */
   std::sort(all_theories.begin(), all_theories.end());
   std::sort(solver_theories.begin(), solver_theories.end());
-
+  /* Filter out theories not supported by solver. */
+  d_enabled_theories = TheoryIdVector(all_theories.size());
   auto it = std::set_intersection(all_theories.begin(),
                                   all_theories.end(),
                                   solver_theories.begin(),
                                   solver_theories.end(),
                                   d_enabled_theories.begin());
+  /* Resize to intersection size. */
   d_enabled_theories.resize(it - d_enabled_theories.begin());
+}
+
+void
+SolverManager::add_sort_kinds()
+{
+  assert(d_enabled_theories.size());
+
+  for (TheoryId theory : d_enabled_theories)
+  {
+    switch (theory)
+    {
+      case THEORY_BV: SMTMBT_ADD_SORT_KIND(BIT_VECTOR, 0, THEORY_BV); break;
+      case THEORY_BOOL: SMTMBT_ADD_SORT_KIND(BOOLEAN, 0, THEORY_BOOL); break;
+      default: assert(false);
+    }
+  }
+}
+
+template <typename TKind,
+          typename TKindData,
+          typename TKindMap,
+          typename TKindVector>
+TKindData&
+SolverManager::pick_kind(TKindMap& map,
+                         TKindVector* kinds1,
+                         TKindVector* kinds2)
+{
+  assert(kinds1 || kinds2);
+  size_t sz1 = kinds1 ? kinds1->size() : 0;
+  size_t sz2 = kinds2 ? kinds2->size() : 0;
+  uint32_t n = d_rng.pick_uint32() % (sz1 + sz2);
+  typename TKindVector::iterator it;
+
+  assert(sz1 || sz2);
+  if (sz2 == 0 || n < sz1)
+  {
+    assert(kinds1);
+    it = kinds1->begin();
+  }
+  else
+  {
+    assert(kinds2);
+    n -= sz1;
+    it = kinds2->begin();
+  }
+  std::advance(it, n);
+  TKind kind = *it;
+  assert(map.find(kind) != map.end());
+  return map[kind];
+}
+
+/* -------------------------------------------------------------------------- */
+
+SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
+    : d_solver(solver), d_rng(rng)
+{
+  add_enabled_theories();
+  add_sort_kinds();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -45,6 +109,18 @@ Solver&
 SolverManager::get_solver()
 {
   return *d_solver.get();
+}
+
+OpKindMap&
+SolverManager::get_op_kinds()
+{
+  return d_op_kinds;
+}
+
+SortKindMap&
+SolverManager::get_sort_kinds()
+{
+  return d_sort_kinds;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -196,6 +272,16 @@ bool
 SolverManager::has_term(Sort sort)
 {
   return !d_terms[get_theory(sort)][sort].empty();
+}
+
+/* -------------------------------------------------------------------------- */
+
+SortKind
+SolverManager::pick_sort_kind(SortKindVector& kinds)
+{
+  return pick_kind<SortKind, SortKindData, SortKindMap, SortKindVector>(
+             d_sort_kinds, &kinds)
+      .d_kind;
 }
 
 /* -------------------------------------------------------------------------- */

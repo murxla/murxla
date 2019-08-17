@@ -35,6 +35,8 @@ class SolverManager
   void clear();
 
   Solver& get_solver();
+  OpKindMap& get_op_kinds();
+  SortKindMap& get_sort_kinds();
 
   void set_rng(RNGenerator& rng);
   RNGenerator& get_rng();
@@ -51,6 +53,8 @@ class SolverManager
   bool has_term();
   bool has_term(TheoryId theory);
   bool has_term(Sort sort);
+
+  SortKind pick_sort_kind(SortKindVector& kinds);
 
   Sort pick_sort();
   Sort pick_sort(TheoryId theory);
@@ -69,14 +73,29 @@ class SolverManager
 
   Stats d_stats;
 
- protected:
+  // protected:
   // TODO: move that to class AbsTerm AbsSort
   /* Solver specific implementations. */
   //  virtual Term copy_term(Term term);
   //  virtual Sort copy_sort(Sort sort);
 
+ private:
+  void add_enabled_theories();
+  void add_sort_kinds();
+
+  template <typename TKind,
+            typename TKindData,
+            typename TKindMap,
+            typename TKindVector>
+  TKindData& pick_kind(TKindMap& map,
+                       TKindVector* kinds1,
+                       TKindVector* kinds2 = nullptr);
+
   std::unique_ptr<Solver> d_solver;
   RNGenerator& d_rng;
+
+  OpKindMap d_op_kinds;
+  SortKindMap d_sort_kinds;
 
   TheoryIdVector d_enabled_theories;
 

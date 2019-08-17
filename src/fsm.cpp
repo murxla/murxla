@@ -143,7 +143,7 @@ class ActionMkSort : public Action
  public:
   ActionMkSort(SolverManager& smgr) : Action(smgr, "mkSort")
   {
-    for (const auto& k : d_solver.get_sort_kinds())
+    for (const auto& k : d_smgr.get_sort_kinds())
     {
       d_kinds[k.second.d_theory].push_back(k.first);
     }
@@ -155,7 +155,7 @@ class ActionMkSort : public Action
     Sort res;
     TheoryId theory = d_smgr.pick_theory();
     std::cout << "picked theory " << theory << std::endl;
-    SortKind kind = d_solver.pick_sort_kind(d_kinds[theory]);
+    SortKind kind = d_smgr.pick_sort_kind(d_kinds[theory]);
     std::cout << "picked sort " << kind << std::endl;
     switch (kind)
     {

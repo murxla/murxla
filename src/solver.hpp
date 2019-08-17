@@ -94,10 +94,6 @@ class Solver
 
   virtual Result check_sat() const = 0;
 
-  OpKindMap& get_op_kinds();
-  SortKindMap& get_sort_kinds();
-  SortKind pick_sort_kind(SortKindVector& kinds);
-
   //
   // get_model()
   // get_value()
@@ -107,50 +103,7 @@ class Solver
   //
  protected:
   RNGenerator& d_rng;
-
- private:
-  template <typename TKind,
-            typename TKindData,
-            typename TKindMap,
-            typename TKindVector>
-  TKindData& pick_kind(TKindMap& map,
-                       TKindVector* kinds1,
-                       TKindVector* kinds2 = nullptr);
-
-  OpKindMap d_op_kinds;
-  SortKindMap d_sort_kinds;
 };
-
-template <typename TKind,
-          typename TKindData,
-          typename TKindMap,
-          typename TKindVector>
-TKindData&
-Solver::pick_kind(TKindMap& map, TKindVector* kinds1, TKindVector* kinds2)
-{
-  assert(kinds1 || kinds2);
-  size_t sz1 = kinds1 ? kinds1->size() : 0;
-  size_t sz2 = kinds2 ? kinds2->size() : 0;
-  uint32_t n = d_rng.pick_uint32() % (sz1 + sz2);
-  typename TKindVector::iterator it;
-
-  assert (sz1 || sz2);
-  if (sz2 == 0 || n < sz1)
-  {
-    assert (kinds1);
-    it = kinds1->begin();
-  }
-  else
-  {
-    assert(kinds2);
-    n -= sz1;
-    it = kinds2->begin();
-  }
-  std::advance(it, n);
-  TKind kind = *it;
-  assert(map.find(kind) != map.end());
-  return map[kind];
-}
 
 }  // namespace smtmbt
 
