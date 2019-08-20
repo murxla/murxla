@@ -101,9 +101,9 @@ class SolverManager
   TheoryIdVector d_enabled_theories;
 
   /* Map theory -> sorts. */
-  std::unordered_map<TheoryId, SortSet> d_theory2sorts;
+  std::unordered_map<TheoryId, SortSet> d_theory_to_sorts;
   /* Map sort -> theory. */
-  std::unordered_map<Sort, TheoryId, HashSort> d_sorts2theory;
+  std::unordered_map<Sort, TheoryId, HashSort> d_sorts_to_theory;
   /* Map theory -> (sort -> terms). */
   std::unordered_map<TheoryId, SortMap> d_terms;
 };
@@ -189,9 +189,9 @@ class SolverManager
   RNGenerator& d_rng;
 
   /* Map theory -> sorts. */
-  std::unordered_map<TheoryId, SortSet> d_theory2sorts;
+  std::unordered_map<TheoryId, SortSet> d_theory_to_sorts;
   /* Map sort -> theory. */
-  std::unordered_map<TSort, TheoryId, THashSort> d_sorts2theory;
+  std::unordered_map<TSort, TheoryId, THashSort> d_sorts_to_theory;
   /* Map theory -> (sort -> terms). */
   std::unordered_map<TheoryId, SortMap> d_terms;
 
@@ -321,16 +321,16 @@ void
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::add_sort(
     TSort sort, TheoryId theory)
 {
-  if (d_sorts2theory.find(sort) == d_sorts2theory.end())
+  if (d_sorts_to_theory.find(sort) == d_sorts_to_theory.end())
   {
-    d_sorts2theory.emplace(copy_sort(sort), theory);
+    d_sorts_to_theory.emplace(copy_sort(sort), theory);
   }
 
-  if (d_theory2sorts.find(theory) == d_theory2sorts.end())
+  if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end())
   {
-    d_theory2sorts.emplace(theory, std::unordered_set<TSort, THashSort>());
+    d_theory_to_sorts.emplace(theory, std::unordered_set<TSort, THashSort>());
   }
-  d_theory2sorts[theory].emplace(sort);
+  d_theory_to_sorts[theory].emplace(sort);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -479,10 +479,10 @@ TSort
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::pick_sort(
     TheoryId theory)
 {
-  assert(d_theory2sorts.find(theory) != d_theory2sorts.end());
-  assert(!d_theory2sorts[theory].empty());
+  assert(d_theory_to_sorts.find(theory) != d_theory_to_sorts.end());
+  assert(!d_theory_to_sorts[theory].empty());
 
-  SortSet& set = d_theory2sorts[theory];
+  SortSet& set = d_theory_to_sorts[theory];
   auto it      = set.begin();
   std::advance(it, d_rng.pick_uint32() % set.size());
   return *it;
@@ -531,7 +531,7 @@ template <typename TSolver,
 bool
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::has_sort()
 {
-  return !d_sorts2theory.empty();
+  return !d_sorts_to_theory.empty();
 }
 
 template <typename TSolver,
@@ -542,7 +542,7 @@ template <typename TSolver,
 bool
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::has_sort(TSort sort)
 {
-  return d_sorts2theory.find(sort) != d_sorts2theory.end();
+  return d_sorts_to_theory.find(sort) != d_sorts_to_theory.end();
 }
 
 template <typename TSolver,
@@ -554,8 +554,8 @@ bool
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::has_sort(
     TheoryId theory)
 {
-  if (d_theory2sorts.find(theory) == d_theory2sorts.end()) return false;
-  return !d_theory2sorts[theory].empty();
+  if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end()) return false;
+  return !d_theory_to_sorts[theory].empty();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -568,9 +568,9 @@ template <typename TSolver,
 TheoryId
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::pick_theory_with_sorts()
 {
-  assert(d_theory2sorts.size());
-  auto it = d_theory2sorts.begin();
-  std::advance(it, d_rng.pick_uint32() % d_theory2sorts.size());
+  assert(d_theory_to_sorts.size());
+  auto it = d_theory_to_sorts.begin();
+  std::advance(it, d_rng.pick_uint32() % d_theory_to_sorts.size());
   return it->first;
 }
 
@@ -600,7 +600,7 @@ SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::get_theory(
     TSort sort)
 {
   assert(has_sort(sort));
-  return d_sorts2theory[sort];
+  return d_sorts_to_theory[sort];
 }
 
 template <typename TSolver,

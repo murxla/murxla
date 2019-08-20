@@ -559,13 +559,13 @@ BtorSolverManager::clear()
     }
   }
   d_terms.clear();
-  for (auto& p : d_sorts2theory)
+  for (auto& p : d_sorts_to_theory)
   {
     std::tie(sort, theory) = p;
     boolector_release_sort(d_solver, sort);
   }
-  d_sorts2theory.clear();
-  d_theory2sorts.clear();
+  d_sorts_to_theory.clear();
+  d_theory_to_sorts.clear();
 
   if (get_bool_sort())
   {

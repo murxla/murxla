@@ -98,8 +98,8 @@ SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
 void
 SolverManager::clear()
 {
-  d_theory2sorts.clear();
-  d_sorts2theory.clear();
+  d_theory_to_sorts.clear();
+  d_sorts_to_theory.clear();
   d_terms.clear();
 }
 
@@ -178,16 +178,16 @@ SolverManager::add_term(Term term, TheoryId theory)
 void
 SolverManager::add_sort(Sort sort, TheoryId theory)
 {
-  if (d_sorts2theory.find(sort) == d_sorts2theory.end())
+  if (d_sorts_to_theory.find(sort) == d_sorts_to_theory.end())
   {
-    d_sorts2theory.emplace(sort, theory);
+    d_sorts_to_theory.emplace(sort, theory);
   }
 
-  if (d_theory2sorts.find(theory) == d_theory2sorts.end())
+  if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end())
   {
-    d_theory2sorts.emplace(theory, std::unordered_set<Sort, HashSort>());
+    d_theory_to_sorts.emplace(theory, std::unordered_set<Sort, HashSort>());
   }
-  d_theory2sorts[theory].emplace(sort);
+  d_theory_to_sorts[theory].emplace(sort);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -214,9 +214,9 @@ SolverManager::pick_theory()
 TheoryId
 SolverManager::pick_theory_with_sorts()
 {
-  assert(d_theory2sorts.size());
-  auto it = d_theory2sorts.begin();
-  std::advance(it, d_rng.pick_uint32() % d_theory2sorts.size());
+  assert(d_theory_to_sorts.size());
+  auto it = d_theory_to_sorts.begin();
+  std::advance(it, d_rng.pick_uint32() % d_theory_to_sorts.size());
   return it->first;
 }
 
@@ -234,7 +234,7 @@ TheoryId
 SolverManager::get_theory(Sort sort)
 {
   assert(has_sort(sort));
-  return d_sorts2theory[sort];
+  return d_sorts_to_theory[sort];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -333,10 +333,10 @@ SolverManager::pick_sort()
 Sort
 SolverManager::pick_sort(TheoryId theory)
 {
-  assert(d_theory2sorts.find(theory) != d_theory2sorts.end());
-  assert(!d_theory2sorts[theory].empty());
+  assert(d_theory_to_sorts.find(theory) != d_theory_to_sorts.end());
+  assert(!d_theory_to_sorts[theory].empty());
 
-  SortSet& set = d_theory2sorts[theory];
+  SortSet& set = d_theory_to_sorts[theory];
   auto it      = set.begin();
   std::advance(it, d_rng.pick_uint32() % set.size());
   return *it;
@@ -368,20 +368,20 @@ SolverManager::pick_sort_with_terms(TheoryId theory)
 bool
 SolverManager::has_sort()
 {
-  return !d_sorts2theory.empty();
+  return !d_sorts_to_theory.empty();
 }
 
 bool
 SolverManager::has_sort(Sort sort)
 {
-  return d_sorts2theory.find(sort) != d_sorts2theory.end();
+  return d_sorts_to_theory.find(sort) != d_sorts_to_theory.end();
 }
 
 bool
 SolverManager::has_sort(TheoryId theory)
 {
-  if (d_theory2sorts.find(theory) == d_theory2sorts.end()) return false;
-  return !d_theory2sorts[theory].empty();
+  if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end()) return false;
+  return !d_theory_to_sorts[theory].empty();
 }
 
 }  // namespace smtmbt

@@ -2030,8 +2030,8 @@ CVC4SolverManager::clear()
 {
   d_terms.clear();
   d_op_terms.clear();
-  d_sorts2theory.clear();
-  d_theory2sorts.clear();
+  d_sorts_to_theory.clear();
+  d_theory_to_sorts.clear();
   d_all_kinds.clear();
 }
 
