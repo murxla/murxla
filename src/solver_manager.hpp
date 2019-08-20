@@ -45,6 +45,14 @@ class SolverManager
   void add_term(Term term, TheoryId theory);
   void add_sort(Sort sort, TheoryId theory);
 
+  SortKind pick_sort_kind(SortKindVector& kinds);
+
+  TheoryId pick_theory();
+  TheoryId pick_theory_with_sorts();
+  TheoryId pick_theory_with_terms();
+
+  TheoryId get_theory(Sort sort);
+
   Term pick_term();
   Term pick_term(TheoryId theory);
   Term pick_term(Term term);
@@ -53,8 +61,6 @@ class SolverManager
   bool has_term();
   bool has_term(TheoryId theory);
   bool has_term(Sort sort);
-
-  SortKind pick_sort_kind(SortKindVector& kinds);
 
   Sort pick_sort();
   Sort pick_sort(TheoryId theory);
@@ -65,11 +71,6 @@ class SolverManager
   bool has_sort(Sort sort);
   bool has_sort(TheoryId theory);
 
-  TheoryId pick_theory();
-  TheoryId pick_theory_with_sorts();
-  TheoryId pick_theory_with_terms();
-
-  TheoryId get_theory(Sort sort);
 
   Stats d_stats;
 

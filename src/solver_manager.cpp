@@ -192,6 +192,53 @@ SolverManager::add_sort(Sort sort, TheoryId theory)
 
 /* -------------------------------------------------------------------------- */
 
+SortKind
+SolverManager::pick_sort_kind(SortKindVector& kinds)
+{
+  return pick_kind<SortKind, SortKindData, SortKindMap, SortKindVector>(
+             d_sort_kinds, &kinds)
+      .d_kind;
+}
+
+/* -------------------------------------------------------------------------- */
+
+TheoryId
+SolverManager::pick_theory()
+{
+  assert(d_enabled_theories.size());
+  auto it = d_enabled_theories.begin();
+  std::advance(it, d_rng.pick_uint32() % d_enabled_theories.size());
+  return *it;
+}
+
+TheoryId
+SolverManager::pick_theory_with_sorts()
+{
+  assert(d_theory2sorts.size());
+  auto it = d_theory2sorts.begin();
+  std::advance(it, d_rng.pick_uint32() % d_theory2sorts.size());
+  return it->first;
+}
+
+TheoryId
+SolverManager::pick_theory_with_terms()
+{
+  assert(d_terms.size());
+  auto it = d_terms.begin();
+  std::advance(it, d_rng.pick_uint32() % d_terms.size());
+  assert(!it->second.empty());
+  return it->first;
+}
+
+TheoryId
+SolverManager::get_theory(Sort sort)
+{
+  assert(has_sort(sort));
+  return d_sorts2theory[sort];
+}
+
+/* -------------------------------------------------------------------------- */
+
 Term
 SolverManager::pick_term()
 {
@@ -276,16 +323,6 @@ SolverManager::has_term(Sort sort)
 
 /* -------------------------------------------------------------------------- */
 
-SortKind
-SolverManager::pick_sort_kind(SortKindVector& kinds)
-{
-  return pick_kind<SortKind, SortKindData, SortKindMap, SortKindVector>(
-             d_sort_kinds, &kinds)
-      .d_kind;
-}
-
-/* -------------------------------------------------------------------------- */
-
 Sort
 SolverManager::pick_sort()
 {
@@ -345,43 +382,6 @@ SolverManager::has_sort(TheoryId theory)
 {
   if (d_theory2sorts.find(theory) == d_theory2sorts.end()) return false;
   return !d_theory2sorts[theory].empty();
-}
-
-/* -------------------------------------------------------------------------- */
-
-TheoryId
-SolverManager::pick_theory()
-{
-  assert(d_enabled_theories.size());
-  auto it = d_enabled_theories.begin();
-  std::advance(it, d_rng.pick_uint32() % d_enabled_theories.size());
-  return *it;
-}
-
-TheoryId
-SolverManager::pick_theory_with_sorts()
-{
-  assert(d_theory2sorts.size());
-  auto it = d_theory2sorts.begin();
-  std::advance(it, d_rng.pick_uint32() % d_theory2sorts.size());
-  return it->first;
-}
-
-TheoryId
-SolverManager::pick_theory_with_terms()
-{
-  assert(d_terms.size());
-  auto it = d_terms.begin();
-  std::advance(it, d_rng.pick_uint32() % d_terms.size());
-  assert(!it->second.empty());
-  return it->first;
-}
-
-TheoryId
-SolverManager::get_theory(Sort sort)
-{
-  assert(has_sort(sort));
-  return d_sorts2theory[sort];
 }
 
 }  // namespace smtmbt
