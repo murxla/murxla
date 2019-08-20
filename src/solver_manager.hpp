@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 #include "solver.hpp"
+#include "sort.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
@@ -36,7 +37,10 @@ class SolverManager
 
   Solver& get_solver();
   OpKindMap& get_op_kinds();
+#if 0
   SortKindMap& get_sort_kinds();
+#endif
+  SortKinds& get_theory_to_sort_kinds();
 
   void set_rng(RNGenerator& rng);
   RNGenerator& get_rng();
@@ -100,6 +104,8 @@ class SolverManager
 
   TheoryIdVector d_enabled_theories;
 
+  /* Map theory -> sort kinds. */
+  SortKinds d_theory_to_sort_kinds;
   /* Map theory -> sorts. */
   std::unordered_map<TheoryId, SortSet> d_theory_to_sorts;
   /* Map sort -> theory. */

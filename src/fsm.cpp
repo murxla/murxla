@@ -143,10 +143,6 @@ class ActionMkSort : public Action
  public:
   ActionMkSort(SolverManager& smgr) : Action(smgr, "mkSort")
   {
-    for (const auto& k : d_smgr.get_sort_kinds())
-    {
-      d_kinds[k.second.d_theory].push_back(k.first);
-    }
   }
 
   bool run() override
@@ -155,7 +151,9 @@ class ActionMkSort : public Action
     Sort res;
     TheoryId theory = d_smgr.pick_theory();
     std::cout << "picked theory " << theory << std::endl;
-    SortKind kind = d_smgr.pick_sort_kind(d_kinds[theory]);
+    SortKinds kinds = d_smgr.get_theory_to_sort_kinds();
+    assert(kinds.find(theory) != kinds.end());
+    SortKind kind = d_smgr.pick_sort_kind(kinds[theory]);
     std::cout << "picked sort " << kind << std::endl;
     switch (kind)
     {
@@ -172,10 +170,6 @@ class ActionMkSort : public Action
     return true;
   }
   // void untrace(const char* s) override;
-
- private:
-  /* Mapping from TheoryId of the sort to SortKinds of that theory. */
-  std::unordered_map<TheoryId, SortKindVector> d_kinds;
 };
 
 

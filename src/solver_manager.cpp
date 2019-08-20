@@ -91,6 +91,11 @@ SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
 {
   add_enabled_theories();
   add_sort_kinds();
+
+  for (const auto& k : d_sort_kinds)
+  {
+    d_theory_to_sort_kinds[k.second.d_theory].push_back(k.first);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -117,10 +122,18 @@ SolverManager::get_op_kinds()
   return d_op_kinds;
 }
 
+#if 0
 SortKindMap&
 SolverManager::get_sort_kinds()
 {
   return d_sort_kinds;
+}
+#endif
+
+SortKinds&
+SolverManager::get_theory_to_sort_kinds()
+{
+  return d_theory_to_sort_kinds;
 }
 
 /* -------------------------------------------------------------------------- */

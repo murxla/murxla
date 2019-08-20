@@ -40,9 +40,10 @@ struct SortKindData
   TheoryId d_theory;
 };
 
+using SortKindVector = std::vector<SortKind>;
 using SortKindMap =
     std::unordered_map<SortKind, SortKindData, SortKindHashFunction>;
-using SortKindVector = std::vector<SortKind>;
+using SortKinds = std::unordered_map<TheoryId, SortKindVector>;
 
 }  // namespace smtmbt
 
