@@ -315,10 +315,10 @@ SolverManager::pick_sort_with_terms()
 Sort
 SolverManager::pick_sort_with_terms(TheoryId theory)
 {
+  if (theory == THEORY_ALL) theory = pick_theory_with_terms();
+
   SortMap& map = d_terms[theory];
   assert(!map.empty());
-
-  if (theory == THEORY_ALL) theory = pick_theory_with_terms();
 
   auto it = map.begin();
   if (map.size() > 1)
