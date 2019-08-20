@@ -12,12 +12,14 @@ namespace cvc4 {
 
 class CVC4Term : public AbsTerm
 {
+  friend class CVC4Solver;
+
  public:
-  CVC4Term(){};
+  CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term d_term);
   ~CVC4Term() override;
   std::size_t hash() const override;
-  CVC4Term* copy() const override;
  private:
+  CVC4::api::Solver* d_solver;
   CVC4::api::Term d_term;
 };
 
@@ -79,25 +81,9 @@ class CVC4Solver : public Solver
     return nullptr;
   }
 
+  Term mk_term(const OpKindData& kind, std::vector<Term>& args) override;
+
   Sort get_sort(Term term) const
-  {  // TODO:
-    return nullptr;
-  }
-
-  Op mk_op(OpKind kind) const
-  {  // TODO:
-    return Op();
-  }
-  Op mk_op(OpKind kind, std::vector<uint32_t>& indices) const
-  {  // TODO:
-    return Op();
-  }
-
-  Term apply(Op op, std::vector<Term>& children) const
-  {  // TODO:
-    return nullptr;
-  }
-  Term apply(Term term, std::vector<Term>& children) const
   {  // TODO:
     return nullptr;
   }
@@ -119,7 +105,11 @@ class CVC4Solver : public Solver
   //
   //
  private:
+  void init_op_kinds();
+  CVC4::api::Term& get_term(Term term);
+
   CVC4::api::Solver* d_solver;
+  std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_op_kinds;
 };
 
 }  // namespace btor

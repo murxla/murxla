@@ -17,11 +17,16 @@ namespace btor {
 
 class BtorTerm : public AbsTerm
 {
+  friend class BtorSolver;
+
  public:
-  BtorTerm(){};
+  BtorTerm(Btor* btor, BoolectorNode* term);
   ~BtorTerm() override;
   std::size_t hash() const override;
-  BtorTerm* copy() const override;
+
+ private:
+  Btor* d_solver;
+  BoolectorNode* d_term;
 };
 
 class BtorSort : public AbsSort
@@ -85,25 +90,9 @@ class BtorSolver : public Solver
     return nullptr;
   }
 
+  Term mk_term(const OpKindData& kind, std::vector<Term>& arguments) override;
+
   Sort get_sort(Term term) const
-  {  // TODO:
-    return nullptr;
-  }
-
-  Op mk_op(OpKind kind) const
-  {  // TODO:
-    return Op();
-  }
-  Op mk_op(OpKind kind, std::vector<uint32_t>& indices) const
-  {  // TODO:
-    return Op();
-  }
-
-  Term apply(Op op, std::vector<Term>& children) const
-  {  // TODO:
-    return nullptr;
-  }
-  Term apply(Term term, std::vector<Term>& children) const
   {  // TODO:
     return nullptr;
   }
@@ -125,6 +114,15 @@ class BtorSolver : public Solver
   //
   //
  private:
+  BoolectorNode* get_term(Term term);
+  BoolectorNode* mk_term_left_assoc(std::vector<Term>& args,
+                                    BoolectorNode* (*fun)(Btor*,
+                                                          BoolectorNode*,
+                                                          BoolectorNode*) );
+  BoolectorNode* mk_term_pairwise(std::vector<Term>& args,
+                                  BoolectorNode* (*fun)(Btor*,
+                                                        BoolectorNode*,
+                                                        BoolectorNode*) );
   Btor* d_solver;
 };
 

@@ -172,6 +172,46 @@ class ActionMkSort : public Action
   // void untrace(const char* s) override;
 };
 
+class ActionMkTerm : public Action
+{
+ public:
+  ActionMkTerm(SolverManager& smgr) : Action(smgr, "mkTerm") {}
+
+  bool run() override
+  {
+    // TODO TODO TODO indexed params
+    SMTMBT_TRACE << get_id();
+    OpKinds kinds = d_smgr.get_theory_to_op_kinds();
+    /* Pick theory of term argument(s).*/
+    TheoryId theory_args = d_smgr.pick_theory_with_terms();
+    /* Nothing to do if no kind with term arguments of picked theory exists. */
+    if (kinds.find(theory_args) == kinds.end()
+        && kinds.find(THEORY_ALL) == kinds.end())
+    {
+      return false;
+    }
+    /* Pick kind that expects arguments of picked theory. */
+    const OpKindData& kind =
+        kinds.find(THEORY_ALL) == kinds.end()
+            ? d_smgr.pick_op_kind(kinds[theory_args])
+            : d_smgr.pick_op_kind(kinds[theory_args], kinds[THEORY_ALL]);
+    /* Pick argument term(s). */
+    uint32_t n_args = kind.d_arity == SMTMBT_MK_TERM_N_ARGS
+                          ? d_rng.pick_uint32(1, SMTMBT_MK_TERM_N_ARGS)
+                          : kind.d_arity;
+    std::vector<Term> args;
+    for (uint32_t i = 0; i < n_args; ++i)
+      args.push_back(d_smgr.pick_term(theory_args));
+    /* Create term. */
+    Term res = d_solver.mk_term(kind, args);
+    std::cout << "res " << res << std::endl;
+    d_smgr.add_term(
+        res,
+        kind.d_theory_term == THEORY_ALL ? theory_args : kind.d_theory_term);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
 
 /* ========================================================================== */
 /* Configure default FSM                                                      */
@@ -189,6 +229,8 @@ FSM::configure()
 
   auto a_mksort = new_action<ActionMkSort>();
 
+  auto a_mkterm = new_action<ActionMkTerm>();
+
   /* --------------------------------------------------------------------- */
   /* States                                                                */
   /* --------------------------------------------------------------------- */
@@ -198,6 +240,7 @@ FSM::configure()
   auto s_final  = new_state("final", nullptr, true);
 
   auto s_inputs = new_state("create inputs");
+  auto s_terms  = new_state("create terms");
 
   /* --------------------------------------------------------------------- */
   /* Transitions                                                           */
@@ -207,11 +250,12 @@ FSM::configure()
   s_new->add_action(a_new, 10, s_inputs);
 
   /* State: create inputs ................................................ */
-  /* sort actions */
-  s_inputs->add_action(a_mksort, 2, s_delete);
+  s_inputs->add_action(a_mksort, 10, s_delete);
+
+  /* State: create terms ................................................. */
+  s_terms->add_action(a_mkterm, 10, s_delete);
 
   /* State: delete ....................................................... */
-  /* solver actions */
   s_delete->add_action(a_delete, 10, s_final);
 
 

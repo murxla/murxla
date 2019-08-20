@@ -20,10 +20,9 @@ class AbsTerm
   AbsTerm(){};
   virtual ~AbsTerm(){};
   virtual std::size_t hash() const = 0;
-  virtual AbsTerm* copy() const = 0;
 };
 
-using Term = AbsTerm*;
+using Term = std::shared_ptr<AbsTerm>;
 
 struct HashTerm
 {
@@ -82,13 +81,9 @@ class Solver
                        std::vector<Sort>& sorts,
                        Sort sort) const                              = 0;
 
+  virtual Term mk_term(const OpKindData& kind, std::vector<Term>& args) = 0;
+
   virtual Sort get_sort(Term term) const = 0;
-
-  virtual Op mk_op(OpKind kind) const                                 = 0;
-  virtual Op mk_op(OpKind kind, std::vector<uint32_t>& indices) const = 0;
-
-  virtual Term apply(Op op, std::vector<Term>& children) const     = 0;
-  virtual Term apply(Term term, std::vector<Term>& children) const = 0;
 
   virtual void assert_formula(const Term& t) const = 0;
 

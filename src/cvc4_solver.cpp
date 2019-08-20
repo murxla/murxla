@@ -13,23 +13,20 @@ namespace cvc4 {
 /* CVC4Term                                                                   */
 /* -------------------------------------------------------------------------- */
 
+CVC4Term::CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term)
+    : d_solver(cvc4), d_term(term)
+{
+}
+
 CVC4Term::~CVC4Term()
 {
-  // TODO: release sort?
+  // TODO: release term?
 }
 
 std::size_t
 CVC4Term::hash() const
 {
-  // TODO
-  return 0;
-}
-
-CVC4Term *
-CVC4Term::copy() const
-{
-  // TODO
-  return nullptr;
+  return CVC4::api::TermHashFunction()(d_term);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -61,6 +58,7 @@ CVC4Solver::new_solver()
 {
   assert(d_solver == nullptr);
   d_solver = new api::Solver();
+  init_op_kinds();
 }
 
 void
@@ -103,7 +101,113 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
 
     default: assert(false);
   }
+  assert(res);
   return res;
+}
+
+Term
+CVC4Solver::mk_term(const OpKindData& kind, std::vector<Term>& args)
+{
+  // TODO TODO TODO indexed params
+  assert(d_op_kinds.find(kind.d_kind) != d_op_kinds.end());
+
+  CVC4::api::Term cvc4_res;
+  CVC4::api::Kind cvc4_kind = d_op_kinds.at(kind.d_kind);
+
+  /* Use vector with 50% probability. */
+  int32_t n_args = d_rng.pick_with_prob(500) ? -1 : args.size();
+
+  switch (n_args)
+  {
+    case 0: cvc4_res = d_solver->mkTerm(cvc4_kind); break;
+
+    case 1: cvc4_res = d_solver->mkTerm(cvc4_kind, get_term(args[0])); break;
+
+    case 2:
+      cvc4_res =
+          d_solver->mkTerm(cvc4_kind, get_term(args[0]), get_term(args[1]));
+      break;
+
+    case 3:
+      cvc4_res = d_solver->mkTerm(
+          cvc4_kind, get_term(args[0]), get_term(args[1]), get_term(args[2]));
+      break;
+
+    default:
+      assert(n_args == -1 || n_args > 3);
+      std::vector<CVC4::api::Term> cvc4_args;
+      for (Term t : args) cvc4_args.push_back(get_term(t));
+      cvc4_res = d_solver->mkTerm(cvc4_kind, cvc4_args);
+  }
+  std::cout << "mk_term " << cvc4_res << std::endl;
+  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
+}
+
+/* -------------------------------------------------------------------------- */
+
+void
+CVC4Solver::init_op_kinds()
+{
+  d_op_kinds = {
+      {UNDEFINED, CVC4::api::Kind::UNDEFINED_KIND},
+      {DISTINCT, CVC4::api::Kind::DISTINCT},
+      {EQUAL, CVC4::api::Kind::EQUAL},
+      {ITE, CVC4::api::Kind::ITE},
+
+      {AND, CVC4::api::Kind::AND},
+      {OR, CVC4::api::Kind::OR},
+      {NOT, CVC4::api::Kind::NOT},
+      {XOR, CVC4::api::Kind::XOR},
+      {IMPLIES, CVC4::api::Kind::IMPLIES},
+
+      {BV_EXTRACT, CVC4::api::Kind::BITVECTOR_EXTRACT},
+      {BV_REPEAT, CVC4::api::Kind::BITVECTOR_REPEAT},
+      {BV_ROTATE_LEFT, CVC4::api::Kind::BITVECTOR_ROTATE_LEFT},
+      {BV_ROTATE_RIGHT, CVC4::api::Kind::BITVECTOR_ROTATE_RIGHT},
+      {BV_SIGN_EXTEND, CVC4::api::Kind::BITVECTOR_SIGN_EXTEND},
+      {BV_ZERO_EXTEND, CVC4::api::Kind::BITVECTOR_ZERO_EXTEND},
+
+      {BV_CONCAT, CVC4::api::Kind::BITVECTOR_CONCAT},
+      {BV_AND, CVC4::api::Kind::BITVECTOR_AND},
+      {BV_OR, CVC4::api::Kind::BITVECTOR_OR},
+      {BV_XOR, CVC4::api::Kind::BITVECTOR_XOR},
+      {BV_MULT, CVC4::api::Kind::BITVECTOR_MULT},
+      {BV_ADD, CVC4::api::Kind::BITVECTOR_PLUS},
+      {BV_NOT, CVC4::api::Kind::BITVECTOR_NOT},
+      {BV_NEG, CVC4::api::Kind::BITVECTOR_NEG},
+      {BV_REDOR, CVC4::api::Kind::BITVECTOR_REDOR},
+      {BV_REDAND, CVC4::api::Kind::BITVECTOR_REDAND},
+      {BV_NAND, CVC4::api::Kind::BITVECTOR_NAND},
+      {BV_NOR, CVC4::api::Kind::BITVECTOR_NOR},
+      {BV_XNOR, CVC4::api::Kind::BITVECTOR_XNOR},
+      {BV_COMP, CVC4::api::Kind::BITVECTOR_COMP},
+      {BV_SUB, CVC4::api::Kind::BITVECTOR_SUB},
+      {BV_UDIV, CVC4::api::Kind::BITVECTOR_UDIV},
+      // BITVECTOR_UDIV_TOTAL
+      {BV_UREM, CVC4::api::Kind::BITVECTOR_UREM},
+      // BITVECTOR_UREM_TOTAL
+      {BV_UREM, CVC4::api::Kind::BITVECTOR_UREM},
+      {BV_SDIV, CVC4::api::Kind::BITVECTOR_SDIV},
+      {BV_SREM, CVC4::api::Kind::BITVECTOR_SREM},
+      {BV_SMOD, CVC4::api::Kind::BITVECTOR_SMOD},
+      {BV_SHL, CVC4::api::Kind::BITVECTOR_SHL},
+      {BV_LSHR, CVC4::api::Kind::BITVECTOR_LSHR},
+      {BV_ASHR, CVC4::api::Kind::BITVECTOR_ASHR},
+      {BV_ULT, CVC4::api::Kind::BITVECTOR_ULT},
+      {BV_ULE, CVC4::api::Kind::BITVECTOR_ULE},
+      {BV_UGT, CVC4::api::Kind::BITVECTOR_UGT},
+      {BV_UGE, CVC4::api::Kind::BITVECTOR_UGE},
+      {BV_SLT, CVC4::api::Kind::BITVECTOR_SLT},
+      {BV_SLE, CVC4::api::Kind::BITVECTOR_SLE},
+      {BV_SGT, CVC4::api::Kind::BITVECTOR_SGT},
+      {BV_SGE, CVC4::api::Kind::BITVECTOR_SGE},
+  };
+}
+
+CVC4::api::Term&
+CVC4Solver::get_term(Term term)
+{
+  return static_cast<CVC4Term*>(term.get())->d_term;
 }
 
 }  // namespace btor

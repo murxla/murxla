@@ -8,6 +8,10 @@ namespace smtmbt {
 #define SMTMBT_ADD_SORT_KIND(kind, arity, theory) \
   d_sort_kinds.emplace(kind, SortKindData(kind, arity, theory));
 
+#define SMTMBT_ADD_OP_KIND(kind, arity, nparams, theory_term, theory_args) \
+  d_op_kinds.emplace(                                                      \
+      kind, OpKindData(kind, arity, nparams, theory_term, theory_args));
+
 void
 SolverManager::add_enabled_theories()
 {
@@ -46,6 +50,82 @@ SolverManager::add_sort_kinds()
     {
       case THEORY_BV: SMTMBT_ADD_SORT_KIND(BIT_VECTOR, 0, THEORY_BV); break;
       case THEORY_BOOL: SMTMBT_ADD_SORT_KIND(BOOLEAN, 0, THEORY_BOOL); break;
+      default: assert(false);
+    }
+  }
+}
+
+void
+SolverManager::add_op_kinds()
+{
+  assert(d_enabled_theories.size());
+
+  SMTMBT_ADD_OP_KIND(ITE, 3, 0, THEORY_ALL, THEORY_ALL);
+
+  for (TheoryId theory : d_enabled_theories)
+  {
+    switch (theory)
+    {
+      case THEORY_BOOL:
+        SMTMBT_ADD_OP_KIND(
+            DISTINCT, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BOOL, THEORY_ALL);
+        SMTMBT_ADD_OP_KIND(EQUAL, 2, 0, THEORY_BOOL, THEORY_ALL);
+        SMTMBT_ADD_OP_KIND(
+            AND, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BOOL, THEORY_BOOL);
+        SMTMBT_ADD_OP_KIND(
+            OR, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BOOL, THEORY_BOOL);
+        SMTMBT_ADD_OP_KIND(NOT, 1, 0, THEORY_BOOL, THEORY_BOOL);
+        SMTMBT_ADD_OP_KIND(XOR, 2, 0, THEORY_BOOL, THEORY_BOOL);
+        SMTMBT_ADD_OP_KIND(IMPLIES, 2, 0, THEORY_BOOL, THEORY_BOOL);
+        break;
+
+      case THEORY_BV:
+        SMTMBT_ADD_OP_KIND(
+            BV_CONCAT, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(
+            BV_AND, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(
+            BV_OR, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(
+            BV_XOR, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(
+            BV_MULT, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(
+            BV_ADD, SMTMBT_MK_TERM_N_ARGS, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NOT, 1, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NEG, 1, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_REDOR, 1, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_REDAND, 1, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NAND, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NOR, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_XNOR, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_COMP, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SUB, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_UDIV, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_UREM, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SDIV, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SREM, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SMOD, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SHL, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_LSHR, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ASHR, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ULT, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ULE, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_UGT, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_UGE, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SLT, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SLE, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SGT, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SGE, 2, 0, THEORY_BOOL, THEORY_BV);
+        /* indexed */
+        SMTMBT_ADD_OP_KIND(BV_EXTRACT, 1, 2, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_REPEAT, 1, 1, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ROTATE_LEFT, 1, 1, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ROTATE_RIGHT, 1, 1, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SIGN_EXTEND, 1, 1, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ZERO_EXTEND, 1, 1, THEORY_BV, THEORY_BV);
+        break;
+
       default: assert(false);
     }
   }
@@ -96,6 +176,10 @@ SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
   {
     d_theory_to_sort_kinds[k.second.d_theory].push_back(k.first);
   }
+  for (const auto& k : d_op_kinds)
+  {
+    d_theory_to_op_kinds[k.second.d_theory_args].push_back(k.first);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -116,13 +200,13 @@ SolverManager::get_solver()
   return *d_solver.get();
 }
 
+#if 0
 OpKindMap&
 SolverManager::get_op_kinds()
 {
   return d_op_kinds;
 }
 
-#if 0
 SortKindMap&
 SolverManager::get_sort_kinds()
 {
@@ -134,6 +218,12 @@ SortKinds&
 SolverManager::get_theory_to_sort_kinds()
 {
   return d_theory_to_sort_kinds;
+}
+
+OpKinds&
+SolverManager::get_theory_to_op_kinds()
+{
+  return d_theory_to_op_kinds;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -180,7 +270,7 @@ SolverManager::add_term(Term term, TheoryId theory)
   assert(map.find(sort) != map.end());
   if (map[sort].find(term) == map[sort].end())
   {
-    map[sort].emplace(term->copy(), 0);
+    map[sort].emplace(term, 0);
   }
   else
   {
@@ -210,6 +300,22 @@ SolverManager::pick_sort_kind(SortKindVector& kinds)
 {
   return pick_kind<SortKind, SortKindData, SortKindMap, SortKindVector>(
              d_sort_kinds, &kinds)
+      .d_kind;
+}
+
+OpKind
+SolverManager::pick_op_kind(OpKindVector& kinds)
+{
+  return pick_kind<OpKind, OpKindData, OpKindMap, OpKindVector>(d_op_kinds,
+                                                                &kinds)
+      .d_kind;
+}
+
+OpKind
+SolverManager::pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2)
+{
+  return pick_kind<OpKind, OpKindData, OpKindMap, OpKindVector>(
+             d_op_kinds, &kinds1, &kinds2)
       .d_kind;
 }
 

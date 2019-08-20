@@ -16,6 +16,11 @@ namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
 
+#define SMTMBT_MK_TERM_N_ARGS -1
+#define SMTMBT_MK_TERM_MAX_N_ARGS 11
+
+/* -------------------------------------------------------------------------- */
+
 class SolverManager
 {
  public:
@@ -36,11 +41,12 @@ class SolverManager
   void clear();
 
   Solver& get_solver();
-  OpKindMap& get_op_kinds();
 #if 0
+  OpKindMap& get_op_kinds();
   SortKindMap& get_sort_kinds();
 #endif
   SortKinds& get_theory_to_sort_kinds();
+  OpKinds& get_theory_to_op_kinds();
 
   void set_rng(RNGenerator& rng);
   RNGenerator& get_rng();
@@ -50,6 +56,8 @@ class SolverManager
   void add_sort(Sort sort, TheoryId theory);
 
   SortKind pick_sort_kind(SortKindVector& kinds);
+  OpKind pick_op_kind(OpKindVector& kinds);
+  OpKind pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2);
 
   TheoryId pick_theory();
   TheoryId pick_theory_with_sorts();
@@ -87,6 +95,7 @@ class SolverManager
  private:
   void add_enabled_theories();
   void add_sort_kinds();
+  void add_op_kinds();
 
   template <typename TKind,
             typename TKindData,
@@ -106,6 +115,8 @@ class SolverManager
 
   /* Map theory -> sort kinds. */
   SortKinds d_theory_to_sort_kinds;
+  /* Map theory of term arguments -> op kinds. */
+  OpKinds d_theory_to_op_kinds;
   /* Map theory -> sorts. */
   std::unordered_map<TheoryId, SortSet> d_theory_to_sorts;
   /* Map sort -> theory. */
