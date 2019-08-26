@@ -1,13 +1,16 @@
 #!/bin/bash
 
-git submodule init
-git submodule update --recursive --remote
-
 deps_dir=$(pwd)/deps
+reinstall=no
+
+git submodule init
 
 if [ -e "$deps_dir" ]; then
-  echo "Dependencies already installed or delete '$deps_dir'"
-  exit 0
+  echo "Dependencies already installed -- will reinstall without cloning."
+  echo "If you want to install from a fresh checkout first delete '$deps_dir'."
+  echo ""
+  reinstall=yes
+  git submodule update --recursive --remote
 fi
 
 mkdir -p "$deps_dir"
@@ -15,8 +18,12 @@ mkdir -p "$deps_dir"
 # Setup Boolector
 (
   cd solvers/boolector || exit 1
-  ./contrib/setup-btor2tools.sh
-  ./contrib/setup-lingeling.sh
+
+  if [ "$reinstall" == "no" ]
+  then
+    ./contrib/setup-btor2tools.sh
+    ./contrib/setup-lingeling.sh
+  fi
 
   rm build -rf
   ./configure.sh -g --asan --prefix "$deps_dir"
@@ -27,7 +34,11 @@ mkdir -p "$deps_dir"
 # Setup CVC4
 (
   cd solvers/cvc4 || exit 1
-  ./contrib/get-antlr-3.4
+
+  if [ "$reinstall" == "no" ]
+  then
+    ./contrib/get-antlr-3.4
+  fi
 
   rm build -rf
   ./configure.sh debug --asan --prefix="$deps_dir"
