@@ -95,6 +95,22 @@ FSM::run()
   }
 }
 
+/* ========================================================================== */
+/* Default Transitions (= empty actions)                                      */
+/* ========================================================================== */
+
+/**
+ * Transition from creating inputs to the next state.
+ *
+ * State:      create inputs
+ * Transition: if there exists at least one input
+ */
+class TransitionCreateInputs : public Action
+{
+ public:
+  TransitionCreateInputs(SolverManager& smgr) : Action(smgr, "") {}
+  bool run() override { return d_smgr.d_stats.inputs > 0; }
+};
 
 /* ========================================================================== */
 /* Default Actions                                                            */
@@ -181,10 +197,10 @@ class ActionMkTerm : public Action
   {
     // TODO TODO TODO indexed params
     SMTMBT_TRACE << get_id();
-    OpKinds kinds = d_smgr.get_theory_to_op_kinds();
     /* Pick theory of term argument(s).*/
     TheoryId theory_args = d_smgr.pick_theory_with_terms();
     /* Nothing to do if no kind with term arguments of picked theory exists. */
+    OpKinds kinds = d_smgr.get_theory_to_op_kinds();
     if (kinds.find(theory_args) == kinds.end()
         && kinds.find(THEORY_ALL) == kinds.end())
     {
@@ -213,6 +229,28 @@ class ActionMkTerm : public Action
   // void untrace(const char* s) override;
 };
 
+class ActionMkConst : public Action
+{
+ public:
+  ActionMkConst(SolverManager& smgr) : Action(smgr, "mkConst") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    /* Pick theory and sort of const. */
+    if (!d_smgr.has_sort()) return false;
+    TheoryId theory = d_smgr.pick_theory_with_sorts();
+    Sort sort       = d_smgr.pick_sort(theory);
+    /* Create const. */
+    // TODO pick random symbol for const
+    Term res = d_solver.mk_const(sort, "");
+    std::cout << "res " << res << std::endl;
+    d_smgr.add_input(res, theory);
+    return true;
+  }
+  // void untrace(const char* s) override;
+};
+
 /* ========================================================================== */
 /* Configure default FSM                                                      */
 /* ========================================================================== */
@@ -229,7 +267,10 @@ FSM::configure()
 
   auto a_mksort = new_action<ActionMkSort>();
 
-  auto a_mkterm = new_action<ActionMkTerm>();
+  auto a_mkconst = new_action<ActionMkConst>();
+  auto a_mkterm  = new_action<ActionMkTerm>();
+
+  auto t_inputs = new_action<TransitionCreateInputs>();
 
   /* --------------------------------------------------------------------- */
   /* States                                                                */
@@ -250,7 +291,9 @@ FSM::configure()
   s_new->add_action(a_new, 10, s_inputs);
 
   /* State: create inputs ................................................ */
-  s_inputs->add_action(a_mksort, 10, s_delete);
+  s_inputs->add_action(a_mksort, 10);
+  s_inputs->add_action(a_mkconst, 10);
+  s_inputs->add_action(t_inputs, 10, s_delete);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 10, s_delete);

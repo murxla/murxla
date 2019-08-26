@@ -31,6 +31,8 @@ class BtorTerm : public AbsTerm
 
 class BtorSort : public AbsSort
 {
+  friend class BtorSolver;
+
  public:
   BtorSort(Btor* btor, BoolectorSort sort);
   ~BtorSort() override;
@@ -62,10 +64,9 @@ class BtorSolver : public Solver
   {  // TODO:
     return nullptr;
   }
-  Term mk_const(Sort sort, const std::string name) const
-  {  // TODO:
-    return nullptr;
-  }
+
+  Term mk_const(Sort sort, const std::string name) const;
+
   Term mk_fun(Sort sort, const std::string name) const
   {  // TODO:
     return nullptr;
@@ -90,12 +91,10 @@ class BtorSolver : public Solver
     return nullptr;
   }
 
-  Term mk_term(const OpKindData& kind, std::vector<Term>& arguments) override;
+  Term mk_term(const OpKindData& kind,
+               std::vector<Term>& arguments) const override;
 
-  Sort get_sort(Term term) const
-  {  // TODO:
-    return nullptr;
-  }
+  Sort get_sort(Term term) const;
 
   void assert_formula(const Term& t) const
   {  // TODO:
@@ -114,15 +113,15 @@ class BtorSolver : public Solver
   //
   //
  private:
-  BoolectorNode* get_term(Term term);
-  BoolectorNode* mk_term_left_assoc(std::vector<Term>& args,
-                                    BoolectorNode* (*fun)(Btor*,
-                                                          BoolectorNode*,
-                                                          BoolectorNode*) );
+  BoolectorSort get_sort(Sort sort) const;
+  BoolectorNode* get_term(Term term) const;
+  BoolectorNode* mk_term_left_assoc(
+      std::vector<Term>& args,
+      BoolectorNode* (*fun)(Btor*, BoolectorNode*, BoolectorNode*) ) const;
   BoolectorNode* mk_term_pairwise(std::vector<Term>& args,
                                   BoolectorNode* (*fun)(Btor*,
                                                         BoolectorNode*,
-                                                        BoolectorNode*) );
+                                                        BoolectorNode*) ) const;
   Btor* d_solver;
 };
 

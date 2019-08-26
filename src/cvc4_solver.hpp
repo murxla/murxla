@@ -25,6 +25,8 @@ class CVC4Term : public AbsTerm
 
 class CVC4Sort : public AbsSort
 {
+  friend class CVC4Solver;
+
  public:
   CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort);
   ~CVC4Sort() override;
@@ -53,10 +55,6 @@ class CVC4Solver : public Solver
   {  // TODO:
     return nullptr;
   }
-  Term mk_const(Sort sort, const std::string name) const
-  {  // TODO:
-    return nullptr;
-  }
   Term mk_fun(Sort sort, const std::string name) const
   {  // TODO:
     return nullptr;
@@ -81,12 +79,10 @@ class CVC4Solver : public Solver
     return nullptr;
   }
 
-  Term mk_term(const OpKindData& kind, std::vector<Term>& args) override;
+  Term mk_const(Sort sort, const std::string name) const;
+  Term mk_term(const OpKindData& kind, std::vector<Term>& args) const override;
 
-  Sort get_sort(Term term) const
-  {  // TODO:
-    return nullptr;
-  }
+  Sort get_sort(Term term) const;
 
   void assert_formula(const Term& t) const
   {  // TODO:
@@ -106,7 +102,8 @@ class CVC4Solver : public Solver
   //
  private:
   void init_op_kinds();
-  CVC4::api::Term& get_term(Term term);
+  CVC4::api::Sort& get_sort(Sort sort) const;
+  CVC4::api::Term& get_term(Term term) const;
 
   CVC4::api::Solver* d_solver;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_op_kinds;

@@ -81,7 +81,8 @@ class Solver
                        std::vector<Sort>& sorts,
                        Sort sort) const                              = 0;
 
-  virtual Term mk_term(const OpKindData& kind, std::vector<Term>& args) = 0;
+  virtual Term mk_term(const OpKindData& kind,
+                       std::vector<Term>& args) const = 0;
 
   virtual Sort get_sort(Term term) const = 0;
 

@@ -106,7 +106,15 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
 }
 
 Term
-CVC4Solver::mk_term(const OpKindData& kind, std::vector<Term>& args)
+CVC4Solver::mk_const(Sort sort, const std::string name) const
+{
+  CVC4::api::Term res = d_solver->mkConst(get_sort(sort), name);
+  std::cout << "const" << res << std::endl;
+  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, res));
+}
+
+Term
+CVC4Solver::mk_term(const OpKindData& kind, std::vector<Term>& args) const
 {
   // TODO TODO TODO indexed params
   assert(d_op_kinds.find(kind.d_kind) != d_op_kinds.end());
@@ -141,6 +149,13 @@ CVC4Solver::mk_term(const OpKindData& kind, std::vector<Term>& args)
   }
   std::cout << "mk_term " << cvc4_res << std::endl;
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
+}
+
+Sort
+CVC4Solver::get_sort(Term term) const
+{
+  CVC4::api::Term cvc4_term = get_term(term);
+  return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, cvc4_term.getSort()));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -204,8 +219,14 @@ CVC4Solver::init_op_kinds()
   };
 }
 
+CVC4::api::Sort&
+CVC4Solver::get_sort(Sort sort) const
+{
+  return static_cast<CVC4Sort*>(sort.get())->d_sort;
+}
+
 CVC4::api::Term&
-CVC4Solver::get_term(Term term)
+CVC4Solver::get_term(Term term) const
 {
   return static_cast<CVC4Term*>(term.get())->d_term;
 }

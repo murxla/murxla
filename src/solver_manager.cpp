@@ -245,6 +245,8 @@ SolverManager::get_rng()
 void
 SolverManager::add_input(Term term, TheoryId theory)
 {
+  assert(term.get());
+
   d_stats.inputs += 1;
   add_term(term, theory);
 }
@@ -252,9 +254,12 @@ SolverManager::add_input(Term term, TheoryId theory)
 void
 SolverManager::add_term(Term term, TheoryId theory)
 {
+  assert(term.get());
+
   d_stats.terms += 1;
 
   Sort sort = d_solver->get_sort(term);
+  assert(sort.get());
   add_sort(sort, theory);
 
   if (d_terms.find(theory) == d_terms.end())
@@ -281,6 +286,8 @@ SolverManager::add_term(Term term, TheoryId theory)
 void
 SolverManager::add_sort(Sort sort, TheoryId theory)
 {
+  assert(sort.get());
+
   if (d_sorts_to_theory.find(sort) == d_sorts_to_theory.end())
   {
     d_sorts_to_theory.emplace(sort, theory);

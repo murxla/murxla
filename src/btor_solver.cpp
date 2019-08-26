@@ -12,7 +12,7 @@ namespace btor {
 /* -------------------------------------------------------------------------- */
 
 BtorSort::BtorSort(Btor* btor, BoolectorSort sort)
-    : d_solver(btor), d_sort(sort)
+    : d_solver(btor), d_sort(boolector_copy_sort(btor, sort))
 {
 }
 
@@ -76,23 +76,40 @@ Sort
 BtorSolver::mk_sort(SortKind kind) const
 {
   assert(kind == SortKind::BOOLEAN);
-  BoolectorSort res = boolector_bool_sort(d_solver);
-  return std::shared_ptr<BtorSort>(new BtorSort(d_solver, res));
+  BoolectorSort btor_res = boolector_bool_sort(d_solver);
+  assert(btor_res);
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  boolector_release_sort(d_solver, btor_res);
+  return res;
 }
 
 Sort
 BtorSolver::mk_sort(SortKind kind, uint32_t size) const
 {
   assert(kind == SortKind::BIT_VECTOR);
-  BoolectorSort res = boolector_bitvec_sort(d_solver, size);
-  return std::shared_ptr<BtorSort>(new BtorSort(d_solver, res));
+  BoolectorSort btor_res = boolector_bitvec_sort(d_solver, size);
+  assert(btor_res);
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  boolector_release_sort(d_solver, btor_res);
+  return res;
 }
 
 Term
-BtorSolver::mk_term(const OpKindData& kind, std::vector<Term>& args)
+BtorSolver::mk_const(Sort sort, const std::string name) const
 {
-  // TODO TODO TODO indexed params
-  BoolectorNode* btor_res;
+  BoolectorNode* btor_res =
+      boolector_var(d_solver, get_sort(sort), name.c_str());
+  assert(btor_res);
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
+  std::cout << "const" << res << std::endl;
+  return res;
+}
+
+Term
+BtorSolver::mk_term(const OpKindData& kind, std::vector<Term>& args) const
+{
+  // TODO TODO TODO indexed operators
+  BoolectorNode* btor_res = nullptr;
   size_t n_args = args.size();
 
   // BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
@@ -285,7 +302,10 @@ BtorSolver::mk_term(const OpKindData& kind, std::vector<Term>& args)
       break;
     default: assert(false);
   }
-  return std::shared_ptr<BtorTerm>(new BtorTerm(d_solver, btor_res));
+  assert(btor_res);
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
+  std::cout << "const" << res << std::endl;
+  return res;
 }
 
 // BoolectorNode *boolector_true (Btor *btor);
@@ -310,8 +330,23 @@ BtorSolver::mk_term(const OpKindData& kind, std::vector<Term>& args)
 // BoolectorNode *boolector_fun (Btor *btor, BoolectorNode **param_nodes, uint32_t paramc, BoolectorNode *node);
 // BoolectorNode *boolector_param (Btor *btor, BoolectorSort sort, const char *symbol);
 
+Sort
+BtorSolver::get_sort(Term term) const
+{
+  return std::shared_ptr<BtorSort>(
+      new BtorSort(d_solver, boolector_get_sort(d_solver, get_term(term))));
+}
+
+/* -------------------------------------------------------------------------- */
+
+BoolectorSort
+BtorSolver::get_sort(Sort sort) const
+{
+  return static_cast<BtorSort*>(sort.get())->d_sort;
+}
+
 BoolectorNode*
-BtorSolver::get_term(Term term)
+BtorSolver::get_term(Term term) const
 {
   return static_cast<BtorTerm*>(term.get())->d_term;
 }
@@ -320,7 +355,7 @@ BoolectorNode*
 BtorSolver::mk_term_left_assoc(std::vector<Term>& args,
                                BoolectorNode* (*fun)(Btor*,
                                                      BoolectorNode*,
-                                                     BoolectorNode*) )
+                                                     BoolectorNode*) ) const
 {
   assert(args.size() >= 2);
   BoolectorNode *res, *tmp;
@@ -339,7 +374,7 @@ BoolectorNode*
 BtorSolver::mk_term_pairwise(std::vector<Term>& args,
                              BoolectorNode* (*fun)(Btor*,
                                                    BoolectorNode*,
-                                                   BoolectorNode*) )
+                                                   BoolectorNode*) ) const
 {
   assert(args.size() >= 2);
   BoolectorNode *res, *tmp, *old;
