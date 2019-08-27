@@ -10,18 +10,9 @@
 namespace smtmbt {
 namespace cvc4 {
 
-class CVC4Term : public AbsTerm
-{
-  friend class CVC4Solver;
-
- public:
-  CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term d_term);
-  ~CVC4Term() override;
-  std::size_t hash() const override;
- private:
-  CVC4::api::Solver* d_solver;
-  CVC4::api::Term d_term;
-};
+/* -------------------------------------------------------------------------- */
+/* CVC4Sort                                                                   */
+/* -------------------------------------------------------------------------- */
 
 class CVC4Sort : public AbsSort
 {
@@ -30,11 +21,36 @@ class CVC4Sort : public AbsSort
  public:
   CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort);
   ~CVC4Sort() override;
-  std::size_t hash() const override;
+  size_t hash() const override;
+  bool equals(const Sort& other) const override;
+
  private:
   CVC4::api::Solver* d_solver;
   CVC4::api::Sort d_sort;
 };
+
+/* -------------------------------------------------------------------------- */
+/* CVC4Term                                                                   */
+/* -------------------------------------------------------------------------- */
+
+class CVC4Term : public AbsTerm
+{
+  friend class CVC4Solver;
+
+ public:
+  CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term d_term);
+  ~CVC4Term() override;
+  size_t hash() const override;
+  bool equals(const Term& other) const override;
+
+ private:
+  CVC4::api::Solver* d_solver;
+  CVC4::api::Term d_term;
+};
+
+/* -------------------------------------------------------------------------- */
+/* CVC4Solver                                                                 */
+/* -------------------------------------------------------------------------- */
 
 class CVC4Solver : public Solver
 {

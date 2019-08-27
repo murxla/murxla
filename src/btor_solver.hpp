@@ -15,19 +15,9 @@ struct Btor;
 namespace smtmbt {
 namespace btor {
 
-class BtorTerm : public AbsTerm
-{
-  friend class BtorSolver;
-
- public:
-  BtorTerm(Btor* btor, BoolectorNode* term);
-  ~BtorTerm() override;
-  std::size_t hash() const override;
-
- private:
-  Btor* d_solver;
-  BoolectorNode* d_term;
-};
+/* -------------------------------------------------------------------------- */
+/* BtorSort                                                                   */
+/* -------------------------------------------------------------------------- */
 
 class BtorSort : public AbsSort
 {
@@ -36,12 +26,36 @@ class BtorSort : public AbsSort
  public:
   BtorSort(Btor* btor, BoolectorSort sort);
   ~BtorSort() override;
-  std::size_t hash() const override;
+  size_t hash() const override;
+  bool equals(const Sort& other) const override;
 
  private:
   Btor* d_solver;
   BoolectorSort d_sort;
 };
+
+/* -------------------------------------------------------------------------- */
+/* BtorTerm                                                                   */
+/* -------------------------------------------------------------------------- */
+
+class BtorTerm : public AbsTerm
+{
+  friend class BtorSolver;
+
+ public:
+  BtorTerm(Btor* btor, BoolectorNode* term);
+  ~BtorTerm() override;
+  size_t hash() const override;
+  bool equals(const Term& other) const override;
+
+ private:
+  Btor* d_solver;
+  BoolectorNode* d_term;
+};
+
+/* -------------------------------------------------------------------------- */
+/* BtorSolver                                                                 */
+/* -------------------------------------------------------------------------- */
 
 class BtorSolver : public Solver
 {

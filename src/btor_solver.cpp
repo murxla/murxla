@@ -18,10 +18,18 @@ BtorSort::BtorSort(Btor* btor, BoolectorSort sort)
 
 BtorSort::~BtorSort() { boolector_release_sort(d_solver, d_sort); }
 
-std::size_t
+size_t
 BtorSort::hash() const
 {
   return std::hash<BoolectorSort>{}(d_sort);
+}
+
+bool
+BtorSort::equals(const Sort& other) const
+{
+  BtorSort* btor_sort = dynamic_cast<BtorSort*>(other.get());
+  if (btor_sort) return d_sort == btor_sort->d_sort;
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -35,10 +43,22 @@ BtorTerm::BtorTerm(Btor* btor, BoolectorNode* term)
 
 BtorTerm::~BtorTerm() { boolector_release(d_solver, d_term); }
 
-std::size_t
+size_t
 BtorTerm::hash() const
 {
   return boolector_get_node_id(d_solver, d_term);
+}
+
+bool
+BtorTerm::equals(const Term& other) const
+{
+  BtorTerm* btor_term = dynamic_cast<BtorTerm*>(other.get());
+  if (btor_term)
+  {
+    return boolector_get_node_id(d_solver, d_term)
+           == boolector_get_node_id(btor_term->d_solver, btor_term->d_term);
+  }
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -10,26 +10,6 @@ namespace smtmbt {
 namespace cvc4 {
 
 /* -------------------------------------------------------------------------- */
-/* CVC4Term                                                                   */
-/* -------------------------------------------------------------------------- */
-
-CVC4Term::CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term)
-    : d_solver(cvc4), d_term(term)
-{
-}
-
-CVC4Term::~CVC4Term()
-{
-  // TODO: release term?
-}
-
-std::size_t
-CVC4Term::hash() const
-{
-  return CVC4::api::TermHashFunction()(d_term);
-}
-
-/* -------------------------------------------------------------------------- */
 /* CVC4Sort                                                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -43,10 +23,46 @@ CVC4Sort::~CVC4Sort()
   // TODO: release sort?
 }
 
-std::size_t
+size_t
 CVC4Sort::hash() const
 {
   return CVC4::api::SortHashFunction()(d_sort);
+}
+
+bool
+CVC4Sort::equals(const Sort& other) const
+{
+  CVC4Sort* cvc4_sort = dynamic_cast<CVC4Sort*>(other.get());
+  if (cvc4_sort) return d_sort == cvc4_sort->d_sort;
+  return false;
+}
+
+/* -------------------------------------------------------------------------- */
+/* CVC4Term                                                                   */
+/* -------------------------------------------------------------------------- */
+
+CVC4Term::CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term)
+    : d_solver(cvc4), d_term(term)
+{
+}
+
+CVC4Term::~CVC4Term()
+{
+  // TODO: release term?
+}
+
+size_t
+CVC4Term::hash() const
+{
+  return CVC4::api::TermHashFunction()(d_term);
+}
+
+bool
+CVC4Term::equals(const Term& other) const
+{
+  CVC4Term* cvc4_term = dynamic_cast<CVC4Term*>(other.get());
+  if (cvc4_term) return d_term == cvc4_term->d_term;
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */

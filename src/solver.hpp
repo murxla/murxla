@@ -14,35 +14,53 @@
 
 namespace smtmbt {
 
-class AbsTerm
-{
- public:
-  AbsTerm(){};
-  virtual ~AbsTerm(){};
-  virtual std::size_t hash() const = 0;
-};
-
-using Term = std::shared_ptr<AbsTerm>;
-
-struct HashTerm
-{
-  std::size_t operator()(const Term t) const { return t->hash(); }
-};
+/* -------------------------------------------------------------------------- */
+/* Sort                                                                       */
+/* -------------------------------------------------------------------------- */
 
 class AbsSort
 {
  public:
   AbsSort(){};
   virtual ~AbsSort(){};
-  virtual std::size_t hash() const = 0;
+  virtual size_t hash() const                                      = 0;
+  virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
 };
 
 using Sort = std::shared_ptr<AbsSort>;
 
+bool operator==(const Sort& a, const Sort& b);
+
 struct HashSort
 {
-  std::size_t operator()(const Sort s) const { return s->hash(); }
+  size_t operator()(const Sort s) const { return s->hash(); }
 };
+
+/* -------------------------------------------------------------------------- */
+/* Term                                                                       */
+/* -------------------------------------------------------------------------- */
+
+class AbsTerm
+{
+ public:
+  AbsTerm(){};
+  virtual ~AbsTerm(){};
+  virtual size_t hash() const                                      = 0;
+  virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
+};
+
+using Term = std::shared_ptr<AbsTerm>;
+
+bool operator==(const Term& a, const Term& b);
+
+struct HashTerm
+{
+  size_t operator()(const Term t) const { return t->hash(); }
+};
+
+/* -------------------------------------------------------------------------- */
+/* Solver                                                                     */
+/* -------------------------------------------------------------------------- */
 
 class Solver
 {
