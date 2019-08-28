@@ -1,6 +1,5 @@
 #include "fsm.hpp"
 
-#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -197,9 +196,7 @@ class ActionMkTerm : public Action
   bool run() override
   {
     // TODO TODO TODO indexed params
-    assert(std::find(d_smgr.get_enabled_theories().begin(),
-                     d_smgr.get_enabled_theories().end(),
-                     THEORY_BOOL)
+    assert(d_smgr.get_enabled_theories().find(THEORY_BOOL)
            != d_smgr.get_enabled_theories().end());
 
     SMTMBT_TRACE << get_id();

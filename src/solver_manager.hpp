@@ -46,7 +46,7 @@ class SolverManager
   void set_rng(RNGenerator& rng);
   RNGenerator& get_rng() const;
 
-  const TheoryIdVector& get_enabled_theories() const;
+  const TheoryIdSet& get_enabled_theories() const;
 
   void add_input(Term term, TheoryId theory);
   void add_term(Term term, TheoryId theory);
@@ -112,7 +112,7 @@ class SolverManager
   OpKindMap d_op_kinds;
   SortKindMap d_sort_kinds;
 
-  TheoryIdVector d_enabled_theories;
+  TheoryIdSet d_enabled_theories;
 
   /* Map theory -> sort kinds. */
   SortKinds d_theory_to_sort_kinds;

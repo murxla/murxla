@@ -82,7 +82,7 @@ SolverManager::get_rng() const
 
 /* -------------------------------------------------------------------------- */
 
-const TheoryIdVector&
+const TheoryIdSet&
 SolverManager::get_enabled_theories() const
 {
   return d_enabled_theories;
@@ -405,14 +405,15 @@ SolverManager::add_enabled_theories()
   std::sort(all_theories.begin(), all_theories.end());
   std::sort(solver_theories.begin(), solver_theories.end());
   /* Filter out theories not supported by solver. */
-  d_enabled_theories = TheoryIdVector(all_theories.size());
+  TheoryIdVector tmp(all_theories.size());
   auto it = std::set_intersection(all_theories.begin(),
                                   all_theories.end(),
                                   solver_theories.begin(),
                                   solver_theories.end(),
-                                  d_enabled_theories.begin());
+                                  tmp.begin());
   /* Resize to intersection size. */
-  d_enabled_theories.resize(it - d_enabled_theories.begin());
+  tmp.resize(it - tmp.begin());
+  d_enabled_theories = TheoryIdSet(tmp.begin(), tmp.end());
 }
 
 void

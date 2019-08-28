@@ -2,6 +2,7 @@
 #define __SMTMBT__THEORY_H
 
 #include <iostream>
+#include <unordered_set>
 #include <vector>
 
 namespace smtmbt {
@@ -14,6 +15,7 @@ enum TheoryId
 };
 
 using TheoryIdVector = std::vector<TheoryId>;
+using TheoryIdSet    = std::unordered_set<TheoryId>;
 
 std::ostream& operator<<(std::ostream& out, TheoryId theory);
 
