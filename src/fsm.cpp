@@ -216,9 +216,11 @@ class ActionMkTerm : public Action
         kinds.find(THEORY_ALL) == kinds.end()
             ? d_smgr.pick_op_kind_data(kinds[theory_args])
             : d_smgr.pick_op_kind_data(kinds[theory_args], kinds[THEORY_ALL]);
+    assert(d_smgr.get_enabled_theories().find(kind_data.d_theory_term)
+           != d_smgr.get_enabled_theories().end());
+
     const OpKind kind       = kind_data.d_kind;
     const int32_t arity     = kind_data.d_arity;
-    const uint32_t n_params = kind_data.d_nparams;
 
     /* Pick argument term(s). */
     std::vector<Term> args;

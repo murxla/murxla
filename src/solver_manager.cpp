@@ -12,13 +12,17 @@ SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
   add_sort_kinds();
   add_op_kinds();
 
+  TheoryIdSet enabled_theories = d_enabled_theories;
   for (const auto& k : d_sort_kinds)
   {
     d_theory_to_sort_kinds[k.second.d_theory].push_back(k.first);
   }
   for (const auto& k : d_op_kinds)
   {
-    d_theory_to_op_kinds[k.second.d_theory_args].push_back(k.first);
+    /* do not add if theory of term sort is not enabled */
+    if (d_enabled_theories.find(k.second.d_theory_term)
+        != d_enabled_theories.end())
+      d_theory_to_op_kinds[k.second.d_theory_args].push_back(k.first);
   }
 }
 
