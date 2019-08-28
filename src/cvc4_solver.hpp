@@ -96,7 +96,7 @@ class CVC4Solver : public Solver
   }
 
   Term mk_const(Sort sort, const std::string name) const;
-  Term mk_term(const OpKindData& kind, std::vector<Term>& args) const override;
+  Term mk_term(const OpKind& kind, std::vector<Term>& args) const override;
 
   Sort get_sort(Term term) const;
 

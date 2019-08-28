@@ -126,7 +126,7 @@ BtorSolver::mk_const(Sort sort, const std::string name) const
 }
 
 Term
-BtorSolver::mk_term(const OpKindData& kind, std::vector<Term>& args) const
+BtorSolver::mk_term(const OpKind& kind, std::vector<Term>& args) const
 {
   // TODO TODO TODO indexed operators
   BoolectorNode* btor_res = nullptr;
@@ -148,8 +148,7 @@ BtorSolver::mk_term(const OpKindData& kind, std::vector<Term>& args) const
   // BoolectorNode *boolector_redxor (Btor *btor, BoolectorNode *node);
   // BoolectorNode *boolector_apply (Btor *btor, BoolectorNode **arg_nodes, uint32_t argc, BoolectorNode *n_fun);
 
-
-  switch (kind.d_kind)
+  switch (kind)
   {
     case DISTINCT:
       assert(n_args > 1);

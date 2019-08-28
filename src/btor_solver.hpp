@@ -105,8 +105,7 @@ class BtorSolver : public Solver
     return nullptr;
   }
 
-  Term mk_term(const OpKindData& kind,
-               std::vector<Term>& arguments) const override;
+  Term mk_term(const OpKind& kind, std::vector<Term>& arguments) const override;
 
   Sort get_sort(Term term) const;
 

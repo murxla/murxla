@@ -30,8 +30,6 @@ struct SortKindData
   {
   }
 
-  bool operator==(const SortKindData& other) const;
-
   /* The Kind. */
   SortKind d_kind;
   /* The arity of this kind. */
@@ -39,6 +37,8 @@ struct SortKindData
   /* The theory of a sort of this kind. */
   TheoryId d_theory;
 };
+
+bool operator==(const SortKindData& a, const SortKindData& b);
 
 using SortKindVector = std::vector<SortKind>;
 using SortKindMap =

@@ -22,9 +22,9 @@ SortKindHashFunction::operator()(SortKind kind) const
 }
 
 bool
-SortKindData::operator==(const SortKindData& other) const
+operator==(const SortKindData& a, const SortKindData& b)
 {
-  return (d_kind == other.d_kind && d_arity == other.d_arity
-          && d_theory == other.d_theory);
+  return (a.d_kind == b.d_kind && a.d_arity == b.d_arity
+          && a.d_theory == b.d_theory);
 }
 }  // namespace smtmbt

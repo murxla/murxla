@@ -71,11 +71,11 @@ struct OpKindHashFunction
 
 struct OpKindData
 {
-  OpKindData(OpKind kind          = UNDEFINED,
-             int32_t arity        = 0,
-             uint32_t nparams     = 0,
-             TheoryId theory_term = THEORY_BOOL,
-             TheoryId theory_args = THEORY_BOOL)
+  OpKindData(OpKind kind,
+             int32_t arity,
+             uint32_t nparams,
+             TheoryId theory_term,
+             TheoryId theory_args)
       : d_kind(kind),
         d_arity(arity),
         d_nparams(nparams),

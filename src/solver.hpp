@@ -12,6 +12,14 @@
 #include "sort.hpp"
 #include "util.hpp"
 
+/* -------------------------------------------------------------------------- */
+
+#define SMTMBT_MK_TERM_N_ARGS -1
+#define SMTMBT_MK_TERM_N_ARGS_MIN 2
+#define SMTMBT_MK_TERM_N_ARGS_MAX 11
+
+/* -------------------------------------------------------------------------- */
+
 namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
@@ -33,7 +41,7 @@ bool operator==(const Sort& a, const Sort& b);
 
 struct HashSort
 {
-  size_t operator()(const Sort s) const { return s->hash(); }
+  std::size_t operator()(const Sort s) const;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -55,7 +63,7 @@ bool operator==(const Term& a, const Term& b);
 
 struct HashTerm
 {
-  size_t operator()(const Term t) const { return t->hash(); }
+  size_t operator()(const Term t) const;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -99,8 +107,7 @@ class Solver
                        std::vector<Sort>& sorts,
                        Sort sort) const                              = 0;
 
-  virtual Term mk_term(const OpKindData& kind,
-                       std::vector<Term>& args) const = 0;
+  virtual Term mk_term(const OpKind& kind, std::vector<Term>& args) const = 0;
 
   virtual Sort get_sort(Term term) const = 0;
 
@@ -118,6 +125,8 @@ class Solver
  protected:
   RNGenerator& d_rng;
 };
+
+/* -------------------------------------------------------------------------- */
 
 }  // namespace smtmbt
 

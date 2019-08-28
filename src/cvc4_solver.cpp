@@ -130,16 +130,17 @@ CVC4Solver::mk_const(Sort sort, const std::string name) const
 }
 
 Term
-CVC4Solver::mk_term(const OpKindData& kind, std::vector<Term>& args) const
+CVC4Solver::mk_term(const OpKind& kind, std::vector<Term>& args) const
 {
   // TODO TODO TODO indexed params
-  assert(d_op_kinds.find(kind.d_kind) != d_op_kinds.end());
+  assert(d_op_kinds.find(kind) != d_op_kinds.end());
 
   CVC4::api::Term cvc4_res;
-  CVC4::api::Kind cvc4_kind = d_op_kinds.at(kind.d_kind);
+  CVC4::api::Kind cvc4_kind = d_op_kinds.at(kind);
 
   /* Use vector with 50% probability. */
-  int32_t n_args = d_rng.pick_with_prob(500) ? -1 : args.size();
+  int32_t n_args =
+      d_rng.pick_with_prob(500) ? SMTMBT_MK_TERM_N_ARGS : args.size();
 
   switch (n_args)
   {
@@ -158,7 +159,7 @@ CVC4Solver::mk_term(const OpKindData& kind, std::vector<Term>& args) const
       break;
 
     default:
-      assert(n_args == -1 || n_args > 3);
+      assert(n_args == SMTMBT_MK_TERM_N_ARGS || n_args > 3);
       std::vector<CVC4::api::Term> cvc4_args;
       for (Term t : args) cvc4_args.push_back(get_term(t));
       cvc4_res = d_solver->mkTerm(cvc4_kind, cvc4_args);

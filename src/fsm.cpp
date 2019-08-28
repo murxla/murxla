@@ -1,5 +1,6 @@
 #include "fsm.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <sstream>
@@ -196,9 +197,15 @@ class ActionMkTerm : public Action
   bool run() override
   {
     // TODO TODO TODO indexed params
+    assert(std::find(d_smgr.get_enabled_theories().begin(),
+                     d_smgr.get_enabled_theories().end(),
+                     THEORY_BOOL)
+           != d_smgr.get_enabled_theories().end());
+
     SMTMBT_TRACE << get_id();
     /* Pick theory of term argument(s).*/
     TheoryId theory_args = d_smgr.pick_theory_with_terms();
+
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     OpKinds kinds = d_smgr.get_theory_to_op_kinds();
     if (kinds.find(theory_args) == kinds.end()
@@ -206,24 +213,65 @@ class ActionMkTerm : public Action
     {
       return false;
     }
+
     /* Pick kind that expects arguments of picked theory. */
-    const OpKindData& kind =
+    const OpKindData& kind_data =
         kinds.find(THEORY_ALL) == kinds.end()
-            ? d_smgr.pick_op_kind(kinds[theory_args])
-            : d_smgr.pick_op_kind(kinds[theory_args], kinds[THEORY_ALL]);
+            ? d_smgr.pick_op_kind_data(kinds[theory_args])
+            : d_smgr.pick_op_kind_data(kinds[theory_args], kinds[THEORY_ALL]);
+    const OpKind kind       = kind_data.d_kind;
+    const int32_t arity     = kind_data.d_arity;
+    const uint32_t n_params = kind_data.d_nparams;
+
     /* Pick argument term(s). */
-    uint32_t n_args = kind.d_arity == SMTMBT_MK_TERM_N_ARGS
-                          ? d_rng.pick_uint32(1, SMTMBT_MK_TERM_N_ARGS)
-                          : kind.d_arity;
     std::vector<Term> args;
-    for (uint32_t i = 0; i < n_args; ++i)
-      args.push_back(d_smgr.pick_term(theory_args));
+    uint32_t n_args = arity == SMTMBT_MK_TERM_N_ARGS ? d_rng.pick_uint32(
+                          SMTMBT_MK_TERM_N_ARGS_MIN, SMTMBT_MK_TERM_N_ARGS_MAX)
+                                                     : arity;
+    /* first argument */
+    Sort sort = nullptr;
+    switch (kind)
+    {
+      case OpKind::ITE:
+        if (!d_smgr.has_term(THEORY_BOOL)) return false;
+        args.push_back(d_smgr.pick_term(THEORY_BOOL));
+        break;
+      default:
+        args.push_back(d_smgr.pick_term(theory_args));
+        sort = d_solver.get_sort(args[0]);
+    }
+    /* remaining arguments */
+    for (uint32_t i = 1; i < n_args; ++i)
+    {
+      switch (kind)
+      {
+        case OpKind::BV_CONCAT:
+          args.push_back(d_smgr.pick_term(theory_args));
+          break;
+        case OpKind::ITE:
+          assert(i > 1 || sort == nullptr);
+          if (i > 1)
+          {
+            args.push_back(d_smgr.pick_term(sort));
+          }
+          else
+          {
+            Term arg = d_smgr.pick_term(theory_args);
+            sort     = d_solver.get_sort(arg);
+            args.push_back(arg);
+          }
+          break;
+        default: assert(sort); args.push_back(d_smgr.pick_term(sort));
+      }
+    }
+
     /* Create term. */
     Term res = d_solver.mk_term(kind, args);
-    std::cout << "res " << res << std::endl;
-    d_smgr.add_term(
-        res,
-        kind.d_theory_term == THEORY_ALL ? theory_args : kind.d_theory_term);
+    std::cout << "mk_term res " << res << std::endl;
+    d_smgr.add_term(res,
+                    kind_data.d_theory_term == THEORY_ALL
+                        ? theory_args
+                        : kind_data.d_theory_term);
     return true;
   }
   // void untrace(const char* s) override;
@@ -293,7 +341,7 @@ FSM::configure()
   /* State: create inputs ................................................ */
   s_inputs->add_action(a_mksort, 10);
   s_inputs->add_action(a_mkconst, 10);
-  s_inputs->add_action(t_inputs, 10, s_delete);
+  s_inputs->add_action(t_inputs, 10, s_terms);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 10, s_delete);

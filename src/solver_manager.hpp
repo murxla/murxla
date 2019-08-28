@@ -16,11 +16,6 @@ namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_MK_TERM_N_ARGS -1
-#define SMTMBT_MK_TERM_MAX_N_ARGS 11
-
-/* -------------------------------------------------------------------------- */
-
 class SolverManager
 {
  public:
@@ -49,15 +44,21 @@ class SolverManager
   OpKinds& get_theory_to_op_kinds();
 
   void set_rng(RNGenerator& rng);
-  RNGenerator& get_rng();
+  RNGenerator& get_rng() const;
+
+  const TheoryIdVector& get_enabled_theories() const;
 
   void add_input(Term term, TheoryId theory);
   void add_term(Term term, TheoryId theory);
   void add_sort(Sort sort, TheoryId theory);
 
-  SortKind pick_sort_kind(SortKindVector& kinds);
-  OpKind pick_op_kind(OpKindVector& kinds);
-  OpKind pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2);
+  SortKind& pick_sort_kind(SortKindVector& kinds);
+  OpKind& pick_op_kind(OpKindVector& kinds);
+  OpKind& pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2);
+
+  SortKindData& pick_sort_kind_data(SortKindVector& kinds);
+  OpKindData& pick_op_kind_data(OpKindVector& kinds);
+  OpKindData& pick_op_kind_data(OpKindVector& kinds1, OpKindVector& kinds2);
 
   TheoryId pick_theory();
   TheoryId pick_theory_with_sorts();
