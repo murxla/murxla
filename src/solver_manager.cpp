@@ -5,159 +5,6 @@ namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_ADD_SORT_KIND(kind, arity, theory) \
-  d_sort_kinds.emplace(kind, SortKindData(kind, arity, theory));
-
-#define SMTMBT_ADD_OP_KIND(kind, arity, nparams, theory_term, theory_args) \
-  d_op_kinds.emplace(                                                      \
-      kind, OpKindData(kind, arity, nparams, theory_term, theory_args));
-
-void
-SolverManager::add_enabled_theories()
-{
-  /* Get theories supported by enabled solver. */
-  TheoryIdVector solver_theories = d_solver->get_supported_theories();
-
-  /* Get all theories supported by MBT. */
-  TheoryIdVector all_theories;
-  for (int32_t t = 0; t < THEORY_ALL; ++t)
-    all_theories.push_back(static_cast<TheoryId>(t));
-
-  // TODO filter out based on enabled theories enabled via CLI
-
-  /* We need to sort these for intersection. */
-  std::sort(all_theories.begin(), all_theories.end());
-  std::sort(solver_theories.begin(), solver_theories.end());
-  /* Filter out theories not supported by solver. */
-  d_enabled_theories = TheoryIdVector(all_theories.size());
-  auto it = std::set_intersection(all_theories.begin(),
-                                  all_theories.end(),
-                                  solver_theories.begin(),
-                                  solver_theories.end(),
-                                  d_enabled_theories.begin());
-  /* Resize to intersection size. */
-  d_enabled_theories.resize(it - d_enabled_theories.begin());
-}
-
-void
-SolverManager::add_sort_kinds()
-{
-  assert(d_enabled_theories.size());
-
-  for (TheoryId theory : d_enabled_theories)
-  {
-    switch (theory)
-    {
-      case THEORY_BV: SMTMBT_ADD_SORT_KIND(BIT_VECTOR, 0, THEORY_BV); break;
-      case THEORY_BOOL: SMTMBT_ADD_SORT_KIND(BOOLEAN, 0, THEORY_BOOL); break;
-      default: assert(false);
-    }
-  }
-}
-
-void
-SolverManager::add_op_kinds()
-{
-  assert(d_enabled_theories.size());
-  uint32_t n = SMTMBT_MK_TERM_N_ARGS;
-
-  SMTMBT_ADD_OP_KIND(ITE, 3, 0, THEORY_ALL, THEORY_ALL);
-
-  for (TheoryId theory : d_enabled_theories)
-  {
-    switch (theory)
-    {
-      case THEORY_BOOL:
-        SMTMBT_ADD_OP_KIND(DISTINCT, n, 0, THEORY_BOOL, THEORY_ALL);
-        SMTMBT_ADD_OP_KIND(EQUAL, 2, 0, THEORY_BOOL, THEORY_ALL);
-        SMTMBT_ADD_OP_KIND(AND, n, 0, THEORY_BOOL, THEORY_BOOL);
-        SMTMBT_ADD_OP_KIND(OR, n, 0, THEORY_BOOL, THEORY_BOOL);
-        SMTMBT_ADD_OP_KIND(NOT, 1, 0, THEORY_BOOL, THEORY_BOOL);
-        SMTMBT_ADD_OP_KIND(XOR, 2, 0, THEORY_BOOL, THEORY_BOOL);
-        SMTMBT_ADD_OP_KIND(IMPLIES, 2, 0, THEORY_BOOL, THEORY_BOOL);
-        break;
-
-      case THEORY_BV:
-        SMTMBT_ADD_OP_KIND(BV_CONCAT, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_AND, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_OR, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_XOR, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_MULT, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ADD, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_NOT, 1, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_NEG, 1, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_REDOR, 1, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_REDAND, 1, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_NAND, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_NOR, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_XNOR, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_COMP, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SUB, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_UDIV, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_UREM, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SDIV, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SREM, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SMOD, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SHL, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_LSHR, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ASHR, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ULT, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ULE, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_UGT, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_UGE, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SLT, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SLE, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SGT, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SGE, 2, 0, THEORY_BOOL, THEORY_BV);
-        /* indexed */
-        // SMTMBT_ADD_OP_KIND(BV_EXTRACT, 1, 2, THEORY_BV, THEORY_BV);
-        // SMTMBT_ADD_OP_KIND(BV_REPEAT, 1, 1, THEORY_BV, THEORY_BV);
-        // SMTMBT_ADD_OP_KIND(BV_ROTATE_LEFT, 1, 1, THEORY_BV, THEORY_BV);
-        // SMTMBT_ADD_OP_KIND(BV_ROTATE_RIGHT, 1, 1, THEORY_BV, THEORY_BV);
-        // SMTMBT_ADD_OP_KIND(BV_SIGN_EXTEND, 1, 1, THEORY_BV, THEORY_BV);
-        // SMTMBT_ADD_OP_KIND(BV_ZERO_EXTEND, 1, 1, THEORY_BV, THEORY_BV);
-        break;
-
-      default: assert(false);
-    }
-  }
-}
-
-template <typename TKind,
-          typename TKindData,
-          typename TKindMap,
-          typename TKindVector>
-TKindData&
-SolverManager::pick_kind(TKindMap& map,
-                         TKindVector* kinds1,
-                         TKindVector* kinds2)
-{
-  assert(kinds1 || kinds2);
-  size_t sz1 = kinds1 ? kinds1->size() : 0;
-  size_t sz2 = kinds2 ? kinds2->size() : 0;
-  uint32_t n = d_rng.pick_uint32() % (sz1 + sz2);
-  typename TKindVector::iterator it;
-
-  assert(sz1 || sz2);
-  if (sz2 == 0 || n < sz1)
-  {
-    assert(kinds1);
-    it = kinds1->begin();
-  }
-  else
-  {
-    assert(kinds2);
-    n -= sz1;
-    it = kinds2->begin();
-  }
-  std::advance(it, n);
-  TKind kind = *it;
-  assert(map.find(kind) != map.end());
-  return map.at(kind);
-}
-
-/* -------------------------------------------------------------------------- */
-
 SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
     : d_solver(solver), d_rng(rng)
 {
@@ -531,5 +378,160 @@ SolverManager::has_sort(TheoryId theory)
   if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end()) return false;
   return !d_theory_to_sorts[theory].empty();
 }
+
+/* -------------------------------------------------------------------------- */
+
+#define SMTMBT_ADD_SORT_KIND(kind, arity, theory) \
+  d_sort_kinds.emplace(kind, SortKindData(kind, arity, theory));
+
+#define SMTMBT_ADD_OP_KIND(kind, arity, nparams, theory_term, theory_args) \
+  d_op_kinds.emplace(                                                      \
+      kind, OpKindData(kind, arity, nparams, theory_term, theory_args));
+
+void
+SolverManager::add_enabled_theories()
+{
+  /* Get theories supported by enabled solver. */
+  TheoryIdVector solver_theories = d_solver->get_supported_theories();
+
+  /* Get all theories supported by MBT. */
+  TheoryIdVector all_theories;
+  for (int32_t t = 0; t < THEORY_ALL; ++t)
+    all_theories.push_back(static_cast<TheoryId>(t));
+
+  // TODO filter out based on enabled theories enabled via CLI
+
+  /* We need to sort these for intersection. */
+  std::sort(all_theories.begin(), all_theories.end());
+  std::sort(solver_theories.begin(), solver_theories.end());
+  /* Filter out theories not supported by solver. */
+  d_enabled_theories = TheoryIdVector(all_theories.size());
+  auto it = std::set_intersection(all_theories.begin(),
+                                  all_theories.end(),
+                                  solver_theories.begin(),
+                                  solver_theories.end(),
+                                  d_enabled_theories.begin());
+  /* Resize to intersection size. */
+  d_enabled_theories.resize(it - d_enabled_theories.begin());
+}
+
+void
+SolverManager::add_sort_kinds()
+{
+  assert(d_enabled_theories.size());
+
+  for (TheoryId theory : d_enabled_theories)
+  {
+    switch (theory)
+    {
+      case THEORY_BV: SMTMBT_ADD_SORT_KIND(BIT_VECTOR, 0, THEORY_BV); break;
+      case THEORY_BOOL: SMTMBT_ADD_SORT_KIND(BOOLEAN, 0, THEORY_BOOL); break;
+      default: assert(false);
+    }
+  }
+}
+
+void
+SolverManager::add_op_kinds()
+{
+  assert(d_enabled_theories.size());
+  uint32_t n = SMTMBT_MK_TERM_N_ARGS;
+
+  SMTMBT_ADD_OP_KIND(ITE, 3, 0, THEORY_ALL, THEORY_ALL);
+
+  for (TheoryId theory : d_enabled_theories)
+  {
+    switch (theory)
+    {
+      case THEORY_BOOL:
+        SMTMBT_ADD_OP_KIND(DISTINCT, n, 0, THEORY_BOOL, THEORY_ALL);
+        SMTMBT_ADD_OP_KIND(EQUAL, 2, 0, THEORY_BOOL, THEORY_ALL);
+        SMTMBT_ADD_OP_KIND(AND, n, 0, THEORY_BOOL, THEORY_BOOL);
+        SMTMBT_ADD_OP_KIND(OR, n, 0, THEORY_BOOL, THEORY_BOOL);
+        SMTMBT_ADD_OP_KIND(NOT, 1, 0, THEORY_BOOL, THEORY_BOOL);
+        SMTMBT_ADD_OP_KIND(XOR, 2, 0, THEORY_BOOL, THEORY_BOOL);
+        SMTMBT_ADD_OP_KIND(IMPLIES, 2, 0, THEORY_BOOL, THEORY_BOOL);
+        break;
+
+      case THEORY_BV:
+        SMTMBT_ADD_OP_KIND(BV_CONCAT, n, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_AND, n, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_OR, n, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_XOR, n, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_MULT, n, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ADD, n, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NOT, 1, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NEG, 1, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_REDOR, 1, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_REDAND, 1, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NAND, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NOR, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_XNOR, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_COMP, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SUB, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_UDIV, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_UREM, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SDIV, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SREM, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SMOD, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SHL, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_LSHR, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ASHR, 2, 0, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ULT, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_ULE, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_UGT, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_UGE, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SLT, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SLE, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SGT, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_SGE, 2, 0, THEORY_BOOL, THEORY_BV);
+        /* indexed */
+        // SMTMBT_ADD_OP_KIND(BV_EXTRACT, 1, 2, THEORY_BV, THEORY_BV);
+        // SMTMBT_ADD_OP_KIND(BV_REPEAT, 1, 1, THEORY_BV, THEORY_BV);
+        // SMTMBT_ADD_OP_KIND(BV_ROTATE_LEFT, 1, 1, THEORY_BV, THEORY_BV);
+        // SMTMBT_ADD_OP_KIND(BV_ROTATE_RIGHT, 1, 1, THEORY_BV, THEORY_BV);
+        // SMTMBT_ADD_OP_KIND(BV_SIGN_EXTEND, 1, 1, THEORY_BV, THEORY_BV);
+        // SMTMBT_ADD_OP_KIND(BV_ZERO_EXTEND, 1, 1, THEORY_BV, THEORY_BV);
+        break;
+
+      default: assert(false);
+    }
+  }
+}
+
+template <typename TKind,
+          typename TKindData,
+          typename TKindMap,
+          typename TKindVector>
+TKindData&
+SolverManager::pick_kind(TKindMap& map,
+                         TKindVector* kinds1,
+                         TKindVector* kinds2)
+{
+  assert(kinds1 || kinds2);
+  size_t sz1 = kinds1 ? kinds1->size() : 0;
+  size_t sz2 = kinds2 ? kinds2->size() : 0;
+  uint32_t n = d_rng.pick_uint32() % (sz1 + sz2);
+  typename TKindVector::iterator it;
+
+  assert(sz1 || sz2);
+  if (sz2 == 0 || n < sz1)
+  {
+    assert(kinds1);
+    it = kinds1->begin();
+  }
+  else
+  {
+    assert(kinds2);
+    n -= sz1;
+    it = kinds2->begin();
+  }
+  std::advance(it, n);
+  TKind kind = *it;
+  assert(map.find(kind) != map.end());
+  return map.at(kind);
+}
+
+/* -------------------------------------------------------------------------- */
 
 }  // namespace smtmbt
