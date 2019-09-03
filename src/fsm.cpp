@@ -176,6 +176,7 @@ class ActionMkSort : public Action
       case SortKind::BIT_VECTOR:
       {
         uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
+        std::cout << "picked sort bw" << bw << std::endl;
         res         = d_solver.mk_sort(SortKind::BIT_VECTOR, bw);
       }
       break;

@@ -24,7 +24,7 @@ class BtorSort : public AbsSort
   friend class BtorSolver;
 
  public:
-  BtorSort(Btor* btor, BoolectorSort sort);
+  BtorSort(Btor* btor, BoolectorSort sort, bool is_bool = false);
   ~BtorSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
@@ -32,6 +32,7 @@ class BtorSort : public AbsSort
  private:
   Btor* d_solver;
   BoolectorSort d_sort;
+  bool d_is_bool;
 };
 
 /* -------------------------------------------------------------------------- */
