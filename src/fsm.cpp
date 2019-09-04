@@ -196,7 +196,6 @@ class ActionMkTerm : public Action
 
   bool run() override
   {
-    // TODO TODO TODO indexed params
     assert(d_smgr.get_enabled_theories().find(THEORY_BOOL)
            != d_smgr.get_enabled_theories().end());
 
@@ -222,14 +221,15 @@ class ActionMkTerm : public Action
 
     const OpKind kind       = kind_data.d_kind;
     const int32_t arity     = kind_data.d_arity;
+    const uint32_t n_params = kind_data.d_nparams;
 
     /* Pick argument term(s). */
+    Sort sort = nullptr;
     std::vector<Term> args;
     uint32_t n_args = arity == SMTMBT_MK_TERM_N_ARGS ? d_rng.pick_uint32(
                           SMTMBT_MK_TERM_N_ARGS_MIN, SMTMBT_MK_TERM_N_ARGS_MAX)
                                                      : arity;
     /* first argument */
-    Sort sort = nullptr;
     switch (kind)
     {
       case OpKind::ITE:
@@ -265,8 +265,40 @@ class ActionMkTerm : public Action
       }
     }
 
+    std::vector<uint32_t> params;
+    if (n_params)
+    {
+      /* Numeral arguments for indexed operators. */
+      uint32_t bw = sort->get_bv_size();
+      switch (kind)
+      {
+        case BV_EXTRACT:
+          assert(sort->is_bv());
+          params.push_back(d_rng.pick_uint32(0, bw - 1));     // high
+          params.push_back(d_rng.pick_uint32(0, params[0]));  // low
+          break;
+        case BV_REPEAT:
+          assert(sort->is_bv());
+          params.push_back(
+              d_rng.pick_uint32(1, std::max<uint32_t>(1, SMTMBT_BW_MAX / bw)));
+          break;
+        case BV_ROTATE_LEFT:
+        case BV_ROTATE_RIGHT:
+          assert(sort->is_bv());
+          params.push_back(d_rng.pick_uint32(0, bw));
+          break;
+        case BV_SIGN_EXTEND:
+        case BV_ZERO_EXTEND:
+          assert(sort->is_bv());
+          params.push_back(d_rng.pick_uint32(0, SMTMBT_BW_MAX - bw));
+          break;
+        default: assert(false);
+      }
+    }
+
     /* Create term. */
-    Term res = d_solver.mk_term(kind, args);
+    Term res = d_solver.mk_term(kind, args, params);
+
     std::cout << "mk_term res " << res << std::endl;
     d_smgr.add_term(res,
                     kind_data.d_theory_term == THEORY_ALL

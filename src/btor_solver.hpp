@@ -28,6 +28,8 @@ class BtorSort : public AbsSort
   ~BtorSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  bool is_bv() const override;
+  uint32_t get_bv_size() const override;
 
  private:
   Btor* d_solver;
@@ -106,7 +108,9 @@ class BtorSolver : public Solver
     return nullptr;
   }
 
-  Term mk_term(const OpKind& kind, std::vector<Term>& arguments) const override;
+  Term mk_term(const OpKind& kind,
+               std::vector<Term>& args,
+               std::vector<uint32_t>& params) const override;
 
   Sort get_sort(Term term) const;
 

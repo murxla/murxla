@@ -33,6 +33,9 @@ class AbsSort
   virtual ~AbsSort(){};
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
+
+  virtual bool is_bv() const           = 0;
+  virtual uint32_t get_bv_size() const = 0;
 };
 
 using Sort = std::shared_ptr<AbsSort>;
@@ -107,7 +110,9 @@ class Solver
                        std::vector<Sort>& sorts,
                        Sort sort) const                              = 0;
 
-  virtual Term mk_term(const OpKind& kind, std::vector<Term>& args) const = 0;
+  virtual Term mk_term(const OpKind& kind,
+                       std::vector<Term>& args,
+                       std::vector<uint32_t>& params) const = 0;
 
   virtual Sort get_sort(Term term) const = 0;
 

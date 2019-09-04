@@ -23,6 +23,8 @@ class CVC4Sort : public AbsSort
   ~CVC4Sort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  bool is_bv() const override;
+  uint32_t get_bv_size() const override;
 
  private:
   CVC4::api::Solver* d_solver;
@@ -96,7 +98,9 @@ class CVC4Solver : public Solver
   }
 
   Term mk_const(Sort sort, const std::string name) const;
-  Term mk_term(const OpKind& kind, std::vector<Term>& args) const override;
+  Term mk_term(const OpKind& kind,
+               std::vector<Term>& args,
+               std::vector<uint32_t>& params) const override;
 
   Sort get_sort(Term term) const;
 
@@ -122,6 +126,7 @@ class CVC4Solver : public Solver
   CVC4::api::Term& get_term(Term term) const;
 
   CVC4::api::Solver* d_solver;
+  std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_kinds;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_op_kinds;
 };
 
