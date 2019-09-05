@@ -32,8 +32,9 @@ void
 SolverManager::clear()
 {
   d_theory_to_sorts.clear();
-  d_sorts_to_theory.clear();
+  d_sort_to_theory.clear();
   d_terms.clear();
+  d_term_to_sort.clear();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -95,36 +96,43 @@ SolverManager::get_enabled_theories() const
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::add_input(Term term, TheoryId theory)
+SolverManager::add_input(Term term, Sort sort, TheoryId theory)
 {
   assert(term.get());
 
   d_stats.inputs += 1;
-  add_term(term, theory);
+  add_term(term, sort, theory);
 }
 
 void
-SolverManager::add_term(Term term, TheoryId theory)
+SolverManager::add_term(Term term, Sort sort, TheoryId theory)
 {
   assert(term.get());
+  assert(sort.get());
+  assert(!has_sort(sort) || get_theory(sort) == theory);
+
+  if (d_term_to_sort.find(term) != d_term_to_sort.end())
+  {
+    assert(d_terms.find(theory) != d_terms.end());
+    assert(d_terms[theory].find(sort) != d_terms[theory].end());
+    assert(d_terms[theory][sort].find(term) != d_terms[theory][sort].end());
+    return;
+  }
 
   d_stats.terms += 1;
 
-  Sort sort = d_solver->get_sort(term);
-  assert(sort.get());
   add_sort(sort, theory);
 
+  /* add term to d_term_to_sort */
+  d_term_to_sort[term] = sort;
+
+  /* add term to d_terms */
   if (d_terms.find(theory) == d_terms.end())
   {
     d_terms.emplace(theory, SortMap());
   }
-
-  assert(d_terms.find(theory) != d_terms.end());
-
   SortMap& map = d_terms[theory];
   map.emplace(sort, TermMap());
-
-  assert(map.find(sort) != map.end());
   if (map[sort].find(term) == map[sort].end())
   {
     map[sort].emplace(term, 0);
@@ -140,9 +148,9 @@ SolverManager::add_sort(Sort sort, TheoryId theory)
 {
   assert(sort.get());
 
-  if (d_sorts_to_theory.find(sort) == d_sorts_to_theory.end())
+  if (d_sort_to_theory.find(sort) == d_sort_to_theory.end())
   {
-    d_sorts_to_theory.emplace(sort, theory);
+    d_sort_to_theory.emplace(sort, theory);
   }
 
   if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end())
@@ -233,7 +241,7 @@ TheoryId
 SolverManager::get_theory(Sort sort)
 {
   assert(has_sort(sort));
-  return d_sorts_to_theory[sort];
+  return d_sort_to_theory[sort];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -258,15 +266,15 @@ SolverManager::pick_term(TheoryId theory)
   sort = pick_sort_with_terms(theory);
   assert(get_theory(sort) == theory);
   Term res = pick_term(sort);
-  assert(d_solver->get_sort(res) == sort);
-  assert(get_theory(d_solver->get_sort(res)) == theory);
+  assert(get_sort(res) == sort);
+  assert(get_theory(get_sort(res)) == theory);
   return res;
 }
 
 Term
 SolverManager::pick_term(Term term)
 {
-  Sort sort = d_solver->get_sort(term);
+  Sort sort = get_sort(term);
   return pick_term(sort);
 }
 
@@ -367,13 +375,13 @@ SolverManager::pick_sort_with_terms(TheoryId theory)
 bool
 SolverManager::has_sort()
 {
-  return !d_sorts_to_theory.empty();
+  return !d_sort_to_theory.empty();
 }
 
 bool
 SolverManager::has_sort(Sort sort)
 {
-  return d_sorts_to_theory.find(sort) != d_sorts_to_theory.end();
+  return d_sort_to_theory.find(sort) != d_sort_to_theory.end();
 }
 
 bool
@@ -381,6 +389,13 @@ SolverManager::has_sort(TheoryId theory)
 {
   if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end()) return false;
   return !d_theory_to_sorts[theory].empty();
+}
+
+Sort
+SolverManager::get_sort(Term term)
+{
+  assert(d_term_to_sort.find(term) != d_term_to_sort.end());
+  return d_term_to_sort.at(term);
 }
 
 /* -------------------------------------------------------------------------- */

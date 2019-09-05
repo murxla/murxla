@@ -301,6 +301,7 @@ class ActionMkTerm : public Action
 
     std::cout << "mk_term res " << res << std::endl;
     d_smgr.add_term(res,
+                    d_solver.get_sort(res),
                     kind_data.d_theory_term == THEORY_ALL
                         ? theory_args
                         : kind_data.d_theory_term);
@@ -325,7 +326,7 @@ class ActionMkConst : public Action
     // TODO pick random symbol for const
     Term res = d_solver.mk_const(sort, "");
     std::cout << "res " << res << std::endl;
-    d_smgr.add_input(res, theory);
+    d_smgr.add_input(res, d_solver.get_sort(res), theory);
     return true;
   }
   // void untrace(const char* s) override;

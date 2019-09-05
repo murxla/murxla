@@ -48,8 +48,8 @@ class SolverManager
 
   const TheoryIdSet& get_enabled_theories() const;
 
-  void add_input(Term term, TheoryId theory);
-  void add_term(Term term, TheoryId theory);
+  void add_input(Term term, Sort sort, TheoryId theory);
+  void add_term(Term term, Sort sort, TheoryId theory);
   void add_sort(Sort sort, TheoryId theory);
 
   SortKind& pick_sort_kind(SortKindVector& kinds);
@@ -84,6 +84,7 @@ class SolverManager
   bool has_sort(Sort sort);
   bool has_sort(TheoryId theory);
 
+  Sort get_sort(Term term);
 
   Stats d_stats;
 
@@ -121,9 +122,11 @@ class SolverManager
   /* Map theory -> sorts. */
   std::unordered_map<TheoryId, SortSet> d_theory_to_sorts;
   /* Map sort -> theory. */
-  std::unordered_map<Sort, TheoryId, HashSort> d_sorts_to_theory;
+  std::unordered_map<Sort, TheoryId, HashSort> d_sort_to_theory;
   /* Map theory -> (sort -> terms). */
   std::unordered_map<TheoryId, SortMap> d_terms;
+  /* Map term -> sort. */
+  std::unordered_map<Term, Sort, HashTerm> d_term_to_sort;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -209,7 +212,7 @@ class SolverManager
   /* Map theory -> sorts. */
   std::unordered_map<TheoryId, SortSet> d_theory_to_sorts;
   /* Map sort -> theory. */
-  std::unordered_map<TSort, TheoryId, THashSort> d_sorts_to_theory;
+  std::unordered_map<TSort, TheoryId, THashSort> d_sort_to_theory;
   /* Map theory -> (sort -> terms). */
   std::unordered_map<TheoryId, SortMap> d_terms;
 
@@ -339,9 +342,9 @@ void
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::add_sort(
     TSort sort, TheoryId theory)
 {
-  if (d_sorts_to_theory.find(sort) == d_sorts_to_theory.end())
+  if (d_sort_to_theory.find(sort) == d_sort_to_theory.end())
   {
-    d_sorts_to_theory.emplace(copy_sort(sort), theory);
+    d_sort_to_theory.emplace(copy_sort(sort), theory);
   }
 
   if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end())
@@ -549,7 +552,7 @@ template <typename TSolver,
 bool
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::has_sort()
 {
-  return !d_sorts_to_theory.empty();
+  return !d_sort_to_theory.empty();
 }
 
 template <typename TSolver,
@@ -560,7 +563,7 @@ template <typename TSolver,
 bool
 SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::has_sort(TSort sort)
 {
-  return d_sorts_to_theory.find(sort) != d_sorts_to_theory.end();
+  return d_sort_to_theory.find(sort) != d_sort_to_theory.end();
 }
 
 template <typename TSolver,
@@ -618,7 +621,7 @@ SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::get_theory(
     TSort sort)
 {
   assert(has_sort(sort));
-  return d_sorts_to_theory[sort];
+  return d_sort_to_theory[sort];
 }
 
 template <typename TSolver,
