@@ -460,8 +460,14 @@ SolverManager::add_op_kinds()
         SMTMBT_ADD_OP_KIND(BV_ADD, n, 0, THEORY_BV, THEORY_BV);
         SMTMBT_ADD_OP_KIND(BV_NOT, 1, 0, THEORY_BV, THEORY_BV);
         SMTMBT_ADD_OP_KIND(BV_NEG, 1, 0, THEORY_BV, THEORY_BV);
+#if 0
+  // TODO not in SMT-LIB and CVC4 and Boolector disagree on return type
+  // CVC4: Bool
+  // Boolector: BV
+  // >> should be BV
         SMTMBT_ADD_OP_KIND(BV_REDOR, 1, 0, THEORY_BOOL, THEORY_BV);
         SMTMBT_ADD_OP_KIND(BV_REDAND, 1, 0, THEORY_BOOL, THEORY_BV);
+#endif
         SMTMBT_ADD_OP_KIND(BV_NAND, 2, 0, THEORY_BV, THEORY_BV);
         SMTMBT_ADD_OP_KIND(BV_NOR, 2, 0, THEORY_BV, THEORY_BV);
         SMTMBT_ADD_OP_KIND(BV_XNOR, 2, 0, THEORY_BV, THEORY_BV);
