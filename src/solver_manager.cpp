@@ -439,6 +439,8 @@ SolverManager::add_op_kinds()
 
   for (TheoryId theory : d_enabled_theories)
   {
+    /* Only enable operator kinds where both argument and term theories
+     * are enabled. */
     switch (theory)
     {
       case THEORY_BOOL:
