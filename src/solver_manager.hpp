@@ -66,9 +66,7 @@ class SolverManager
 
   TheoryId get_theory(Sort sort);
 
-  Term pick_term();
   Term pick_term(TheoryId theory);
-  Term pick_term(Term term);
   Term pick_term(Sort sort);
 
   bool has_term();
@@ -77,12 +75,11 @@ class SolverManager
 
   Sort pick_sort();
   Sort pick_sort(TheoryId theory);
-  Sort pick_sort_with_terms();
   Sort pick_sort_with_terms(TheoryId theory);
 
-  bool has_sort();
-  bool has_sort(Sort sort);
-  bool has_sort(TheoryId theory);
+  bool has_sort() const;
+  bool has_sort(Sort sort) const;
+  bool has_sort(TheoryId theory) const;
 
   Sort get_sort(Term term);
 

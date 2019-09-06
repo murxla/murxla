@@ -198,10 +198,12 @@ class ActionMkTerm : public Action
   {
     assert(d_smgr.get_enabled_theories().find(THEORY_BOOL)
            != d_smgr.get_enabled_theories().end());
+    assert(d_smgr.has_term());
 
     SMTMBT_TRACE << get_id();
     /* Pick theory of term argument(s).*/
     TheoryId theory_args = d_smgr.pick_theory_with_terms();
+    assert(d_smgr.has_term(theory_args));
 
     /* Nothing to do if no kind with term arguments of picked theory exists. */
     OpKinds kinds = d_smgr.get_theory_to_op_kinds();
@@ -239,6 +241,7 @@ class ActionMkTerm : public Action
       default:
         args.push_back(d_smgr.pick_term(theory_args));
         sort = d_solver.get_sort(args[0]);
+        assert(theory_args == d_smgr.get_theory(sort));
     }
     /* remaining arguments */
     for (uint32_t i = 1; i < n_args; ++i)
@@ -320,8 +323,8 @@ class ActionMkConst : public Action
     SMTMBT_TRACE << get_id();
     /* Pick theory and sort of const. */
     if (!d_smgr.has_sort()) return false;
-    TheoryId theory = d_smgr.pick_theory_with_sorts();
-    Sort sort       = d_smgr.pick_sort(theory);
+    Sort sort       = d_smgr.pick_sort();
+    TheoryId theory = d_smgr.get_theory(sort);
     /* Create const. */
     // TODO pick random symbol for const
     Term res = d_solver.mk_const(sort, "");
