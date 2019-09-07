@@ -162,7 +162,8 @@ SolverManager::add_sort(Sort sort, TheoryId theory)
 
 /* -------------------------------------------------------------------------- */
 
-SortKind&
+#if 1
+SortKind
 SolverManager::pick_sort_kind(SortKindVector& kinds)
 {
   return pick_kind<SortKind, SortKindData, SortKindMap, SortKindVector>(
@@ -170,7 +171,7 @@ SolverManager::pick_sort_kind(SortKindVector& kinds)
       .d_kind;
 }
 
-OpKind&
+OpKind
 SolverManager::pick_op_kind(OpKindVector& kinds)
 {
   return pick_kind<OpKind, OpKindData, OpKindMap, OpKindVector>(d_op_kinds,
@@ -178,14 +179,22 @@ SolverManager::pick_op_kind(OpKindVector& kinds)
       .d_kind;
 }
 
-OpKind&
+OpKind
 SolverManager::pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2)
 {
   return pick_kind<OpKind, OpKindData, OpKindMap, OpKindVector>(
              d_op_kinds, &kinds1, &kinds2)
       .d_kind;
 }
+#endif
 
+SortKindData&
+SolverManager::pick_sort_kind_data()
+{
+  return pick_kind<SortKind, SortKindData, SortKindMap>(d_sort_kinds);
+}
+
+#if 1
 SortKindData&
 SolverManager::pick_sort_kind_data(SortKindVector& kinds)
 {
@@ -375,7 +384,7 @@ SolverManager::get_sort(Term term)
   assert(d_term_to_sort.find(term) != d_term_to_sort.end());
   return d_term_to_sort.at(term);
 }
-
+#endif
 /* -------------------------------------------------------------------------- */
 
 #define SMTMBT_ADD_SORT_KIND(kind, arity, theory) \
@@ -505,6 +514,16 @@ SolverManager::add_op_kinds()
   }
 }
 
+template <typename TKind, typename TKindData, typename TKindMap>
+TKindData&
+SolverManager::pick_kind(TKindMap& map)
+{
+  typename TKindMap::iterator it = map.begin();
+  std::advance(it, d_rng.pick_uint32() % map.size());
+  return it->second;
+}
+
+#if 1
 template <typename TKind,
           typename TKindData,
           typename TKindMap,
@@ -537,6 +556,7 @@ SolverManager::pick_kind(TKindMap& map,
   assert(map.find(kind) != map.end());
   return map.at(kind);
 }
+#endif
 
 /* -------------------------------------------------------------------------- */
 

@@ -52,10 +52,15 @@ class SolverManager
   void add_term(Term term, Sort sort, TheoryId theory);
   void add_sort(Sort sort, TheoryId theory);
 
-  SortKind& pick_sort_kind(SortKindVector& kinds);
-  OpKind& pick_op_kind(OpKindVector& kinds);
-  OpKind& pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2);
+#if 1
+  SortKind pick_sort_kind(SortKindVector& kinds);
+  OpKind pick_op_kind(OpKindVector& kinds);
+  OpKind pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2);
+#endif
 
+  SortKindData& pick_sort_kind_data();
+
+#if 1
   SortKindData& pick_sort_kind_data(SortKindVector& kinds);
   OpKindData& pick_op_kind_data(OpKindVector& kinds);
   OpKindData& pick_op_kind_data(OpKindVector& kinds1, OpKindVector& kinds2);
@@ -82,6 +87,7 @@ class SolverManager
   bool has_sort(TheoryId theory) const;
 
   Sort get_sort(Term term);
+#endif
 
   Stats d_stats;
 
@@ -96,6 +102,7 @@ class SolverManager
   void add_sort_kinds();
   void add_op_kinds();
 
+#if 1
   template <typename TKind,
             typename TKindData,
             typename TKindMap,
@@ -103,6 +110,12 @@ class SolverManager
   TKindData& pick_kind(TKindMap& map,
                        TKindVector* kinds1,
                        TKindVector* kinds2 = nullptr);
+#endif
+
+  template <typename TKind,
+            typename TKindData,
+            typename TKindMap>
+  TKindData& pick_kind(TKindMap& map);
 
   std::unique_ptr<Solver> d_solver;
   RNGenerator& d_rng;

@@ -157,27 +157,23 @@ class ActionDelete : public Action
 class ActionMkSort : public Action
 {
  public:
-  ActionMkSort(SolverManager& smgr) : Action(smgr, "mkSort")
-  {
-  }
+  ActionMkSort(SolverManager& smgr) : Action(smgr, "mkSort") {}
 
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    Sort res;
-    TheoryId theory = d_smgr.pick_theory();
-    std::cout << "picked theory " << theory << std::endl;
-    SortKinds kinds = d_smgr.get_theory_to_sort_kinds();
-    assert(kinds.find(theory) != kinds.end());
-    SortKind kind = d_smgr.pick_sort_kind(kinds[theory]);
+    SortKindData& kind_data = d_smgr.pick_sort_kind_data();
+    TheoryId theory         = kind_data.d_theory;
+    SortKind kind           = kind_data.d_kind;
     std::cout << "picked sort " << kind << std::endl;
+    Sort res;
     switch (kind)
     {
       case SortKind::BIT_VECTOR:
       {
         uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
         std::cout << "picked sort bw" << bw << std::endl;
-        res         = d_solver.mk_sort(SortKind::BIT_VECTOR, bw);
+        res = d_solver.mk_sort(SortKind::BIT_VECTOR, bw);
       }
       break;
       case SortKind::BOOLEAN: res = d_solver.mk_sort(SortKind::BOOLEAN); break;
