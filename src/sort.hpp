@@ -10,8 +10,9 @@ namespace smtmbt {
 
 enum SortKind
 {
-  BIT_VECTOR,
-  BOOLEAN,
+  SORT_BIT_VECTOR,
+  SORT_BOOLEAN,
+  SORT_ANY,
 };
 
 std::ostream& operator<<(std::ostream& out, SortKind kind);
@@ -23,7 +24,7 @@ struct SortKindHashFunction
 
 struct SortKindData
 {
-  SortKindData(SortKind kind   = BOOLEAN,
+  SortKindData(SortKind kind   = SORT_BOOLEAN,
                int32_t arity   = 0,
                TheoryId theory = THEORY_BOOL)
       : d_kind(kind), d_arity(arity), d_theory(theory)

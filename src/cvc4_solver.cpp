@@ -109,7 +109,7 @@ CVC4Solver::mk_sort(SortKind kind) const
   CVC4::api::Sort res;
   switch (kind)
   {
-    case SortKind::BOOLEAN: res = d_solver->getBooleanSort(); break;
+    case SORT_BOOLEAN: res = d_solver->getBooleanSort(); break;
 
     default: assert(false);
   }
@@ -122,7 +122,7 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
   Sort res = nullptr;
   switch (kind)
   {
-    case BIT_VECTOR:
+    case SORT_BIT_VECTOR:
       res = std::shared_ptr<CVC4Sort>(
           new CVC4Sort(d_solver, d_solver->mkBitVectorSort(size)));
       break;

@@ -437,8 +437,12 @@ SolverManager::add_sort_kinds()
   {
     switch (theory)
     {
-      case THEORY_BV: SMTMBT_ADD_SORT_KIND(BIT_VECTOR, 0, THEORY_BV); break;
-      case THEORY_BOOL: SMTMBT_ADD_SORT_KIND(BOOLEAN, 0, THEORY_BOOL); break;
+      case THEORY_BV:
+        SMTMBT_ADD_SORT_KIND(SORT_BIT_VECTOR, 0, THEORY_BV);
+        break;
+      case THEORY_BOOL:
+        SMTMBT_ADD_SORT_KIND(SORT_BOOLEAN, 0, THEORY_BOOL);
+        break;
       default: assert(false);
     }
   }

@@ -8,8 +8,8 @@ operator<<(std::ostream& out, SortKind kind)
 {
   switch (kind)
   {
-    case BIT_VECTOR: out << "SORT_KIND_BIT_VECTOR"; break;
-    case BOOLEAN: out << "SORT_KIND_BOOLEAN"; break;
+    case SORT_BIT_VECTOR: out << "SORT_KIND_BIT_VECTOR"; break;
+    case SORT_BOOLEAN: out << "SORT_KIND_BOOLEAN"; break;
     default: out << "UNKNOWN SORT KIND!" << int(kind); break;
   }
   return out;

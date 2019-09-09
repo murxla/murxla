@@ -169,14 +169,14 @@ class ActionMkSort : public Action
     Sort res;
     switch (kind)
     {
-      case SortKind::BIT_VECTOR:
+      case SORT_BIT_VECTOR:
       {
         uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
         std::cout << "picked sort bw" << bw << std::endl;
-        res = d_solver.mk_sort(SortKind::BIT_VECTOR, bw);
+        res = d_solver.mk_sort(SORT_BIT_VECTOR, bw);
       }
       break;
-      case SortKind::BOOLEAN: res = d_solver.mk_sort(SortKind::BOOLEAN); break;
+      case SORT_BOOLEAN: res = d_solver.mk_sort(SORT_BOOLEAN); break;
       default: assert(false);
     }
     d_smgr.add_sort(res, theory);

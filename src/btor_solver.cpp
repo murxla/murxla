@@ -112,7 +112,7 @@ BtorSolver::get_supported_theories() const
 Sort
 BtorSolver::mk_sort(SortKind kind) const
 {
-  assert(kind == SortKind::BOOLEAN);
+  assert(kind == SORT_BOOLEAN);
   BoolectorSort btor_res = boolector_bool_sort(d_solver);
   assert(btor_res);
   std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res, true));
@@ -123,7 +123,7 @@ BtorSolver::mk_sort(SortKind kind) const
 Sort
 BtorSolver::mk_sort(SortKind kind, uint32_t size) const
 {
-  assert(kind == SortKind::BIT_VECTOR);
+  assert(kind == SORT_BIT_VECTOR);
   BoolectorSort btor_res = boolector_bitvec_sort(d_solver, size);
   assert(btor_res);
   std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
