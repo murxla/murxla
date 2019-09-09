@@ -59,6 +59,7 @@ class SolverManager
 #endif
 
   SortKindData& pick_sort_kind_data();
+  OpKindData& pick_op_kind_data();
 
 #if 1
   SortKindData& pick_sort_kind_data(SortKindVector& kinds);
@@ -597,7 +598,8 @@ template <typename TSolver,
           typename THashTerm,
           typename THashSort>
 TheoryId
-SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::pick_theory_with_sorts()
+SolverManager<TSolver, TTerm, TSort, THashTerm, THashSort>::
+    pick_theory_with_sorts()
 {
   assert(d_theory_to_sorts.size());
   auto it = d_theory_to_sorts.begin();

@@ -194,6 +194,12 @@ SolverManager::pick_sort_kind_data()
   return pick_kind<SortKind, SortKindData, SortKindMap>(d_sort_kinds);
 }
 
+OpKindData&
+SolverManager::pick_op_kind_data()
+{
+  return pick_kind<OpKind, OpKindData, OpKindMap>(d_op_kinds);
+}
+
 #if 1
 SortKindData&
 SolverManager::pick_sort_kind_data(SortKindVector& kinds)

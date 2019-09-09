@@ -197,36 +197,30 @@ class ActionMkTerm : public Action
     assert(d_smgr.has_term());
 
     SMTMBT_TRACE << get_id();
-    /* Pick theory of term argument(s).*/
-    TheoryId theory_args = d_smgr.pick_theory_with_terms();
-    assert(d_smgr.has_term(theory_args));
 
-    /* Nothing to do if no kind with term arguments of picked theory exists. */
-    OpKinds kinds = d_smgr.get_theory_to_op_kinds();
-    if (kinds.find(theory_args) == kinds.end()
-        && kinds.find(THEORY_ALL) == kinds.end())
+    /* pick operator kind */
+    OpKindData& kind_data = d_smgr.pick_op_kind_data();
+    OpKind kind           = kind_data.d_kind;
+    int32_t arity         = kind_data.d_arity;
+    uint32_t n_params     = kind_data.d_nparams;
+    TheoryId theory_args  = kind_data.d_theory_args;
+
+    if (!d_smgr.has_term(theory_args)) return false;
+
+    if (theory_args == THEORY_ALL)
     {
-      return false;
+      theory_args = d_smgr.pick_theory_with_terms();
     }
 
-    /* Pick kind that expects arguments of picked theory. */
-    const OpKindData& kind_data =
-        kinds.find(THEORY_ALL) == kinds.end()
-            ? d_smgr.pick_op_kind_data(kinds[theory_args])
-            : d_smgr.pick_op_kind_data(kinds[theory_args], kinds[THEORY_ALL]);
-    assert(d_smgr.get_enabled_theories().find(kind_data.d_theory_term)
-           != d_smgr.get_enabled_theories().end());
-
-    const OpKind kind       = kind_data.d_kind;
-    const int32_t arity     = kind_data.d_arity;
-    const uint32_t n_params = kind_data.d_nparams;
+    if (arity == SMTMBT_MK_TERM_N_ARGS)
+    {
+      arity = d_rng.pick_uint32(SMTMBT_MK_TERM_N_ARGS_MIN,
+                                SMTMBT_MK_TERM_N_ARGS_MAX);
+    }
 
     /* Pick argument term(s). */
     Sort sort = nullptr;
     std::vector<Term> args;
-    uint32_t n_args = arity == SMTMBT_MK_TERM_N_ARGS ? d_rng.pick_uint32(
-                          SMTMBT_MK_TERM_N_ARGS_MIN, SMTMBT_MK_TERM_N_ARGS_MAX)
-                                                     : arity;
     /* first argument */
     switch (kind)
     {
@@ -240,7 +234,7 @@ class ActionMkTerm : public Action
         assert(theory_args == d_smgr.get_theory(sort));
     }
     /* remaining arguments */
-    for (uint32_t i = 1; i < n_args; ++i)
+    for (int32_t i = 1; i < arity; ++i)
     {
       switch (kind)
       {
