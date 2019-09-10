@@ -9,21 +9,11 @@ SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
     : d_solver(solver), d_rng(rng)
 {
   add_enabled_theories();
-  add_sort_kinds();
-  add_op_kinds();
+  add_sort_kinds();  // adds only sort kinds of enabled theories
+  add_op_kinds();    // adds only op kinds where both term and argument sorts
+                     // are enabled
 
   TheoryIdSet enabled_theories = d_enabled_theories;
-  for (const auto& k : d_sort_kinds)
-  {
-    d_theory_to_sort_kinds[k.second.d_theory].push_back(k.first);
-  }
-  for (const auto& k : d_op_kinds)
-  {
-    /* do not add if theory of term sort is not enabled */
-    if (d_enabled_theories.find(k.second.d_theory_term)
-        != d_enabled_theories.end())
-      d_theory_to_op_kinds[k.second.d_theory_args].push_back(k.first);
-  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -31,8 +21,7 @@ SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
 void
 SolverManager::clear()
 {
-  d_theory_to_sorts.clear();
-  d_sort_to_theory.clear();
+  d_sorts.clear();
   d_terms.clear();
   d_term_to_sort.clear();
 }
@@ -43,32 +32,6 @@ Solver&
 SolverManager::get_solver()
 {
   return *d_solver.get();
-}
-
-#if 0
-OpKindMap&
-SolverManager::get_op_kinds()
-{
-  return d_op_kinds;
-}
-
-SortKindMap&
-SolverManager::get_sort_kinds()
-{
-  return d_sort_kinds;
-}
-#endif
-
-SortKinds&
-SolverManager::get_theory_to_sort_kinds()
-{
-  return d_theory_to_sort_kinds;
-}
-
-OpKinds&
-SolverManager::get_theory_to_op_kinds()
-{
-  return d_theory_to_op_kinds;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -96,97 +59,97 @@ SolverManager::get_enabled_theories() const
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::add_input(Term term, Sort sort, TheoryId theory)
+SolverManager::add_input(Term term, Sort sort, SortKind sort_kind)
 {
   assert(term.get());
 
   d_stats.inputs += 1;
-  add_term(term, sort, theory);
+  add_term(term, sort, sort_kind);
 }
 
 void
-SolverManager::add_term(Term term, Sort sort, TheoryId theory)
+SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
 {
   assert(term.get());
   assert(sort.get());
-  assert(!has_sort(sort) || get_theory(sort) == theory);
+  assert(!has_sort(sort) || sort_kind == SORT_ANY
+         || get_sort_kind(sort) == sort_kind);
 
   if (d_term_to_sort.find(term) != d_term_to_sort.end())
   {
-    assert(d_terms.find(theory) != d_terms.end());
-    assert(d_terms[theory].find(sort) != d_terms[theory].end());
-    assert(d_terms[theory][sort].find(term) != d_terms[theory][sort].end());
+    assert(d_terms.find(sort_kind) != d_terms.end());
+    assert(d_terms.at(sort_kind).find(sort) != d_terms.at(sort_kind).end());
+    assert(d_terms.at(sort_kind).at(sort).find(term)
+           != d_terms.at(sort_kind).at(sort).end());
     return;
   }
 
   d_stats.terms += 1;
 
-  add_sort(sort, theory);
+  add_sort(sort, sort_kind);
 
   /* add term to d_term_to_sort */
-  d_term_to_sort[term] = sort;
+  d_term_to_sort.emplace(term, sort);
 
   /* add term to d_terms */
-  if (d_terms.find(theory) == d_terms.end())
+  if (d_terms.find(sort_kind) == d_terms.end())
   {
-    d_terms.emplace(theory, SortMap());
+    d_terms.emplace(sort_kind, SortMap());
   }
-  SortMap& map = d_terms[theory];
-  map.emplace(sort, TermMap());
-  if (map[sort].find(term) == map[sort].end())
+  SortMap& map = d_terms.at(sort_kind);
+  if (map.find(sort) == map.end())
   {
-    map[sort].emplace(term, 0);
+    map.emplace(sort, TermMap());
+    map.at(sort).emplace(term, 0);
   }
   else
   {
-    map[sort][term] += 1;
+    if (map.at(sort).find(term) == map.at(sort).end())
+    {
+      map.at(sort).emplace(term, 0);
+    }
+    map.at(sort).at(term) += 1;
   }
 }
 
 void
-SolverManager::add_sort(Sort sort, TheoryId theory)
+SolverManager::add_sort(Sort sort, SortKind sort_kind)
 {
   assert(sort.get());
-
-  if (d_sort_to_theory.find(sort) == d_sort_to_theory.end())
+  assert(d_sorts.find(sort) == d_sorts.end() || sort_kind == SORT_ANY
+         || d_sorts.at(sort) == sort_kind);
+  if (d_sorts.find(sort) == d_sorts.end())
   {
-    d_sort_to_theory.emplace(sort, theory);
+    d_sorts.emplace(sort, sort_kind);
   }
-
-  if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end())
+  if (d_sort_kind_to_sorts.find(sort_kind) == d_sort_kind_to_sorts.end())
   {
-    d_theory_to_sorts.emplace(theory, std::unordered_set<Sort, HashSort>());
+    d_sort_kind_to_sorts.emplace(sort_kind, SortSet());
   }
-  d_theory_to_sorts[theory].emplace(sort);
+  if (d_sort_kind_to_sorts.at(sort_kind).find(sort)
+      != d_sort_kind_to_sorts.at(sort_kind).end())
+  {
+    d_sort_kind_to_sorts.at(sort_kind).insert(sort);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
 
-#if 1
 SortKind
-SolverManager::pick_sort_kind(SortKindVector& kinds)
+SolverManager::pick_sort_kind(bool with_terms)
 {
-  return pick_kind<SortKind, SortKindData, SortKindMap, SortKindVector>(
-             d_sort_kinds, &kinds)
-      .d_kind;
+  assert(!d_sort_kind_to_sorts.empty());
+  if (with_terms)
+  {
+    assert(has_term());
+    auto it = d_terms.begin();
+    std::advance(it, d_rng.pick_uint32() % d_terms.size());
+    return it->first;
+  }
+  auto it = d_sort_kind_to_sorts.begin();
+  std::advance(it, d_rng.pick_uint32() % d_sort_kind_to_sorts.size());
+  return it->first;
 }
-
-OpKind
-SolverManager::pick_op_kind(OpKindVector& kinds)
-{
-  return pick_kind<OpKind, OpKindData, OpKindMap, OpKindVector>(d_op_kinds,
-                                                                &kinds)
-      .d_kind;
-}
-
-OpKind
-SolverManager::pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2)
-{
-  return pick_kind<OpKind, OpKindData, OpKindMap, OpKindVector>(
-             d_op_kinds, &kinds1, &kinds2)
-      .d_kind;
-}
-#endif
 
 SortKindData&
 SolverManager::pick_sort_kind_data()
@@ -200,132 +163,78 @@ SolverManager::pick_op_kind_data()
   return pick_kind<OpKind, OpKindData, OpKindMap>(d_op_kinds);
 }
 
-#if 1
-SortKindData&
-SolverManager::pick_sort_kind_data(SortKindVector& kinds)
-{
-  return pick_kind<SortKind, SortKindData, SortKindMap, SortKindVector>(
-      d_sort_kinds, &kinds);
-}
-
-OpKindData&
-SolverManager::pick_op_kind_data(OpKindVector& kinds)
-{
-  return pick_kind<OpKind, OpKindData, OpKindMap, OpKindVector>(d_op_kinds,
-                                                                &kinds);
-}
-
-OpKindData&
-SolverManager::pick_op_kind_data(OpKindVector& kinds1, OpKindVector& kinds2)
-{
-  return pick_kind<OpKind, OpKindData, OpKindMap, OpKindVector>(
-      d_op_kinds, &kinds1, &kinds2);
-}
-
 /* -------------------------------------------------------------------------- */
 
 TheoryId
 SolverManager::pick_theory()
 {
-  assert(d_enabled_theories.size());
+  assert(!d_enabled_theories.empty());
   auto it = d_enabled_theories.begin();
   std::advance(it, d_rng.pick_uint32() % d_enabled_theories.size());
   return *it;
 }
 
-TheoryId
-SolverManager::pick_theory_with_sorts()
-{
-  assert(d_theory_to_sorts.size());
-  auto it = d_theory_to_sorts.begin();
-  std::advance(it, d_rng.pick_uint32() % d_theory_to_sorts.size());
-  return it->first;
-}
-
-TheoryId
-SolverManager::pick_theory_with_terms()
-{
-  assert(d_terms.size());
-  auto it = d_terms.begin();
-  std::advance(it, d_rng.pick_uint32() % d_terms.size());
-  assert(!it->second.empty());
-  return it->first;
-}
-
-TheoryId
-SolverManager::get_theory(Sort sort)
-{
-  assert(has_sort(sort));
-  return d_sort_to_theory[sort];
-}
-
 /* -------------------------------------------------------------------------- */
-
-Term
-SolverManager::pick_term(TheoryId theory)
-{
-  assert(d_terms.find(theory) != d_terms.end());
-  if (theory == THEORY_ALL)
-  {
-    theory = pick_theory_with_terms();
-  }
-  Sort sort;
-  sort = pick_sort_with_terms(theory);
-  assert(get_theory(sort) == theory);
-  Term res = pick_term(sort);
-  assert(get_sort(res) == sort);
-  assert(get_theory(get_sort(res)) == theory);
-  return res;
-}
 
 Term
 SolverManager::pick_term(Sort sort)
 {
-  TheoryId theory = get_theory(sort);
-  assert(d_terms.find(theory) != d_terms.end());
-  assert(d_terms[theory].find(sort) != d_terms[theory].end());
-  TermMap& map = d_terms[theory][sort];
+  assert(has_sort(sort));
+  assert(has_term(sort));
+  SortKind sort_kind = get_sort_kind(sort);
+  assert(d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end());
+  TermMap& map = d_terms.at(sort_kind).at(sort);
   assert(!map.empty());
   auto it = map.begin();
-  if (map.size() > 1)
-  {
-    std::advance(it, d_rng.pick_uint32() % map.size());
-  }
+  std::advance(it, d_rng.pick_uint32() % map.size());
   // TODO: increment ref counter
   return it->first;
 }
 
-bool
-SolverManager::has_term()
+Term
+SolverManager::pick_term(SortKind sort_kind)
 {
-  for (const auto t : d_terms)
+  assert(has_term(sort_kind));
+  Sort sort = pick_sort(sort_kind);
+  return pick_term(sort);
+}
+
+bool
+SolverManager::has_term() const
+{
+  for (const auto& sort_kind : d_terms)
   {
-    for (const auto s : t.second)
+    for (const auto& sort_set : sort_kind.second)
     {
-      if (!s.second.empty()) return true;
+      assert(!sort_set.second.empty());
     }
   }
-  return false;
+  return !d_terms.empty();
 }
 
 bool
-SolverManager::has_term(TheoryId theory)
+SolverManager::has_term(SortKind sort_kind) const
 {
-  if (theory == THEORY_ALL) return has_term();
-
-  if (d_terms.find(theory) == d_terms.end()) return false;
-
-  for (const auto s : d_terms[theory])
-  {
-    if (!s.second.empty()) return true;
-  }
-  return false;
+  if (sort_kind == SORT_ANY) return has_term();
+  assert(d_terms.find(sort_kind) == d_terms.end()
+         || !d_terms.at(sort_kind).empty());
+  return d_terms.find(sort_kind) != d_terms.end();
 }
 
 bool
-SolverManager::has_term(Sort sort)
+SolverManager::has_term(Sort sort) const
 {
-  return !d_terms[get_theory(sort)][sort].empty();
+  SortKind sort_kind = get_sort_kind(sort);
+  if (d_terms.find(sort_kind) == d_terms.end()) return false;
+  assert(d_terms.at(sort_kind).find(sort) == d_terms.at(sort_kind).end()
+         || !d_terms.at(sort_kind).at(sort).empty());
+  return d_terms.at(sort_kind).find(sort) != d_terms.at(sort_kind).end();
+}
+
+bool
+SolverManager::has_term(Term term) const
+{
+  return d_term_to_sort.find(term) != d_term_to_sort.end();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -333,64 +242,61 @@ SolverManager::has_term(Sort sort)
 Sort
 SolverManager::pick_sort()
 {
-  TheoryId theory = pick_theory_with_sorts();
-  return pick_sort(theory);
+  assert(!d_sorts.empty());
+  auto it = d_sorts.begin();
+  std::advance(it, d_rng.pick_uint32() % d_sorts.size());
+  return it->first;
 }
 
 Sort
-SolverManager::pick_sort(TheoryId theory)
+SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
 {
-  assert(d_theory_to_sorts.find(theory) != d_theory_to_sorts.end());
-  assert(!d_theory_to_sorts[theory].empty());
+  assert(!with_terms || has_term(sort_kind));
+  if (sort_kind == SORT_ANY) sort_kind = pick_sort_kind(with_terms);
 
-  SortSet& set = d_theory_to_sorts[theory];
-  auto it      = set.begin();
+  if (with_terms)
+  {
+    SortMap& map = d_terms.at(sort_kind);
+    assert(!map.empty());
+    auto it = map.begin();
+    std::advance(it, d_rng.pick_uint32() % map.size());
+    return it->first;
+  }
+  assert(d_sort_kinds.find(sort_kind) != d_sort_kinds.end());
+  assert(d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end());
+  SortSet& set = d_sort_kind_to_sorts.at(sort_kind);
+  assert(!set.empty());
+  auto it = set.begin();
   std::advance(it, d_rng.pick_uint32() % set.size());
   return *it;
-}
-
-Sort
-SolverManager::pick_sort_with_terms(TheoryId theory)
-{
-  if (theory == THEORY_ALL) theory = pick_theory_with_terms();
-
-  SortMap& map = d_terms[theory];
-  assert(!map.empty());
-
-  auto it = map.begin();
-  if (map.size() > 1)
-  {
-    std::advance(it, d_rng.pick_uint32() % map.size());
-  }
-  return it->first;
 }
 
 bool
 SolverManager::has_sort() const
 {
-  return !d_sort_to_theory.empty();
+  return !d_sorts.empty();
 }
 
 bool
 SolverManager::has_sort(Sort sort) const
 {
-  return d_sort_to_theory.find(sort) != d_sort_to_theory.end();
-}
-
-bool
-SolverManager::has_sort(TheoryId theory) const
-{
-  if (d_theory_to_sorts.find(theory) == d_theory_to_sorts.end()) return false;
-  return !d_theory_to_sorts.at(theory).empty();
+  return d_sorts.find(sort) != d_sorts.end();
 }
 
 Sort
-SolverManager::get_sort(Term term)
+SolverManager::get_sort(Term term) const
 {
-  assert(d_term_to_sort.find(term) != d_term_to_sort.end());
+  assert(has_term(term));
   return d_term_to_sort.at(term);
 }
-#endif
+
+SortKind
+SolverManager::get_sort_kind(Sort sort) const
+{
+  assert(has_sort(sort));
+  return d_sorts.at(sort);
+}
+
 /* -------------------------------------------------------------------------- */
 
 #define SMTMBT_ADD_SORT_KIND(kind, arity, theory) \
@@ -437,12 +343,8 @@ SolverManager::add_sort_kinds()
   {
     switch (theory)
     {
-      case THEORY_BV:
-        SMTMBT_ADD_SORT_KIND(SORT_BIT_VECTOR, 0, THEORY_BV);
-        break;
-      case THEORY_BOOL:
-        SMTMBT_ADD_SORT_KIND(SORT_BOOLEAN, 0, THEORY_BOOL);
-        break;
+      case THEORY_BV: SMTMBT_ADD_SORT_KIND(SORT_BV, 0, THEORY_BV); break;
+      case THEORY_BOOL: SMTMBT_ADD_SORT_KIND(SORT_BOOL, 0, THEORY_BOOL); break;
       default: assert(false);
     }
   }
@@ -454,7 +356,7 @@ SolverManager::add_op_kinds()
   assert(d_enabled_theories.size());
   uint32_t n = SMTMBT_MK_TERM_N_ARGS;
 
-  SMTMBT_ADD_OP_KIND(ITE, 3, 0, THEORY_ALL, THEORY_ALL);
+  SMTMBT_ADD_OP_KIND(ITE, 3, 0, SORT_ANY, SORT_ANY);
 
   for (TheoryId theory : d_enabled_theories)
   {
@@ -462,61 +364,61 @@ SolverManager::add_op_kinds()
      * are enabled. */
     switch (theory)
     {
-      case THEORY_BOOL:
-        SMTMBT_ADD_OP_KIND(DISTINCT, n, 0, THEORY_BOOL, THEORY_ALL);
-        SMTMBT_ADD_OP_KIND(EQUAL, 2, 0, THEORY_BOOL, THEORY_ALL);
-        SMTMBT_ADD_OP_KIND(AND, n, 0, THEORY_BOOL, THEORY_BOOL);
-        SMTMBT_ADD_OP_KIND(OR, n, 0, THEORY_BOOL, THEORY_BOOL);
-        SMTMBT_ADD_OP_KIND(NOT, 1, 0, THEORY_BOOL, THEORY_BOOL);
-        SMTMBT_ADD_OP_KIND(XOR, 2, 0, THEORY_BOOL, THEORY_BOOL);
-        SMTMBT_ADD_OP_KIND(IMPLIES, 2, 0, THEORY_BOOL, THEORY_BOOL);
+      case SORT_BOOL:
+        SMTMBT_ADD_OP_KIND(DISTINCT, n, 0, SORT_BOOL, SORT_ANY);
+        SMTMBT_ADD_OP_KIND(EQUAL, 2, 0, SORT_BOOL, SORT_ANY);
+        SMTMBT_ADD_OP_KIND(AND, n, 0, SORT_BOOL, SORT_BOOL);
+        SMTMBT_ADD_OP_KIND(OR, n, 0, SORT_BOOL, SORT_BOOL);
+        SMTMBT_ADD_OP_KIND(NOT, 1, 0, SORT_BOOL, SORT_BOOL);
+        SMTMBT_ADD_OP_KIND(XOR, 2, 0, SORT_BOOL, SORT_BOOL);
+        SMTMBT_ADD_OP_KIND(IMPLIES, 2, 0, SORT_BOOL, SORT_BOOL);
         break;
 
-      case THEORY_BV:
-        SMTMBT_ADD_OP_KIND(BV_CONCAT, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_AND, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_OR, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_XOR, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_MULT, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ADD, n, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_NOT, 1, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_NEG, 1, 0, THEORY_BV, THEORY_BV);
+      case SORT_BV:
+        SMTMBT_ADD_OP_KIND(BV_CONCAT, n, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_AND, n, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_OR, n, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_XOR, n, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_MULT, n, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_ADD, n, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_NOT, 1, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_NEG, 1, 0, SORT_BV, SORT_BV);
 #if 0
   // TODO not in SMT-LIB and CVC4 and Boolector disagree on return type
   // CVC4: Bool
   // Boolector: BV
   // >> should be BV
-        SMTMBT_ADD_OP_KIND(BV_REDOR, 1, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_REDAND, 1, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_REDOR, 1, 0, SORT_BOOL, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_REDAND, 1, 0, SORT_BOOL, SORT_BV);
 #endif
-        SMTMBT_ADD_OP_KIND(BV_NAND, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_NOR, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_XNOR, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_COMP, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SUB, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_UDIV, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_UREM, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SDIV, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SREM, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SMOD, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SHL, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_LSHR, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ASHR, 2, 0, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ULT, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ULE, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_UGT, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_UGE, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SLT, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SLE, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SGT, 2, 0, THEORY_BOOL, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SGE, 2, 0, THEORY_BOOL, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_NAND, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_NOR, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_XNOR, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_COMP, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SUB, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_UDIV, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_UREM, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SDIV, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SREM, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SMOD, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SHL, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_LSHR, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_ASHR, 2, 0, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_ULT, 2, 0, SORT_BOOL, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_ULE, 2, 0, SORT_BOOL, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_UGT, 2, 0, SORT_BOOL, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_UGE, 2, 0, SORT_BOOL, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SLT, 2, 0, SORT_BOOL, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SLE, 2, 0, SORT_BOOL, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SGT, 2, 0, SORT_BOOL, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SGE, 2, 0, SORT_BOOL, SORT_BV);
         /* indexed */
-        SMTMBT_ADD_OP_KIND(BV_EXTRACT, 1, 2, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_REPEAT, 1, 1, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ROTATE_LEFT, 1, 1, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ROTATE_RIGHT, 1, 1, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_SIGN_EXTEND, 1, 1, THEORY_BV, THEORY_BV);
-        SMTMBT_ADD_OP_KIND(BV_ZERO_EXTEND, 1, 1, THEORY_BV, THEORY_BV);
+        SMTMBT_ADD_OP_KIND(BV_EXTRACT, 1, 2, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_REPEAT, 1, 1, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_ROTATE_LEFT, 1, 1, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_ROTATE_RIGHT, 1, 1, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_SIGN_EXTEND, 1, 1, SORT_BV, SORT_BV);
+        SMTMBT_ADD_OP_KIND(BV_ZERO_EXTEND, 1, 1, SORT_BV, SORT_BV);
         break;
 
       default: assert(false);
@@ -528,12 +430,13 @@ template <typename TKind, typename TKindData, typename TKindMap>
 TKindData&
 SolverManager::pick_kind(TKindMap& map)
 {
+  assert(!map.empty());
   typename TKindMap::iterator it = map.begin();
   std::advance(it, d_rng.pick_uint32() % map.size());
   return it->second;
 }
 
-#if 1
+#if 0
 template <typename TKind,
           typename TKindData,
           typename TKindMap,

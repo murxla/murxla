@@ -36,74 +36,70 @@ class SolverManager
   void clear();
 
   Solver& get_solver();
-#if 0
-  OpKindMap& get_op_kinds();
-  SortKindMap& get_sort_kinds();
-#endif
-  SortKinds& get_theory_to_sort_kinds();
-  OpKinds& get_theory_to_op_kinds();
 
   void set_rng(RNGenerator& rng);
   RNGenerator& get_rng() const;
 
   const TheoryIdSet& get_enabled_theories() const;
 
-  void add_input(Term term, Sort sort, TheoryId theory);
-  void add_term(Term term, Sort sort, TheoryId theory);
-  void add_sort(Sort sort, TheoryId theory);
+  void add_input(Term term, Sort sort, SortKind sort_kind);
+  void add_term(Term term, Sort sort, SortKind sort_kind);
+  void add_sort(Sort sort, SortKind sort_kind);
 
-#if 1
-  SortKind pick_sort_kind(SortKindVector& kinds);
-  OpKind pick_op_kind(OpKindVector& kinds);
-  OpKind pick_op_kind(OpKindVector& kinds1, OpKindVector& kinds2);
-#endif
+  /**
+   * Pick sort kind of existing (= created) sort.
+   * Optionally restrict selection to sort kinds with terms only if
+   * 'with_terms' is true.
+   */
+  SortKind pick_sort_kind(bool with_terms = true);
 
+  /**
+   * Pick enabled sort kind (and get its data).
+   * Only sort kinds of enabled theories are picked.
+   * This function does not guarantee that a sort of this kind alreay exists.
+   */
   SortKindData& pick_sort_kind_data();
+  /**
+   * Pick enabled operator kind (and get its data).
+   * Only operator kinds of enabled theories are picked.
+   */
   OpKindData& pick_op_kind_data();
 
-#if 1
-  SortKindData& pick_sort_kind_data(SortKindVector& kinds);
-  OpKindData& pick_op_kind_data(OpKindVector& kinds);
-  OpKindData& pick_op_kind_data(OpKindVector& kinds1, OpKindVector& kinds2);
-
   TheoryId pick_theory();
-  TheoryId pick_theory_with_sorts();
-  TheoryId pick_theory_with_terms();
 
-  TheoryId get_theory(Sort sort);
-
-  Term pick_term(TheoryId theory);
   Term pick_term(Sort sort);
+  Term pick_term(SortKind sort_kind);
 
-  bool has_term();
-  bool has_term(TheoryId theory);
-  bool has_term(Sort sort);
+  bool has_term() const;
+  bool has_term(SortKind sort_kind) const;
+  bool has_term(Sort sort) const;
+  bool has_term(Term term) const;
 
+  /**
+   * Pick sort.
+   * It is not guaranteed that there exist terms of the returned sort.
+   */
   Sort pick_sort();
-  Sort pick_sort(TheoryId theory);
-  Sort pick_sort_with_terms(TheoryId theory);
+  /**
+   * Pick sort of given sort kind. Optionally restrict selection to sorts
+   * with terms only if 'with_terms' is true.
+   */
+  Sort pick_sort(SortKind sort_kind, bool with_terms = true);
 
   bool has_sort() const;
   bool has_sort(Sort sort) const;
-  bool has_sort(TheoryId theory) const;
 
-  Sort get_sort(Term term);
-#endif
+  Sort get_sort(Term term) const;
+  SortKind get_sort_kind(Sort sort) const;
 
   Stats d_stats;
-
-  // protected:
-  // TODO: move that to class AbsTerm AbsSort
-  /* Solver specific implementations. */
-  //  virtual Term copy_term(Term term);
-  //  virtual Sort copy_sort(Sort sort);
 
  private:
   void add_enabled_theories();
   void add_sort_kinds();
   void add_op_kinds();
 
-#if 1
+#if 0
   template <typename TKind,
             typename TKindData,
             typename TKindMap,
@@ -126,16 +122,13 @@ class SolverManager
 
   TheoryIdSet d_enabled_theories;
 
-  /* Map theory -> sort kinds. */
-  SortKinds d_theory_to_sort_kinds;
-  /* Map theory of term arguments -> op kinds. */
-  OpKinds d_theory_to_op_kinds;
-  /* Map theory -> sorts. */
-  std::unordered_map<TheoryId, SortSet> d_theory_to_sorts;
-  /* Map sort -> theory. */
-  std::unordered_map<Sort, TheoryId, HashSort> d_sort_to_theory;
-  /* Map theory -> (sort -> terms). */
-  std::unordered_map<TheoryId, SortMap> d_terms;
+  /* Map sort to sort kind. */
+  std::unordered_map<Sort, SortKind, HashSort> d_sorts;
+  /* Map sort_kind -> (sort -> terms). */
+  std::unordered_map<SortKind, SortMap> d_terms;
+
+  /* Map sort kind -> sorts. */
+  std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
   /* Map term -> sort. */
   std::unordered_map<Term, Sort, HashTerm> d_term_to_sort;
 };

@@ -71,8 +71,10 @@ OpKindHashFunction::operator()(OpKind kind) const
 bool OpKindData::operator == (const OpKindData& other) const
 {
   return (d_kind == other.d_kind && d_arity == other.d_arity
-          && d_theory_term == other.d_theory_term
-          && d_theory_args == other.d_theory_args);
+          && d_sort_kind == other.d_sort_kind
+          && d_sort_kind_args == other.d_sort_kind_args);
+  //          && d_theory_term == other.d_theory_term
+  //          && d_theory_args == other.d_theory_args);
 }
 
 }  // namespace smtmbt

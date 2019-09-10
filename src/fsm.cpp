@@ -163,23 +163,22 @@ class ActionMkSort : public Action
   {
     SMTMBT_TRACE << get_id();
     SortKindData& kind_data = d_smgr.pick_sort_kind_data();
-    TheoryId theory         = kind_data.d_theory;
     SortKind kind           = kind_data.d_kind;
     std::cout << "picked sort " << kind << std::endl;
     Sort res;
     switch (kind)
     {
-      case SORT_BIT_VECTOR:
+      case SORT_BV:
       {
         uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
         std::cout << "picked sort bw" << bw << std::endl;
-        res = d_solver.mk_sort(SORT_BIT_VECTOR, bw);
+        res = d_solver.mk_sort(SORT_BV, bw);
       }
       break;
-      case SORT_BOOLEAN: res = d_solver.mk_sort(SORT_BOOLEAN); break;
+      case SORT_BOOL: res = d_solver.mk_sort(SORT_BOOL); break;
       default: assert(false);
     }
-    d_smgr.add_sort(res, theory);
+    d_smgr.add_sort(res, kind);
     return true;
   }
   // void untrace(const char* s) override;
@@ -203,14 +202,13 @@ class ActionMkTerm : public Action
     OpKind kind           = kind_data.d_kind;
     int32_t arity         = kind_data.d_arity;
     uint32_t n_params     = kind_data.d_nparams;
-    TheoryId theory_args  = kind_data.d_theory_args;
+    // TheoryId theory_args  = kind_data.d_theory_args;
+    SortKind sort_kind      = kind_data.d_sort_kind;
+    SortKind sort_kind_args = kind_data.d_sort_kind_args;
 
-    if (!d_smgr.has_term(theory_args)) return false;
+    if (!d_smgr.has_term(sort_kind_args)) return false;
 
-    if (theory_args == THEORY_ALL)
-    {
-      theory_args = d_smgr.pick_theory_with_terms();
-    }
+    Sort sort = d_smgr.pick_sort(sort_kind_args);
 
     if (arity == SMTMBT_MK_TERM_N_ARGS)
     {
@@ -219,42 +217,26 @@ class ActionMkTerm : public Action
     }
 
     /* Pick argument term(s). */
-    Sort sort = nullptr;
     std::vector<Term> args;
     /* first argument */
     switch (kind)
     {
       case OpKind::ITE:
-        if (!d_smgr.has_term(THEORY_BOOL)) return false;
-        args.push_back(d_smgr.pick_term(THEORY_BOOL));
+        if (!d_smgr.has_term(SORT_BOOL)) return false;
+        args.push_back(d_smgr.pick_term(SORT_BOOL));
         break;
       default:
-        args.push_back(d_smgr.pick_term(theory_args));
-        sort = d_solver.get_sort(args[0]);
-        assert(theory_args == d_smgr.get_theory(sort));
+        args.push_back(d_smgr.pick_term(sort));
+        assert(sort_kind_args == SORT_ANY
+               || sort_kind_args == d_smgr.get_sort_kind(sort));
     }
     /* remaining arguments */
     for (int32_t i = 1; i < arity; ++i)
     {
       switch (kind)
       {
-        case OpKind::BV_CONCAT:
-          args.push_back(d_smgr.pick_term(theory_args));
-          break;
-        case OpKind::ITE:
-          assert(i > 1 || sort == nullptr);
-          if (i > 1)
-          {
-            args.push_back(d_smgr.pick_term(sort));
-          }
-          else
-          {
-            Term arg = d_smgr.pick_term(theory_args);
-            sort     = d_solver.get_sort(arg);
-            args.push_back(arg);
-          }
-          break;
-        default: assert(sort); args.push_back(d_smgr.pick_term(sort));
+        case OpKind::BV_CONCAT: args.push_back(d_smgr.pick_term(sort)); break;
+        default: args.push_back(d_smgr.pick_term(sort));
       }
     }
 
@@ -295,9 +277,7 @@ class ActionMkTerm : public Action
     std::cout << "mk_term res " << res << std::endl;
     d_smgr.add_term(res,
                     d_solver.get_sort(res),
-                    kind_data.d_theory_term == THEORY_ALL
-                        ? theory_args
-                        : kind_data.d_theory_term);
+                    sort_kind == SORT_ANY ? sort_kind_args : sort_kind);
     return true;
   }
   // void untrace(const char* s) override;
@@ -313,13 +293,13 @@ class ActionMkConst : public Action
     SMTMBT_TRACE << get_id();
     /* Pick theory and sort of const. */
     if (!d_smgr.has_sort()) return false;
-    Sort sort       = d_smgr.pick_sort();
-    TheoryId theory = d_smgr.get_theory(sort);
+    Sort sort          = d_smgr.pick_sort();
+    SortKind sort_kind = d_smgr.get_sort_kind(sort);
     /* Create const. */
     // TODO pick random symbol for const
     Term res = d_solver.mk_const(sort, "");
     std::cout << "res " << res << std::endl;
-    d_smgr.add_input(res, d_solver.get_sort(res), theory);
+    d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
     return true;
   }
   // void untrace(const char* s) override;
