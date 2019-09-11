@@ -202,7 +202,6 @@ class ActionMkTerm : public Action
     OpKind kind           = kind_data.d_kind;
     int32_t arity         = kind_data.d_arity;
     uint32_t n_params     = kind_data.d_nparams;
-    // TheoryId theory_args  = kind_data.d_theory_args;
     SortKind sort_kind      = kind_data.d_sort_kind;
     SortKind sort_kind_args = kind_data.d_sort_kind_args;
 

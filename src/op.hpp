@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <vector>
 
-//#include "theory.hpp"
 #include "sort.hpp"
 
 namespace smtmbt {
@@ -77,15 +76,11 @@ struct OpKindData
              uint32_t nparams,
              SortKind sort_kind,
              SortKind sort_kind_args)
-      // TheoryId theory_term,
-      // TheoryId theory_args)
       : d_kind(kind),
         d_arity(arity),
         d_nparams(nparams),
         d_sort_kind(sort_kind),
         d_sort_kind_args(sort_kind_args)
-  // d_theory_term(theory_term),
-  // d_theory_args(theory_args)
   {
   }
 
@@ -97,11 +92,6 @@ struct OpKindData
   int32_t d_arity;
   /* The number of parameters if parameterized. */
   uint32_t d_nparams;
-  ///* The theory of a term of this kind. */
-  // TheoryId d_theory_term;
-  ///* The theory of the term arguments of this kind. */
-  // TheoryId d_theory_args;
-  //
   /* The sort kind of a term of this kind. */
   SortKind d_sort_kind;
   /* The sort kind of the term arguments of this kind. */
@@ -133,7 +123,6 @@ struct Op
 
 using OpKindVector = std::vector<OpKind>;
 using OpKindMap    = std::unordered_map<OpKind, OpKindData, OpKindHashFunction>;
-// using OpKinds      = std::unordered_map<TheoryId, OpKindVector>;
 using OpKinds = std::unordered_map<SortKind, OpKindVector>;
 
 }  // namespace smtmbt
