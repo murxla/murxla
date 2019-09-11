@@ -72,8 +72,8 @@ SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
 {
   assert(term.get());
   assert(sort.get());
-  assert(!has_sort(sort) || sort_kind == SORT_ANY
-         || get_sort_kind(sort) == sort_kind);
+  assert(sort_kind != SORT_ANY);
+  assert(!has_sort(sort) || get_sort_kind(sort) == sort_kind);
 
   if (d_term_to_sort.find(term) != d_term_to_sort.end())
   {
@@ -116,8 +116,8 @@ void
 SolverManager::add_sort(Sort sort, SortKind sort_kind)
 {
   assert(sort.get());
-  assert(d_sorts.find(sort) == d_sorts.end() || sort_kind == SORT_ANY
-         || d_sorts.at(sort) == sort_kind);
+  assert(sort_kind != SORT_ANY);
+  assert(d_sorts.find(sort) == d_sorts.end() || d_sorts.at(sort) == sort_kind);
   if (d_sorts.find(sort) == d_sorts.end())
   {
     d_sorts.emplace(sort, sort_kind);

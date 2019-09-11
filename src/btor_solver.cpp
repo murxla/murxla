@@ -147,9 +147,8 @@ BtorSolver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params) const
 {
-  // TODO TODO TODO indexed operators
   BoolectorNode* btor_res = nullptr;
-  size_t n_args = args.size();
+  size_t n_args           = args.size();
   size_t n_params         = params.size();
 
   // BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);

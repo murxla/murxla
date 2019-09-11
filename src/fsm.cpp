@@ -274,9 +274,10 @@ class ActionMkTerm : public Action
     Term res = d_solver.mk_term(kind, args, params);
 
     std::cout << "mk_term res " << res << std::endl;
-    d_smgr.add_term(res,
-                    d_solver.get_sort(res),
-                    sort_kind == SORT_ANY ? sort_kind_args : sort_kind);
+    d_smgr.add_term(
+        res,
+        d_solver.get_sort(res),
+        sort_kind == SORT_ANY ? d_smgr.get_sort_kind(sort) : sort_kind);
     return true;
   }
   // void untrace(const char* s) override;
