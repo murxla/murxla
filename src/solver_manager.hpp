@@ -33,18 +33,26 @@ class SolverManager
   SolverManager(Solver* solver, RNGenerator& rng);
   ~SolverManager() = default;
 
+  /** Clear all data. */
   void clear();
 
+  /** Get solver. */
   Solver& get_solver();
 
+  /** Set random number generator. */
   void set_rng(RNGenerator& rng);
+  /** Get random number generator. */
   RNGenerator& get_rng() const;
 
+  /** Get set of enabled theories. */
   const TheoryIdSet& get_enabled_theories() const;
 
-  void add_input(Term term, Sort sort, SortKind sort_kind);
-  void add_term(Term term, Sort sort, SortKind sort_kind);
+  /** Add sort to sort databse. */
   void add_sort(Sort sort, SortKind sort_kind);
+  /** Add input to term database. */
+  void add_input(Term term, Sort sort, SortKind sort_kind);
+  /** Add non-input term to term database. */
+  void add_term(Term term, Sort sort, SortKind sort_kind);
 
   /**
    * Pick sort kind of existing (= created) sort.
@@ -65,14 +73,27 @@ class SolverManager
    */
   OpKindData& pick_op_kind_data();
 
+  /** Pick any of the enabled theories. */
   TheoryId pick_theory();
 
+  /**
+   * Pick a term of given sort.
+   * Requires that terms of this sort exist.
+   */
   Term pick_term(Sort sort);
+  /**
+   * Pick term of given sort kind.
+   * Requires that terms of this sort kind exist.
+   */
   Term pick_term(SortKind sort_kind);
 
+  /** Return true if term database contains any term. */
   bool has_term() const;
+  /** Return true if term database contains any term of given sort kind. */
   bool has_term(SortKind sort_kind) const;
+  /** Return true if term database contains any time of given sort. */
   bool has_term(Sort sort) const;
+  /** Return true if term databse contains given term. */
   bool has_term(Term term) const;
 
   /**
@@ -86,17 +107,42 @@ class SolverManager
    */
   Sort pick_sort(SortKind sort_kind, bool with_terms = true);
 
+  /**
+   * Return true if any sort has been created.
+   * This does not guarantee that any terms have been created.
+   */
   bool has_sort() const;
+  /**
+   * Return true if given sort already exists.
+   * This does not guarantee that any terms of this sort have been created.
+   */
   bool has_sort(Sort sort) const;
 
+  /** Get sort of given term. */
   Sort get_sort(Term term) const;
+  /** Get sort kind of given sort. */
   SortKind get_sort_kind(Sort sort) const;
 
+  /* Statistics. */
   Stats d_stats;
 
  private:
+  /**
+   * Determine and populate set of enabled theories.
+   * All theories supported by a solvers are by default enabled and can
+   * optionally be disabled (the latter is still TODO).
+   */
   void add_enabled_theories();
+
+  /**
+   * Populate sort kinds database with enabled sort kinds.
+   * Sort kinds are enabled based on the set of enabled theories.
+   */
   void add_sort_kinds();
+  /**
+   * Populate sort kinds database with enabled operator kinds.
+   * Operator kinds are enabled based on the set of enabled theories.
+   */
   void add_op_kinds();
 
 #if 0
@@ -109,17 +155,28 @@ class SolverManager
                        TKindVector* kinds2 = nullptr);
 #endif
 
+  /** Generalized helper to pick a sort or operator kind. */
   template <typename TKind,
             typename TKindData,
             typename TKindMap>
   TKindData& pick_kind(TKindMap& map);
 
+  /**
+   * The activated solver.
+   * No calls to the API of the underlying solver are issued from the solver
+   * manager, only calls to the API of the smtmbt::Solver object.
+   */
   std::unique_ptr<Solver> d_solver;
+
+  /** The random number generator. */
   RNGenerator& d_rng;
 
-  OpKindMap d_op_kinds;
+  /** The set of enabled sort kinds. Maps SortKind to SortKindData. */
   SortKindMap d_sort_kinds;
+  /** The set of enabled operator kinds. Maps OpKind to OpKindData. */
+  OpKindMap d_op_kinds;
 
+  /** The set of enabled theories. */
   TheoryIdSet d_enabled_theories;
 
   /* Map sort to sort kind. */
