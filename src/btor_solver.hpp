@@ -131,8 +131,8 @@ class BtorSolver : public Solver
   //
   //
  private:
-  BoolectorSort get_sort(Sort sort) const;
-  BoolectorNode* get_term(Term term) const;
+  BoolectorSort get_btor_sort(Sort sort) const;
+  BoolectorNode* get_btor_term(Term term) const;
   BoolectorNode* mk_term_left_assoc(
       std::vector<Term>& args,
       BoolectorNode* (*fun)(Btor*, BoolectorNode*, BoolectorNode*) ) const;

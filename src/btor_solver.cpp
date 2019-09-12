@@ -135,7 +135,7 @@ Term
 BtorSolver::mk_const(Sort sort, const std::string name) const
 {
   BoolectorNode* btor_res =
-      boolector_var(d_solver, get_sort(sort), name.c_str());
+      boolector_var(d_solver, get_btor_sort(sort), name.c_str());
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   std::cout << "const" << res << std::endl;
@@ -180,8 +180,10 @@ BtorSolver::mk_term(const OpKind& kind,
       break;
     case ITE:
       assert(n_args == 3);
-      btor_res = boolector_cond(
-          d_solver, get_term(args[0]), get_term(args[1]), get_term(args[2]));
+      btor_res = boolector_cond(d_solver,
+                                get_btor_term(args[0]),
+                                get_btor_term(args[1]),
+                                get_btor_term(args[2]));
       break;
     case IMPLIES:
       assert(n_args > 1);
@@ -191,19 +193,19 @@ BtorSolver::mk_term(const OpKind& kind,
     case BV_EXTRACT:
       assert(n_args == 1);
       assert(n_params == 2);
-      btor_res =
-          boolector_slice(d_solver, get_term(args[0]), params[0], params[1]);
+      btor_res = boolector_slice(
+          d_solver, get_btor_term(args[0]), params[0], params[1]);
       break;
     case BV_REPEAT:
       assert(n_args == 1);
       assert(n_params == 1);
-      btor_res = boolector_repeat(d_solver, get_term(args[0]), params[0]);
+      btor_res = boolector_repeat(d_solver, get_btor_term(args[0]), params[0]);
       break;
     case BV_ROTATE_LEFT:
     {
       assert(n_args == 1);
       assert(n_params == 1);
-      BoolectorNode* arg = get_term(args[0]);
+      BoolectorNode* arg = get_btor_term(args[0]);
       BoolectorSort s    = boolector_get_sort(d_solver, arg);
       uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
       uint32_t bw2       = static_cast<uint32_t>(log2(bw));
@@ -218,7 +220,7 @@ BtorSolver::mk_term(const OpKind& kind,
     {
       assert(n_args == 1);
       assert(n_params == 1);
-      BoolectorNode* arg = get_term(args[0]);
+      BoolectorNode* arg = get_btor_term(args[0]);
       BoolectorSort s    = boolector_get_sort(d_solver, arg);
       uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
       uint32_t bw2       = static_cast<uint32_t>(log2(bw));
@@ -232,12 +234,12 @@ BtorSolver::mk_term(const OpKind& kind,
     case BV_SIGN_EXTEND:
       assert(n_args == 1);
       assert(n_params == 1);
-      btor_res = boolector_sext(d_solver, get_term(args[0]), params[0]);
+      btor_res = boolector_sext(d_solver, get_btor_term(args[0]), params[0]);
       break;
     case BV_ZERO_EXTEND:
       assert(n_args == 1);
       assert(n_params == 1);
-      btor_res = boolector_uext(d_solver, get_term(args[0]), params[0]);
+      btor_res = boolector_uext(d_solver, get_btor_term(args[0]), params[0]);
       break;
     case BV_CONCAT:
       assert(n_args > 1);
@@ -269,19 +271,19 @@ BtorSolver::mk_term(const OpKind& kind,
     case NOT:
     case BV_NOT:
       assert(n_args == 1);
-      btor_res = boolector_not(d_solver, get_term(args[0]));
+      btor_res = boolector_not(d_solver, get_btor_term(args[0]));
       break;
     case BV_NEG:
       assert(n_args == 1);
-      btor_res = boolector_neg(d_solver, get_term(args[0]));
+      btor_res = boolector_neg(d_solver, get_btor_term(args[0]));
       break;
     case BV_REDOR:
       assert(n_args == 1);
-      btor_res = boolector_redor(d_solver, get_term(args[0]));
+      btor_res = boolector_redor(d_solver, get_btor_term(args[0]));
       break;
     case BV_REDAND:
       assert(n_args == 1);
-      btor_res = boolector_redand(d_solver, get_term(args[0]));
+      btor_res = boolector_redand(d_solver, get_btor_term(args[0]));
       break;
     case BV_NAND:
       assert(n_args == 2);
@@ -396,20 +398,20 @@ BtorSolver::mk_term(const OpKind& kind,
 Sort
 BtorSolver::get_sort(Term term) const
 {
-  return std::shared_ptr<BtorSort>(
-      new BtorSort(d_solver, boolector_get_sort(d_solver, get_term(term))));
+  return std::shared_ptr<BtorSort>(new BtorSort(
+      d_solver, boolector_get_sort(d_solver, get_btor_term(term))));
 }
 
 /* -------------------------------------------------------------------------- */
 
 BoolectorSort
-BtorSolver::get_sort(Sort sort) const
+BtorSolver::get_btor_sort(Sort sort) const
 {
   return static_cast<BtorSort*>(sort.get())->d_sort;
 }
 
 BoolectorNode*
-BtorSolver::get_term(Term term) const
+BtorSolver::get_btor_term(Term term) const
 {
   return static_cast<BtorTerm*>(term.get())->d_term;
 }
@@ -423,10 +425,10 @@ BtorSolver::mk_term_left_assoc(std::vector<Term>& args,
   assert(args.size() >= 2);
   BoolectorNode *res, *tmp;
 
-  res = fun(d_solver, get_term(args[0]), get_term(args[1]));
+  res = fun(d_solver, get_btor_term(args[0]), get_btor_term(args[1]));
   for (uint32_t i = 2, n_args = args.size(); i < n_args; ++i)
   {
-    tmp = fun(d_solver, res, get_term(args[i]));
+    tmp = fun(d_solver, res, get_btor_term(args[i]));
     boolector_release(d_solver, res);
     res = tmp;
   }
@@ -447,7 +449,7 @@ BtorSolver::mk_term_pairwise(std::vector<Term>& args,
   {
     for (uint32_t j = i + 1; j < n_args; ++j)
     {
-      tmp = fun(d_solver, get_term(args[i]), get_term(args[j]));
+      tmp = fun(d_solver, get_btor_term(args[i]), get_btor_term(args[j]));
       if (res)
       {
         old = res;

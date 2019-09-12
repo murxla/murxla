@@ -122,8 +122,8 @@ class CVC4Solver : public Solver
   //
  private:
   void init_op_kinds();
-  CVC4::api::Sort& get_sort(Sort sort) const;
-  CVC4::api::Term& get_term(Term term) const;
+  CVC4::api::Sort& get_cvc4_sort(Sort sort) const;
+  CVC4::api::Term& get_cvc4_term(Term term) const;
 
   CVC4::api::Solver* d_solver;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_kinds;

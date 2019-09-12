@@ -136,7 +136,7 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
 Term
 CVC4Solver::mk_const(Sort sort, const std::string name) const
 {
-  CVC4::api::Term res = d_solver->mkConst(get_sort(sort), name);
+  CVC4::api::Term res = d_solver->mkConst(get_cvc4_sort(sort), name);
   std::cout << "const" << res << std::endl;
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, res));
 }
@@ -181,35 +181,37 @@ CVC4Solver::mk_term(const OpKind& kind,
       break;
 
     case 1:
-      cvc4_res =
-          n_params ? d_solver->mkTerm(cvc4_kind, cvc4_opterm, get_term(args[0]))
-                   : d_solver->mkTerm(cvc4_kind, get_term(args[0]));
+      cvc4_res = n_params ? d_solver->mkTerm(
+                     cvc4_kind, cvc4_opterm, get_cvc4_term(args[0]))
+                          : d_solver->mkTerm(cvc4_kind, get_cvc4_term(args[0]));
       break;
 
     case 2:
-      cvc4_res =
-          n_params ? d_solver->mkTerm(
-              cvc4_kind, cvc4_opterm, get_term(args[0]), get_term(args[1]))
-                   : d_solver->mkTerm(
-                       cvc4_kind, get_term(args[0]), get_term(args[1]));
+      cvc4_res = n_params ? d_solver->mkTerm(cvc4_kind,
+                                             cvc4_opterm,
+                                             get_cvc4_term(args[0]),
+                                             get_cvc4_term(args[1]))
+                          : d_solver->mkTerm(cvc4_kind,
+                                             get_cvc4_term(args[0]),
+                                             get_cvc4_term(args[1]));
       break;
 
     case 3:
       cvc4_res = n_params ? d_solver->mkTerm(cvc4_kind,
                                              cvc4_opterm,
-                                             get_term(args[0]),
-                                             get_term(args[1]),
-                                             get_term(args[2]))
+                                             get_cvc4_term(args[0]),
+                                             get_cvc4_term(args[1]),
+                                             get_cvc4_term(args[2]))
                           : d_solver->mkTerm(cvc4_kind,
-                                             get_term(args[0]),
-                                             get_term(args[1]),
-                                             get_term(args[2]));
+                                             get_cvc4_term(args[0]),
+                                             get_cvc4_term(args[1]),
+                                             get_cvc4_term(args[2]));
       break;
 
     default:
       assert(n_args == SMTMBT_MK_TERM_N_ARGS || n_args > 3);
       std::vector<CVC4::api::Term> cvc4_args;
-      for (Term t : args) cvc4_args.push_back(get_term(t));
+      for (Term t : args) cvc4_args.push_back(get_cvc4_term(t));
       cvc4_res = n_params ? d_solver->mkTerm(cvc4_kind, cvc4_opterm, cvc4_args)
                           : d_solver->mkTerm(cvc4_kind, cvc4_args);
   }
@@ -220,7 +222,7 @@ CVC4Solver::mk_term(const OpKind& kind,
 Sort
 CVC4Solver::get_sort(Term term) const
 {
-  CVC4::api::Term cvc4_term = get_term(term);
+  CVC4::api::Term cvc4_term = get_cvc4_term(term);
   return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, cvc4_term.getSort()));
 }
 
@@ -294,13 +296,13 @@ CVC4Solver::init_op_kinds()
 }
 
 CVC4::api::Sort&
-CVC4Solver::get_sort(Sort sort) const
+CVC4Solver::get_cvc4_sort(Sort sort) const
 {
   return static_cast<CVC4Sort*>(sort.get())->d_sort;
 }
 
 CVC4::api::Term&
-CVC4Solver::get_term(Term term) const
+CVC4Solver::get_cvc4_term(Term term) const
 {
   return static_cast<CVC4Term*>(term.get())->d_term;
 }
