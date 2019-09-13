@@ -120,8 +120,6 @@ class SolverManager
 
   /** Get sort of given term. */
   Sort get_sort(Term term) const;
-  /** Get sort kind of given sort. */
-  SortKind get_sort_kind(Sort sort) const;
 
   /* Statistics. */
   Stats d_stats;
@@ -179,8 +177,8 @@ class SolverManager
   /** The set of enabled theories. */
   TheoryIdSet d_enabled_theories;
 
-  /* Map sort to sort kind. */
-  std::unordered_map<Sort, SortKind, HashSort> d_sorts;
+  /* Maintain all created sorts. */
+  SortSet d_sorts;
   /* Map sort_kind -> (sort -> terms). */
   std::unordered_map<SortKind, SortMap> d_terms;
 

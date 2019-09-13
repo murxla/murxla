@@ -29,13 +29,18 @@ namespace smtmbt {
 class AbsSort
 {
  public:
-  AbsSort(){};
   virtual ~AbsSort(){};
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
 
   virtual bool is_bv() const           = 0;
   virtual uint32_t get_bv_size() const = 0;
+
+  void set_kind(SortKind sort_kind);
+  SortKind get_kind();
+
+ protected:
+  SortKind d_kind = SORT_ANY;
 };
 
 using Sort = std::shared_ptr<AbsSort>;

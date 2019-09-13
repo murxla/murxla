@@ -9,6 +9,18 @@ namespace smtmbt {
 /* Sort                                                                       */
 /* -------------------------------------------------------------------------- */
 
+void
+AbsSort::set_kind(SortKind sort_kind)
+{
+  d_kind = sort_kind;
+}
+
+SortKind
+AbsSort::get_kind()
+{
+  return d_kind;
+}
+
 bool
 operator==(const Sort& a, const Sort& b)
 {

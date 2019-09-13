@@ -227,7 +227,7 @@ class ActionMkTerm : public Action
       default:
         args.push_back(d_smgr.pick_term(sort));
         assert(sort_kind_args == SORT_ANY
-               || sort_kind_args == d_smgr.get_sort_kind(sort));
+               || sort_kind_args == sort->get_kind());
     }
     /* remaining arguments */
     for (int32_t i = 1; i < arity; ++i)
@@ -274,10 +274,9 @@ class ActionMkTerm : public Action
     Term res = d_solver.mk_term(kind, args, params);
 
     std::cout << "mk_term res " << res << std::endl;
-    d_smgr.add_term(
-        res,
-        d_solver.get_sort(res),
-        sort_kind == SORT_ANY ? d_smgr.get_sort_kind(sort) : sort_kind);
+    d_smgr.add_term(res,
+                    d_solver.get_sort(res),
+                    sort_kind == SORT_ANY ? sort->get_kind() : sort_kind);
     return true;
   }
   // void untrace(const char* s) override;
@@ -294,7 +293,7 @@ class ActionMkConst : public Action
     /* Pick theory and sort of const. */
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
-    SortKind sort_kind = d_smgr.get_sort_kind(sort);
+    SortKind sort_kind = sort->get_kind();
     /* Create const. */
     // TODO pick random symbol for const
     Term res = d_solver.mk_const(sort, "");

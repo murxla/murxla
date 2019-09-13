@@ -73,7 +73,9 @@ SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
   assert(term.get());
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
-  assert(!has_sort(sort) || get_sort_kind(sort) == sort_kind);
+
+  if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
+  assert(!has_sort(sort) || sort->get_kind() == sort_kind);
 
   if (d_term_to_sort.find(term) != d_term_to_sort.end())
   {
@@ -117,11 +119,19 @@ SolverManager::add_sort(Sort sort, SortKind sort_kind)
 {
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
-  assert(d_sorts.find(sort) == d_sorts.end() || d_sorts.at(sort) == sort_kind);
-  if (d_sorts.find(sort) == d_sorts.end())
+
+  if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
+
+  auto it = d_sorts.find(sort);
+  if (it == d_sorts.end())
   {
-    d_sorts.emplace(sort, sort_kind);
+    d_sorts.insert(sort);
   }
+  else
+  {
+    assert((*it)->get_kind() == sort_kind);
+  }
+
   if (d_sort_kind_to_sorts.find(sort_kind) == d_sort_kind_to_sorts.end())
   {
     d_sort_kind_to_sorts.emplace(sort_kind, SortSet());
@@ -181,7 +191,7 @@ SolverManager::pick_term(Sort sort)
 {
   assert(has_sort(sort));
   assert(has_term(sort));
-  SortKind sort_kind = get_sort_kind(sort);
+  SortKind sort_kind = sort->get_kind();
   assert(d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end());
   TermMap& map = d_terms.at(sort_kind).at(sort);
   assert(!map.empty());
@@ -224,7 +234,7 @@ SolverManager::has_term(SortKind sort_kind) const
 bool
 SolverManager::has_term(Sort sort) const
 {
-  SortKind sort_kind = get_sort_kind(sort);
+  SortKind sort_kind = sort->get_kind();
   if (d_terms.find(sort_kind) == d_terms.end()) return false;
   assert(d_terms.at(sort_kind).find(sort) == d_terms.at(sort_kind).end()
          || !d_terms.at(sort_kind).at(sort).empty());
@@ -245,7 +255,7 @@ SolverManager::pick_sort()
   assert(!d_sorts.empty());
   auto it = d_sorts.begin();
   std::advance(it, d_rng.pick_uint32() % d_sorts.size());
-  return it->first;
+  return *it;
 }
 
 Sort
@@ -288,13 +298,6 @@ SolverManager::get_sort(Term term) const
 {
   assert(has_term(term));
   return d_term_to_sort.at(term);
-}
-
-SortKind
-SolverManager::get_sort_kind(Sort sort) const
-{
-  assert(has_sort(sort));
-  return d_sorts.at(sort);
 }
 
 /* -------------------------------------------------------------------------- */

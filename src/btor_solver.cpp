@@ -11,10 +11,8 @@ namespace btor {
 /* BtorSort                                                                   */
 /* -------------------------------------------------------------------------- */
 
-BtorSort::BtorSort(Btor* btor, BoolectorSort sort, bool is_bool)
-    : d_solver(btor),
-      d_sort(boolector_copy_sort(btor, sort)),
-      d_is_bool(is_bool)
+BtorSort::BtorSort(Btor* btor, BoolectorSort sort)
+    : d_solver(btor), d_sort(boolector_copy_sort(btor, sort))
 {
 }
 
@@ -32,7 +30,7 @@ BtorSort::equals(const Sort& other) const
   BtorSort* btor_sort = dynamic_cast<BtorSort*>(other.get());
   if (btor_sort)
   {
-    return d_sort == btor_sort->d_sort && d_is_bool == btor_sort->d_is_bool;
+    return d_sort == btor_sort->d_sort && d_kind == btor_sort->d_kind;
   }
   return false;
 }
@@ -115,7 +113,7 @@ BtorSolver::mk_sort(SortKind kind) const
   assert(kind == SORT_BOOL);
   BoolectorSort btor_res = boolector_bool_sort(d_solver);
   assert(btor_res);
-  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res, true));
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
   boolector_release_sort(d_solver, btor_res);
   return res;
 }

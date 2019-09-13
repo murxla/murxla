@@ -33,7 +33,11 @@ bool
 CVC4Sort::equals(const Sort& other) const
 {
   CVC4Sort* cvc4_sort = dynamic_cast<CVC4Sort*>(other.get());
-  if (cvc4_sort) return d_sort == cvc4_sort->d_sort;
+  if (cvc4_sort)
+  {
+    assert(d_kind == cvc4_sort->d_kind);
+    return d_sort == cvc4_sort->d_sort;
+  }
   return false;
 }
 
