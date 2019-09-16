@@ -336,16 +336,18 @@ SolverManager::add_sort_kinds()
 void
 SolverManager::add_op_kinds()
 {
-  assert(d_enabled_theories.size());
+  assert(d_sort_kinds.size());
+
   uint32_t n = SMTMBT_MK_TERM_N_ARGS;
 
   SMTMBT_ADD_OP_KIND(ITE, 3, 0, SORT_ANY, SORT_ANY);
 
-  for (TheoryId theory : d_enabled_theories)
+  for (const auto& s : d_sort_kinds)
   {
+    SortKind sort_kind = s.first;
     /* Only enable operator kinds where both argument and term theories
-     * are enabled. */
-    switch (theory)
+     * (and thus argument and term sort kinds) are enabled. */
+    switch (sort_kind)
     {
       case SORT_BOOL:
         SMTMBT_ADD_OP_KIND(DISTINCT, n, 0, SORT_BOOL, SORT_ANY);
