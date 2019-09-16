@@ -152,13 +152,11 @@ SolverManager::pick_sort_kind(bool with_terms)
   if (with_terms)
   {
     assert(has_term());
-    auto it = d_terms.begin();
-    std::advance(it, d_rng.pick_uint32() % d_terms.size());
-    return it->first;
+    return pick_from_map<std::unordered_map<SortKind, SortMap>, SortKind>(
+        d_terms);
   }
-  auto it = d_sort_kind_to_sorts.begin();
-  std::advance(it, d_rng.pick_uint32() % d_sort_kind_to_sorts.size());
-  return it->first;
+  return pick_from_map<std::unordered_map<SortKind, SortSet>, SortKind>(
+      d_sort_kind_to_sorts);
 }
 
 SortKindData&
@@ -178,10 +176,7 @@ SolverManager::pick_op_kind_data()
 TheoryId
 SolverManager::pick_theory()
 {
-  assert(!d_enabled_theories.empty());
-  auto it = d_enabled_theories.begin();
-  std::advance(it, d_rng.pick_uint32() % d_enabled_theories.size());
-  return *it;
+  return pick_from_set<TheoryIdSet, TheoryId>(d_enabled_theories);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -193,12 +188,8 @@ SolverManager::pick_term(Sort sort)
   assert(has_term(sort));
   SortKind sort_kind = sort->get_kind();
   assert(d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end());
-  TermMap& map = d_terms.at(sort_kind).at(sort);
-  assert(!map.empty());
-  auto it = map.begin();
-  std::advance(it, d_rng.pick_uint32() % map.size());
+  return pick_from_map<TermMap, Term>(d_terms.at(sort_kind).at(sort));
   // TODO: increment ref counter
-  return it->first;
 }
 
 Term
@@ -252,10 +243,7 @@ SolverManager::has_term(Term term) const
 Sort
 SolverManager::pick_sort()
 {
-  assert(!d_sorts.empty());
-  auto it = d_sorts.begin();
-  std::advance(it, d_rng.pick_uint32() % d_sorts.size());
-  return *it;
+  return pick_from_set<SortSet, Sort>(d_sorts);
 }
 
 Sort
@@ -266,19 +254,11 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
 
   if (with_terms)
   {
-    SortMap& map = d_terms.at(sort_kind);
-    assert(!map.empty());
-    auto it = map.begin();
-    std::advance(it, d_rng.pick_uint32() % map.size());
-    return it->first;
+    return pick_from_map<SortMap, Sort>(d_terms.at(sort_kind));
   }
   assert(d_sort_kinds.find(sort_kind) != d_sort_kinds.end());
   assert(d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end());
-  SortSet& set = d_sort_kind_to_sorts.at(sort_kind);
-  assert(!set.empty());
-  auto it = set.begin();
-  std::advance(it, d_rng.pick_uint32() % set.size());
-  return *it;
+  return pick_from_set<SortSet, Sort>(d_sort_kind_to_sorts.at(sort_kind));
 }
 
 bool
@@ -427,6 +407,26 @@ SolverManager::add_op_kinds()
       default: assert(false);
     }
   }
+}
+
+template <typename TMap, typename TPicked>
+TPicked
+SolverManager::pick_from_map(TMap& map)
+{
+  assert(!map.empty());
+  auto it = map.begin();
+  std::advance(it, d_rng.pick_uint32() % map.size());
+  return it->first;
+}
+
+template <typename TSet, typename TPicked>
+TPicked
+SolverManager::pick_from_set(TSet& set)
+{
+  assert(!set.empty());
+  auto it = set.begin();
+  std::advance(it, d_rng.pick_uint32() % set.size());
+  return *it;
 }
 
 template <typename TKind, typename TKindData, typename TKindMap>
