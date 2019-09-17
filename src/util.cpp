@@ -120,12 +120,12 @@ RNGenerator::pick_with_prob(uint32_t prob)
 }
 
 std::string
-RNGenerator::pick_string(std::vector<char>& chars, uint32_t len)
+RNGenerator::pick_string(std::string& chars, uint32_t len)
 {
   assert(chars.size());
   if (len == 0) return "";
   std::string str(len, 0);
-  std::generate_n(str.begin(), len, [this, &chars, len]() {
+  std::generate_n(str.begin(), len, [this, &chars]() {
     return chars[pick_uint32(0, chars.size() - 1)];
   });
   return str;
