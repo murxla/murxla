@@ -12,6 +12,8 @@
 
 namespace smtmbt {
 
+/* -------------------------------------------------------------------------- */
+
 uint32_t
 SeedGenerator::next()
 {
@@ -25,6 +27,8 @@ SeedGenerator::next()
   d_seed *= 38259643;
   return cur_seed;
 }
+
+/* -------------------------------------------------------------------------- */
 
 uint32_t
 RNGenerator::pick_uint32()
@@ -120,6 +124,15 @@ RNGenerator::pick_with_prob(uint32_t prob)
 }
 
 std::string
+RNGenerator::pick_string(uint32_t len)
+{
+  if (len == 0) return "";
+  std::string str(len, 0);
+  std::generate_n(str.begin(), len, [this]() { return pick_uint32(32, 255); });
+  return str;
+}
+
+std::string
 RNGenerator::pick_string(std::string& chars, uint32_t len)
 {
   assert(chars.size());
@@ -138,6 +151,20 @@ RNGenerator::pick_simple_symbol(uint32_t len)
   std::cout << "picked simple symbol string: '" << s << "'" << std::endl;
   return s;
 }
+
+std::string
+RNGenerator::pick_piped_symbol(uint32_t len)
+{
+  assert(len);
+  std::string s = pick_string(len);
+  assert(s.size() == len);
+  s[0]       = '|';
+  s[len - 1] = '|';
+  std::cout << "picked piped symbol string: '" << s << "'" << std::endl;
+  return s;
+}
+
+/* -------------------------------------------------------------------------- */
 
 TraceStream::TraceStream() { stream(); }
 
@@ -197,4 +224,5 @@ AbortStream::flush()
   stream().flush();
 }
 
+/* -------------------------------------------------------------------------- */
 }  // namespace smtmbt

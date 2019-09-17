@@ -297,8 +297,10 @@ class ActionMkConst : public Action
     Sort sort          = d_smgr.pick_sort();
     SortKind sort_kind = sort->get_kind();
     uint32_t len       = d_rng.pick_uint32(0, SMTMBT_LEN_SYMBOL_MAX);
-    // TODO piped symbols
-    std::string symbol = d_rng.pick_simple_symbol(len);
+    /* Pick piped vs simple symbol with 50% probability. */
+    std::string symbol = len && d_rng.pick_with_prob(500)
+                             ? d_rng.pick_piped_symbol(len)
+                             : d_rng.pick_simple_symbol(len);
     /* Create const. */
     Term res = d_solver.mk_const(sort, symbol);
     std::cout << "res " << res << std::endl;

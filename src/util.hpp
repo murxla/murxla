@@ -9,6 +9,8 @@ namespace smtmbt {
 
 #define SMTMBT_PROB_MAX 1000  /* Maximum probability 100% = 1000. */
 
+/* -------------------------------------------------------------------------- */
+
 class SeedGenerator
 {
  public:
@@ -19,6 +21,8 @@ class SeedGenerator
  private:
   uint32_t d_seed = 0;
 };
+
+/* -------------------------------------------------------------------------- */
 
 class RNGenerator
 {
@@ -37,10 +41,14 @@ class RNGenerator
    std::string pick_hex_str(uint32_t size);
    /* Pick with given probability, 100% = 1000. */
    bool pick_with_prob(uint32_t prob);
-   /* Pick random string of given length. */
+   /* Pick random string of given length from the set of 256 printable chars. */
+   std::string pick_string(uint32_t len);
+   /* Pick random string of given length from given character set. */
    std::string pick_string(std::string& chars, uint32_t len);
    /* Pick simple symbol string (as defined in SMT-LIB) of given length. */
    std::string pick_simple_symbol(uint32_t len);
+   /* Pick piped symbol string (as defined in SMT-LIB) of given length. */
+   std::string pick_piped_symbol(uint32_t len);
 
   private:
     uint32_t d_seed;
@@ -52,6 +60,8 @@ class RNGenerator
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-/"
         "*=%?!.$_&<>@^~";
 };
+
+/* -------------------------------------------------------------------------- */
 
 class TraceStream
 {
@@ -107,6 +117,8 @@ class OstreamVoider
 
 #define SMTMBT_ABORT(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()
+
+/* -------------------------------------------------------------------------- */
 
 }  // namespace smtmbt
 
