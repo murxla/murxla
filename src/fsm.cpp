@@ -10,6 +10,8 @@
 #define SMTMBT_BW_MIN 1
 #define SMTMBT_BW_MAX 128
 
+#define SMTMBT_LEN_SYMBOL_MAX 128
+
 namespace smtmbt {
 
 void
@@ -294,9 +296,11 @@ class ActionMkConst : public Action
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
     SortKind sort_kind = sort->get_kind();
+    uint32_t len       = d_rng.pick_uint32(0, SMTMBT_LEN_SYMBOL_MAX);
+    // TODO piped symbols
+    std::string symbol = d_rng.pick_simple_symbol(len);
     /* Create const. */
-    // TODO pick random symbol for const
-    Term res = d_solver.mk_const(sort, "");
+    Term res = d_solver.mk_const(sort, symbol);
     std::cout << "res " << res << std::endl;
     d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
     return true;

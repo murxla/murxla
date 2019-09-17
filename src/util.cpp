@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <algorithm>
 #include <bitset>
 #include <cassert>
 #include <ctime>
@@ -116,6 +117,26 @@ RNGenerator::pick_with_prob(uint32_t prob)
   assert (prob <= SMTMBT_PROB_MAX);
   uint32_t r = pick_uint32(0, SMTMBT_PROB_MAX - 1);
   return r < prob;
+}
+
+std::string
+RNGenerator::pick_string(std::vector<char>& chars, uint32_t len)
+{
+  assert(chars.size());
+  if (len == 0) return "";
+  std::string str(len, 0);
+  std::generate_n(str.begin(), len, [this, &chars, len]() {
+    return chars[pick_uint32(0, chars.size() - 1)];
+  });
+  return str;
+}
+
+std::string
+RNGenerator::pick_simple_symbol(uint32_t len)
+{
+  std::string s = pick_string(d_simple_symbol_char_set, len);
+  std::cout << "picked simple symbol string: '" << s << "'" << std::endl;
+  return s;
 }
 
 TraceStream::TraceStream() { stream(); }
