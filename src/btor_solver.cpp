@@ -8,6 +8,19 @@ namespace smtmbt {
 namespace btor {
 
 /* -------------------------------------------------------------------------- */
+
+namespace {
+
+bool
+is_power_of_2(uint32_t x)
+{
+  assert(x > 0);
+  return (x & (x - 1)) == 0;
+}
+
+}  // namespace
+
+/* -------------------------------------------------------------------------- */
 /* BtorSort                                                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -206,12 +219,33 @@ BtorSolver::mk_term(const OpKind& kind,
       BoolectorNode* arg = get_btor_term(args[0]);
       BoolectorSort s    = boolector_get_sort(d_solver, arg);
       uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
-      uint32_t bw2       = static_cast<uint32_t>(log2(bw));
-      BoolectorSort s2   = boolector_bitvec_sort(d_solver, bw2);
-      BoolectorNode* tmp = boolector_unsigned_int(d_solver, params[0], s2);
-      btor_res           = boolector_rol(d_solver, arg, tmp);
-      boolector_release_sort(d_solver, s2);
-      boolector_release(d_solver, tmp);
+
+      /* use boolector_roli vs boolector_rol with 50% probability */
+      if (d_rng.pick_with_prob(500))
+      {
+        btor_res = boolector_roli(d_solver, arg, params[0]);
+      }
+      else
+      {
+        BoolectorNode* tmp;
+        /* use same bit-width vs log2 bit-width (if possible) with 50% prob */
+        if (is_power_of_2(bw) && d_rng.pick_with_prob(500))
+        {
+          /* arg has bw that is power of 2, nbits argument with log2 bw */
+          uint32_t bw2     = static_cast<uint32_t>(log2(bw));
+          BoolectorSort s2 = boolector_bitvec_sort(d_solver, bw2);
+          uint32_t nbits   = params[0] % bw;
+          tmp              = boolector_unsigned_int(d_solver, nbits, s2);
+          boolector_release_sort(d_solver, s2);
+        }
+        else
+        {
+          /* arg and nbits argument with same bw */
+          tmp = boolector_unsigned_int(d_solver, params[0], s);
+        }
+        btor_res = boolector_rol(d_solver, arg, tmp);
+        boolector_release(d_solver, tmp);
+      }
     }
       break;
     case BV_ROTATE_RIGHT:
@@ -221,12 +255,33 @@ BtorSolver::mk_term(const OpKind& kind,
       BoolectorNode* arg = get_btor_term(args[0]);
       BoolectorSort s    = boolector_get_sort(d_solver, arg);
       uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
-      uint32_t bw2       = static_cast<uint32_t>(log2(bw));
-      BoolectorSort s2   = boolector_bitvec_sort(d_solver, bw2);
-      BoolectorNode* tmp = boolector_unsigned_int(d_solver, params[0], s2);
-      btor_res           = boolector_ror(d_solver, arg, tmp);
-      boolector_release_sort(d_solver, s2);
-      boolector_release(d_solver, tmp);
+
+      /* use boolector_rori vs boolector_ror with 50% probability */
+      if (d_rng.pick_with_prob(500))
+      {
+        btor_res = boolector_rori(d_solver, arg, params[0]);
+      }
+      else
+      {
+        BoolectorNode* tmp;
+        /* use same bit-width vs log2 bit-width (if possible) with 50% prob */
+        if (is_power_of_2(bw) && d_rng.pick_with_prob(500))
+        {
+          /* arg has bw that is power of 2, nbits argument with log2 bw */
+          uint32_t bw2     = static_cast<uint32_t>(log2(bw));
+          BoolectorSort s2 = boolector_bitvec_sort(d_solver, bw2);
+          uint32_t nbits   = params[0] % bw;
+          tmp              = boolector_unsigned_int(d_solver, nbits, s2);
+          boolector_release_sort(d_solver, s2);
+        }
+        else
+        {
+          /* arg and nbits argument with same bw */
+          tmp = boolector_unsigned_int(d_solver, params[0], s);
+        }
+        btor_res = boolector_ror(d_solver, arg, tmp);
+        boolector_release(d_solver, tmp);
+      }
     }
       break;
     case BV_SIGN_EXTEND:
