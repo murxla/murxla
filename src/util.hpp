@@ -41,6 +41,8 @@ class RNGenerator
    std::string pick_hex_str(uint32_t size);
    /* Pick with given probability, 100% = 1000. */
    bool pick_with_prob(uint32_t prob);
+   /* Pick with probability of 50%. */
+   bool flip_coin();
    /* Pick random string of given length from the set of 256 printable chars. */
    std::string pick_string(uint32_t len);
    /* Pick random string of given length from given character set. */

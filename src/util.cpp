@@ -123,6 +123,12 @@ RNGenerator::pick_with_prob(uint32_t prob)
   return r < prob;
 }
 
+bool
+RNGenerator::flip_coin()
+{
+  return pick_with_prob(500);
+}
+
 std::string
 RNGenerator::pick_string(uint32_t len)
 {

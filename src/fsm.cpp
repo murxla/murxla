@@ -132,7 +132,7 @@ class ActionNew : public Action
     //    //////
     //    // TODO we will need a state to (randomly) select/configure options
     //    /* Enable/disable incremental solving. */
-    //    bool inc = d_rng.pick_with_prob(500);
+    //    bool inc = d_rng.flip_coin();
     //    d_smgr->set_incremental(inc);
     //    cvc4->setOption("incremental", inc ? "true" : "false");
     //    //////
@@ -170,6 +170,7 @@ class ActionMkSort : public Action
     Sort res;
     switch (kind)
     {
+      case SORT_BOOL: res = d_solver.mk_sort(SORT_BOOL); break;
       case SORT_BV:
       {
         uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
@@ -177,7 +178,6 @@ class ActionMkSort : public Action
         res = d_solver.mk_sort(SORT_BV, bw);
       }
       break;
-      case SORT_BOOL: res = d_solver.mk_sort(SORT_BOOL); break;
       default: assert(false);
     }
     d_smgr.add_sort(res, kind);
@@ -292,13 +292,13 @@ class ActionMkConst : public Action
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    /* Pick theory and sort of const. */
+    /* Pick sort of const. */
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
     SortKind sort_kind = sort->get_kind();
     uint32_t len       = d_rng.pick_uint32(0, SMTMBT_LEN_SYMBOL_MAX);
     /* Pick piped vs simple symbol with 50% probability. */
-    std::string symbol = len && d_rng.pick_with_prob(500)
+    std::string symbol = len && d_rng.flip_coin()
                              ? d_rng.pick_piped_symbol(len)
                              : d_rng.pick_simple_symbol(len);
     /* Create const. */

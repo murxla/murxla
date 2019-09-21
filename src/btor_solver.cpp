@@ -221,7 +221,7 @@ BtorSolver::mk_term(const OpKind& kind,
       uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
 
       /* use boolector_roli vs boolector_rol with 50% probability */
-      if (d_rng.pick_with_prob(500))
+      if (d_rng.flip_coin())
       {
         btor_res = boolector_roli(d_solver, arg, params[0]);
       }
@@ -229,7 +229,7 @@ BtorSolver::mk_term(const OpKind& kind,
       {
         BoolectorNode* tmp;
         /* use same bit-width vs log2 bit-width (if possible) with 50% prob */
-        if (is_power_of_2(bw) && d_rng.pick_with_prob(500))
+        if (is_power_of_2(bw) && d_rng.flip_coin())
         {
           /* arg has bw that is power of 2, nbits argument with log2 bw */
           uint32_t bw2     = static_cast<uint32_t>(log2(bw));
@@ -257,7 +257,7 @@ BtorSolver::mk_term(const OpKind& kind,
       uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
 
       /* use boolector_rori vs boolector_ror with 50% probability */
-      if (d_rng.pick_with_prob(500))
+      if (d_rng.flip_coin())
       {
         btor_res = boolector_rori(d_solver, arg, params[0]);
       }
@@ -265,7 +265,7 @@ BtorSolver::mk_term(const OpKind& kind,
       {
         BoolectorNode* tmp;
         /* use same bit-width vs log2 bit-width (if possible) with 50% prob */
-        if (is_power_of_2(bw) && d_rng.pick_with_prob(500))
+        if (is_power_of_2(bw) && d_rng.flip_coin())
         {
           /* arg has bw that is power of 2, nbits argument with log2 bw */
           uint32_t bw2     = static_cast<uint32_t>(log2(bw));

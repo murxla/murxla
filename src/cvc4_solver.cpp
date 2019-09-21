@@ -174,7 +174,7 @@ CVC4Solver::mk_term(const OpKind& kind,
   }
 
   /* use vector with 50% probability */
-  if (d_rng.pick_with_prob(500)) n_args = SMTMBT_MK_TERM_N_ARGS;
+  if (d_rng.flip_coin()) n_args = SMTMBT_MK_TERM_N_ARGS;
 
   /* create term */
   switch (n_args)
