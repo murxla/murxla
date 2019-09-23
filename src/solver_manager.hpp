@@ -143,12 +143,6 @@ class SolverManager
    */
   void add_op_kinds();
 
-  template <typename TMap, typename TPicked>
-  TPicked pick_from_map(TMap& data);
-
-  template <typename TSet, typename TPicked>
-  TPicked pick_from_set(TSet& data);
-
 #if 0
   template <typename TKind,
             typename TKindData,

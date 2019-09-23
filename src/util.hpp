@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <random>
+#include <unordered_map>
 #include <vector>
 
 namespace smtmbt {
@@ -52,6 +53,14 @@ class RNGenerator
    /* Pick piped symbol string (as defined in SMT-LIB) of given length. */
    std::string pick_piped_symbol(uint32_t len);
 
+   /* Pick random element from given map. */
+  template <typename TMap, typename TPicked>
+  TPicked pick_from_map(TMap& data);
+
+  /* Pick random element from given set/vector. */
+  template <typename TSet, typename TPicked>
+  TPicked pick_from_set(TSet& data);
+
   private:
     uint32_t d_seed;
     std::mt19937 d_rng;
@@ -63,6 +72,28 @@ class RNGenerator
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-/"
         "*=%?!.$_&<>@^~";
 };
+
+/* -------------------------------------------------------------------------- */
+
+template <typename TMap, typename TPicked>
+TPicked
+RNGenerator::pick_from_map(TMap& map)
+{
+  assert(!map.empty());
+  auto it = map.begin();
+  std::advance(it, pick_uint32() % map.size());
+  return it->first;
+}
+
+template <typename TSet, typename TPicked>
+TPicked
+RNGenerator::pick_from_set(TSet& set)
+{
+  assert(!set.empty());
+  auto it = set.begin();
+  std::advance(it, pick_uint32() % set.size());
+  return *it;
+}
 
 /* -------------------------------------------------------------------------- */
 
