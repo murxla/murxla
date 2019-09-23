@@ -27,18 +27,12 @@ class SeedGenerator
 class RNGenerator
 {
   public:
-   explicit RNGenerator(uint32_t seed = 0) : d_seed(seed) { d_rng.seed(seed); }
+   explicit RNGenerator(uint32_t seed = 0);
    uint32_t pick_uint32();
    uint32_t pick_uint32(uint32_t from, uint32_t to);
    uint32_t pick_uint32_weighted(std::vector<uint32_t>& weights);
    uint64_t pick_uint64();
    uint64_t pick_uint64(uint64_t from, uint64_t to);
-   /* Pick binary string of given size. */
-   std::string pick_bin_str(uint32_t size);
-   /* Pick decimal string of given binar size. */
-   std::string pick_dec_str(uint32_t size);
-   /* Pick hexadecimal string of given binary size. */
-   std::string pick_hex_str(uint32_t size);
    /* Pick with given probability, 100% = 1000. */
    bool pick_with_prob(uint32_t prob);
    /* Pick with probability of 50%. */
@@ -47,6 +41,12 @@ class RNGenerator
    std::string pick_string(uint32_t len);
    /* Pick random string of given length from given character set. */
    std::string pick_string(std::string& chars, uint32_t len);
+   /* Pick binary string of given length. */
+   std::string pick_bin_string(uint32_t len);
+   /* Pick decimal string of given length in binary representation. */
+   std::string pick_dec_bin_string(uint32_t bin_len);
+   /* Pick hexadecimal string of given length in binary representation. */
+   std::string pick_hex_bin_string(uint32_t bin_len);
    /* Pick simple symbol string (as defined in SMT-LIB) of given length. */
    std::string pick_simple_symbol(uint32_t len);
    /* Pick piped symbol string (as defined in SMT-LIB) of given length. */
@@ -58,10 +58,16 @@ class RNGenerator
     std::uniform_int_distribution<uint32_t> d_uint32_dist;
     std::uniform_int_distribution<uint64_t> d_uint64_dist;
 
+    std::string d_bin_char_set = "01";
     std::string d_simple_symbol_char_set =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-/"
         "*=%?!.$_&<>@^~";
 };
+
+/* -------------------------------------------------------------------------- */
+
+std::string str_bin_to_hex(const std::string& str_bin);
+std::string str_bin_to_dec(const std::string& str_bin);
 
 /* -------------------------------------------------------------------------- */
 

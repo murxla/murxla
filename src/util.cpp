@@ -14,6 +14,20 @@ namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
 
+static std::unordered_map<std::string, std::string> s_hex_lookup = {
+    {"0", "0"},    {"00", "0"},   {"000", "0"},  {"0000", "0"},
+    {"1", "1"},    {"01", "1"},   {"001", "1"},  {"0001", "1"},
+    {"10", "2"},   {"010", "2"},  {"0010", "2"},
+    {"11", "3"},   {"011", "3"},  {"0011", "3"},
+    {"100", "4"},  {"0100", "4"},
+    {"101", "5"},  {"0101", "5"},
+    {"110", "6"},  {"0110", "6"},
+    {"111", "7"},  {"0111", "7"},
+    {"1000", "8"}, {"1001", "9"}, {"1010", "a"}, {"1011", "b"},
+    {"1100", "c"}, {"1101", "d"}, {"1110", "e"}, {"1111", "f"}};
+
+/* -------------------------------------------------------------------------- */
+
 uint32_t
 SeedGenerator::next()
 {
@@ -29,6 +43,8 @@ SeedGenerator::next()
 }
 
 /* -------------------------------------------------------------------------- */
+
+RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed) { d_rng.seed(seed); }
 
 uint32_t
 RNGenerator::pick_uint32()
@@ -77,48 +93,10 @@ RNGenerator::pick_uint64(uint64_t from, uint64_t to)
   return res;
 }
 
-std::string
-RNGenerator::pick_bin_str(uint32_t size)
-{
-  assert(size);
-
-  uint32_t n = static_cast<uint32_t>(std::ceil(size/32.0));
-  uint32_t val;
-  std::stringstream ss;
-  for (uint32_t i = 0; i < n; i++)
-  {
-    val = pick_uint32();
-    ss << std::bitset<32>(val).to_string();
-  }
-  std::string res = ss.str();
-  res.resize(size);
-  return res;
-}
-
-std::string
-RNGenerator::pick_dec_str(uint32_t size)
-{
-  assert(size);
-  assert(size <= 64); /* else we need a multi-precision int lib */
-  std::stringstream ss;
-  ss << std::dec << std::strtoull(pick_bin_str(size).c_str(), nullptr, 2);
-  return ss.str();
-}
-
-std::string
-RNGenerator::pick_hex_str(uint32_t size)
-{
-  assert(size);
-  assert(size <= 64); /* else we need a multi-precision int lib */
-  std::stringstream ss;
-  ss << std::hex << std::strtoull(pick_bin_str(size).c_str(), nullptr, 2);
-  return ss.str();
-}
-
 bool
 RNGenerator::pick_with_prob(uint32_t prob)
 {
-  assert (prob <= SMTMBT_PROB_MAX);
+  assert(prob <= SMTMBT_PROB_MAX);
   uint32_t r = pick_uint32(0, SMTMBT_PROB_MAX - 1);
   return r < prob;
 }
@@ -151,6 +129,26 @@ RNGenerator::pick_string(std::string& chars, uint32_t len)
 }
 
 std::string
+RNGenerator::pick_bin_string(uint32_t len)
+{
+  return pick_string(d_bin_char_set, len);
+}
+
+std::string
+RNGenerator::pick_dec_bin_string(uint32_t bin_len)
+{
+  std::string s = pick_bin_string(bin_len);
+  return str_bin_to_dec(s);
+}
+
+std::string
+RNGenerator::pick_hex_bin_string(uint32_t bin_len)
+{
+  std::string s = pick_bin_string(bin_len);
+  return str_bin_to_hex(s);
+}
+
+std::string
 RNGenerator::pick_simple_symbol(uint32_t len)
 {
   std::string s = pick_string(d_simple_symbol_char_set, len);
@@ -172,12 +170,63 @@ RNGenerator::pick_piped_symbol(uint32_t len)
 
 /* -------------------------------------------------------------------------- */
 
+std::string
+str_bin_to_hex(const std::string& str_bin)
+{
+  std::stringstream ss;
+  std::vector<std::string> stack;
+  for (size_t i = 0, n = str_bin.size(); i < n; i += 4)
+  {
+    uint32_t len = n - i >= 4 ? 4 : n - i;
+    std::string chunk(len, 0);
+    for (uint32_t j = 0; j <= len; ++j) chunk[j] = str_bin[i + j];
+    stack.push_back(s_hex_lookup.at(chunk));
+  }
+  for (size_t i = 0, n = stack.size(); i < n; ++i) ss << stack[n - 1 - i];
+  return ss.str();
+}
+
+std::string
+str_bin_to_dec(const std::string& str_bin)
+{
+  std::string digits(str_bin.size(), 0);
+
+  // from MSB to LSB
+  for (const auto& c : str_bin)
+  {
+    // shift digits, with carry
+    uint32_t carry = 0;
+    for (auto& digit : digits)
+    {
+      uint32_t d = digit * 2 + carry;
+      carry      = d > 9;
+      digit      = d % 10;
+    }
+    // add new bit
+    if (c == '1') digits[0] |= 1;
+  }
+
+  // Note: digits are in reverse order, with leading zeros on the right
+  size_t pos = 0;
+  size_t n   = digits.size();
+  for (pos = 0; pos <= n; ++pos)
+  {
+    if (digits[n - pos] != 0) break;
+  }
+  std::stringstream ss;
+  if (pos > n) return "0";
+  for (size_t i = pos; i <= n; ++i)
+  {
+    ss << ((char) (digits[n - i] + '0'));
+  }
+  return ss.str();
+}
+
+/* -------------------------------------------------------------------------- */
+
 TraceStream::TraceStream() { stream(); }
 
-TraceStream::~TraceStream()
-{
-  flush();
-}
+TraceStream::~TraceStream() { flush(); }
 
 std::ostream&
 TraceStream::stream()
