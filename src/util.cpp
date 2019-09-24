@@ -179,7 +179,7 @@ str_bin_to_hex(const std::string& str_bin)
   {
     uint32_t len = n - i >= 4 ? 4 : n - i;
     std::string chunk(len, 0);
-    for (uint32_t j = 0; j <= len; ++j) chunk[j] = str_bin[i + j];
+    for (uint32_t j = 0; j <= len; ++j) chunk[len - j] = str_bin[n - i - j];
     stack.push_back(s_hex_lookup.at(chunk));
   }
   for (size_t i = 0, n = stack.size(); i < n; ++i) ss << stack[n - 1 - i];
