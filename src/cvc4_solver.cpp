@@ -42,6 +42,12 @@ CVC4Sort::equals(const Sort& other) const
 }
 
 bool
+CVC4Sort::is_bool() const
+{
+  return d_sort.isBoolean();
+}
+
+bool
 CVC4Sort::is_bv() const
 {
   return d_sort.isBitVector();
@@ -123,16 +129,14 @@ CVC4Solver::mk_sort(SortKind kind) const
 Sort
 CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
 {
-  Sort res = nullptr;
+  CVC4::api::Sort cvc4_res;
   switch (kind)
   {
-    case SORT_BV:
-      res = std::shared_ptr<CVC4Sort>(
-          new CVC4Sort(d_solver, d_solver->mkBitVectorSort(size)));
-      break;
+    case SORT_BV: cvc4_res = d_solver->mkBitVectorSort(size); break;
 
     default: assert(false);
   }
+  std::shared_ptr<CVC4Sort> res(new CVC4Sort(d_solver, cvc4_res));
   assert(res);
   return res;
 }
@@ -143,6 +147,79 @@ CVC4Solver::mk_const(Sort sort, const std::string name) const
   CVC4::api::Term res = d_solver->mkConst(get_cvc4_sort(sort), name);
   std::cout << "const" << res << std::endl;
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, res));
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, bool value) const
+{
+  assert(sort->is_bool());
+
+  CVC4::api::Term cvc4_res;
+
+  if (d_rng.flip_coin())
+  {
+    cvc4_res = value ? d_solver->mkTrue() : d_solver->mkFalse();
+  }
+  else
+  {
+    cvc4_res = d_solver->mkBoolean(value);
+  }
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
+  assert(res);
+  return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, uint64_t value) const
+{
+  CVC4::api::Term cvc4_res;
+  CVC4::api::Sort cvc4_sort = get_cvc4_sort(sort);
+  SortKind sort_kind        = sort->get_kind();
+
+  switch (sort_kind)
+  {
+    case SORT_BV:
+      assert(sort->is_bv());
+      cvc4_res = d_solver->mkBitVector(sort->get_bv_size(), value);
+      break;
+    default: assert(false);
+  }
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
+  assert(res);
+  return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, std::string value, Base base) const
+{
+  assert(sort->is_bv());
+
+  CVC4::api::Term cvc4_res;
+  CVC4::api::Sort cvc4_sort = get_cvc4_sort(sort);
+  uint32_t bw               = sort->get_bv_size();
+
+  switch (base)
+  {
+    case DEC:
+      cvc4_res = d_rng.flip_coin()
+                     ? d_solver->mkBitVector(bw, value, 10)
+                     : d_solver->mkBitVector(bw, value.c_str(), 10);
+      break;
+
+    case HEX:
+      cvc4_res = d_rng.flip_coin()
+                     ? d_solver->mkBitVector(bw, value, 16)
+                     : d_solver->mkBitVector(bw, value.c_str(), 16);
+      break;
+
+    default:
+      assert(base == BIN);
+      cvc4_res = d_rng.flip_coin() ? d_solver->mkBitVector(value, 2)
+                                   : d_solver->mkBitVector(value.c_str(), 2);
+  }
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
+  assert(res);
+  return res;
 }
 
 Term

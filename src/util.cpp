@@ -107,6 +107,16 @@ RNGenerator::flip_coin()
   return pick_with_prob(500);
 }
 
+RNGenerator::Choice
+RNGenerator::pick_one_of_three()
+{
+  uint32_t r = pick_uint32(0, 8);
+  if (r < 3) return Choice::FIRST;
+  if (r < 6) return Choice::SECOND;
+  assert(r < 9);
+  return Choice::THIRD;
+}
+
 std::string
 RNGenerator::pick_string(uint32_t len)
 {
@@ -220,6 +230,134 @@ str_bin_to_dec(const std::string& str_bin)
     ss << ((char) (digits[n - i] + '0'));
   }
   return ss.str();
+}
+
+uint64_t
+bv_special_value_ones_uint64(uint32_t bw)
+{
+  assert(bw <= 64);
+  return (~0) >> (64 - bw);
+}
+
+uint64_t
+bv_special_value_min_signed_uint64(uint32_t bw)
+{
+  assert(bw <= 64);
+  return 1 << (bw - 1);
+}
+
+uint64_t
+bv_special_value_max_signed_uint64(uint32_t bw)
+{
+  return bv_special_value_ones_uint64(bw - 1);
+}
+
+bool
+is_bv_special_value_ones_uint64(uint32_t bw, uint64_t value)
+{
+  return value == ((~0u) >> (64 - bw));
+}
+
+bool
+is_bv_special_value_min_signed_uint64(uint32_t bw, uint64_t value)
+{
+  return value == (1u << (bw - 1));
+}
+
+bool
+is_bv_special_value_max_signed_uint64(uint32_t bw, uint64_t value)
+{
+  return value == bv_special_value_ones_uint64(bw - 1);
+}
+
+std::string
+bv_special_value_zero_str(uint32_t bw)
+{
+  return std::string(bw, '0');
+}
+
+std::string
+bv_special_value_one_str(uint32_t bw)
+{
+  std::string res(bw, '0');
+  res[res.size()] = '1';
+  return res;
+}
+
+std::string
+bv_special_value_ones_str(uint32_t bw)
+{
+  return std::string(bw, '1');
+}
+
+std::string
+bv_special_value_min_signed_str(uint32_t bw)
+{
+  std::string res(bw, '0');
+  res[0] = '1';
+  return res;
+}
+
+std::string
+bv_special_value_max_signed_str(uint32_t bw)
+{
+  std::string res(bw, '1');
+  res[0] = '0';
+  return res;
+}
+
+bool
+is_bv_special_value_zero_str(std::string& value)
+{
+  for (const auto& c : value)
+  {
+    if (c != '0') return false;
+  }
+  return true;
+}
+
+bool
+is_bv_special_value_one_str(uint32_t bw, std::string& value)
+{
+  size_t n = value.size();
+  for (size_t i = 0; i < n; ++i)
+  {
+    if (value[i] != '0') return false;
+  }
+  if (value[n] != '1') return false;
+  return true;
+}
+
+bool
+is_bv_special_value_ones_str(uint32_t bw, std::string& value)
+{
+  for (const auto& c : value)
+  {
+    if (c != '1') return false;
+  }
+  return true;
+}
+
+bool
+is_bv_special_value_min_signed_str(std::string& value)
+{
+  if (value[0] != '1') return false;
+  for (size_t i = 1, n = value.size(); i <= n; ++i)
+  {
+    if (value[i] != '0') return false;
+  }
+  return true;
+}
+
+bool
+is_bv_special_value_max_signed_str(std::string& value)
+{
+  if (value[0] != '0') return false;
+  for (size_t i = 1, n = value.size(); i <= n; ++i)
+  {
+    if (value[i] != '1') return false;
+  }
+  return true;
 }
 
 /* -------------------------------------------------------------------------- */

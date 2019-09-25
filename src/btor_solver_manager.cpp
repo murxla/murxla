@@ -64,46 +64,6 @@ class BtorActionNoneCreateInputs : public BtorAction
 
 /* -------------------------------------------------------------------------- */
 
-// void boolector_new ();
-class BtorActionNew : public BtorAction
-{
- public:
-  BtorActionNew(BtorSolverManagerBase* smgr) : BtorAction(smgr, "new") {}
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    if (btor != nullptr) boolector_delete(btor);
-    btor = boolector_new();
-    d_smgr->set_solver(btor);
-    BoolectorSort bsort = boolector_bool_sort(btor);
-    d_smgr->add_sort(bsort, THEORY_BV);
-    d_smgr->set_bool_sort(bsort);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// void boolector_delete (Btor *btor);
-class BtorActionDelete : public BtorAction
-{
- public:
-  BtorActionDelete(BtorSolverManagerBase* smgr) : BtorAction(smgr, "delete") {}
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    d_smgr->clear();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    boolector_delete(btor);
-    d_smgr->set_solver(nullptr);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // Btor *boolector_clone (Btor *btor);
 // void boolector_set_term (Btor *btor, int32_t (*fun) (void *), void *state);
 // int32_t boolector_terminate (Btor *btor);
@@ -189,7 +149,6 @@ class BtorActionSat : public BtorAction
 // BtorOption boolector_first_opt (Btor *btor);
 // BtorOption boolector_next_opt (Btor *btor, BtorOption opt);
 // BoolectorNode *boolector_copy (Btor *btor, BoolectorNode *node);
-// void boolector_release (Btor *btor, BoolectorNode *node);
 
 // void boolector_release_all (Btor *btor);
 class BtorActionReleaseAll : public BtorAction
@@ -247,29 +206,6 @@ class BtorActionFalse : public BtorAction
   // void untrace(const char* s) override;
 };
 
-// BoolectorNode *boolector_implies (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-class BtorActionImplies : public BtorAction
-{
- public:
-  BtorActionImplies(BtorSolverManagerBase* smgr) : BtorAction(smgr, "implies") {}
-
-  bool run() override
-  {
-    BoolectorSort bsort = d_smgr->get_bool_sort();
-    if (!d_smgr->has_term(bsort)) return false;
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorNode* a   = d_smgr->pick_term(bsort);
-    BoolectorNode* b   = d_smgr->pick_term(bsort);
-    BoolectorNode* res = boolector_implies(btor, a, b);
-    d_smgr->add_term(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 class BtorActionIff : public BtorAction
 {
@@ -286,48 +222,6 @@ class BtorActionIff : public BtorAction
     BoolectorNode* a   = d_smgr->pick_term(bsort);
     BoolectorNode* b   = d_smgr->pick_term(bsort);
     BoolectorNode* res = boolector_iff(btor, a, b);
-    d_smgr->add_term(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// BoolectorNode *boolector_eq (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-class BtorActionEq : public BtorAction
-{
- public:
-  BtorActionEq(BtorSolverManagerBase* smgr) : BtorAction(smgr, "eq") {}
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorNode* a = d_smgr->pick_term();
-    BoolectorNode* b = d_smgr->pick_term(a);
-    BoolectorNode* res = boolector_eq(btor, a, b);
-    d_smgr->add_term(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// BoolectorNode *boolector_ne (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-class BtorActionNe : public BtorAction
-{
- public:
-  BtorActionNe(BtorSolverManagerBase* smgr) : BtorAction(smgr, "ne") {}
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorNode* a = d_smgr->pick_term();
-    BoolectorNode* b = d_smgr->pick_term(a);
-    BoolectorNode* res = boolector_ne(btor, a, b);
     d_smgr->add_term(res, THEORY_BV);
     boolector_release(btor, res);
     return true;
@@ -406,55 +300,18 @@ class BtorActionBVOne : public BtorAction
 // BoolectorNode *boolector_max_signed (Btor *btor, BoolectorSort sort);
 // BoolectorNode *boolector_unsigned_int (Btor *btor, uint32_t u, BoolectorSort sort);
 // BoolectorNode *boolector_int (Btor *btor, int32_t i, BoolectorSort sort);
-// BoolectorNode *boolector_var (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_array (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_uf (Btor *btor, BoolectorSort sort, const char *symbol);
-// BoolectorNode *boolector_not (Btor *btor, BoolectorNode *node);
-// BoolectorNode *boolector_neg (Btor *btor, BoolectorNode *node);
-// BoolectorNode *boolector_redor (Btor *btor, BoolectorNode *node);
 // BoolectorNode *boolector_redxor (Btor *btor, BoolectorNode *node);
-// BoolectorNode *boolector_redand (Btor *btor, BoolectorNode *node);
-// BoolectorNode *boolector_slice (Btor *btor, BoolectorNode *node, uint32_t upper, uint32_t lower);
-// BoolectorNode *boolector_uext (Btor *btor, BoolectorNode *node, uint32_t width);
-// BoolectorNode *boolector_sext (Btor *btor, BoolectorNode *node, uint32_t width);
-// BoolectorNode *boolector_xor (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_xnor (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_and (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_nand (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_or (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_nor (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_add (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_uaddo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_saddo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_mul (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_umulo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_smulo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_ult (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_slt (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_ulte (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_slte (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_ugt (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_sgt (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_ugte (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_sgte (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_sll (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_srl (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_sra (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_rol (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_ror (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_sub (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_usubo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_ssubo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_udiv (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_sdiv (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_sdivo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_urem (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_srem (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_smod (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_concat (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_read (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index);
 // BoolectorNode *boolector_write (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index, BoolectorNode *n_value);
-// BoolectorNode *boolector_cond (Btor *btor, BoolectorNode *n_cond, BoolectorNode *n_then, BoolectorNode *n_else);
 // BoolectorNode *boolector_param (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_fun (Btor *btor, BoolectorNode **param_nodes, uint32_t paramc, BoolectorNode *node);
 // BoolectorNode *boolector_apply (Btor *btor, BoolectorNode **arg_nodes, uint32_t argc, BoolectorNode *n_fun);
@@ -464,7 +321,6 @@ class BtorActionBVOne : public BtorAction
 // BoolectorNode *boolector_exists (Btor *btor, BoolectorNode *param[], uint32_t paramc, BoolectorNode *body);
 // Btor *boolector_get_btor (BoolectorNode *node);
 // int32_t boolector_get_id (Btor *btor, BoolectorNode *node);
-// BoolectorSort boolector_get_sort (Btor *btor, const BoolectorNode *node);
 // BoolectorSort boolector_fun_get_domain_sort (Btor *btor, const BoolectorNode *node);
 // BoolectorSort boolector_fun_get_codomain_sort (Btor *btor, const BoolectorNode *node);
 // BoolectorNode *boolector_match_node_by_id (Btor *btor, int32_t id);
@@ -501,11 +357,8 @@ class BtorActionBVOne : public BtorAction
 
 // BoolectorSort boolector_fun_sort (Btor *btor, BoolectorSort *domain, uint32_t arity, BoolectorSort codomain);
 // BoolectorSort boolector_array_sort (Btor *btor, BoolectorSort index, BoolectorSort element);
-// BoolectorSort boolector_copy_sort (Btor *btor, BoolectorSort sort);
-// void boolector_release_sort (Btor *btor, BoolectorSort sort);
 // bool boolector_is_equal_sort (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // bool boolector_is_array_sort (Btor *btor, BoolectorSort sort);
-// bool boolector_is_bitvec_sort (Btor *btor, BoolectorSort sort);
 // bool boolector_is_fun_sort (Btor *btor, BoolectorSort sort);
 // int32_t boolector_parse (Btor *btor, FILE *infile, const char *infile_name, FILE *outfile, char **error_msg, int32_t *status);
 // int32_t boolector_parse_btor (Btor *btor, FILE *infile, const char *infile_name, FILE *outfile, char **error_msg, int32_t *status);

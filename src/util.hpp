@@ -28,6 +28,13 @@ class SeedGenerator
 class RNGenerator
 {
   public:
+   enum Choice
+   {
+     FIRST,
+     SECOND,
+     THIRD,
+   };
+
    explicit RNGenerator(uint32_t seed = 0);
    uint32_t pick_uint32();
    uint32_t pick_uint32(uint32_t from, uint32_t to);
@@ -38,6 +45,8 @@ class RNGenerator
    bool pick_with_prob(uint32_t prob);
    /* Pick with probability of 50%. */
    bool flip_coin();
+   /* Pick one out of three choices. */
+   Choice pick_one_of_three();
    /* Pick random string of given length from the set of 256 printable chars. */
    std::string pick_string(uint32_t len);
    /* Pick random string of given length from given character set. */
@@ -54,12 +63,11 @@ class RNGenerator
    std::string pick_piped_symbol(uint32_t len);
 
    /* Pick random element from given map. */
-  template <typename TMap, typename TPicked>
-  TPicked pick_from_map(TMap& data);
-
-  /* Pick random element from given set/vector. */
-  template <typename TSet, typename TPicked>
-  TPicked pick_from_set(TSet& data);
+   template <typename TMap, typename TPicked>
+   TPicked pick_from_map(const TMap& data);
+   /* Pick random element from given set/vector. */
+   template <typename TSet, typename TPicked>
+   TPicked pick_from_set(const TSet& data);
 
   private:
     uint32_t d_seed;
@@ -77,7 +85,7 @@ class RNGenerator
 
 template <typename TMap, typename TPicked>
 TPicked
-RNGenerator::pick_from_map(TMap& map)
+RNGenerator::pick_from_map(const TMap& map)
 {
   assert(!map.empty());
   auto it = map.begin();
@@ -87,7 +95,7 @@ RNGenerator::pick_from_map(TMap& map)
 
 template <typename TSet, typename TPicked>
 TPicked
-RNGenerator::pick_from_set(TSet& set)
+RNGenerator::pick_from_set(const TSet& set)
 {
   assert(!set.empty());
   auto it = set.begin();
@@ -99,6 +107,26 @@ RNGenerator::pick_from_set(TSet& set)
 
 std::string str_bin_to_hex(const std::string& str_bin);
 std::string str_bin_to_dec(const std::string& str_bin);
+
+uint64_t bv_special_value_ones_uint64(uint32_t bw);
+uint64_t bv_special_value_min_signed_uint64(uint32_t bw);
+uint64_t bv_special_value_max_signed_uint64(uint32_t bw);
+
+bool is_bv_special_value_ones_uint64(uint32_t bw, uint64_t value);
+bool is_bv_special_value_min_signed_uint64(uint32_t bw, uint64_t value);
+bool is_bv_special_value_max_signed_uint64(uint32_t bw, uint64_t value);
+
+std::string bv_special_value_zero_str(uint32_t bw);
+std::string bv_special_value_one_str(uint32_t bw);
+std::string bv_special_value_ones_str(uint32_t bw);
+std::string bv_special_value_min_signed_str(uint32_t bw);
+std::string bv_special_value_max_signed_str(uint32_t bw);
+
+bool is_bv_special_value_zero_str(std::string& value);
+bool is_bv_special_value_one_str(std::string& value);
+bool is_bv_special_value_ones_str(std::string& value);
+bool is_bv_special_value_min_signed_str(std::string& value);
+bool is_bv_special_value_max_signed_str(std::string& value);
 
 /* -------------------------------------------------------------------------- */
 

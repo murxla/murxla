@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "theory.hpp"
+#include "util.hpp"
 
 namespace smtmbt {
 namespace btor {
@@ -46,6 +47,15 @@ BtorSort::equals(const Sort& other) const
     return d_sort == btor_sort->d_sort && d_kind == btor_sort->d_kind;
   }
   return false;
+}
+
+bool
+BtorSort::is_bool() const
+{
+  BoolectorSort s = boolector_bool_sort(d_solver);
+  bool res        = s == d_sort;
+  boolector_release_sort(d_solver, s);
+  return res;
 }
 
 bool
@@ -128,6 +138,7 @@ BtorSolver::mk_sort(SortKind kind) const
   assert(btor_res);
   std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
   boolector_release_sort(d_solver, btor_res);
+  assert(res);
   return res;
 }
 
@@ -139,6 +150,7 @@ BtorSolver::mk_sort(SortKind kind, uint32_t size) const
   assert(btor_res);
   std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
   boolector_release_sort(d_solver, btor_res);
+  assert(res);
   return res;
 }
 
@@ -149,7 +161,92 @@ BtorSolver::mk_const(Sort sort, const std::string name) const
       boolector_var(d_solver, get_btor_sort(sort), name.c_str());
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
-  std::cout << "const" << res << std::endl;
+  assert(res);
+  return res;
+}
+
+Term
+BtorSolver::mk_value(Sort sort, bool value) const
+{
+  assert(sort->is_bool());
+  BoolectorNode* btor_res =
+      value ? boolector_true(d_solver) : boolector_false(d_solver);
+  assert(btor_res);
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
+  assert(res);
+  return res;
+}
+
+Term
+BtorSolver::mk_value(Sort sort, uint64_t value) const
+{
+  assert(sort->is_bv());
+
+  BoolectorNode* btor_res = 0;
+  BoolectorSort btor_sort = get_btor_sort(sort);
+  uint32_t bw             = sort->get_bv_size();
+  bool use_special_fun    = d_rng.flip_coin();
+
+  if (!use_special_fun && value == 0)
+  {
+    btor_res = boolector_zero(d_solver, btor_sort);
+  }
+  else if (use_special_fun && value == 1)
+  {
+    btor_res = boolector_one(d_solver, btor_sort);
+  }
+  else if (use_special_fun && is_bv_special_value_ones_uint64(bw, value))
+  {
+    btor_res = boolector_ones(d_solver, btor_sort);
+  }
+  else if (use_special_fun && is_bv_special_value_min_signed_uint64(bw, value))
+  {
+    btor_res = boolector_min_signed(d_solver, btor_sort);
+  }
+  else if (use_special_fun && is_bv_special_value_max_signed_uint64(bw, value))
+  {
+    btor_res = boolector_max_signed(d_solver, btor_sort);
+  }
+  else
+  {
+    if (d_rng.flip_coin())
+    {
+      btor_res = boolector_unsigned_int(d_solver, (uint32_t) value, btor_sort);
+    }
+    else
+    {
+      btor_res = boolector_int(d_solver, (int32_t) value, btor_sort);
+    }
+  }
+  assert(btor_res);
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
+  assert(res);
+  return res;
+}
+
+Term
+BtorSolver::mk_value(Sort sort, std::string value, Base base) const
+{
+  assert(sort->is_bv());
+
+  BoolectorNode* btor_res;
+  BoolectorSort btor_sort = get_btor_sort(sort);
+
+  switch (base)
+  {
+    case HEX:
+      btor_res = boolector_consth(d_solver, btor_sort, value.c_str());
+      break;
+    case DEC:
+      btor_res = boolector_constd(d_solver, btor_sort, value.c_str());
+      break;
+    default:
+      assert(base == BIN);
+      btor_res = boolector_const(d_solver, value.c_str());
+  }
+  assert(btor_res);
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
+  assert(res);
   return res;
 }
 
@@ -423,22 +520,9 @@ BtorSolver::mk_term(const OpKind& kind,
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   std::cout << "const" << res << std::endl;
+  assert(res);
   return res;
 }
-
-// BoolectorNode *boolector_true (Btor *btor);
-// BoolectorNode *boolector_false (Btor *btor);
-// BoolectorNode *boolector_const (Btor *btor, const char *bits);
-// BoolectorNode *boolector_constd (Btor *btor, BoolectorSort sort, const char *str);
-// BoolectorNode *boolector_consth (Btor *btor, BoolectorSort sort, const char *str);
-// BoolectorNode *boolector_unsigned_int (Btor *btor, uint32_t u, BoolectorSort sort);
-
-// BoolectorNode *boolector_int (Btor *btor, int32_t i, BoolectorSort sort); 
-// BoolectorNode *boolector_zero (Btor *btor, BoolectorSort sort); 
-// BoolectorNode *boolector_ones (Btor *btor, BoolectorSort sort); 
-// BoolectorNode *boolector_one (Btor *btor, BoolectorSort sort); 
-// BoolectorNode *boolector_min_signed (Btor *btor, BoolectorSort sort); 
-// BoolectorNode *boolector_max_signed (Btor *btor, BoolectorSort sort);
 
 // BoolectorNode *boolector_var (Btor *btor, BoolectorSort sort, const char *symbol); 
 // BoolectorNode *boolector_array (Btor *btor, BoolectorSort sort, const char *symbol); 
@@ -485,6 +569,7 @@ BtorSolver::mk_term_left_assoc(std::vector<Term>& args,
     boolector_release(d_solver, res);
     res = tmp;
   }
+  assert(res);
   return res;
 }
 
@@ -516,6 +601,7 @@ BtorSolver::mk_term_pairwise(std::vector<Term>& args,
       }
     }
   }
+  assert(res);
   return res;
 }
 

@@ -66,6 +66,18 @@ Solver::get_supported_theories() const
   return res;
 }
 
+const std::vector<Solver::Base>&
+Solver::get_bases() const
+{
+  return d_bases;
+}
+
+const std::vector<Solver::SpecialValueBV>&
+Solver::get_special_values_bv() const
+{
+  return d_special_values_bv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace smtmbt

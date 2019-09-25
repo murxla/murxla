@@ -138,7 +138,6 @@ class ActionNew : public Action
     //    //////
     return true;
   }
-  // void untrace(const char* s) override;
 };
 
 class ActionDelete : public Action
@@ -153,7 +152,6 @@ class ActionDelete : public Action
     d_solver.delete_solver();
     return true;
   }
-  // void untrace(const char* s) override;
 };
 
 class ActionMkSort : public Action
@@ -183,7 +181,6 @@ class ActionMkSort : public Action
     d_smgr.add_sort(res, kind);
     return true;
   }
-  // void untrace(const char* s) override;
 };
 
 class ActionMkTerm : public Action
@@ -200,10 +197,10 @@ class ActionMkTerm : public Action
     SMTMBT_TRACE << get_id();
 
     /* pick operator kind */
-    OpKindData& kind_data = d_smgr.pick_op_kind_data();
-    OpKind kind           = kind_data.d_kind;
-    int32_t arity         = kind_data.d_arity;
-    uint32_t n_params     = kind_data.d_nparams;
+    OpKindData& kind_data   = d_smgr.pick_op_kind_data();
+    OpKind kind             = kind_data.d_kind;
+    int32_t arity           = kind_data.d_arity;
+    uint32_t n_params       = kind_data.d_nparams;
     SortKind sort_kind      = kind_data.d_sort_kind;
     SortKind sort_kind_args = kind_data.d_sort_kind_args;
 
@@ -281,7 +278,6 @@ class ActionMkTerm : public Action
                     sort_kind == SORT_ANY ? sort->get_kind() : sort_kind);
     return true;
   }
-  // void untrace(const char* s) override;
 };
 
 class ActionMkConst : public Action
@@ -307,7 +303,173 @@ class ActionMkConst : public Action
     d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
     return true;
   }
-  // void untrace(const char* s) override;
+};
+
+class ActionMkValue : public Action
+{
+ public:
+  ActionMkValue(SolverManager& smgr) : Action(smgr, "mkValue") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    /* Pick sort of value. */
+    if (!d_smgr.has_sort()) return false;
+    Sort sort          = d_smgr.pick_sort();
+    SortKind sort_kind = sort->get_kind();
+    /* Pick value. */
+    Term res;
+    switch (sort_kind)
+    {
+      case SORT_BOOL: res = d_solver.mk_value(sort, d_rng.flip_coin()); break;
+
+      case SORT_BV:
+      {
+        uint32_t bw = sort->get_bv_size();
+
+        Solver::SpecialValueBV sval =
+            d_rng.pick_from_set<std::vector<Solver::SpecialValueBV>,
+                                Solver::SpecialValueBV>(
+                d_solver.get_special_values_bv());
+
+        /* ------------ value: uint64_t ------------ */
+        if (bw <= 64 && d_rng.flip_coin())
+        {
+          uint64_t val = 0u;
+          if (d_rng.flip_coin())
+          {
+            /* use special value */
+            switch (sval)
+            {
+              case Solver::SpecialValueBV::ONE: val = 1u; break;
+              case Solver::SpecialValueBV::ONES:
+                val = bv_special_value_ones_uint64(bw);
+                break;
+              case Solver::SpecialValueBV::MIN_SIGNED:
+                val = bv_special_value_min_signed_uint64(bw);
+                break;
+              case Solver::SpecialValueBV::MAX_SIGNED:
+                val = bv_special_value_max_signed_uint64(bw);
+                break;
+              default: assert(sval == Solver::SpecialValueBV::ZERO); val = 0u;
+            }
+          }
+          else
+          {
+            /* use random value */
+            val = d_rng.pick_uint64(0, (1 << bw) - 1);
+          }
+          res = d_solver.mk_value(sort, val);
+        }
+        /* ------------ value: string ------------ */
+        else
+        {
+          Solver::Base base =
+              d_rng.pick_from_set<std::vector<Solver::Base>, Solver::Base>(
+                  d_solver.get_bases());
+          std::string val;
+
+          if (d_rng.flip_coin())
+          {
+            /* use special value */
+            switch (sval)
+            {
+              case Solver::SpecialValueBV::ONE:
+                switch (base)
+                {
+                  case Solver::Base::DEC:
+                    val = str_bin_to_dec(bv_special_value_one_str(bw));
+                    break;
+                  case Solver::Base::HEX:
+                    val = str_bin_to_hex(bv_special_value_one_str(bw));
+                    break;
+                  default:
+                    assert(base == Solver::Base::BIN);
+                    val = bv_special_value_one_str(bw);
+                }
+                break;
+              case Solver::SpecialValueBV::ONES:
+                switch (base)
+                {
+                  case Solver::Base::DEC:
+                    val = str_bin_to_dec(bv_special_value_ones_str(bw));
+                    break;
+                  case Solver::Base::HEX:
+                    val = str_bin_to_hex(bv_special_value_ones_str(bw));
+                    break;
+                  default:
+                    assert(base == Solver::Base::BIN);
+                    val = bv_special_value_ones_str(bw);
+                }
+                break;
+              case Solver::SpecialValueBV::MIN_SIGNED:
+                switch (base)
+                {
+                  case Solver::Base::DEC:
+                    val = str_bin_to_dec(bv_special_value_min_signed_str(bw));
+                    break;
+                  case Solver::Base::HEX:
+                    val = str_bin_to_hex(bv_special_value_min_signed_str(bw));
+                    break;
+                  default:
+                    assert(base == Solver::Base::BIN);
+                    val = bv_special_value_min_signed_str(bw);
+                }
+                break;
+              case Solver::SpecialValueBV::MAX_SIGNED:
+                switch (base)
+                {
+                  case Solver::Base::DEC:
+                    val = str_bin_to_dec(bv_special_value_max_signed_str(bw));
+                    break;
+                  case Solver::Base::HEX:
+                    val = str_bin_to_hex(bv_special_value_max_signed_str(bw));
+                    break;
+                  default:
+                    assert(base == Solver::Base::BIN);
+                    val = bv_special_value_max_signed_str(bw);
+                }
+                break;
+              default:
+                assert(sval == Solver::SpecialValueBV::ZERO);
+                switch (base)
+                {
+                  case Solver::Base::DEC:
+                    val = str_bin_to_dec(bv_special_value_zero_str(bw));
+                    break;
+                  case Solver::Base::HEX:
+                    val = str_bin_to_hex(bv_special_value_zero_str(bw));
+                    break;
+                  default:
+                    assert(base == Solver::Base::BIN);
+                    val = bv_special_value_zero_str(bw);
+                }
+            }
+          }
+          else
+          {
+            /* use random value */
+            switch (base)
+            {
+              case Solver::Base::DEC:
+                val = d_rng.pick_dec_bin_string(bw);
+                break;
+              case Solver::Base::HEX:
+                val = d_rng.pick_hex_bin_string(bw);
+                break;
+              default:
+                assert(base == Solver::Base::BIN);
+                val = d_rng.pick_bin_string(bw);
+            }
+          }
+          res = d_solver.mk_value(sort, val, base);
+        }
+      }
+      break;
+      default: assert(false);
+    }
+    return true;
+  }
 };
 
 /* ========================================================================== */
@@ -326,6 +488,7 @@ FSM::configure()
 
   auto a_mksort = new_action<ActionMkSort>();
 
+  auto a_mkval   = new_action<ActionMkValue>();
   auto a_mkconst = new_action<ActionMkConst>();
   auto a_mkterm  = new_action<ActionMkTerm>();
 
@@ -351,6 +514,7 @@ FSM::configure()
 
   /* State: create inputs ................................................ */
   s_inputs->add_action(a_mksort, 10);
+  s_inputs->add_action(a_mkval, 10);
   s_inputs->add_action(a_mkconst, 10);
   s_inputs->add_action(t_inputs, 10, s_terms);
 

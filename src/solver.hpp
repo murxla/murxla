@@ -33,6 +33,7 @@ class AbsSort
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
 
+  virtual bool is_bool() const         = 0;
   virtual bool is_bv() const           = 0;
   virtual uint32_t get_bv_size() const = 0;
 
@@ -89,6 +90,22 @@ class Solver
     UNSAT,
   };
 
+  enum Base
+  {
+    BIN = 2,
+    DEC = 10,
+    HEX = 16,
+  };
+
+  enum SpecialValueBV
+  {
+    ZERO,
+    ONE,
+    ONES,
+    MIN_SIGNED,
+    MAX_SIGNED,
+  };
+
   Solver(RNGenerator& rng);
   Solver() = delete;
   ~Solver() = default;
@@ -105,8 +122,9 @@ class Solver
   virtual Term mk_const(Sort sort, const std::string name) const = 0;
   virtual Term mk_fun(Sort sort, const std::string name) const   = 0;
 
-  virtual Term mk_value(Sort sort, uint32_t value) const = 0;
-  // TODO: more
+  virtual Term mk_value(Sort sort, bool value) const                   = 0;
+  virtual Term mk_value(Sort sort, uint64_t value) const               = 0;
+  virtual Term mk_value(Sort sort, std::string value, Base base) const = 0;
 
   virtual Sort mk_sort(const std::string name, uint32_t arity) const = 0;
   virtual Sort mk_sort(SortKind kind) const                          = 0;
@@ -125,6 +143,9 @@ class Solver
 
   virtual Result check_sat() const = 0;
 
+  const std::vector<Base>& get_bases() const;
+  const std::vector<SpecialValueBV>& get_special_values_bv() const;
+
   //
   // get_model()
   // get_value()
@@ -134,6 +155,15 @@ class Solver
   //
  protected:
   RNGenerator& d_rng;
+
+  std::vector<Base> d_bases = {Base::BIN, Base::DEC, Base::HEX};
+
+  std::vector<SpecialValueBV> d_special_values_bv = {
+      SpecialValueBV::ZERO,
+      SpecialValueBV::ONE,
+      SpecialValueBV::ONES,
+      SpecialValueBV::MIN_SIGNED,
+      SpecialValueBV::MAX_SIGNED};
 };
 
 /* -------------------------------------------------------------------------- */

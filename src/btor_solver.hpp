@@ -28,6 +28,7 @@ class BtorSort : public AbsSort
   ~BtorSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  bool is_bool() const override;
   bool is_bv() const override;
   uint32_t get_bv_size() const override;
 
@@ -88,11 +89,9 @@ class BtorSolver : public Solver
     return nullptr;
   }
 
-  Term mk_value(Sort sort, uint32_t value) const
-  {  // TODO:
-    return nullptr;
-  }
-  // TODO: more
+  Term mk_value(Sort sort, bool value) const override;
+  Term mk_value(Sort sort, uint64_t value) const override;
+  Term mk_value(Sort sort, std::string value, Base base) const override;
 
   Sort mk_sort(const std::string name, uint32_t arity) const
   {  // TODO:
