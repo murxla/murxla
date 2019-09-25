@@ -381,7 +381,7 @@ run(uint32_t seed, Options& options)
 
   if (!info.str().empty())
   {
-    std::cout << std::flush << info.str() << std::endl;
+    std::cout << info.str() << std::endl << std::flush;
   }
 
   return result;
@@ -402,7 +402,7 @@ main(int argc, char* argv[])
   do
   {
     seed = sg.next();
-    std::cout << num_runs++ << " " << seed;
+    std::cout << num_runs++ << " " << seed << std::flush;
     Result res = run(seed, g_options);
     // TODO do something based on res?
     std::cout << "\r" << std::flush;
