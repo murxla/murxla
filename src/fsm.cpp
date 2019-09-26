@@ -468,6 +468,8 @@ class ActionMkValue : public Action
       break;
       default: assert(false);
     }
+    std::cout << "res " << res << std::endl;
+    d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
     return true;
   }
 };
