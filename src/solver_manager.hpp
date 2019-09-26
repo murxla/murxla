@@ -118,8 +118,6 @@ class SolverManager
    */
   bool has_sort(Sort sort) const;
 
-  /** Get sort of given term. */
-  Sort get_sort(Term term) const;
 
   /* Statistics. */
   Stats d_stats;
@@ -184,8 +182,6 @@ class SolverManager
 
   /* Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
-  /* Map term -> sort. */
-  std::unordered_map<Term, Sort, HashTerm> d_term_to_sort;
 };
 
 /* -------------------------------------------------------------------------- */

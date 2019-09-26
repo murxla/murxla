@@ -164,7 +164,6 @@ class ActionMkSort : public Action
     SMTMBT_TRACE << get_id();
     SortKindData& kind_data = d_smgr.pick_sort_kind_data();
     SortKind kind           = kind_data.d_kind;
-    std::cout << "picked sort " << kind << std::endl;
     Sort res;
     switch (kind)
     {
@@ -172,7 +171,6 @@ class ActionMkSort : public Action
       case SORT_BV:
       {
         uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
-        std::cout << "picked sort bw" << bw << std::endl;
         res = d_solver.mk_sort(SORT_BV, bw);
       }
       break;
@@ -271,8 +269,6 @@ class ActionMkTerm : public Action
 
     /* Create term. */
     Term res = d_solver.mk_term(kind, args, params);
-
-    std::cout << "mk_term res " << res << std::endl;
     d_smgr.add_term(res,
                     d_solver.get_sort(res),
                     sort_kind == SORT_ANY ? sort->get_kind() : sort_kind);
@@ -299,7 +295,6 @@ class ActionMkConst : public Action
                              : d_rng.pick_simple_symbol(len);
     /* Create const. */
     Term res = d_solver.mk_const(sort, symbol);
-    std::cout << "res " << res << std::endl;
     d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
     return true;
   }
@@ -468,7 +463,6 @@ class ActionMkValue : public Action
       break;
       default: assert(false);
     }
-    std::cout << "res " << res << std::endl;
     d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
     return true;
   }

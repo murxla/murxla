@@ -24,7 +24,7 @@ AbsSort::get_kind()
 bool
 operator==(const Sort& a, const Sort& b)
 {
-  return a->equals(b);
+  return a->equals(b) && a->get_kind() == b->get_kind();
 }
 
 size_t
@@ -37,10 +37,22 @@ HashSort::operator()(const Sort s) const
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
+void
+AbsTerm::set_sort(Sort sort)
+{
+  d_sort = sort;
+}
+
+Sort
+AbsTerm::get_sort()
+{
+  return d_sort;
+}
+
 bool
 operator==(const Term& a, const Term& b)
 {
-  return a->equals(b);
+  return a->equals(b) && a->get_sort() == b->get_sort();
 }
 
 size_t

@@ -44,7 +44,7 @@ BtorSort::equals(const Sort& other) const
   BtorSort* btor_sort = dynamic_cast<BtorSort*>(other.get());
   if (btor_sort)
   {
-    return d_sort == btor_sort->d_sort && d_kind == btor_sort->d_kind;
+    return d_sort == btor_sort->d_sort;
   }
   return false;
 }
@@ -55,7 +55,7 @@ BtorSort::is_bool() const
   BoolectorSort s = boolector_bool_sort(d_solver);
   bool res        = s == d_sort;
   boolector_release_sort(d_solver, s);
-  return res;
+  return res && d_kind == SORT_BOOL;
 }
 
 bool
@@ -519,7 +519,6 @@ BtorSolver::mk_term(const OpKind& kind,
   }
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
-  std::cout << "const" << res << std::endl;
   assert(res);
   return res;
 }

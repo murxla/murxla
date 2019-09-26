@@ -24,7 +24,6 @@ SolverManager::clear()
 {
   d_sorts.clear();
   d_terms.clear();
-  d_term_to_sort.clear();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -72,27 +71,18 @@ void
 SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
 {
   assert(term.get());
+  assert(term->get_sort() == nullptr);
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
 
   if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
   assert(!has_sort(sort) || sort->get_kind() == sort_kind);
 
-  if (d_term_to_sort.find(term) != d_term_to_sort.end())
-  {
-    assert(d_terms.find(sort_kind) != d_terms.end());
-    assert(d_terms.at(sort_kind).find(sort) != d_terms.at(sort_kind).end());
-    assert(d_terms.at(sort_kind).at(sort).find(term)
-           != d_terms.at(sort_kind).at(sort).end());
-    return;
-  }
-
   d_stats.terms += 1;
 
   add_sort(sort, sort_kind);
 
-  /* add term to d_term_to_sort */
-  d_term_to_sort.emplace(term, sort);
+  term->set_sort(sort);
 
   /* add term to d_terms */
   if (d_terms.find(sort_kind) == d_terms.end())
@@ -236,7 +226,18 @@ SolverManager::has_term(Sort sort) const
 bool
 SolverManager::has_term(Term term) const
 {
-  return d_term_to_sort.find(term) != d_term_to_sort.end();
+  Sort sort          = term->get_sort();
+  SortKind sort_kind = sort->get_kind();
+  if (d_terms.find(sort_kind) == d_terms.end())
+  {
+    return false;
+  }
+  if (d_terms.at(sort_kind).find(sort) == d_terms.at(sort_kind).end())
+  {
+    return false;
+  }
+  return d_terms.at(sort_kind).at(sort).find(term)
+         != d_terms.at(sort_kind).at(sort).end();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -272,13 +273,6 @@ bool
 SolverManager::has_sort(Sort sort) const
 {
   return d_sorts.find(sort) != d_sorts.end();
-}
-
-Sort
-SolverManager::get_sort(Term term) const
-{
-  assert(has_term(term));
-  return d_term_to_sort.at(term);
 }
 
 /* -------------------------------------------------------------------------- */

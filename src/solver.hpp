@@ -64,6 +64,12 @@ class AbsTerm
   virtual ~AbsTerm(){};
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
+
+  void set_sort(Sort sort);
+  Sort get_sort();
+
+ protected:
+  Sort d_sort = nullptr;
 };
 
 using Term = std::shared_ptr<AbsTerm>;
