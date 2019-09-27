@@ -77,7 +77,6 @@ class BtorActionNoneCreateInputs : public BtorAction
 // FILE *boolector_get_trapi (Btor *btor);
 // void boolector_push (Btor *btor, uint32_t level);
 // void boolector_pop (Btor *btor, uint32_t level);
-// void boolector_assert (Btor *btor, BoolectorNode *node);
 // void boolector_assume (Btor *btor, BoolectorNode *node);
 // bool boolector_failed (Btor *btor, BoolectorNode *node);
 // BoolectorNode **boolector_get_failed_assumptions (Btor *btor);

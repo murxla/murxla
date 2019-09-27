@@ -307,6 +307,12 @@ CVC4Solver::get_sort(Term term) const
   return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, cvc4_term.getSort()));
 }
 
+void
+CVC4Solver::assert_formula(const Term& t) const
+{
+  d_solver->assertFormula(get_cvc4_term(t));
+}
+
 /* -------------------------------------------------------------------------- */
 
 void

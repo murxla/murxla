@@ -112,9 +112,7 @@ class BtorSolver : public Solver
 
   Sort get_sort(Term term) const;
 
-  void assert_formula(const Term& t) const
-  {  // TODO:
-  }
+  void assert_formula(const Term& t) const override;
 
   Result check_sat() const
   {  // TODO:

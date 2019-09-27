@@ -538,18 +538,28 @@ BtorSolver::get_sort(Term term) const
       d_solver, boolector_get_sort(d_solver, get_btor_term(term))));
 }
 
+void
+BtorSolver::assert_formula(const Term& t) const
+{
+  boolector_assert(d_solver, get_btor_term(t));
+}
+
 /* -------------------------------------------------------------------------- */
 
 BoolectorSort
 BtorSolver::get_btor_sort(Sort sort) const
 {
-  return static_cast<BtorSort*>(sort.get())->d_sort;
+  BtorSort* btor_sort = dynamic_cast<BtorSort*>(sort.get());
+  assert(btor_sort);
+  return btor_sort->d_sort;
 }
 
 BoolectorNode*
 BtorSolver::get_btor_term(Term term) const
 {
-  return static_cast<BtorTerm*>(term.get())->d_term;
+  BtorTerm* btor_term = dynamic_cast<BtorTerm*>(term.get());
+  assert(btor_term);
+  return btor_term->d_term;
 }
 
 BoolectorNode*

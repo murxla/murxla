@@ -7,9 +7,6 @@
 
 #include "solver_manager.hpp"
 
-#define SMTMBT_BW_MIN 1
-#define SMTMBT_BW_MAX 128
-
 #define SMTMBT_LEN_SYMBOL_MAX 128
 
 namespace smtmbt {
@@ -172,6 +169,7 @@ class ActionMkSort : public Action
       {
         uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
         res = d_solver.mk_sort(SORT_BV, bw);
+        assert(res->get_bv_size() == bw);
       }
       break;
       default: assert(false);
@@ -223,6 +221,7 @@ class ActionMkTerm : public Action
         break;
       default:
         args.push_back(d_smgr.pick_term(sort));
+        assert(args[0]->get_sort()->get_bv_size() == sort->get_bv_size());
         assert(sort_kind_args == SORT_ANY
                || sort_kind_args == sort->get_kind());
     }
@@ -233,6 +232,7 @@ class ActionMkTerm : public Action
       {
         case OpKind::BV_CONCAT: args.push_back(d_smgr.pick_term(sort)); break;
         default: args.push_back(d_smgr.pick_term(sort));
+          assert(args[i]->get_sort()->get_bv_size() == sort->get_bv_size());
       }
     }
 
@@ -468,6 +468,21 @@ class ActionMkValue : public Action
   }
 };
 
+class ActionAssertFormula : public Action
+{
+ public:
+  ActionAssertFormula(SolverManager& smgr) : Action(smgr, "assertFormula") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    if (!d_smgr.has_term(SORT_BOOL)) return false;
+    Term assertion = d_smgr.pick_term(SORT_BOOL);
+    d_solver.assert_formula(assertion);
+    return true;
+  }
+};
+
 /* ========================================================================== */
 /* Configure default FSM                                                      */
 /* ========================================================================== */
@@ -488,6 +503,8 @@ FSM::configure()
   auto a_mkconst = new_action<ActionMkConst>();
   auto a_mkterm  = new_action<ActionMkTerm>();
 
+  auto a_assert = new_action<ActionAssertFormula>();
+
   auto t_inputs = new_action<TransitionCreateInputs>();
 
   /* --------------------------------------------------------------------- */
@@ -500,6 +517,9 @@ FSM::configure()
 
   auto s_inputs = new_state("create inputs");
   auto s_terms  = new_state("create terms");
+
+  auto s_assert =
+      new_state("assert", [this]() { return d_smgr.has_term(SORT_BOOL); });
 
   /* --------------------------------------------------------------------- */
   /* Transitions                                                           */
@@ -515,7 +535,10 @@ FSM::configure()
   s_inputs->add_action(t_inputs, 10, s_terms);
 
   /* State: create terms ................................................. */
-  s_terms->add_action(a_mkterm, 10, s_delete);
+  s_terms->add_action(a_mkterm, 10, s_assert);
+
+  /* State: assert/assume formula ........................................ */
+  s_assert->add_action(a_assert, 10, s_delete);
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 10, s_final);

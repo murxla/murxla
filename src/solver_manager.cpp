@@ -74,6 +74,7 @@ SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
   assert(term->get_sort() == nullptr);
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
+  assert(sort_kind != SORT_BV || sort->get_bv_size() <= SMTMBT_BW_MAX);
 
   if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
   assert(!has_sort(sort) || sort->get_kind() == sort_kind);

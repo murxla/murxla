@@ -1013,28 +1013,6 @@ class CVC4ActionSolverSimplify : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// void Solver::assertFormula(Term term) const;
-class CVC4ActionSolverAssertFormula : public CVC4Action
-{
- public:
-  CVC4ActionSolverAssertFormula(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "solverAssertFormula")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    if (!d_smgr->has_term(THEORY_BOOL)) return false;
-    Solver* cvc4 = d_smgr->get_solver();
-    assert(cvc4);
-    Term f = d_smgr->pick_term(THEORY_BOOL);
-    cvc4->assertFormula(f);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // Result Solver::checkSat() const;
 class CVC4ActionSolverCheckSat : public CVC4Action
 {
