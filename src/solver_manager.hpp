@@ -111,6 +111,11 @@ class SolverManager
    * with terms only if 'with_terms' is true.
    */
   Sort pick_sort(SortKind sort_kind, bool with_terms = true);
+  /**
+   * Pick bit-vector sort with given maximum bit-width.  Optionally restrict
+   * selection to sorts with terms only if 'with_terms' is true.
+   */
+  Sort pick_sort_bv(uint32_t bw_max, bool with_terms = true);
 
   /**
    * Return true if any sort has been created.
@@ -122,7 +127,12 @@ class SolverManager
    * This does not guarantee that any terms of this sort have been created.
    */
   bool has_sort(Sort sort) const;
-
+  /**
+   * Return true if a bit-vector sort up to given maximum bit-width exists.
+   * Optionally restrict selection to sorts with terms only if 'with_terms' is
+   * true.
+   */
+  bool has_sort_bv(uint32_t bw_max, bool with_terms = true) const;
 
   /* Statistics. */
   Stats d_stats;

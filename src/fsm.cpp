@@ -99,6 +99,16 @@ FSM::run()
 /* ========================================================================== */
 
 /**
+ * Transition from current state to next state without pre-conditions.
+ */
+class Transition : public Action
+{
+ public:
+  Transition(SolverManager& smgr) : Action(smgr, "") {}
+  bool run() override { return true; }
+};
+
+/**
  * Transition from creating inputs to the next state.
  *
  * State:      create inputs
@@ -154,7 +164,7 @@ class ActionDelete : public Action
 class ActionMkSort : public Action
 {
  public:
-  ActionMkSort(SolverManager& smgr) : Action(smgr, "mkSort") {}
+  ActionMkSort(SolverManager& smgr) : Action(smgr, "mk-sort") {}
 
   bool run() override
   {
@@ -182,15 +192,13 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
-  ActionMkTerm(SolverManager& smgr) : Action(smgr, "mkTerm") {}
+  ActionMkTerm(SolverManager& smgr) : Action(smgr, "mk-term") {}
 
   bool run() override
   {
     assert(d_smgr.get_enabled_theories().find(THEORY_BOOL)
            != d_smgr.get_enabled_theories().end());
     assert(d_smgr.has_term());
-
-    SMTMBT_TRACE << get_id();
 
     /* pick operator kind */
     OpKindData& kind_data   = d_smgr.pick_op_kind_data();
@@ -200,39 +208,53 @@ class ActionMkTerm : public Action
     SortKind sort_kind      = kind_data.d_sort_kind;
     SortKind sort_kind_args = kind_data.d_sort_kind_args;
 
+    SMTMBT_TRACE << get_id() << "op " << kind;
+
     if (!d_smgr.has_term(sort_kind_args)) return false;
 
-    Sort sort = d_smgr.pick_sort(sort_kind_args);
-
-    if (arity == SMTMBT_MK_TERM_N_ARGS)
-    {
-      arity = d_rng.pick_uint32(SMTMBT_MK_TERM_N_ARGS_MIN,
-                                SMTMBT_MK_TERM_N_ARGS_MAX);
-    }
-
-    /* Pick argument term(s). */
     std::vector<Term> args;
-    /* first argument */
-    switch (kind)
+    Sort sort;
+
+    if (kind == OpKind::BV_CONCAT)
     {
-      case OpKind::ITE:
-        if (!d_smgr.has_term(SORT_BOOL)) return false;
-        args.push_back(d_smgr.pick_term(SORT_BOOL));
-        break;
-      default:
+      if (!d_smgr.has_sort_bv(SMTMBT_BW_MAX - 1)) return false;
+      sort        = d_smgr.pick_sort_bv(SMTMBT_BW_MAX - 1);
+      uint32_t bw = SMTMBT_BW_MAX - sort->get_bv_size();
+      if (!d_smgr.has_sort_bv(bw)) return false;
+      args.push_back(d_smgr.pick_term(sort));
+      do
+      {
+        sort = d_smgr.pick_sort_bv(bw);
         args.push_back(d_smgr.pick_term(sort));
-        assert(args[0]->get_sort()->get_bv_size() == sort->get_bv_size());
-        assert(sort_kind_args == SORT_ANY
-               || sort_kind_args == sort->get_kind());
+        bw -= sort->get_bv_size();
+      } while (d_smgr.has_sort_bv(bw) && d_rng.pick_one_of_three());
     }
-    /* remaining arguments */
-    for (int32_t i = 1; i < arity; ++i)
+    else
     {
+      sort = d_smgr.pick_sort(sort_kind_args);
+      if (arity == SMTMBT_MK_TERM_N_ARGS)
+      {
+        arity = d_rng.pick_uint32(SMTMBT_MK_TERM_N_ARGS_MIN,
+                                  SMTMBT_MK_TERM_N_ARGS_MAX);
+      }
+      /* pick first argument */
       switch (kind)
       {
-        case OpKind::BV_CONCAT: args.push_back(d_smgr.pick_term(sort)); break;
-        default: args.push_back(d_smgr.pick_term(sort));
-          assert(args[i]->get_sort()->get_bv_size() == sort->get_bv_size());
+        case OpKind::ITE:
+          if (!d_smgr.has_term(SORT_BOOL)) return false;
+          args.push_back(d_smgr.pick_term(SORT_BOOL));
+          break;
+        default:
+          args.push_back(d_smgr.pick_term(sort));
+          assert(!args[0]->get_sort()->is_bv()
+                 || args[0]->get_sort()->get_bv_size() == sort->get_bv_size());
+          assert(sort_kind_args == SORT_ANY
+                 || sort_kind_args == sort->get_kind());
+      }
+      /* pick remaining arguments */
+      for (int32_t i = 1; i < arity; ++i)
+      {
+        args.push_back(d_smgr.pick_term(sort));
       }
     }
 
@@ -279,7 +301,7 @@ class ActionMkTerm : public Action
 class ActionMkConst : public Action
 {
  public:
-  ActionMkConst(SolverManager& smgr) : Action(smgr, "mkConst") {}
+  ActionMkConst(SolverManager& smgr) : Action(smgr, "mk-const") {}
 
   bool run() override
   {
@@ -303,7 +325,7 @@ class ActionMkConst : public Action
 class ActionMkValue : public Action
 {
  public:
-  ActionMkValue(SolverManager& smgr) : Action(smgr, "mkValue") {}
+  ActionMkValue(SolverManager& smgr) : Action(smgr, "mk-value") {}
 
   bool run() override
   {
@@ -471,7 +493,7 @@ class ActionMkValue : public Action
 class ActionAssertFormula : public Action
 {
  public:
-  ActionAssertFormula(SolverManager& smgr) : Action(smgr, "assertFormula") {}
+  ActionAssertFormula(SolverManager& smgr) : Action(smgr, "assert-formula") {}
 
   bool run() override
   {
@@ -479,6 +501,19 @@ class ActionAssertFormula : public Action
     if (!d_smgr.has_term(SORT_BOOL)) return false;
     Term assertion = d_smgr.pick_term(SORT_BOOL);
     d_solver.assert_formula(assertion);
+    return true;
+  }
+};
+
+class ActionCheckSat : public Action
+{
+ public:
+  ActionCheckSat(SolverManager& smgr) : Action(smgr, "check-sat") {}
+
+  bool run() override
+  {
+    SMTMBT_TRACE << get_id();
+    d_solver.check_sat();
     return true;
   }
 };
@@ -504,8 +539,10 @@ FSM::configure()
   auto a_mkterm  = new_action<ActionMkTerm>();
 
   auto a_assert = new_action<ActionAssertFormula>();
+  auto a_sat    = new_action<ActionCheckSat>();
 
-  auto t_inputs = new_action<TransitionCreateInputs>();
+  auto t_default = new_action<Transition>();
+  auto t_inputs  = new_action<TransitionCreateInputs>();
 
   /* --------------------------------------------------------------------- */
   /* States                                                                */
@@ -516,10 +553,13 @@ FSM::configure()
   auto s_final  = new_state("final", nullptr, true);
 
   auto s_inputs = new_state("create inputs");
-  auto s_terms  = new_state("create terms");
+  auto s_terms =
+      new_state("create terms", [this]() { return d_smgr.has_term(); });
 
   auto s_assert =
       new_state("assert", [this]() { return d_smgr.has_term(SORT_BOOL); });
+
+  auto s_sat = new_state("check sat");
 
   /* --------------------------------------------------------------------- */
   /* Transitions                                                           */
@@ -529,16 +569,24 @@ FSM::configure()
   s_new->add_action(a_new, 10, s_inputs);
 
   /* State: create inputs ................................................ */
-  s_inputs->add_action(a_mksort, 10);
-  s_inputs->add_action(a_mkval, 10);
-  s_inputs->add_action(a_mkconst, 10);
-  s_inputs->add_action(t_inputs, 10, s_terms);
+  s_inputs->add_action(a_mksort, 20);
+  s_inputs->add_action(a_mkval, 20);
+  s_inputs->add_action(a_mkconst, 20);
+  s_inputs->add_action(t_inputs, 20, s_terms);
+  s_inputs->add_action(t_inputs, 1, s_sat);
 
   /* State: create terms ................................................. */
-  s_terms->add_action(a_mkterm, 10, s_assert);
+  s_terms->add_action(a_mkterm, 20);
+  s_terms->add_action(t_default, 20, s_assert);
+  s_terms->add_action(t_default, 1, s_sat);
 
   /* State: assert/assume formula ........................................ */
-  s_assert->add_action(a_assert, 10, s_delete);
+  s_assert->add_action(a_assert, 10);
+  s_assert->add_action(t_default, 1, s_delete);
+  s_assert->add_action(t_default, 10, s_sat);
+
+  /* State: check sat .................................................... */
+  s_sat->add_action(a_sat, 10, s_delete);
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 10, s_final);

@@ -264,6 +264,34 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
   return d_rng.pick_from_set<SortSet, Sort>(d_sort_kind_to_sorts.at(sort_kind));
 }
 
+Sort
+SolverManager::pick_sort_bv(uint32_t bw_max, bool with_terms)
+{
+  assert(has_sort_bv(bw_max, with_terms));
+  std::vector<Sort> sorts;
+  if (with_terms)
+  {
+    for (const auto& p : d_terms.at(SORT_BV))
+    {
+      if (p.first->is_bv() && p.first->get_bv_size() <= bw_max)
+      {
+        sorts.push_back(p.first);
+      }
+    }
+  }
+  else
+  {
+    for (const Sort sort : d_sorts)
+    {
+      if (sort->is_bv() && sort->get_bv_size() <= bw_max)
+      {
+        sorts.push_back(sort);
+      }
+    }
+  }
+  return d_rng.pick_from_set<std::vector<Sort>, Sort>(sorts);
+}
+
 bool
 SolverManager::has_sort() const
 {
@@ -274,6 +302,25 @@ bool
 SolverManager::has_sort(Sort sort) const
 {
   return d_sorts.find(sort) != d_sorts.end();
+}
+
+bool
+SolverManager::has_sort_bv(uint32_t bw_max, bool with_terms) const
+{
+  if (with_terms)
+  {
+    if (d_terms.find(SORT_BV) == d_terms.end()) return false;
+    for (const auto& p : d_terms.at(SORT_BV))
+    {
+      if (p.first->is_bv() && p.first->get_bv_size() <= bw_max) return true;
+    }
+    return false;
+  }
+  for (const Sort sort : d_sorts)
+  {
+    if (sort->is_bv() && sort->get_bv_size() <= bw_max) return true;
+  }
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */

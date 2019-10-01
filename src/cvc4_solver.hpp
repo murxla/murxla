@@ -105,10 +105,7 @@ class CVC4Solver : public Solver
 
   void assert_formula(const Term& t) const override;
 
-  Result check_sat() const
-  {  // TODO:
-    return Result::UNKNOWN;
-  }
+  Result check_sat() const override;
 
   //
   // get_model()

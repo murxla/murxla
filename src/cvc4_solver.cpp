@@ -313,6 +313,16 @@ CVC4Solver::assert_formula(const Term& t) const
   d_solver->assertFormula(get_cvc4_term(t));
 }
 
+Solver::Result
+CVC4Solver::check_sat() const
+{
+  CVC4::api::Result res = d_solver->checkSat();
+  if (res.isSat()) return Result::SAT;
+  if (res.isUnsat()) return Result::UNSAT;
+  assert(res.isSatUnknown());
+  return Result::UNKNOWN;
+}
+
 /* -------------------------------------------------------------------------- */
 
 void

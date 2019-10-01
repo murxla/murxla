@@ -544,6 +544,16 @@ BtorSolver::assert_formula(const Term& t) const
   boolector_assert(d_solver, get_btor_term(t));
 }
 
+Solver::Result
+BtorSolver::check_sat() const
+{
+  int32_t res = boolector_sat(d_solver);
+  if (res == BOOLECTOR_SAT) return Result::SAT;
+  if (res == BOOLECTOR_UNSAT) return Result::UNSAT;
+  assert(res == BOOLECTOR_UNKNOWN);
+  return Result::UNKNOWN;
+}
+
 /* -------------------------------------------------------------------------- */
 
 BoolectorSort
