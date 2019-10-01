@@ -1013,52 +1013,8 @@ class CVC4ActionSolverSimplify : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// Result Solver::checkSat() const;
-class CVC4ActionSolverCheckSat : public CVC4Action
-{
- public:
-  CVC4ActionSolverCheckSat(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "solverCheckSat")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    // TODO query result
-    Solver* cvc4 = d_smgr->get_solver();
-    if (cvc4->getOption("incremental") == "false") return false;
-    assert(cvc4);
-    (void) cvc4->checkSat();
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // TODO Result Solver::checkSatAssuming(Term assumption) const;
 // TODO Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const;
-
-// Result Solver::checkValid() const;
-class CVC4ActionSolverCheckValid : public CVC4Action
-{
- public:
-  CVC4ActionSolverCheckValid(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "solverCheckValid")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    // TODO query result
-    Solver* cvc4 = d_smgr->get_solver();
-    if (cvc4->getOption("incremental") == "false") return false;
-    assert(cvc4);
-    (void) cvc4->checkValid();
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
 
 // TODO Result Solver::checkValidAssuming(Term assumption) const;
 // TODO Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const;

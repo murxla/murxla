@@ -208,7 +208,7 @@ class ActionMkTerm : public Action
     SortKind sort_kind      = kind_data.d_sort_kind;
     SortKind sort_kind_args = kind_data.d_sort_kind_args;
 
-    SMTMBT_TRACE << get_id() << "op " << kind;
+    SMTMBT_TRACE << get_id() << " op " << kind;
 
     if (!d_smgr.has_term(sort_kind_args)) return false;
 

@@ -118,21 +118,6 @@ class BtorActionResetAssumptions : public BtorAction
   }
 };
 
-// int32_t boolector_sat (Btor *btor);
-class BtorActionSat : public BtorAction
-{
- public:
-  BtorActionSat(BtorSolverManagerBase* smgr) : BtorAction(smgr, "sat") {}
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
-    boolector_sat(d_smgr->get_solver());
-    return true;
-  }
-};
-
 // int32_t boolector_limited_sat (Btor *btor, int32_t lod_limit, int32_t sat_limit);
 // int32_t boolector_simplify (Btor *btor);
 // void boolector_set_sat_solver (Btor *btor, const char *solver);

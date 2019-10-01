@@ -316,10 +316,18 @@ CVC4Solver::assert_formula(const Term& t) const
 Solver::Result
 CVC4Solver::check_sat() const
 {
-  CVC4::api::Result res = d_solver->checkSat();
-  if (res.isSat()) return Result::SAT;
-  if (res.isUnsat()) return Result::UNSAT;
-  assert(res.isSatUnknown());
+  bool check_sat = d_rng.flip_coin();
+  CVC4::api::Result res =
+      check_sat ? d_solver->checkSat() : d_solver->checkValid();
+  assert(!res.isSat() || check_sat);
+  assert(!res.isUnsat() || check_sat);
+  assert(!res.isSatUnknown() || check_sat);
+  assert(!res.isValid() || !check_sat);
+  assert(!res.isInvalid() || !check_sat);
+  assert(!res.isValidUnknown() || !check_sat);
+  if (res.isSat() || res.isInvalid()) return Result::SAT;
+  if (res.isUnsat() || res.isValid()) return Result::UNSAT;
+  assert(res.isSatUnknown() || res.isValidUnknown());
   return Result::UNKNOWN;
 }
 
