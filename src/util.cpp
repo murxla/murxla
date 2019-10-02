@@ -251,25 +251,25 @@ bv_special_value_min_signed_uint64(uint32_t bw)
 uint64_t
 bv_special_value_max_signed_uint64(uint32_t bw)
 {
-  return bw == 1 ? 1u : bv_special_value_ones_uint64(bw - 1);
+  return bw == 1 ? 0u : bv_special_value_ones_uint64(bw - 1);
 }
 
 bool
 is_bv_special_value_ones_uint64(uint32_t bw, uint64_t value)
 {
-  return value == ((~0u) >> (64 - bw));
+  return value == bv_special_value_ones_uint64(bw);
 }
 
 bool
 is_bv_special_value_min_signed_uint64(uint32_t bw, uint64_t value)
 {
-  return value == (1u << (bw - 1));
+  return value == bv_special_value_min_signed_uint64(bw);
 }
 
 bool
 is_bv_special_value_max_signed_uint64(uint32_t bw, uint64_t value)
 {
-  return value == bv_special_value_ones_uint64(bw - 1);
+  return value == bv_special_value_max_signed_uint64(bw);
 }
 
 std::string
@@ -282,7 +282,7 @@ std::string
 bv_special_value_one_str(uint32_t bw)
 {
   std::string res(bw, '0');
-  res[res.size()] = '1';
+  res[res.size() - 1] = '1';
   return res;
 }
 
