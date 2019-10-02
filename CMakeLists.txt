@@ -10,6 +10,12 @@ set(CMAKE_CXX_STANDARD 14)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+message(STATUS "LIB directory is '${CMAKE_BINARY_DIR}/lib'")
+message(STATUS "BIN directory is '${CMAKE_BINARY_DIR}/bin'")
+
 include(Helpers)
 
 #-----------------------------------------------------------------------------#
@@ -40,8 +46,23 @@ add_check_cxx_flag("-Wall")
 
 #-----------------------------------------------------------------------------#
 
+option(WITH_TESTS "Build with unit tests")
+if(WITH_TESTS)
+  include(cmake/googletest.cmake)
+  fetch_googletest(
+      ${PROJECT_SOURCE_DIR}/cmake
+      ${PROJECT_BINARY_DIR}/googletest
+      )
+
+  enable_testing()
+  add_subdirectory(test)
+endif()
+
+#-----------------------------------------------------------------------------#
+
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
 find_package(Boolector)
 find_package(CVC4)
 
 add_subdirectory(src)
+

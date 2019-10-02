@@ -235,21 +235,23 @@ str_bin_to_dec(const std::string& str_bin)
 uint64_t
 bv_special_value_ones_uint64(uint32_t bw)
 {
+  assert(bw > 0);
   assert(bw <= 64);
-  return (~0) >> (64 - bw);
+  uint64_t ones = ~((uint64_t) 0u);
+  return bw == 64 ? ones : ~(ones << bw);
 }
 
 uint64_t
 bv_special_value_min_signed_uint64(uint32_t bw)
 {
   assert(bw <= 64);
-  return 1 << (bw - 1);
+  return ((uint64_t) 1u) << (bw - 1);
 }
 
 uint64_t
 bv_special_value_max_signed_uint64(uint32_t bw)
 {
-  return bv_special_value_ones_uint64(bw - 1);
+  return bw == 1 ? 1u : bv_special_value_ones_uint64(bw - 1);
 }
 
 bool
