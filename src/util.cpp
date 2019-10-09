@@ -162,7 +162,6 @@ std::string
 RNGenerator::pick_simple_symbol(uint32_t len)
 {
   std::string s = pick_string(d_simple_symbol_char_set, len);
-  std::cout << "picked simple symbol string: '" << s << "'" << std::endl;
   return s;
 }
 
@@ -174,7 +173,6 @@ RNGenerator::pick_piped_symbol(uint32_t len)
   assert(s.size() == len);
   s[0]       = '|';
   s[len - 1] = '|';
-  std::cout << "picked piped symbol string: '" << s << "'" << std::endl;
   return s;
 }
 
@@ -360,6 +358,15 @@ is_bv_special_value_max_signed_str(std::string& value)
     if (value[i] != '1') return false;
   }
   return true;
+}
+
+/* -------------------------------------------------------------------------- */
+
+std::ostream&
+operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
+{
+  for (const uint32_t v : vector) out << " " << v;
+  return out;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -37,16 +37,22 @@ class AbsSort
   virtual bool is_bv() const           = 0;
   virtual uint32_t get_bv_size() const = 0;
 
+  void set_id(uint64_t id);
+  uint64_t get_id() const;
+
   void set_kind(SortKind sort_kind);
   SortKind get_kind();
 
  protected:
+  uint64_t d_id   = 0u;
   SortKind d_kind = SORT_ANY;
 };
 
 using Sort = std::shared_ptr<AbsSort>;
 
 bool operator==(const Sort& a, const Sort& b);
+
+std::ostream& operator<<(std::ostream& out, const Sort s);
 
 struct HashSort
 {
@@ -65,16 +71,23 @@ class AbsTerm
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
 
+  void set_id(uint64_t id);
+  uint64_t get_id() const;
+
   void set_sort(Sort sort);
-  Sort get_sort();
+  Sort get_sort() const;
 
  protected:
+  uint64_t d_id = 0u;
   Sort d_sort = nullptr;
 };
 
 using Term = std::shared_ptr<AbsTerm>;
 
 bool operator==(const Term& a, const Term& b);
+
+std::ostream& operator<<(std::ostream& out, const Term t);
+std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
 
 struct HashTerm
 {

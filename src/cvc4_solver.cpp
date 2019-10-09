@@ -145,7 +145,6 @@ Term
 CVC4Solver::mk_const(Sort sort, const std::string name) const
 {
   CVC4::api::Term res = d_solver->mkConst(get_cvc4_sort(sort), name);
-  std::cout << "const" << res << std::endl;
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, res));
 }
 
@@ -296,7 +295,6 @@ CVC4Solver::mk_term(const OpKind& kind,
       cvc4_res = n_params ? d_solver->mkTerm(cvc4_kind, cvc4_opterm, cvc4_args)
                           : d_solver->mkTerm(cvc4_kind, cvc4_args);
   }
-  std::cout << "mk_term " << cvc4_res << std::endl;
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
 

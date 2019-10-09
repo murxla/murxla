@@ -90,20 +90,22 @@ SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
   {
     d_terms.emplace(sort_kind, SortMap());
   }
+
   SortMap& map = d_terms.at(sort_kind);
   if (map.find(sort) == map.end())
   {
     map.emplace(sort, TermMap());
+  }
+  if (map.at(sort).find(term) == map.at(sort).end())
+  {
+    term->set_id(++d_n_terms);
     map.at(sort).emplace(term, 0);
   }
   else
   {
-    if (map.at(sort).find(term) == map.at(sort).end())
-    {
-      map.at(sort).emplace(term, 0);
-    }
-    map.at(sort).at(term) += 1;
+    term->set_id(map.at(sort).find(term)->first->get_id());
   }
+  map.at(sort).at(term) += 1;
 }
 
 void
@@ -117,11 +119,13 @@ SolverManager::add_sort(Sort sort, SortKind sort_kind)
   auto it = d_sorts.find(sort);
   if (it == d_sorts.end())
   {
+    sort->set_id(++d_n_sorts);
     d_sorts.insert(sort);
   }
   else
   {
     assert((*it)->get_kind() == sort_kind);
+    sort->set_id((*it)->get_id());
   }
 
   if (d_sort_kind_to_sorts.find(sort_kind) == d_sort_kind_to_sorts.end())

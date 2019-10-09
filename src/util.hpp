@@ -130,6 +130,11 @@ bool is_bv_special_value_max_signed_str(std::string& value);
 
 /* -------------------------------------------------------------------------- */
 
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<uint32_t>& vector);
+
+/* -------------------------------------------------------------------------- */
+
 class TraceStream
 {
  public:
@@ -178,6 +183,9 @@ class OstreamVoider
 
 #define SMTMBT_TRACE \
   OstreamVoider() & TraceStream().stream()
+
+#define SMTMBT_TRACE_RETURN \
+  OstreamVoider() & TraceStream().stream() << "return "
 
 #define SMTMBT_WARN(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & WarnStream().stream()

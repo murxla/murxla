@@ -182,6 +182,11 @@ class SolverManager
   /** The random number generator. */
   RNGenerator& d_rng;
 
+  /** Term id counter. */
+  uint64_t d_n_terms = 0;
+  /** Sort id counter. */
+  uint64_t d_n_sorts = 0;
+
   /** The set of enabled sort kinds. Maps SortKind to SortKindData. */
   SortKindMap d_sort_kinds;
   /** The set of enabled operator kinds. Maps OpKind to OpKindData. */

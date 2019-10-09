@@ -10,6 +10,18 @@ namespace smtmbt {
 /* -------------------------------------------------------------------------- */
 
 void
+AbsSort::set_id(uint64_t id)
+{
+  d_id = id;
+}
+
+uint64_t
+AbsSort::get_id() const
+{
+  return d_id;
+}
+
+void
 AbsSort::set_kind(SortKind sort_kind)
 {
   d_kind = sort_kind;
@@ -27,6 +39,14 @@ operator==(const Sort& a, const Sort& b)
   return a->equals(b) && a->get_kind() == b->get_kind();
 }
 
+std::ostream&
+operator<<(std::ostream& out, const Sort s)
+{
+  assert(s->get_id());
+  out << s->get_id();
+  return out;
+}
+
 size_t
 HashSort::operator()(const Sort s) const
 {
@@ -38,13 +58,25 @@ HashSort::operator()(const Sort s) const
 /* -------------------------------------------------------------------------- */
 
 void
+AbsTerm::set_id(uint64_t id)
+{
+  d_id = id;
+}
+
+uint64_t
+AbsTerm::get_id() const
+{
+  return d_id;
+}
+
+void
 AbsTerm::set_sort(Sort sort)
 {
   d_sort = sort;
 }
 
 Sort
-AbsTerm::get_sort()
+AbsTerm::get_sort() const
 {
   return d_sort;
 }
@@ -52,7 +84,24 @@ AbsTerm::get_sort()
 bool
 operator==(const Term& a, const Term& b)
 {
-  return a->equals(b) && a->get_sort() == b->get_sort();
+  bool res = a->equals(b) && a->get_sort() == b->get_sort();
+  assert(!res || a->get_id() == b->get_id());
+  return res;
+}
+
+std::ostream&
+operator<<(std::ostream& out, const Term t)
+{
+  assert(t->get_id());
+  out << t->get_id();
+  return out;
+}
+
+std::ostream&
+operator<<(std::ostream& out, const std::vector<Term>& vector)
+{
+  for (const Term& term : vector) out << " " << term;
+  return out;
 }
 
 size_t
