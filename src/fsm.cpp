@@ -134,7 +134,7 @@ class ActionNew : public Action
   {
     SMTMBT_TRACE << get_id();
     if (d_solver.is_initialized()) d_solver.delete_solver();
-    d_solver.new_solver();
+    _run();
     //
     //    //////
     //    // TODO we will need a state to (randomly) select/configure options
@@ -145,6 +145,9 @@ class ActionNew : public Action
     //    //////
     return true;
   }
+
+ private:
+  void _run() { d_solver.new_solver(); }
 };
 
 class ActionDelete : public Action
@@ -156,9 +159,12 @@ class ActionDelete : public Action
   {
     SMTMBT_TRACE << get_id();
     d_smgr.clear();
-    d_solver.delete_solver();
+    _run();
     return true;
   }
+
+ private:
+  void _run() { d_solver.delete_solver(); }
 };
 
 class ActionMkSort : public Action
@@ -176,14 +182,14 @@ class ActionMkSort : public Action
     {
       case SORT_BOOL:
         SMTMBT_TRACE << get_id() << " " << kind;
-        res = d_solver.mk_sort(SORT_BOOL);
+        res = _run(SORT_BOOL);
         break;
 
       case SORT_BV:
       {
         uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
         SMTMBT_TRACE << get_id() << " " << kind << " " << bw;
-        res = d_solver.mk_sort(SORT_BV, bw);
+        res = _run(SORT_BV, bw);
         assert(res->get_bv_size() == bw);
       }
       break;
@@ -195,6 +201,14 @@ class ActionMkSort : public Action
 
     SMTMBT_TRACE_RETURN << res;
     return true;
+  }
+
+ private:
+  Sort _run(SortKind sort_kind) { return d_solver.mk_sort(SORT_BOOL); }
+
+  Sort _run(SortKind sort_kind, uint32_t bw)
+  {
+    return d_solver.mk_sort(SORT_BV, bw);
   }
 };
 
@@ -308,13 +322,19 @@ class ActionMkTerm : public Action
     SMTMBT_TRACE << get_id() << trace_str.str();
 
     /* Create term. */
-    Term res = d_solver.mk_term(kind, args, params);
+    Term res = _run(kind, args, params);
     d_smgr.add_term(res,
                     d_solver.get_sort(res),
                     sort_kind == SORT_ANY ? sort->get_kind() : sort_kind);
 
     SMTMBT_TRACE_RETURN << res;
     return true;
+  }
+
+ private:
+  Term _run(OpKind kind, std::vector<Term> args, std::vector<uint32_t> params)
+  {
+    return d_solver.mk_term(kind, args, params);
   }
 };
 
@@ -338,11 +358,17 @@ class ActionMkConst : public Action
     SMTMBT_TRACE << get_id() << " " << sort << " \"" << symbol << "\"";
 
     /* Create const. */
-    Term res = d_solver.mk_const(sort, symbol);
+    Term res = _run(sort, symbol);
     d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
 
     SMTMBT_TRACE_RETURN << res;
     return true;
+  }
+
+ private:
+  Term _run(Sort sort, std::string& symbol)
+  {
+    return d_solver.mk_const(sort, symbol);
   }
 };
 
@@ -366,7 +392,7 @@ class ActionMkValue : public Action
       {
         bool val = d_rng.flip_coin();
         SMTMBT_TRACE << get_id() << " " << sort << " " << val;
-        res = d_solver.mk_value(sort, val);
+        res = _run(sort, val);
       }
       break;
 
@@ -407,7 +433,7 @@ class ActionMkValue : public Action
             val = d_rng.pick_uint64(0, (1 << bw) - 1);
           }
           SMTMBT_TRACE << get_id() << sort << " " << val;
-          res = d_solver.mk_value(sort, val);
+          res = _run(sort, val);
         }
         /* ------------ value: string ------------ */
         else
@@ -511,7 +537,7 @@ class ActionMkValue : public Action
             }
           }
           SMTMBT_TRACE << get_id() << sort << " \"" << val << "\"";
-          res = d_solver.mk_value(sort, val, base);
+          res = _run(sort, val, base);
         }
       }
       break;
@@ -522,6 +548,16 @@ class ActionMkValue : public Action
 
     SMTMBT_TRACE_RETURN << res;
     return true;
+  }
+
+ private:
+  Term _run(Sort sort, bool val) { return d_solver.mk_value(sort, val); }
+
+  Term _run(Sort sort, uint64_t val) { return d_solver.mk_value(sort, val); }
+
+  Term _run(Sort sort, std::string& val, Solver::Base base)
+  {
+    return d_solver.mk_value(sort, val, base);
   }
 };
 
@@ -537,9 +573,12 @@ class ActionAssertFormula : public Action
 
     SMTMBT_TRACE << get_id() << " " << assertion;
 
-    d_solver.assert_formula(assertion);
+    _run(assertion);
     return true;
   }
+
+ private:
+  void _run(Term assertion) { d_solver.assert_formula(assertion); }
 };
 
 class ActionCheckSat : public Action
@@ -550,9 +589,12 @@ class ActionCheckSat : public Action
   bool run() override
   {
     SMTMBT_TRACE << get_id();
-    d_solver.check_sat();
+    _run();
     return true;
   }
+
+ private:
+  void _run() { d_solver.check_sat(); }
 };
 
 /* ========================================================================== */
