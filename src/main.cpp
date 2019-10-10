@@ -1,18 +1,27 @@
 #include <fcntl.h>
 #include <stdarg.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <iostream>
 #include <sstream>
 
-#include <cxxopts.hpp>
-
 #include "btor_solver.hpp"
 #include "cvc4_solver.hpp"
 #include "fsm.hpp"
-#include "options.hpp"
 
 using namespace smtmbt;
+
+struct Options
+{
+  uint32_t seed      = 0;
+  bool seeded        = false;
+  uint32_t verbosity = 0;
+  uint32_t time      = 0;
+
+  bool use_btor = false;
+  bool use_cvc4 = false;
+};
 
 static Options g_options;
 
@@ -236,48 +245,84 @@ set_alarm(void)
 
 /*****************************************************************************/
 
+#define SMTMBT_USAGE                                           \
+  "smtmbt: a model-based tester for SMT solvers\n"             \
+  "usage:\n"                                                   \
+  "  smtmbt [options]\n\n"                                     \
+  "  -h, --help            print this message and exit\n"      \
+  "  -s, --seed <int>      seed for random number generator\n" \
+  "  -t, --time <int>      time limit for MBT runs\n"          \
+  "  -v, --verbosity       increase verbosity\n"               \
+  "  --btor                test Boolector\n"                   \
+  "  --cvc4                test CVC4\n"
+
 void
 parse_options(Options& options, int argc, char* argv[])
 {
-  cxxopts::Options optparse("smtmbt",
-                            "SMTMBT: Model-based tester for SMT solvers");
-
-  std::string solver_name;
-
-  /* clang-format off */
-  optparse.add_options()
-
-    ("h,help", "Show help message")
-
-    ("s,seed", "Seed for random number generator",
-     cxxopts::value<uint32_t>(options.seed))
-
-    ("t,time", "Time limit for MBT runs",
-     cxxopts::value<uint32_t>(options.time))
-
-    ("v,verbosity", "Verbosity level",
-     cxxopts::value<uint32_t>(options.verbosity))
-
-    ("btor", "Test Boolector", cxxopts::value<bool>(options.use_btor))
-
-    ("cvc4", "Test CVC4", cxxopts::value<bool>(options.use_cvc4))
-
-    ;
-  /* clang-format on */
-
-  try
+  for (int i = 1; i < argc; i++)
   {
-    auto opts = optparse.parse(argc, argv);
-
-    if (opts.count("help"))
+    std::string arg = argv[i];
+    if (arg == "-h" || arg == "--help")
     {
-      std::cout << optparse.help() << std::endl;
+      std::cout << SMTMBT_USAGE << std::endl;
       exit(0);
     }
-  }
-  catch (cxxopts::option_not_exists_exception& e)
-  {
-    die(e.what());
+
+    if (arg == "-s" || arg == "--seed")
+    {
+      std::stringstream ss;
+      i += 1;
+      if (i >= argc)
+      {
+        std::stringstream es;
+        es << "missing argument to option '" << argv[i - 1] << "'";
+        die(es.str());
+      }
+      ss << argv[i];
+      if (ss.str().find('-') != std::string::npos)
+      {
+        std::stringstream es;
+        es << "invalid argument to option '" << argv[i - 1]
+           << "': " << ss.str();
+        die(es.str());
+      }
+      ss >> g_options.seed;
+    }
+
+    if (arg == "-t" || arg == "--time")
+    {
+      std::stringstream ss;
+      i += 1;
+      if (i >= argc)
+      {
+        std::stringstream es;
+        es << "missing argument to " << argv[i - 1];
+        die(es.str());
+      }
+      ss << argv[i];
+      if (ss.str().find('-') != std::string::npos)
+      {
+        std::stringstream es;
+        es << "invalid argument to " << argv[i - 1] << ": " << ss.str();
+        die(es.str());
+      }
+      ss >> g_options.time;
+    }
+
+    if (arg == "-v" || "--verbosity")
+    {
+      g_options.verbosity += 1;
+    }
+
+    if (arg == "--btor")
+    {
+      g_options.use_btor = true;
+    }
+
+    if (arg == "--cvc4")
+    {
+      g_options.use_cvc4 = true;
+    }
   }
 
   if (!options.use_btor && !options.use_cvc4)
