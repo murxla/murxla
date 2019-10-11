@@ -35,7 +35,7 @@ class SolverManager
     uint32_t terms  = 0; /* all terms, including inputs */
   };
 
-  SolverManager(Solver* solver, RNGenerator& rng);
+  SolverManager(Solver* solver, RNGenerator& rng, std::ostream& trace);
   ~SolverManager() = default;
 
   /** Clear all data. */
@@ -51,6 +51,8 @@ class SolverManager
 
   /** Get set of enabled theories. */
   const TheoryIdSet& get_enabled_theories() const;
+
+  std::ostream& get_trace();
 
   /** Add sort to sort databse. */
   void add_sort(Sort sort, SortKind sort_kind);
@@ -181,6 +183,9 @@ class SolverManager
 
   /** The random number generator. */
   RNGenerator& d_rng;
+
+  /** The stream to capture the API trace. */
+  std::ostream& d_trace;
 
   /** Term id counter. */
   uint64_t d_n_terms = 0;

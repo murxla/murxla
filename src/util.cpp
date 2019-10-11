@@ -371,23 +371,6 @@ operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
 
 /* -------------------------------------------------------------------------- */
 
-TraceStream::TraceStream() { stream(); }
-
-TraceStream::~TraceStream() { flush(); }
-
-std::ostream&
-TraceStream::stream()
-{
-  return std::cout;
-}
-
-void
-TraceStream::flush()
-{
-  stream() << std::endl;
-  stream().flush();
-}
-
 WarnStream::WarnStream() { stream() << "smtmbt: WARNING: "; }
 
 WarnStream::~WarnStream() { flush(); }

@@ -6,8 +6,10 @@ namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
 
-SolverManager::SolverManager(Solver* solver, RNGenerator& rng)
-    : d_solver(solver), d_rng(rng)
+SolverManager::SolverManager(Solver* solver,
+                             RNGenerator& rng,
+                             std::ostream& trace)
+    : d_solver(solver), d_rng(rng), d_trace(trace)
 {
   add_enabled_theories();
   add_sort_kinds();  // adds only sort kinds of enabled theories
@@ -46,6 +48,14 @@ RNGenerator&
 SolverManager::get_rng() const
 {
   return d_rng;
+}
+
+/* -------------------------------------------------------------------------- */
+
+std::ostream&
+SolverManager::get_trace()
+{
+  return d_trace;
 }
 
 /* -------------------------------------------------------------------------- */

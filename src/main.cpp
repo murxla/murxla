@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -19,8 +20,9 @@ struct Options
   uint32_t verbosity = 0;
   uint32_t time      = 0;
 
-  bool use_btor = false;
-  bool use_cvc4 = false;
+  bool use_btor   = false;
+  bool use_cvc4   = false;
+  char* api_trace = nullptr;
 };
 
 static Options g_options;
@@ -314,6 +316,18 @@ parse_options(Options& options, int argc, char* argv[])
       g_options.verbosity += 1;
     }
 
+    if (arg == "-a" || arg == "--api-trace")
+    {
+      i += 1;
+      if (i >= argc)
+      {
+        std::stringstream es;
+        es << "missing argument to " << argv[i - 1];
+        die(es.str());
+      }
+      g_options.api_trace = argv[i];
+    }
+
     if (arg == "--btor")
     {
       g_options.use_btor = true;
@@ -337,6 +351,19 @@ run(uint32_t seed, Options& options)
   int status, devnull;
   Result result;
   pid_t pid = 0;
+  std::streambuf* trace_buf;
+  std::ofstream trace_file;
+
+  if (g_options.api_trace)
+  {
+    trace_file.open(g_options.api_trace);
+    trace_buf = trace_file.rdbuf();
+  }
+  else
+  {
+    trace_buf = std::cout.rdbuf();
+  }
+  std::ostream trace(trace_buf);
 
   RNGenerator rng(seed);
 
@@ -387,10 +414,10 @@ run(uint32_t seed, Options& options)
       solver = new cvc4::CVC4Solver(rng);
     }
 
-    FSM fsm(rng, solver);
+    FSM fsm(rng, solver, trace);
     fsm.configure();
     fsm.run();
-
+    if (trace_file.is_open()) trace_file.close();
     exit(EXIT_OK);
   }
 
@@ -409,26 +436,6 @@ run(uint32_t seed, Options& options)
   {
     result = RESULT_SIGNAL;
   }
-
-  std::stringstream info;
-  switch (result)
-  {
-    case RESULT_OK: break;
-    case RESULT_ERROR: info << " error"; break;
-    case RESULT_SIGNAL: info << " signal"; break;
-    case RESULT_TIMEOUT:
-      info << " timed out after " << g_options.time << " seconds ";
-      break;
-    default:
-      assert(result == RESULT_UNKNOWN);
-      info << " unknown";
-  }
-
-  if (!info.str().empty())
-  {
-    std::cout << info.str() << std::endl << std::flush;
-  }
-
   return result;
 }
 
@@ -438,18 +445,66 @@ main(int argc, char* argv[])
   //  test();
 
   uint32_t seed, num_runs = 0;
+  char* env_file_name;
 
   parse_options(g_options, argc, argv);
 
   bool is_seeded = g_options.seed > 0;
   SeedGenerator sg(g_options.seed);
 
+  if ((env_file_name = getenv("SMTMBTAPITRACE"))) unsetenv("SMTMBTAPITRACE");
+
   do
   {
     seed = sg.next();
     std::cout << num_runs++ << " " << seed << std::flush;
     Result res = run(seed, g_options);
-    // TODO do something based on res?
+
+    std::stringstream info;
+    switch (res)
+    {
+      case RESULT_OK: break;
+      case RESULT_ERROR: info << " error"; break;
+      case RESULT_SIGNAL: info << " signal"; break;
+      case RESULT_TIMEOUT:
+        info << " timed out after " << g_options.time << " seconds ";
+        break;
+      default: assert(res == RESULT_UNKNOWN); info << " unknown";
+    }
+
+    if (!info.str().empty())
+    {
+      std::cout << info.str() << std::endl << std::flush;
+    }
+
+    std::cout << res << std::endl;
+    /* replay and trace on error */
+    if (res != RESULT_OK && res != RESULT_TIMEOUT)
+    {
+      if (!g_options.api_trace)
+      {
+        if (!env_file_name)
+        {
+          std::stringstream ss;
+          ss << "smtmbt-" << seed << ".trace";
+          g_options.api_trace =
+              strndup(ss.str().c_str(), ss.str().length() + 1);
+        }
+        else
+        {
+          g_options.api_trace = env_file_name;
+        }
+      }
+      setenv("SMTMBTAPITRACE", g_options.api_trace, 1);
+      Result res_replay = run(seed, g_options);
+      assert(res == res_replay);
+      unsetenv("SMTMBTAPITRACE");
+      if (!env_file_name)
+      {
+        free(g_options.api_trace);
+        g_options.api_trace = nullptr;
+      }
+    }
     std::cout << "\r" << std::flush;
   } while (!is_seeded);
 

@@ -7,9 +7,22 @@
 
 #include "solver_manager.hpp"
 
+/* -------------------------------------------------------------------------- */
+
 #define SMTMBT_LEN_SYMBOL_MAX 128
 
+/* -------------------------------------------------------------------------- */
+
+#define SMTMBT_TRACE OstreamVoider() & FSM::TraceStream(d_smgr).stream()
+
+#define SMTMBT_TRACE_RETURN \
+  OstreamVoider() & FSM::TraceStream(d_smgr).stream() << "return "
+
+/* -------------------------------------------------------------------------- */
+
 namespace smtmbt {
+
+/* -------------------------------------------------------------------------- */
 
 void
 State::add_action(Action* a, uint32_t weight, State* next)
@@ -17,6 +30,8 @@ State::add_action(Action* a, uint32_t weight, State* next)
   d_actions.emplace_back(ActionTuple(a, next == nullptr ? this : next));
   d_weights.push_back(weight);
 }
+
+/* -------------------------------------------------------------------------- */
 
 State*
 State::run(RNGenerator& rng)
@@ -30,6 +45,13 @@ State::run(RNGenerator& rng)
     return d_actions[idx].d_next;
   }
   return this;
+}
+
+/* -------------------------------------------------------------------------- */
+
+FSM::FSM(RNGenerator& rng, Solver* solver, std::ostream& trace)
+    : d_smgr(solver, rng, trace), d_rng(rng)
+{
 }
 
 State*
@@ -82,6 +104,8 @@ FSM::check_states()
       << "infinite loop in state '" << no_next_state->get_id() << "'";
 }
 
+/* -------------------------------------------------------------------------- */
+
 void
 FSM::run()
 {
@@ -92,6 +116,25 @@ FSM::run()
   {
     s = s->run(d_rng);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+
+FSM::TraceStream::TraceStream(SolverManager& smgr) : d_smgr(smgr) { stream(); }
+
+FSM::TraceStream::~TraceStream() { flush(); }
+
+std::ostream&
+FSM::TraceStream::stream()
+{
+  return d_smgr.get_trace();
+}
+
+void
+FSM::TraceStream::flush()
+{
+  stream() << std::endl;
+  stream().flush();
 }
 
 /* ========================================================================== */

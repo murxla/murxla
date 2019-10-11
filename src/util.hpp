@@ -135,19 +135,6 @@ std::ostream& operator<<(std::ostream& out,
 
 /* -------------------------------------------------------------------------- */
 
-class TraceStream
-{
- public:
-  TraceStream();
-  ~TraceStream();
-  TraceStream(const TraceStream& astream) = default;
-
-  std::ostream& stream();
-
- private:
-  void flush();
-};
-
 class WarnStream
 {
  public:
@@ -180,12 +167,6 @@ class OstreamVoider
   OstreamVoider() = default;
   void operator&(std::ostream& ostream) {}
 };
-
-#define SMTMBT_TRACE \
-  OstreamVoider() & TraceStream().stream()
-
-#define SMTMBT_TRACE_RETURN \
-  OstreamVoider() & TraceStream().stream() << "return "
 
 #define SMTMBT_WARN(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & WarnStream().stream()
