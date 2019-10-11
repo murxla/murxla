@@ -3,14 +3,13 @@
 deps_dir=$(pwd)/deps
 reinstall=no
 
-git submodule init
+git submodule update --init --recursive
 
 if [ -e "$deps_dir" ]; then
   echo "Dependencies already installed -- will reinstall without cloning."
   echo "If you want to install from a fresh checkout first delete '$deps_dir'."
   echo ""
   reinstall=yes
-  git submodule update --recursive --remote
 fi
 
 mkdir -p "$deps_dir"
