@@ -217,7 +217,9 @@ class ActionDelete : public Action
   }
 
   void untrace(std::vector<std::string>& tokens) override
-  {  // TODO
+  {
+    assert(tokens.empty());
+    _run();
   }
 
  private:
@@ -794,6 +796,10 @@ FSM::untrace(std::ifstream& trace)
     if (id == "new")
     {
       ActionNew(d_smgr).untrace(tokens);
+    }
+    else if (id == "delete")
+    {
+      ActionDelete(d_smgr).untrace(tokens);
     }
   }
 }
