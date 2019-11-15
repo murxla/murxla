@@ -15,12 +15,15 @@ enum SortKind
   SORT_ANY,
 };
 
-std::ostream& operator<<(std::ostream& out, SortKind kind);
-
 struct SortKindHashFunction
 {
   size_t operator()(SortKind kind) const;
 };
+
+static std::unordered_map<SortKind, std::string, SortKindHashFunction>
+    sort_kinds_to_str{{SORT_BV, "SORT_KIND_BV"},
+                      {SORT_BOOL, "SORT_KIND_BOOL"},
+                      {SORT_ANY, "SORT_KIND_ANY"}};
 
 struct SortKindData
 {
@@ -38,6 +41,10 @@ struct SortKindData
   /* The theory of a sort of this kind. */
   TheoryId d_theory;
 };
+
+std::ostream& operator<<(std::ostream& out, SortKind kind);
+
+SortKind sort_kind_from_str(std::string& s);
 
 bool operator==(const SortKindData& a, const SortKindData& b);
 

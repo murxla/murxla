@@ -28,7 +28,14 @@ class Action
   }
   virtual ~Action()  = default;
   virtual bool run() = 0;
-  virtual void untrace(std::vector<std::string>& tokens) = 0;
+
+  /**
+   * Returns id of created object, if an object has been created, and 0
+   * otherwise. Needed to be able to compare this id to the traced id in
+   * the trace's return statement.
+   */
+  virtual uint64_t untrace(std::vector<std::string>& tokens) = 0;
+
   const std::string& get_id() const { return d_id; }
 
  protected:

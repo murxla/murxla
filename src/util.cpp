@@ -362,6 +362,24 @@ is_bv_special_value_max_signed_str(std::string& value)
 
 /* -------------------------------------------------------------------------- */
 
+uint32_t
+str_to_uint32(std::string& s)
+{
+  assert(!s.empty());
+  assert(s[0] != '-');
+  return std::stoul(s);  // throws exception if conversion not successful
+}
+
+uint64_t
+str_to_uint64(std::string& s)
+{
+  assert(!s.empty());
+  assert(s[0] != '-');
+  return std::stoull(s);  // throws exception if conversion not successful
+}
+
+/* -------------------------------------------------------------------------- */
+
 std::ostream&
 operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
 {
