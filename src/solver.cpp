@@ -85,7 +85,8 @@ bool
 operator==(const Term& a, const Term& b)
 {
   bool res = a->equals(b) && a->get_sort() == b->get_sort();
-  assert(!res || a->get_id() == b->get_id());
+  assert(!res || a->get_id() == 0 || b->get_id() == 0
+         || a->get_id() == b->get_id());
   return res;
 }
 

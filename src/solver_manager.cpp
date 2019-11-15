@@ -81,6 +81,7 @@ void
 SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
 {
   assert(term.get());
+  assert(term->get_id() == 0);
   assert(term->get_sort() == nullptr);
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
