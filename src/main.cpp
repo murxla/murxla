@@ -409,7 +409,7 @@ run(uint32_t seed, Options& options)
       set_alarm();
     }
 
-    if (options.seed == 0)
+    if (!g_options.untrace && options.seed == 0)
     {
       set_signal_handlers();
       /* redirect stdout and stderr of child process to /dev/null */
