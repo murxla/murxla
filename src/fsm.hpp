@@ -2,6 +2,7 @@
 #define __SMTMBT__FSM_HPP_INCLUDED
 
 #include <cstdint>
+#include <fstream>
 #include <functional>
 #include <memory>
 #include <string>
@@ -27,7 +28,7 @@ class Action
   }
   virtual ~Action()  = default;
   virtual bool run() = 0;
-  // virtual void untrace(const char* s) {}
+  virtual void untrace(std::vector<std::string>& tokens) = 0;
   const std::string& get_id() const { return d_id; }
 
  protected:
@@ -104,6 +105,7 @@ class FSM
   void check_states();
   void run();
   void configure();
+  void untrace(std::ifstream& trace);
 
  private:
   SolverManager d_smgr;

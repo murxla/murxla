@@ -149,6 +149,7 @@ class Transition : public Action
  public:
   Transition(SolverManager& smgr) : Action(smgr, "") {}
   bool run() override { return true; }
+  void untrace(std::vector<std::string>& tokens) override {}
 };
 
 /**
@@ -162,6 +163,7 @@ class TransitionCreateInputs : public Action
  public:
   TransitionCreateInputs(SolverManager& smgr) : Action(smgr, "") {}
   bool run() override { return d_smgr.d_stats.inputs > 0; }
+  void untrace(std::vector<std::string>& tokens) override {}
 };
 
 /* ========================================================================== */
@@ -188,6 +190,12 @@ class ActionNew : public Action
     return true;
   }
 
+  void untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+  }
+
  private:
   void _run()
   {
@@ -206,6 +214,10 @@ class ActionDelete : public Action
     d_smgr.clear();
     _run();
     return true;
+  }
+
+  void untrace(std::vector<std::string>& tokens) override
+  {  // TODO
   }
 
  private:
@@ -237,6 +249,10 @@ class ActionMkSort : public Action
       default: assert(false);
     }
     return true;
+  }
+
+  void untrace(std::vector<std::string>& tokens) override
+  {  // TODO
   }
 
  private:
@@ -362,6 +378,10 @@ class ActionMkTerm : public Action
     return true;
   }
 
+  void untrace(std::vector<std::string>& tokens) override
+  {  // TODO
+  }
+
  private:
   void _run(OpKind kind,
             SortKind sort_kind,
@@ -401,6 +421,10 @@ class ActionMkConst : public Action
     /* Create const. */
     _run(sort, symbol);
     return true;
+  }
+
+  void untrace(std::vector<std::string>& tokens) override
+  {  // TODO
   }
 
  private:
@@ -580,6 +604,10 @@ class ActionMkValue : public Action
     return true;
   }
 
+  void untrace(std::vector<std::string>& tokens) override
+  {  // TODO
+  }
+
  private:
   void _run(Sort sort, bool val)
   {
@@ -620,6 +648,10 @@ class ActionAssertFormula : public Action
     return true;
   }
 
+  void untrace(std::vector<std::string>& tokens) override
+  {  // TODO
+  }
+
  private:
   void _run(Term assertion)
   {
@@ -637,6 +669,10 @@ class ActionCheckSat : public Action
   {
     _run();
     return true;
+  }
+
+  void untrace(std::vector<std::string>& tokens) override
+  {  // TODO
   }
 
  private:
@@ -727,4 +763,40 @@ FSM::configure()
   set_init_state(s_new);
 }
 
+/* ========================================================================== */
+/* Replay given trace.                                                        */
+/* ========================================================================== */
+
+void
+FSM::untrace(std::ifstream& trace)
+{
+  assert(trace.is_open());
+
+  std::string line;
+  while (std::getline(trace, line))
+  {
+    std::stringstream tokenstream(line);
+    std::string token;
+    std::string id;
+    std::vector<std::string> tokens;
+    while (std::getline(tokenstream, token, ' '))
+    {
+      if (id.empty())
+      {
+        id = token;
+      }
+      else
+      {
+        tokens.push_back(token);
+      }
+    }
+
+    if (id == "new")
+    {
+      ActionNew(d_smgr).untrace(tokens);
+    }
+  }
+}
+
+/* ========================================================================== */
 }  // namespace smtmbt

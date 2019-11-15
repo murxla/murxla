@@ -23,6 +23,7 @@ struct Options
   bool use_btor   = false;
   bool use_cvc4   = false;
   char* api_trace = nullptr;
+  char* untrace   = nullptr;
 };
 
 static Options g_options;
@@ -256,6 +257,7 @@ set_alarm(void)
   "  -t, --time <int>        time limit for MBT runs\n"             \
   "  -v, --verbosity         increase verbosity\n"                  \
   "  -a, --api-trace <file>  trace API call sequence into <file>\n" \
+  "  -u, --untrace <file>    replay given API call sequence\n"      \
   "  --btor                  test Boolector\n"                      \
   "  --cvc4                  test CVC4\n"
 
@@ -329,10 +331,23 @@ parse_options(Options& options, int argc, char* argv[])
       g_options.api_trace = argv[i];
     }
 
-    if (arg == "--btor")
+    if (arg == "-u" || arg == "--untrace")
     {
-      g_options.use_btor = true;
+      i += 1;
+      if (i >= argc)
+      {
+        std::stringstream es;
+        es << "missing argument to " << argv[i - 1];
+        die(es.str());
+      }
+      g_options.untrace = argv[i];
     }
+
+    if (arg == "--btor")
+      if (arg == "--btor")
+      {
+        g_options.use_btor = true;
+      }
 
     if (arg == "--cvc4")
     {
@@ -371,7 +386,7 @@ run(uint32_t seed, Options& options)
   result = RESULT_UNKNOWN;
 
   /* If seeded run in main process. */
-  if (options.seed == 0)
+  if (!g_options.untrace && options.seed == 0)
   {
     pid = fork();
     if (pid == -1)
@@ -416,8 +431,22 @@ run(uint32_t seed, Options& options)
     }
 
     FSM fsm(rng, solver, trace);
-    fsm.configure();
-    fsm.run();
+
+    /* replay/untrace given API trace */
+    if (g_options.untrace)
+    {
+      std::ifstream untrace;
+      untrace.open(g_options.untrace);
+      fsm.untrace(untrace);
+      untrace.close();
+    }
+    /* regular MBT run */
+    else
+    {
+      fsm.configure();
+      fsm.run();
+    }
+
     if (trace_file.is_open()) trace_file.close();
     exit(EXIT_OK);
   }
@@ -461,9 +490,17 @@ main(int argc, char* argv[])
   do
   {
     seed = sg.next();
-    std::cout << num_runs++ << " " << seed << std::flush;
+
+    if (!is_seeded && !g_options.untrace)
+    {
+      std::cout << num_runs++ << " " << seed << std::flush;
+    }
+
+    /* we do not trace into file by default, only on replay in case of an error
+     * (see below) */
     Result res = run(seed, g_options);
 
+    /* report status */
     std::stringstream info;
     switch (res)
     {
@@ -475,15 +512,14 @@ main(int argc, char* argv[])
         break;
       default: assert(res == RESULT_UNKNOWN); info << " unknown";
     }
-
     if (!info.str().empty())
     {
       std::cout << info.str() << std::endl << std::flush;
     }
-
     std::cout << res << std::endl;
-    /* replay and trace on error */
-    if (res != RESULT_OK && res != RESULT_TIMEOUT)
+
+    /* replay and trace on error if not in untrace mode */
+    if (!g_options.untrace && res != RESULT_OK && res != RESULT_TIMEOUT)
     {
       if (g_options.api_trace == nullptr)
       {
