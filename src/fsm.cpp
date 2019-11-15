@@ -65,7 +65,7 @@ void
 FSM::set_init_state(State* init_state)
 {
   d_init_state = init_state;
-  d_cur_state = init_state;
+  d_cur_state  = init_state;
 }
 
 void
@@ -175,7 +175,6 @@ class ActionNew : public Action
 
   bool run() override
   {
-    SMTMBT_TRACE << get_id();
     if (d_solver.is_initialized()) d_solver.delete_solver();
     _run();
     //
@@ -190,7 +189,11 @@ class ActionNew : public Action
   }
 
  private:
-  void _run() { d_solver.new_solver(); }
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_solver.new_solver();
+  }
 };
 
 class ActionDelete : public Action
@@ -200,14 +203,17 @@ class ActionDelete : public Action
 
   bool run() override
   {
-    SMTMBT_TRACE << get_id();
     d_smgr.clear();
     _run();
     return true;
   }
 
  private:
-  void _run() { d_solver.delete_solver(); }
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_solver.delete_solver();
+  }
 };
 
 class ActionMkSort : public Action
@@ -219,39 +225,36 @@ class ActionMkSort : public Action
   {
     SortKindData& kind_data = d_smgr.pick_sort_kind_data();
     SortKind kind           = kind_data.d_kind;
-    Sort res;
 
     switch (kind)
     {
-      case SORT_BOOL:
-        SMTMBT_TRACE << get_id() << " " << kind;
-        res = _run(SORT_BOOL);
-        break;
+      case SORT_BOOL: _run(SORT_BOOL); break;
 
       case SORT_BV:
-      {
-        uint32_t bw = d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX);
-        SMTMBT_TRACE << get_id() << " " << kind << " " << bw;
-        res = _run(SORT_BV, bw);
-        assert(res->get_bv_size() == bw);
-      }
-      break;
+        _run(SORT_BV, d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX));
+        break;
 
       default: assert(false);
     }
-
-    d_smgr.add_sort(res, kind);
-
-    SMTMBT_TRACE_RETURN << res;
     return true;
   }
 
  private:
-  Sort _run(SortKind sort_kind) { return d_solver.mk_sort(SORT_BOOL); }
-
-  Sort _run(SortKind sort_kind, uint32_t bw)
+  void _run(SortKind sort_kind)
   {
-    return d_solver.mk_sort(SORT_BV, bw);
+    SMTMBT_TRACE << get_id() << " " << sort_kind;
+    Sort res = d_solver.mk_sort(SORT_BOOL);
+    d_smgr.add_sort(res, sort_kind);
+    SMTMBT_TRACE_RETURN << res;
+  }
+
+  void _run(SortKind sort_kind, uint32_t bw)
+  {
+    SMTMBT_TRACE << get_id() << " " << sort_kind << " " << bw;
+    Sort res = d_solver.mk_sort(SORT_BV, bw);
+    assert(res->get_bv_size() == bw);
+    d_smgr.add_sort(res, sort_kind);
+    SMTMBT_TRACE_RETURN << res;
   }
 };
 
@@ -354,30 +357,28 @@ class ActionMkTerm : public Action
       }
     }
 
-    /* Tracing. */
-    std::stringstream trace_str;
-    trace_str << " " << arity << args;
-    if (n_params)
-    {
-      trace_str << " " << n_params << params;
-    }
+    _run(kind, sort_kind, args, params);
 
-    SMTMBT_TRACE << get_id() << trace_str.str();
-
-    /* Create term. */
-    Term res = _run(kind, args, params);
-    d_smgr.add_term(res,
-                    d_solver.get_sort(res),
-                    sort_kind == SORT_ANY ? sort->get_kind() : sort_kind);
-
-    SMTMBT_TRACE_RETURN << res;
     return true;
   }
 
  private:
-  Term _run(OpKind kind, std::vector<Term> args, std::vector<uint32_t> params)
+  void _run(OpKind kind,
+            SortKind sort_kind,
+            std::vector<Term> args,
+            std::vector<uint32_t> params)
   {
-    return d_solver.mk_term(kind, args, params);
+    std::stringstream trace_str;
+    trace_str << " " << kind << " " << sort_kind;
+    trace_str << " " << args.size() << args;
+    if (params.size())
+    {
+      trace_str << " " << params.size() << params;
+    }
+    SMTMBT_TRACE << get_id() << trace_str.str();
+    Term res = d_solver.mk_term(kind, args, params);
+    d_smgr.add_term(res, d_solver.get_sort(res), sort_kind);
+    SMTMBT_TRACE_RETURN << res;
   }
 };
 
@@ -391,27 +392,24 @@ class ActionMkConst : public Action
     /* Pick sort of const. */
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
-    SortKind sort_kind = sort->get_kind();
     uint32_t len       = d_rng.pick_uint32(0, SMTMBT_LEN_SYMBOL_MAX);
     /* Pick piped vs simple symbol with 50% probability. */
     std::string symbol = len && d_rng.flip_coin()
                              ? d_rng.pick_piped_symbol(len)
                              : d_rng.pick_simple_symbol(len);
 
-    SMTMBT_TRACE << get_id() << " " << sort << " \"" << symbol << "\"";
-
     /* Create const. */
-    Term res = _run(sort, symbol);
-    d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
-
-    SMTMBT_TRACE_RETURN << res;
+    _run(sort, symbol);
     return true;
   }
 
  private:
-  Term _run(Sort sort, std::string& symbol)
+  void _run(Sort sort, std::string& symbol)
   {
-    return d_solver.mk_const(sort, symbol);
+    SMTMBT_TRACE << get_id() << " " << sort << " \"" << symbol << "\"";
+    Term res = d_solver.mk_const(sort, symbol);
+    d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
   }
 };
 
@@ -431,13 +429,7 @@ class ActionMkValue : public Action
     Term res;
     switch (sort_kind)
     {
-      case SORT_BOOL:
-      {
-        bool val = d_rng.flip_coin();
-        SMTMBT_TRACE << get_id() << " " << sort << " " << val;
-        res = _run(sort, val);
-      }
-      break;
+      case SORT_BOOL: _run(sort, d_rng.flip_coin()); break;
 
       case SORT_BV:
       {
@@ -475,8 +467,7 @@ class ActionMkValue : public Action
             /* use random value */
             val = d_rng.pick_uint64(0, (1 << bw) - 1);
           }
-          SMTMBT_TRACE << get_id() << sort << " " << val;
-          res = _run(sort, val);
+          _run(sort, val);
         }
         /* ------------ value: string ------------ */
         else
@@ -579,28 +570,39 @@ class ActionMkValue : public Action
                 val = d_rng.pick_bin_string(bw);
             }
           }
-          SMTMBT_TRACE << get_id() << sort << " \"" << val << "\"";
-          res = _run(sort, val, base);
+          _run(sort, val, base);
         }
       }
       break;
       default: assert(false);
     }
 
-    d_smgr.add_input(res, d_solver.get_sort(res), sort_kind);
-
-    SMTMBT_TRACE_RETURN << res;
     return true;
   }
 
  private:
-  Term _run(Sort sort, bool val) { return d_solver.mk_value(sort, val); }
-
-  Term _run(Sort sort, uint64_t val) { return d_solver.mk_value(sort, val); }
-
-  Term _run(Sort sort, std::string& val, Solver::Base base)
+  void _run(Sort sort, bool val)
   {
-    return d_solver.mk_value(sort, val, base);
+    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    Term res = d_solver.mk_value(sort, val);
+    d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+  }
+
+  void _run(Sort sort, uint64_t val)
+  {
+    SMTMBT_TRACE << get_id() << sort << " " << val;
+    Term res = d_solver.mk_value(sort, val);
+    d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+  }
+
+  void _run(Sort sort, std::string& val, Solver::Base base)
+  {
+    SMTMBT_TRACE << get_id() << sort << " \"" << val << "\"" << " " << base;
+    Term res = d_solver.mk_value(sort, val, base);
+    d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
   }
 };
 
@@ -614,14 +616,16 @@ class ActionAssertFormula : public Action
     if (!d_smgr.has_term(SORT_BOOL)) return false;
     Term assertion = d_smgr.pick_term(SORT_BOOL);
 
-    SMTMBT_TRACE << get_id() << " " << assertion;
-
     _run(assertion);
     return true;
   }
 
  private:
-  void _run(Term assertion) { d_solver.assert_formula(assertion); }
+  void _run(Term assertion)
+  {
+    SMTMBT_TRACE << get_id() << " " << assertion;
+    d_solver.assert_formula(assertion);
+  }
 };
 
 class ActionCheckSat : public Action
@@ -631,13 +635,16 @@ class ActionCheckSat : public Action
 
   bool run() override
   {
-    SMTMBT_TRACE << get_id();
     _run();
     return true;
   }
 
  private:
-  void _run() { d_solver.check_sat(); }
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_solver.check_sat();
+  }
 };
 
 /* ========================================================================== */
@@ -712,7 +719,6 @@ FSM::configure()
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 10, s_final);
-
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */
