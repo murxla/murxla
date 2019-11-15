@@ -247,16 +247,17 @@ set_alarm(void)
 
 /*****************************************************************************/
 
-#define SMTMBT_USAGE                                           \
-  "smtmbt: a model-based tester for SMT solvers\n"             \
-  "usage:\n"                                                   \
-  "  smtmbt [options]\n\n"                                     \
-  "  -h, --help            print this message and exit\n"      \
-  "  -s, --seed <int>      seed for random number generator\n" \
-  "  -t, --time <int>      time limit for MBT runs\n"          \
-  "  -v, --verbosity       increase verbosity\n"               \
-  "  --btor                test Boolector\n"                   \
-  "  --cvc4                test CVC4\n"
+#define SMTMBT_USAGE                                                \
+  "smtmbt: a model-based tester for SMT solvers\n"                  \
+  "usage:\n"                                                        \
+  "  smtmbt [options]\n\n"                                          \
+  "  -h, --help              print this message and exit\n"         \
+  "  -s, --seed <int>        seed for random number generator\n"    \
+  "  -t, --time <int>        time limit for MBT runs\n"             \
+  "  -v, --verbosity         increase verbosity\n"                  \
+  "  -a, --api-trace <file>  trace API call sequence into <file>\n" \
+  "  --btor                  test Boolector\n"                      \
+  "  --cvc4                  test CVC4\n"
 
 void
 parse_options(Options& options, int argc, char* argv[])
@@ -452,7 +453,10 @@ main(int argc, char* argv[])
   bool is_seeded = g_options.seed > 0;
   SeedGenerator sg(g_options.seed);
 
-  if ((env_file_name = getenv("SMTMBTAPITRACE"))) unsetenv("SMTMBTAPITRACE");
+  if ((env_file_name = getenv("SMTMBTAPITRACE")))
+  {
+    unsetenv("SMTMBTAPITRACE");
+  }
 
   do
   {
