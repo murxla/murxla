@@ -446,7 +446,7 @@ main(int argc, char* argv[])
   //  test();
 
   uint32_t seed, num_runs = 0;
-  char* env_file_name;
+  char* env_file_name = nullptr;
 
   parse_options(g_options, argc, argv);
 
@@ -485,7 +485,7 @@ main(int argc, char* argv[])
     /* replay and trace on error */
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
-      if (!g_options.api_trace)
+      if (g_options.api_trace == nullptr)
       {
         if (!env_file_name)
         {

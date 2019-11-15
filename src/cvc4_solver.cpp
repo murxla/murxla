@@ -116,14 +116,14 @@ CVC4Solver::is_initialized() const
 Sort
 CVC4Solver::mk_sort(SortKind kind) const
 {
-  CVC4::api::Sort res;
+  CVC4::api::Sort cvc4_res;
   switch (kind)
   {
-    case SORT_BOOL: res = d_solver->getBooleanSort(); break;
+    case SORT_BOOL: cvc4_res = d_solver->getBooleanSort(); break;
 
     default: assert(false);
   }
-  return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, res));
+  return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, cvc4_res));
 }
 
 Sort
