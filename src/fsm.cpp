@@ -393,7 +393,10 @@ class ActionMkTerm : public Action
       }
     }
 
-    _run(kind, sort_kind, args, params);
+    _run(kind,
+         sort_kind == SORT_ANY ? sort->get_kind() : sort_kind,
+         args,
+         params);
 
     return true;
   }
