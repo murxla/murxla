@@ -262,13 +262,19 @@ class ActionMkSort : public Action
     size_t n_tokens = tokens.size();
     SortKind kind   = sort_kind_from_str(tokens[0]);
 
-    switch (n_tokens)
+    switch (kind)
     {
-      case 1: res = _run(kind); break;
+      case SORT_BOOL:
+        assert(n_tokens == 1);
+        res = _run(kind);
+        break;
 
-      default:
+      case SORT_BV:
         assert(n_tokens == 2);
         res = _run(kind, str_to_uint32(tokens[1]));
+        break;
+
+      default: assert(false);
     }
     return res;
   }
