@@ -22,7 +22,7 @@ struct Options
 
   bool use_btor   = false;
   bool use_cvc4   = false;
-  char* api_trace = nullptr;
+  std::string api_trace;
   char* untrace   = nullptr;
 };
 
@@ -370,7 +370,7 @@ run(uint32_t seed, Options& options)
   std::streambuf* trace_buf;
   std::ofstream trace_file;
 
-  if (g_options.api_trace)
+  if (!g_options.api_trace.empty())
   {
     trace_file.open(g_options.api_trace);
     trace_buf = trace_file.rdbuf();
@@ -521,28 +521,26 @@ main(int argc, char* argv[])
     /* replay and trace on error if not in untrace mode */
     if (!g_options.untrace && res != RESULT_OK && res != RESULT_TIMEOUT)
     {
-      if (g_options.api_trace == nullptr)
+      if (g_options.api_trace.empty())
       {
         if (!env_file_name)
         {
           std::stringstream ss;
           ss << "smtmbt-" << seed << ".trace";
-          g_options.api_trace =
-              strndup(ss.str().c_str(), ss.str().length() + 1);
+          g_options.api_trace = ss.str();
         }
         else
         {
           g_options.api_trace = env_file_name;
         }
       }
-      setenv("SMTMBTAPITRACE", g_options.api_trace, 1);
+      setenv("SMTMBTAPITRACE", g_options.api_trace.c_str(), 1);
       Result res_replay = run(seed, g_options);
       assert(res == res_replay);
       unsetenv("SMTMBTAPITRACE");
       if (!env_file_name)
       {
-        free(g_options.api_trace);
-        g_options.api_trace = nullptr;
+        g_options.api_trace = "";
       }
     }
     std::cout << "\r" << std::flush;
