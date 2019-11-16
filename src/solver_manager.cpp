@@ -25,6 +25,7 @@ void
 SolverManager::clear()
 {
   d_sorts.clear();
+  d_sort_kind_to_sorts.clear();
   d_terms.clear();
 }
 
@@ -256,6 +257,28 @@ SolverManager::has_term(Term term) const
          != d_terms.at(sort_kind).at(sort).end();
 }
 
+Term
+SolverManager::get_term(uint32_t id) const
+{
+  for (const auto& p : d_terms)
+  {
+    const SortMap& sort_map = p.second;
+    for (const auto& q : sort_map)
+    {
+      const TermMap& term_map = q.second;
+      for (const auto& t : term_map)
+      {
+        const Term& term = t.first;
+        if (term->get_id() == id)
+        {
+          return term;
+        }
+      }
+    }
+  }
+  return nullptr;
+}
+
 /* -------------------------------------------------------------------------- */
 
 Sort
@@ -317,6 +340,16 @@ bool
 SolverManager::has_sort(Sort sort) const
 {
   return d_sorts.find(sort) != d_sorts.end();
+}
+
+Sort
+SolverManager::get_sort(uint32_t id) const
+{
+  for (const Sort& sort : d_sorts)
+  {
+    if (sort->get_id() == id) return sort;
+  }
+  return nullptr;
 }
 
 bool

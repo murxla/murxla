@@ -75,7 +75,7 @@ BtorSort::get_bv_size() const
 /* -------------------------------------------------------------------------- */
 
 BtorTerm::BtorTerm(Btor* btor, BoolectorNode* term)
-    : d_solver(btor), d_term(term)
+    : d_solver(btor), d_term(boolector_copy(btor, term))
 {
 }
 
@@ -162,6 +162,7 @@ BtorSolver::mk_const(Sort sort, const std::string name) const
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
+  boolector_release(d_solver, btor_res);
   return res;
 }
 
@@ -174,6 +175,7 @@ BtorSolver::mk_value(Sort sort, bool value) const
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
+  boolector_release(d_solver, btor_res);
   return res;
 }
 
@@ -221,6 +223,7 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
+  boolector_release(d_solver, btor_res);
   return res;
 }
 
@@ -247,6 +250,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base) const
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
+  boolector_release(d_solver, btor_res);
   return res;
 }
 
@@ -520,6 +524,7 @@ BtorSolver::mk_term(const OpKind& kind,
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
+  boolector_release(d_solver, btor_res);
   return res;
 }
 

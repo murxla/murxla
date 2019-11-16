@@ -104,6 +104,12 @@ class SolverManager
   bool has_term(Term term) const;
 
   /**
+   * Return the term with the given id.
+   * Note: We only use this for untracing.
+   */
+  Term get_term(uint32_t id) const;
+
+  /**
    * Pick sort.
    * It is not guaranteed that there exist terms of the returned sort.
    */
@@ -135,6 +141,12 @@ class SolverManager
    * true.
    */
   bool has_sort_bv(uint32_t bw_max, bool with_terms = true) const;
+
+  /**
+   * Return the sort with the given id.
+   * Note: We only use this for untracing.
+   */
+  Sort get_sort(uint32_t id) const;
 
   /* Statistics. */
   Stats d_stats;

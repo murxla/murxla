@@ -130,8 +130,23 @@ bool is_bv_special_value_max_signed_str(std::string& value);
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Convert string to uint32_t.
+ * Given string must not be empty or represent a negative number.
+ */
 uint32_t str_to_uint32(std::string& s);
+
+/**
+ * Convert string to uint64_t.
+ * Given string must not be empty or represent a negative number.
+ */
 uint64_t str_to_uint64(std::string& s);
+
+/**
+ * Convert string given as a string enclosed with '\"' characters, e.g.,
+ * "\"abc\"", to a string with the enclosing '\"' characters, e.g., "abc".
+ */
+std::string str_to_str(std::string& s);
 
 /* -------------------------------------------------------------------------- */
 

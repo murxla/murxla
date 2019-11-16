@@ -212,7 +212,6 @@ class ActionDelete : public Action
 
   bool run() override
   {
-    d_smgr.clear();
     _run();
     return true;
   }
@@ -228,6 +227,7 @@ class ActionDelete : public Action
   void _run()
   {
     SMTMBT_TRACE << get_id();
+    d_smgr.clear();
     d_solver.delete_solver();
   }
 };
@@ -239,8 +239,7 @@ class ActionMkSort : public Action
 
   bool run() override
   {
-    SortKindData& kind_data = d_smgr.pick_sort_kind_data();
-    SortKind kind           = kind_data.d_kind;
+    SortKind kind = d_smgr.pick_sort_kind_data().d_kind;
 
     switch (kind)
     {
@@ -259,39 +258,37 @@ class ActionMkSort : public Action
   {
     assert(tokens.size());
 
-    uint64_t res       = 0;
-    size_t n_tokens    = tokens.size();
-    SortKind sort_kind = sort_kind_from_str(tokens[0]);
-    uint32_t uint;
+    uint64_t res    = 0;
+    size_t n_tokens = tokens.size();
+    SortKind kind   = sort_kind_from_str(tokens[0]);
 
     switch (n_tokens)
     {
-      case 1: res = _run(sort_kind); break;
+      case 1: res = _run(kind); break;
 
       default:
         assert(n_tokens == 2);
-        uint = str_to_uint32(tokens[1]);
-        res  = _run(sort_kind, uint);
+        res = _run(kind, str_to_uint32(tokens[1]));
     }
     return res;
   }
 
  private:
-  uint64_t _run(SortKind sort_kind)
+  uint64_t _run(SortKind kind)
   {
-    SMTMBT_TRACE << get_id() << " " << sort_kind;
+    SMTMBT_TRACE << get_id() << " " << kind;
     Sort res = d_solver.mk_sort(SORT_BOOL);
-    d_smgr.add_sort(res, sort_kind);
+    d_smgr.add_sort(res, kind);
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
 
-  uint64_t _run(SortKind sort_kind, uint32_t bw)
+  uint64_t _run(SortKind kind, uint32_t bw)
   {
-    SMTMBT_TRACE << get_id() << " " << sort_kind << " " << bw;
+    SMTMBT_TRACE << get_id() << " " << kind << " " << bw;
     Sort res = d_solver.mk_sort(SORT_BV, bw);
     assert(res->get_bv_size() == bw);
-    d_smgr.add_sort(res, sort_kind);
+    d_smgr.add_sort(res, kind);
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -402,8 +399,37 @@ class ActionMkTerm : public Action
   }
 
   uint64_t untrace(std::vector<std::string>& tokens) override
-  {  // TODO
-    return 0;
+  {
+    assert(tokens.size());
+
+    std::vector<Term> args;
+    std::vector<uint32_t> params;
+    uint32_t n_tokens  = tokens.size();
+    OpKind op_kind     = op_kind_from_str(tokens[0]);
+    SortKind sort_kind = sort_kind_from_str(tokens[1]);
+    uint32_t n_args    = str_to_uint32(tokens[2]);
+    uint32_t idx       = 3;
+
+    assert(idx + n_args <= n_tokens);
+    for (uint32_t i = 0; i < n_args; ++i, ++idx)
+    {
+      uint32_t id = str_to_uint32(tokens[idx]);
+      Term t      = d_smgr.get_term(id);
+      assert(t != nullptr);
+      args.push_back(t);
+    }
+
+    if (idx < tokens.size())
+    {
+      uint32_t n_params = str_to_uint32(tokens[idx++]);
+      assert(idx + n_params == n_tokens);
+      for (uint32_t i = 0; i < n_params; ++i, ++idx)
+      {
+        uint32_t param = str_to_uint32(tokens[idx]);
+        params.push_back(param);
+      }
+    }
+    return _run(op_kind, sort_kind, args, params);
   }
 
  private:
@@ -449,8 +475,13 @@ class ActionMkConst : public Action
   }
 
   uint64_t untrace(std::vector<std::string>& tokens) override
-  {  // TODO
-    return 0;
+  {
+    assert(tokens.size() == 2);
+
+    Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
+    assert(sort != nullptr);
+    std::string symbol = str_to_str(tokens[1]);
+    return _run(sort, symbol);
   }
 
  private:
@@ -632,14 +663,43 @@ class ActionMkValue : public Action
   }
 
   uint64_t untrace(std::vector<std::string>& tokens) override
-  {  // TODO
-    return 0;
+  {
+    assert(tokens.size());
+
+    uint64_t res = 0;
+    Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
+    assert(sort != nullptr);
+    switch (tokens.size())
+    {
+      case 3:
+        res = _run(sort,
+                   str_to_str(tokens[1]),
+                   static_cast<Solver::Base>(str_to_uint32(tokens[2])));
+        break;
+
+      default:
+        assert(tokens.size() == 2);
+        if (tokens[1] == "true")
+        {
+          res = _run(sort, true);
+        }
+        else if (tokens[1] == "false")
+        {
+          res = _run(sort, false);
+        }
+        else
+        {
+          res = _run(sort, str_to_uint64(tokens[1]));
+        }
+    }
+
+    return res;
   }
 
  private:
   uint64_t _run(Sort sort, bool val)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    SMTMBT_TRACE << get_id() << " " << sort << " " << (val ? "true" : "false");
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
@@ -648,16 +708,17 @@ class ActionMkValue : public Action
 
   uint64_t _run(Sort sort, uint64_t val)
   {
-    SMTMBT_TRACE << get_id() << sort << " " << val;
+    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
 
-  uint64_t _run(Sort sort, std::string& val, Solver::Base base)
+  uint64_t _run(Sort sort, std::string val, Solver::Base base)
   {
-    SMTMBT_TRACE << get_id() << sort << " \"" << val << "\"" << " " << base;
+    SMTMBT_TRACE << get_id() << " " << sort << " \"" << val << "\""
+                 << " " << base;
     Term res = d_solver.mk_value(sort, val, base);
     d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
@@ -680,7 +741,11 @@ class ActionAssertFormula : public Action
   }
 
   uint64_t untrace(std::vector<std::string>& tokens) override
-  {  // TODO
+  {
+    assert(tokens.size() == 1);
+    Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
+    assert(t != nullptr);
+    _run(t);
     return 0;
   }
 
@@ -704,7 +769,9 @@ class ActionCheckSat : public Action
   }
 
   uint64_t untrace(std::vector<std::string>& tokens) override
-  {  // TODO
+  {
+    assert(tokens.empty());
+    _run();
     return 0;
   }
 
@@ -825,6 +892,7 @@ FSM::untrace(std::ifstream& trace)
       }
     }
 
+    assert(ret_val == 0 || id == "return");
     if (id == "return")
     {
       assert(tokens.size() == 1);
@@ -847,6 +915,31 @@ FSM::untrace(std::ifstream& trace)
     {
       ret_val = ActionMkSort(d_smgr).untrace(tokens);
       assert(ret_val);
+    }
+    else if (id == "mk-const")
+    {
+      ret_val = ActionMkConst(d_smgr).untrace(tokens);
+      assert(ret_val);
+    }
+    else if (id == "mk-value")
+    {
+      ret_val = ActionMkValue(d_smgr).untrace(tokens);
+      assert(ret_val);
+    }
+    else if (id == "mk-term")
+    {
+      ret_val = ActionMkTerm(d_smgr).untrace(tokens);
+      assert(ret_val);
+    }
+    else if (id == "assert-formula")
+    {
+      ret_val = ActionAssertFormula(d_smgr).untrace(tokens);
+      assert(!ret_val);
+    }
+    else if (id == "check-sat")
+    {
+      ret_val = ActionCheckSat(d_smgr).untrace(tokens);
+      assert(!ret_val);
     }
   }
 }

@@ -378,6 +378,16 @@ str_to_uint64(std::string& s)
   return std::stoull(s);  // throws exception if conversion not successful
 }
 
+std::string
+str_to_str(std::string& s)
+{
+  assert(s.size() >= 2);
+  assert(s[0] == '"');
+  assert(s[s.size() - 1] == '"');
+  if (s.size() == 2) return "";
+  return s.substr(1, s.size() - 2);
+}
+
 /* -------------------------------------------------------------------------- */
 
 std::ostream&
