@@ -21,9 +21,8 @@ struct SortKindHashFunction
 };
 
 static std::unordered_map<SortKind, std::string, SortKindHashFunction>
-    sort_kinds_to_str{{SORT_BV, "SORT_KIND_BV"},
-                      {SORT_BOOL, "SORT_KIND_BOOL"},
-                      {SORT_ANY, "SORT_KIND_ANY"}};
+    sort_kinds_to_str{
+        {SORT_BV, "SORT_BV"}, {SORT_BOOL, "SORT_BOOL"}, {SORT_ANY, "SORT_ANY"}};
 
 struct SortKindData
 {
