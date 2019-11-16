@@ -901,6 +901,7 @@ FSM::untrace(std::ifstream& trace)
       assert(tokens.size() == 1);
       uint64_t id = str_to_uint64(tokens[0]);
       assert(id == ret_val);
+      ret_val = 0;
       continue;
     }
 
