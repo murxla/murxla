@@ -91,6 +91,23 @@ CVC4Term::equals(const Term& other) const
 /* CVC4Solver                                                                 */
 /* -------------------------------------------------------------------------- */
 
+OpKindSet
+CVC4Solver::get_unsupported_op_kinds() const
+{
+  return {
+      OP_BV_DEC,
+      OP_BV_INC,
+      OP_BV_REDXOR,
+      OP_BV_SADDO,
+      OP_BV_SDIVO,
+      OP_BV_SMULO,
+      OP_BV_SSUBO,
+      OP_BV_UADDO,
+      OP_BV_UMULO,
+      OP_BV_USUBO,
+  };
+}
+
 void
 CVC4Solver::new_solver()
 {

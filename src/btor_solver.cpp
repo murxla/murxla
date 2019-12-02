@@ -130,6 +130,12 @@ BtorSolver::get_supported_theories() const
   return {THEORY_BV, THEORY_BOOL};
 }
 
+OpKindSet
+BtorSolver::get_unsupported_op_kinds() const
+{
+  return {};
+}
+
 Sort
 BtorSolver::mk_sort(SortKind kind) const
 {

@@ -133,7 +133,8 @@ class Solver
   virtual bool is_initialized() const = 0;
 
   virtual TheoryIdVector get_supported_theories() const;
-  virtual OpKindVector get_supported_op_kinds() const;
+  virtual OpKindSet get_supported_op_kinds() const;
+  virtual OpKindSet get_unsupported_op_kinds() const;
 
   virtual void set_opt(const std::string& opt, bool value) const = 0;
 

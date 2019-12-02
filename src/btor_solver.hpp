@@ -72,6 +72,7 @@ class BtorSolver : public Solver
   bool is_initialized() const override;
 
   TheoryIdVector get_supported_theories() const override;
+  OpKindSet get_unsupported_op_kinds() const override;
 
   void set_opt(const std::string& opt, bool value) const override
   {  // TODO:

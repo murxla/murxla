@@ -128,12 +128,26 @@ Solver::get_supported_theories() const
   return res;
 }
 
-OpKindVector
+OpKindSet
 Solver::get_supported_op_kinds() const
 {
-  OpKindVector res;
-  for (int32_t o = 0; o < OP_ALL; ++o) res.push_back(static_cast<OpKind>(o));
+  OpKindSet unsupported = get_unsupported_op_kinds();
+  OpKindSet res;
+  for (int32_t o = 0; o < OP_ALL; ++o)
+  {
+    OpKind op = static_cast<OpKind>(o);
+    if (unsupported.find(op) == unsupported.end())
+    {
+      res.insert(op);
+    }
+  }
   return res;
+}
+
+OpKindSet
+Solver::get_unsupported_op_kinds() const
+{
+  return {};
 }
 
 const std::vector<Solver::Base>&

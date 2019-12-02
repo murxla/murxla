@@ -377,8 +377,11 @@ SolverManager::has_sort_bv(uint32_t bw_max, bool with_terms) const
   d_sort_kinds.emplace(kind, SortKindData(kind, arity, theory));
 
 #define SMTMBT_ADD_OP_KIND(kind, arity, nparams, theory_term, theory_args) \
-  d_op_kinds.emplace(                                                      \
-      kind, OpKindData(kind, arity, nparams, theory_term, theory_args));
+  if (ops.find(kind) != ops.end())                                         \
+  {                                                                        \
+    d_op_kinds.emplace(                                                    \
+        kind, OpKindData(kind, arity, nparams, theory_term, theory_args)); \
+  }
 
 void
 SolverManager::add_enabled_theories()
@@ -429,8 +432,10 @@ SolverManager::add_op_kinds()
 {
   assert(d_sort_kinds.size());
 
-  uint32_t n = SMTMBT_MK_TERM_N_ARGS;
+  uint32_t n    = SMTMBT_MK_TERM_N_ARGS;
+  OpKindSet ops = d_solver->get_supported_op_kinds();
 
+  for (auto o : ops) std::cout << o << std::endl;
   SMTMBT_ADD_OP_KIND(OP_ITE, 3, 0, SORT_ANY, SORT_ANY);
 
   for (const auto& s : d_sort_kinds)
