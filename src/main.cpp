@@ -437,6 +437,7 @@ run(uint32_t seed, Options& options)
     {
       std::ifstream untrace;
       untrace.open(g_options.untrace);
+      assert (untrace.is_open());
       fsm.untrace(untrace);
       untrace.close();
     }
