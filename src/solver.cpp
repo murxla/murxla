@@ -128,6 +128,14 @@ Solver::get_supported_theories() const
   return res;
 }
 
+OpKindVector
+Solver::get_supported_op_kinds() const
+{
+  OpKindVector res;
+  for (int32_t o = 0; o < OP_ALL; ++o) res.push_back(static_cast<OpKind>(o));
+  return res;
+}
+
 const std::vector<Solver::Base>&
 Solver::get_bases() const
 {

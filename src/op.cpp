@@ -33,7 +33,7 @@ op_kind_from_str(std::string& s)
       return p.first;
     }
   }
-  return UNDEFINED;
+  return OP_UNDEFINED;
 }
 
 }  // namespace smtmbt

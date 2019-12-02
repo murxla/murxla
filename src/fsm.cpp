@@ -325,7 +325,7 @@ class ActionMkTerm : public Action
     Sort sort;
 
     /* Pick term arguments. */
-    if (kind == OpKind::BV_CONCAT)
+    if (kind == OpKind::OP_BV_CONCAT)
     {
       if (!d_smgr.has_sort_bv(SMTMBT_BW_MAX - 1)) return false;
       sort        = d_smgr.pick_sort_bv(SMTMBT_BW_MAX - 1);
@@ -350,7 +350,7 @@ class ActionMkTerm : public Action
       /* pick first argument */
       switch (kind)
       {
-        case OpKind::ITE:
+        case OpKind::OP_ITE:
           if (!d_smgr.has_term(SORT_BOOL)) return false;
           args.push_back(d_smgr.pick_term(SORT_BOOL));
           break;
@@ -375,23 +375,23 @@ class ActionMkTerm : public Action
       uint32_t bw = sort->get_bv_size();
       switch (kind)
       {
-        case BV_EXTRACT:
+        case OP_BV_EXTRACT:
           assert(sort->is_bv());
           params.push_back(d_rng.pick_uint32(0, bw - 1));     // high
           params.push_back(d_rng.pick_uint32(0, params[0]));  // low
           break;
-        case BV_REPEAT:
+        case OP_BV_REPEAT:
           assert(sort->is_bv());
           params.push_back(
               d_rng.pick_uint32(1, std::max<uint32_t>(1, SMTMBT_BW_MAX / bw)));
           break;
-        case BV_ROTATE_LEFT:
-        case BV_ROTATE_RIGHT:
+        case OP_BV_ROTATE_LEFT:
+        case OP_BV_ROTATE_RIGHT:
           assert(sort->is_bv());
           params.push_back(d_rng.pick_uint32(0, bw));
           break;
-        case BV_SIGN_EXTEND:
-        case BV_ZERO_EXTEND:
+        case OP_BV_SIGN_EXTEND:
+        case OP_BV_ZERO_EXTEND:
           assert(sort->is_bv());
           params.push_back(d_rng.pick_uint32(0, SMTMBT_BW_MAX - bw));
           break;

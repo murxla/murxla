@@ -152,44 +152,6 @@ class BtorActionReleaseAll : public BtorAction
   }
 };
 
-// BoolectorNode *boolector_true (Btor *btor);
-class BtorActionTrue : public BtorAction
-{
- public:
-  BtorActionTrue(BtorSolverManagerBase* smgr) : BtorAction(smgr, "true") {}
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorNode* res = boolector_true(btor);
-    d_smgr->add_input(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// BoolectorNode *boolector_false (Btor *btor);
-class BtorActionFalse : public BtorAction
-{
- public:
-  BtorActionFalse(BtorSolverManagerBase* smgr) : BtorAction(smgr, "false") {}
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorNode* res = boolector_false(btor);
-    d_smgr->add_input(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 class BtorActionIff : public BtorAction
 {
@@ -213,77 +175,6 @@ class BtorActionIff : public BtorAction
   // void untrace(const char* s) override;
 };
 
-// BoolectorNode *boolector_const (Btor *btor, const char *bits);
-// BoolectorNode *boolector_constd (Btor *btor, BoolectorSort sort, const char *str);
-// BoolectorNode *boolector_consth (Btor *btor, BoolectorSort sort, const char *str);
-
-// BoolectorNode *boolector_zero (Btor *btor, BoolectorSort sort);
-class BtorActionBVZero : public BtorAction
-{
- public:
-  BtorActionBVZero(BtorSolverManagerBase* smgr) : BtorAction(smgr, "zero") {}
-
-  bool run() override
-  {
-    if (!d_smgr->has_sort(THEORY_BV)) return false;
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorSort s    = d_smgr->pick_sort(THEORY_BV);
-    BoolectorNode* res = boolector_zero(btor, s);
-    d_smgr->add_term(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// BoolectorNode *boolector_ones (Btor *btor, BoolectorSort sort);
-class BtorActionBVOnes : public BtorAction
-{
- public:
-  BtorActionBVOnes(BtorSolverManagerBase* smgr) : BtorAction(smgr, "ones") {}
-
-  bool run() override
-  {
-    if (!d_smgr->has_sort(THEORY_BV)) return false;
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorSort s = d_smgr->pick_sort(THEORY_BV);
-    BoolectorNode* res = boolector_ones(btor, s);
-    d_smgr->add_term(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// BoolectorNode *boolector_one (Btor *btor, BoolectorSort sort);
-class BtorActionBVOne : public BtorAction
-{
- public:
-  BtorActionBVOne(BtorSolverManagerBase* smgr) : BtorAction(smgr, "one") {}
-
-  bool run() override
-  {
-    if (!d_smgr->has_sort(THEORY_BV)) return false;
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorSort s = d_smgr->pick_sort(THEORY_BV);
-    BoolectorNode* res = boolector_one(btor, s);
-    d_smgr->add_term(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// BoolectorNode *boolector_min_signed (Btor *btor, BoolectorSort sort);
-// BoolectorNode *boolector_max_signed (Btor *btor, BoolectorSort sort);
-// BoolectorNode *boolector_unsigned_int (Btor *btor, uint32_t u, BoolectorSort sort);
-// BoolectorNode *boolector_int (Btor *btor, int32_t i, BoolectorSort sort);
 // BoolectorNode *boolector_array (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_uf (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_redxor (Btor *btor, BoolectorNode *node);
