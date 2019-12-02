@@ -134,24 +134,6 @@ class BtorActionResetAssumptions : public BtorAction
 // BtorOption boolector_next_opt (Btor *btor, BtorOption opt);
 // BoolectorNode *boolector_copy (Btor *btor, BoolectorNode *node);
 
-// void boolector_release_all (Btor *btor);
-class BtorActionReleaseAll : public BtorAction
-{
- public:
-  BtorActionReleaseAll(BtorSolverManagerBase* smgr)
-      : BtorAction(smgr, "release_all")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
-    boolector_release_all(d_smgr->get_solver());
-    return true;
-  }
-};
-
 // BoolectorNode *boolector_array (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_uf (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_read (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index);
@@ -371,7 +353,6 @@ BtorSolverManager::configure()
 
   // TODO reset_assumptions
   // TODO fixate_assumptions
-  // TODO release_all
 
   /* Initial State .......................................................... */
   d_fsm.set_init_state(snew);

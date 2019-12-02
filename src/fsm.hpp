@@ -12,6 +12,15 @@
 #include "solver_manager.hpp"
 #include "util.hpp"
 
+/* -------------------------------------------------------------------------- */
+
+#define SMTMBT_TRACE OstreamVoider() & FSM::TraceStream(d_smgr).stream()
+
+#define SMTMBT_TRACE_RETURN \
+  OstreamVoider() & FSM::TraceStream(d_smgr).stream() << "return "
+
+/* -------------------------------------------------------------------------- */
+
 namespace smtmbt {
 class State;
 
@@ -110,6 +119,7 @@ class FSM
 
   void set_init_state(State* init_state);
   void check_states();
+  State* get_state(const std::string& id);
   void run();
   void configure();
   void untrace(std::ifstream& trace);

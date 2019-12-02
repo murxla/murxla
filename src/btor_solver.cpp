@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "fsm.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
@@ -116,6 +117,12 @@ BtorSolver::delete_solver()
   assert(d_solver != nullptr);
   boolector_delete(d_solver);
   d_solver = nullptr;
+}
+
+Btor*
+BtorSolver::get_solver()
+{
+  return d_solver;
 }
 
 bool
@@ -663,6 +670,48 @@ BtorSolver::mk_term_pairwise(std::vector<Term>& args,
   }
   assert(res);
   return res;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Solver-specific actions, FSM configuration. */
+/* -------------------------------------------------------------------------- */
+
+class BtorActionReleaseAll : public Action
+{
+ public:
+  BtorActionReleaseAll(SolverManager& smgr) : Action(smgr, "btor-release-all")
+  {
+  }
+
+  bool run() override
+  {
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_smgr.clear();
+    boolector_release_all(
+        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
+void
+BtorSolver::configure_fsm(FSM& fsm) const
+{
+  auto a_sat      = fsm.new_action<BtorActionReleaseAll>();
+  State* s_delete = fsm.get_state("delete");
+  s_delete->add_action(a_sat, 1);
 }
 
 }  // namespace btor

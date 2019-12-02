@@ -69,10 +69,13 @@ class BtorSolver : public Solver
 
   void delete_solver() override;
 
+  Btor* get_solver();
+
   bool is_initialized() const override;
 
   TheoryIdVector get_supported_theories() const override;
   OpKindSet get_unsupported_op_kinds() const override;
+  void configure_fsm(FSM& fsm) const;
 
   void set_opt(const std::string& opt, bool value) const override
   {  // TODO:

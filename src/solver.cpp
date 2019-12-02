@@ -150,6 +150,12 @@ Solver::get_unsupported_op_kinds() const
   return {};
 }
 
+void
+Solver::configure_fsm(FSM& fsm) const
+{
+  // default: do nothing
+}
+
 const std::vector<Solver::Base>&
 Solver::get_bases() const
 {

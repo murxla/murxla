@@ -21,6 +21,7 @@
 /* -------------------------------------------------------------------------- */
 
 namespace smtmbt {
+class FSM;
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -135,6 +136,7 @@ class Solver
   virtual TheoryIdVector get_supported_theories() const;
   virtual OpKindSet get_supported_op_kinds() const;
   virtual OpKindSet get_unsupported_op_kinds() const;
+  virtual void configure_fsm(FSM& fsm) const;
 
   virtual void set_opt(const std::string& opt, bool value) const = 0;
 

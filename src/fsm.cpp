@@ -13,13 +13,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_TRACE OstreamVoider() & FSM::TraceStream(d_smgr).stream()
-
-#define SMTMBT_TRACE_RETURN \
-  OstreamVoider() & FSM::TraceStream(d_smgr).stream() << "return "
-
-/* -------------------------------------------------------------------------- */
-
 namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
@@ -102,6 +95,21 @@ FSM::check_states()
       && (no_next_state == d_init_state
           || all_next_states.find(no_next_state) != all_next_states.end()))
       << "infinite loop in state '" << no_next_state->get_id() << "'";
+}
+
+State*
+FSM::get_state(const std::string& id)
+{
+  State* res = nullptr;
+  for (const auto& s : d_states)
+  {
+    if (s->d_id == id)
+    {
+      res = s.get();
+    }
+  }
+  assert(res);
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -870,6 +878,8 @@ FSM::configure()
   /* --------------------------------------------------------------------- */
 
   set_init_state(s_new);
+
+  d_smgr.get_solver().configure_fsm(*this);
 }
 
 /* ========================================================================== */
