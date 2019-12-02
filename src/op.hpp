@@ -17,6 +17,7 @@ enum OpKind
   OP_ITE,
 
   OP_AND,
+  OP_IFF,
   OP_IMPLIES,
   OP_NOT,
   OP_OR,
@@ -143,6 +144,7 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_AND),
         SMTMBT_OP_TO_STR(OP_DISTINCT),
         SMTMBT_OP_TO_STR(OP_EQUAL),
+        SMTMBT_OP_TO_STR(OP_IFF),
         SMTMBT_OP_TO_STR(OP_IMPLIES),
         SMTMBT_OP_TO_STR(OP_ITE),
         SMTMBT_OP_TO_STR(OP_NOT),

@@ -95,6 +95,7 @@ OpKindSet
 CVC4Solver::get_unsupported_op_kinds() const
 {
   return {
+      OP_IFF,
       OP_BV_DEC,
       OP_BV_INC,
       OP_BV_REDXOR,

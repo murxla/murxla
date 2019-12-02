@@ -152,46 +152,13 @@ class BtorActionReleaseAll : public BtorAction
   }
 };
 
-// BoolectorNode *boolector_iff (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-class BtorActionIff : public BtorAction
-{
- public:
-  BtorActionIff(BtorSolverManagerBase* smgr) : BtorAction(smgr, "iff") {}
-
-  bool run() override
-  {
-    BoolectorSort bsort = d_smgr->get_bool_sort();
-    if (!d_smgr->has_term(bsort)) return false;
-    SMTMBT_TRACE << get_id();
-    Btor* btor = d_smgr->get_solver();
-    assert(btor);
-    BoolectorNode* a   = d_smgr->pick_term(bsort);
-    BoolectorNode* b   = d_smgr->pick_term(bsort);
-    BoolectorNode* res = boolector_iff(btor, a, b);
-    d_smgr->add_term(res, THEORY_BV);
-    boolector_release(btor, res);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // BoolectorNode *boolector_array (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_uf (Btor *btor, BoolectorSort sort, const char *symbol);
-// BoolectorNode *boolector_redxor (Btor *btor, BoolectorNode *node);
-// BoolectorNode *boolector_uaddo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_saddo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_umulo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_smulo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_usubo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_ssubo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
-// BoolectorNode *boolector_sdivo (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 // BoolectorNode *boolector_read (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index);
 // BoolectorNode *boolector_write (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index, BoolectorNode *n_value);
 // BoolectorNode *boolector_param (Btor *btor, BoolectorSort sort, const char *symbol);
 // BoolectorNode *boolector_fun (Btor *btor, BoolectorNode **param_nodes, uint32_t paramc, BoolectorNode *node);
 // BoolectorNode *boolector_apply (Btor *btor, BoolectorNode **arg_nodes, uint32_t argc, BoolectorNode *n_fun);
-// BoolectorNode *boolector_inc (Btor *btor, BoolectorNode *node);
-// BoolectorNode *boolector_dec (Btor *btor, BoolectorNode *node);
 // BoolectorNode *boolector_forall (Btor *btor, BoolectorNode *params[], uint32_t paramc, BoolectorNode *body);
 // BoolectorNode *boolector_exists (Btor *btor, BoolectorNode *param[], uint32_t paramc, BoolectorNode *body);
 // Btor *boolector_get_btor (BoolectorNode *node);
