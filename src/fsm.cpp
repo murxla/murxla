@@ -911,46 +911,8 @@ FSM::untrace(std::ifstream& trace)
       continue;
     }
 
-    if (id == "new")
-    {
-      ret_val = ActionNew(d_smgr).untrace(tokens);
-      assert(!ret_val);
-    }
-    else if (id == "delete")
-    {
-      ret_val = ActionDelete(d_smgr).untrace(tokens);
-      assert(!ret_val);
-    }
-    else if (id == "mk-sort")
-    {
-      ret_val = ActionMkSort(d_smgr).untrace(tokens);
-      assert(ret_val);
-    }
-    else if (id == "mk-const")
-    {
-      ret_val = ActionMkConst(d_smgr).untrace(tokens);
-      assert(ret_val);
-    }
-    else if (id == "mk-value")
-    {
-      ret_val = ActionMkValue(d_smgr).untrace(tokens);
-      assert(ret_val);
-    }
-    else if (id == "mk-term")
-    {
-      ret_val = ActionMkTerm(d_smgr).untrace(tokens);
-      assert(ret_val);
-    }
-    else if (id == "assert-formula")
-    {
-      ret_val = ActionAssertFormula(d_smgr).untrace(tokens);
-      assert(!ret_val);
-    }
-    else if (id == "check-sat")
-    {
-      ret_val = ActionCheckSat(d_smgr).untrace(tokens);
-      assert(!ret_val);
-    }
+    assert (d_actions.find(id) != d_actions.end());
+    ret_val = d_actions.at(id)->untrace(tokens);
   }
 }
 

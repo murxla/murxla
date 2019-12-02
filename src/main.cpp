@@ -431,6 +431,7 @@ run(uint32_t seed, Options& options)
     }
 
     FSM fsm(rng, solver, trace);
+    fsm.configure();
 
     /* replay/untrace given API trace */
     if (g_options.untrace)
@@ -444,7 +445,6 @@ run(uint32_t seed, Options& options)
     /* regular MBT run */
     else
     {
-      fsm.configure();
       fsm.run();
     }
 
