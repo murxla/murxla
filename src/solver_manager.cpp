@@ -435,7 +435,6 @@ SolverManager::add_op_kinds()
   uint32_t n    = SMTMBT_MK_TERM_N_ARGS;
   OpKindSet ops = d_solver->get_supported_op_kinds();
 
-  for (auto o : ops) std::cout << o << std::endl;
   SMTMBT_ADD_OP_KIND(OP_ITE, 3, 0, SORT_ANY, SORT_ANY);
 
   for (const auto& s : d_sort_kinds)
