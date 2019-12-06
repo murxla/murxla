@@ -66,6 +66,19 @@ RNGenerator::pick_uint32(uint32_t from, uint32_t to)
   return res;
 }
 
+int32_t
+RNGenerator::pick_int32(int32_t from, int32_t to)
+{
+  assert(from <= to);
+
+  uint32_t res;
+
+  if (from >= 0) return pick_uint32(from, to);
+
+  res = pick_uint32(0, to - from);
+  return res + from;
+}
+
 uint32_t
 RNGenerator::pick_uint32_weighted(std::vector<uint32_t>& weights)
 {

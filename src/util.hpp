@@ -38,6 +38,7 @@ class RNGenerator
    explicit RNGenerator(uint32_t seed = 0);
    uint32_t pick_uint32();
    uint32_t pick_uint32(uint32_t from, uint32_t to);
+   int32_t pick_int32(int32_t from, int32_t to);
    uint32_t pick_uint32_weighted(std::vector<uint32_t>& weights);
    uint64_t pick_uint64();
    uint64_t pick_uint64(uint64_t from, uint64_t to);
