@@ -8,6 +8,7 @@
 #include <unordered_set>
 
 #include "solver.hpp"
+#include "solver_option.hpp"
 #include "sort.hpp"
 #include "theory.hpp"
 #include "util.hpp"
@@ -35,7 +36,10 @@ class SolverManager
     uint32_t terms  = 0; /* all terms, including inputs */
   };
 
-  SolverManager(Solver* solver, RNGenerator& rng, std::ostream& trace);
+  SolverManager(Solver* solver,
+                RNGenerator& rng,
+                std::ostream& trace,
+                SolverOptions& options);
   ~SolverManager() = default;
 
   /** Clear all data. */
@@ -148,6 +152,11 @@ class SolverManager
    */
   Sort get_sort(uint32_t id) const;
 
+  /**
+   * Pick an option and an option value.
+   */
+  std::pair<std::string, std::string> pick_option();
+
   /* Statistics. */
   Stats d_stats;
 
@@ -219,6 +228,11 @@ class SolverManager
 
   /* Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
+
+  /* Vector of available solver options */
+  SolverOptions& d_options;
+
+  std::unordered_set<std::string> d_used_options;
 };
 
 /* -------------------------------------------------------------------------- */

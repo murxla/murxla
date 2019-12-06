@@ -1,6 +1,10 @@
 #include "solver_manager.hpp"
-#include "util.hpp"
+
 #include <algorithm>
+#include <iterator>
+#include <sstream>
+
+#include "util.hpp"
 
 namespace smtmbt {
 
@@ -8,8 +12,13 @@ namespace smtmbt {
 
 SolverManager::SolverManager(Solver* solver,
                              RNGenerator& rng,
-                             std::ostream& trace)
-    : d_solver(solver), d_rng(rng), d_trace(trace)
+                             std::ostream& trace,
+                             SolverOptions& options)
+    : d_solver(solver),
+      d_rng(rng),
+      d_trace(trace),
+      d_options(options),
+      d_used_options()
 {
   add_enabled_theories();
   add_sort_kinds();  // adds only sort kinds of enabled theories
@@ -369,6 +378,55 @@ SolverManager::has_sort_bv(uint32_t bw_max, bool with_terms) const
     if (sort->is_bv() && sort->get_bv_size() <= bw_max) return true;
   }
   return false;
+}
+
+std::pair<std::string, std::string>
+SolverManager::pick_option()
+{
+  if (d_options.empty()) return std::make_pair("", "");
+
+  SolverOption* option;
+
+  std::vector<SolverOption*> available;
+
+  bool skip;
+  for (auto const& opt : d_options)
+  {
+    option = opt.get();
+
+    /* Filter out conflicting options */
+    skip = false;
+    for (auto conflict : option->get_conflicts())
+    {
+      if (d_used_options.find(conflict) != d_used_options.end())
+      {
+        skip = true;
+        break;
+      }
+    }
+    if (skip) continue;
+
+    /* Filter out options that depend on each other */
+    for (auto depend : option->get_depends())
+    {
+      if (d_used_options.find(depend) == d_used_options.end())
+      {
+        skip = true;
+        break;
+      }
+    }
+    if (skip) continue;
+
+    available.push_back(option);
+  }
+
+  option           = available[d_rng.pick_uint32() % available.size()];
+  std::string name = option->get_name();
+
+  if (d_used_options.find(name) == d_used_options.end())
+    d_used_options.insert(name);
+
+  return std::make_pair(name, option->pick_value(d_rng));
 }
 
 /* -------------------------------------------------------------------------- */

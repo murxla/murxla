@@ -109,6 +109,18 @@ BtorSolver::new_solver()
 {
   assert(d_solver == nullptr);
   d_solver = boolector_new();
+
+  /* Initialize Boolector options */
+  if (d_option_name_to_enum.empty())
+  {
+    for (BtorOption opt = boolector_first_opt(d_solver);
+         boolector_has_opt(d_solver, opt);
+         opt = boolector_next_opt(d_solver, opt))
+    {
+      std::string name(boolector_get_opt_lng(d_solver, opt));
+      d_option_name_to_enum[name] = opt;
+    }
+  }
 }
 
 void
@@ -679,6 +691,17 @@ BtorSolver::mk_term_pairwise(std::vector<Term>& args,
   }
   assert(res);
   return res;
+}
+
+void
+BtorSolver::set_opt(const std::string& opt, const std::string& value) const
+{
+  assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
+
+  /* Boolector options are all integer values */
+  BtorOption option = d_option_name_to_enum.at(opt);
+  uint32_t val      = std::stoul(value);
+  boolector_set_opt(d_solver, option, val);
 }
 
 /* -------------------------------------------------------------------------- */

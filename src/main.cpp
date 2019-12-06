@@ -3,13 +3,16 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <toml.hpp>
 
 #include "btor_solver.hpp"
 #include "cvc4_solver.hpp"
 #include "fsm.hpp"
+#include "solver_option.hpp"
 
 using namespace smtmbt;
 
@@ -24,6 +27,7 @@ struct Options
   bool use_cvc4   = false;
   std::string api_trace;
   char* untrace   = nullptr;
+  std::string solver_options_file;
 };
 
 static Options g_options;
@@ -262,6 +266,17 @@ set_alarm(void)
   "  --cvc4                  test CVC4\n"
 
 void
+check_next_arg(std::string& option, int i, int argc)
+{
+  if (i >= argc)
+  {
+    std::stringstream es;
+    es << "missing argument to option '" << option << "'";
+    die(es.str());
+  }
+}
+
+void
 parse_options(Options& options, int argc, char* argv[])
 {
   for (int i = 1; i < argc; i++)
@@ -272,17 +287,11 @@ parse_options(Options& options, int argc, char* argv[])
       std::cout << SMTMBT_USAGE << std::endl;
       exit(0);
     }
-
-    if (arg == "-s" || arg == "--seed")
+    else if (arg == "-s" || arg == "--seed")
     {
       std::stringstream ss;
       i += 1;
-      if (i >= argc)
-      {
-        std::stringstream es;
-        es << "missing argument to option '" << argv[i - 1] << "'";
-        die(es.str());
-      }
+      check_next_arg(arg, i, argc);
       ss << argv[i];
       if (ss.str().find('-') != std::string::npos)
       {
@@ -293,17 +302,11 @@ parse_options(Options& options, int argc, char* argv[])
       }
       ss >> g_options.seed;
     }
-
-    if (arg == "-t" || arg == "--time")
+    else if (arg == "-t" || arg == "--time")
     {
       std::stringstream ss;
       i += 1;
-      if (i >= argc)
-      {
-        std::stringstream es;
-        es << "missing argument to " << argv[i - 1];
-        die(es.str());
-      }
+      check_next_arg(arg, i, argc);
       ss << argv[i];
       if (ss.str().find('-') != std::string::npos)
       {
@@ -313,45 +316,35 @@ parse_options(Options& options, int argc, char* argv[])
       }
       ss >> g_options.time;
     }
-
-    if (arg == "-v" || "--verbosity")
+    else if (arg == "-v" || arg == "--verbosity")
     {
       g_options.verbosity += 1;
     }
-
-    if (arg == "-a" || arg == "--api-trace")
+    else if (arg == "-a" || arg == "--api-trace")
     {
       i += 1;
-      if (i >= argc)
-      {
-        std::stringstream es;
-        es << "missing argument to " << argv[i - 1];
-        die(es.str());
-      }
+      check_next_arg(arg, i, argc);
       g_options.api_trace = argv[i];
     }
-
-    if (arg == "-u" || arg == "--untrace")
+    else if (arg == "-u" || arg == "--untrace")
     {
       i += 1;
-      if (i >= argc)
-      {
-        std::stringstream es;
-        es << "missing argument to " << argv[i - 1];
-        die(es.str());
-      }
+      check_next_arg(arg, i, argc);
       g_options.untrace = argv[i];
     }
-
-    if (arg == "--btor")
-      if (arg == "--btor")
-      {
-        g_options.use_btor = true;
-      }
-
-    if (arg == "--cvc4")
+    else if (arg == "--btor")
+    {
+      g_options.use_btor = true;
+    }
+    else if (arg == "--cvc4")
     {
       g_options.use_cvc4 = true;
+    }
+    else if (arg == "--options")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      g_options.solver_options_file = std::string(argv[i]);
     }
   }
 
@@ -362,7 +355,7 @@ parse_options(Options& options, int argc, char* argv[])
 }
 
 static Result
-run(uint32_t seed, Options& options)
+run(uint32_t seed, Options& options, SolverOptions& solver_options)
 {
   int status, devnull;
   Result result;
@@ -430,7 +423,7 @@ run(uint32_t seed, Options& options)
       solver = new cvc4::CVC4Solver(rng);
     }
 
-    FSM fsm(rng, solver, trace);
+    FSM fsm(rng, solver, trace, solver_options);
     fsm.configure();
 
     /* replay/untrace given API trace */
@@ -470,6 +463,50 @@ run(uint32_t seed, Options& options)
   return result;
 }
 
+void
+parse_solver_options_file(SolverOptions& solver_options)
+{
+  const auto options_data = toml::parse(g_options.solver_options_file);
+  const std::vector<toml::table> tables =
+      toml::find<std::vector<toml::table>>(options_data, "option");
+
+  for (const toml::table& table : tables)
+  {
+    std::string name = toml::get<std::string>(table.at("name"));
+    std::string type = toml::get<std::string>(table.at("type"));
+    std::vector<std::string> depends =
+        toml::get<std::vector<std::string>>(table.at("depends"));
+    std::vector<std::string> conflicts =
+        toml::get<std::vector<std::string>>(table.at("conflicts"));
+
+    if (type == "bool")
+    {
+      solver_options.push_back(std::unique_ptr<SolverOption>(
+          new SolverOptionBool(name, depends, conflicts)));
+    }
+    else if (type == "int")
+    {
+      int32_t min = toml::get<int32_t>(table.at("min"));
+      int32_t max = toml::get<int32_t>(table.at("max"));
+      solver_options.push_back(std::unique_ptr<SolverOption>(
+          new SolverOptionInt(name, depends, conflicts, min, max)));
+    }
+    else if (type == "list")
+    {
+      std::vector<std::string> values =
+          toml::get<std::vector<std::string>>(table.at("values"));
+      solver_options.push_back(std::unique_ptr<SolverOption>(
+          new SolverOptionList(name, depends, conflicts, values)));
+    }
+    else
+    {
+      std::stringstream es;
+      es << "Unknown option type " << type;
+      die(es.str());
+    }
+  }
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -482,6 +519,12 @@ main(int argc, char* argv[])
 
   bool is_seeded = g_options.seed > 0;
   SeedGenerator sg(g_options.seed);
+  SolverOptions solver_options;
+
+  if (!g_options.solver_options_file.empty())
+  {
+    parse_solver_options_file(solver_options);
+  }
 
   if ((env_file_name = getenv("SMTMBTAPITRACE")))
   {
@@ -499,7 +542,7 @@ main(int argc, char* argv[])
 
     /* we do not trace into file by default, only on replay in case of an error
      * (see below) */
-    Result res = run(seed, g_options);
+    Result res = run(seed, g_options, solver_options);
 
     /* report status */
     std::stringstream info;
@@ -536,7 +579,7 @@ main(int argc, char* argv[])
         }
       }
       setenv("SMTMBTAPITRACE", g_options.api_trace.c_str(), 1);
-      Result res_replay = run(seed, g_options);
+      Result res_replay = run(seed, g_options, solver_options);
       assert(res == res_replay);
       unsetenv("SMTMBTAPITRACE");
       if (!env_file_name)

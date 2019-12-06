@@ -68,7 +68,7 @@ class CVC4Solver : public Solver
 
   bool is_initialized() const override;
 
-  void set_opt(const std::string& opt, bool value) const override
+  void set_opt(const std::string& opt, const std::string& value) const override
   {  // TODO:
   }
 

@@ -6,6 +6,7 @@ set(smtmbt_src_files
   op.cpp
   solver.cpp
   solver_manager.cpp
+  solver_option.cpp
   sort.cpp
   theory.cpp
   util.cpp
@@ -21,4 +22,9 @@ endif()
 if(CVC4_FOUND)
   target_link_libraries(smtmbt CVC4::cvc4)
   target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_CVC4)
+endif()
+
+if(toml11_FOUND)
+  target_link_libraries(smtmbt toml11::toml11)
+  target_compile_definitions(smtmbt PUBLIC HAVE_TOML11)
 endif()

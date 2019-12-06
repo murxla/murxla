@@ -42,8 +42,11 @@ State::run(RNGenerator& rng)
 
 /* -------------------------------------------------------------------------- */
 
-FSM::FSM(RNGenerator& rng, Solver* solver, std::ostream& trace)
-    : d_smgr(solver, rng, trace), d_rng(rng)
+FSM::FSM(RNGenerator& rng,
+         Solver* solver,
+         std::ostream& trace,
+         SolverOptions& options)
+    : d_smgr(solver, rng, trace, options), d_rng(rng)
 {
 }
 
@@ -237,6 +240,36 @@ class ActionDelete : public Action
     SMTMBT_TRACE << get_id();
     d_smgr.clear();
     d_solver.delete_solver();
+  }
+};
+
+class ActionSetOption : public Action
+{
+ public:
+  ActionSetOption(SolverManager& smgr) : Action(smgr, "set-option") {}
+
+  bool run() override
+  {
+    std::string opt, value;
+    std::tie(opt, value) = d_smgr.pick_option();
+    if (opt.empty()) /* No option available */
+      return false;
+    _run(opt, value);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 2);
+    _run(tokens[0], tokens[1]);
+    return 0;
+  }
+
+ private:
+  void _run(const std::string& opt, const std::string& value)
+  {
+    SMTMBT_TRACE << get_id() << " " << opt << " " << value;
+    d_solver.set_opt(opt, value);
   }
 };
 
@@ -823,6 +856,8 @@ FSM::configure()
   auto a_assert = new_action<ActionAssertFormula>();
   auto a_sat    = new_action<ActionCheckSat>();
 
+  auto a_setoption = new_action<ActionSetOption>();
+
   auto t_default = new_action<Transition>();
   auto t_inputs  = new_action<TransitionCreateInputs>();
 
@@ -831,6 +866,7 @@ FSM::configure()
   /* --------------------------------------------------------------------- */
 
   auto s_new    = new_state("new");
+  auto s_opt    = new_state("opt");
   auto s_delete = new_state("delete");
   auto s_final  = new_state("final", nullptr, true);
 
@@ -848,7 +884,11 @@ FSM::configure()
   /* --------------------------------------------------------------------- */
 
   /* State: new .......................................................... */
-  s_new->add_action(a_new, 10, s_inputs);
+  s_new->add_action(a_new, 10, s_opt);
+
+  /* State: opt .......................................................... */
+  s_opt->add_action(a_setoption, 50);
+  s_opt->add_action(t_default, 10, s_inputs);
 
   /* State: create inputs ................................................ */
   s_inputs->add_action(a_mksort, 20);

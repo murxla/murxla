@@ -138,8 +138,6 @@ class Solver
   virtual OpKindSet get_unsupported_op_kinds() const;
   virtual void configure_fsm(FSM& fsm) const;
 
-  virtual void set_opt(const std::string& opt, bool value) const = 0;
-
   virtual Term mk_var(Sort sort, const std::string name) const   = 0;
   virtual Term mk_const(Sort sort, const std::string name) const = 0;
   virtual Term mk_fun(Sort sort, const std::string name) const   = 0;
@@ -167,6 +165,9 @@ class Solver
 
   const std::vector<Base>& get_bases() const;
   const std::vector<SpecialValueBV>& get_special_values_bv() const;
+
+  virtual void set_opt(const std::string& opt,
+                       const std::string& value) const = 0;
 
   //
   // get_model()

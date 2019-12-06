@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "solver_manager.hpp"
+#include "solver_option.hpp"
 #include "util.hpp"
 
 /* -------------------------------------------------------------------------- */
@@ -106,7 +107,10 @@ class FSM
     SolverManager& d_smgr;
   };
 
-  FSM(RNGenerator& rng, Solver* solver, std::ostream& trace);
+  FSM(RNGenerator& rng,
+      Solver* solver,
+      std::ostream& trace,
+      SolverOptions& options);
 
   FSM() = delete;
 
