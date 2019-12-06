@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -e -o pipefail
 
 deps_dir=$(pwd)/deps
 reinstall=no
@@ -26,7 +28,7 @@ mkdir -p "$deps_dir"
 
   rm build -rf
   ./configure.sh -g --asan --prefix "$deps_dir"
-  cd build || exit 1
+  cd build
   make install -j $(nproc)
 )
 
@@ -41,17 +43,19 @@ mkdir -p "$deps_dir"
 
   rm build -rf
   ./configure.sh debug --asan --prefix="$deps_dir"
-  cd build || exit 1
+  cd build
   make install -j $(nproc)
 )
 
-# Setup cxxopts
+# Setup toml11
 (
-  cd libs/cxxopts || exit 1
+  mkdir -p libs
+  git clone https://github.com/ToruNiina/toml11.git libs/toml11
+  cd libs/toml11
 
   rm build -rf
-  mkdir -p build || exit 1
-  cd build || exit 1
-  cmake .. -DCMAKE_INSTALL_PREFIX="$deps_dir"
+  mkdir -p build
+  cd build
+  cmake .. -DCMAKE_INSTALL_PREFIX="$deps_dir" -Dtoml11_BUILD_TEST=OFF
   make install -j $(nproc)
 )
