@@ -37,9 +37,13 @@ class Action
   {
   }
   virtual ~Action()  = default;
+
+  /* Execute the action. */
   virtual bool run() = 0;
 
   /**
+   * Replay an action.
+   *
    * Returns id of created object, if an object has been created, and 0
    * otherwise. Needed to be able to compare this id to the traced id in
    * the trace's return statement.
@@ -55,6 +59,17 @@ class Action
 
  private:
   std::string d_id;
+};
+
+/**
+ * Transition from current state to next state without pre-conditions.
+ */
+class Transition : public Action
+{
+ public:
+  Transition(SolverManager& smgr) : Action(smgr, "") {}
+  bool run() override { return true; }
+  uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
 };
 
 struct ActionTuple

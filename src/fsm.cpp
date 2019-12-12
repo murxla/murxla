@@ -153,17 +153,6 @@ FSM::TraceStream::flush()
 /* ========================================================================== */
 
 /**
- * Transition from current state to next state without pre-conditions.
- */
-class Transition : public Action
-{
- public:
-  Transition(SolverManager& smgr) : Action(smgr, "") {}
-  bool run() override { return true; }
-  uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
-};
-
-/**
  * Transition from creating inputs to the next state.
  *
  * State:      create inputs

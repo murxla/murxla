@@ -81,43 +81,6 @@ class BtorActionNoneCreateInputs : public BtorAction
 // bool boolector_failed (Btor *btor, BoolectorNode *node);
 // BoolectorNode **boolector_get_failed_assumptions (Btor *btor);
 
-// void boolector_fixate_assumptions (Btor *btor);
-class BtorActionFixateAssumptions : public BtorAction
-{
- public:
-  BtorActionFixateAssumptions(BtorSolverManagerBase* smgr)
-      : BtorAction(smgr, "fixate_assumptions")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
-    boolector_fixate_assumptions(d_smgr->get_solver());
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
-// void boolector_reset_assumptions (Btor *btor);
-class BtorActionResetAssumptions : public BtorAction
-{
- public:
-  BtorActionResetAssumptions(BtorSolverManagerBase* smgr)
-      : BtorAction(smgr, "reset_assumptions")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    assert(d_smgr->get_solver());
-    boolector_reset_assumptions(d_smgr->get_solver());
-    return true;
-  }
-};
-
 // int32_t boolector_limited_sat (Btor *btor, int32_t lod_limit, int32_t sat_limit);
 // int32_t boolector_simplify (Btor *btor);
 // void boolector_set_sat_solver (Btor *btor, const char *solver);

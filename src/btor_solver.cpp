@@ -738,12 +738,90 @@ class BtorActionReleaseAll : public Action
   }
 };
 
+class BtorActionFixateAssumptions : public Action
+{
+ public:
+  BtorActionFixateAssumptions(SolverManager& smgr)
+      : Action(smgr, "btor-fixate-assumptions")
+  {
+  }
+
+  bool run() override
+  {
+    if (!d_smgr.d_incremental) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_smgr.clear();
+    boolector_fixate_assumptions(
+        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
+class BtorActionResetAssumptions : public Action
+{
+ public:
+  BtorActionResetAssumptions(SolverManager& smgr)
+      : Action(smgr, "btor-reset-assumptions")
+  {
+  }
+
+  bool run() override
+  {
+    if (!d_smgr.d_incremental) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_smgr.clear();
+    boolector_reset_assumptions(
+        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
 void
 BtorSolver::configure_fsm(FSM& fsm) const
 {
-  auto a_sat      = fsm.new_action<BtorActionReleaseAll>();
-  State* s_delete = fsm.get_state("delete");
-  s_delete->add_action(a_sat, 1);
+  auto t_default = fsm.new_action<Transition>();
+
+  // boolector_release_all
+  auto a_release_all = fsm.new_action<BtorActionReleaseAll>();
+  State* s_delete    = fsm.get_state("delete");
+  s_delete->add_action(a_release_all, 1);
+
+  // boolector_fixate_assumptions
+  // boolector_reset_assumptions
+  State* s_fix_reset_assumptions = fsm.new_state("btor-fix-reset-assumptions");
+  auto a_fix_assumptions   = fsm.new_action<BtorActionFixateAssumptions>();
+  auto a_reset_assumptions = fsm.new_action<BtorActionResetAssumptions>();
+  s_fix_reset_assumptions->add_action(a_fix_assumptions, 10);
+  s_fix_reset_assumptions->add_action(a_reset_assumptions, 10);
+  State* s_assert = fsm.get_state("assert");
+  s_assert->add_action(t_default, 1, s_fix_reset_assumptions);
+  s_fix_reset_assumptions->add_action(t_default, 100, s_assert);
 }
 
 }  // namespace btor

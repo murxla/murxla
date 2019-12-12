@@ -157,6 +157,9 @@ class SolverManager
    */
   std::pair<std::string, std::string> pick_option();
 
+  /* True if incremental solving is enabled. */
+  bool d_incremental = false;
+
   /* Statistics. */
   Stats d_stats;
 
