@@ -556,11 +556,16 @@ main(int argc, char* argv[])
         break;
       default: assert(res == RESULT_UNKNOWN); info << " unknown";
     }
-    if (!info.str().empty())
+    if (info.str().empty())
+    {
+      std::cout << "\33[2K\r" << std::flush;
+    }
+    else
     {
       std::cout << info.str() << std::endl << std::flush;
     }
-    std::cout << res << std::endl;
+    // std::cout << res << std::endl;
+    std::cout << res;
 
     /* replay and trace on error if not in untrace mode */
     if (!g_options.untrace && res != RESULT_OK && res != RESULT_TIMEOUT)
