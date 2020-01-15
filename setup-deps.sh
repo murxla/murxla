@@ -3,6 +3,7 @@
 set -e -o pipefail
 
 deps_dir=$(pwd)/deps
+toml_dir=$(pwd)/libs/toml11
 reinstall=no
 
 git submodule update --init --recursive
@@ -15,6 +16,7 @@ if [ -e "$deps_dir" ]; then
 fi
 
 mkdir -p "$deps_dir"
+rm -rf "$toml_dir"
 
 # Setup Boolector
 (
