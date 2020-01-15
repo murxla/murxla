@@ -11,6 +11,8 @@
 
 #define SMTMBT_LEN_SYMBOL_MAX 128
 
+#define SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT 5
+
 /* -------------------------------------------------------------------------- */
 
 namespace smtmbt {
@@ -792,6 +794,11 @@ class ActionAssertFormula : public Action
   void _run(Term assertion)
   {
     SMTMBT_TRACE << get_id() << " " << assertion;
+    if (d_smgr.d_sat_called)
+    {
+      d_smgr.clear_assumptions();
+      d_smgr.d_sat_called = false;
+    }
     d_solver.assert_formula(assertion);
   }
 };
@@ -818,7 +825,63 @@ class ActionCheckSat : public Action
   void _run()
   {
     SMTMBT_TRACE << get_id();
+    if (d_smgr.d_sat_called)
+    {
+      d_smgr.clear_assumptions();
+      d_smgr.d_sat_called = false;
+    }
     d_solver.check_sat();
+  }
+};
+
+class ActionCheckSatAssuming : public Action
+{
+ public:
+  ActionCheckSatAssuming(SolverManager& smgr)
+      : Action(smgr, "check-sat-assuming")
+  {
+  }
+
+  bool run() override
+  {
+    if (!d_smgr.has_term(SORT_BOOL)) return false;
+    uint32_t n_assumptions =
+        d_rng.pick_uint32(1, SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT);
+    std::vector<Term> assumptions;
+    for (uint32_t i = 0; i < n_assumptions; ++i)
+    {
+      assumptions.push_back(d_smgr.pick_assumption());
+    }
+    _run(assumptions);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() > 1);
+    std::vector<Term> assumptions;
+    uint32_t n_args = str_to_uint32(tokens[0]);
+    for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
+    {
+      uint32_t id = str_to_uint32(tokens[idx]);
+      Term t      = d_smgr.get_term(id);
+      assert(t != nullptr);
+      assumptions.push_back(t);
+    }
+    _run(assumptions);
+    return 0;
+  }
+
+ private:
+  void _run(std::vector<Term> assumptions)
+  {
+    SMTMBT_TRACE << get_id() << " " << assumptions.size() << assumptions;
+    if (d_smgr.d_sat_called)
+    {
+      d_smgr.clear_assumptions();
+      d_smgr.d_sat_called = false;
+    }
+    d_solver.check_sat_assuming(assumptions);
   }
 };
 
@@ -842,8 +905,9 @@ FSM::configure()
   auto a_mkconst = new_action<ActionMkConst>();
   auto a_mkterm  = new_action<ActionMkTerm>();
 
-  auto a_assert = new_action<ActionAssertFormula>();
-  auto a_sat    = new_action<ActionCheckSat>();
+  auto a_assert  = new_action<ActionAssertFormula>();
+  auto a_sat     = new_action<ActionCheckSat>();
+  auto a_sat_ass = new_action<ActionCheckSatAssuming>();
 
   auto a_setoption = new_action<ActionSetOption>();
 
@@ -898,6 +962,7 @@ FSM::configure()
 
   /* State: check sat .................................................... */
   s_sat->add_action(a_sat, 10, s_delete);
+  s_sat->add_action(a_sat_ass, 10, s_delete);
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 10, s_final);

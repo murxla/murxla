@@ -162,6 +162,7 @@ class Solver
   virtual void assert_formula(const Term& t) const = 0;
 
   virtual Result check_sat() const = 0;
+  virtual Result check_sat_assuming(std::vector<Term>& assumptions) const = 0;
 
   const std::vector<Base>& get_bases() const;
   const std::vector<SpecialValueBV>& get_special_values_bv() const;

@@ -13,12 +13,10 @@
 #include "theory.hpp"
 #include "util.hpp"
 
-namespace smtmbt {
-
-/* -------------------------------------------------------------------------- */
-
 #define SMTMBT_BW_MIN 1
 #define SMTMBT_BW_MAX 128
+
+namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
 
@@ -97,6 +95,14 @@ class SolverManager
    * Requires that terms of this sort kind exist.
    */
   Term pick_term(SortKind sort_kind);
+  /**
+   * Pick term of Bool SortKind SORT_BOOL and add it to asssumptions list.
+   * Requires that terms of SortKind SORT_BOOL exist.
+   */
+  Term pick_assumption();
+
+  /** Clear set of assumptions. */
+  void clear_assumptions();
 
   /** Return true if term database contains any term. */
   bool has_term() const;
@@ -157,10 +163,17 @@ class SolverManager
    */
   std::pair<std::string, std::string> pick_option();
 
-  /* True if incremental solving is enabled. */
+  /** True if incremental solving is enabled. */
   bool d_incremental = false;
 
-  /* Statistics. */
+  /**
+   * True if a previous check-sat call is still 'active', i.e., if no formulas
+   * have been asserted or assumed since.
+   * While true it is save to check failed assumptions and query model values.
+   */
+  bool d_sat_called = false;
+
+  /** Statistics. */
   Stats d_stats;
 
  private:
@@ -231,6 +244,9 @@ class SolverManager
 
   /* Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
+
+  /* The set of already assumed formulas. */
+  std::unordered_set<Term, HashTerm> d_assumptions;
 
   /* Vector of available solver options */
   SolverOptions& d_options;

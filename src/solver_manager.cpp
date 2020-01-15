@@ -217,6 +217,22 @@ SolverManager::pick_term(SortKind sort_kind)
   return pick_term(sort);
 }
 
+Term
+SolverManager::pick_assumption()
+{
+  assert(has_term(SORT_BOOL));
+  Sort sort = pick_sort(SORT_BOOL);
+  Term res  = pick_term(sort);
+  d_assumptions.insert(res);
+  return res;
+}
+
+void
+SolverManager::clear_assumptions()
+{
+  d_assumptions.clear();
+}
+
 bool
 SolverManager::has_term() const
 {

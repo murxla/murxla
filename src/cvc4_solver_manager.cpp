@@ -1013,11 +1013,6 @@ class CVC4ActionSolverSimplify : public CVC4Action
   // void untrace(const char* s) override;
 };
 
-// TODO Result Solver::checkSatAssuming(Term assumption) const;
-// TODO Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const;
-
-// TODO Result Solver::checkValidAssuming(Term assumption) const;
-// TODO Result Solver::checkValidAssuming(const std::vector<Term>& assumptions) const;
 // TODO Term Solver::declareConst(const std::string& symbol, Sort sort) const;
 // TODO Sort Solver::declareDatatype( const std::string& symbol, const std::vector<DatatypeConstructorDecl>& ctors) const;
 // TODO Term Solver::declareFun(const std::string& symbol, Sort sort) const;

@@ -110,6 +110,7 @@ class CVC4Solver : public Solver
   void assert_formula(const Term& t) const override;
 
   Result check_sat() const override;
+  Result check_sat_assuming(std::vector<Term>& assumptions) const override;
 
   //
   // get_model()
