@@ -248,21 +248,17 @@ CVC4Solver::mk_term(const OpKind& kind,
 
   CVC4::api::Term cvc4_res;
   CVC4::api::Kind cvc4_kind = d_kinds.at(kind);
-  CVC4::api::OpTerm cvc4_opterm;
+  CVC4::api::Op cvc4_opterm;
 
   int32_t n_args    = args.size();
   uint32_t n_params = params.size();
 
-  assert(!n_params || d_op_kinds.find(kind) != d_op_kinds.end());
-  /* create OpTerm for indexed operators */
+  /* create Op for indexed operators */
   switch (n_params)
   {
-    case 1:
-      cvc4_opterm = d_solver->mkOpTerm(d_op_kinds.at(kind), params[0]);
-      break;
+    case 1: cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0]); break;
     case 2:
-      cvc4_opterm =
-          d_solver->mkOpTerm(d_op_kinds.at(kind), params[0], params[1]);
+      cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0], params[1]);
       break;
     default: assert(n_params == 0);
   }
@@ -274,29 +270,27 @@ CVC4Solver::mk_term(const OpKind& kind,
   switch (n_args)
   {
     case 0:
-      cvc4_res = n_params ? d_solver->mkTerm(cvc4_kind, cvc4_opterm)
+      cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm)
                           : d_solver->mkTerm(cvc4_kind);
       break;
 
     case 1:
-      cvc4_res = n_params ? d_solver->mkTerm(
-                     cvc4_kind, cvc4_opterm, get_cvc4_term(args[0]))
-                          : d_solver->mkTerm(cvc4_kind, get_cvc4_term(args[0]));
+      cvc4_res = n_params
+                     ? d_solver->mkTerm(cvc4_opterm, get_cvc4_term(args[0]))
+                     : d_solver->mkTerm(cvc4_kind, get_cvc4_term(args[0]));
       break;
 
     case 2:
-      cvc4_res = n_params ? d_solver->mkTerm(cvc4_kind,
-                                             cvc4_opterm,
-                                             get_cvc4_term(args[0]),
-                                             get_cvc4_term(args[1]))
-                          : d_solver->mkTerm(cvc4_kind,
-                                             get_cvc4_term(args[0]),
-                                             get_cvc4_term(args[1]));
+      cvc4_res =
+          n_params
+              ? d_solver->mkTerm(
+                  cvc4_opterm, get_cvc4_term(args[0]), get_cvc4_term(args[1]))
+              : d_solver->mkTerm(
+                  cvc4_kind, get_cvc4_term(args[0]), get_cvc4_term(args[1]));
       break;
 
     case 3:
-      cvc4_res = n_params ? d_solver->mkTerm(cvc4_kind,
-                                             cvc4_opterm,
+      cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm,
                                              get_cvc4_term(args[0]),
                                              get_cvc4_term(args[1]),
                                              get_cvc4_term(args[2]))
@@ -310,7 +304,7 @@ CVC4Solver::mk_term(const OpKind& kind,
       assert(n_args == SMTMBT_MK_TERM_N_ARGS || n_args > 3);
       std::vector<CVC4::api::Term> cvc4_args;
       for (Term t : args) cvc4_args.push_back(get_cvc4_term(t));
-      cvc4_res = n_params ? d_solver->mkTerm(cvc4_kind, cvc4_opterm, cvc4_args)
+      cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm, cvc4_args)
                           : d_solver->mkTerm(cvc4_kind, cvc4_args);
   }
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
@@ -405,14 +399,6 @@ CVC4Solver::init_op_kinds()
       {OP_BV_SLE, CVC4::api::Kind::BITVECTOR_SLE},
       {OP_BV_SGT, CVC4::api::Kind::BITVECTOR_SGT},
       {OP_BV_SGE, CVC4::api::Kind::BITVECTOR_SGE},
-  };
-  d_op_kinds = {
-      {OP_BV_EXTRACT, CVC4::api::Kind::BITVECTOR_EXTRACT_OP},
-      {OP_BV_REPEAT, CVC4::api::Kind::BITVECTOR_REPEAT_OP},
-      {OP_BV_ROTATE_LEFT, CVC4::api::Kind::BITVECTOR_ROTATE_LEFT_OP},
-      {OP_BV_ROTATE_RIGHT, CVC4::api::Kind::BITVECTOR_ROTATE_RIGHT_OP},
-      {OP_BV_SIGN_EXTEND, CVC4::api::Kind::BITVECTOR_SIGN_EXTEND_OP},
-      {OP_BV_ZERO_EXTEND, CVC4::api::Kind::BITVECTOR_ZERO_EXTEND_OP},
   };
 }
 
