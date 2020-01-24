@@ -275,29 +275,74 @@ CVC4Solver::mk_term(const OpKind& kind,
       break;
 
     case 1:
-      cvc4_res = n_params
-                     ? d_solver->mkTerm(cvc4_opterm, get_cvc4_term(args[0]))
-                     : d_solver->mkTerm(cvc4_kind, get_cvc4_term(args[0]));
+      if (kind == OP_NOT && d_rng.flip_coin())
+      {
+        assert(!n_params);
+        cvc4_res = get_cvc4_term(args[0]).notTerm();
+      }
+      else
+      {
+        cvc4_res = n_params
+                       ? d_solver->mkTerm(cvc4_opterm, get_cvc4_term(args[0]))
+                       : d_solver->mkTerm(cvc4_kind, get_cvc4_term(args[0]));
+      }
       break;
 
     case 2:
-      cvc4_res =
-          n_params
-              ? d_solver->mkTerm(
-                  cvc4_opterm, get_cvc4_term(args[0]), get_cvc4_term(args[1]))
-              : d_solver->mkTerm(
-                  cvc4_kind, get_cvc4_term(args[0]), get_cvc4_term(args[1]));
+      if (kind == OP_AND && d_rng.flip_coin())
+      {
+        assert(!n_params);
+        cvc4_res = get_cvc4_term(args[0]).andTerm(get_cvc4_term(args[1]));
+      }
+      else if (kind == OP_OR && d_rng.flip_coin())
+      {
+        assert(!n_params);
+        cvc4_res = get_cvc4_term(args[0]).orTerm(get_cvc4_term(args[1]));
+      }
+      else if (kind == OP_XOR && d_rng.flip_coin())
+      {
+        assert(!n_params);
+        cvc4_res = get_cvc4_term(args[0]).xorTerm(get_cvc4_term(args[1]));
+      }
+      else if (kind == OP_EQUAL && d_rng.flip_coin())
+      {
+        assert(!n_params);
+        cvc4_res = get_cvc4_term(args[0]).eqTerm(get_cvc4_term(args[1]));
+      }
+      else if (kind == OP_IMPLIES && d_rng.flip_coin())
+      {
+        assert(!n_params);
+        cvc4_res = get_cvc4_term(args[0]).impTerm(get_cvc4_term(args[1]));
+      }
+      else
+      {
+        cvc4_res =
+            n_params
+                ? d_solver->mkTerm(
+                    cvc4_opterm, get_cvc4_term(args[0]), get_cvc4_term(args[1]))
+                : d_solver->mkTerm(
+                    cvc4_kind, get_cvc4_term(args[0]), get_cvc4_term(args[1]));
+      }
       break;
 
     case 3:
-      cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm,
-                                             get_cvc4_term(args[0]),
-                                             get_cvc4_term(args[1]),
-                                             get_cvc4_term(args[2]))
-                          : d_solver->mkTerm(cvc4_kind,
-                                             get_cvc4_term(args[0]),
-                                             get_cvc4_term(args[1]),
-                                             get_cvc4_term(args[2]));
+      if (kind == OP_ITE && d_rng.flip_coin())
+      {
+        assert(!n_params);
+        cvc4_res = get_cvc4_term(args[0]).iteTerm(get_cvc4_term(args[1]),
+                                                  get_cvc4_term(args[2]));
+      }
+      else
+      {
+        cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm,
+                                               get_cvc4_term(args[0]),
+                                               get_cvc4_term(args[1]),
+                                               get_cvc4_term(args[2]))
+                            : d_solver->mkTerm(cvc4_kind,
+                                               get_cvc4_term(args[0]),
+                                               get_cvc4_term(args[1]),
+                                               get_cvc4_term(args[2]));
+      }
       break;
 
     default:
