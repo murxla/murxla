@@ -815,6 +815,35 @@ class BtorActionResetAssumptions : public Action
   }
 };
 
+class BtorActionSimplify : public Action
+{
+ public:
+  BtorActionSimplify(SolverManager& smgr) : Action(smgr, "btor-simplify") {}
+
+  bool run() override
+  {
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    boolector_simplify(
+        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+
 void
 BtorSolver::configure_fsm(FSM& fsm) const
 {
@@ -835,6 +864,10 @@ BtorSolver::configure_fsm(FSM& fsm) const
   State* s_assert = fsm.get_state("assert");
   s_assert->add_action(t_default, 1, s_fix_reset_assumptions);
   s_fix_reset_assumptions->add_action(t_default, 100, s_assert);
+
+  // boolector_simplify
+  auto a_simplify = fsm.new_action<BtorActionSimplify>();
+  fsm.add_action_to_all_states(a_simplify, 1);
 }
 
 }  // namespace btor

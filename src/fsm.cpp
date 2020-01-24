@@ -974,6 +974,18 @@ FSM::configure()
   set_init_state(s_new);
 
   d_smgr.get_solver().configure_fsm(*this);
+
+  for (const auto& t : d_actions_all_states)
+  {
+    for (const auto& s : d_states)
+    {
+      std::unordered_set<std::string> excluded_states = std::get<2>(t);
+      if (excluded_states.find(s->get_id()) == excluded_states.end())
+      {
+        s->add_action(std::get<0>(t), std::get<1>(t));
+      }
+    }
+  }
 }
 
 /* ========================================================================== */

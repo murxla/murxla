@@ -145,6 +145,13 @@ class FSM
   template <class T>
   T* new_action();
 
+  /** Add given action to all configured states. */
+  template <class T>
+  void add_action_to_all_states(
+      T* action,
+      uint32_t weight,
+      std::unordered_set<std::string> excluded_states = {});
+
   /** Set given state as initial state. */
   void set_init_state(State* init_state);
   /** Check configured states for unreachable states and infinite loops. */
@@ -163,6 +170,8 @@ class FSM
   RNGenerator& d_rng;
   std::vector<std::unique_ptr<State>> d_states;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
+  std::vector<std::tuple<Action*, uint32_t, std::unordered_set<std::string>>>
+      d_actions_all_states;
   State* d_init_state = nullptr;
   State* d_cur_state  = nullptr;
 };
@@ -184,6 +193,17 @@ FSM::new_action()
     delete action;
   }
   return static_cast<T*>(d_actions[id].get());
+}
+
+template <class T>
+void
+FSM::add_action_to_all_states(T* action,
+                              uint32_t weight,
+                              std::unordered_set<std::string> excluded_states)
+{
+  d_actions_all_states.push_back(
+      std::tuple<Action*, uint32_t, std::unordered_set<std::string>>(
+          action, weight, excluded_states));
 }
 
 }  // namespace smtmbt
