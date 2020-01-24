@@ -122,25 +122,40 @@ class FSM
     SolverManager& d_smgr;
   };
 
+  /** Constructor. */
   FSM(RNGenerator& rng,
       Solver* solver,
       std::ostream& trace,
       SolverOptions& options);
 
+  /** Default constructor is disabled. */
   FSM() = delete;
 
+  /**
+   * Create and add a new state.
+   * id      : A unique string identifying the state.
+   * fun     : The precondition for transitioning to the next state.
+   * is_final: True if this is the final state.
+   */
   State* new_state(std::string id                = "",
                    std::function<bool(void)> fun = nullptr,
                    bool is_final                 = false);
 
+  /** Create new action of given type T. */
   template <class T>
   T* new_action();
 
+  /** Set given state as initial state. */
   void set_init_state(State* init_state);
+  /** Check configured states for unreachable states and infinite loops. */
   void check_states();
+  /** Get state with given id. */
   State* get_state(const std::string& id);
+  /** Run state machine. */
   void run();
+  /** Configure state machine with base configuration. */
   void configure();
+  /** Replay given trace. */
   void untrace(std::ifstream& trace);
 
  private:
