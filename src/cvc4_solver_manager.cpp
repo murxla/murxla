@@ -821,30 +821,6 @@ class CVC4ActionSolverGetStringSort : public CVC4Action
 
 // TODO Term Solver::mkVar(Sort sort, const std::string& symbol) const;
 
-// Term Solver::simplify(const Term& t);
-class CVC4ActionSolverSimplify : public CVC4Action
-{
- public:
-  CVC4ActionSolverSimplify(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "solverSimplify")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    Solver* cvc4 = d_smgr->get_solver();
-    assert(cvc4);
-    if (!d_smgr->has_term()) return false;
-    TheoryId theory = d_smgr->pick_theory_with_terms();
-    Term term       = d_smgr->pick_term(theory);
-    Term res        = cvc4->simplify(term);
-    d_smgr->add_input(res, theory);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
-
 // TODO Term Solver::declareConst(const std::string& symbol, Sort sort) const;
 // TODO Sort Solver::declareDatatype( const std::string& symbol, const std::vector<DatatypeConstructorDecl>& ctors) const;
 // TODO Term Solver::declareFun(const std::string& symbol, Sort sort) const;

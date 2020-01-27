@@ -532,8 +532,14 @@ class CVC4ActionSimplify : public Action
   void _run(Term term)
   {
     SMTMBT_TRACE << get_id() << " " << term;
-    CVC4Solver& cvc4 = static_cast<CVC4Solver&>(d_smgr.get_solver());
-    cvc4.get_solver()->simplify(cvc4.get_cvc4_term(term));
+    CVC4Solver& solver       = static_cast<CVC4Solver&>(d_smgr.get_solver());
+    CVC4::api::Solver* cvc4  = solver.get_solver();
+    CVC4::api::Term cvc4_res = cvc4->simplify(solver.get_cvc4_term(term));
+    assert (!cvc4_res.isNull());
+    std::shared_ptr<CVC4Term> res(new CVC4Term(cvc4, cvc4_res));
+    Sort sort = term->get_sort();
+    assert (sort != nullptr);
+    d_smgr.add_term(res, sort, sort->get_kind());
   }
 };
 
