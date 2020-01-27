@@ -12,6 +12,7 @@
 #define SMTMBT_LEN_SYMBOL_MAX 128
 
 #define SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT 5
+#define SMTMBT_MAX_N_PUSH_LEVELS 5
 
 /* -------------------------------------------------------------------------- */
 
@@ -181,14 +182,6 @@ class ActionNew : public Action
   {
     if (d_solver.is_initialized()) d_solver.delete_solver();
     _run();
-    //
-    //    //////
-    //    // TODO we will need a state to (randomly) select/configure options
-    //    /* Enable/disable incremental solving. */
-    //    bool inc = d_rng.flip_coin();
-    //    d_smgr->set_incremental(inc);
-    //    cvc4->setOption("incremental", inc ? "true" : "false");
-    //    //////
     return true;
   }
 
@@ -242,9 +235,20 @@ class ActionSetOption : public Action
   bool run() override
   {
     std::string opt, value;
+
+    // TODO picking options like below doesn't work yet because we don't
+    //      have option models yet
+    // TODO for now we only set incremental here (we might want to have some
+    //      special handling for several special options anyways)
+    /* Enable/disable incremental solving. */
+    opt   = d_solver.get_option_name_incremental();
+    value = d_rng.flip_coin() ? "true" : "false";
+#if 0
     std::tie(opt, value) = d_smgr.pick_option();
     if (opt.empty()) /* No option available */
       return false;
+#endif
+
     _run(opt, value);
     return true;
   }
@@ -261,11 +265,11 @@ class ActionSetOption : public Action
   {
     SMTMBT_TRACE << get_id() << " " << opt << " " << value;
     d_solver.set_opt(opt, value);
-    if (opt == d_solver.get_incremental_option_name())
+    if (opt == d_solver.get_option_name_incremental())
     {
       d_smgr.d_incremental = value == "true";
     }
-    else if (opt == d_solver.get_incremental_option_name())
+    else if (opt == d_solver.get_option_name_incremental())
     {
       d_smgr.d_model_gen = value == "true";
     }
@@ -894,6 +898,34 @@ class ActionCheckSatAssuming : public Action
   }
 };
 
+class ActionPush : public Action
+{
+ public:
+  ActionPush(SolverManager& smgr) : Action(smgr, "push") {}
+
+  bool run() override
+  {
+    uint32_t n_levels = d_rng.pick_uint32(1, SMTMBT_MAX_N_PUSH_LEVELS);
+    _run(n_levels);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 1);
+    uint32_t n_levels = str_to_uint32(tokens[0]);
+    _run(n_levels);
+    return 0;
+  }
+
+ private:
+  void _run(uint32_t n_levels)
+  {
+    SMTMBT_TRACE << get_id() << " " << n_levels;
+    d_solver.push(n_levels);
+  }
+};
+
 /* ========================================================================== */
 /* Configure default FSM                                                      */
 /* ========================================================================== */
@@ -917,6 +949,7 @@ FSM::configure()
   auto a_assert  = new_action<ActionAssertFormula>();
   auto a_sat     = new_action<ActionCheckSat>();
   auto a_sat_ass = new_action<ActionCheckSatAssuming>();
+  auto a_push    = new_action<ActionPush>();
 
   auto a_setoption = new_action<ActionSetOption>();
 
@@ -932,14 +965,17 @@ FSM::configure()
   auto s_delete = new_state("delete");
   auto s_final  = new_state("final", nullptr, true);
 
-  auto s_inputs = new_state("create inputs");
+  auto s_inputs = new_state("create_inputs");
   auto s_terms =
-      new_state("create terms", [this]() { return d_smgr.has_term(); });
+      new_state("create_terms", [this]() { return d_smgr.has_term(); });
 
   auto s_assert =
       new_state("assert", [this]() { return d_smgr.has_term(SORT_BOOL); });
 
-  auto s_sat = new_state("check sat");
+  auto s_sat = new_state("check_sat");
+
+  auto s_push_pop =
+      new_state("push_pop", [this]() { return d_smgr.d_incremental; });
 
   /* --------------------------------------------------------------------- */
   /* Transitions                                                           */
@@ -958,20 +994,31 @@ FSM::configure()
   s_inputs->add_action(a_mkconst, 20);
   s_inputs->add_action(t_inputs, 20, s_terms);
   s_inputs->add_action(t_inputs, 1, s_sat);
+  s_inputs->add_action(t_inputs, 1, s_push_pop);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 20);
   s_terms->add_action(t_default, 20, s_assert);
   s_terms->add_action(t_default, 1, s_sat);
+  s_terms->add_action(t_inputs, 1, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
   s_assert->add_action(a_assert, 10);
   s_assert->add_action(t_default, 1, s_delete);
   s_assert->add_action(t_default, 10, s_sat);
+  s_assert->add_action(t_inputs, 1, s_push_pop);
 
   /* State: check sat .................................................... */
   s_sat->add_action(a_sat, 10, s_delete);
   s_sat->add_action(a_sat_ass, 10, s_delete);
+  s_sat->add_action(t_inputs, 1, s_push_pop);
+
+  s_push_pop->add_action(a_push, 10);
+  s_push_pop->add_action(t_default, 10, s_inputs);
+  s_push_pop->add_action(t_default, 10, s_terms);
+  s_push_pop->add_action(t_default, 10, s_assert);
+  s_push_pop->add_action(t_default, 10, s_sat);
+  s_push_pop->add_action(t_default, 5, s_delete);
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 10, s_final);

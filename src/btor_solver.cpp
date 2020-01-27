@@ -635,6 +635,13 @@ BtorSolver::check_sat_assuming(std::vector<Term>& assumptions) const
   assert(res == BOOLECTOR_UNKNOWN);
   return Result::UNKNOWN;
 }
+
+void
+BtorSolver::push(uint32_t n_levels) const
+{
+  boolector_push(d_solver, n_levels);
+}
+
 /* -------------------------------------------------------------------------- */
 
 BoolectorSort
@@ -711,21 +718,41 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value) const
   assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
 
   /* Boolector options are all integer values */
-  BtorOption option = d_option_name_to_enum.at(opt);
-  uint32_t val      = std::stoul(value);
-  boolector_set_opt(d_solver, option, val);
+  uint32_t val = 0;
+
+  if (value == "true")
+  {
+    val = 1;
+  }
+  else if (value != "false")
+  {
+    val = std::stoul(value);
+  }
+  boolector_set_opt(d_solver, d_option_name_to_enum.at(opt), val);
 }
 
 std::string
-BtorSolver::get_incremental_option_name() const
+BtorSolver::get_option_name_incremental() const
 {
   return boolector_get_opt_lng(d_solver, BTOR_OPT_INCREMENTAL);
 }
 
 std::string
-BtorSolver::get_modelgen_option_name() const
+BtorSolver::get_option_name_model_gen() const
 {
   return boolector_get_opt_lng(d_solver, BTOR_OPT_MODEL_GEN);
+}
+
+void
+BtorSolver::set_option_incremental(bool value) const
+{
+  boolector_set_opt(d_solver, BTOR_OPT_INCREMENTAL, value ? 1 : 0);
+}
+
+void
+BtorSolver::set_options_model_gen(bool value) const
+{
+  boolector_set_opt(d_solver, BTOR_OPT_MODEL_GEN, value ? 1 : 0);
 }
 
 /* -------------------------------------------------------------------------- */

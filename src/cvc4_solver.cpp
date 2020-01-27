@@ -429,16 +429,34 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
   return Result::UNKNOWN;
 }
 
+void
+CVC4Solver::push(uint32_t n_levels) const
+{
+  d_solver->push(n_levels);
+}
+
 std::string
-CVC4Solver::get_incremental_option_name() const
+CVC4Solver::get_option_name_incremental() const
 {
   return "incremental";
 }
 
 std::string
-CVC4Solver::get_modelgen_option_name() const
+CVC4Solver::get_option_name_model_gen() const
 {
   return "produce-models";
+}
+
+void
+CVC4Solver::set_option_incremental(bool value) const
+{
+  d_solver->setOption("incremental", value ? "true" : "false");
+}
+
+void
+CVC4Solver::set_options_model_gen(bool value) const
+{
+  d_solver->setOption("produce-models", value ? "true" : "false");
 }
 
 /* -------------------------------------------------------------------------- */

@@ -36,6 +36,7 @@ SolverManager::clear()
   d_sorts.clear();
   d_sort_kind_to_sorts.clear();
   d_terms.clear();
+  d_assumptions.clear();
 }
 
 /* -------------------------------------------------------------------------- */

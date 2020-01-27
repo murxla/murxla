@@ -85,23 +85,42 @@ class State
   friend class FSM;
 
  public:
+  /** Default constructor. */
   State() : d_id(""), d_is_final(false) {}
+  /** Constructor. */
   State(std::string& id, std::function<bool(void)> fun, bool is_final)
       : d_id(id), d_is_final(is_final), f_precond(fun)
   {
   }
 
+  /** Returns the identifier of this state. */
   const std::string& get_id() { return d_id; }
+  /** Returns true if state is a final state. */
   bool is_final() { return d_is_final; }
+
+  /** Runs actions associated with this state. */
   State* run(RNGenerator& rng);
+
+  /**
+   * Add action to this state.
+   * action: The action to add.
+   * weight: The weight of the action, determines the probability to choose
+   *         running the action.
+   * next  : The state to transition into after running the action. Optional,
+   *         if not set, we stay in the current state.
+   */
   void add_action(Action* action, uint32_t weight, State* next = nullptr);
-  void set_precondition();
 
  private:
+  /* A unique string identifying the state. */
   std::string d_id;
+  /* True if state is a final state. */
   bool d_is_final;
+  /* A function defining the precondition for entering the state. */
   std::function<bool(void)> f_precond;
+  /* The actions that can be performed in this state. */
   std::vector<ActionTuple> d_actions;
+  /* The weights of the actions associated with this state. */
   std::vector<uint32_t> d_weights;
 };
 

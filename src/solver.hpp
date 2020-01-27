@@ -163,6 +163,7 @@ class Solver
 
   virtual Result check_sat() const = 0;
   virtual Result check_sat_assuming(std::vector<Term>& assumptions) const = 0;
+  virtual void push(uint32_t n_levels) const                              = 0;
 
   const std::vector<Base>& get_bases() const;
   const std::vector<SpecialValueBV>& get_special_values_bv() const;
@@ -170,8 +171,10 @@ class Solver
   virtual void set_opt(const std::string& opt,
                        const std::string& value) const = 0;
 
-  virtual std::string get_incremental_option_name() const = 0;
-  virtual std::string get_modelgen_option_name() const    = 0;
+  virtual std::string get_option_name_incremental() const = 0;
+  virtual std::string get_option_name_model_gen() const   = 0;
+  virtual void set_option_incremental(bool value) const   = 0;
+  virtual void set_options_model_gen(bool value) const    = 0;
 
   //
   // get_model()

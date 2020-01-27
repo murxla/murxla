@@ -79,8 +79,10 @@ class BtorSolver : public Solver
 
   void set_opt(const std::string& opt, const std::string& value) const override;
 
-  std::string get_incremental_option_name() const override;
-  std::string get_modelgen_option_name() const override;
+  std::string get_option_name_incremental() const override;
+  std::string get_option_name_model_gen() const override;
+  void set_option_incremental(bool value) const override;
+  void set_options_model_gen(bool value) const override;
 
   Term mk_var(Sort sort, const std::string name) const override
   {  // TODO:
@@ -123,6 +125,8 @@ class BtorSolver : public Solver
 
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
+
+  void push(uint32_t n_levels) const override;
 
   //
   // get_model()
