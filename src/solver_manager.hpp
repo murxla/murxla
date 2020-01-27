@@ -96,6 +96,11 @@ class SolverManager
    */
   Term pick_term(SortKind sort_kind);
   /**
+   * Pick any term.
+   * Requires that terms of any sort kind exist.
+   */
+  Term pick_term();
+  /**
    * Pick term of Bool SortKind SORT_BOOL and add it to asssumptions list.
    * Requires that terms of SortKind SORT_BOOL exist.
    */

@@ -3,6 +3,8 @@
 #include <cassert>
 
 #include "cvc4/api/cvc4cpp.h"
+#include "theory.hpp"
+#include "util.hpp"
 
 using namespace CVC4;
 
@@ -123,6 +125,12 @@ CVC4Solver::delete_solver()
   assert(d_solver != nullptr);
   delete d_solver;
   d_solver = nullptr;
+}
+
+CVC4::api::Solver*
+CVC4Solver::get_solver()
+{
+  return d_solver;
 }
 
 bool
@@ -494,5 +502,49 @@ CVC4Solver::get_cvc4_term(Term term) const
   return static_cast<CVC4Term*>(term.get())->d_term;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Solver-specific actions, FSM configuration. */
+/* -------------------------------------------------------------------------- */
+
+class CVC4ActionSimplify : public Action
+{
+ public:
+  CVC4ActionSimplify(SolverManager& smgr) : Action(smgr, "cvc4-simplify") {}
+
+  bool run() override
+  {
+    if (!d_smgr.has_term()) return false;
+    Term term = d_smgr.pick_term();
+    _run(term);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 1);
+    Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
+    assert(term != nullptr);
+    _run(term);
+    return 0;
+  }
+
+ private:
+  void _run(Term term)
+  {
+    SMTMBT_TRACE << get_id() << " " << term;
+    CVC4Solver& cvc4 = static_cast<CVC4Solver&>(d_smgr.get_solver());
+    cvc4.get_solver()->simplify(cvc4.get_cvc4_term(term));
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+
+void
+CVC4Solver::configure_fsm(FSM& fsm) const
+{
+  // Solver::simplify(const Term& term)
+  auto a_simplify = fsm.new_action<CVC4ActionSimplify>();
+  fsm.add_action_to_all_states(a_simplify, 1, {"new", "delete"});
+}
 }  // namespace btor
 }  // namespace smtmbt

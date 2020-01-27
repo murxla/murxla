@@ -3,10 +3,10 @@
 #ifndef __SMTMBT__BTOR_SOLVER_H
 #define __SMTMBT__BTOR_SOLVER_H
 
+#include "boolector/boolector.h"
+#include "fsm.hpp"
 #include "solver.hpp"
 #include "theory.hpp"
-
-#include "boolector/boolector.h"
 
 extern "C" {
 struct Btor;
@@ -75,7 +75,7 @@ class BtorSolver : public Solver
 
   TheoryIdVector get_supported_theories() const override;
   OpKindSet get_unsupported_op_kinds() const override;
-  void configure_fsm(FSM& fsm) const;
+  void configure_fsm(FSM& fsm) const override;
 
   Term mk_var(Sort sort, const std::string name) const override
   {  // TODO:

@@ -218,6 +218,14 @@ SolverManager::pick_term(SortKind sort_kind)
 }
 
 Term
+SolverManager::pick_term()
+{
+  assert(has_sort());
+  SortKind sort_kind = pick_sort_kind();
+  return pick_term(sort_kind);
+}
+
+Term
 SolverManager::pick_assumption()
 {
   assert(has_term(SORT_BOOL));

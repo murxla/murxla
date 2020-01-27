@@ -3,9 +3,9 @@
 #ifndef __SMTMBT__CVC4_SOLVER_H
 #define __SMTMBT__CVC4_SOLVER_H
 
-#include "solver.hpp"
-
 #include "cvc4/api/cvc4cpp.h"
+#include "fsm.hpp"
+#include "solver.hpp"
 
 namespace smtmbt {
 namespace cvc4 {
@@ -66,7 +66,12 @@ class CVC4Solver : public Solver
 
   void delete_solver() override;
 
+  CVC4::api::Solver* get_solver();
+  CVC4::api::Term& get_cvc4_term(Term term) const;
+
   bool is_initialized() const override;
+
+  void configure_fsm(FSM& fsm) const override;
 
   void set_opt(const std::string& opt, const std::string& value) const override
   {  // TODO:
@@ -122,7 +127,6 @@ class CVC4Solver : public Solver
  private:
   void init_op_kinds();
   CVC4::api::Sort& get_cvc4_sort(Sort sort) const;
-  CVC4::api::Term& get_cvc4_term(Term term) const;
 
   CVC4::api::Solver* d_solver;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_kinds;

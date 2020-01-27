@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#include "fsm.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
