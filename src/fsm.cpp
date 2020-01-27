@@ -852,6 +852,7 @@ class ActionCheckSatAssuming : public Action
 
   bool run() override
   {
+    if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_term(SORT_BOOL)) return false;
     uint32_t n_assumptions =
         d_rng.pick_uint32(1, SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT);
