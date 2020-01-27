@@ -435,6 +435,12 @@ CVC4Solver::push(uint32_t n_levels) const
   d_solver->push(n_levels);
 }
 
+void
+CVC4Solver::pop(uint32_t n_levels) const
+{
+  d_solver->pop(n_levels);
+}
+
 std::string
 CVC4Solver::get_option_name_incremental() const
 {

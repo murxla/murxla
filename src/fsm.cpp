@@ -923,6 +923,37 @@ class ActionPush : public Action
   {
     SMTMBT_TRACE << get_id() << " " << n_levels;
     d_solver.push(n_levels);
+    d_smgr.d_n_push_levels += n_levels;
+  }
+};
+
+class ActionPop : public Action
+{
+ public:
+  ActionPop(SolverManager& smgr) : Action(smgr, "pop") {}
+
+  bool run() override
+  {
+    if (d_smgr.d_n_push_levels == 0) return false;
+    uint32_t n_levels = d_rng.pick_uint32(1, d_smgr.d_n_push_levels);
+    _run(n_levels);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 1);
+    uint32_t n_levels = str_to_uint32(tokens[0]);
+    _run(n_levels);
+    return 0;
+  }
+
+ private:
+  void _run(uint32_t n_levels)
+  {
+    SMTMBT_TRACE << get_id() << " " << n_levels;
+    d_solver.pop(n_levels);
+    d_smgr.d_n_push_levels -= n_levels;
   }
 };
 
@@ -950,6 +981,7 @@ FSM::configure()
   auto a_sat     = new_action<ActionCheckSat>();
   auto a_sat_ass = new_action<ActionCheckSatAssuming>();
   auto a_push    = new_action<ActionPush>();
+  auto a_pop     = new_action<ActionPop>();
 
   auto a_setoption = new_action<ActionSetOption>();
 
@@ -1013,12 +1045,17 @@ FSM::configure()
   s_sat->add_action(a_sat_ass, 10, s_delete);
   s_sat->add_action(t_inputs, 1, s_push_pop);
 
-  s_push_pop->add_action(a_push, 10);
-  s_push_pop->add_action(t_default, 10, s_inputs);
-  s_push_pop->add_action(t_default, 10, s_terms);
-  s_push_pop->add_action(t_default, 10, s_assert);
-  s_push_pop->add_action(t_default, 10, s_sat);
-  s_push_pop->add_action(t_default, 5, s_delete);
+  /* State: push_pop ..................................................... */
+  s_push_pop->add_action(a_push, 10, s_inputs);
+  s_push_pop->add_action(a_push, 10, s_terms);
+  s_push_pop->add_action(a_push, 10, s_assert);
+  s_push_pop->add_action(a_push, 10, s_sat);
+  s_push_pop->add_action(a_push, 5, s_delete);
+  s_push_pop->add_action(a_pop, 10, s_inputs);
+  s_push_pop->add_action(a_pop, 10, s_terms);
+  s_push_pop->add_action(a_pop, 10, s_assert);
+  s_push_pop->add_action(a_pop, 10, s_sat);
+  s_push_pop->add_action(a_pop, 5, s_delete);
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 10, s_final);

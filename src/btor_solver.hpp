@@ -127,6 +127,7 @@ class BtorSolver : public Solver
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
 
   void push(uint32_t n_levels) const override;
+  void pop(uint32_t n_levels) const override;
 
   //
   // get_model()

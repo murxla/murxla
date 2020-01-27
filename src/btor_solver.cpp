@@ -642,6 +642,12 @@ BtorSolver::push(uint32_t n_levels) const
   boolector_push(d_solver, n_levels);
 }
 
+void
+BtorSolver::pop(uint32_t n_levels) const
+{
+  boolector_pop(d_solver, n_levels);
+}
+
 /* -------------------------------------------------------------------------- */
 
 BoolectorSort

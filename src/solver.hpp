@@ -163,7 +163,9 @@ class Solver
 
   virtual Result check_sat() const = 0;
   virtual Result check_sat_assuming(std::vector<Term>& assumptions) const = 0;
-  virtual void push(uint32_t n_levels) const                              = 0;
+
+  virtual void push(uint32_t n_levels) const = 0;
+  virtual void pop(uint32_t n_levels) const  = 0;
 
   const std::vector<Base>& get_bases() const;
   const std::vector<SpecialValueBV>& get_special_values_bv() const;

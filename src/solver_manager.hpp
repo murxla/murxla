@@ -173,6 +173,9 @@ class SolverManager
   /** True if model generation is enabled. */
   bool d_model_gen = false;
 
+  /** The number of scope levels previously pushed. */
+  uint32_t d_n_push_levels = 0;
+
   /**
    * True if a previous check-sat call is still 'active', i.e., if no formulas
    * have been asserted or assumed since.

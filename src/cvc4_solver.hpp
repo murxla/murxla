@@ -124,6 +124,8 @@ class CVC4Solver : public Solver
 
   void push(uint32_t n_levels) const override;
 
+  void pop(uint32_t n_levels) const override;
+
   //
   // get_model()
   // get_value()
