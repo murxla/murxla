@@ -429,6 +429,18 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
   return Result::UNKNOWN;
 }
 
+std::string
+CVC4Solver::get_incremental_option_name() const
+{
+  return "incremental";
+}
+
+std::string
+CVC4Solver::get_modelgen_option_name() const
+{
+  return "produce-models";
+}
+
 /* -------------------------------------------------------------------------- */
 
 void

@@ -170,6 +170,9 @@ class Solver
   virtual void set_opt(const std::string& opt,
                        const std::string& value) const = 0;
 
+  virtual std::string get_incremental_option_name() const = 0;
+  virtual std::string get_modelgen_option_name() const    = 0;
+
   //
   // get_model()
   // get_value()

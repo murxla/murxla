@@ -261,6 +261,14 @@ class ActionSetOption : public Action
   {
     SMTMBT_TRACE << get_id() << " " << opt << " " << value;
     d_solver.set_opt(opt, value);
+    if (opt == d_solver.get_incremental_option_name())
+    {
+      d_smgr.d_incremental = value == "true";
+    }
+    else if (opt == d_solver.get_incremental_option_name())
+    {
+      d_smgr.d_model_gen = value == "true";
+    }
   }
 };
 

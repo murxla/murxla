@@ -77,6 +77,9 @@ class CVC4Solver : public Solver
   {  // TODO:
   }
 
+  std::string get_incremental_option_name() const override;
+  std::string get_modelgen_option_name() const override;
+
   Term mk_var(Sort sort, const std::string name) const override
   {  // TODO:
     return nullptr;

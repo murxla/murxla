@@ -170,6 +170,8 @@ class SolverManager
 
   /** True if incremental solving is enabled. */
   bool d_incremental = false;
+  /** True if model generation is enabled. */
+  bool d_model_gen = false;
 
   /**
    * True if a previous check-sat call is still 'active', i.e., if no formulas

@@ -716,6 +716,18 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value) const
   boolector_set_opt(d_solver, option, val);
 }
 
+std::string
+BtorSolver::get_incremental_option_name() const
+{
+  return boolector_get_opt_lng(d_solver, BTOR_OPT_INCREMENTAL);
+}
+
+std::string
+BtorSolver::get_modelgen_option_name() const
+{
+  return boolector_get_opt_lng(d_solver, BTOR_OPT_MODEL_GEN);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Solver-specific actions, FSM configuration. */
 /* -------------------------------------------------------------------------- */

@@ -77,6 +77,11 @@ class BtorSolver : public Solver
   OpKindSet get_unsupported_op_kinds() const override;
   void configure_fsm(FSM& fsm) const override;
 
+  void set_opt(const std::string& opt, const std::string& value) const override;
+
+  std::string get_incremental_option_name() const override;
+  std::string get_modelgen_option_name() const override;
+
   Term mk_var(Sort sort, const std::string name) const override
   {  // TODO:
     return nullptr;
@@ -118,8 +123,6 @@ class BtorSolver : public Solver
 
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
-
-  void set_opt(const std::string& opt, const std::string& value) const override;
 
   //
   // get_model()
