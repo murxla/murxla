@@ -75,9 +75,6 @@ class BtorActionNoneCreateInputs : public BtorAction
 // void boolector_print_stats (Btor *btor);
 // void boolector_set_trapi (Btor *btor, FILE *apitrace);
 // FILE *boolector_get_trapi (Btor *btor);
-// void boolector_push (Btor *btor, uint32_t level);
-// void boolector_pop (Btor *btor, uint32_t level);
-// void boolector_assume (Btor *btor, BoolectorNode *node);
 // bool boolector_failed (Btor *btor, BoolectorNode *node);
 // BoolectorNode **boolector_get_failed_assumptions (Btor *btor);
 
@@ -88,10 +85,8 @@ class BtorActionNoneCreateInputs : public BtorAction
 // uint32_t boolector_get_opt_min (Btor *btor, BtorOption opt);
 // uint32_t boolector_get_opt_max (Btor *btor, BtorOption opt);
 // uint32_t boolector_get_opt_dflt (Btor *btor, BtorOption opt);
-// const char *boolector_get_opt_lng (Btor *btor, BtorOption opt);
 // const char *boolector_get_opt_shrt (Btor *btor, BtorOption opt);
 // const char *boolector_get_opt_desc (Btor *btor, BtorOption opt);
-// bool boolector_has_opt (Btor *Btor, BtorOption opt);
 // BtorOption boolector_first_opt (Btor *btor);
 // BtorOption boolector_next_opt (Btor *btor, BtorOption opt);
 // BoolectorNode *boolector_copy (Btor *btor, BoolectorNode *node);

@@ -840,32 +840,7 @@ class CVC4ActionSolverGetStringSort : public CVC4Action
 // TODO std::vector<Term> Solver::getUnsatCore() const;
 // TODO Term Solver::getValue(Term term) const;
 // TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
-// TODO void Solver::pop(uint32_t nscopes = 1) const;
 // TODO void Solver::printModel(std::ostream& out) const;
-
-// void Solver::push(uint32_t nscopes = 1) const;
-class CVC4ActionSolverPush : public CVC4Action
-{
- public:
-  CVC4ActionSolverPush(CVC4SolverManagerBase* smgr)
-      : CVC4Action(smgr, "solverPush")
-  {
-  }
-
-  bool run() override
-  {
-    SMTMBT_TRACE << get_id();
-    RNGenerator& rng = d_smgr->get_rng();
-    Solver* cvc4     = d_smgr->get_solver();
-    if (cvc4->getOption("incremental") == "false") return false;
-    assert(cvc4);
-    uint32_t n = rng.pick_uint32(SMTMBT_CVC4_NPUSH_MIN, SMTMBT_CVC4_NPUSH_MAX);
-    cvc4->push(n);
-    d_smgr->push_nscopes(n);
-    return true;
-  }
-  // void untrace(const char* s) override;
-};
 
 // TODO void Solver::reset() const;
 // TODO void Solver::resetAssertions() const;
