@@ -14,56 +14,6 @@ namespace btor {
 
 #if 0
 
-/* -------------------------------------------------------------------------- */
-
-class BtorAction : public Action
-{
- public:
-  BtorAction(BtorSolverManagerBase* smgr, const std::string& id)
-      : Action(smgr->get_rng(), id),
-        d_smgr(static_cast<BtorSolverManager*>(smgr))
-  {
-  }
-
- protected:
-  BtorSolverManager* d_smgr;
-};
-
-/* -------------------------------------------------------------------------- */
-
-/* Transition-only actions (these actions are only used to make transitions
- * without executing any action). */
-
-/**
- * Default transition action (no condition checked).
- *
- * State:      any state if applicable
- * Transition: unconditional
- */
-class BtorActionNone : public BtorAction
-{
- public:
-  BtorActionNone(BtorSolverManagerBase* smgr) : BtorAction(smgr, "") {}
-  bool run() override { return true; }
-};
-
-/**
- * Transition from creating inputs to the next state.
- *
- * State:      create inputs
- * Transition: if there exists at least one input
- */
-class BtorActionNoneCreateInputs : public BtorAction
-{
- public:
-  BtorActionNoneCreateInputs(BtorSolverManagerBase* smgr) : BtorAction(smgr, "")
-  {
-  }
-  bool run() override { return d_smgr->d_stats.inputs > 0; }
-};
-
-/* -------------------------------------------------------------------------- */
-
 // Btor *boolector_clone (Btor *btor);
 // void boolector_set_term (Btor *btor, int32_t (*fun) (void *), void *state);
 // int32_t boolector_terminate (Btor *btor);

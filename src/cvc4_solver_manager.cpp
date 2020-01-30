@@ -32,55 +32,6 @@ namespace cvc4 {
 #define SMTMBT_CVC4_BV_ROTATE_N_MAX 32
 
 /* -------------------------------------------------------------------------- */
-
-class CVC4Action : public Action
-{
- public:
-  CVC4Action(CVC4SolverManagerBase* smgr, const std::string& id)
-      : Action(smgr->get_rng(), id),
-        d_smgr(static_cast<CVC4SolverManager*>(smgr))
-  {
-  }
-
- protected:
-  CVC4SolverManager* d_smgr;
-};
-
-/* -------------------------------------------------------------------------- */
-
-/* Transition-only actions (these actions are only used to make transitions
- * without executing any action). */
-
-/**
- * Default transition action (no condition checked).
- *
- * State:      any state if applicable
- * Transition: unconditional
- */
-class CVC4ActionNone : public CVC4Action
-{
- public:
-  CVC4ActionNone(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "") {}
-  bool run() override { return true; }
-};
-
-/**
- * Transition from creating inputs to the next state.
- *
- * State:      create inputs
- * Transition: if there exists at least one input
- */
-class CVC4ActionNoneCreateInputs : public CVC4Action
-{
- public:
-  CVC4ActionNoneCreateInputs(CVC4SolverManagerBase* smgr) : CVC4Action(smgr, "")
-  {
-  }
-  bool run() override { return d_smgr->d_stats.inputs > 0; }
-};
-
-/* -------------------------------------------------------------------------- */
-
 ////// Result
 // TODO bool Result::is_sat() const;
 // TODO bool Result::isUnsat() const;
