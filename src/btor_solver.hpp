@@ -75,6 +75,7 @@ class BtorSolver : public Solver
 
   TheoryIdVector get_supported_theories() const override;
   OpKindSet get_unsupported_op_kinds() const override;
+
   void configure_fsm(FSM& fsm) const override;
 
   void set_opt(const std::string& opt, const std::string& value) const override;
@@ -128,6 +129,8 @@ class BtorSolver : public Solver
 
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
+
+  std::vector<std::string> get_supported_sat_solvers();
 
   //
   // get_model()

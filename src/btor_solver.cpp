@@ -648,6 +648,12 @@ BtorSolver::pop(uint32_t n_levels) const
   boolector_pop(d_solver, n_levels);
 }
 
+std::vector<std::string>
+BtorSolver::get_supported_sat_solvers()
+{
+  return {"cadical", "cms", "lingeling", "minisat", "picosat"};
+}
+
 /* -------------------------------------------------------------------------- */
 
 BoolectorSort
@@ -886,32 +892,72 @@ class BtorActionSimplify : public Action
   }
 };
 
+class BtorActionSetSatSolver : public Action
+{
+ public:
+  BtorActionSetSatSolver(SolverManager& smgr)
+      : Action(smgr, "btor-set-sat-solver")
+  {
+  }
+
+  bool run() override
+  {
+    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    std::string sat_solver =
+        d_rng.pick_from_set<std::vector<std::string>, std::string>(
+            solver.get_supported_sat_solvers());
+    _run(sat_solver);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 1);
+    _run(tokens[0]);
+    return 0;
+  }
+
+ private:
+  void _run(std::string sat_solver)
+  {
+    SMTMBT_TRACE << get_id();
+    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    boolector_set_sat_solver(solver.get_solver(), sat_solver.c_str());
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
 BtorSolver::configure_fsm(FSM& fsm) const
 {
+  State* s_delete                = fsm.get_state("delete");
+  State* s_fix_reset_assumptions = fsm.new_state("btor-fix-reset-assumptions");
+  State* s_assert                = fsm.get_state("assert");
+  State* s_opt                   = fsm.get_state("opt");
+
   auto t_default = fsm.new_action<Transition>();
 
   // boolector_release_all
   auto a_release_all = fsm.new_action<BtorActionReleaseAll>();
-  State* s_delete    = fsm.get_state("delete");
   s_delete->add_action(a_release_all, 1);
 
   // boolector_fixate_assumptions
   // boolector_reset_assumptions
-  State* s_fix_reset_assumptions = fsm.new_state("btor-fix-reset-assumptions");
   auto a_fix_assumptions   = fsm.new_action<BtorActionFixateAssumptions>();
   auto a_reset_assumptions = fsm.new_action<BtorActionResetAssumptions>();
   s_fix_reset_assumptions->add_action(a_fix_assumptions, 10);
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 10);
-  State* s_assert = fsm.get_state("assert");
   s_assert->add_action(t_default, 1, s_fix_reset_assumptions);
   s_fix_reset_assumptions->add_action(t_default, 100, s_assert);
 
   // boolector_simplify
   auto a_simplify = fsm.new_action<BtorActionSimplify>();
   fsm.add_action_to_all_states(a_simplify, 1);
+
+  // boolector_set_sat_solver
+  auto a_set_sat_solver = fsm.new_action<BtorActionSetSatSolver>();
+  s_opt->add_action(a_set_sat_solver, 1);
 }
 
 }  // namespace btor
