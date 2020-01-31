@@ -4,3 +4,6 @@
 [submodule "solvers/cvc4"]
 	path = solvers/cvc4
 	url = https://github.com/CVC4/CVC4.git
+[submodule "traces"]
+	path = traces
+	url = git@gitlab.com:monkeyzoo/smtmbt-bugs.git
