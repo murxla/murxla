@@ -1157,6 +1157,7 @@ FSM::untrace(std::ifstream& trace)
   std::string line;
   while (std::getline(trace, line))
   {
+    if (line[0] == '#') continue;
     std::stringstream tokenstream(line);
     std::string token;
     std::string id;
