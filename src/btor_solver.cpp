@@ -184,6 +184,10 @@ BtorSolver::mk_const(Sort sort, const std::string name) const
   BoolectorNode* btor_res =
       boolector_var(d_solver, get_btor_sort(sort), name.c_str());
   assert(btor_res);
+  if (d_rng.pick_with_prob(100))
+  {
+    assert(!pick_fun_is_bv_const()(d_solver, btor_res));
+  }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
@@ -197,6 +201,17 @@ BtorSolver::mk_value(Sort sort, bool value) const
   BoolectorNode* btor_res =
       value ? boolector_true(d_solver) : boolector_false(d_solver);
   assert(btor_res);
+  if (d_rng.pick_with_prob(100))
+  {
+    if (value)
+    {
+      assert(check_one_is_bv_const(btor_res));
+    }
+    else
+    {
+      assert(check_zero_is_bv_const(btor_res));
+    }
+  }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
@@ -212,26 +227,32 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   BoolectorSort btor_sort = get_btor_sort(sort);
   uint32_t bw             = sort->get_bv_size();
   bool use_special_fun    = d_rng.flip_coin();
+  bool check              = d_rng.pick_with_prob(100);
 
   if (!use_special_fun && value == 0)
   {
     btor_res = boolector_zero(d_solver, btor_sort);
+    assert(!check || check_zero_is_bv_const(btor_res));
   }
   else if (use_special_fun && value == 1)
   {
     btor_res = boolector_one(d_solver, btor_sort);
+    assert(!check || check_one_is_bv_const(btor_res));
   }
   else if (use_special_fun && is_bv_special_value_ones_uint64(bw, value))
   {
     btor_res = boolector_ones(d_solver, btor_sort);
+    assert(!check || check_ones_is_bv_const(btor_res));
   }
   else if (use_special_fun && is_bv_special_value_min_signed_uint64(bw, value))
   {
     btor_res = boolector_min_signed(d_solver, btor_sort);
+    assert(!check || check_min_signed_is_bv_const(btor_res));
   }
   else if (use_special_fun && is_bv_special_value_max_signed_uint64(bw, value))
   {
     btor_res = boolector_max_signed(d_solver, btor_sort);
+    assert(!check || check_max_signed_is_bv_const(btor_res));
   }
   else
   {
@@ -779,6 +800,180 @@ void
 BtorSolver::set_options_model_gen(bool value) const
 {
   boolector_set_opt(d_solver, BTOR_OPT_MODEL_GEN, value ? 1 : 0);
+}
+
+/* -------------------------------------------------------------------------- */
+
+BtorSolver::BtorFunBoolUnary
+BtorSolver::pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const
+{
+  return d_rng.pick_from_set<BtorFunBoolUnaryVector, BtorFunBoolUnary>(funs);
+}
+
+BtorSolver::BtorFunBoolUnary
+BtorSolver::pick_fun_is_bv_const() const
+{
+  BtorFunBoolUnaryVector funs = {boolector_is_bv_const_zero,
+                                 boolector_is_bv_const_one,
+                                 boolector_is_bv_const_ones,
+                                 boolector_is_bv_const_max_signed,
+                                 boolector_is_bv_const_min_signed};
+  return pick_fun_bool_unary(funs);
+}
+
+bool
+BtorSolver::check_one_is_bv_const(BoolectorNode* node) const
+{
+  uint32_t bw = boolector_get_width(d_solver, node);
+  BtorFunBoolUnaryVector is_funs;
+  BtorFunBoolUnaryVector is_not_funs;
+
+  is_funs.push_back(boolector_is_bv_const_one);
+  if (bw > 1)
+  {
+    is_not_funs.push_back(boolector_is_bv_const_zero);
+    is_not_funs.push_back(boolector_is_bv_const_ones);
+    is_not_funs.push_back(boolector_is_bv_const_min_signed);
+    is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  }
+  else
+  {
+    is_funs.push_back(boolector_is_bv_const_ones);
+    is_funs.push_back(boolector_is_bv_const_min_signed);
+
+    is_not_funs.push_back(boolector_is_bv_const_zero);
+    is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  }
+
+  if (d_rng.flip_coin())
+  {
+    return pick_fun_bool_unary(is_funs)(d_solver, node);
+  }
+  return !pick_fun_bool_unary(is_not_funs)(d_solver, node);
+}
+
+bool
+BtorSolver::check_ones_is_bv_const(BoolectorNode* node) const
+{
+  uint32_t bw = boolector_get_width(d_solver, node);
+  BtorFunBoolUnaryVector is_funs;
+  BtorFunBoolUnaryVector is_not_funs;
+
+  is_funs.push_back(boolector_is_bv_const_ones);
+  if (bw > 1)
+  {
+    is_not_funs.push_back(boolector_is_bv_const_one);
+    is_not_funs.push_back(boolector_is_bv_const_zero);
+    is_not_funs.push_back(boolector_is_bv_const_min_signed);
+    is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  }
+  else
+  {
+    is_funs.push_back(boolector_is_bv_const_one);
+    is_funs.push_back(boolector_is_bv_const_min_signed);
+
+    is_not_funs.push_back(boolector_is_bv_const_zero);
+    is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  }
+
+  if (d_rng.flip_coin())
+  {
+    return pick_fun_bool_unary(is_funs)(d_solver, node);
+  }
+  return !pick_fun_bool_unary(is_not_funs)(d_solver, node);
+}
+
+bool
+BtorSolver::check_zero_is_bv_const(BoolectorNode* node) const
+{
+  uint32_t bw = boolector_get_width(d_solver, node);
+  BtorFunBoolUnaryVector is_funs;
+  BtorFunBoolUnaryVector is_not_funs;
+
+  is_funs.push_back(boolector_is_bv_const_zero);
+  if (bw > 1)
+  {
+    is_not_funs.push_back(boolector_is_bv_const_one);
+    is_not_funs.push_back(boolector_is_bv_const_ones);
+    is_not_funs.push_back(boolector_is_bv_const_min_signed);
+    is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  }
+  else
+  {
+    is_funs.push_back(boolector_is_bv_const_max_signed);
+
+    is_not_funs.push_back(boolector_is_bv_const_one);
+    is_not_funs.push_back(boolector_is_bv_const_ones);
+    is_not_funs.push_back(boolector_is_bv_const_min_signed);
+  }
+
+  if (d_rng.flip_coin())
+  {
+    return pick_fun_bool_unary(is_funs)(d_solver, node);
+  }
+  return !pick_fun_bool_unary(is_not_funs)(d_solver, node);
+}
+
+bool
+BtorSolver::check_min_signed_is_bv_const(BoolectorNode* node) const
+{
+  uint32_t bw = boolector_get_width(d_solver, node);
+  BtorFunBoolUnaryVector is_funs;
+  BtorFunBoolUnaryVector is_not_funs;
+
+  is_not_funs.push_back(boolector_is_bv_const_min_signed);
+  if (bw > 1)
+  {
+    is_funs.push_back(boolector_is_bv_const_zero);
+    is_not_funs.push_back(boolector_is_bv_const_one);
+    is_not_funs.push_back(boolector_is_bv_const_ones);
+    is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  }
+  else
+  {
+    is_funs.push_back(boolector_is_bv_const_one);
+    is_funs.push_back(boolector_is_bv_const_ones);
+
+    is_not_funs.push_back(boolector_is_bv_const_zero);
+    is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  }
+
+  if (d_rng.flip_coin())
+  {
+    return pick_fun_bool_unary(is_funs)(d_solver, node);
+  }
+  return !pick_fun_bool_unary(is_not_funs)(d_solver, node);
+}
+
+bool
+BtorSolver::check_max_signed_is_bv_const(BoolectorNode* node) const
+{
+  uint32_t bw = boolector_get_width(d_solver, node);
+  BtorFunBoolUnaryVector is_funs;
+  BtorFunBoolUnaryVector is_not_funs;
+
+  is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  if (bw > 1)
+  {
+    is_not_funs.push_back(boolector_is_bv_const_zero);
+    is_not_funs.push_back(boolector_is_bv_const_one);
+    is_not_funs.push_back(boolector_is_bv_const_ones);
+    is_not_funs.push_back(boolector_is_bv_const_min_signed);
+  }
+  else
+  {
+    is_funs.push_back(boolector_is_bv_const_zero);
+
+    is_not_funs.push_back(boolector_is_bv_const_one);
+    is_not_funs.push_back(boolector_is_bv_const_ones);
+    is_not_funs.push_back(boolector_is_bv_const_max_signed);
+  }
+
+  if (d_rng.flip_coin())
+  {
+    return pick_fun_bool_unary(is_funs)(d_solver, node);
+  }
+  return !pick_fun_bool_unary(is_not_funs)(d_solver, node);
 }
 
 /* -------------------------------------------------------------------------- */

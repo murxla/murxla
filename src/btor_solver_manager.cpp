@@ -64,11 +64,6 @@ namespace btor {
 // void boolector_free_bits (Btor *btor, const char *bits);
 // uint32_t boolector_get_fun_arity (Btor *btor, BoolectorNode *node);
 // bool boolector_is_const (Btor *btor, BoolectorNode *node);
-// bool boolector_is_bv_const_zero (Btor *btor, BoolectorNode *node);
-// bool boolector_is_bv_const_one (Btor *btor, BoolectorNode *node);
-// bool boolector_is_bv_const_ones (Btor *btor, BoolectorNode *node);
-// bool boolector_is_bv_const_max_signed (Btor *btor, BoolectorNode *node);
-// bool boolector_is_bv_const_min_signed (Btor *btor, BoolectorNode *node);
 // bool boolector_is_var (Btor *btor, BoolectorNode *node);
 // bool boolector_is_array (Btor *btor, BoolectorNode *node);
 // bool boolector_is_array_var (Btor *btor, BoolectorNode *node);
