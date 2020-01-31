@@ -648,6 +648,20 @@ BtorSolver::pop(uint32_t n_levels) const
   boolector_pop(d_solver, n_levels);
 }
 
+void
+BtorSolver::reset() const
+{
+  /* boolector does not support this yet */
+}
+
+void
+BtorSolver::reset_assertions() const
+{
+  /* boolector does not support this yet */
+}
+
+/* -------------------------------------------------------------------------- */
+
 std::vector<std::string>
 BtorSolver::get_supported_sat_solvers()
 {

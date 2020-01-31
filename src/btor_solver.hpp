@@ -130,6 +130,9 @@ class BtorSolver : public Solver
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
 
+  void reset() const override;
+  void reset_assertions() const override;
+
   std::vector<std::string> get_supported_sat_solvers();
 
   //

@@ -441,6 +441,20 @@ CVC4Solver::pop(uint32_t n_levels) const
   d_solver->pop(n_levels);
 }
 
+void
+CVC4Solver::reset() const
+{
+  d_solver->reset();
+}
+
+void
+CVC4Solver::reset_assertions() const
+{
+  d_solver->resetAssertions();
+}
+
+/* -------------------------------------------------------------------------- */
+
 std::string
 CVC4Solver::get_option_name_incremental() const
 {

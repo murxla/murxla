@@ -772,7 +772,6 @@ class CVC4ActionSolverGetStringSort : public CVC4Action
 
 // TODO Term Solver::mkVar(Sort sort, const std::string& symbol) const;
 
-// TODO Term Solver::declareConst(const std::string& symbol, Sort sort) const;
 // TODO Sort Solver::declareDatatype( const std::string& symbol, const std::vector<DatatypeConstructorDecl>& ctors) const;
 // TODO Term Solver::declareFun(const std::string& symbol, Sort sort) const;
 // TODO Term Solver::declareFun(const std::string& symbol, const std::vector<Sort>& sorts, Sort sort) const;
@@ -793,94 +792,15 @@ class CVC4ActionSolverGetStringSort : public CVC4Action
 // TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
 // TODO void Solver::printModel(std::ostream& out) const;
 
-// TODO void Solver::reset() const;
-// TODO void Solver::resetAssertions() const;
 // TODO void Solver::setInfo(const std::string& keyword, const std::string& value) const;
 // TODO void Solver::setLogic(const std::string& logic) const;
-// TODO void Solver::setOption(const std::string& option, const std::string& value) const;
 // TODO Term Solver::ensureTermSort(const Term& t, const Sort& s) const;
 
 /* -------------------------------------------------------------------------- */
-
-KindData&
-CVC4SolverManager::pick_kind(CVC4KindMap& map, CVC4KindVector& kinds)
-{
-  assert(kinds.size());
-  auto it = kinds.begin();
-  std::advance(it, d_rng.pick_uint32() % kinds.size());
-  Kind kind = *it;
-  assert(map.find(kind) != map.end());
-  return map[kind];
-}
-
-KindData&
-CVC4SolverManager::pick_kind(CVC4KindMap& map,
-                             CVC4KindVector& kinds1,
-                             CVC4KindVector& kinds2)
-{
-  assert(kinds1.size() || kinds2.size());
-  size_t sz1 = kinds1.size();
-  size_t sz2 = kinds2.size();
-  uint32_t n = d_rng.pick_uint32() % (sz1 + sz2);
-  CVC4KindVector::iterator it;
-  if (sz2 == 0 || n < sz1)
-  {
-    it = kinds1.begin();
-  }
-  else
-  {
-    n -= sz1;
-    it = kinds2.begin();
-  }
-  std::advance(it, n);
-  Kind kind = *it;
-  assert(map.find(kind) != map.end());
-  return map[kind];
-}
-
-KindData&
-CVC4SolverManager::pick_kind(CVC4KindVector& kinds)
-{
-  return pick_kind(d_all_kinds, kinds);
-}
-
-KindData&
-CVC4SolverManager::pick_kind(CVC4KindVector& kinds1, CVC4KindVector& kinds2)
-{
-  return pick_kind(d_all_kinds, kinds1, kinds2);
-}
-
-OpTerm&
-CVC4SolverManager::pick_op_term()
-{
-  assert(d_op_terms.size());
-  auto it = d_op_terms.begin();
-  std::advance(it, d_rng.pick_uint32() % d_op_terms.size());
-  return *it;
-}
-
-/* -------------------------------------------------------------------------- */
-
 // TODO OpTerm Solver::mkOpTerm(Kind kind, Kind k);
 // TODO OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg);
 
 /* -------------------------------------------------------------------------- */
-
-void
-CVC4SolverManager::clear()
-{
-  d_terms.clear();
-  d_op_terms.clear();
-  d_sorts_to_theory.clear();
-  d_theory_to_sorts.clear();
-  d_all_kinds.clear();
-}
-
-CVC4SolverManager::~CVC4SolverManager()
-{
-  clear();
-  delete d_solver;
-}
 
 Sort
 CVC4SolverManager::get_sort(Term term)

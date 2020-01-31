@@ -123,8 +123,10 @@ class CVC4Solver : public Solver
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
 
   void push(uint32_t n_levels) const override;
-
   void pop(uint32_t n_levels) const override;
+
+  void reset() const override;
+  void reset_assertions() const override;
 
   //
   // get_model()
