@@ -148,11 +148,7 @@ class BtorSolver : public Solver
 
   BtorFunBoolUnary pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const;
   BtorFunBoolUnary pick_fun_is_bv_const() const;
-  bool check_one_is_bv_const(BoolectorNode* node) const;
-  bool check_ones_is_bv_const(BoolectorNode* node) const;
-  bool check_zero_is_bv_const(BoolectorNode* node) const;
-  bool check_min_signed_is_bv_const(BoolectorNode* node) const;
-  bool check_max_signed_is_bv_const(BoolectorNode* node) const;
+  void check_is_bv_const(SpecialValueBV kind, BoolectorNode* node) const;
 
   BoolectorSort get_btor_sort(Sort sort) const;
   BoolectorNode* get_btor_term(Term term) const;

@@ -63,8 +63,6 @@ namespace btor {
 // const char *boolector_get_bits (Btor *btor, BoolectorNode *node);
 // void boolector_free_bits (Btor *btor, const char *bits);
 // uint32_t boolector_get_fun_arity (Btor *btor, BoolectorNode *node);
-// bool boolector_is_const (Btor *btor, BoolectorNode *node);
-// bool boolector_is_var (Btor *btor, BoolectorNode *node);
 // bool boolector_is_array (Btor *btor, BoolectorNode *node);
 // bool boolector_is_array_var (Btor *btor, BoolectorNode *node);
 // bool boolector_is_param (Btor *btor, BoolectorNode *node);
