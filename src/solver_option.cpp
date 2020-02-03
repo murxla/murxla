@@ -8,7 +8,11 @@ namespace smtmbt {
 SolverOption::SolverOption(const std::string& name,
                            std::vector<std::string>& depends,
                            std::vector<std::string>& conflicts)
-    : d_name(name), d_depends(depends), d_conflicts(conflicts){};
+    : d_name(name), d_depends(), d_conflicts()
+{
+  d_conflicts.insert(conflicts.begin(), conflicts.end());
+  d_depends.insert(depends.begin(), depends.end());
+};
 
 const std::string&
 SolverOption::get_name() const
@@ -16,15 +20,27 @@ SolverOption::get_name() const
   return d_name;
 }
 
-const std::vector<std::string>&
+const std::unordered_set<std::string>&
 SolverOption::get_conflicts() const
 {
   return d_conflicts;
 }
-const std::vector<std::string>&
+const std::unordered_set<std::string>&
 SolverOption::get_depends() const
 {
   return d_depends;
+}
+
+void
+SolverOption::add_conflict(std::string opt_name)
+{
+  d_conflicts.insert(opt_name);
+}
+
+void
+SolverOption::add_depends(std::string opt_name)
+{
+  d_depends.insert(opt_name);
 }
 
 SolverOptionBool::SolverOptionBool(const std::string& name,

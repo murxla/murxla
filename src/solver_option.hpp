@@ -2,6 +2,7 @@
 #define __SMTMBT__SOLVER_OPTION_H
 
 #include <memory>
+#include <unordered_set>
 #include <vector>
 
 #include "util.hpp"
@@ -21,13 +22,16 @@ class SolverOption
   virtual std::string pick_value(RNGenerator& rng) const = 0;
 
   const std::string& get_name() const;
-  const std::vector<std::string>& get_conflicts() const;
-  const std::vector<std::string>& get_depends() const;
+  const std::unordered_set<std::string>& get_conflicts() const;
+  const std::unordered_set<std::string>& get_depends() const;
+
+  void add_conflict(std::string opt_name);
+  void add_depends(std::string opt_name);
 
  private:
   std::string d_name;
-  std::vector<std::string> d_depends;
-  std::vector<std::string> d_conflicts;
+  std::unordered_set<std::string> d_depends;
+  std::unordered_set<std::string> d_conflicts;
 };
 
 class SolverOptionBool : public SolverOption

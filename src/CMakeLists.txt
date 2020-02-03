@@ -17,6 +17,9 @@ add_executable(smtmbt ${smtmbt_src_files})
 if(Boolector_FOUND)
   target_link_libraries(smtmbt Boolector::boolector)
   target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_BOOLECTOR)
+
+  add_executable(genbtoropt btor/gen_btor_options.cpp)
+  target_link_libraries(genbtoropt Boolector::boolector)
 endif()
 
 if(CVC4_FOUND)

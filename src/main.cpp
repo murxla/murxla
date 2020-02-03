@@ -262,6 +262,7 @@ set_alarm(void)
   "  -v, --verbosity         increase verbosity\n"                  \
   "  -a, --api-trace <file>  trace API call sequence into <file>\n" \
   "  -u, --untrace <file>    replay given API call sequence\n"      \
+  "  -o, --options <file>    solver option model toml file\n"       \
   "  --btor                  test Boolector\n"                      \
   "  --cvc4                  test CVC4\n"
 
@@ -340,7 +341,7 @@ parse_options(Options& options, int argc, char* argv[])
     {
       g_options.use_cvc4 = true;
     }
-    else if (arg == "--options")
+    else if (arg == "-o" || arg == "--options")
     {
       i += 1;
       check_next_arg(arg, i, argc);
@@ -470,6 +471,9 @@ parse_solver_options_file(SolverOptions& solver_options)
   const std::vector<toml::table> tables =
       toml::find<std::vector<toml::table>>(options_data, "option");
 
+  std::unordered_map<std::string, SolverOption*> options;
+
+  SolverOption* opt;
   for (const toml::table& table : tables)
   {
     std::string name = toml::get<std::string>(table.at("name"));
@@ -481,28 +485,59 @@ parse_solver_options_file(SolverOptions& solver_options)
 
     if (type == "bool")
     {
-      solver_options.push_back(std::unique_ptr<SolverOption>(
-          new SolverOptionBool(name, depends, conflicts)));
+      opt = new SolverOptionBool(name, depends, conflicts);
     }
     else if (type == "int")
     {
       int32_t min = toml::get<int32_t>(table.at("min"));
       int32_t max = toml::get<int32_t>(table.at("max"));
-      solver_options.push_back(std::unique_ptr<SolverOption>(
-          new SolverOptionInt(name, depends, conflicts, min, max)));
+      opt         = new SolverOptionInt(name, depends, conflicts, min, max);
     }
     else if (type == "list")
     {
       std::vector<std::string> values =
           toml::get<std::vector<std::string>>(table.at("values"));
-      solver_options.push_back(std::unique_ptr<SolverOption>(
-          new SolverOptionList(name, depends, conflicts, values)));
+      opt = new SolverOptionList(name, depends, conflicts, values);
     }
     else
     {
       std::stringstream es;
       es << "Unknown option type " << type;
       die(es.str());
+    }
+
+    solver_options.push_back(std::unique_ptr<SolverOption>(opt));
+    options.emplace(std::make_pair(name, opt));
+  }
+
+  /* Check option names and propagate conflicts/dependencies to all options. */
+  for (const auto& uptr : solver_options)
+  {
+    const auto& confl = uptr->get_conflicts();
+    const auto& deps  = uptr->get_depends();
+
+    for (const auto& o : confl)
+    {
+      if (options.find(o) == options.end())
+      {
+        std::stringstream es;
+        es << "Unknown conflicting option name '" << o << "' for option "
+           << uptr->get_name();
+        die(es.str());
+      }
+      options.at(o)->add_conflict(uptr->get_name());
+    }
+
+    for (const auto& o : deps)
+    {
+      if (options.find(o) == options.end())
+      {
+        std::stringstream es;
+        es << "Unknown dependency option name '" << o << "' for option "
+           << uptr->get_name();
+        die(es.str());
+      }
+      options.at(o)->add_depends(uptr->get_name());
     }
   }
 }

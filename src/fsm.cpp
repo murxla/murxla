@@ -236,18 +236,10 @@ class ActionSetOption : public Action
   {
     std::string opt, value;
 
-    // TODO picking options like below doesn't work yet because we don't
-    //      have option models yet
-    // TODO for now we only set incremental here (we might want to have some
-    //      special handling for several special options anyways)
-    /* Enable/disable incremental solving. */
-    opt   = d_solver.get_option_name_incremental();
-    value = d_rng.flip_coin() ? "true" : "false";
-#if 0
     std::tie(opt, value) = d_smgr.pick_option();
+
     if (opt.empty()) /* No option available */
       return false;
-#endif
 
     _run(opt, value);
     return true;
@@ -269,7 +261,7 @@ class ActionSetOption : public Action
     {
       d_smgr.d_incremental = value == "true";
     }
-    else if (opt == d_solver.get_option_name_incremental())
+    else if (opt == d_solver.get_option_name_model_gen())
     {
       d_smgr.d_model_gen = value == "true";
     }
