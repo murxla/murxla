@@ -54,21 +54,6 @@ SolverOptionBool::pick_value(RNGenerator& rng) const
   return rng.flip_coin() ? "true" : "false";
 }
 
-SolverOptionInt::SolverOptionInt(const std::string& name,
-                                 std::vector<std::string>& depends,
-                                 std::vector<std::string>& conflicts,
-                                 int32_t min,
-                                 int32_t max)
-    : SolverOption(name, depends, conflicts), d_min(min), d_max(max){};
-
-std::string
-SolverOptionInt::pick_value(RNGenerator& rng) const
-{
-  std::stringstream ss;
-  ss << rng.pick_int32(d_min, d_max);
-  return ss.str();
-}
-
 SolverOptionList::SolverOptionList(const std::string& name,
                                    std::vector<std::string>& depends,
                                    std::vector<std::string>& conflicts,
@@ -78,7 +63,7 @@ SolverOptionList::SolverOptionList(const std::string& name,
 std::string
 SolverOptionList::pick_value(RNGenerator& rng) const
 {
-  return d_values[rng.pick_uint32() % d_values.size()];
+  return d_values[rng.pick<uint32_t>() % d_values.size()];
 }
 
 }  // namespace smtmbt

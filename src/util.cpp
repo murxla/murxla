@@ -47,70 +47,17 @@ SeedGenerator::next()
 RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed) { d_rng.seed(seed); }
 
 uint32_t
-RNGenerator::pick_uint32()
-{
-  return d_uint32_dist(d_rng);
-}
-
-uint32_t
-RNGenerator::pick_uint32(uint32_t from, uint32_t to)
-{
-  assert(from <= to);
-
-  uint32_t res = pick_uint32();
-
-  from = from == UINT32_MAX ? UINT32_MAX - 1 : from;
-  to   = to == UINT32_MAX ? UINT32_MAX - 1 : to;
-  res %= to - from + 1;
-  res += from;
-  return res;
-}
-
-int32_t
-RNGenerator::pick_int32(int32_t from, int32_t to)
-{
-  assert(from <= to);
-
-  uint32_t res;
-
-  if (from >= 0) return pick_uint32(from, to);
-
-  res = pick_uint32(0, to - from);
-  return res + from;
-}
-
-uint32_t
 RNGenerator::pick_uint32_weighted(std::vector<uint32_t>& weights)
 {
   std::discrete_distribution<uint32_t> dist(weights.begin(), weights.end());
   return dist(d_rng);
 }
 
-uint64_t
-RNGenerator::pick_uint64()
-{
-  return d_uint64_dist(d_rng);
-}
-
-uint64_t
-RNGenerator::pick_uint64(uint64_t from, uint64_t to)
-{
-  assert(from <= to);
-
-  uint64_t res = pick_uint64();
-
-  from = from == UINT64_MAX ? UINT64_MAX - 1 : from;
-  to   = to == UINT64_MAX ? UINT64_MAX - 1 : to;
-  res %= to - from + 1;
-  res += from;
-  return res;
-}
-
 bool
 RNGenerator::pick_with_prob(uint32_t prob)
 {
   assert(prob <= SMTMBT_PROB_MAX);
-  uint32_t r = pick_uint32(0, SMTMBT_PROB_MAX - 1);
+  uint32_t r = pick<uint32_t>(0, SMTMBT_PROB_MAX - 1);
   return r < prob;
 }
 
@@ -123,7 +70,7 @@ RNGenerator::flip_coin()
 RNGenerator::Choice
 RNGenerator::pick_one_of_three()
 {
-  uint32_t r = pick_uint32(0, 8);
+  uint32_t r = pick<uint32_t>(0, 8);
   if (r < 3) return Choice::FIRST;
   if (r < 6) return Choice::SECOND;
   assert(r < 9);
@@ -135,7 +82,8 @@ RNGenerator::pick_string(uint32_t len)
 {
   if (len == 0) return "";
   std::string str(len, 0);
-  std::generate_n(str.begin(), len, [this]() { return pick_uint32(32, 255); });
+  std::generate_n(
+      str.begin(), len, [this]() { return pick<uint32_t>(32, 255); });
   return str;
 }
 
@@ -146,7 +94,7 @@ RNGenerator::pick_string(std::string& chars, uint32_t len)
   if (len == 0) return "";
   std::string str(len, 0);
   std::generate_n(str.begin(), len, [this, &chars]() {
-    return chars[pick_uint32(0, chars.size() - 1)];
+    return chars[pick<uint32_t>(0, chars.size() - 1)];
   });
   return str;
 }

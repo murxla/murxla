@@ -282,7 +282,7 @@ class ActionMkSort : public Action
       case SORT_BOOL: _run(SORT_BOOL); break;
 
       case SORT_BV:
-        _run(SORT_BV, d_rng.pick_uint32(SMTMBT_BW_MIN, SMTMBT_BW_MAX));
+        _run(SORT_BV, d_rng.pick<uint32_t>(SMTMBT_BW_MIN, SMTMBT_BW_MAX));
         break;
 
       default: assert(false);
@@ -380,8 +380,8 @@ class ActionMkTerm : public Action
       sort = d_smgr.pick_sort(sort_kind_args);
       if (arity == SMTMBT_MK_TERM_N_ARGS)
       {
-        arity = d_rng.pick_uint32(SMTMBT_MK_TERM_N_ARGS_MIN,
-                                  SMTMBT_MK_TERM_N_ARGS_MAX);
+        arity = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN,
+                                     SMTMBT_MK_TERM_N_ARGS_MAX);
       }
       /* pick first argument */
       switch (kind)
@@ -413,23 +413,23 @@ class ActionMkTerm : public Action
       {
         case OP_BV_EXTRACT:
           assert(sort->is_bv());
-          params.push_back(d_rng.pick_uint32(0, bw - 1));     // high
-          params.push_back(d_rng.pick_uint32(0, params[0]));  // low
+          params.push_back(d_rng.pick<uint32_t>(0, bw - 1));     // high
+          params.push_back(d_rng.pick<uint32_t>(0, params[0]));  // low
           break;
         case OP_BV_REPEAT:
           assert(sort->is_bv());
-          params.push_back(
-              d_rng.pick_uint32(1, std::max<uint32_t>(1, SMTMBT_BW_MAX / bw)));
+          params.push_back(d_rng.pick<uint32_t>(
+              1, std::max<uint32_t>(1, SMTMBT_BW_MAX / bw)));
           break;
         case OP_BV_ROTATE_LEFT:
         case OP_BV_ROTATE_RIGHT:
           assert(sort->is_bv());
-          params.push_back(d_rng.pick_uint32(0, bw));
+          params.push_back(d_rng.pick<uint32_t>(0, bw));
           break;
         case OP_BV_SIGN_EXTEND:
         case OP_BV_ZERO_EXTEND:
           assert(sort->is_bv());
-          params.push_back(d_rng.pick_uint32(0, SMTMBT_BW_MAX - bw));
+          params.push_back(d_rng.pick<uint32_t>(0, SMTMBT_BW_MAX - bw));
           break;
         default: assert(false);
       }
@@ -508,7 +508,7 @@ class ActionMkConst : public Action
     /* Pick sort of const. */
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
-    uint32_t len       = d_rng.pick_uint32(0, SMTMBT_LEN_SYMBOL_MAX);
+    uint32_t len       = d_rng.pick<uint32_t>(0, SMTMBT_LEN_SYMBOL_MAX);
     /* Pick piped vs simple symbol with 50% probability. */
     std::string symbol = len && d_rng.flip_coin()
                              ? d_rng.pick_piped_symbol(len)
@@ -592,7 +592,7 @@ class ActionMkValue : public Action
           else
           {
             /* use random value */
-            val = d_rng.pick_uint64(0, (1 << bw) - 1);
+            val = d_rng.pick<uint64_t>(0, (1 << bw) - 1);
           }
           _run(sort, val);
         }
@@ -851,7 +851,7 @@ class ActionCheckSatAssuming : public Action
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_term(SORT_BOOL)) return false;
     uint32_t n_assumptions =
-        d_rng.pick_uint32(1, SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT);
+        d_rng.pick<uint32_t>(1, SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT);
     std::vector<Term> assumptions;
     for (uint32_t i = 0; i < n_assumptions; ++i)
     {
@@ -897,7 +897,7 @@ class ActionPush : public Action
 
   bool run() override
   {
-    uint32_t n_levels = d_rng.pick_uint32(1, SMTMBT_MAX_N_PUSH_LEVELS);
+    uint32_t n_levels = d_rng.pick<uint32_t>(1, SMTMBT_MAX_N_PUSH_LEVELS);
     _run(n_levels);
     return true;
   }
@@ -927,7 +927,7 @@ class ActionPop : public Action
   bool run() override
   {
     if (d_smgr.d_n_push_levels == 0) return false;
-    uint32_t n_levels = d_rng.pick_uint32(1, d_smgr.d_n_push_levels);
+    uint32_t n_levels = d_rng.pick<uint32_t>(1, d_smgr.d_n_push_levels);
     _run(n_levels);
     return true;
   }

@@ -38,21 +38,54 @@ class RNGenerator
    /** Constructor. */
    explicit RNGenerator(uint32_t seed = 0);
    /** Pick uint32_t between 0 and UINT32_MAX. */
-   uint32_t pick_uint32();
-   /** Pick uint32_t between 'from' and 'to' (inclusive). */
-   uint32_t pick_uint32(uint32_t from, uint32_t to);
-   /** Pick int32_t between 'from' and 'to' (inclusive). */
-   int32_t pick_int32(int32_t from, int32_t to);
+
+   /** Pick an integral number with type T. */
+   template <typename T,
+             typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+   T pick()
+   {
+     std::uniform_int_distribution<T> dist;
+     return dist(d_rng);
+   }
+
+   /** Pick an integral number with type T between 'from' and 'to' (inclusive).
+    */
+   template <typename T,
+             typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+   T pick(T from, T to)
+   {
+     std::uniform_int_distribution<T> dist(from, to);
+     return dist(d_rng);
+   }
+
+   /** Pick a floating point number with type T. */
+   template <
+       typename T,
+       typename std::enable_if<std::is_floating_point<T>::value, int>::type = 0>
+   T pick()
+   {
+     std::uniform_real_distribution<T> dist;
+     return dist(d_rng);
+   }
+
+   /** Pick a floating point number with type T between 'from' and 'to'
+    * (inclusive). */
+   template <
+       typename T,
+       typename std::enable_if<std::is_floating_point<T>::value, int>::type = 0>
+   T pick(T from, T to)
+   {
+     std::uniform_real_distribution<T> dist(from, to);
+     return dist(d_rng);
+   }
+
    /**
     * Pick uint32_t between 0 and weights.size(), weighted by the given weights.
     * The probability to pick each number is w/S with w its weight and S the
     * sum of all weights.
     */
    uint32_t pick_uint32_weighted(std::vector<uint32_t>& weights);
-   /** Pick uint64_t between 0 and UINT64_MAX. */
-   uint64_t pick_uint64();
-   /** Pick uint64_t between 'from' and 'to' (inclusive). */
-   uint64_t pick_uint64(uint64_t from, uint64_t to);
+
    /** Pick with given probability, 100% = 1000. */
    bool pick_with_prob(uint32_t prob);
    /** Pick with probability of 50%. */
@@ -86,6 +119,7 @@ class RNGenerator
     std::mt19937 d_rng;
     std::uniform_int_distribution<uint32_t> d_uint32_dist;
     std::uniform_int_distribution<uint64_t> d_uint64_dist;
+    std::uniform_int_distribution<int64_t> d_int64_dist;
 
     std::string d_bin_char_set = "01";
     std::string d_simple_symbol_char_set =
@@ -101,7 +135,7 @@ RNGenerator::pick_from_map(const TMap& map)
 {
   assert(!map.empty());
   auto it = map.begin();
-  std::advance(it, pick_uint32() % map.size());
+  std::advance(it, pick<uint32_t>() % map.size());
   return it->first;
 }
 
@@ -111,7 +145,7 @@ RNGenerator::pick_from_set(const TSet& set)
 {
   assert(!set.empty());
   auto it = set.begin();
-  std::advance(it, pick_uint32() % set.size());
+  std::advance(it, pick<uint32_t>() % set.size());
   return *it;
 }
 

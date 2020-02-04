@@ -445,7 +445,7 @@ SolverManager::pick_option()
     available.push_back(option);
   }
 
-  option           = available[d_rng.pick_uint32() % available.size()];
+  option           = available[d_rng.pick<uint32_t>() % available.size()];
   std::string name = option->get_name();
 
   if (d_used_options.find(name) == d_used_options.end())
@@ -595,7 +595,7 @@ SolverManager::pick_kind(TKindMap& map)
 {
   assert(!map.empty());
   typename TKindMap::iterator it = map.begin();
-  std::advance(it, d_rng.pick_uint32() % map.size());
+  std::advance(it, d_rng.pick<uint32_t>() % map.size());
   return it->second;
 }
 
@@ -612,7 +612,7 @@ SolverManager::pick_kind(TKindMap& map,
   assert(kinds1 || kinds2);
   size_t sz1 = kinds1 ? kinds1->size() : 0;
   size_t sz2 = kinds2 ? kinds2->size() : 0;
-  uint32_t n = d_rng.pick_uint32() % (sz1 + sz2);
+  uint32_t n = d_rng.pick<uint32_t>() % (sz1 + sz2);
   typename TKindVector::iterator it;
 
   assert(sz1 || sz2);

@@ -464,6 +464,17 @@ run(uint32_t seed, Options& options, SolverOptions& solver_options)
   return result;
 }
 
+template <class T>
+std::pair<T, T>
+get_limits(const toml::table& table)
+{
+  T min = (table.find("min") != table.end()) ? toml::get<T>(table.at("min"))
+                                             : std::numeric_limits<T>::min();
+  T max = (table.find("max") != table.end()) ? toml::get<T>(table.at("max"))
+                                             : std::numeric_limits<T>::max();
+  return std::make_pair(min, max);
+}
+
 void
 parse_solver_options_file(SolverOptions& solver_options)
 {
@@ -487,11 +498,47 @@ parse_solver_options_file(SolverOptions& solver_options)
     {
       opt = new SolverOptionBool(name, depends, conflicts);
     }
-    else if (type == "int")
+    else if (type == "int" || type == "int16_t" || type == "int32_t"
+             || type == "int64_t")
     {
-      int32_t min = toml::get<int32_t>(table.at("min"));
-      int32_t max = toml::get<int32_t>(table.at("max"));
-      opt         = new SolverOptionInt(name, depends, conflicts, min, max);
+      int64_t min, max;
+      if (type == "int16_t")
+      {
+        std::tie(min, max) = get_limits<int16_t>(table);
+      }
+      else if (type == "int64_t")
+      {
+        std::tie(min, max) = get_limits<int64_t>(table);
+      }
+      else
+      {
+        std::tie(min, max) = get_limits<int32_t>(table);
+      }
+      opt = new SolverOptionNum<int64_t>(name, depends, conflicts, min, max);
+    }
+    else if (type == "unsigned" || type == "unsigned long" || type == "uint16_t"
+             || type == "uint32_t" || type == "uint64_t")
+    {
+      uint64_t min, max;
+      if (type == "uint16_t")
+      {
+        std::tie(min, max) = get_limits<uint16_t>(table);
+      }
+      else if (type == "uint64_t" || type == "unsigned long")
+      {
+        std::tie(min, max) = get_limits<uint64_t>(table);
+      }
+      else
+      {
+        std::tie(min, max) = get_limits<uint32_t>(table);
+      }
+      opt = new SolverOptionNum<uint64_t>(name, depends, conflicts, min, max);
+    }
+    else if (type == "double")
+    {
+      double min, max;
+      std::tie(min, max) = get_limits<double>(table);
+      opt = new SolverOptionNum<double>(name, depends, conflicts, min, max);
     }
     else if (type == "list")
     {

@@ -2,6 +2,8 @@
 #define __SMTMBT__SOLVER_OPTION_H
 
 #include <memory>
+#include <sstream>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -44,20 +46,28 @@ class SolverOptionBool : public SolverOption
   std::string pick_value(RNGenerator& rng) const override;
 };
 
-class SolverOptionInt : public SolverOption
+template <typename T>
+class SolverOptionNum : public SolverOption
 {
  public:
-  SolverOptionInt(const std::string& name,
+  SolverOptionNum(const std::string& name,
                   std::vector<std::string>& depends,
                   std::vector<std::string>& conflicts,
-                  int32_t min,
-                  int32_t max);
-  ~SolverOptionInt() = default;
-  std::string pick_value(RNGenerator& rng) const override;
+                  T min,
+                  T max)
+      : SolverOption(name, depends, conflicts), d_min(min), d_max(max){};
+  ~SolverOptionNum() = default;
+
+  std::string pick_value(RNGenerator& rng) const override
+  {
+    std::stringstream ss;
+    ss << rng.pick<T>(d_min, d_max);
+    return ss.str();
+  }
 
  private:
-  int32_t d_min;
-  int32_t d_max;
+  T d_min;
+  T d_max;
 };
 
 class SolverOptionList : public SolverOption
