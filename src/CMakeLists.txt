@@ -25,6 +25,11 @@ endif()
 if(CVC4_FOUND)
   target_link_libraries(smtmbt CVC4::cvc4)
   target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_CVC4)
+
+  if(toml11_FOUND)
+    add_executable(gencvc4options cvc4/gen_cvc4_options.cpp)
+    target_link_libraries(gencvc4options toml11::toml11)
+  endif()
 endif()
 
 if(toml11_FOUND)
