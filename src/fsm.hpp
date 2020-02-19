@@ -150,6 +150,8 @@ class FSM
   /** Default constructor is disabled. */
   FSM() = delete;
 
+  SolverManager& get_smgr();
+
   /**
    * Create and add a new state.
    * id      : A unique string identifying the state.
@@ -176,7 +178,7 @@ class FSM
   /** Check configured states for unreachable states and infinite loops. */
   void check_states();
   /** Get state with given id. */
-  State* get_state(const std::string& id);
+  State* get_state(const std::string& id) const;
   /** Run state machine. */
   void run();
   /** Configure state machine with base configuration. */

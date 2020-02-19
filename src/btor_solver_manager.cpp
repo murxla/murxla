@@ -25,7 +25,6 @@ namespace btor {
 // void boolector_print_stats (Btor *btor);
 // void boolector_set_trapi (Btor *btor, FILE *apitrace);
 // FILE *boolector_get_trapi (Btor *btor);
-// bool boolector_failed (Btor *btor, BoolectorNode *node);
 // BoolectorNode **boolector_get_failed_assumptions (Btor *btor);
 
 // int32_t boolector_limited_sat (Btor *btor, int32_t lod_limit, int32_t sat_limit);

@@ -596,11 +596,11 @@ class CVC4ActionSimplify : public Action
 /* -------------------------------------------------------------------------- */
 
 void
-CVC4Solver::configure_fsm(FSM& fsm) const
+CVC4Solver::configure_fsm(FSM* fsm) const
 {
   // Solver::simplify(const Term& term)
-  auto a_simplify = fsm.new_action<CVC4ActionSimplify>();
-  fsm.add_action_to_all_states(a_simplify, 1, {"new", "delete"});
+  auto a_simplify = fsm->new_action<CVC4ActionSimplify>();
+  fsm->add_action_to_all_states(a_simplify, 1, {"new", "delete"});
 }
 }  // namespace btor
 }  // namespace smtmbt

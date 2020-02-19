@@ -151,7 +151,7 @@ Solver::get_unsupported_op_kinds() const
 }
 
 void
-Solver::configure_fsm(FSM& fsm) const
+Solver::configure_fsm(FSM* fsm) const
 {
   // default: do nothing
 }

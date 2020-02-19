@@ -105,6 +105,11 @@ class SolverManager
    * Requires that terms of SortKind SORT_BOOL exist.
    */
   Term pick_assumption();
+  /**
+   * Pick assumption out of the assumed assumptions list.
+   * Requires that d_assumptions is not empty.
+   */
+  Term pick_assumed_assumption();
 
   /** Clear set of assumptions. */
   void clear_assumptions();
@@ -117,6 +122,8 @@ class SolverManager
   bool has_term(Sort sort) const;
   /** Return true if term databse contains given term. */
   bool has_term(Term term) const;
+  /** Return true if d_assumptions is not empty. */
+  bool has_assumed() const;
 
   /**
    * Return the term with the given id.

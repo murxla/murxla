@@ -994,6 +994,39 @@ class BtorActionReleaseAll : public Action
   }
 };
 
+class BtorActionFailed : public Action
+{
+ public:
+  BtorActionFailed(SolverManager& smgr) : Action(smgr, "btor-failed") {}
+
+  bool run() override
+  {
+    if (!d_smgr.d_incremental) return false;
+    if (!d_smgr.has_assumed()) return false;
+    Term term = d_smgr.pick_assumed_assumption();
+    _run(term);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 1);
+    Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
+    assert(term != nullptr);
+    _run(term);
+    return 0;
+  }
+
+ private:
+  void _run(Term term)
+  {
+    SMTMBT_TRACE << get_id() << " " << term;
+    BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    (void) boolector_failed(btor_solver.get_solver(),
+                            btor_solver.get_btor_term(term));
+  }
+};
+
 class BtorActionFixateAssumptions : public Action
 {
  public:
@@ -1122,34 +1155,44 @@ class BtorActionSetSatSolver : public Action
 /* -------------------------------------------------------------------------- */
 
 void
-BtorSolver::configure_fsm(FSM& fsm) const
+BtorSolver::configure_fsm(FSM* fsm) const
 {
-  State* s_delete                = fsm.get_state("delete");
-  State* s_fix_reset_assumptions = fsm.new_state("btor-fix-reset-assumptions");
-  State* s_assert                = fsm.get_state("assert");
-  State* s_opt                   = fsm.get_state("opt");
+  State* s_assert = fsm->get_state("assert");
+  State* s_delete = fsm->get_state("delete");
+  State* s_opt    = fsm->get_state("opt");
+  State* s_sat    = fsm->get_state("check_sat");
 
-  auto t_default = fsm.new_action<Transition>();
+  State* s_fix_reset_assumptions = fsm->new_state("btor-fix-reset-assumptions");
+  State* s_failed                = fsm->new_state(
+      "btor-failed", [fsm]() { return fsm->get_smgr().d_sat_called; });
+
+  auto t_default = fsm->new_action<Transition>();
 
   // boolector_release_all
-  auto a_release_all = fsm.new_action<BtorActionReleaseAll>();
+  auto a_release_all = fsm->new_action<BtorActionReleaseAll>();
   s_delete->add_action(a_release_all, 1);
+
+  // boolector_failed
+  auto a_failed = fsm->new_action<BtorActionFailed>();
+  s_failed->add_action(a_failed, 10);
+  s_sat->add_action(t_default, 1, s_failed);
+  s_failed->add_action(t_default, 10, s_sat);
 
   // boolector_fixate_assumptions
   // boolector_reset_assumptions
-  auto a_fix_assumptions   = fsm.new_action<BtorActionFixateAssumptions>();
-  auto a_reset_assumptions = fsm.new_action<BtorActionResetAssumptions>();
+  auto a_fix_assumptions   = fsm->new_action<BtorActionFixateAssumptions>();
+  auto a_reset_assumptions = fsm->new_action<BtorActionResetAssumptions>();
   s_fix_reset_assumptions->add_action(a_fix_assumptions, 10);
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 10);
   s_assert->add_action(t_default, 1, s_fix_reset_assumptions);
   s_fix_reset_assumptions->add_action(t_default, 100, s_assert);
 
   // boolector_simplify
-  auto a_simplify = fsm.new_action<BtorActionSimplify>();
-  fsm.add_action_to_all_states(a_simplify, 1);
+  auto a_simplify = fsm->new_action<BtorActionSimplify>();
+  fsm->add_action_to_all_states(a_simplify, 1);
 
   // boolector_set_sat_solver
-  auto a_set_sat_solver = fsm.new_action<BtorActionSetSatSolver>();
+  auto a_set_sat_solver = fsm->new_action<BtorActionSetSatSolver>();
   s_opt->add_action(a_set_sat_solver, 1);
 }
 

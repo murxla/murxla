@@ -53,6 +53,12 @@ FSM::FSM(RNGenerator& rng,
 {
 }
 
+SolverManager&
+FSM::get_smgr()
+{
+  return d_smgr;
+}
+
 State*
 FSM::new_state(std::string id, std::function<bool(void)> fun, bool is_final)
 {
@@ -104,7 +110,7 @@ FSM::check_states()
 }
 
 State*
-FSM::get_state(const std::string& id)
+FSM::get_state(const std::string& id) const
 {
   State* res = nullptr;
   for (const auto& s : d_states)
@@ -835,6 +841,7 @@ class ActionCheckSat : public Action
       d_smgr.d_sat_called = false;
     }
     d_solver.check_sat();
+    d_smgr.d_sat_called = true;
   }
 };
 
@@ -887,6 +894,7 @@ class ActionCheckSatAssuming : public Action
       d_smgr.d_sat_called = false;
     }
     d_solver.check_sat_assuming(assumptions);
+    d_smgr.d_sat_called = true;
   }
 };
 
@@ -1092,9 +1100,10 @@ FSM::configure()
   s_assert->add_action(t_inputs, 2, s_push_pop);
 
   /* State: check sat .................................................... */
-  s_sat->add_action(a_sat, 20, s_delete);
-  s_sat->add_action(a_sat_ass, 20, s_delete);
+  s_sat->add_action(a_sat, 20);
+  s_sat->add_action(a_sat_ass, 20);
   s_sat->add_action(t_inputs, 2, s_push_pop);
+  s_sat->add_action(t_inputs, 5, s_delete);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 20, s_inputs);
@@ -1121,7 +1130,7 @@ FSM::configure()
 
   set_init_state(s_new);
 
-  d_smgr.get_solver().configure_fsm(*this);
+  d_smgr.get_solver().configure_fsm(this);
 
   for (const auto& t : d_actions_all_states)
   {

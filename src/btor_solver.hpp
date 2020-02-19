@@ -76,7 +76,7 @@ class BtorSolver : public Solver
   TheoryIdVector get_supported_theories() const override;
   OpKindSet get_unsupported_op_kinds() const override;
 
-  void configure_fsm(FSM& fsm) const override;
+  void configure_fsm(FSM* fsm) const override;
 
   void set_opt(const std::string& opt, const std::string& value) const override;
 
@@ -84,6 +84,8 @@ class BtorSolver : public Solver
   std::string get_option_name_model_gen() const override;
   void set_option_incremental(bool value) const override;
   void set_options_model_gen(bool value) const override;
+
+  BoolectorNode* get_btor_term(Term term) const;
 
   Term mk_var(Sort sort, const std::string name) const override
   {  // TODO:
@@ -151,7 +153,6 @@ class BtorSolver : public Solver
   void check_is_bv_const(SpecialValueBV kind, BoolectorNode* node) const;
 
   BoolectorSort get_btor_sort(Sort sort) const;
-  BoolectorNode* get_btor_term(Term term) const;
   BoolectorNode* mk_term_left_assoc(
       std::vector<Term>& args,
       BoolectorNode* (*fun)(Btor*, BoolectorNode*, BoolectorNode*) ) const;

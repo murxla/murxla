@@ -236,6 +236,14 @@ SolverManager::pick_assumption()
   return res;
 }
 
+Term
+SolverManager::pick_assumed_assumption()
+{
+  assert(has_assumed());
+  return d_rng.pick_from_set<std::unordered_set<Term, HashTerm>, Term>(
+      d_assumptions);
+}
+
 void
 SolverManager::clear_assumptions()
 {
@@ -289,6 +297,12 @@ SolverManager::has_term(Term term) const
   }
   return d_terms.at(sort_kind).at(sort).find(term)
          != d_terms.at(sort_kind).at(sort).end();
+}
+
+bool
+SolverManager::has_assumed() const
+{
+  return !d_assumptions.empty();
 }
 
 Term
