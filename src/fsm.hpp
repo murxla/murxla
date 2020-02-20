@@ -103,13 +103,15 @@ class State
 
   /**
    * Add action to this state.
-   * action: The action to add.
-   * weight: The weight of the action, determines the probability to choose
-   *         running the action.
-   * next  : The state to transition into after running the action. Optional,
-   *         if not set, we stay in the current state.
+   * action  : The action to add.
+   * priority: The priority of the action, determines the weight, and thus the
+   *           probability to choose running the action. The actual weight of
+   *           the action is computed as priority/sum, with <sum> being the
+   *           sum of the priorities of all actions in that state.
+   * next    : The state to transition into after running the action. Optional,
+   *           if not set, we stay in the current state.
    */
-  void add_action(Action* action, uint32_t weight, State* next = nullptr);
+  void add_action(Action* action, uint32_t priority, State* next = nullptr);
 
  private:
   /* A unique string identifying the state. */
@@ -166,11 +168,16 @@ class FSM
   template <class T>
   T* new_action();
 
-  /** Add given action to all configured states. */
+  /**
+   * Add given action to all configured states.
+   *
+   * The actual weight of the action is computed as priority/sum, with <sum>
+   * being the sum of the priorities of all actions in that state.
+   */
   template <class T>
   void add_action_to_all_states(
       T* action,
-      uint32_t weight,
+      uint32_t priority,
       std::unordered_set<std::string> excluded_states = {});
 
   /** Set given state as initial state. */
@@ -219,12 +226,12 @@ FSM::new_action()
 template <class T>
 void
 FSM::add_action_to_all_states(T* action,
-                              uint32_t weight,
+                              uint32_t priority,
                               std::unordered_set<std::string> excluded_states)
 {
   d_actions_all_states.push_back(
       std::tuple<Action*, uint32_t, std::unordered_set<std::string>>(
-          action, weight, excluded_states));
+          action, priority, excluded_states));
 }
 
 }  // namespace smtmbt

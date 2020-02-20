@@ -620,7 +620,7 @@ CVC4Solver::configure_fsm(FSM* fsm) const
 {
   // Solver::simplify(const Term& term)
   auto a_simplify = fsm->new_action<CVC4ActionSimplify>();
-  fsm->add_action_to_all_states(a_simplify, 1, {"new", "delete"});
+  fsm->add_action_to_all_states(a_simplify, 100, {"new", "delete"});
 }
 }  // namespace btor
 }  // namespace smtmbt

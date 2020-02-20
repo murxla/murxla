@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <unordered_set>
 
@@ -21,10 +22,10 @@ namespace smtmbt {
 /* -------------------------------------------------------------------------- */
 
 void
-State::add_action(Action* a, uint32_t weight, State* next)
+State::add_action(Action* a, uint32_t priority, State* next)
 {
   d_actions.emplace_back(ActionTuple(a, next == nullptr ? this : next));
-  d_weights.push_back(weight);
+  d_weights.push_back(priority);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1118,60 +1119,60 @@ FSM::configure()
   /* --------------------------------------------------------------------- */
 
   /* State: new .......................................................... */
-  s_new->add_action(a_new, 100, s_opt);
+  s_new->add_action(a_new, 1, s_opt);
 
   /* State: opt .......................................................... */
-  s_opt->add_action(a_setoption, 100);
-  s_opt->add_action(t_default, 20, s_inputs);
+  s_opt->add_action(a_setoption, 1);
+  s_opt->add_action(t_default, 5, s_inputs);
 
   /* State: create inputs ................................................ */
-  s_inputs->add_action(a_mksort, 100);
-  s_inputs->add_action(a_mkval, 100);
-  s_inputs->add_action(a_mkconst, 100);
-  s_inputs->add_action(t_inputs, 100, s_terms);
-  s_inputs->add_action(t_inputs, 10, s_sat);
-  s_inputs->add_action(t_inputs, 10, s_push_pop);
+  s_inputs->add_action(a_mksort, 1);
+  s_inputs->add_action(a_mkval, 1);
+  s_inputs->add_action(a_mkconst, 1);
+  s_inputs->add_action(t_inputs, 1, s_terms);
+  s_inputs->add_action(t_inputs, 5, s_sat);
+  s_inputs->add_action(t_inputs, 5, s_push_pop);
 
   /* State: create terms ................................................. */
-  s_terms->add_action(a_mkterm, 100);
-  s_terms->add_action(t_default, 100, s_assert);
-  s_terms->add_action(t_default, 10, s_sat);
-  s_terms->add_action(t_inputs, 10, s_push_pop);
+  s_terms->add_action(a_mkterm, 1);
+  s_terms->add_action(t_default, 1, s_assert);
+  s_terms->add_action(t_default, 5, s_sat);
+  s_terms->add_action(t_inputs, 5, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
-  s_assert->add_action(a_assert, 100);
-  s_assert->add_action(t_default, 10, s_delete);
-  s_assert->add_action(t_default, 100, s_sat);
-  s_assert->add_action(t_inputs, 10, s_push_pop);
+  s_assert->add_action(a_assert, 1);
+  s_assert->add_action(t_default, 5, s_delete);
+  s_assert->add_action(t_default, 1, s_sat);
+  s_assert->add_action(t_inputs, 5, s_push_pop);
 
   /* State: check sat .................................................... */
-  s_sat->add_action(a_sat, 100);
-  s_sat->add_action(a_sat_ass, 100);
-  s_sat->add_action(t_inputs, 10, s_push_pop);
-  s_sat->add_action(t_inputs, 10, s_failed);
-  s_sat->add_action(t_inputs, 20, s_delete);
+  s_sat->add_action(a_sat, 1);
+  s_sat->add_action(a_sat_ass, 1);
+  s_sat->add_action(t_inputs, 5, s_push_pop);
+  s_sat->add_action(t_inputs, 5, s_failed);
+  s_sat->add_action(t_inputs, 10, s_delete);
 
   /* State: push_pop ..................................................... */
-  s_push_pop->add_action(a_push, 100, s_inputs);
-  s_push_pop->add_action(a_push, 100, s_terms);
-  s_push_pop->add_action(a_push, 100, s_assert);
-  s_push_pop->add_action(a_push, 100, s_sat);
-  s_push_pop->add_action(a_push, 50, s_delete);
-  s_push_pop->add_action(a_pop, 100, s_inputs);
-  s_push_pop->add_action(a_pop, 100, s_terms);
-  s_push_pop->add_action(a_pop, 100, s_assert);
-  s_push_pop->add_action(a_pop, 100, s_sat);
-  s_push_pop->add_action(a_pop, 50, s_delete);
+  s_push_pop->add_action(a_push, 1, s_inputs);
+  s_push_pop->add_action(a_push, 1, s_terms);
+  s_push_pop->add_action(a_push, 1, s_assert);
+  s_push_pop->add_action(a_push, 1, s_sat);
+  s_push_pop->add_action(a_push, 5, s_delete);
+  s_push_pop->add_action(a_pop, 1, s_inputs);
+  s_push_pop->add_action(a_pop, 1, s_terms);
+  s_push_pop->add_action(a_pop, 1, s_assert);
+  s_push_pop->add_action(a_pop, 1, s_sat);
+  s_push_pop->add_action(a_pop, 5, s_delete);
 
   /* State: failed ....................................................... */
-  s_failed->add_action(a_failed, 100, s_sat);
+  s_failed->add_action(a_failed, 1, s_sat);
 
   /* State: delete ....................................................... */
-  s_delete->add_action(a_delete, 100, s_final);
+  s_delete->add_action(a_delete, 1, s_final);
 
   /* All States (with exceptions) ........................................ */
-  add_action_to_all_states(a_reset, 1, {"new"});
-  add_action_to_all_states(a_reset_ass, 1, {"new"});
+  add_action_to_all_states(a_reset, 100, {"new"});
+  add_action_to_all_states(a_reset_ass, 100, {"new"});
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */
@@ -1179,7 +1180,15 @@ FSM::configure()
 
   set_init_state(s_new);
 
+  /* --------------------------------------------------------------------- */
+  /* Configure solver specific actions/states                              */
+  /* --------------------------------------------------------------------- */
+
   d_smgr.get_solver().configure_fsm(this);
+
+  /* --------------------------------------------------------------------- */
+  /* Add actions that are configured via add_action_to_all_states          */
+  /* --------------------------------------------------------------------- */
 
   for (const auto& t : d_actions_all_states)
   {
@@ -1190,6 +1199,19 @@ FSM::configure()
       {
         s->add_action(std::get<0>(t), std::get<1>(t));
       }
+    }
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Compute actual weights based on given priorities                      */
+  /* --------------------------------------------------------------------- */
+  for (const auto& s : d_states)
+  {
+    uint32_t sum =
+        std::accumulate(s->d_weights.begin(), s->d_weights.end(), 0u);
+    for (uint32_t& w : s->d_weights)
+    {
+      w = sum / w;
     }
   }
 }

@@ -1118,6 +1118,8 @@ class BtorActionSimplify : public Action
 
   bool run() override
   {
+    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    if (solver.get_solver() == nullptr) return false;
     _run();
     return true;
   }
@@ -1190,30 +1192,30 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_release_all
   auto a_release_all = fsm->new_action<BtorActionReleaseAll>();
-  s_delete->add_action(a_release_all, 1);
+  s_delete->add_action(a_release_all, 100);
 
   // boolector_failed
   auto a_failed = fsm->new_action<BtorActionFailed>();
-  s_failed->add_action(a_failed, 100);
-  s_sat->add_action(t_default, 10, s_failed);
-  s_failed->add_action(t_default, 100, s_sat);
+  s_failed->add_action(a_failed, 1);
+  s_sat->add_action(t_default, 5, s_failed);
+  s_failed->add_action(t_default, 1, s_sat);
 
   // boolector_fixate_assumptions
   // boolector_reset_assumptions
   auto a_fix_assumptions   = fsm->new_action<BtorActionFixateAssumptions>();
   auto a_reset_assumptions = fsm->new_action<BtorActionResetAssumptions>();
-  s_fix_reset_assumptions->add_action(a_fix_assumptions, 10);
-  s_fix_reset_assumptions->add_action(a_reset_assumptions, 10);
+  s_fix_reset_assumptions->add_action(a_fix_assumptions, 5);
+  s_fix_reset_assumptions->add_action(a_reset_assumptions, 5);
   s_assert->add_action(t_default, 1, s_fix_reset_assumptions);
-  s_fix_reset_assumptions->add_action(t_default, 100, s_assert);
+  s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
 
   // boolector_simplify
   auto a_simplify = fsm->new_action<BtorActionSimplify>();
-  fsm->add_action_to_all_states(a_simplify, 1);
+  fsm->add_action_to_all_states(a_simplify, 100);
 
   // boolector_set_sat_solver
   auto a_set_sat_solver = fsm->new_action<BtorActionSetSatSolver>();
-  s_opt->add_action(a_set_sat_solver, 1);
+  s_opt->add_action(a_set_sat_solver, 100);
 }
 
 }  // namespace btor
