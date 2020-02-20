@@ -919,6 +919,7 @@ class ActionGetUnsatAssumptions : public Action
 
   bool run() override
   {
+    if (!d_smgr.d_sat_called) return false;
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_assumed()) return false;
     _run();
@@ -1124,8 +1125,6 @@ FSM::configure()
   auto s_push_pop =
       new_state("push_pop", [this]() { return d_smgr.d_incremental; });
 
-  auto s_failed = new_state("failed", [this]() { return d_smgr.d_sat_called; });
-
   /* --------------------------------------------------------------------- */
   /* Add actions/transitions to states                                     */
   /* --------------------------------------------------------------------- */
@@ -1161,7 +1160,6 @@ FSM::configure()
   s_sat->add_action(a_sat, 1);
   s_sat->add_action(a_sat_ass, 1);
   s_sat->add_action(t_inputs, 5, s_push_pop);
-  s_sat->add_action(t_inputs, 5, s_failed);
   s_sat->add_action(t_inputs, 10, s_delete);
 
   /* State: push_pop ..................................................... */
@@ -1177,7 +1175,7 @@ FSM::configure()
   s_push_pop->add_action(a_pop, 5, s_delete);
 
   /* State: failed ....................................................... */
-  s_failed->add_action(a_failed, 1, s_sat);
+  add_action_to_all_states(a_failed, 100);
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);

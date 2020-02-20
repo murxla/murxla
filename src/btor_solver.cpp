@@ -1021,6 +1021,7 @@ class BtorActionFailed : public Action
 
   bool run() override
   {
+    if (!d_smgr.d_sat_called) return false;
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_assumed()) return false;
     Term term = d_smgr.pick_assumed_assumption();
@@ -1182,11 +1183,8 @@ BtorSolver::configure_fsm(FSM* fsm) const
   State* s_assert = fsm->get_state("assert");
   State* s_delete = fsm->get_state("delete");
   State* s_opt    = fsm->get_state("opt");
-  State* s_sat    = fsm->get_state("check_sat");
 
   State* s_fix_reset_assumptions = fsm->new_state("btor-fix-reset-assumptions");
-  State* s_failed                = fsm->new_state(
-      "btor-failed", [fsm]() { return fsm->get_smgr().d_sat_called; });
 
   auto t_default = fsm->new_action<Transition>();
 
@@ -1196,9 +1194,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_failed
   auto a_failed = fsm->new_action<BtorActionFailed>();
-  s_failed->add_action(a_failed, 1);
-  s_sat->add_action(t_default, 5, s_failed);
-  s_failed->add_action(t_default, 1, s_sat);
+  fsm->add_action_to_all_states(a_failed, 100);
 
   // boolector_fixate_assumptions
   // boolector_reset_assumptions
