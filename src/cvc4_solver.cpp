@@ -139,6 +139,14 @@ CVC4Solver::is_initialized() const
   return d_solver != nullptr;
 }
 
+bool
+CVC4Solver::check_failed_assumption(const Term& t) const
+{
+  return !get_cvc4_term(t).isNull();
+}
+
+/* -------------------------------------------------------------------------- */
+
 Sort
 CVC4Solver::mk_sort(SortKind kind) const
 {
@@ -427,6 +435,18 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
   if (res.isUnsat() || res.isValid()) return Result::UNSAT;
   assert(res.isSatUnknown() || res.isValidUnknown());
   return Result::UNKNOWN;
+}
+
+std::vector<Term>
+CVC4Solver::get_unsat_assumptions() const
+{
+  std::vector<Term> res;
+  std::vector<CVC4::api::Term> cvc4_res = d_solver->getUnsatAssumptions();
+  for (const CVC4::api::Term& t : cvc4_res)
+  {
+    res.push_back(std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, t)));
+  }
+  return res;
 }
 
 void

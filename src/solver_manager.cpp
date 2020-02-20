@@ -305,6 +305,35 @@ SolverManager::has_assumed() const
   return !d_assumptions.empty();
 }
 
+bool
+SolverManager::is_assumed(Term term) const
+{
+  return d_assumptions.find(term) != d_assumptions.end();
+}
+
+Term
+SolverManager::find_term(Term term, Sort sort, SortKind sort_kind)
+{
+  assert(term.get());
+  assert(term->get_id() == 0);
+  assert(term->get_sort() == nullptr);
+  assert(sort.get());
+  assert(sort_kind != SORT_ANY);
+  assert(sort_kind != SORT_BV || sort->get_bv_size() <= SMTMBT_BW_MAX);
+
+  if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
+  assert(sort->get_kind() == sort_kind);
+  assert(has_sort(sort));
+  term->set_sort(sort);
+  SortMap& map = d_terms.at(sort_kind);
+  if (map.find(sort) != map.end())
+  {
+    auto it = map.at(sort).find(term);
+    if (it != map.at(sort).end()) return it->first;
+  }
+  return nullptr;
+}
+
 Term
 SolverManager::get_term(uint32_t id) const
 {

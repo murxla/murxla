@@ -52,8 +52,8 @@ class BtorTerm : public AbsTerm
   bool equals(const Term& other) const override;
 
  private:
-  Btor* d_solver;
-  BoolectorNode* d_term;
+  Btor* d_solver        = nullptr;
+  BoolectorNode* d_term = nullptr;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -79,6 +79,10 @@ class BtorSolver : public Solver
   void configure_fsm(FSM* fsm) const override;
 
   void set_opt(const std::string& opt, const std::string& value) const override;
+
+  std::vector<std::string> get_supported_sat_solvers();
+
+  bool check_failed_assumption(const Term& t) const;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
@@ -129,13 +133,13 @@ class BtorSolver : public Solver
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
 
+  std::vector<Term> get_unsat_assumptions() const;
+
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
 
   void reset() const override;
   void reset_assertions() const override;
-
-  std::vector<std::string> get_supported_sat_solvers();
 
   //
   // get_model()

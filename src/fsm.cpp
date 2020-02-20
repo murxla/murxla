@@ -898,6 +898,47 @@ class ActionCheckSatAssuming : public Action
   }
 };
 
+class ActionGetUnsatAssumptions : public Action
+{
+ public:
+  ActionGetUnsatAssumptions(SolverManager& smgr)
+      : Action(smgr, "get-unsat-assumptions")
+  {
+  }
+
+  bool run() override
+  {
+    if (!d_smgr.d_incremental) return false;
+    if (!d_smgr.has_assumed()) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    /* Note: The Terms in this vector are solver terms wrapped into Term,
+     *       without sort information! */
+    std::vector<Term> res = d_solver.get_unsat_assumptions();
+    for (Term& fa : res)
+    {
+      Term t = d_smgr.find_term(fa, d_solver.get_sort(fa), SORT_BOOL);
+      assert(t != nullptr);
+      assert(d_smgr.is_assumed(t));
+      assert(d_solver.check_failed_assumption(t));
+    }
+    d_smgr.d_sat_called = true;
+  }
+};
+
 class ActionPush : public Action
 {
  public:
@@ -1039,6 +1080,8 @@ FSM::configure()
   auto a_push = new_action<ActionPush>();
   auto a_pop  = new_action<ActionPop>();
 
+  auto a_failed = new_action<ActionGetUnsatAssumptions>();
+
   auto a_reset     = new_action<ActionReset>();
   auto a_reset_ass = new_action<ActionResetAssertions>();
 
@@ -1068,57 +1111,63 @@ FSM::configure()
   auto s_push_pop =
       new_state("push_pop", [this]() { return d_smgr.d_incremental; });
 
+  auto s_failed = new_state("failed", [this]() { return d_smgr.d_sat_called; });
+
   /* --------------------------------------------------------------------- */
   /* Transitions                                                           */
   /* --------------------------------------------------------------------- */
 
   /* State: new .......................................................... */
-  s_new->add_action(a_new, 10, s_opt);
+  s_new->add_action(a_new, 100, s_opt);
 
   /* State: opt .......................................................... */
   s_opt->add_action(a_setoption, 100);
   s_opt->add_action(t_default, 20, s_inputs);
 
   /* State: create inputs ................................................ */
-  s_inputs->add_action(a_mksort, 40);
-  s_inputs->add_action(a_mkval, 40);
-  s_inputs->add_action(a_mkconst, 40);
-  s_inputs->add_action(t_inputs, 40, s_terms);
-  s_inputs->add_action(t_inputs, 2, s_sat);
-  s_inputs->add_action(t_inputs, 2, s_push_pop);
+  s_inputs->add_action(a_mksort, 100);
+  s_inputs->add_action(a_mkval, 100);
+  s_inputs->add_action(a_mkconst, 100);
+  s_inputs->add_action(t_inputs, 100, s_terms);
+  s_inputs->add_action(t_inputs, 10, s_sat);
+  s_inputs->add_action(t_inputs, 10, s_push_pop);
 
   /* State: create terms ................................................. */
-  s_terms->add_action(a_mkterm, 20);
-  s_terms->add_action(t_default, 20, s_assert);
-  s_terms->add_action(t_default, 2, s_sat);
-  s_terms->add_action(t_inputs, 2, s_push_pop);
+  s_terms->add_action(a_mkterm, 100);
+  s_terms->add_action(t_default, 100, s_assert);
+  s_terms->add_action(t_default, 10, s_sat);
+  s_terms->add_action(t_inputs, 10, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
-  s_assert->add_action(a_assert, 10);
-  s_assert->add_action(t_default, 2, s_delete);
-  s_assert->add_action(t_default, 10, s_sat);
-  s_assert->add_action(t_inputs, 2, s_push_pop);
+  s_assert->add_action(a_assert, 100);
+  s_assert->add_action(t_default, 10, s_delete);
+  s_assert->add_action(t_default, 100, s_sat);
+  s_assert->add_action(t_inputs, 10, s_push_pop);
 
   /* State: check sat .................................................... */
-  s_sat->add_action(a_sat, 20);
-  s_sat->add_action(a_sat_ass, 20);
-  s_sat->add_action(t_inputs, 2, s_push_pop);
-  s_sat->add_action(t_inputs, 5, s_delete);
+  s_sat->add_action(a_sat, 100);
+  s_sat->add_action(a_sat_ass, 100);
+  s_sat->add_action(t_inputs, 10, s_push_pop);
+  s_sat->add_action(t_inputs, 10, s_failed);
+  s_sat->add_action(t_inputs, 20, s_delete);
 
   /* State: push_pop ..................................................... */
-  s_push_pop->add_action(a_push, 20, s_inputs);
-  s_push_pop->add_action(a_push, 20, s_terms);
-  s_push_pop->add_action(a_push, 20, s_assert);
-  s_push_pop->add_action(a_push, 20, s_sat);
-  s_push_pop->add_action(a_push, 10, s_delete);
-  s_push_pop->add_action(a_pop, 20, s_inputs);
-  s_push_pop->add_action(a_pop, 20, s_terms);
-  s_push_pop->add_action(a_pop, 20, s_assert);
-  s_push_pop->add_action(a_pop, 20, s_sat);
-  s_push_pop->add_action(a_pop, 10, s_delete);
+  s_push_pop->add_action(a_push, 100, s_inputs);
+  s_push_pop->add_action(a_push, 100, s_terms);
+  s_push_pop->add_action(a_push, 100, s_assert);
+  s_push_pop->add_action(a_push, 100, s_sat);
+  s_push_pop->add_action(a_push, 50, s_delete);
+  s_push_pop->add_action(a_pop, 100, s_inputs);
+  s_push_pop->add_action(a_pop, 100, s_terms);
+  s_push_pop->add_action(a_pop, 100, s_assert);
+  s_push_pop->add_action(a_pop, 100, s_sat);
+  s_push_pop->add_action(a_pop, 50, s_delete);
+
+  /* State: failed ....................................................... */
+  s_failed->add_action(a_failed, 100, s_sat);
 
   /* State: delete ....................................................... */
-  s_delete->add_action(a_delete, 20, s_final);
+  s_delete->add_action(a_delete, 100, s_final);
 
   /* All States (with exceptions) ........................................ */
   add_action_to_all_states(a_reset, 1, {"new"});

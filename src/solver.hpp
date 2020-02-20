@@ -164,6 +164,8 @@ class Solver
   virtual Result check_sat() const = 0;
   virtual Result check_sat_assuming(std::vector<Term>& assumptions) const = 0;
 
+  virtual std::vector<Term> get_unsat_assumptions() const = 0;
+
   virtual void push(uint32_t n_levels) const = 0;
   virtual void pop(uint32_t n_levels) const  = 0;
 
@@ -180,6 +182,8 @@ class Solver
   virtual std::string get_option_name_model_gen() const   = 0;
   virtual void set_option_incremental(bool value) const   = 0;
   virtual void set_options_model_gen(bool value) const    = 0;
+
+  virtual bool check_failed_assumption(const Term& t) const = 0;
 
   //
   // get_model()

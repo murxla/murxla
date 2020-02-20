@@ -125,6 +125,19 @@ class SolverManager
   /** Return true if d_assumptions is not empty. */
   bool has_assumed() const;
 
+  /** Return true if given term has been previously assumed. */
+  bool is_assumed(Term term) const;
+
+  /**
+   * Return the Term in the Term database that wraps the same solver term
+   * with the given sort and sort kind.
+   * Returns a nullptr if given Term is not in the term database.
+   *
+   * Note: We need this for Terms returned by the solver that are only wrapped
+   *       solver terms without sort information.
+   */
+  Term find_term(Term term, Sort sort, SortKind sort_kind);
+
   /**
    * Return the term with the given id.
    * Note: We only use this for untracing.

@@ -47,7 +47,7 @@ class CVC4Term : public AbsTerm
   bool equals(const Term& other) const override;
 
  private:
-  CVC4::api::Solver* d_solver;
+  CVC4::api::Solver* d_solver = nullptr;
   CVC4::api::Term d_term;
 };
 
@@ -76,6 +76,8 @@ class CVC4Solver : public Solver
   void set_opt(const std::string& opt, const std::string& value) const override
   {  // TODO:
   }
+
+  bool check_failed_assumption(const Term& t) const;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
@@ -121,6 +123,8 @@ class CVC4Solver : public Solver
 
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
+
+  std::vector<Term> get_unsat_assumptions() const;
 
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;

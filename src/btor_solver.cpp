@@ -658,15 +658,29 @@ BtorSolver::check_sat() const
 Solver::Result
 BtorSolver::check_sat_assuming(std::vector<Term>& assumptions) const
 {
+  int32_t res;
   for (const Term& t : assumptions)
   {
     boolector_assume(d_solver, get_btor_term(t));
   }
-  int32_t res = boolector_sat(d_solver);
+  res = boolector_sat(d_solver);
   if (res == BOOLECTOR_SAT) return Result::SAT;
   if (res == BOOLECTOR_UNSAT) return Result::UNSAT;
   assert(res == BOOLECTOR_UNKNOWN);
   return Result::UNKNOWN;
+}
+
+std::vector<Term>
+BtorSolver::get_unsat_assumptions() const
+{
+  std::vector<Term> res;
+  BoolectorNode** btor_res = boolector_get_failed_assumptions(d_solver);
+  for (uint32_t i = 0; btor_res[i] != nullptr; ++i)
+  {
+    res.push_back(
+        std::shared_ptr<BtorTerm>(new BtorTerm(d_solver, btor_res[i])));
+  }
+  return res;
 }
 
 void
@@ -699,6 +713,12 @@ std::vector<std::string>
 BtorSolver::get_supported_sat_solvers()
 {
   return {"cadical", "cms", "lingeling", "minisat", "picosat"};
+}
+
+bool
+BtorSolver::check_failed_assumption(const Term& t) const
+{
+  return boolector_failed(d_solver, get_btor_term(t));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1174,9 +1194,9 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_failed
   auto a_failed = fsm->new_action<BtorActionFailed>();
-  s_failed->add_action(a_failed, 10);
-  s_sat->add_action(t_default, 1, s_failed);
-  s_failed->add_action(t_default, 10, s_sat);
+  s_failed->add_action(a_failed, 100);
+  s_sat->add_action(t_default, 10, s_failed);
+  s_failed->add_action(t_default, 100, s_sat);
 
   // boolector_fixate_assumptions
   // boolector_reset_assumptions
