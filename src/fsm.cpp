@@ -36,6 +36,15 @@ State::run(RNGenerator& rng)
   assert(!d_actions.empty());
   uint32_t idx      = rng.pick_uint32_weighted(d_weights);
   ActionTuple& atup = d_actions[idx];
+  /* only pick empty transitions if precondition of this state is false */
+  if (f_precond != nullptr && !f_precond())
+  {
+    while (!atup.d_action->empty())
+    {
+      idx  = rng.pick_uint32_weighted(d_weights);
+      atup = d_actions[idx];
+    }
+  }
   if (atup.d_action->run()
       && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
   {
@@ -168,10 +177,10 @@ FSM::TraceStream::flush()
  * State:      create inputs
  * Transition: if there exists at least one input
  */
-class TransitionCreateInputs : public Action
+class TransitionCreateInputs : public Transition
 {
  public:
-  TransitionCreateInputs(SolverManager& smgr) : Action(smgr, "") {}
+  TransitionCreateInputs(SolverManager& smgr) : Transition(smgr) {}
   bool run() override { return d_smgr.d_stats.inputs > 0; }
   uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
 };
@@ -843,6 +852,7 @@ class ActionCheckSat : public Action
     }
     d_solver.check_sat();
     d_smgr.d_sat_called = true;
+    d_smgr.d_n_sat_calls += 1;
   }
 };
 
@@ -1107,7 +1117,9 @@ FSM::configure()
   auto s_assert =
       new_state("assert", [this]() { return d_smgr.has_term(SORT_BOOL); });
 
-  auto s_sat = new_state("check_sat");
+  auto s_sat = new_state("check_sat", [this]() {
+    return d_smgr.d_n_sat_calls == 0 || d_smgr.d_incremental;
+  });
 
   auto s_push_pop =
       new_state("push_pop", [this]() { return d_smgr.d_incremental; });
@@ -1115,7 +1127,7 @@ FSM::configure()
   auto s_failed = new_state("failed", [this]() { return d_smgr.d_sat_called; });
 
   /* --------------------------------------------------------------------- */
-  /* Transitions                                                           */
+  /* Add actions/transitions to states                                     */
   /* --------------------------------------------------------------------- */
 
   /* State: new .......................................................... */

@@ -25,20 +25,29 @@
 namespace smtmbt {
 class State;
 
+/**
+ * Transition from current state to next state while performing an action
+ * (a call to the solver API), with or without preconditions.
+ */
 class Action
 {
  public:
+  /** Disallow default constructor. */
   Action() = delete;
-  Action(SolverManager& smgr, const std::string& id)
+  /** Constructor. */
+  Action(SolverManager& smgr, const std::string& id, bool empty = false)
       : d_rng(smgr.get_rng()),
         d_solver(smgr.get_solver()),
         d_smgr(smgr),
+        d_is_empty(empty),
         d_id(id)
   {
+    assert(d_is_empty || !id.empty());
   }
+  /** Destructor. */
   virtual ~Action()  = default;
 
-  /* Execute the action. */
+  /** Execute the action. */
   virtual bool run() = 0;
 
   /**
@@ -51,23 +60,31 @@ class Action
   virtual uint64_t untrace(std::vector<std::string>& tokens) = 0;
 
   const std::string& get_id() const { return d_id; }
+  bool empty() const { return d_is_empty; }
 
  protected:
+  /* The random number generator associated with this action. */
   RNGenerator& d_rng;
+  /* The solver associated with this action. */
   Solver& d_solver;
+  /* The solver manager associated with this action. */
   SolverManager& d_smgr;
+  /* True if this is an empty transition. */
+  bool d_is_empty = false;
 
  private:
+  /* A string identifying this action.
+   * Must not be empty for non-empty transitions. */
   std::string d_id;
 };
 
 /**
- * Transition from current state to next state without pre-conditions.
+ * (Empty) transition from current state to next state without pre-conditions.
  */
 class Transition : public Action
 {
  public:
-  Transition(SolverManager& smgr) : Action(smgr, "") {}
+  Transition(SolverManager& smgr) : Action(smgr, "", true) {}
   bool run() override { return true; }
   uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
 };

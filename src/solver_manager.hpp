@@ -203,6 +203,9 @@ class SolverManager
    */
   bool d_sat_called = false;
 
+  /** The number of check-sat calls issued. */
+  uint32_t d_n_sat_calls = 0;
+
   /** Statistics. */
   Stats d_stats;
 
