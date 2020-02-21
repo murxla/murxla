@@ -29,9 +29,6 @@ namespace btor {
 // int32_t boolector_limited_sat (Btor *btor, int32_t lod_limit, int32_t sat_limit);
 //
 // void boolector_set_opt (Btor *btor, BtorOption opt, uint32_t val);
-// uint32_t boolector_get_opt (Btor *btor, BtorOption opt);
-// uint32_t boolector_get_opt_min (Btor *btor, BtorOption opt);
-// uint32_t boolector_get_opt_max (Btor *btor, BtorOption opt);
 // uint32_t boolector_get_opt_dflt (Btor *btor, BtorOption opt);
 // const char *boolector_get_opt_shrt (Btor *btor, BtorOption opt);
 // const char *boolector_get_opt_desc (Btor *btor, BtorOption opt);

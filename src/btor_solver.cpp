@@ -807,7 +807,11 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value) const
   {
     val = std::stoul(value);
   }
-  boolector_set_opt(d_solver, d_option_name_to_enum.at(opt), val);
+  BtorOption btor_opt = d_option_name_to_enum.at(opt);
+  assert(val >= boolector_get_opt_min(d_solver, btor_opt));
+  assert(val <= boolector_get_opt_max(d_solver, btor_opt));
+  boolector_set_opt(d_solver, btor_opt, val);
+  assert(val == boolector_get_opt(d_solver, btor_opt));
 }
 
 std::string
