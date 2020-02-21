@@ -87,7 +87,6 @@ namespace cvc4 {
 // TODO std::vector<std::pair<Term, Term>> Solver::getAssignment() const;
 // TODO std::string Solver::getInfo(const std::string& flag) const;
 // TODO std::string Solver::getOption(const std::string& option) const;
-// TODO std::vector<Term> Solver::getUnsatAssumptions() const;
 // TODO std::vector<Term> Solver::getUnsatCore() const;
 // TODO Term Solver::getValue(Term term) const;
 // TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
