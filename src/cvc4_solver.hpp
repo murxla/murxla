@@ -81,8 +81,10 @@ class CVC4Solver : public Solver
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
-  void set_option_incremental(bool value) const override;
-  void set_options_model_gen(bool value) const override;
+  bool option_incremental_enabled() const;
+  bool option_model_gen_enabled() const;
+  std::string get_option_value_enable_incremental() const override;
+  std::string get_option_value_enable_model_gen() const override;
 
   Term mk_var(Sort sort, const std::string name) const override
   {  // TODO:

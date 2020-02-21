@@ -487,16 +487,28 @@ CVC4Solver::get_option_name_model_gen() const
   return "produce-models";
 }
 
-void
-CVC4Solver::set_option_incremental(bool value) const
+bool
+CVC4Solver::option_incremental_enabled() const
 {
-  d_solver->setOption("incremental", value ? "true" : "false");
+  return d_solver->getOption("incremental") == "true";
 }
 
-void
-CVC4Solver::set_options_model_gen(bool value) const
+bool
+CVC4Solver::option_model_gen_enabled() const
 {
-  d_solver->setOption("produce-models", value ? "true" : "false");
+  return d_solver->getOption("produce-models") == "true";
+}
+
+std::string
+CVC4Solver::get_option_value_enable_incremental() const
+{
+  return "true";
+}
+
+std::string
+CVC4Solver::get_option_value_enable_model_gen() const
+{
+  return "true";
 }
 
 /* -------------------------------------------------------------------------- */

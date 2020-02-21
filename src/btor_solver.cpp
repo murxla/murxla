@@ -822,16 +822,28 @@ BtorSolver::get_option_name_model_gen() const
   return boolector_get_opt_lng(d_solver, BTOR_OPT_MODEL_GEN);
 }
 
-void
-BtorSolver::set_option_incremental(bool value) const
+bool
+BtorSolver::option_incremental_enabled() const
 {
-  boolector_set_opt(d_solver, BTOR_OPT_INCREMENTAL, value ? 1 : 0);
+  return boolector_get_opt(d_solver, BTOR_OPT_INCREMENTAL) > 0;
 }
 
-void
-BtorSolver::set_options_model_gen(bool value) const
+bool
+BtorSolver::option_model_gen_enabled() const
 {
-  boolector_set_opt(d_solver, BTOR_OPT_MODEL_GEN, value ? 1 : 0);
+  return boolector_get_opt(d_solver, BTOR_OPT_MODEL_GEN) > 0;
+}
+
+std::string
+BtorSolver::get_option_value_enable_incremental() const
+{
+  return "1";
+}
+
+std::string
+BtorSolver::get_option_value_enable_model_gen() const
+{
+  return "1";
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1022,6 +1034,7 @@ class BtorActionFailed : public Action
   bool run() override
   {
     if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_assumed()) return false;
     Term term = d_smgr.pick_assumed_assumption();
@@ -1194,7 +1207,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_failed
   auto a_failed = fsm->new_action<BtorActionFailed>();
-  fsm->add_action_to_all_states(a_failed, 100);
+  fsm->add_action_to_all_states(a_failed, 1);
 
   // boolector_fixate_assumptions
   // boolector_reset_assumptions

@@ -180,8 +180,10 @@ class Solver
 
   virtual std::string get_option_name_incremental() const = 0;
   virtual std::string get_option_name_model_gen() const   = 0;
-  virtual void set_option_incremental(bool value) const   = 0;
-  virtual void set_options_model_gen(bool value) const    = 0;
+  virtual bool option_incremental_enabled() const                 = 0;
+  virtual bool option_model_gen_enabled() const                   = 0;
+  virtual std::string get_option_value_enable_incremental() const = 0;
+  virtual std::string get_option_value_enable_model_gen() const   = 0;
 
   virtual bool check_failed_assumption(const Term& t) const = 0;
 

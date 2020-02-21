@@ -203,6 +203,9 @@ class SolverManager
    */
   bool d_sat_called = false;
 
+  /** The result of the previous sat call. */
+  Solver::Result d_sat_result = Solver::Result::UNKNOWN;
+
   /** The number of check-sat calls issued. */
   uint32_t d_n_sat_calls = 0;
 

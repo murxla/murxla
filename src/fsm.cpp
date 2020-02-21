@@ -252,10 +252,28 @@ class ActionSetOption : public Action
   {
     std::string opt, value;
 
-    std::tie(opt, value) = d_smgr.pick_option();
+    if (!d_smgr.d_incremental && d_rng.pick_with_prob(10))
+    {
+      /* explicitly enable this option with higher priority */
+      opt   = d_solver.get_option_name_incremental();
+      value = d_solver.get_option_value_enable_incremental();
+    }
+    else if (!d_smgr.d_model_gen && d_rng.pick_with_prob(10))
+    {
+      /* explicitly enable this option with higher priority */
+      opt   = d_solver.get_option_name_model_gen();
+      value = d_solver.get_option_value_enable_model_gen();
+    }
+    else
+    {
+      /* pick random option */
+      std::tie(opt, value) = d_smgr.pick_option();
+    }
 
     if (opt.empty()) /* No option available */
+    {
       return false;
+    }
 
     _run(opt, value);
     return true;
@@ -273,14 +291,8 @@ class ActionSetOption : public Action
   {
     SMTMBT_TRACE << get_id() << " " << opt << " " << value;
     d_solver.set_opt(opt, value);
-    if (opt == d_solver.get_option_name_incremental())
-    {
-      d_smgr.d_incremental = value == "true";
-    }
-    else if (opt == d_solver.get_option_name_model_gen())
-    {
-      d_smgr.d_model_gen = value == "true";
-    }
+    d_smgr.d_incremental = d_solver.option_incremental_enabled();
+    d_smgr.d_model_gen   = d_solver.option_model_gen_enabled();
   }
 };
 
@@ -850,7 +862,7 @@ class ActionCheckSat : public Action
       d_smgr.clear_assumptions();
       d_smgr.d_sat_called = false;
     }
-    d_solver.check_sat();
+    d_smgr.d_sat_result = d_solver.check_sat();
     d_smgr.d_sat_called = true;
     d_smgr.d_n_sat_calls += 1;
   }
@@ -904,7 +916,7 @@ class ActionCheckSatAssuming : public Action
       d_smgr.clear_assumptions();
       d_smgr.d_sat_called = false;
     }
-    d_solver.check_sat_assuming(assumptions);
+    d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
     d_smgr.d_sat_called = true;
   }
 };
@@ -920,6 +932,7 @@ class ActionGetUnsatAssumptions : public Action
   bool run() override
   {
     if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_assumed()) return false;
     _run();
