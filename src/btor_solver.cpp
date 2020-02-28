@@ -1192,6 +1192,120 @@ class BtorActionSetSatSolver : public Action
   }
 };
 
+class BtorActionClone : public Action
+{
+ public:
+  BtorActionClone(SolverManager& smgr) : Action(smgr, "btor-clone") {}
+
+  bool run() override
+  {
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    Btor* btor         = solver.get_solver();
+    Btor* clone        = boolector_clone(btor);
+
+    if (d_rng.flip_coin())
+    {
+      boolector_reset_stats(clone);
+    }
+    if (d_rng.flip_coin())
+    {
+      boolector_reset_time(clone);
+    }
+    if (d_rng.flip_coin())
+    {
+      boolector_print_stats(clone);
+    }
+    if (d_rng.flip_coin())
+    {
+      for (uint64_t i = 0, n = d_smgr.get_n_terms(); i < n; ++i)
+      {
+        Term t = d_smgr.pick_term();
+        BoolectorNode *t_btor, *t_clone;
+        BoolectorSort sort;
+        int32_t id;
+        const char* s;
+        std::string symbol;
+
+        t_btor = solver.get_btor_term(t);
+        assert(boolector_get_btor(t_btor) == btor);
+        id     = boolector_get_node_id(btor, t_btor);
+        sort   = boolector_get_sort(btor, t_btor);
+        s      = boolector_get_symbol(btor, t_btor);
+        symbol = s ? s : "";
+
+        /* first, test boolector_match_node */
+        t_clone = boolector_match_node(clone, t_btor);
+        assert(boolector_get_btor(t_clone) == clone);
+        assert(id == boolector_get_node_id(clone, t_clone));
+        assert(sort == boolector_get_sort(clone, t_clone));
+        s = boolector_get_symbol(clone, t_clone);
+        assert(symbol.empty() || s);
+        assert(!s || symbol == s);
+        if (boolector_is_fun(btor, t_btor))
+        {
+          assert(boolector_is_fun(clone, t_clone));
+          assert(boolector_fun_get_domain_sort(btor, t_btor)
+                 == boolector_fun_get_domain_sort(clone, t_clone));
+          assert(boolector_fun_get_codomain_sort(btor, t_btor)
+                 == boolector_fun_get_codomain_sort(clone, t_clone));
+        }
+        boolector_release(clone, t_clone);
+
+        /* second, test boolector_match_node_by_id */
+        t_clone = boolector_match_node_by_id(clone, id < 0 ? -id : id);
+        assert(boolector_get_btor(t_clone) == clone);
+        assert(sort == boolector_get_sort(clone, t_clone));
+        s = boolector_get_symbol(clone, t_clone);
+        assert(symbol.empty() || s);
+        assert(!s || symbol == s);
+        if (boolector_is_fun(btor, t_btor))
+        {
+          assert(boolector_is_fun(clone, t_clone));
+          assert(boolector_fun_get_domain_sort(btor, t_btor)
+                 == boolector_fun_get_domain_sort(clone, t_clone));
+          assert(boolector_fun_get_codomain_sort(btor, t_btor)
+                 == boolector_fun_get_codomain_sort(clone, t_clone));
+        }
+        boolector_release(clone, t_clone);
+
+        /* finally, test boolector_match_node_by_symbol */
+        if (!symbol.empty())
+        {
+          t_clone = boolector_match_node_by_symbol(clone, symbol.c_str());
+          assert(boolector_get_btor(t_clone) == clone);
+          assert(id == boolector_get_node_id(clone, t_clone));
+          assert(sort == boolector_get_sort(clone, t_clone));
+          if (boolector_is_fun(btor, t_btor))
+          {
+            assert(boolector_is_fun(clone, t_clone));
+            assert(boolector_fun_get_domain_sort(btor, t_btor)
+                   == boolector_fun_get_domain_sort(clone, t_clone));
+            assert(boolector_fun_get_codomain_sort(btor, t_btor)
+                   == boolector_fun_get_codomain_sort(clone, t_clone));
+          }
+          boolector_release(clone, t_clone);
+        }
+      }
+    }
+    boolector_delete(clone);
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -1229,6 +1343,10 @@ BtorSolver::configure_fsm(FSM* fsm) const
   // boolector_set_sat_solver
   auto a_set_sat_solver = fsm->new_action<BtorActionSetSatSolver>();
   s_opt->add_action(a_set_sat_solver, 100);
+
+  // boolector_clone
+  auto a_clone = fsm->new_action<BtorActionClone>();
+  fsm->add_action_to_all_states(a_clone, 1);
 }
 
 }  // namespace btor

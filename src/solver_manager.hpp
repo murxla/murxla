@@ -56,6 +56,9 @@ class SolverManager
 
   std::ostream& get_trace();
 
+  /** Get the number of created terms. */
+  uint64_t get_n_terms() const;
+
   /** Add sort to sort databse. */
   void add_sort(Sort sort, SortKind sort_kind);
   /** Add input to term database. */

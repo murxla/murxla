@@ -20,9 +20,6 @@ namespace btor {
 // void boolector_set_abort (void (*fun) (const char* msg));
 // void boolector_set_msg_prefix (Btor *btor, const char *prefix);
 // uint32_t boolector_get_refs (Btor *btor);
-// void boolector_reset_time (Btor *btor);
-// void boolector_reset_stats (Btor *btor);
-// void boolector_print_stats (Btor *btor);
 // void boolector_set_trapi (Btor *btor, FILE *apitrace);
 // FILE *boolector_get_trapi (Btor *btor);
 
@@ -35,17 +32,12 @@ namespace btor {
 // BtorOption boolector_first_opt (Btor *btor);
 // BtorOption boolector_next_opt (Btor *btor, BtorOption opt);
 //
-// Btor *boolector_get_btor (BoolectorNode *node);
-// int32_t boolector_get_id (Btor *btor, BoolectorNode *node);
-//
 // BoolectorNode *boolector_match_node_by_id (Btor *btor, int32_t id);
 // BoolectorNode *boolector_match_node_by_symbol (Btor *btor, const char *symbol);
 // BoolectorNode *boolector_match_node (Btor *btor, BoolectorNode *node);
 //
-// const char *boolector_get_symbol (Btor *btor, BoolectorNode *node);
 // void boolector_set_symbol (Btor *btor, BoolectorNode *node, const char *symbol);
 //
-// uint32_t boolector_get_width (Btor *btor, BoolectorNode *node);
 // uint32_t boolector_get_index_width (Btor *btor, BoolectorNode *n_array);
 //
 // const char *boolector_get_bits (Btor *btor, BoolectorNode *node);
@@ -97,7 +89,6 @@ namespace btor {
 // bool boolector_is_param (Btor *btor, BoolectorNode *node);
 // bool boolector_is_bound_param (Btor *btor, BoolectorNode *node);
 // bool boolector_is_uf (Btor *btor, BoolectorNode *node);
-// bool boolector_is_fun (Btor *btor, BoolectorNode *node);
 // int32_t boolector_fun_sort_check (Btor *btor, BoolectorNode **arg_nodes, uint32_t argc, BoolectorNode *n_fun);
 // void boolector_array_assignment (Btor *btor, BoolectorNode *n_array, char ***indices, char ***values, uint32_t *size);
 // void boolector_free_array_assignment (Btor *btor, char **indices, char **values, uint32_t size);

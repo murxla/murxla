@@ -79,6 +79,14 @@ SolverManager::get_enabled_theories() const
 
 /* -------------------------------------------------------------------------- */
 
+uint64_t
+SolverManager::get_n_terms() const
+{
+  return d_n_terms;
+}
+
+/* -------------------------------------------------------------------------- */
+
 void
 SolverManager::add_input(Term term, Sort sort, SortKind sort_kind)
 {
