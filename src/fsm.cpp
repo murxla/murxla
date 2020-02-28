@@ -1253,15 +1253,33 @@ FSM::untrace(std::ifstream& trace)
   while (std::getline(trace, line))
   {
     if (line[0] == '#') continue;
+    bool open_str = false;
+    std::stringstream ss;
     std::stringstream tokenstream(line);
     std::string token;
     std::string id;
     std::vector<std::string> tokens;
+    /* Note: this std::getline() call also splits piped symbols that have
+     *       spaces, e.g., "|a b|". We join these together again. */
     while (std::getline(tokenstream, token, ' '))
     {
       if (id.empty())
       {
         id = token;
+      }
+      else if (open_str)
+      {
+        ss << " " << token;
+        if (token[token.size() - 1] == '"')
+        {
+          open_str = false;
+          tokens.push_back(ss.str());
+        }
+      }
+      else if (token[0] == '"' && token[token.size() - 1] != '"')
+      {
+        open_str = true;
+        ss << token;
       }
       else
       {
@@ -1279,7 +1297,7 @@ FSM::untrace(std::ifstream& trace)
       continue;
     }
 
-    assert (d_actions.find(id) != d_actions.end());
+    assert(d_actions.find(id) != d_actions.end());
     ret_val = d_actions.at(id)->untrace(tokens);
   }
 }
