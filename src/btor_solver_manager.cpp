@@ -14,7 +14,6 @@ namespace btor {
 
 #if 0
 
-// Btor *boolector_clone (Btor *btor);
 // void boolector_set_term (Btor *btor, int32_t (*fun) (void *), void *state);
 // int32_t boolector_terminate (Btor *btor);
 // void boolector_set_abort (void (*fun) (const char* msg));
@@ -31,10 +30,6 @@ namespace btor {
 // const char *boolector_get_opt_desc (Btor *btor, BtorOption opt);
 // BtorOption boolector_first_opt (Btor *btor);
 // BtorOption boolector_next_opt (Btor *btor, BtorOption opt);
-//
-// BoolectorNode *boolector_match_node_by_id (Btor *btor, int32_t id);
-// BoolectorNode *boolector_match_node_by_symbol (Btor *btor, const char *symbol);
-// BoolectorNode *boolector_match_node (Btor *btor, BoolectorNode *node);
 //
 // void boolector_set_symbol (Btor *btor, BoolectorNode *node, const char *symbol);
 //
