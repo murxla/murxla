@@ -1,19 +1,3 @@
-#include "btor_solver_manager.hpp"
-
-#include <cassert>
-#include <functional>
-#include <iostream>
-
-#include "util.hpp"
-
-#define SMTMBT_BTOR_BW_MIN 1
-#define SMTMBT_BTOR_BW_MAX 128
-
-namespace smtmbt {
-namespace btor {
-
-#if 0
-
 // void boolector_set_term (Btor *btor, int32_t (*fun) (void *), void *state);
 // int32_t boolector_terminate (Btor *btor);
 // void boolector_set_abort (void (*fun) (const char* msg));
@@ -95,8 +79,3 @@ namespace btor {
 // BoolectorSort boolector_array_sort (Btor *btor, BoolectorSort index, BoolectorSort element);
 
 /* -------------------------------------------------------------------------- */
-
-#endif
-
-}  // namespace btor
-}  // namespace smtmbt
