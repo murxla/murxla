@@ -15,12 +15,6 @@ namespace cvc4 {
 /* -------------------------------------------------------------------------- */
 
 ////// Result
-// TODO bool Result::is_sat() const;
-// TODO bool Result::isUnsat() const;
-// TODO bool Result::is_satUnknown() const;
-// TODO bool Result::isValid() const;
-// TODO bool Result::isInvalid() const;
-// TODO bool Result::isValidUnknown() const;
 // TODO bool Result::operator==(const Result& r) const;
 // TODO bool Result::operator!=(const Result& r) const;
 // TODO std::string Result::getUnknownExplanation() const;
@@ -31,8 +25,6 @@ namespace cvc4 {
 // bool Sort::operator==(const Sort& s) const;
 // bool Sort::operator!=(const Sort& s) const;
 // bool Sort::isNull() const;
-// bool Sort::isBoolean() const;
-// bool Sort::isBitVector() const;
 // TODO void Sort::toStream(std::ostream& out) const;
 // TODO std::string Sort:: toString() const;
 
@@ -40,8 +32,6 @@ namespace cvc4 {
 // bool Term::operator==(const Term& t) const;
 // bool Term::operator!=(const Term& t) const;
 // Kind Term::getKind() const;
-// Sort Term::getSort() const;
-// bool Term::isNull() const;
 // TODO std::string Term::toString() const;
 
 //// Term::const_iterator
@@ -57,24 +47,25 @@ namespace cvc4 {
 // TODO const_iterator Term::end() const;
 
 // TODO std::ostream& operator<<(std::ostream& out, const Term& t);
-// TODO std::ostream& operator<<(std::ostream& out, const std::vector<Term>&
-// vector);
+// TODO std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
 // TODO std::ostream& operator<<(std::ostream& out, const std::set<Term>& set) ;
-// TODO std::ostream& operator<<(std::ostream& out, const
-// std::unordered_set<Term, TermHashFunction>& unordered_set);
-// TODO template <typename V> std::ostream& operator<<(std::ostream& out, const
-// std::map<Term, V>& map);
+// TODO std::ostream& operator<<(std::ostream& out, const std::unordered_set<Term, TermHashFunction>& unordered_set);
+// TODO template <typename V> std::ostream& operator<<(std::ostream& out, const std::map<Term, V>& map);
 // TODO template <typename V> std::ostream& operator<<(std::ostream& out, const
 // std::unordered_map<Term, V, TermHashFunction>& unordered_map);
 
-//// OpTerm
-// bool OpTerm::operator==(const OpTerm& t) const;
-// bool OpTerm::operator!=(const OpTerm& t) const;
-// Kind OpTerm::getKind() const;
-// Sort OpTerm::getSort() const;
-// bool OpTerm::isNull() const;
-// TODO std::string OpTerm::toString() const;
-// TODO std::ostream& OpTerm::operator<<(std::ostream& out, const OpTerm& t);
+//// Op
+// TODO bool Op::operator==(const Op& t) const;
+// TODO bool Op::operator!=(const Op& t) const;
+// TODO Kind Op::getKind() const;
+// TODO Sort Op::getSort() const;
+// TODO bool Op::isNull() const;
+// TODO bool Op::isIsIndexed() const;
+// TODO template <typename T> T Op::getIndices() const;
+// TODO std::string Op::toString() const;
+// TODO std::ostream& Op::operator<<(std::ostream& out, const Op& t);
+
+
 
 ////// Solver
 
@@ -95,9 +86,6 @@ namespace cvc4 {
 // TODO void Solver::setInfo(const std::string& keyword, const std::string& value) const;
 // TODO void Solver::setLogic(const std::string& logic) const;
 // TODO Term Solver::ensureTermSort(const Term& t, const Sort& s) const;
-
-// TODO OpTerm Solver::mkOpTerm(Kind kind, Kind k);
-// TODO OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg);
 
 /* -------------------------------------------------------------------------- */
 /// not BV
@@ -276,6 +264,10 @@ namespace cvc4 {
 // TODO Term Solver::mkString(const unsigned char c) const;
 // TODO Term Solver::mkString(const std::vector<unsigned>& s) const;
 // TODO Term Solver::mkUniverseSet(Sort sort) const;
+
+// TODO Op mkOp(Kind kind) const;
+// TODO Op mkOp(Kind kind, Kind k) const;
+// TODO Op mkOp(Kind kind, const std::string& arg) const;
 
 // TODO Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const;
 // TODO Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const;
