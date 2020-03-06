@@ -390,6 +390,8 @@ CVC4Solver::check_sat() const
   bool check_sat = d_rng.flip_coin();
   CVC4::api::Result res =
       check_sat ? d_solver->checkSat() : d_solver->checkValid();
+  assert(res == res);
+  assert(res != CVC4::api::Result());
   assert(!res.isSat() || check_sat);
   assert(!res.isUnsat() || check_sat);
   assert(!res.isSatUnknown() || check_sat);
@@ -399,6 +401,7 @@ CVC4Solver::check_sat() const
   if (res.isSat() || res.isInvalid()) return Result::SAT;
   if (res.isUnsat() || res.isValid()) return Result::UNSAT;
   assert(res.isSatUnknown() || res.isValidUnknown());
+  std::string expl = res.getUnknownExplanation();
   return Result::UNKNOWN;
 }
 
@@ -425,6 +428,8 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
     res = check_sat ? d_solver->checkSatAssuming(cvc4_assumptions)
                     : d_solver->checkValidAssuming(cvc4_assumptions);
   }
+  assert(res == res);
+  assert(res != CVC4::api::Result());
   assert(!res.isSat() || check_sat);
   assert(!res.isUnsat() || check_sat);
   assert(!res.isSatUnknown() || check_sat);
@@ -434,6 +439,7 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
   if (res.isSat() || res.isInvalid()) return Result::SAT;
   if (res.isUnsat() || res.isValid()) return Result::UNSAT;
   assert(res.isSatUnknown() || res.isValidUnknown());
+  std::string expl = res.getUnknownExplanation();
   return Result::UNKNOWN;
 }
 

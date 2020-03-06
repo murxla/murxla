@@ -1,7 +1,4 @@
 ////// Result
-// TODO bool Result::operator==(const Result& r) const;
-// TODO bool Result::operator!=(const Result& r) const;
-// TODO std::string Result::getUnknownExplanation() const;
 // TODO std::string Result::toString() const;
 // TODO std::ostream& operator<<(std::ostream& out, const Result& r);
 
