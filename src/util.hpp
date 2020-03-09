@@ -37,7 +37,6 @@ class RNGenerator
 
    /** Constructor. */
    explicit RNGenerator(uint32_t seed = 0);
-   /** Pick uint32_t between 0 and UINT32_MAX. */
 
    /** Pick an integral number with type T. */
    template <typename T,

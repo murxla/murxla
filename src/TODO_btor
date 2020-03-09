@@ -8,13 +8,7 @@
 
 // int32_t boolector_limited_sat (Btor *btor, int32_t lod_limit, int32_t sat_limit);
 //
-// void boolector_set_opt (Btor *btor, BtorOption opt, uint32_t val);
-// uint32_t boolector_get_opt_dflt (Btor *btor, BtorOption opt);
-// const char *boolector_get_opt_shrt (Btor *btor, BtorOption opt);
-// const char *boolector_get_opt_desc (Btor *btor, BtorOption opt);
-// BtorOption boolector_first_opt (Btor *btor);
-// BtorOption boolector_next_opt (Btor *btor, BtorOption opt);
-//
+/
 // void boolector_set_symbol (Btor *btor, BoolectorNode *node, const char *symbol);
 //
 // uint32_t boolector_get_index_width (Btor *btor, BoolectorNode *n_array);

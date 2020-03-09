@@ -812,6 +812,9 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value) const
   assert(val <= boolector_get_opt_max(d_solver, btor_opt));
   boolector_set_opt(d_solver, btor_opt, val);
   assert(val == boolector_get_opt(d_solver, btor_opt));
+  assert(val != boolector_get_opt_dflt(d_solver, btor_opt)
+         || boolector_get_opt(d_solver, btor_opt)
+                == boolector_get_opt_dflt(d_solver, btor_opt));
 }
 
 std::string
@@ -999,6 +1002,58 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
 /* -------------------------------------------------------------------------- */
 /* Solver-specific actions, FSM configuration. */
 /* -------------------------------------------------------------------------- */
+
+class BtorActionOptIterator : public Action
+{
+ public:
+  BtorActionOptIterator(SolverManager& smgr) : Action(smgr, "btor-opt-iterator")
+  {
+  }
+
+  bool run() override
+  {
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    Btor* btor = static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver();
+    for (BtorOption opt = boolector_first_opt(btor); opt < BTOR_OPT_NUM_OPTS;
+         opt            = boolector_next_opt(btor, opt))
+    {
+      assert(boolector_has_opt(btor, opt));
+      assert(boolector_get_opt(btor, opt) >= boolector_get_opt_min(btor, opt));
+      assert(boolector_get_opt(btor, opt) <= boolector_get_opt_max(btor, opt));
+      assert(boolector_get_opt_min(btor, opt)
+             <= boolector_get_opt_max(btor, opt));
+      assert(boolector_get_opt_dflt(btor, opt)
+             >= boolector_get_opt_min(btor, opt));
+      assert(boolector_get_opt_dflt(btor, opt)
+             <= boolector_get_opt_max(btor, opt));
+      std::string lng = boolector_get_opt_lng(btor, opt);
+      const char* s   = boolector_get_opt_shrt(btor, opt);
+      if (s != nullptr)
+      {
+        std::string shrt(s);
+        assert(shrt.size() <= lng.size());
+      }
+      (void) boolector_get_opt_desc(btor, opt);
+    }
+    assert(!boolector_has_opt(
+        btor,
+        (BtorOption) d_rng.pick<uint32_t>(BTOR_OPT_NUM_OPTS, UINT32_MAX)));
+  }
+};
 
 class BtorActionReleaseAll : public Action
 {
@@ -1318,6 +1373,10 @@ BtorSolver::configure_fsm(FSM* fsm) const
   State* s_fix_reset_assumptions = fsm->new_state("btor-fix-reset-assumptions");
 
   auto t_default = fsm->new_action<Transition>();
+
+  // options
+  auto a_opt_it = fsm->new_action<BtorActionOptIterator>();
+  fsm->add_action_to_all_states(a_opt_it, 1);
 
   // boolector_release_all
   auto a_release_all = fsm->new_action<BtorActionReleaseAll>();
