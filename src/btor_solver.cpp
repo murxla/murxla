@@ -1,5 +1,6 @@
 #include "btor_solver.hpp"
 
+#include <bitset>
 #include <cassert>
 
 #include "theory.hpp"
@@ -224,6 +225,12 @@ BtorSolver::mk_value(Sort sort, bool value) const
       check_is_bv_const(Solver::SpecialValueBV::ZERO, btor_res);
     }
   }
+  if (d_rng.pick_with_prob(10))
+  {
+    const char* bits = boolector_get_bits(d_solver, btor_res);
+    assert(std::string(bits) == (value ? "1" : "0"));
+    boolector_free_bits(d_solver, bits);
+  }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
@@ -277,6 +284,13 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
       btor_res = boolector_int(d_solver, (int32_t) value, btor_sort);
     }
   }
+  if (d_rng.pick_with_prob(10))
+  {
+    const char* bits = boolector_get_bits(d_solver, btor_res);
+    std::string str  = std::bitset<64>(value).to_string();
+    assert(std::string(bits) == str);
+    boolector_free_bits(d_solver, bits);
+  }
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
@@ -296,13 +310,31 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base) const
   {
     case HEX:
       btor_res = boolector_consth(d_solver, btor_sort, value.c_str());
+      if (d_rng.pick_with_prob(10))
+      {
+        const char* bits = boolector_get_bits(d_solver, btor_res);
+        assert(str_bin_to_hex(bits) == value);
+        boolector_free_bits(d_solver, bits);
+      }
       break;
     case DEC:
       btor_res = boolector_constd(d_solver, btor_sort, value.c_str());
+      if (d_rng.pick_with_prob(10))
+      {
+        const char* bits = boolector_get_bits(d_solver, btor_res);
+        assert(str_bin_to_dec(bits) == value);
+        boolector_free_bits(d_solver, bits);
+      }
       break;
     default:
       assert(base == BIN);
       btor_res = boolector_const(d_solver, value.c_str());
+      if (d_rng.pick_with_prob(10))
+      {
+        const char* bits = boolector_get_bits(d_solver, btor_res);
+        assert(bits == value);
+        boolector_free_bits(d_solver, bits);
+      }
   }
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));

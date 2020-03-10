@@ -13,9 +13,6 @@
 //
 // uint32_t boolector_get_index_width (Btor *btor, BoolectorNode *n_array);
 //
-// const char *boolector_get_bits (Btor *btor, BoolectorNode *node);
-// void boolector_free_bits (Btor *btor, const char *bits);
-//
 // const char *boolector_bv_assignment (Btor *btor, BoolectorNode *node);
 // void boolector_free_bv_assignment (Btor *btor, const char *assignment);
 // void boolector_print_model (Btor *btor, char *format, FILE *file);
