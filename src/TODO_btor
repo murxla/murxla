@@ -2,7 +2,6 @@
 // int32_t boolector_terminate (Btor *btor);
 // void boolector_set_abort (void (*fun) (const char* msg));
 // void boolector_set_msg_prefix (Btor *btor, const char *prefix);
-// uint32_t boolector_get_refs (Btor *btor);
 // void boolector_set_trapi (Btor *btor, FILE *apitrace);
 // FILE *boolector_get_trapi (Btor *btor);
 

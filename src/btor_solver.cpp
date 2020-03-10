@@ -127,6 +127,10 @@ void
 BtorSolver::delete_solver()
 {
   assert(d_solver != nullptr);
+  if (d_rng.pick_with_prob(1))
+  {
+    assert(boolector_get_refs(d_solver) == 0);
+  }
   boolector_delete(d_solver);
   d_solver = nullptr;
 }
@@ -214,6 +218,10 @@ BtorSolver::mk_value(Sort sort, bool value) const
   BoolectorNode* btor_res =
       value ? boolector_true(d_solver) : boolector_false(d_solver);
   assert(btor_res);
+  if (d_rng.pick_with_prob(1))
+  {
+    assert(boolector_get_refs(d_solver) > 0);
+  }
   if (d_rng.pick_with_prob(10))
   {
     if (value)
@@ -284,6 +292,10 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
       btor_res = boolector_int(d_solver, (int32_t) value, btor_sort);
     }
   }
+  if (d_rng.pick_with_prob(1))
+  {
+    assert(boolector_get_refs(d_solver) > 0);
+  }
   if (d_rng.pick_with_prob(10))
   {
     const char* bits = boolector_get_bits(d_solver, btor_res);
@@ -338,6 +350,10 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base) const
       }
   }
   assert(btor_res);
+  if (d_rng.pick_with_prob(1))
+  {
+    assert(boolector_get_refs(d_solver) > 0);
+  }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
@@ -651,6 +667,10 @@ BtorSolver::mk_term(const OpKind& kind,
     default: assert(false);
   }
   assert(btor_res);
+  if (d_rng.pick_with_prob(1))
+  {
+    assert(boolector_get_refs(d_solver) > 0);
+  }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
