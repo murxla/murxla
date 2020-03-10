@@ -601,6 +601,7 @@ class CVC4ActionSimplify : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     if (!d_smgr.has_term()) return false;
     Term term = d_smgr.pick_term();
     _run(term);

@@ -223,6 +223,7 @@ class ActionDelete : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     _run();
     return true;
   }
@@ -250,6 +251,7 @@ class ActionSetOption : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     std::string opt, value;
 
     if (!d_smgr.d_incremental && d_rng.pick_with_prob(10))
@@ -303,6 +305,7 @@ class ActionMkSort : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     SortKind kind = d_smgr.pick_sort_kind_data().d_kind;
 
     switch (kind)
@@ -371,6 +374,7 @@ class ActionMkTerm : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     assert(d_smgr.get_enabled_theories().find(THEORY_BOOL)
            != d_smgr.get_enabled_theories().end());
     assert(d_smgr.has_term());
@@ -533,6 +537,7 @@ class ActionMkConst : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     /* Pick sort of const. */
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
@@ -575,6 +580,7 @@ class ActionMkValue : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     /* Pick sort of value. */
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
@@ -806,6 +812,7 @@ class ActionAssertFormula : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     if (!d_smgr.has_term(SORT_BOOL)) return false;
     Term assertion = d_smgr.pick_term(SORT_BOOL);
 
@@ -842,6 +849,7 @@ class ActionCheckSat : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     _run();
     return true;
   }
@@ -878,6 +886,7 @@ class ActionCheckSatAssuming : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_term(SORT_BOOL)) return false;
     uint32_t n_assumptions =
@@ -931,6 +940,7 @@ class ActionGetUnsatAssumptions : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
     if (!d_smgr.d_incremental) return false;
@@ -971,6 +981,7 @@ class ActionPush : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     uint32_t n_levels = d_rng.pick<uint32_t>(1, SMTMBT_MAX_N_PUSH_LEVELS);
     _run(n_levels);
     return true;
@@ -1000,6 +1011,7 @@ class ActionPop : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     if (d_smgr.d_n_push_levels == 0) return false;
     uint32_t n_levels = d_rng.pick<uint32_t>(1, d_smgr.d_n_push_levels);
     _run(n_levels);
@@ -1030,6 +1042,7 @@ class ActionReset : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     _run();
     return true;
   }
@@ -1058,6 +1071,7 @@ class ActionResetAssertions : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     _run();
     return true;
   }

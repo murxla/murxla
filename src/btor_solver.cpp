@@ -1044,6 +1044,7 @@ class BtorActionOptIterator : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     _run();
     return true;
   }
@@ -1096,6 +1097,7 @@ class BtorActionReleaseAll : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     _run();
     return true;
   }
@@ -1124,6 +1126,7 @@ class BtorActionFailed : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
     if (!d_smgr.d_incremental) return false;
@@ -1162,6 +1165,7 @@ class BtorActionFixateAssumptions : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
     _run();
     return true;
@@ -1194,6 +1198,7 @@ class BtorActionResetAssumptions : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
     _run();
     return true;
@@ -1223,6 +1228,7 @@ class BtorActionSimplify : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     if (solver.get_solver() == nullptr) return false;
     _run();
@@ -1255,6 +1261,7 @@ class BtorActionSetSatSolver : public Action
 
   bool run() override
   {
+    assert(d_solver.is_initialized());
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     std::string sat_solver =
         d_rng.pick_from_set<std::vector<std::string>, std::string>(
@@ -1286,6 +1293,7 @@ class BtorActionClone : public Action
 
   bool run() override
   {
+    if (!d_solver.is_initialized()) return false;
     _run();
     return true;
   }
