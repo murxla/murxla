@@ -468,6 +468,12 @@ CVC4Solver::pop(uint32_t n_levels) const
 }
 
 void
+CVC4Solver::print_model() const
+{
+  d_solver->printModel(std::cout);
+}
+
+void
 CVC4Solver::reset() const
 {
   d_solver->reset();

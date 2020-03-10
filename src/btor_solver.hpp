@@ -140,6 +140,8 @@ class BtorSolver : public Solver
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
 
+  void print_model() const override;
+
   void reset() const override;
   void reset_assertions() const override;
 

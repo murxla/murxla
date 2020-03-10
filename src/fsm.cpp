@@ -1091,6 +1091,36 @@ class ActionResetAssertions : public Action
   }
 };
 
+class ActionPrintModel : public Action
+{
+ public:
+  ActionPrintModel(SolverManager& smgr) : Action(smgr, "print-model") {}
+
+  bool run() override
+  {
+    if (!d_solver.is_initialized()) return false;
+    if (!d_smgr.d_model_gen) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_solver.print_model();
+  }
+};
+
 /* ========================================================================== */
 /* Configure default FSM                                                      */
 /* ========================================================================== */
@@ -1113,13 +1143,15 @@ FSM::configure()
 
   auto a_assert = new_action<ActionAssertFormula>();
 
+  auto a_failed = new_action<ActionGetUnsatAssumptions>();
+
+  auto a_printmodel = new_action<ActionPrintModel>();
+
   auto a_sat     = new_action<ActionCheckSat>();
   auto a_sat_ass = new_action<ActionCheckSatAssuming>();
 
   auto a_push = new_action<ActionPush>();
   auto a_pop  = new_action<ActionPop>();
-
-  auto a_failed = new_action<ActionGetUnsatAssumptions>();
 
   auto a_reset     = new_action<ActionReset>();
   auto a_reset_ass = new_action<ActionResetAssertions>();
@@ -1201,15 +1233,14 @@ FSM::configure()
   s_push_pop->add_action(a_pop, 1, s_sat);
   s_push_pop->add_action(a_pop, 5, s_delete);
 
-  /* State: failed ....................................................... */
-  add_action_to_all_states(a_failed, 100);
-
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);
 
   /* All States (with exceptions) ........................................ */
-  add_action_to_all_states(a_reset, 100, {"new"});
-  add_action_to_all_states(a_reset_ass, 100, {"new"});
+  add_action_to_all_states(a_failed, 100);
+  add_action_to_all_states(a_printmodel, 100);
+  add_action_to_all_states(a_reset, 100);
+  add_action_to_all_states(a_reset_ass, 100);
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */

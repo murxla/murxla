@@ -77,12 +77,12 @@ class CVC4Solver : public Solver
   {  // TODO:
   }
 
-  bool check_failed_assumption(const Term& t) const;
+  bool check_failed_assumption(const Term& t) const override;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
-  bool option_incremental_enabled() const;
-  bool option_model_gen_enabled() const;
+  bool option_incremental_enabled() const override;
+  bool option_model_gen_enabled() const override;
   std::string get_option_value_enable_incremental() const override;
   std::string get_option_value_enable_model_gen() const override;
 
@@ -130,6 +130,8 @@ class CVC4Solver : public Solver
 
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
+
+  void print_model() const override;
 
   void reset() const override;
   void reset_assertions() const override;

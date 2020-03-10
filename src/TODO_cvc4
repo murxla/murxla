@@ -62,7 +62,6 @@
 // TODO std::vector<Term> Solver::getUnsatCore() const;
 // TODO Term Solver::getValue(Term term) const;
 // TODO std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const;
-// TODO void Solver::printModel(std::ostream& out) const;
 
 // TODO void Solver::setInfo(const std::string& keyword, const std::string& value) const;
 // TODO void Solver::setLogic(const std::string& logic) const;

@@ -759,6 +759,13 @@ BtorSolver::pop(uint32_t n_levels) const
 }
 
 void
+BtorSolver::print_model() const
+{
+  const char* fmt = d_rng.flip_coin() ? "btor" : "smt2";
+  boolector_print_model(d_solver, (char*) fmt, stdout);
+}
+
+void
 BtorSolver::reset() const
 {
   /* boolector does not support this yet */
@@ -1447,7 +1454,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // options
   auto a_opt_it = fsm->new_action<BtorActionOptIterator>();
-  fsm->add_action_to_all_states(a_opt_it, 1);
+  fsm->add_action_to_all_states(a_opt_it, 100);
 
   // boolector_release_all
   auto a_release_all = fsm->new_action<BtorActionReleaseAll>();
@@ -1455,7 +1462,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_failed
   auto a_failed = fsm->new_action<BtorActionFailed>();
-  fsm->add_action_to_all_states(a_failed, 1);
+  fsm->add_action_to_all_states(a_failed, 100);
 
   // boolector_fixate_assumptions
   // boolector_reset_assumptions
@@ -1463,7 +1470,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
   auto a_reset_assumptions = fsm->new_action<BtorActionResetAssumptions>();
   s_fix_reset_assumptions->add_action(a_fix_assumptions, 5);
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 5);
-  s_assert->add_action(t_default, 1, s_fix_reset_assumptions);
+  s_assert->add_action(t_default, 100, s_fix_reset_assumptions);
   s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
 
   // boolector_simplify
@@ -1476,7 +1483,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_clone
   auto a_clone = fsm->new_action<BtorActionClone>();
-  fsm->add_action_to_all_states(a_clone, 1);
+  fsm->add_action_to_all_states(a_clone, 100);
 }
 
 }  // namespace btor

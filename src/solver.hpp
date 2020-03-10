@@ -169,6 +169,8 @@ class Solver
   virtual void push(uint32_t n_levels) const = 0;
   virtual void pop(uint32_t n_levels) const  = 0;
 
+  virtual void print_model() const = 0;
+
   virtual void reset() const            = 0;
   virtual void reset_assertions() const = 0;
 

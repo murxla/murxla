@@ -14,7 +14,6 @@
 //
 // const char *boolector_bv_assignment (Btor *btor, BoolectorNode *node);
 // void boolector_free_bv_assignment (Btor *btor, const char *assignment);
-// void boolector_print_model (Btor *btor, char *format, FILE *file);
 
 // bool boolector_is_equal_sort (Btor *btor, BoolectorNode *n0, BoolectorNode *n1);
 //
