@@ -287,7 +287,8 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   if (d_rng.pick_with_prob(10))
   {
     const char* bits = boolector_get_bits(d_solver, btor_res);
-    std::string str  = std::bitset<64>(value).to_string().substr(64 - bw, bw);
+    std::string str =
+        std::bitset<64>((uint32_t) value).to_string().substr(64 - bw, bw);
     assert(std::string(bits) == str);
     boolector_free_bits(d_solver, bits);
   }
