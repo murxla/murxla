@@ -1285,7 +1285,7 @@ class BtorActionClone : public Action
     {
       boolector_print_stats(clone);
     }
-    if (d_rng.flip_coin())
+    if (d_smgr.has_term() && d_rng.flip_coin())
     {
       for (uint64_t i = 0, n = d_smgr.get_n_terms(); i < n; ++i)
       {
