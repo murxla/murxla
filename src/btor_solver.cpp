@@ -255,31 +255,38 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   uint32_t bw             = sort->get_bv_size();
   bool use_special_fun    = d_rng.flip_coin();
   bool check              = d_rng.pick_with_prob(10);
+  bool check_bits         = d_rng.pick_with_prob(10);
+  std::string str;
 
   if (use_special_fun && value == 0)
   {
     btor_res = boolector_zero(d_solver, btor_sort);
     if (check) check_is_bv_const(Solver::SpecialValueBV::ZERO, btor_res);
+    if (check_bits) str = "0";
   }
   else if (use_special_fun && value == 1)
   {
     btor_res = boolector_one(d_solver, btor_sort);
     if (check) check_is_bv_const(Solver::SpecialValueBV::ONE, btor_res);
+    if (check_bits) str = "1";
   }
   else if (use_special_fun && is_bv_special_value_ones_uint64(bw, value))
   {
     btor_res = boolector_ones(d_solver, btor_sort);
     if (check) check_is_bv_const(Solver::SpecialValueBV::ONES, btor_res);
+    if (check_bits) str = std::string(bw, '1');
   }
   else if (use_special_fun && is_bv_special_value_min_signed_uint64(bw, value))
   {
     btor_res = boolector_min_signed(d_solver, btor_sort);
     if (check) check_is_bv_const(Solver::SpecialValueBV::ONES, btor_res);
+    if (check_bits) str = bv_special_value_min_signed_str(bw);
   }
   else if (use_special_fun && is_bv_special_value_max_signed_uint64(bw, value))
   {
     btor_res = boolector_max_signed(d_solver, btor_sort);
     if (check) check_is_bv_const(Solver::SpecialValueBV::MAX_SIGNED, btor_res);
+    if (check_bits) str = bv_special_value_max_signed_str(bw);
   }
   else
   {
@@ -291,18 +298,21 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
     {
       btor_res = boolector_int(d_solver, (int32_t) value, btor_sort);
     }
+    if (check_bits)
+    {
+      str = std::bitset<64>((uint32_t) value).to_string().substr(64 - bw, bw);
+    }
+  }
+  if (check_bits)
+  {
+    const char* bits = boolector_get_bits(d_solver, btor_res);
+    assert(!str.empty());
+    assert(std::string(bits) == str);
+    boolector_free_bits(d_solver, bits);
   }
   if (d_rng.pick_with_prob(1))
   {
     assert(boolector_get_refs(d_solver) > 0);
-  }
-  if (d_rng.pick_with_prob(10))
-  {
-    const char* bits = boolector_get_bits(d_solver, btor_res);
-    std::string str =
-        std::bitset<64>((uint32_t) value).to_string().substr(64 - bw, bw);
-    assert(std::string(bits) == str);
-    boolector_free_bits(d_solver, bits);
   }
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
