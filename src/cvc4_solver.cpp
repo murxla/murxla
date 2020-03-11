@@ -563,9 +563,7 @@ CVC4Solver::init_op_kinds()
       {OP_BV_COMP, CVC4::api::Kind::BITVECTOR_COMP},
       {OP_BV_SUB, CVC4::api::Kind::BITVECTOR_SUB},
       {OP_BV_UDIV, CVC4::api::Kind::BITVECTOR_UDIV},
-      // BITVECTOR_UDIV_TOTAL
       {OP_BV_UREM, CVC4::api::Kind::BITVECTOR_UREM},
-      // BITVECTOR_UREM_TOTAL
       {OP_BV_UREM, CVC4::api::Kind::BITVECTOR_UREM},
       {OP_BV_SDIV, CVC4::api::Kind::BITVECTOR_SDIV},
       {OP_BV_SREM, CVC4::api::Kind::BITVECTOR_SREM},

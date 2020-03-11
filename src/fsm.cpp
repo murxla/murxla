@@ -1088,6 +1088,7 @@ class ActionResetAssertions : public Action
   {
     SMTMBT_TRACE << get_id();
     d_solver.reset_assertions();
+    d_smgr.d_n_push_levels = 0;
   }
 };
 
