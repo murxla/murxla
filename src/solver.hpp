@@ -171,7 +171,6 @@ class Solver
 
   virtual void print_model() const = 0;
 
-  virtual void reset() const            = 0;
   virtual void reset_assertions() const = 0;
 
   const std::vector<Base>& get_bases() const;

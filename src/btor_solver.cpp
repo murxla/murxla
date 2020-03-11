@@ -770,12 +770,6 @@ BtorSolver::print_model() const
 }
 
 void
-BtorSolver::reset() const
-{
-  /* boolector does not support this yet */
-}
-
-void
 BtorSolver::reset_assertions() const
 {
   /* boolector does not support this yet */

@@ -474,12 +474,6 @@ CVC4Solver::print_model() const
 }
 
 void
-CVC4Solver::reset() const
-{
-  d_solver->reset();
-}
-
-void
 CVC4Solver::reset_assertions() const
 {
   d_solver->resetAssertions();

@@ -142,7 +142,6 @@ class BtorSolver : public Solver
 
   void print_model() const override;
 
-  void reset() const override;
   void reset_assertions() const override;
 
   //
