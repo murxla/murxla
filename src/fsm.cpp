@@ -79,8 +79,8 @@ FSM::new_state(std::string id, std::function<bool(void)> fun, bool is_final)
 void
 FSM::set_init_state(State* init_state)
 {
-  d_init_state = init_state;
-  d_cur_state  = init_state;
+  d_state_init = init_state;
+  d_state_cur  = init_state;
 }
 
 void
@@ -106,7 +106,7 @@ FSM::check_states()
   /* check for unreachable state */
   for (const auto& s : d_states)
   {
-    SMTMBT_WARN(s.get() != d_init_state
+    SMTMBT_WARN(s.get() != d_state_init
                 && all_next_states.find(s.get()) == all_next_states.end())
         << "unreachable state '" << s->get_id() << "'";
   }
@@ -114,7 +114,7 @@ FSM::check_states()
   /* check for infinite loop */
   SMTMBT_ABORT(
       no_next_state
-      && (no_next_state == d_init_state
+      && (no_next_state == d_state_init
           || all_next_states.find(no_next_state) != all_next_states.end()))
       << "infinite loop in state '" << no_next_state->get_id() << "'";
 }
@@ -141,7 +141,7 @@ FSM::run()
 {
   check_states();
 
-  State* s = d_cur_state;
+  State* s = d_state_cur;
   while (!s->is_final())
   {
     s = s->run(d_rng);
@@ -1195,16 +1195,8 @@ FSM::configure()
   s_sat->add_action(t_inputs, 10, s_delete);
 
   /* State: push_pop ..................................................... */
-  s_push_pop->add_action(a_push, 1, s_inputs);
-  s_push_pop->add_action(a_push, 1, s_terms);
-  s_push_pop->add_action(a_push, 1, s_assert);
-  s_push_pop->add_action(a_push, 1, s_sat);
-  s_push_pop->add_action(a_push, 5, s_delete);
-  s_push_pop->add_action(a_pop, 1, s_inputs);
-  s_push_pop->add_action(a_pop, 1, s_terms);
-  s_push_pop->add_action(a_pop, 1, s_assert);
-  s_push_pop->add_action(a_pop, 1, s_sat);
-  s_push_pop->add_action(a_pop, 5, s_delete);
+  add_action_to_all_states_next(a_push, 1, s_push_pop);
+  add_action_to_all_states_next(a_pop, 1, s_push_pop);
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);
@@ -1232,19 +1224,48 @@ FSM::configure()
 
   for (const auto& t : d_actions_all_states)
   {
+    Action* action                                  = std::get<0>(t);
+    uint32_t priority                               = std::get<1>(t);
+    std::unordered_set<std::string> excluded_states = std::get<2>(t);
+    State* next                                     = std::get<3>(t);
     for (const auto& s : d_states)
     {
-      std::unordered_set<std::string> excluded_states = std::get<2>(t);
-      if (excluded_states.find(s->get_id()) == excluded_states.end())
+      const std::string& id = s->get_id();
+      if (id == "new" || id == "delete" || id == "final"
+          || excluded_states.find(s->get_id()) != excluded_states.end())
       {
-        s->add_action(std::get<0>(t), std::get<1>(t));
+        continue;
       }
+      s->add_action(action, priority, next);
+    }
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Add actions that are configured via add_action_to_all_states_next     */
+  /* --------------------------------------------------------------------- */
+
+  for (const auto& t : d_actions_all_states_next)
+  {
+    Action* action                                  = std::get<0>(t);
+    uint32_t priority                               = std::get<1>(t);
+    State* state                                    = std::get<2>(t);
+    std::unordered_set<std::string> excluded_states = std::get<3>(t);
+    for (const auto& s : d_states)
+    {
+      const std::string& id = s->get_id();
+      if (id == "new" || id == "delete" || id == "final"
+          || excluded_states.find(s->get_id()) != excluded_states.end())
+      {
+        continue;
+      }
+      state->add_action(action, priority, s.get());
     }
   }
 
   /* --------------------------------------------------------------------- */
   /* Compute actual weights based on given priorities                      */
   /* --------------------------------------------------------------------- */
+
   for (const auto& s : d_states)
   {
     uint32_t sum =

@@ -105,7 +105,7 @@ class State
   /** Default constructor. */
   State() : d_id(""), d_is_final(false) {}
   /** Constructor. */
-  State(std::string& id, std::function<bool(void)> fun, bool is_final)
+  State(std::string id, std::function<bool(void)> fun, bool is_final)
       : d_id(id), d_is_final(is_final), f_precond(fun)
   {
   }
@@ -134,7 +134,9 @@ class State
   /* A unique string identifying the state. */
   std::string d_id;
   /* True if state is a final state. */
-  bool d_is_final;
+  bool d_is_final = false;
+  /* True if state represents the place holder for all states. */
+  bool d_is_all = false;
   /* A function defining the precondition for entering the state. */
   std::function<bool(void)> f_precond;
   /* The actions that can be performed in this state. */
@@ -169,6 +171,7 @@ class FSM
   /** Default constructor is disabled. */
   FSM() = delete;
 
+  /** Get a reference to the associated solver manager. */
   SolverManager& get_smgr();
 
   /**
@@ -186,8 +189,10 @@ class FSM
   T* new_action();
 
   /**
-   * Add given action to all configured states.
+   * Add given action to all configured states (excl. states "new" and "delete"
+   * and the given excluded states).
    *
+   * To be processed after configuration of solver-specific states/actions.
    * The actual weight of the action is computed as priority/sum, with <sum>
    * being the sum of the priorities of all actions in that state.
    */
@@ -195,6 +200,21 @@ class FSM
   void add_action_to_all_states(
       T* action,
       uint32_t priority,
+      std::unordered_set<std::string> excluded_states = {},
+      State* next                                     = nullptr);
+
+  /* Add transition with given action from given state to all configured states
+   * (excl. states "new" and "delete" and the given excluded states).
+   *
+   * To be processed after configuration of solver-specific states/actions.
+   * The actual weight of the action is computed as priority/sum, with <sum>
+   * being the sum of the priorities of all actions in that state.
+   */
+  template <class T>
+  void add_action_to_all_states_next(
+      T* action,
+      uint32_t priority,
+      State* state,
       std::unordered_set<std::string> excluded_states = {});
 
   /** Set given state as initial state. */
@@ -215,10 +235,30 @@ class FSM
   RNGenerator& d_rng;
   std::vector<std::unique_ptr<State>> d_states;
   std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
-  std::vector<std::tuple<Action*, uint32_t, std::unordered_set<std::string>>>
+
+  /**
+   * A temporary list with actions (incl. priorities, the next state and
+   * excluded states) that will be added to all states (excl. states "new" and
+   * "delete" and the given excluded states) after configuring solver-specific
+   * states and actions is finalized.
+   */
+  std::vector<
+      std::tuple<Action*, uint32_t, std::unordered_set<std::string>, State*>>
       d_actions_all_states;
-  State* d_init_state = nullptr;
-  State* d_cur_state  = nullptr;
+  /**
+   * A temporary list with actions (incl. priorities) that will be added to
+   * transition from given state to all states (excl. state "new" and "delete"
+   * and the given excluded states) after configuring solver-specific states
+   * and actions is finalized.
+   */
+  std::vector<
+      std::tuple<Action*, uint32_t, State*, std::unordered_set<std::string>>>
+      d_actions_all_states_next;
+
+  /** The initial state. */
+  State* d_state_init = nullptr;
+  /** The current state. */
+  State* d_state_cur = nullptr;
 };
 
 template <class T>
@@ -244,11 +284,25 @@ template <class T>
 void
 FSM::add_action_to_all_states(T* action,
                               uint32_t priority,
-                              std::unordered_set<std::string> excluded_states)
+                              std::unordered_set<std::string> excluded_states,
+                              State* next)
 {
   d_actions_all_states.push_back(
-      std::tuple<Action*, uint32_t, std::unordered_set<std::string>>(
-          action, priority, excluded_states));
+      std::tuple<Action*, uint32_t, std::unordered_set<std::string>, State*>(
+          action, priority, excluded_states, next));
+}
+
+template <class T>
+void
+FSM::add_action_to_all_states_next(
+    T* action,
+    uint32_t priority,
+    State* state,
+    std::unordered_set<std::string> excluded_states)
+{
+  d_actions_all_states_next.push_back(
+      std::tuple<Action*, uint32_t, State*, std::unordered_set<std::string>>(
+          action, priority, state, excluded_states));
 }
 
 }  // namespace smtmbt
