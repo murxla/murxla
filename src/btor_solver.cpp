@@ -1468,8 +1468,9 @@ BtorSolver::configure_fsm(FSM* fsm) const
   auto a_reset_assumptions = fsm->new_action<BtorActionResetAssumptions>();
   s_fix_reset_assumptions->add_action(a_fix_assumptions, 5);
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 5);
-  s_assert->add_action(t_default, 100, s_fix_reset_assumptions);
   s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
+  fsm->add_action_to_all_states_next(
+      t_default, 2, s_fix_reset_assumptions, {"opt"});
 
   // boolector_simplify
   auto a_simplify = fsm->new_action<BtorActionSimplify>();

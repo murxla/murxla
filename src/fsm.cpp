@@ -1195,8 +1195,9 @@ FSM::configure()
   s_sat->add_action(t_inputs, 10, s_delete);
 
   /* State: push_pop ..................................................... */
-  add_action_to_all_states_next(a_push, 1, s_push_pop);
-  add_action_to_all_states_next(a_pop, 1, s_push_pop);
+  s_push_pop->add_action(a_push, 1);
+  s_push_pop->add_action(a_pop, 1);
+  add_action_to_all_states_next(t_default, 2, s_push_pop);
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);
@@ -1270,9 +1271,11 @@ FSM::configure()
   {
     uint32_t sum =
         std::accumulate(s->d_weights.begin(), s->d_weights.end(), 0u);
+    uint32_t i = 0;
     for (uint32_t& w : s->d_weights)
     {
       w = sum / w;
+      i += 1;
     }
   }
 }
