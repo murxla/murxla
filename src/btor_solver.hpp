@@ -86,10 +86,13 @@ class BtorSolver : public Solver
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
+  std::string get_option_name_unsat_assumptions() const override;
   bool option_incremental_enabled() const;
   bool option_model_gen_enabled() const;
+  bool option_unsat_assumptions_enabled() const;
   std::string get_option_value_enable_incremental() const override;
   std::string get_option_value_enable_model_gen() const override;
+  std::string get_option_value_enable_unsat_assumptions() const override;
 
   BoolectorNode* get_btor_term(Term term) const;
 
@@ -135,7 +138,9 @@ class BtorSolver : public Solver
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
 
-  std::vector<Term> get_unsat_assumptions() const;
+  std::vector<Term> get_unsat_assumptions() const override;
+
+  std::vector<Term> get_value(std::vector<Term>& terms) const override;
 
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
@@ -146,7 +151,6 @@ class BtorSolver : public Solver
 
   //
   // get_model()
-  // get_value()
   // get_proof()
   // get_unsat_core()
   //

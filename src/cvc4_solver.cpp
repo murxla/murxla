@@ -364,7 +364,7 @@ CVC4Solver::mk_term(const OpKind& kind,
     default:
       assert(n_args == SMTMBT_MK_TERM_N_ARGS || n_args > 3);
       std::vector<CVC4::api::Term> cvc4_args;
-      for (Term t : args) cvc4_args.push_back(get_cvc4_term(t));
+      cvc4_args = terms_to_cvc4_terms(args);
       cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm, cvc4_args)
                           : d_solver->mkTerm(cvc4_kind, cvc4_args);
   }
@@ -408,14 +408,11 @@ CVC4Solver::check_sat() const
 Solver::Result
 CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
 {
-  bool check_sat = d_rng.flip_coin();
   CVC4::api::Result res;
-  std::vector<CVC4::api::Term> cvc4_assumptions;
+  bool check_sat = d_rng.flip_coin();
+  std::vector<CVC4::api::Term> cvc4_assumptions =
+      terms_to_cvc4_terms(assumptions);
 
-  for (const Term& t : assumptions)
-  {
-    cvc4_assumptions.push_back(get_cvc4_term(t));
-  }
   assert(assumptions.size() == cvc4_assumptions.size());
 
   if (cvc4_assumptions.size() == 1 && d_rng.flip_coin())
@@ -448,11 +445,28 @@ CVC4Solver::get_unsat_assumptions() const
 {
   std::vector<Term> res;
   std::vector<CVC4::api::Term> cvc4_res = d_solver->getUnsatAssumptions();
-  for (const CVC4::api::Term& t : cvc4_res)
+  return cvc4_terms_to_terms(cvc4_res);
+}
+
+std::vector<Term>
+CVC4Solver::get_value(std::vector<Term>& terms) const
+{
+  std::vector<Term> res;
+  std::vector<CVC4::api::Term> cvc4_res;
+  std::vector<CVC4::api::Term> cvc4_terms = terms_to_cvc4_terms(terms);
+
+  if (d_rng.flip_coin())
   {
-    res.push_back(std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, t)));
+    cvc4_res = d_solver->getValue(cvc4_terms);
   }
-  return res;
+  else
+  {
+    for (CVC4::api::Term& t : cvc4_terms)
+    {
+      cvc4_res.push_back(d_solver->getValue(t));
+    }
+  }
+  return cvc4_terms_to_terms(cvc4_res);
 }
 
 void
@@ -499,6 +513,12 @@ CVC4Solver::get_option_name_model_gen() const
   return "produce-models";
 }
 
+std::string
+CVC4Solver::get_option_name_unsat_assumptions() const
+{
+  return "produce-unsat-assumptions";
+}
+
 bool
 CVC4Solver::option_incremental_enabled() const
 {
@@ -511,6 +531,12 @@ CVC4Solver::option_model_gen_enabled() const
   return d_solver->getOption("produce-models") == "true";
 }
 
+bool
+CVC4Solver::option_unsat_assumptions_enabled() const
+{
+  return d_solver->getOption("produce-unsat-assumptions") == "true";
+}
+
 std::string
 CVC4Solver::get_option_value_enable_incremental() const
 {
@@ -521,6 +547,34 @@ std::string
 CVC4Solver::get_option_value_enable_model_gen() const
 {
   return "true";
+}
+
+std::string
+CVC4Solver::get_option_value_enable_unsat_assumptions() const
+{
+  return "true";
+}
+
+std::vector<Term>
+CVC4Solver::cvc4_terms_to_terms(std::vector<CVC4::api::Term>& terms) const
+{
+  std::vector<Term> res;
+  for (CVC4::api::Term& t : terms)
+  {
+    res.push_back(std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, t)));
+  }
+  return res;
+}
+
+std::vector<CVC4::api::Term>
+CVC4Solver::terms_to_cvc4_terms(std::vector<Term>& terms) const
+{
+  std::vector<CVC4::api::Term> res;
+  for (Term& t : terms)
+  {
+    res.push_back(get_cvc4_term(t));
+  }
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */

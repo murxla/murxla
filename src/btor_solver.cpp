@@ -750,6 +750,14 @@ BtorSolver::get_unsat_assumptions() const
   return res;
 }
 
+std::vector<Term>
+BtorSolver::get_value(std::vector<Term>& terms) const
+{
+  std::vector<Term> res;
+  return res;
+  // TODO
+}
+
 void
 BtorSolver::push(uint32_t n_levels) const
 {

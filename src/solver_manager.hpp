@@ -191,10 +191,21 @@ class SolverManager
    */
   std::pair<std::string, std::string> pick_option();
 
-  /** True if incremental solving is enabled. */
+  /**
+   * True if incremental solving is enabled.
+   * (SMT-LIB: option :incremental).
+   */
   bool d_incremental = false;
-  /** True if model generation is enabled. */
+  /**
+   * True if model generation is enabled.
+   * (SMT-LIB: option :produce-models).
+   */
   bool d_model_gen = false;
+  /**
+   * True if producing unsat assumptions is enabled.
+   * (SMT-LIB: option :produce-unsat-assumptions).
+   */
+  bool d_unsat_assumptions = false;
 
   /** The number of scope levels previously pushed. */
   uint32_t d_n_push_levels = 0;

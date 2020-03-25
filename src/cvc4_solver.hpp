@@ -73,18 +73,17 @@ class CVC4Solver : public Solver
 
   void configure_fsm(FSM* fsm) const override;
 
-  void set_opt(const std::string& opt, const std::string& value) const override
-  {  // TODO:
-  }
-
   bool check_failed_assumption(const Term& t) const override;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
+  std::string get_option_name_unsat_assumptions() const override;
   bool option_incremental_enabled() const override;
   bool option_model_gen_enabled() const override;
+  bool option_unsat_assumptions_enabled() const override;
   std::string get_option_value_enable_incremental() const override;
   std::string get_option_value_enable_model_gen() const override;
+  std::string get_option_value_enable_unsat_assumptions() const override;
 
   Term mk_var(Sort sort, const std::string name) const override
   {  // TODO:
@@ -126,7 +125,9 @@ class CVC4Solver : public Solver
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
 
-  std::vector<Term> get_unsat_assumptions() const;
+  std::vector<Term> get_unsat_assumptions() const override;
+
+  std::vector<Term> get_value(std::vector<Term>& terms) const override;
 
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
@@ -146,6 +147,10 @@ class CVC4Solver : public Solver
  private:
   void init_op_kinds();
   CVC4::api::Sort& get_cvc4_sort(Sort sort) const;
+  std::vector<Term> cvc4_terms_to_terms(
+      std::vector<CVC4::api::Term>& terms) const;
+  std::vector<CVC4::api::Term> terms_to_cvc4_terms(
+      std::vector<Term>& terms) const;
 
   CVC4::api::Solver* d_solver;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_kinds;

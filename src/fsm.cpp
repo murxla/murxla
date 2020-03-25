@@ -14,6 +14,7 @@
 
 #define SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT 5
 #define SMTMBT_MAX_N_PUSH_LEVELS 5
+#define SMTMBT_MAX_N_TERMS_GET_VALUE 5
 
 /* -------------------------------------------------------------------------- */
 
@@ -266,6 +267,12 @@ class ActionSetOption : public Action
       opt   = d_solver.get_option_name_model_gen();
       value = d_solver.get_option_value_enable_model_gen();
     }
+    else if (!d_smgr.d_unsat_assumptions && d_rng.pick_with_prob(10))
+    {
+      /* explicitly enable this option with higher priority */
+      opt   = d_solver.get_option_name_unsat_assumptions();
+      value = d_solver.get_option_value_enable_unsat_assumptions();
+    }
     else
     {
       /* pick random option */
@@ -293,8 +300,9 @@ class ActionSetOption : public Action
   {
     SMTMBT_TRACE << get_id() << " " << opt << " " << value;
     d_solver.set_opt(opt, value);
-    d_smgr.d_incremental = d_solver.option_incremental_enabled();
-    d_smgr.d_model_gen   = d_solver.option_model_gen_enabled();
+    d_smgr.d_incremental       = d_solver.option_incremental_enabled();
+    d_smgr.d_model_gen         = d_solver.option_model_gen_enabled();
+    d_smgr.d_unsat_assumptions = d_solver.option_unsat_assumptions_enabled();
   }
 };
 
@@ -941,6 +949,7 @@ class ActionGetUnsatAssumptions : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
+    if (!d_smgr.d_unsat_assumptions) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
     if (!d_smgr.d_incremental) return false;
@@ -971,6 +980,62 @@ class ActionGetUnsatAssumptions : public Action
       assert(d_solver.check_failed_assumption(t));
     }
     d_smgr.d_sat_called = true;
+  }
+};
+
+class ActionGetValue : public Action
+{
+ public:
+  ActionGetValue(SolverManager& smgr) : Action(smgr, "get-value") {}
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_model_gen) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
+
+    uint32_t n_terms = d_rng.pick<uint32_t>(1, SMTMBT_MAX_N_TERMS_GET_VALUE);
+    std::vector<Term> terms;
+    for (uint32_t i = 0; i < n_terms; ++i)
+    {
+      terms.push_back(d_smgr.pick_assumption());
+    }
+    _run(terms);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() > 1);
+    std::vector<Term> terms;
+    uint32_t n_args = str_to_uint32(tokens[0]);
+    for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
+    {
+      uint32_t id = str_to_uint32(tokens[idx]);
+      Term t      = d_smgr.get_term(id);
+      assert(t != nullptr);
+      terms.push_back(t);
+    }
+    _run(terms);
+    return 0;
+  }
+
+ private:
+  void _run(std::vector<Term> terms)
+  {
+    SMTMBT_TRACE << get_id() << " " << terms.size() << terms;
+    /* Note: The Terms in this vector are solver terms wrapped into Term,
+     *       without sort information! */
+    std::vector<Term> res = d_solver.get_value(terms);
+    for (size_t i = 0, n = terms.size(); i < n; ++i)
+    {
+      Sort sort = terms[i]->get_sort();
+      assert(sort != nullptr);
+      SortKind sort_kind = sort->get_kind();
+      assert(sort_kind != SORT_ANY);
+      d_smgr.add_term(res[i], sort, sort_kind);
+    }
   }
 };
 
@@ -1119,6 +1184,8 @@ FSM::configure()
 
   auto a_failed = new_action<ActionGetUnsatAssumptions>();
 
+  auto a_getvalue = new_action<ActionGetValue>();
+
   auto a_printmodel = new_action<ActionPrintModel>();
 
   auto a_sat     = new_action<ActionCheckSat>();
@@ -1201,13 +1268,14 @@ FSM::configure()
 
   /* State: model ........................................................ */
   s_model->add_action(a_printmodel, 1);
+  s_model->add_action(a_getvalue, 5);
   add_action_to_all_states_next(t_default, 1, s_model, {"opt"});
-  add_action_to_all_states(t_default, 100, {"opt"}, s_model);
+  add_action_to_all_states(t_default, 10, {"opt"}, s_model);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
   s_push_pop->add_action(a_pop, 1);
-  add_action_to_all_states_next(t_default, 2, s_push_pop);
+  add_action_to_all_states_next(t_default, 2, s_push_pop, {"opt"});
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);
