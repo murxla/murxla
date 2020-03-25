@@ -135,9 +135,10 @@ class CVC4Solver : public Solver
 
   void reset_assertions() const override;
 
+  void set_opt(const std::string& opt, const std::string& value) const override;
+
   //
   // get_model()
-  // get_value()
   // get_proof()
   // get_unsat_core()
   //

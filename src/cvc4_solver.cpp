@@ -479,6 +479,12 @@ CVC4Solver::reset_assertions() const
   d_solver->resetAssertions();
 }
 
+void
+CVC4Solver::set_opt(const std::string& opt, const std::string& value) const
+{
+  d_solver->setOption(opt, value);
+}
+
 /* -------------------------------------------------------------------------- */
 
 std::string
