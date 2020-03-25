@@ -940,7 +940,7 @@ class ActionGetUnsatAssumptions : public Action
 
   bool run() override
   {
-    if (!d_solver.is_initialized()) return false;
+    assert(d_solver.is_initialized());
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
     if (!d_smgr.d_incremental) return false;
@@ -1044,7 +1044,7 @@ class ActionResetAssertions : public Action
 
   bool run() override
   {
-    if (!d_solver.is_initialized()) return false;
+    assert(d_solver.is_initialized());
     _run();
     return true;
   }
@@ -1072,7 +1072,7 @@ class ActionPrintModel : public Action
 
   bool run() override
   {
-    if (!d_solver.is_initialized()) return false;
+    assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
