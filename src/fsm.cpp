@@ -1150,6 +1150,11 @@ FSM::configure()
   auto s_assert =
       new_state("assert", [this]() { return d_smgr.has_term(SORT_BOOL); });
 
+  auto s_model = new_state("model", [this]() {
+    return d_smgr.d_model_gen && d_smgr.d_sat_called
+           && d_smgr.d_sat_result == Solver::Result::SAT;
+  });
+
   auto s_sat = new_state("check_sat", [this]() {
     return d_smgr.d_n_sat_calls == 0 || d_smgr.d_incremental;
   });
@@ -1194,6 +1199,11 @@ FSM::configure()
   s_sat->add_action(t_inputs, 5, s_push_pop);
   s_sat->add_action(t_inputs, 10, s_delete);
 
+  /* State: model ........................................................ */
+  s_model->add_action(a_printmodel, 1);
+  add_action_to_all_states_next(t_default, 1, s_model, {"opt"});
+  add_action_to_all_states(t_default, 100, {"opt"}, s_model);
+
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
   s_push_pop->add_action(a_pop, 1);
@@ -1204,7 +1214,6 @@ FSM::configure()
 
   /* All States (with exceptions) ........................................ */
   add_action_to_all_states(a_failed, 100);
-  add_action_to_all_states(a_printmodel, 100);
   add_action_to_all_states(a_reset_ass, 100);
 
   /* --------------------------------------------------------------------- */
