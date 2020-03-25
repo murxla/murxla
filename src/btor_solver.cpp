@@ -897,6 +897,13 @@ BtorSolver::get_option_name_model_gen() const
   return boolector_get_opt_lng(d_solver, BTOR_OPT_MODEL_GEN);
 }
 
+std::string
+BtorSolver::get_option_name_unsat_assumptions() const
+{
+  /* always enabled in Boolector, can not be configured via set_opt */
+  return "produce-unsat-assumptions";
+}
+
 bool
 BtorSolver::option_incremental_enabled() const
 {
@@ -909,6 +916,13 @@ BtorSolver::option_model_gen_enabled() const
   return boolector_get_opt(d_solver, BTOR_OPT_MODEL_GEN) > 0;
 }
 
+bool
+BtorSolver::option_unsat_assumptions_enabled() const
+{
+  /* always enabled in Boolector, can not be configured via set_opt */
+  return true;
+}
+
 std::string
 BtorSolver::get_option_value_enable_incremental() const
 {
@@ -918,6 +932,13 @@ BtorSolver::get_option_value_enable_incremental() const
 std::string
 BtorSolver::get_option_value_enable_model_gen() const
 {
+  return "1";
+}
+
+std::string
+BtorSolver::get_option_value_enable_unsat_assumptions() const
+{
+  /* always enabled in Boolector, can not be configured via set_opt */
   return "1";
 }
 

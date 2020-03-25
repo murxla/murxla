@@ -168,6 +168,20 @@ Solver::get_special_values_bv() const
   return d_special_values_bv;
 }
 
+std::ostream&
+operator<<(std::ostream& out, const Solver::Result& r)
+{
+  std::string s;
+  switch (r)
+  {
+    case Solver::Result::SAT: s = "SAT"; break;
+    case Solver::Result::UNSAT: s = "UNSAT"; break;
+    default: s = "UNKNOWN";
+  }
+  out << s;
+  return out;
+}
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace smtmbt

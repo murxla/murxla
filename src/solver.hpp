@@ -208,6 +208,11 @@ class Solver
       SpecialValueBV::MAX_SIGNED};
 };
 
+/**
+ * Serialize a solver result to given stream.
+ */
+std::ostream& operator<<(std::ostream& out, const Solver::Result& r);
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace smtmbt
