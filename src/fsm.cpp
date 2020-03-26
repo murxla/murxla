@@ -1269,7 +1269,7 @@ FSM::configure()
 
   /* State: model ........................................................ */
   s_model->add_action(a_printmodel, 1);
-  s_model->add_action(a_getvalue, 5);
+  s_model->add_action(a_getvalue, 1);
   add_action_to_all_states_next(t_default, 1, s_model, {"opt"});
   add_action_to_all_states(t_default, 10, {"opt"}, s_model);
 

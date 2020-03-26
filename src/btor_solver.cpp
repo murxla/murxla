@@ -761,7 +761,12 @@ BtorSolver::get_value(std::vector<Term>& terms) const
   {
     btor_res.push_back(boolector_get_value(d_solver, t));
   }
-  return btor_terms_to_terms(btor_res);
+  res = btor_terms_to_terms(btor_res);
+  for (BoolectorNode* t : btor_res)
+  {
+    boolector_release(d_solver, t);
+  }
+  return res;
 }
 
 void
