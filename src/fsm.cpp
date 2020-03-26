@@ -1000,7 +1000,7 @@ class ActionGetValue : public Action
     std::vector<Term> terms;
     for (uint32_t i = 0; i < n_terms; ++i)
     {
-      terms.push_back(d_smgr.pick_assumption());
+      terms.push_back(d_smgr.pick_term());
     }
     _run(terms);
     return true;
