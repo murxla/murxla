@@ -159,6 +159,11 @@ class BtorSolver : public Solver
   using BtorFunBoolUnary       = std::function<bool(Btor*, BoolectorNode*)>;
   using BtorFunBoolUnaryVector = std::vector<BtorFunBoolUnary>;
 
+  std::vector<Term> btor_terms_to_terms(
+      std::vector<BoolectorNode*>& terms) const;
+  std::vector<BoolectorNode*> terms_to_btor_terms(
+      std::vector<Term>& terms) const;
+
   BtorFunBoolUnary pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const;
   BtorFunBoolUnary pick_fun_is_bv_const() const;
   void check_is_bv_const(SpecialValueBV kind, BoolectorNode* node) const;

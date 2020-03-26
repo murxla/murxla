@@ -991,6 +991,7 @@ class ActionGetValue : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
+    if (!d_smgr.has_term()) return false;
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;

@@ -754,8 +754,14 @@ std::vector<Term>
 BtorSolver::get_value(std::vector<Term>& terms) const
 {
   std::vector<Term> res;
-  return res;
-  // TODO
+  std::vector<BoolectorNode*> btor_res;
+  std::vector<BoolectorNode*> btor_terms = terms_to_btor_terms(terms);
+
+  for (BoolectorNode* t : btor_terms)
+  {
+    btor_res.push_back(boolector_get_value(d_solver, t));
+  }
+  return btor_terms_to_terms(btor_res);
 }
 
 void
@@ -870,6 +876,12 @@ BtorSolver::mk_term_pairwise(std::vector<Term>& args,
 void
 BtorSolver::set_opt(const std::string& opt, const std::string& value) const
 {
+  if (opt == "produce-unsat-assumptions")
+  {
+    /* always enabled in Boolector, can not be configured via set_opt */
+    return;
+  }
+
   assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
 
   /* Boolector options are all integer values */
@@ -951,6 +963,28 @@ BtorSolver::get_option_value_enable_unsat_assumptions() const
 }
 
 /* -------------------------------------------------------------------------- */
+
+std::vector<Term>
+BtorSolver::btor_terms_to_terms(std::vector<BoolectorNode*>& terms) const
+{
+  std::vector<Term> res;
+  for (BoolectorNode* t : terms)
+  {
+    res.push_back(std::shared_ptr<BtorTerm>(new BtorTerm(d_solver, t)));
+  }
+  return res;
+}
+
+std::vector<BoolectorNode*>
+BtorSolver::terms_to_btor_terms(std::vector<Term>& terms) const
+{
+  std::vector<BoolectorNode*> res;
+  for (Term& t : terms)
+  {
+    res.push_back(get_btor_term(t));
+  }
+  return res;
+}
 
 BtorSolver::BtorFunBoolUnary
 BtorSolver::pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const
