@@ -1029,13 +1029,30 @@ class ActionGetValue : public Action
     /* Note: The Terms in this vector are solver terms wrapped into Term,
      *       without sort information! */
     std::vector<Term> res = d_solver.get_value(terms);
-    for (size_t i = 0, n = terms.size(); i < n; ++i)
+    assert(terms.size() == res.size());
+    if (d_smgr.d_incremental && d_rng.flip_coin())
     {
-      Sort sort = terms[i]->get_sort();
-      assert(sort != nullptr);
-      SortKind sort_kind = sort->get_kind();
-      assert(sort_kind != SORT_ANY);
-      d_smgr.add_term(res[i], sort, sort_kind);
+      /* assume assignment and check if result is still SAT */
+      std::vector<Term> assumptions;
+      for (size_t i = 0, n = terms.size(); i < n; ++i)
+      {
+        std::vector<Term> args = {terms[i], res[i]};
+        std::vector<uint32_t> params;
+        assumptions.push_back(d_solver.mk_term(OP_EQUAL, args, params));
+      }
+      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+    }
+    else
+    {
+      /* add values to term database */
+      for (size_t i = 0, n = terms.size(); i < n; ++i)
+      {
+        Sort sort = terms[i]->get_sort();
+        assert(sort != nullptr);
+        SortKind sort_kind = sort->get_kind();
+        assert(sort_kind != SORT_ANY);
+        d_smgr.add_term(res[i], sort, sort_kind);
+      }
     }
   }
 };
