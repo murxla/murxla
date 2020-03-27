@@ -66,6 +66,9 @@ class SolverManager
   /** Add non-input term to term database. */
   void add_term(Term term, Sort sort, SortKind sort_kind);
 
+  /** Pick arbitrary symbol (simple or piped). */
+  std::string pick_symbol();
+
   /**
    * Pick sort kind of existing (= created) sort.
    * Optionally restrict selection to sort kinds with terms only if

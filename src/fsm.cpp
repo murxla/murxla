@@ -10,8 +10,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_LEN_SYMBOL_MAX 128
-
 #define SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT 5
 #define SMTMBT_MAX_N_PUSH_LEVELS 5
 #define SMTMBT_MAX_N_TERMS_GET_VALUE 5
@@ -550,12 +548,7 @@ class ActionMkConst : public Action
     /* Pick sort of const. */
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
-    uint32_t len       = d_rng.pick<uint32_t>(0, SMTMBT_LEN_SYMBOL_MAX);
-    /* Pick piped vs simple symbol with 50% probability. */
-    std::string symbol = len && d_rng.flip_coin()
-                             ? d_rng.pick_piped_symbol(len)
-                             : d_rng.pick_simple_symbol(len);
-
+    std::string symbol = d_smgr.pick_symbol();
     /* Create const. */
     _run(sort, symbol);
     return true;

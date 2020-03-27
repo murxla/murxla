@@ -8,6 +8,8 @@
 
 namespace smtmbt {
 
+#define SMTMBT_LEN_SYMBOL_MAX 128
+
 /* -------------------------------------------------------------------------- */
 
 SolverManager::SolverManager(Solver* solver,
@@ -372,6 +374,15 @@ SolverManager::get_term(uint32_t id) const
 }
 
 /* -------------------------------------------------------------------------- */
+
+std::string
+SolverManager::pick_symbol()
+{
+  uint32_t len = d_rng.pick<uint32_t>(0, SMTMBT_LEN_SYMBOL_MAX);
+  /* Pick piped vs simple symbol with 50% probability. */
+  return len && d_rng.flip_coin() ? d_rng.pick_piped_symbol(len)
+                                  : d_rng.pick_simple_symbol(len);
+}
 
 Sort
 SolverManager::pick_sort()

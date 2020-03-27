@@ -262,13 +262,25 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   {
     btor_res = boolector_zero(d_solver, btor_sort);
     if (check) check_is_bv_const(Solver::SpecialValueBV::ZERO, btor_res);
-    if (check_bits) str = "0";
+    if (check_bits)
+    {
+      str = std::string(bw, '0');
+    }
   }
   else if (use_special_fun && value == 1)
   {
     btor_res = boolector_one(d_solver, btor_sort);
     if (check) check_is_bv_const(Solver::SpecialValueBV::ONE, btor_res);
-    if (check_bits) str = "1";
+    if (check_bits)
+    {
+      std::stringstream ss;
+      if (bw > 1)
+      {
+        ss << std::string(bw - 1, '0');
+      }
+      ss << "1";
+      str = ss.str();
+    }
   }
   else if (use_special_fun && is_bv_special_value_ones_uint64(bw, value))
   {
@@ -1146,7 +1158,7 @@ class BtorActionClone : public Action
 
   bool run() override
   {
-    if (!d_solver.is_initialized()) return false;
+    assert(d_solver.is_initialized());
     _run();
     return true;
   }
@@ -1261,7 +1273,7 @@ class BtorActionFailed : public Action
 
   bool run() override
   {
-    if (!d_solver.is_initialized()) return false;
+    assert(d_solver.is_initialized());
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
     if (!d_smgr.d_incremental) return false;
@@ -1332,7 +1344,7 @@ class BtorActionOptIterator : public Action
 
   bool run() override
   {
-    if (!d_solver.is_initialized()) return false;
+    assert(d_solver.is_initialized());
     _run();
     return true;
   }
@@ -1385,7 +1397,7 @@ class BtorActionReleaseAll : public Action
 
   bool run() override
   {
-    if (!d_solver.is_initialized()) return false;
+    assert(d_solver.is_initialized());
     _run();
     return true;
   }
@@ -1482,7 +1494,7 @@ class BtorActionSimplify : public Action
 
   bool run() override
   {
-    if (!d_solver.is_initialized()) return false;
+    assert(d_solver.is_initialized());
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     if (solver.get_solver() == nullptr) return false;
     _run();
@@ -1502,6 +1514,42 @@ class BtorActionSimplify : public Action
     SMTMBT_TRACE << get_id();
     boolector_simplify(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
+class BtorActionSetSymbol : public Action
+{
+ public:
+  BtorActionSetSymbol(SolverManager& smgr) : Action(smgr, "btor-set-symbol") {}
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term()) return false;
+    Term term          = d_smgr.pick_term();
+    std::string symbol = d_smgr.pick_symbol();
+    _run(term, symbol);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 2);
+    Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
+    assert(term != nullptr);
+    std::string symbol = str_to_str(tokens[1]);
+    _run(term, symbol);
+    return 0;
+  }
+
+ private:
+  void _run(Term term, std::string symbol)
+  {
+    SMTMBT_TRACE << get_id() << " " << term << " \"" << symbol << "\"";
+    BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    (void) boolector_set_symbol(btor_solver.get_solver(),
+                                btor_solver.get_btor_term(term),
+                                symbol.c_str());
   }
 };
 
@@ -1551,6 +1599,10 @@ BtorSolver::configure_fsm(FSM* fsm) const
   // boolector_set_sat_solver
   auto a_set_sat_solver = fsm->new_action<BtorActionSetSatSolver>();
   s_opt->add_action(a_set_sat_solver, 100);
+
+  // boolector_set_symbol
+  auto a_set_symbol = fsm->new_action<BtorActionSetSymbol>();
+  fsm->add_action_to_all_states(a_set_symbol, 100);
 }
 
 }  // namespace btor
