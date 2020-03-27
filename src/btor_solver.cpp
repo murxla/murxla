@@ -1139,257 +1139,6 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
 /* Solver-specific actions, FSM configuration. */
 /* -------------------------------------------------------------------------- */
 
-class BtorActionOptIterator : public Action
-{
- public:
-  BtorActionOptIterator(SolverManager& smgr) : Action(smgr, "btor-opt-iterator")
-  {
-  }
-
-  bool run() override
-  {
-    if (!d_solver.is_initialized()) return false;
-    _run();
-    return true;
-  }
-
-  uint64_t untrace(std::vector<std::string>& tokens) override
-  {
-    assert(tokens.empty());
-    _run();
-    return 0;
-  }
-
- private:
-  void _run()
-  {
-    SMTMBT_TRACE << get_id();
-    Btor* btor = static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver();
-    for (BtorOption opt = boolector_first_opt(btor); opt < BTOR_OPT_NUM_OPTS;
-         opt            = boolector_next_opt(btor, opt))
-    {
-      assert(boolector_has_opt(btor, opt));
-      assert(boolector_get_opt(btor, opt) >= boolector_get_opt_min(btor, opt));
-      assert(boolector_get_opt(btor, opt) <= boolector_get_opt_max(btor, opt));
-      assert(boolector_get_opt_min(btor, opt)
-             <= boolector_get_opt_max(btor, opt));
-      assert(boolector_get_opt_dflt(btor, opt)
-             >= boolector_get_opt_min(btor, opt));
-      assert(boolector_get_opt_dflt(btor, opt)
-             <= boolector_get_opt_max(btor, opt));
-      std::string lng = boolector_get_opt_lng(btor, opt);
-      const char* s   = boolector_get_opt_shrt(btor, opt);
-      if (s != nullptr)
-      {
-        std::string shrt(s);
-        assert(shrt.size() <= lng.size());
-      }
-      (void) boolector_get_opt_desc(btor, opt);
-    }
-    assert(!boolector_has_opt(
-        btor,
-        (BtorOption) d_rng.pick<uint32_t>(BTOR_OPT_NUM_OPTS, UINT32_MAX)));
-  }
-};
-
-class BtorActionReleaseAll : public Action
-{
- public:
-  BtorActionReleaseAll(SolverManager& smgr) : Action(smgr, "btor-release-all")
-  {
-  }
-
-  bool run() override
-  {
-    if (!d_solver.is_initialized()) return false;
-    _run();
-    return true;
-  }
-
-  uint64_t untrace(std::vector<std::string>& tokens) override
-  {
-    assert(tokens.empty());
-    _run();
-    return 0;
-  }
-
- private:
-  void _run()
-  {
-    SMTMBT_TRACE << get_id();
-    d_smgr.clear();
-    boolector_release_all(
-        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
-  }
-};
-
-class BtorActionFailed : public Action
-{
- public:
-  BtorActionFailed(SolverManager& smgr) : Action(smgr, "btor-failed") {}
-
-  bool run() override
-  {
-    if (!d_solver.is_initialized()) return false;
-    if (!d_smgr.d_sat_called) return false;
-    if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
-    if (!d_smgr.d_incremental) return false;
-    if (!d_smgr.has_assumed()) return false;
-    Term term = d_smgr.pick_assumed_assumption();
-    _run(term);
-    return true;
-  }
-
-  uint64_t untrace(std::vector<std::string>& tokens) override
-  {
-    assert(tokens.size() == 1);
-    Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    assert(term != nullptr);
-    _run(term);
-    return 0;
-  }
-
- private:
-  void _run(Term term)
-  {
-    SMTMBT_TRACE << get_id() << " " << term;
-    BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
-    (void) boolector_failed(btor_solver.get_solver(),
-                            btor_solver.get_btor_term(term));
-  }
-};
-
-class BtorActionFixateAssumptions : public Action
-{
- public:
-  BtorActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, "btor-fixate-assumptions")
-  {
-  }
-
-  bool run() override
-  {
-    assert(d_solver.is_initialized());
-    if (!d_smgr.d_incremental) return false;
-    _run();
-    return true;
-  }
-
-  uint64_t untrace(std::vector<std::string>& tokens) override
-  {
-    assert(tokens.empty());
-    _run();
-    return 0;
-  }
-
- private:
-  void _run()
-  {
-    SMTMBT_TRACE << get_id();
-    d_smgr.clear();
-    boolector_fixate_assumptions(
-        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
-  }
-};
-
-class BtorActionResetAssumptions : public Action
-{
- public:
-  BtorActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, "btor-reset-assumptions")
-  {
-  }
-
-  bool run() override
-  {
-    assert(d_solver.is_initialized());
-    if (!d_smgr.d_incremental) return false;
-    _run();
-    return true;
-  }
-
-  uint64_t untrace(std::vector<std::string>& tokens) override
-  {
-    assert(tokens.empty());
-    _run();
-    return 0;
-  }
-
- private:
-  void _run()
-  {
-    SMTMBT_TRACE << get_id();
-    d_smgr.clear();
-    boolector_reset_assumptions(
-        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
-  }
-};
-
-class BtorActionSimplify : public Action
-{
- public:
-  BtorActionSimplify(SolverManager& smgr) : Action(smgr, "btor-simplify") {}
-
-  bool run() override
-  {
-    if (!d_solver.is_initialized()) return false;
-    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
-    if (solver.get_solver() == nullptr) return false;
-    _run();
-    return true;
-  }
-
-  uint64_t untrace(std::vector<std::string>& tokens) override
-  {
-    assert(tokens.empty());
-    _run();
-    return 0;
-  }
-
- private:
-  void _run()
-  {
-    SMTMBT_TRACE << get_id();
-    boolector_simplify(
-        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
-  }
-};
-
-class BtorActionSetSatSolver : public Action
-{
- public:
-  BtorActionSetSatSolver(SolverManager& smgr)
-      : Action(smgr, "btor-set-sat-solver")
-  {
-  }
-
-  bool run() override
-  {
-    assert(d_solver.is_initialized());
-    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
-    std::string sat_solver =
-        d_rng.pick_from_set<std::vector<std::string>, std::string>(
-            solver.get_supported_sat_solvers());
-    _run(sat_solver);
-    return true;
-  }
-
-  uint64_t untrace(std::vector<std::string>& tokens) override
-  {
-    assert(tokens.size() == 1);
-    _run(tokens[0]);
-    return 0;
-  }
-
- private:
-  void _run(std::string sat_solver)
-  {
-    SMTMBT_TRACE << get_id();
-    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
-    boolector_set_sat_solver(solver.get_solver(), sat_solver.c_str());
-  }
-};
-
 class BtorActionClone : public Action
 {
  public:
@@ -1505,6 +1254,257 @@ class BtorActionClone : public Action
   }
 };
 
+class BtorActionFailed : public Action
+{
+ public:
+  BtorActionFailed(SolverManager& smgr) : Action(smgr, "btor-failed") {}
+
+  bool run() override
+  {
+    if (!d_solver.is_initialized()) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
+    if (!d_smgr.d_incremental) return false;
+    if (!d_smgr.has_assumed()) return false;
+    Term term = d_smgr.pick_assumed_assumption();
+    _run(term);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 1);
+    Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
+    assert(term != nullptr);
+    _run(term);
+    return 0;
+  }
+
+ private:
+  void _run(Term term)
+  {
+    SMTMBT_TRACE << get_id() << " " << term;
+    BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    (void) boolector_failed(btor_solver.get_solver(),
+                            btor_solver.get_btor_term(term));
+  }
+};
+
+class BtorActionFixateAssumptions : public Action
+{
+ public:
+  BtorActionFixateAssumptions(SolverManager& smgr)
+      : Action(smgr, "btor-fixate-assumptions")
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_incremental) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_smgr.clear();
+    boolector_fixate_assumptions(
+        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
+class BtorActionOptIterator : public Action
+{
+ public:
+  BtorActionOptIterator(SolverManager& smgr) : Action(smgr, "btor-opt-iterator")
+  {
+  }
+
+  bool run() override
+  {
+    if (!d_solver.is_initialized()) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    Btor* btor = static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver();
+    for (BtorOption opt = boolector_first_opt(btor); opt < BTOR_OPT_NUM_OPTS;
+         opt            = boolector_next_opt(btor, opt))
+    {
+      assert(boolector_has_opt(btor, opt));
+      assert(boolector_get_opt(btor, opt) >= boolector_get_opt_min(btor, opt));
+      assert(boolector_get_opt(btor, opt) <= boolector_get_opt_max(btor, opt));
+      assert(boolector_get_opt_min(btor, opt)
+             <= boolector_get_opt_max(btor, opt));
+      assert(boolector_get_opt_dflt(btor, opt)
+             >= boolector_get_opt_min(btor, opt));
+      assert(boolector_get_opt_dflt(btor, opt)
+             <= boolector_get_opt_max(btor, opt));
+      std::string lng = boolector_get_opt_lng(btor, opt);
+      const char* s   = boolector_get_opt_shrt(btor, opt);
+      if (s != nullptr)
+      {
+        std::string shrt(s);
+        assert(shrt.size() <= lng.size());
+      }
+      (void) boolector_get_opt_desc(btor, opt);
+    }
+    assert(!boolector_has_opt(
+        btor,
+        (BtorOption) d_rng.pick<uint32_t>(BTOR_OPT_NUM_OPTS, UINT32_MAX)));
+  }
+};
+
+class BtorActionReleaseAll : public Action
+{
+ public:
+  BtorActionReleaseAll(SolverManager& smgr) : Action(smgr, "btor-release-all")
+  {
+  }
+
+  bool run() override
+  {
+    if (!d_solver.is_initialized()) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_smgr.clear();
+    boolector_release_all(
+        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
+class BtorActionResetAssumptions : public Action
+{
+ public:
+  BtorActionResetAssumptions(SolverManager& smgr)
+      : Action(smgr, "btor-reset-assumptions")
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_incremental) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    d_smgr.clear();
+    boolector_reset_assumptions(
+        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
+class BtorActionSetSatSolver : public Action
+{
+ public:
+  BtorActionSetSatSolver(SolverManager& smgr)
+      : Action(smgr, "btor-set-sat-solver")
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    std::string sat_solver =
+        d_rng.pick_from_set<std::vector<std::string>, std::string>(
+            solver.get_supported_sat_solvers());
+    _run(sat_solver);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 1);
+    _run(tokens[0]);
+    return 0;
+  }
+
+ private:
+  void _run(std::string sat_solver)
+  {
+    SMTMBT_TRACE << get_id();
+    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    boolector_set_sat_solver(solver.get_solver(), sat_solver.c_str());
+  }
+};
+
+class BtorActionSimplify : public Action
+{
+ public:
+  BtorActionSimplify(SolverManager& smgr) : Action(smgr, "btor-simplify") {}
+
+  bool run() override
+  {
+    if (!d_solver.is_initialized()) return false;
+    BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    if (solver.get_solver() == nullptr) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.empty());
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    SMTMBT_TRACE << get_id();
+    boolector_simplify(
+        static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -1522,9 +1522,9 @@ BtorSolver::configure_fsm(FSM* fsm) const
   auto a_opt_it = fsm->new_action<BtorActionOptIterator>();
   fsm->add_action_to_all_states(a_opt_it, 100);
 
-  // boolector_release_all
-  auto a_release_all = fsm->new_action<BtorActionReleaseAll>();
-  s_delete->add_action(a_release_all, 100);
+  // boolector_clone
+  auto a_clone = fsm->new_action<BtorActionClone>();
+  fsm->add_action_to_all_states(a_clone, 100);
 
   // boolector_failed
   auto a_failed = fsm->new_action<BtorActionFailed>();
@@ -1540,6 +1540,10 @@ BtorSolver::configure_fsm(FSM* fsm) const
   fsm->add_action_to_all_states_next(
       t_default, 2, s_fix_reset_assumptions, {"opt"});
 
+  // boolector_release_all
+  auto a_release_all = fsm->new_action<BtorActionReleaseAll>();
+  s_delete->add_action(a_release_all, 100);
+
   // boolector_simplify
   auto a_simplify = fsm->new_action<BtorActionSimplify>();
   fsm->add_action_to_all_states(a_simplify, 100);
@@ -1547,10 +1551,6 @@ BtorSolver::configure_fsm(FSM* fsm) const
   // boolector_set_sat_solver
   auto a_set_sat_solver = fsm->new_action<BtorActionSetSatSolver>();
   s_opt->add_action(a_set_sat_solver, 100);
-
-  // boolector_clone
-  auto a_clone = fsm->new_action<BtorActionClone>();
-  fsm->add_action_to_all_states(a_clone, 100);
 }
 
 }  // namespace btor
