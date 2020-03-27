@@ -258,6 +258,13 @@ SolverManager::clear_assumptions()
   d_assumptions.clear();
 }
 
+void
+SolverManager::reset_sat()
+{
+  clear_assumptions();
+  d_sat_called = false;
+}
+
 bool
 SolverManager::has_term() const
 {

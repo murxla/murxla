@@ -114,8 +114,17 @@ class SolverManager
    */
   Term pick_assumed_assumption();
 
-  /** Clear set of assumptions. */
-  void clear_assumptions();
+  /**
+   * Reset solver manager state into assert mode.
+   *
+   * After this call, calling
+   *   - get_model()
+   *   - get_unsat_assumptions()
+   *   - get_unsat_core() and
+   *   - get_proof()
+   * is not possible until after the next SAT call.
+   */
+  void reset_sat();
 
   /** Return true if term database contains any term. */
   bool has_term() const;
@@ -244,6 +253,9 @@ class SolverManager
    * Operator kinds are enabled based on the set of enabled theories.
    */
   void add_op_kinds();
+
+  /** Clear set of assumptions. */
+  void clear_assumptions();
 
 #if 0
   template <typename TKind,

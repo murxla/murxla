@@ -531,6 +531,7 @@ class ActionMkTerm : public Action
       trace_str << " " << params.size() << params;
     }
     SMTMBT_TRACE << get_id() << trace_str.str();
+    d_smgr.reset_sat();
     Term res = d_solver.mk_term(kind, args, params);
     d_smgr.add_term(res, d_solver.get_sort(res), sort_kind);
     SMTMBT_TRACE_RETURN << res;
@@ -574,6 +575,7 @@ class ActionMkConst : public Action
   uint64_t _run(Sort sort, std::string& symbol)
   {
     SMTMBT_TRACE << get_id() << " " << sort << " \"" << symbol << "\"";
+    d_smgr.reset_sat();
     Term res = d_solver.mk_const(sort, symbol);
     d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
@@ -787,6 +789,7 @@ class ActionMkValue : public Action
   uint64_t _run(Sort sort, bool val)
   {
     SMTMBT_TRACE << get_id() << " " << sort << " " << (val ? "true" : "false");
+    d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
@@ -796,6 +799,7 @@ class ActionMkValue : public Action
   uint64_t _run(Sort sort, uint64_t val)
   {
     SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
@@ -806,6 +810,7 @@ class ActionMkValue : public Action
   {
     SMTMBT_TRACE << get_id() << " " << sort << " \"" << val << "\""
                  << " " << base;
+    d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val, base);
     d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
@@ -841,11 +846,7 @@ class ActionAssertFormula : public Action
   void _run(Term assertion)
   {
     SMTMBT_TRACE << get_id() << " " << assertion;
-    if (d_smgr.d_sat_called)
-    {
-      d_smgr.clear_assumptions();
-      d_smgr.d_sat_called = false;
-    }
+    d_smgr.reset_sat();
     d_solver.assert_formula(assertion);
   }
 };
@@ -873,11 +874,7 @@ class ActionCheckSat : public Action
   void _run()
   {
     SMTMBT_TRACE << get_id();
-    if (d_smgr.d_sat_called)
-    {
-      d_smgr.clear_assumptions();
-      d_smgr.d_sat_called = false;
-    }
+    d_smgr.reset_sat();
     d_smgr.d_sat_result = d_solver.check_sat();
     d_smgr.d_sat_called = true;
     d_smgr.d_n_sat_calls += 1;
@@ -928,11 +925,7 @@ class ActionCheckSatAssuming : public Action
   void _run(std::vector<Term> assumptions)
   {
     SMTMBT_TRACE << get_id() << " " << assumptions.size() << assumptions;
-    if (d_smgr.d_sat_called)
-    {
-      d_smgr.clear_assumptions();
-      d_smgr.d_sat_called = false;
-    }
+    d_smgr.reset_sat();
     d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
     d_smgr.d_sat_called = true;
   }
@@ -1082,6 +1075,7 @@ class ActionPush : public Action
   void _run(uint32_t n_levels)
   {
     SMTMBT_TRACE << get_id() << " " << n_levels;
+    d_smgr.reset_sat();
     d_solver.push(n_levels);
     d_smgr.d_n_push_levels += n_levels;
   }
@@ -1113,6 +1107,7 @@ class ActionPop : public Action
   void _run(uint32_t n_levels)
   {
     SMTMBT_TRACE << get_id() << " " << n_levels;
+    d_smgr.reset_sat();
     d_solver.pop(n_levels);
     d_smgr.d_n_push_levels -= n_levels;
   }
@@ -1143,6 +1138,7 @@ class ActionResetAssertions : public Action
   void _run()
   {
     SMTMBT_TRACE << get_id();
+    d_smgr.reset_sat();
     d_solver.reset_assertions();
     d_smgr.d_n_push_levels = 0;
   }
