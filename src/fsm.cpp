@@ -1015,6 +1015,7 @@ class ActionGetValue : public Action
     /* Note: The Terms in this vector are solver terms wrapped into Term,
      *       without sort information! */
     std::vector<Term> res = d_solver.get_value(terms);
+    //std::cout << "##terms.size() " << terms.size() << " " << res.size() << std::endl;
     assert(terms.size() == res.size());
     if (d_smgr.d_incremental && d_rng.flip_coin())
     {
@@ -1022,6 +1023,7 @@ class ActionGetValue : public Action
       std::vector<Term> assumptions;
       for (size_t i = 0, n = terms.size(); i < n; ++i)
       {
+        //std::cout << "##eq " << terms[i] << " " << res[i] << std::endl;
         std::vector<Term> args = {terms[i], res[i]};
         std::vector<uint32_t> params;
         assumptions.push_back(d_solver.mk_term(OP_EQUAL, args, params));

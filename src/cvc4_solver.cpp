@@ -38,6 +38,7 @@ CVC4Sort::equals(const Sort& other) const
   if (cvc4_sort)
   {
     assert(d_kind == cvc4_sort->d_kind);
+    assert(d_sort.isNull() == cvc4_sort->d_sort.isNull());
     return d_sort == cvc4_sort->d_sort;
   }
   return false;
@@ -157,6 +158,7 @@ CVC4Solver::mk_sort(SortKind kind) const
 
     default: assert(false);
   }
+  assert(!cvc4_res.isNull());
   return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, cvc4_res));
 }
 
@@ -170,6 +172,7 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
 
     default: assert(false);
   }
+  assert(!cvc4_res.isNull());
   std::shared_ptr<CVC4Sort> res(new CVC4Sort(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -178,8 +181,9 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
 Term
 CVC4Solver::mk_const(Sort sort, const std::string name) const
 {
-  CVC4::api::Term res = d_solver->mkConst(get_cvc4_sort(sort), name);
-  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, res));
+  CVC4::api::Term cvc4_res = d_solver->mkConst(get_cvc4_sort(sort), name);
+  assert(!cvc4_res.isNull());
+  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
 
 Term
@@ -197,6 +201,7 @@ CVC4Solver::mk_value(Sort sort, bool value) const
   {
     cvc4_res = d_solver->mkBoolean(value);
   }
+  assert(!cvc4_res.isNull());
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -217,6 +222,7 @@ CVC4Solver::mk_value(Sort sort, uint64_t value) const
       break;
     default: assert(false);
   }
+  assert(!cvc4_res.isNull());
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -250,6 +256,7 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base) const
       cvc4_res = d_rng.flip_coin() ? d_solver->mkBitVector(value, 2)
                                    : d_solver->mkBitVector(value.c_str(), 2);
   }
+  assert(!cvc4_res.isNull());
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -275,6 +282,7 @@ CVC4Solver::mk_term(const OpKind& kind,
     case 1: cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0]); break;
     case 2:
       cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0], params[1]);
+      assert(!cvc4_opterm.isNull());
       break;
     default: assert(n_params == 0);
   }
@@ -368,6 +376,8 @@ CVC4Solver::mk_term(const OpKind& kind,
       cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm, cvc4_args)
                           : d_solver->mkTerm(cvc4_kind, cvc4_args);
   }
+  assert(!cvc4_res.isNull());
+  assert(cvc4_kind == cvc4_res.getKind());
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
 
@@ -659,7 +669,7 @@ class CVC4ActionSimplify : public Action
 
   bool run() override
   {
-    assert(!d_solver.is_initialized());
+    assert(d_solver.is_initialized());
     if (!d_smgr.has_term()) return false;
     Term term = d_smgr.pick_term();
     _run(term);

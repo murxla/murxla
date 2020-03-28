@@ -3,16 +3,12 @@
 // TODO std::ostream& operator<<(std::ostream& out, const Result& r);
 
 ////// Sort
-// bool Sort::operator==(const Sort& s) const;
 // bool Sort::operator!=(const Sort& s) const;
-// bool Sort::isNull() const;
 // TODO void Sort::toStream(std::ostream& out) const;
 // TODO std::string Sort:: toString() const;
 
 ////// Term
-// bool Term::operator==(const Term& t) const;
 // bool Term::operator!=(const Term& t) const;
-// Kind Term::getKind() const;
 // TODO std::string Term::toString() const;
 
 //// Term::const_iterator
@@ -40,7 +36,6 @@
 // TODO bool Op::operator!=(const Op& t) const;
 // TODO Kind Op::getKind() const;
 // TODO Sort Op::getSort() const;
-// TODO bool Op::isNull() const;
 // TODO bool Op::isIsIndexed() const;
 // TODO template <typename T> T Op::getIndices() const;
 // TODO std::string Op::toString() const;
