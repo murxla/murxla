@@ -38,6 +38,8 @@ class RNGenerator
    /** Constructor. */
    explicit RNGenerator(uint32_t seed = 0);
 
+   std::mt19937& get_engine();
+
    /** Pick an integral number with type T. */
    template <typename T,
              typename std::enable_if<std::is_integral<T>::value, int>::type = 0>

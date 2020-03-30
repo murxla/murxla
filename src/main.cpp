@@ -23,8 +23,9 @@ struct Options
   uint32_t verbosity = 0;
   uint32_t time      = 0;
 
-  bool use_btor   = false;
-  bool use_cvc4   = false;
+  bool use_btor    = false;
+  bool use_cvc4    = false;
+  bool trace_seeds = false;
   std::string api_trace;
   char* untrace   = nullptr;
   std::string solver_options_file;
@@ -347,6 +348,10 @@ parse_options(Options& options, int argc, char* argv[])
       check_next_arg(arg, i, argc);
       g_options.solver_options_file = std::string(argv[i]);
     }
+    else if (arg == "-S" || arg == "--trace-seeds")
+    {
+      g_options.trace_seeds = true;
+    }
   }
 
   if (!options.use_btor && !options.use_cvc4)
@@ -424,7 +429,7 @@ run(uint32_t seed, Options& options, SolverOptions& solver_options)
       solver = new cvc4::CVC4Solver(rng);
     }
 
-    FSM fsm(rng, solver, trace, solver_options);
+    FSM fsm(rng, solver, trace, solver_options, g_options.trace_seeds);
     fsm.configure();
 
     /* replay/untrace given API trace */

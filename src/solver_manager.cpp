@@ -15,8 +15,10 @@ namespace smtmbt {
 SolverManager::SolverManager(Solver* solver,
                              RNGenerator& rng,
                              std::ostream& trace,
-                             SolverOptions& options)
-    : d_solver(solver),
+                             SolverOptions& options,
+                             bool trace_seeds)
+    : d_trace_seeds(trace_seeds),
+      d_solver(solver),
       d_rng(rng),
       d_trace(trace),
       d_options(options),
@@ -64,6 +66,14 @@ SolverManager::get_rng() const
 }
 
 /* -------------------------------------------------------------------------- */
+
+std::string
+SolverManager::trace_seed() const
+{
+  std::stringstream ss;
+  ss << "set-seed " << d_rng.get_engine() << std::endl;
+  return ss.str();
+}
 
 std::ostream&
 SolverManager::get_trace()

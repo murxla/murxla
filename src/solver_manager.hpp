@@ -37,7 +37,8 @@ class SolverManager
   SolverManager(Solver* solver,
                 RNGenerator& rng,
                 std::ostream& trace,
-                SolverOptions& options);
+                SolverOptions& options,
+                bool trace_seeds);
   ~SolverManager() = default;
 
   /** Clear all data. */
@@ -50,6 +51,9 @@ class SolverManager
   void set_rng(RNGenerator& rng);
   /** Get random number generator. */
   RNGenerator& get_rng() const;
+
+  /** Get the trace line for the current seed ("set-seed <seed>"). */
+  std::string trace_seed() const;
 
   /** Get set of enabled theories. */
   const TheoryIdSet& get_enabled_theories() const;
@@ -237,6 +241,13 @@ class SolverManager
 
   /** Statistics. */
   Stats d_stats;
+
+  /**
+   * True if every non-return trace call should be preceded by a
+   * 'set-seed <seed>' line. We need to provide this in the solver manager
+   * so that actions have access to it (they don't have access to the FMS).
+   */
+  bool d_trace_seeds = false;
 
  private:
   /**

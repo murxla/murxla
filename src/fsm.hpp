@@ -15,7 +15,10 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_TRACE OstreamVoider() & FSM::TraceStream(d_smgr).stream()
+#define SMTMBT_TRACE                      \
+  OstreamVoider()                         \
+      & FSM::TraceStream(d_smgr).stream() \
+            << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "")
 
 #define SMTMBT_TRACE_RETURN \
   OstreamVoider() & FSM::TraceStream(d_smgr).stream() << "return "
@@ -166,7 +169,8 @@ class FSM
   FSM(RNGenerator& rng,
       Solver* solver,
       std::ostream& trace,
-      SolverOptions& options);
+      SolverOptions& options,
+      bool trace_seeds);
 
   /** Default constructor is disabled. */
   FSM() = delete;

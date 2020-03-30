@@ -57,8 +57,9 @@ State::run(RNGenerator& rng)
 FSM::FSM(RNGenerator& rng,
          Solver* solver,
          std::ostream& trace,
-         SolverOptions& options)
-    : d_smgr(solver, rng, trace, options), d_rng(rng)
+         SolverOptions& options,
+         bool trace_seeds)
+    : d_smgr(solver, rng, trace, options, trace_seeds), d_rng(rng)
 {
 }
 
@@ -1421,6 +1422,13 @@ FSM::untrace(std::ifstream& trace)
       uint64_t id = str_to_uint64(tokens[0]);
       assert(id == ret_val);
       ret_val = 0;
+      continue;
+    }
+    if (id == "set-seed")
+    {
+      std::stringstream sss;
+      for (auto t : tokens) sss << " " << t;
+      sss >> d_rng.get_engine();
       continue;
     }
 

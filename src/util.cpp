@@ -46,6 +46,12 @@ SeedGenerator::next()
 
 RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed) { d_rng.seed(seed); }
 
+std::mt19937&
+RNGenerator::get_engine()
+{
+  return d_rng;
+}
+
 uint32_t
 RNGenerator::pick_uint32_weighted(std::vector<uint32_t>& weights)
 {
