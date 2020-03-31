@@ -49,7 +49,8 @@ class RNGenerator
      return dist(d_rng);
    }
 
-   /** Pick an integral number with type T between 'from' and 'to' (inclusive).
+   /**
+    * Pick an integral number with type T between 'from' and 'to' (inclusive).
     */
    template <typename T,
              typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
@@ -118,9 +119,6 @@ class RNGenerator
   private:
     uint32_t d_seed;
     std::mt19937 d_rng;
-    std::uniform_int_distribution<uint32_t> d_uint32_dist;
-    std::uniform_int_distribution<uint64_t> d_uint64_dist;
-    std::uniform_int_distribution<int64_t> d_int64_dist;
 
     std::string d_bin_char_set = "01";
     std::string d_simple_symbol_char_set =
