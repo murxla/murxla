@@ -397,20 +397,12 @@ CVC4Solver::assert_formula(const Term& t) const
 Solver::Result
 CVC4Solver::check_sat() const
 {
-  bool check_sat = d_rng.flip_coin();
-  CVC4::api::Result res =
-      check_sat ? d_solver->checkSat() : d_solver->checkValid();
+  CVC4::api::Result res = d_solver->checkSat();
   assert(res == res);
   assert(res != CVC4::api::Result());
-  assert(!res.isSat() || check_sat);
-  assert(!res.isUnsat() || check_sat);
-  assert(!res.isSatUnknown() || check_sat);
-  assert(!res.isValid() || !check_sat);
-  assert(!res.isInvalid() || !check_sat);
-  assert(!res.isValidUnknown() || !check_sat);
-  if (res.isSat() || res.isInvalid()) return Result::SAT;
-  if (res.isUnsat() || res.isValid()) return Result::UNSAT;
-  assert(res.isSatUnknown() || res.isValidUnknown());
+  if (res.isSat()) return Result::SAT;
+  if (res.isUnsat()) return Result::UNSAT;
+  assert(res.isSatUnknown());
   std::string expl = res.getUnknownExplanation();
   return Result::UNKNOWN;
 }
@@ -419,33 +411,19 @@ Solver::Result
 CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
 {
   CVC4::api::Result res;
-  bool check_sat = d_rng.flip_coin();
   std::vector<CVC4::api::Term> cvc4_assumptions =
       terms_to_cvc4_terms(assumptions);
 
   assert(assumptions.size() == cvc4_assumptions.size());
 
-  if (cvc4_assumptions.size() == 1 && d_rng.flip_coin())
-  {
-    res = check_sat ? d_solver->checkSatAssuming(cvc4_assumptions[0])
-                    : d_solver->checkValidAssuming(cvc4_assumptions[0]);
-  }
-  else
-  {
-    res = check_sat ? d_solver->checkSatAssuming(cvc4_assumptions)
-                    : d_solver->checkValidAssuming(cvc4_assumptions);
-  }
+  res = cvc4_assumptions.size() == 1 && d_rng.flip_coin()
+            ? d_solver->checkSatAssuming(cvc4_assumptions[0])
+            : d_solver->checkSatAssuming(cvc4_assumptions);
   assert(res == res);
   assert(res != CVC4::api::Result());
-  assert(!res.isSat() || check_sat);
-  assert(!res.isUnsat() || check_sat);
-  assert(!res.isSatUnknown() || check_sat);
-  assert(!res.isValid() || !check_sat);
-  assert(!res.isInvalid() || !check_sat);
-  assert(!res.isValidUnknown() || !check_sat);
-  if (res.isSat() || res.isInvalid()) return Result::SAT;
-  if (res.isUnsat() || res.isValid()) return Result::UNSAT;
-  assert(res.isSatUnknown() || res.isValidUnknown());
+  if (res.isSat()) return Result::SAT;
+  if (res.isUnsat()) return Result::UNSAT;
+  assert(res.isSatUnknown());
   std::string expl = res.getUnknownExplanation();
   return Result::UNKNOWN;
 }
