@@ -11,6 +11,8 @@ using namespace CVC4;
 namespace smtmbt {
 namespace cvc4 {
 
+#define SMTMBT_CVC4_MAX_N_TERMS_CHECK_ENTAILED 5
+
 /* -------------------------------------------------------------------------- */
 /* CVC4Sort                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -421,6 +423,9 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
             : d_solver->checkSatAssuming(cvc4_assumptions);
   assert(res == res);
   assert(res != CVC4::api::Result());
+  assert(!res.isEntailed());
+  assert(!res.isNotEntailed());
+  assert(!res.isEntailmentUnknown());
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
   assert(res.isSatUnknown());
@@ -640,6 +645,126 @@ CVC4Solver::get_cvc4_term(Term term) const
 /* Solver-specific actions, FSM configuration. */
 /* -------------------------------------------------------------------------- */
 
+class CVC4ActionCheckEntailed : public Action
+{
+ public:
+  CVC4ActionCheckEntailed(SolverManager& smgr)
+      : Action(smgr, "cvc4-check-entailed")
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term(SORT_BOOL)) return false;
+
+    if (d_rng.flip_coin())
+    {
+      Term term = d_smgr.pick_term(SORT_BOOL);
+      _run(term);
+    }
+    else
+    {
+      uint32_t n_terms =
+          d_rng.pick<uint32_t>(1, SMTMBT_CVC4_MAX_N_TERMS_CHECK_ENTAILED);
+      std::vector<Term> terms;
+      for (uint32_t i = 0; i < n_terms; ++i)
+      {
+        terms.push_back(d_smgr.pick_term(SORT_BOOL));
+      }
+      _run(terms);
+    }
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() >= 1);
+    if (tokens.size() == 1)
+    {
+      Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
+      assert(term != nullptr);
+      _run(term);
+    }
+    else
+    {
+      std::vector<Term> terms;
+      uint32_t n_terms = str_to_uint32(tokens[0]);
+      for (uint32_t i = 0, idx = 1; i < n_terms; ++i, ++idx)
+      {
+        uint32_t id = str_to_uint32(tokens[idx]);
+        Term t      = d_smgr.get_term(id);
+        assert(t != nullptr);
+        terms.push_back(t);
+      }
+      _run(terms);
+    }
+    return 0;
+  }
+
+ private:
+  void _run(Term term)
+  {
+    SMTMBT_TRACE << get_id() << " " << term;
+    d_smgr.reset_sat();
+    CVC4Solver& solver        = static_cast<CVC4Solver&>(d_smgr.get_solver());
+    CVC4::api::Solver* cvc4   = solver.get_solver();
+    CVC4::api::Term cvc4_term = solver.get_cvc4_term(term);
+    assert(!cvc4_term.isNull());
+    CVC4::api::Result res = cvc4->checkEntailed(cvc4_term);
+    assert(res == res);
+    assert(res != CVC4::api::Result());
+    assert(!res.isSat());
+    assert(!res.isUnsat());
+    assert(!res.isSatUnknown());
+    if (res.isEntailmentUnknown())
+    {
+      std::string expl    = res.getUnknownExplanation();
+      d_smgr.d_sat_result = Solver::Result::UNKNOWN;
+    }
+    else if (res.isEntailed())
+    {
+      d_smgr.d_sat_result = Solver::Result::UNSAT;
+    }
+    else
+    {
+      assert(res.isNotEntailed());
+      d_smgr.d_sat_result = Solver::Result::SAT;
+    }
+    d_smgr.d_sat_called = true;
+  }
+
+  void _run(std::vector<Term> terms)
+  {
+    SMTMBT_TRACE << get_id() << " " << terms.size() << terms;
+    d_smgr.reset_sat();
+    CVC4Solver& solver      = static_cast<CVC4Solver&>(d_smgr.get_solver());
+    CVC4::api::Solver* cvc4 = solver.get_solver();
+    std::vector<CVC4::api::Term> cvc4_terms = solver.terms_to_cvc4_terms(terms);
+    CVC4::api::Result res                   = cvc4->checkEntailed(cvc4_terms);
+    assert(res == res);
+    assert(res != CVC4::api::Result());
+    assert(!res.isSat());
+    assert(!res.isUnsat());
+    assert(!res.isSatUnknown());
+    if (res.isEntailmentUnknown())
+    {
+      std::string expl    = res.getUnknownExplanation();
+      d_smgr.d_sat_result = Solver::Result::UNKNOWN;
+    }
+    else if (res.isEntailed())
+    {
+      d_smgr.d_sat_result = Solver::Result::UNSAT;
+    }
+    else
+    {
+      assert(res.isNotEntailed());
+      d_smgr.d_sat_result = Solver::Result::SAT;
+    }
+    d_smgr.d_sat_called = true;
+  }
+};
+
 class CVC4ActionSimplify : public Action
 {
  public:
@@ -683,9 +808,16 @@ class CVC4ActionSimplify : public Action
 void
 CVC4Solver::configure_fsm(FSM* fsm) const
 {
+  State* s_sat = fsm->get_state("check_sat");
+
   // Solver::simplify(const Term& term)
   auto a_simplify = fsm->new_action<CVC4ActionSimplify>();
   fsm->add_action_to_all_states(a_simplify, 100, {"new", "delete"});
+
+  // Solver::checkEntailed(Term term)
+  // Solver::checkEntailed(std::vector<Term> terms)
+  auto a_check_entailed = fsm->new_action<CVC4ActionCheckEntailed>();
+  s_sat->add_action(a_check_entailed, 1);
 }
 }  // namespace btor
 }  // namespace smtmbt

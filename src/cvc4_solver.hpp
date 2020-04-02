@@ -85,6 +85,9 @@ class CVC4Solver : public Solver
   std::string get_option_value_enable_model_gen() const override;
   std::string get_option_value_enable_unsat_assumptions() const override;
 
+  std::vector<CVC4::api::Term> terms_to_cvc4_terms(
+      std::vector<Term>& terms) const;
+
   Term mk_var(Sort sort, const std::string name) const override
   {  // TODO:
     return nullptr;
@@ -149,8 +152,6 @@ class CVC4Solver : public Solver
   CVC4::api::Sort& get_cvc4_sort(Sort sort) const;
   std::vector<Term> cvc4_terms_to_terms(
       std::vector<CVC4::api::Term>& terms) const;
-  std::vector<CVC4::api::Term> terms_to_cvc4_terms(
-      std::vector<Term>& terms) const;
 
   CVC4::api::Solver* d_solver;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_kinds;
