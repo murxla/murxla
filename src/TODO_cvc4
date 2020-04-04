@@ -3,12 +3,10 @@
 // TODO std::ostream& operator<<(std::ostream& out, const Result& r);
 
 ////// Sort
-// bool Sort::operator!=(const Sort& s) const;
 // TODO void Sort::toStream(std::ostream& out) const;
 // TODO std::string Sort:: toString() const;
 
 ////// Term
-// bool Term::operator!=(const Term& t) const;
 // TODO std::string Term::toString() const;
 
 //// Term::const_iterator
@@ -32,12 +30,6 @@
 // std::unordered_map<Term, V, TermHashFunction>& unordered_map);
 
 //// Op
-// TODO bool Op::operator==(const Op& t) const;
-// TODO bool Op::operator!=(const Op& t) const;
-// TODO Kind Op::getKind() const;
-// TODO Sort Op::getSort() const;
-// TODO bool Op::isIsIndexed() const;
-// TODO template <typename T> T Op::getIndices() const;
 // TODO std::string Op::toString() const;
 // TODO std::ostream& Op::operator<<(std::ostream& out, const Op& t);
 

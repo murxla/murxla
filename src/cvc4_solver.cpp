@@ -161,6 +161,8 @@ CVC4Solver::mk_sort(SortKind kind) const
     default: assert(false);
   }
   assert(!cvc4_res.isNull());
+  assert(cvc4_res == cvc4_res);
+  assert(!(cvc4_res != cvc4_res));
   return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, cvc4_res));
 }
 
@@ -175,6 +177,8 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
     default: assert(false);
   }
   assert(!cvc4_res.isNull());
+  assert(cvc4_res == cvc4_res);
+  assert(!(cvc4_res != cvc4_res));
   std::shared_ptr<CVC4Sort> res(new CVC4Sort(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -185,6 +189,8 @@ CVC4Solver::mk_const(Sort sort, const std::string name) const
 {
   CVC4::api::Term cvc4_res = d_solver->mkConst(get_cvc4_sort(sort), name);
   assert(!cvc4_res.isNull());
+  assert(cvc4_res == cvc4_res);
+  assert(!(cvc4_res != cvc4_res));
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
 
@@ -204,6 +210,8 @@ CVC4Solver::mk_value(Sort sort, bool value) const
     cvc4_res = d_solver->mkBoolean(value);
   }
   assert(!cvc4_res.isNull());
+  assert(cvc4_res == cvc4_res);
+  assert(!(cvc4_res != cvc4_res));
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -225,6 +233,8 @@ CVC4Solver::mk_value(Sort sort, uint64_t value) const
     default: assert(false);
   }
   assert(!cvc4_res.isNull());
+  assert(cvc4_res == cvc4_res);
+  assert(!(cvc4_res != cvc4_res));
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -259,6 +269,8 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base) const
                                    : d_solver->mkBitVector(value.c_str(), 2);
   }
   assert(!cvc4_res.isNull());
+  assert(cvc4_res == cvc4_res);
+  assert(!(cvc4_res != cvc4_res));
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -281,11 +293,32 @@ CVC4Solver::mk_term(const OpKind& kind,
   /* create Op for indexed operators */
   switch (n_params)
   {
-    case 1: cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0]); break;
+    case 1:
+    {
+      cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0]);
+      assert(!cvc4_opterm.isNull());
+      assert(cvc4_opterm == cvc4_opterm);
+      assert(!(cvc4_opterm != cvc4_opterm));
+      assert(cvc4_opterm.isIndexed());
+      assert(cvc4_opterm.getKind() == cvc4_kind);
+      uint32_t idx = cvc4_opterm.getIndices<uint32_t>();
+      assert(idx == params[0]);
+      break;
+    }
     case 2:
+    {
       cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0], params[1]);
       assert(!cvc4_opterm.isNull());
+      assert(cvc4_opterm == cvc4_opterm);
+      assert(!(cvc4_opterm != cvc4_opterm));
+      assert(cvc4_opterm.isIndexed());
+      assert(cvc4_opterm.getKind() == cvc4_kind);
+      std::pair<uint32_t, uint32_t> indices =
+          cvc4_opterm.getIndices<std::pair<uint32_t, uint32_t>>();
+      assert(indices.first == params[0]);
+      assert(indices.second == params[1]);
       break;
+    }
     default: assert(n_params == 0);
   }
 
@@ -379,6 +412,8 @@ CVC4Solver::mk_term(const OpKind& kind,
                           : d_solver->mkTerm(cvc4_kind, cvc4_args);
   }
   assert(!cvc4_res.isNull());
+  assert(cvc4_res == cvc4_res);
+  assert(!(cvc4_res != cvc4_res));
   assert(cvc4_kind == cvc4_res.getKind());
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
