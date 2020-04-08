@@ -161,8 +161,8 @@ CVC4Solver::mk_sort(SortKind kind) const
     default: assert(false);
   }
   assert(!cvc4_res.isNull());
-  assert(cvc4_res == cvc4_res);
-  assert(!(cvc4_res != cvc4_res));
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
   return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, cvc4_res));
 }
 
@@ -177,8 +177,8 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
     default: assert(false);
   }
   assert(!cvc4_res.isNull());
-  assert(cvc4_res == cvc4_res);
-  assert(!(cvc4_res != cvc4_res));
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
   std::shared_ptr<CVC4Sort> res(new CVC4Sort(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -189,8 +189,8 @@ CVC4Solver::mk_const(Sort sort, const std::string name) const
 {
   CVC4::api::Term cvc4_res = d_solver->mkConst(get_cvc4_sort(sort), name);
   assert(!cvc4_res.isNull());
-  assert(cvc4_res == cvc4_res);
-  assert(!(cvc4_res != cvc4_res));
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
 
@@ -210,8 +210,8 @@ CVC4Solver::mk_value(Sort sort, bool value) const
     cvc4_res = d_solver->mkBoolean(value);
   }
   assert(!cvc4_res.isNull());
-  assert(cvc4_res == cvc4_res);
-  assert(!(cvc4_res != cvc4_res));
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -233,8 +233,8 @@ CVC4Solver::mk_value(Sort sort, uint64_t value) const
     default: assert(false);
   }
   assert(!cvc4_res.isNull());
-  assert(cvc4_res == cvc4_res);
-  assert(!(cvc4_res != cvc4_res));
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -269,8 +269,8 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base) const
                                    : d_solver->mkBitVector(value.c_str(), 2);
   }
   assert(!cvc4_res.isNull());
-  assert(cvc4_res == cvc4_res);
-  assert(!(cvc4_res != cvc4_res));
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
@@ -297,8 +297,8 @@ CVC4Solver::mk_term(const OpKind& kind,
     {
       cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0]);
       assert(!cvc4_opterm.isNull());
-      assert(cvc4_opterm == cvc4_opterm);
-      assert(!(cvc4_opterm != cvc4_opterm));
+      assert(!d_rng.pick_with_prob(1) || cvc4_opterm == cvc4_opterm);
+      assert(!d_rng.pick_with_prob(1) || !(cvc4_opterm != cvc4_opterm));
       assert(cvc4_opterm.isIndexed());
       assert(cvc4_opterm.getKind() == cvc4_kind);
       uint32_t idx = cvc4_opterm.getIndices<uint32_t>();
@@ -309,8 +309,8 @@ CVC4Solver::mk_term(const OpKind& kind,
     {
       cvc4_opterm = d_solver->mkOp(cvc4_kind, params[0], params[1]);
       assert(!cvc4_opterm.isNull());
-      assert(cvc4_opterm == cvc4_opterm);
-      assert(!(cvc4_opterm != cvc4_opterm));
+      assert(!d_rng.pick_with_prob(1) || cvc4_opterm == cvc4_opterm);
+      assert(!d_rng.pick_with_prob(1) || !(cvc4_opterm != cvc4_opterm));
       assert(cvc4_opterm.isIndexed());
       assert(cvc4_opterm.getKind() == cvc4_kind);
       std::pair<uint32_t, uint32_t> indices =
@@ -412,8 +412,8 @@ CVC4Solver::mk_term(const OpKind& kind,
                           : d_solver->mkTerm(cvc4_kind, cvc4_args);
   }
   assert(!cvc4_res.isNull());
-  assert(cvc4_res == cvc4_res);
-  assert(!(cvc4_res != cvc4_res));
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
   assert(cvc4_kind == cvc4_res.getKind());
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
@@ -435,12 +435,15 @@ Solver::Result
 CVC4Solver::check_sat() const
 {
   CVC4::api::Result res = d_solver->checkSat();
-  assert(res == res);
   assert(res != CVC4::api::Result());
+  assert(!d_rng.pick_with_prob(1) || res == res);
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
   assert(res.isSatUnknown());
-  std::string expl = res.getUnknownExplanation();
+  if (d_rng.pick_with_prob(1))
+  {
+    std::string expl = res.getUnknownExplanation();
+  }
   return Result::UNKNOWN;
 }
 
@@ -456,7 +459,7 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
   res = cvc4_assumptions.size() == 1 && d_rng.flip_coin()
             ? d_solver->checkSatAssuming(cvc4_assumptions[0])
             : d_solver->checkSatAssuming(cvc4_assumptions);
-  assert(res == res);
+  assert(!d_rng.pick_with_prob(1) || res == res);
   assert(res != CVC4::api::Result());
   assert(!res.isEntailed());
   assert(!res.isNotEntailed());
@@ -464,7 +467,10 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
   assert(res.isSatUnknown());
-  std::string expl = res.getUnknownExplanation();
+  if (d_rng.pick_with_prob(1))
+  {
+    std::string expl = res.getUnknownExplanation();
+  }
   return Result::UNKNOWN;
 }
 
@@ -747,14 +753,17 @@ class CVC4ActionCheckEntailed : public Action
     CVC4::api::Term cvc4_term = solver.get_cvc4_term(term);
     assert(!cvc4_term.isNull());
     CVC4::api::Result res = cvc4->checkEntailed(cvc4_term);
-    assert(res == res);
+    assert(!d_rng.pick_with_prob(1) || res == res);
     assert(res != CVC4::api::Result());
     assert(!res.isSat());
     assert(!res.isUnsat());
     assert(!res.isSatUnknown());
     if (res.isEntailmentUnknown())
     {
-      std::string expl    = res.getUnknownExplanation();
+      if (d_rng.pick_with_prob(1))
+      {
+        std::string expl = res.getUnknownExplanation();
+      }
       d_smgr.d_sat_result = Solver::Result::UNKNOWN;
     }
     else if (res.isEntailed())
@@ -777,14 +786,17 @@ class CVC4ActionCheckEntailed : public Action
     CVC4::api::Solver* cvc4 = solver.get_solver();
     std::vector<CVC4::api::Term> cvc4_terms = solver.terms_to_cvc4_terms(terms);
     CVC4::api::Result res                   = cvc4->checkEntailed(cvc4_terms);
-    assert(res == res);
+    assert(!d_rng.pick_with_prob(1) || res == res);
     assert(res != CVC4::api::Result());
     assert(!res.isSat());
     assert(!res.isUnsat());
     assert(!res.isSatUnknown());
     if (res.isEntailmentUnknown())
     {
-      std::string expl    = res.getUnknownExplanation();
+      if (d_rng.pick_with_prob(1))
+      {
+        std::string expl = res.getUnknownExplanation();
+      }
       d_smgr.d_sat_result = Solver::Result::UNKNOWN;
     }
     else if (res.isEntailed())
