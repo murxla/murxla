@@ -62,6 +62,8 @@ class SolverManager
 
   /** Get the number of created terms. */
   uint64_t get_n_terms() const;
+  /** Get the number of created terms of given sort kind. */
+  uint64_t get_n_terms(SortKind sort_kind);
 
   /** Add sort to sort databse. */
   void add_sort(Sort sort, SortKind sort_kind);
@@ -305,6 +307,9 @@ class SolverManager
   /** Sort id counter. */
   uint64_t d_n_sorts = 0;
 
+  /** Map SortKind to number of created terms of that SortKind. */
+  std::unordered_map<SortKind, uint64_t> d_n_sort_terms;
+
   /** The set of enabled sort kinds. Maps SortKind to SortKindData. */
   SortKindMap d_sort_kinds;
   /** The set of enabled operator kinds. Maps OpKind to OpKindData. */
@@ -313,18 +318,18 @@ class SolverManager
   /** The set of enabled theories. */
   TheoryIdSet d_enabled_theories;
 
-  /* Maintain all created sorts. */
+  /** Maintain all created sorts. */
   SortSet d_sorts;
   /* Map sort_kind -> (sort -> terms). */
   std::unordered_map<SortKind, SortMap> d_terms;
 
-  /* Map sort kind -> sorts. */
+  /** Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
 
-  /* The set of already assumed formulas. */
+  /** The set of already assumed formulas. */
   std::unordered_set<Term, HashTerm> d_assumptions;
 
-  /* Vector of available solver options */
+  /** Vector of available solver options */
   SolverOptions& d_options;
 
   std::unordered_set<std::string> d_used_options;

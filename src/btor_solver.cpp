@@ -1140,6 +1140,60 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
 /* Solver-specific actions, FSM configuration. */
 /* -------------------------------------------------------------------------- */
 
+class BtorActionBvAssignment : public Action
+{
+ public:
+  BtorActionBvAssignment(SolverManager& smgr)
+      : Action(smgr, "btor-bv-assignment")
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_model_gen) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
+    if (!d_smgr.has_term(SORT_BV)) return false;
+    _run();
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 0);
+    _run();
+    return 0;
+  }
+
+ private:
+  void _run()
+  {
+    /* Note: This implements just the very basic testing for this API call.
+     *       Boolector does some nasty tricks with the pointers returned by
+     *       boolector_bv_assignment, which makes testing this in non-batch
+     *       mode quite complicated. This API functionality should be removed
+     *       as it is implemented now, and since its API will not change / be
+     *       extended anymore (Boolector is succeeded by Bitwuzla), we consider
+     *       it not worth the effort. */
+    SMTMBT_TRACE << get_id() << " ";
+    uint64_t n = d_rng.pick<uint64_t>(1, d_smgr.get_n_terms(SORT_BV));
+    BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    std::vector<const char*> assignments;
+    for (uint64_t i = 0; i < n; ++i)
+    {
+      Term t                    = d_smgr.pick_term(SORT_BV);
+      const char* bv_assignment = boolector_bv_assignment(
+          btor_solver.get_solver(), btor_solver.get_btor_term(t));
+      assignments.push_back(bv_assignment);
+    }
+    for (uint64_t i = 0; i < n; ++i)
+    {
+      boolector_free_bv_assignment(btor_solver.get_solver(), assignments[i]);
+    }
+  }
+};
+
 class BtorActionClone : public Action
 {
  public:
@@ -1558,6 +1612,10 @@ BtorSolver::configure_fsm(FSM* fsm) const
   // options
   auto a_opt_it = fsm->new_action<BtorActionOptIterator>();
   fsm->add_action_to_all_states(a_opt_it, 100);
+
+  // boolector_bv_assignment
+  auto a_bv_ass = fsm->new_action<BtorActionBvAssignment>();
+  fsm->add_action_to_all_states(a_bv_ass, 100);
 
   // boolector_clone
   auto a_clone = fsm->new_action<BtorActionClone>();

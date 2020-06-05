@@ -37,6 +37,7 @@ SolverManager::SolverManager(Solver* solver,
 void
 SolverManager::clear()
 {
+  d_n_sort_terms.clear();
   d_sorts.clear();
   d_sort_kind_to_sorts.clear();
   d_terms.clear();
@@ -97,6 +98,13 @@ SolverManager::get_n_terms() const
   return d_n_terms;
 }
 
+uint64_t
+SolverManager::get_n_terms(SortKind sort_kind)
+{
+  if (d_n_sort_terms.find(sort_kind) == d_n_sort_terms.end()) return 0;
+  return d_n_sort_terms.at(sort_kind);
+}
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -130,7 +138,15 @@ SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
   /* add term to d_terms */
   if (d_terms.find(sort_kind) == d_terms.end())
   {
+    std::cout << "__sort kind " << sort_kind << std::endl;
     d_terms.emplace(sort_kind, SortMap());
+    assert(d_n_sort_terms.find(sort_kind) == d_n_sort_terms.end());
+    d_n_sort_terms.emplace(sort_kind, 1);
+  }
+  else
+  {
+    std::cout << "sort kind " << sort_kind << std::endl;
+    d_n_sort_terms.at(sort_kind) += 1;
   }
 
   SortMap& map = d_terms.at(sort_kind);

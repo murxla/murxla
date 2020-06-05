@@ -2,8 +2,6 @@
 //
 /
 //
-// const char *boolector_bv_assignment (Btor *btor, BoolectorNode *node);
-// void boolector_free_bv_assignment (Btor *btor, const char *assignment);
 
 // int32_t boolector_parse (Btor *btor, FILE *infile, const char *infile_name, FILE *outfile, char **error_msg, int32_t *status);
 // int32_t boolector_parse_btor (Btor *btor, FILE *infile, const char *infile_name, FILE *outfile, char **error_msg, int32_t *status);
@@ -21,8 +19,6 @@
 // void boolector_dump_aiger_ascii (Btor *btor, FILE *file, bool merge_roots);
 // void boolector_dump_aiger_binary (Btor *btor, FILE *file, bool merge_roots);
 //
-// const char *boolector_copyright (Btor *btor);
-// const char *boolector_version (Btor *btor);
 //
 /* -------------------------------------------------------------------------- */
 
@@ -63,3 +59,5 @@
 // void boolector_set_msg_prefix (Btor *btor, const char *prefix);
 // void boolector_set_trapi (Btor *btor, FILE *apitrace);
 // FILE *boolector_get_trapi (Btor *btor);
+// const char *boolector_copyright (Btor *btor);
+// const char *boolector_version (Btor *btor);

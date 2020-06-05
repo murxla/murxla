@@ -82,14 +82,14 @@ class BtorSolver : public Solver
 
   std::vector<std::string> get_supported_sat_solvers();
 
-  bool check_failed_assumption(const Term& t) const;
+  bool check_failed_assumption(const Term& t) const override;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
   std::string get_option_name_unsat_assumptions() const override;
-  bool option_incremental_enabled() const;
-  bool option_model_gen_enabled() const;
-  bool option_unsat_assumptions_enabled() const;
+  bool option_incremental_enabled() const override;
+  bool option_model_gen_enabled() const override;
+  bool option_unsat_assumptions_enabled() const override;
   std::string get_option_value_enable_incremental() const override;
   std::string get_option_value_enable_model_gen() const override;
   std::string get_option_value_enable_unsat_assumptions() const override;
