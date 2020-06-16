@@ -651,7 +651,6 @@ main(int argc, char* argv[])
     {
       std::cout << info.str() << std::endl << std::flush;
     }
-    // std::cout << res << std::endl;
     std::cout << res;
 
     /* replay and trace on error if not in untrace mode */
