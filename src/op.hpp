@@ -1,6 +1,7 @@
 #ifndef __SMTMBT__OP_H
 #define __SMTMBT__OP_H
 
+#include <cassert>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -86,7 +87,7 @@ struct OpKindData
              int32_t arity,
              uint32_t nparams,
              SortKind sort_kind,
-             SortKind sort_kind_args)
+             const std::vector<SortKind>& sort_kind_args)
       : d_kind(kind),
         d_arity(arity),
         d_nparams(nparams),
@@ -97,6 +98,8 @@ struct OpKindData
 
   bool operator==(const OpKindData& other) const;
 
+  SortKind get_arg_sort_kind(size_t i) const;
+
   /* The Kind. */
   OpKind d_kind;
   /* The arity of this kind. */
@@ -105,8 +108,10 @@ struct OpKindData
   uint32_t d_nparams;
   /* The sort kind of a term of this kind. */
   SortKind d_sort_kind;
+
+ private:
   /* The sort kind of the term arguments of this kind. */
-  SortKind d_sort_kind_args;
+  std::vector<SortKind> d_sort_kind_args;
 };
 
 #if 0

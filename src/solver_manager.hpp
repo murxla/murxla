@@ -270,6 +270,13 @@ class SolverManager
    */
   void add_op_kinds();
 
+  void add_op_kind(const OpKindSet& supported_kinds,
+                   OpKind kind,
+                   int32_t arity,
+                   uint32_t nparams,
+                   SortKind sort_kind,
+                   const std::vector<SortKind>& sort_kind_args);
+
   /** Clear set of assumptions. */
   void clear_assumptions();
 

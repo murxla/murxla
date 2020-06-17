@@ -392,9 +392,19 @@ class ActionMkTerm : public Action
     int32_t arity           = kind_data.d_arity;
     uint32_t n_params       = kind_data.d_nparams;
     SortKind sort_kind      = kind_data.d_sort_kind;
-    SortKind sort_kind_args = kind_data.d_sort_kind_args;
 
-    if (!d_smgr.has_term(sort_kind_args)) return false;
+    if (arity < 0)
+    {
+      /* All arguments have the same sort */
+      if (!d_smgr.has_term(kind_data.get_arg_sort_kind(0))) return false;
+    }
+    else
+    {
+      for (int32_t i = 0; i < arity; ++i)
+      {
+        if (!d_smgr.has_term(kind_data.get_arg_sort_kind(i))) return false;
+      }
+    }
 
     std::vector<Term> args;
     Sort sort;
@@ -414,31 +424,29 @@ class ActionMkTerm : public Action
         bw -= sort->get_bv_size();
       } while (d_smgr.has_sort_bv(bw) && d_rng.pick_one_of_three());
     }
+    else if (kind == OpKind::OP_ITE)
+    {
+      sort = d_smgr.pick_sort(kind_data.get_arg_sort_kind(1));
+      args.push_back(d_smgr.pick_term(SORT_BOOL));
+      args.push_back(d_smgr.pick_term(sort));
+      args.push_back(d_smgr.pick_term(sort));
+    }
     else
     {
-      sort = d_smgr.pick_sort(sort_kind_args);
+      /* Assume same sort for every argument */
+      sort = d_smgr.pick_sort(kind_data.get_arg_sort_kind(0));
+
       if (arity == SMTMBT_MK_TERM_N_ARGS)
       {
         arity = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN,
                                      SMTMBT_MK_TERM_N_ARGS_MAX);
       }
-      /* pick first argument */
-      switch (kind)
+      /* pick arguments */
+      for (int32_t i = 0; i < arity; ++i)
       {
-        case OpKind::OP_ITE:
-          if (!d_smgr.has_term(SORT_BOOL)) return false;
-          args.push_back(d_smgr.pick_term(SORT_BOOL));
-          break;
-        default:
-          args.push_back(d_smgr.pick_term(sort));
-          assert(!args[0]->get_sort()->is_bv()
-                 || args[0]->get_sort()->get_bv_size() == sort->get_bv_size());
-          assert(sort_kind_args == SORT_ANY
-                 || sort_kind_args == sort->get_kind());
-      }
-      /* pick remaining arguments */
-      for (int32_t i = 1; i < arity; ++i)
-      {
+        assert(kind_data.get_arg_sort_kind(i) == SORT_ANY
+               || kind_data.get_arg_sort_kind(i) == sort->get_kind());
+        assert(d_smgr.has_term(sort));
         args.push_back(d_smgr.pick_term(sort));
       }
     }

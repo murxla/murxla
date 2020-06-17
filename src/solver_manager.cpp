@@ -551,16 +551,6 @@ SolverManager::pick_option()
 
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_ADD_SORT_KIND(kind, arity, theory) \
-  d_sort_kinds.emplace(kind, SortKindData(kind, arity, theory));
-
-#define SMTMBT_ADD_OP_KIND(kind, arity, nparams, theory_term, theory_args) \
-  if (ops.find(kind) != ops.end())                                         \
-  {                                                                        \
-    d_op_kinds.emplace(                                                    \
-        kind, OpKindData(kind, arity, nparams, theory_term, theory_args)); \
-  }
-
 void
 SolverManager::add_enabled_theories()
 {
@@ -598,8 +588,13 @@ SolverManager::add_sort_kinds()
   {
     switch (theory)
     {
-      case THEORY_BV: SMTMBT_ADD_SORT_KIND(SORT_BV, 0, THEORY_BV); break;
-      case THEORY_BOOL: SMTMBT_ADD_SORT_KIND(SORT_BOOL, 0, THEORY_BOOL); break;
+      case THEORY_BV:
+        d_sort_kinds.emplace(SORT_BV, SortKindData(SORT_BV, 0, THEORY_BV));
+        break;
+      case THEORY_BOOL:
+        d_sort_kinds.emplace(SORT_BOOL,
+                             SortKindData(SORT_BOOL, 0, THEORY_BOOL));
+        break;
       default: assert(false);
     }
   }
@@ -613,7 +608,7 @@ SolverManager::add_op_kinds()
   uint32_t n    = SMTMBT_MK_TERM_N_ARGS;
   OpKindSet ops = d_solver->get_supported_op_kinds();
 
-  SMTMBT_ADD_OP_KIND(OP_ITE, 3, 0, SORT_ANY, SORT_ANY);
+  add_op_kind(ops, OP_ITE, 3, 0, SORT_ANY, {SORT_BOOL, SORT_ANY, SORT_ANY});
 
   for (const auto& s : d_sort_kinds)
   {
@@ -623,64 +618,79 @@ SolverManager::add_op_kinds()
     switch (sort_kind)
     {
       case SORT_BOOL:
-        SMTMBT_ADD_OP_KIND(OP_DISTINCT, n, 0, SORT_BOOL, SORT_ANY);
-        SMTMBT_ADD_OP_KIND(OP_EQUAL, 2, 0, SORT_BOOL, SORT_ANY);
-        SMTMBT_ADD_OP_KIND(OP_AND, n, 0, SORT_BOOL, SORT_BOOL);
-        SMTMBT_ADD_OP_KIND(OP_OR, n, 0, SORT_BOOL, SORT_BOOL);
-        SMTMBT_ADD_OP_KIND(OP_NOT, 1, 0, SORT_BOOL, SORT_BOOL);
-        SMTMBT_ADD_OP_KIND(OP_XOR, 2, 0, SORT_BOOL, SORT_BOOL);
-        SMTMBT_ADD_OP_KIND(OP_IMPLIES, 2, 0, SORT_BOOL, SORT_BOOL);
+        add_op_kind(ops, OP_DISTINCT, n, 0, SORT_BOOL, {SORT_ANY});
+        add_op_kind(ops, OP_EQUAL, 2, 0, SORT_BOOL, {SORT_ANY});
+        add_op_kind(ops, OP_AND, n, 0, SORT_BOOL, {SORT_BOOL});
+        add_op_kind(ops, OP_OR, n, 0, SORT_BOOL, {SORT_BOOL});
+        add_op_kind(ops, OP_NOT, 1, 0, SORT_BOOL, {SORT_BOOL});
+        add_op_kind(ops, OP_XOR, 2, 0, SORT_BOOL, {SORT_BOOL});
+        add_op_kind(ops, OP_IMPLIES, 2, 0, SORT_BOOL, {SORT_BOOL});
         break;
 
       case SORT_BV:
-        SMTMBT_ADD_OP_KIND(OP_BV_CONCAT, n, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_AND, n, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_OR, n, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_XOR, n, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_MULT, n, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_ADD, n, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_NOT, 1, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_NEG, 1, 0, SORT_BV, SORT_BV);
+        add_op_kind(ops, OP_BV_CONCAT, n, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_AND, n, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_OR, n, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_XOR, n, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_MULT, n, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_ADD, n, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_NOT, 1, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_NEG, 1, 0, SORT_BV, {SORT_BV});
 #if 0
   // TODO not in SMT-LIB and CVC4 and Boolector disagree on return type
   // CVC4: Bool
   // Boolector: BV
   // >> should be BV
-        SMTMBT_ADD_OP_KIND(OP_BV_REDOR, 1, 0, SORT_BOOL, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_REDAND, 1, 0, SORT_BOOL, SORT_BV);
+        add_op_kind(ops, OP_BV_REDOR, 1, 0, SORT_BOOL, SORT_BV);
+        add_op_kind(ops, OP_BV_REDAND, 1, 0, SORT_BOOL, SORT_BV);
 #endif
-        SMTMBT_ADD_OP_KIND(OP_BV_NAND, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_NOR, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_XNOR, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_COMP, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SUB, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_UDIV, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_UREM, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SDIV, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SREM, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SMOD, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SHL, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_LSHR, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_ASHR, 2, 0, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_ULT, 2, 0, SORT_BOOL, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_ULE, 2, 0, SORT_BOOL, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_UGT, 2, 0, SORT_BOOL, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_UGE, 2, 0, SORT_BOOL, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SLT, 2, 0, SORT_BOOL, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SLE, 2, 0, SORT_BOOL, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SGT, 2, 0, SORT_BOOL, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SGE, 2, 0, SORT_BOOL, SORT_BV);
+        add_op_kind(ops, OP_BV_NAND, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_NOR, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_XNOR, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_COMP, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_SUB, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_UDIV, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_UREM, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_SDIV, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_SREM, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_SMOD, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_SHL, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_LSHR, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_ASHR, 2, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_ULT, 2, 0, SORT_BOOL, {SORT_BV});
+        add_op_kind(ops, OP_BV_ULE, 2, 0, SORT_BOOL, {SORT_BV});
+        add_op_kind(ops, OP_BV_UGT, 2, 0, SORT_BOOL, {SORT_BV});
+        add_op_kind(ops, OP_BV_UGE, 2, 0, SORT_BOOL, {SORT_BV});
+        add_op_kind(ops, OP_BV_SLT, 2, 0, SORT_BOOL, {SORT_BV});
+        add_op_kind(ops, OP_BV_SLE, 2, 0, SORT_BOOL, {SORT_BV});
+        add_op_kind(ops, OP_BV_SGT, 2, 0, SORT_BOOL, {SORT_BV});
+        add_op_kind(ops, OP_BV_SGE, 2, 0, SORT_BOOL, {SORT_BV});
         /* indexed */
-        SMTMBT_ADD_OP_KIND(OP_BV_EXTRACT, 1, 2, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_REPEAT, 1, 1, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_ROTATE_LEFT, 1, 1, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_ROTATE_RIGHT, 1, 1, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_SIGN_EXTEND, 1, 1, SORT_BV, SORT_BV);
-        SMTMBT_ADD_OP_KIND(OP_BV_ZERO_EXTEND, 1, 1, SORT_BV, SORT_BV);
+        add_op_kind(ops, OP_BV_EXTRACT, 1, 2, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_REPEAT, 1, 1, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_ROTATE_LEFT, 1, 1, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_ROTATE_RIGHT, 1, 1, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_SIGN_EXTEND, 1, 1, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_ZERO_EXTEND, 1, 1, SORT_BV, {SORT_BV});
         break;
 
       default: assert(false);
     }
+  }
+}
+
+void
+SolverManager::add_op_kind(const OpKindSet& supported_kinds,
+                           OpKind kind,
+                           int32_t arity,
+                           uint32_t nparams,
+                           SortKind sort_kind,
+                           const std::vector<SortKind>& sort_kind_args)
+{
+  if (supported_kinds.find(kind) != supported_kinds.end())
+  {
+    d_op_kinds.emplace(
+        kind, OpKindData(kind, arity, nparams, sort_kind, sort_kind_args));
   }
 }
 

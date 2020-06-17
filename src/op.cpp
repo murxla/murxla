@@ -18,9 +18,29 @@ OpKindHashFunction::operator()(OpKind kind) const
 
 bool OpKindData::operator == (const OpKindData& other) const
 {
-  return (d_kind == other.d_kind && d_arity == other.d_arity
-          && d_sort_kind == other.d_sort_kind
-          && d_sort_kind_args == other.d_sort_kind_args);
+  if (d_kind != other.d_kind || d_arity != other.d_arity
+      || d_sort_kind != other.d_sort_kind)
+    return false;
+
+  if (d_sort_kind_args.size() != other.d_sort_kind_args.size()) return false;
+
+  for (size_t i = 0, size = d_sort_kind_args.size(); i < size; ++i)
+  {
+    if (d_sort_kind_args[i] != other.d_sort_kind_args[i]) return false;
+  }
+  return true;
+}
+
+SortKind
+OpKindData::get_arg_sort_kind(size_t i) const
+{
+  if (i >= d_sort_kind_args.size())
+  {
+    /* All arguments have the same sort */
+    assert(d_sort_kind_args.size() == 1);
+    return d_sort_kind_args[0];
+  }
+  return d_sort_kind_args[i];
 }
 
 OpKind
