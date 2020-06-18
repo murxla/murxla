@@ -252,7 +252,10 @@ parse_options(Options& options, int argc, char* argv[])
 }
 
 static Result
-run(uint32_t seed, Options& options, SolverOptions& solver_options)
+run(uint32_t seed,
+    Options& options,
+    SolverOptions& solver_options,
+    bool run_forked)
 {
   int status, devnull;
   Result result;
@@ -276,7 +279,7 @@ run(uint32_t seed, Options& options, SolverOptions& solver_options)
   result = RESULT_UNKNOWN;
 
   /* If seeded run in main process. */
-  if (!options.untrace && options.seed == 0)
+  if (run_forked)
   {
     pid = fork();
     if (pid == -1)
@@ -299,7 +302,7 @@ run(uint32_t seed, Options& options, SolverOptions& solver_options)
       set_alarm();
     }
 
-    if (!options.untrace && options.seed == 0)
+    if (run_forked)
     {
       set_signal_handlers();
       /* redirect stdout and stderr of child process to /dev/null */
@@ -494,9 +497,10 @@ main(int argc, char* argv[])
 
   parse_options(g_options, argc, argv);
 
-  bool is_seeded = g_options.seed > 0;
   SeedGenerator sg(g_options.seed);
   SolverOptions solver_options;
+  bool is_seeded = g_options.seed > 0;
+  bool is_forked = !is_seeded && !g_options.untrace;
 
   if (!g_options.solver_options_file.empty())
   {
@@ -517,9 +521,9 @@ main(int argc, char* argv[])
       std::cout << num_runs++ << " " << seed << std::flush;
     }
 
-    /* we do not trace into file by default, only on replay in case of an error
-     * (see below) */
-    Result res = run(seed, g_options, solver_options);
+    /* We do not trace into file by default, only on replay in case of an error.
+     * We also do not fork when a seed is given, or when untracing. */
+    Result res = run(seed, g_options, solver_options, is_forked);
 
     /* report status */
     std::stringstream info;
@@ -543,8 +547,8 @@ main(int argc, char* argv[])
     }
     std::cout << res;
 
-    /* replay and trace on error if not in untrace mode */
-    if (!g_options.untrace && res != RESULT_OK && res != RESULT_TIMEOUT)
+    /* replay and trace on error */
+    if (is_forked && res != RESULT_OK && res != RESULT_TIMEOUT)
     {
       if (g_options.api_trace.empty())
       {
@@ -560,7 +564,7 @@ main(int argc, char* argv[])
         }
       }
       setenv("SMTMBTAPITRACE", g_options.api_trace.c_str(), 1);
-      Result res_replay = run(seed, g_options, solver_options);
+      Result res_replay = run(seed, g_options, solver_options, true);
       assert(res == res_replay);
       unsetenv("SMTMBTAPITRACE");
       if (!env_file_name)
