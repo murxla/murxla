@@ -323,6 +323,18 @@ class ActionMkSort : public Action
         _run(SORT_BV, d_rng.pick<uint32_t>(SMTMBT_BW_MIN, SMTMBT_BW_MAX));
         break;
 
+      case SORT_ARRAY:
+      {
+        if (!d_smgr.has_sort())
+        {
+          return false;
+        }
+        Sort index_sort   = d_smgr.pick_sort();
+        Sort element_sort = d_smgr.pick_sort();
+        _run(SORT_ARRAY, {index_sort, element_sort});
+        break;
+      }
+
       default: assert(false);
     }
     return true;
@@ -348,6 +360,9 @@ class ActionMkSort : public Action
         res = _run(kind, str_to_uint32(tokens[1]));
         break;
 
+      // TODO: convert sort str to sort object
+      case SORT_ARRAY: assert(n_tokens == 3); break;
+
       default: assert(false);
     }
     return res;
@@ -368,6 +383,22 @@ class ActionMkSort : public Action
     SMTMBT_TRACE << get_id() << " " << kind << " " << bw;
     Sort res = d_solver.mk_sort(SORT_BV, bw);
     assert(res->get_bv_size() == bw);
+    d_smgr.add_sort(res, kind);
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
+  uint64_t _run(SortKind kind, const std::vector<Sort>& sorts)
+  {
+    std::stringstream ss;
+    for (auto sort : sorts)
+    {
+      ss << " " << sort;
+    }
+    SMTMBT_TRACE << get_id() << " " << kind << ss.str();
+    Sort res = d_solver.mk_sort(kind, sorts);
+    res->set_sorts(sorts);
+    assert(res->get_sorts().size() == 2);
     d_smgr.add_sort(res, kind);
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
@@ -430,6 +461,35 @@ class ActionMkTerm : public Action
       args.push_back(d_smgr.pick_term(SORT_BOOL));
       args.push_back(d_smgr.pick_term(sort));
       args.push_back(d_smgr.pick_term(sort));
+      sort_kind = sort->get_kind();
+    }
+    else if (kind == OpKind::OP_ARRAY_SELECT)
+    {
+      Sort array_sort = d_smgr.pick_sort(kind_data.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = array_sort->get_sorts();
+      assert(sorts.size() == 2);
+      Sort index_sort = sorts[0];
+
+      if (!d_smgr.has_term(index_sort)) return false;
+
+      args.push_back(d_smgr.pick_term(array_sort));
+      args.push_back(d_smgr.pick_term(index_sort));
+      sort_kind = sorts[1]->get_kind();
+    }
+    else if (kind == OpKind::OP_ARRAY_STORE)
+    {
+      Sort array_sort = d_smgr.pick_sort(kind_data.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = array_sort->get_sorts();
+      assert(sorts.size() == 2);
+      Sort index_sort   = sorts[0];
+      Sort element_sort = sorts[1];
+
+      if (!d_smgr.has_term(index_sort) || !d_smgr.has_term(element_sort))
+        return false;
+
+      args.push_back(d_smgr.pick_term(array_sort));
+      args.push_back(d_smgr.pick_term(index_sort));
+      args.push_back(d_smgr.pick_term(element_sort));
     }
     else
     {
@@ -444,8 +504,6 @@ class ActionMkTerm : public Action
       /* pick arguments */
       for (int32_t i = 0; i < arity; ++i)
       {
-        assert(kind_data.get_arg_sort_kind(i) == SORT_ANY
-               || kind_data.get_arg_sort_kind(i) == sort->get_kind());
         assert(d_smgr.has_term(sort));
         args.push_back(d_smgr.pick_term(sort));
       }
@@ -482,10 +540,9 @@ class ActionMkTerm : public Action
       }
     }
 
-    _run(kind,
-         sort_kind == SORT_ANY ? sort->get_kind() : sort_kind,
-         args,
-         params);
+    /* Every OP with return sort SORT_ANY needs to set the kind above. */
+    assert(sort_kind != SORT_ANY);
+    _run(kind, sort_kind, args, params);
 
     return true;
   }
@@ -579,7 +636,7 @@ class ActionMkConst : public Action
     SMTMBT_TRACE << get_id() << " " << sort << " \"" << symbol << "\"";
     d_smgr.reset_sat();
     Term res = d_solver.mk_const(sort, symbol);
-    d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
+    d_smgr.add_input(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -747,6 +804,9 @@ class ActionMkValue : public Action
         }
       }
       break;
+
+      case SORT_ARRAY: return false;
+
       default: assert(false);
     }
 
@@ -793,7 +853,7 @@ class ActionMkValue : public Action
     SMTMBT_TRACE << get_id() << " " << sort << " " << (val ? "true" : "false");
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
+    d_smgr.add_input(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -803,7 +863,7 @@ class ActionMkValue : public Action
     SMTMBT_TRACE << get_id() << " " << sort << " " << val;
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
+    d_smgr.add_input(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -814,7 +874,7 @@ class ActionMkValue : public Action
                  << " " << base;
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val, base);
-    d_smgr.add_input(res, d_solver.get_sort(res), sort->get_kind());
+    d_smgr.add_input(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }

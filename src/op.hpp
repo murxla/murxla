@@ -73,6 +73,9 @@ enum OpKind
   OP_BV_DEC,
   OP_BV_REDXOR,
 
+  OP_ARRAY_SELECT,
+  OP_ARRAY_STORE,
+
   OP_ALL,
 };
 
@@ -204,6 +207,8 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_BV_USUBO),
         SMTMBT_OP_TO_STR(OP_BV_XNOR),
         SMTMBT_OP_TO_STR(OP_BV_XOR),
+        SMTMBT_OP_TO_STR(OP_ARRAY_SELECT),
+        SMTMBT_OP_TO_STR(OP_ARRAY_STORE),
     };
 
 std::ostream& operator<<(std::ostream& out, OpKind kind);

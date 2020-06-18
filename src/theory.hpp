@@ -11,6 +11,7 @@ enum TheoryId
 {
   THEORY_BOOL,
   THEORY_BV,
+  THEORY_ARRAY,
   THEORY_ALL,
 };
 

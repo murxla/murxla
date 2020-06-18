@@ -27,6 +27,10 @@ class FSM;
 /* Sort                                                                       */
 /* -------------------------------------------------------------------------- */
 
+class AbsSort;
+
+using Sort = std::shared_ptr<AbsSort>;
+
 class AbsSort
 {
  public:
@@ -44,12 +48,16 @@ class AbsSort
   void set_kind(SortKind sort_kind);
   SortKind get_kind();
 
+  void set_sorts(const std::vector<Sort>& sorts);
+  const std::vector<Sort>& get_sorts() const;
+
  protected:
   uint64_t d_id   = 0u;
   SortKind d_kind = SORT_ANY;
-};
 
-using Sort = std::shared_ptr<AbsSort>;
+ private:
+  std::vector<Sort> d_sorts;
+};
 
 bool operator==(const Sort& a, const Sort& b);
 
@@ -146,12 +154,10 @@ class Solver
   virtual Term mk_value(Sort sort, uint64_t value) const               = 0;
   virtual Term mk_value(Sort sort, std::string value, Base base) const = 0;
 
-  virtual Sort mk_sort(const std::string name, uint32_t arity) const = 0;
-  virtual Sort mk_sort(SortKind kind) const                          = 0;
-  virtual Sort mk_sort(SortKind kind, uint32_t size) const           = 0;
-  virtual Sort mk_sort(SortKind kind,
-                       std::vector<Sort>& sorts,
-                       Sort sort) const                              = 0;
+  virtual Sort mk_sort(const std::string name, uint32_t arity) const        = 0;
+  virtual Sort mk_sort(SortKind kind) const                                 = 0;
+  virtual Sort mk_sort(SortKind kind, uint32_t size) const                  = 0;
+  virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) const = 0;
 
   virtual Term mk_term(const OpKind& kind,
                        std::vector<Term>& args,

@@ -33,6 +33,18 @@ AbsSort::get_kind()
   return d_kind;
 }
 
+void
+AbsSort::set_sorts(const std::vector<Sort>& sorts)
+{
+  d_sorts = sorts;
+}
+
+const std::vector<Sort>&
+AbsSort::get_sorts() const
+{
+  return d_sorts;
+}
+
 bool
 operator==(const Sort& a, const Sort& b)
 {

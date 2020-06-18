@@ -241,7 +241,6 @@ SolverManager::pick_term(Sort sort)
   SortKind sort_kind = sort->get_kind();
   assert(d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end());
   return d_rng.pick_from_map<TermMap, Term>(d_terms.at(sort_kind).at(sort));
-  // TODO: increment ref counter
 }
 
 Term
@@ -586,6 +585,10 @@ SolverManager::add_sort_kinds()
   {
     switch (theory)
     {
+      case THEORY_ARRAY:
+        d_sort_kinds.emplace(SORT_ARRAY,
+                             SortKindData(SORT_ARRAY, 2, THEORY_ARRAY));
+        break;
       case THEORY_BV:
         d_sort_kinds.emplace(SORT_BV, SortKindData(SORT_BV, 0, THEORY_BV));
         break;
@@ -615,6 +618,17 @@ SolverManager::add_op_kinds()
      * (and thus argument and term sort kinds) are enabled. */
     switch (sort_kind)
     {
+      case SORT_ARRAY:
+        add_op_kind(
+            ops, OP_ARRAY_SELECT, 2, 0, SORT_ANY, {SORT_ARRAY, SORT_ANY});
+        add_op_kind(ops,
+                    OP_ARRAY_STORE,
+                    3,
+                    0,
+                    SORT_ARRAY,
+                    {SORT_ARRAY, SORT_ANY, SORT_ANY});
+        break;
+
       case SORT_BOOL:
         add_op_kind(ops, OP_DISTINCT, n, 0, SORT_BOOL, {SORT_ANY});
         add_op_kind(ops, OP_EQUAL, 2, 0, SORT_BOOL, {SORT_ANY});

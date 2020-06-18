@@ -184,6 +184,28 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
   return res;
 }
 
+Sort
+CVC4Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts) const
+{
+  CVC4::api::Sort cvc4_res;
+
+  switch (kind)
+  {
+    case SORT_ARRAY:
+      cvc4_res = d_solver->mkArraySort(get_cvc4_sort(sorts[0]),
+                                       get_cvc4_sort(sorts[1]));
+      break;
+
+    default: assert(false);
+  }
+  assert(!cvc4_res.isNull());
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
+  std::shared_ptr<CVC4Sort> res(new CVC4Sort(d_solver, cvc4_res));
+  assert(res);
+  return res;
+}
+
 Term
 CVC4Solver::mk_const(Sort sort, const std::string name) const
 {
@@ -667,6 +689,9 @@ CVC4Solver::init_op_kinds()
       {OP_BV_SLE, CVC4::api::Kind::BITVECTOR_SLE},
       {OP_BV_SGT, CVC4::api::Kind::BITVECTOR_SGT},
       {OP_BV_SGE, CVC4::api::Kind::BITVECTOR_SGE},
+
+      {OP_ARRAY_SELECT, CVC4::api::Kind::SELECT},
+      {OP_ARRAY_STORE, CVC4::api::Kind::STORE},
   };
 }
 

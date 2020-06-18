@@ -147,7 +147,7 @@ BtorSolver::is_initialized() const
 TheoryIdVector
 BtorSolver::get_supported_theories() const
 {
-  return {THEORY_BV, THEORY_BOOL};
+  return {THEORY_ARRAY, THEORY_BV, THEORY_BOOL};
 }
 
 OpKindSet
@@ -180,11 +180,39 @@ BtorSolver::mk_sort(SortKind kind, uint32_t size) const
   return res;
 }
 
+Sort
+BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts) const
+{
+  BoolectorSort btor_res;
+
+  switch (kind)
+  {
+    case SORT_ARRAY:
+      btor_res = boolector_array_sort(
+          d_solver, get_btor_sort(sorts[0]), get_btor_sort(sorts[1]));
+      break;
+
+    default: assert(false);
+  }
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  assert(btor_res);
+  boolector_release_sort(d_solver, btor_res);
+  assert(res);
+  return res;
+}
+
 Term
 BtorSolver::mk_const(Sort sort, const std::string name) const
 {
-  BoolectorNode* btor_res =
-      boolector_var(d_solver, get_btor_sort(sort), name.c_str());
+  BoolectorNode* btor_res;
+  if (sort->get_kind() == SORT_ARRAY)
+  {
+    btor_res = boolector_array(d_solver, get_btor_sort(sort), name.c_str());
+  }
+  else
+  {
+    btor_res = boolector_var(d_solver, get_btor_sort(sort), name.c_str());
+  }
   assert(btor_res);
   if (d_rng.pick_with_prob(10))
   {
@@ -199,7 +227,10 @@ BtorSolver::mk_const(Sort sort, const std::string name) const
         break;
       default:
         assert(pick == RNGenerator::Choice::THIRD);
-        assert(boolector_is_var(d_solver, btor_res));
+        assert(sort->get_kind() == SORT_ARRAY
+               || boolector_is_var(d_solver, btor_res));
+        assert(sort->get_kind() != SORT_ARRAY
+               || boolector_is_array_var(d_solver, btor_res));
     }
   }
   if (d_rng.pick_with_prob(1))
@@ -398,6 +429,7 @@ BtorSolver::mk_term(const OpKind& kind,
       btor_res = mk_term_pairwise(args, boolector_ne);
       break;
     case OP_EQUAL:
+
     case OP_BV_COMP:
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(args, boolector_eq);
@@ -680,6 +712,19 @@ BtorSolver::mk_term(const OpKind& kind,
     case OP_BV_SSUBO:
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(args, boolector_ssubo);
+      break;
+
+    case OP_ARRAY_SELECT:
+      assert(n_args == 2);
+      btor_res = boolector_read(
+          d_solver, get_btor_term(args[0]), get_btor_term(args[1]));
+      break;
+    case OP_ARRAY_STORE:
+      assert(n_args == 3);
+      btor_res = boolector_write(d_solver,
+                                 get_btor_term(args[0]),
+                                 get_btor_term(args[1]),
+                                 get_btor_term(args[2]));
       break;
 
     default: assert(false);

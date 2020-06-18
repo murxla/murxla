@@ -10,6 +10,7 @@ namespace smtmbt {
 
 enum SortKind
 {
+  SORT_ARRAY,
   SORT_BV,
   SORT_BOOL,
   SORT_ANY,
@@ -21,8 +22,10 @@ struct SortKindHashFunction
 };
 
 static std::unordered_map<SortKind, std::string, SortKindHashFunction>
-    sort_kinds_to_str{
-        {SORT_BV, "SORT_BV"}, {SORT_BOOL, "SORT_BOOL"}, {SORT_ANY, "SORT_ANY"}};
+    sort_kinds_to_str{{SORT_ARRAY, "SORT_ARRAY"},
+                      {SORT_BV, "SORT_BV"},
+                      {SORT_BOOL, "SORT_BOOL"},
+                      {SORT_ANY, "SORT_ANY"}};
 
 struct SortKindData
 {

@@ -120,12 +120,7 @@ class BtorSolver : public Solver
   Sort mk_sort(SortKind kind) const override;
   Sort mk_sort(SortKind kind, uint32_t size) const override;
 
-  Sort mk_sort(SortKind kind,
-               std::vector<Sort>& sorts,
-               Sort sort) const override
-  {  // TODO:
-    return nullptr;
-  }
+  Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) const override;
 
   Term mk_term(const OpKind& kind,
                std::vector<Term>& args,

@@ -6,6 +6,7 @@ namespace smtmbt {
 std::ostream&
 operator<<(std::ostream& out, OpKind kind)
 {
+  assert(op_kinds_to_str.find(kind) != op_kinds_to_str.end());
   out << op_kinds_to_str.at(kind);
   return out;
 }
