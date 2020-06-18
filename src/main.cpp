@@ -19,7 +19,6 @@ using namespace smtmbt;
 struct Options
 {
   uint32_t seed      = 0;
-  bool seeded        = false;
   uint32_t verbosity = 0;
   uint32_t time      = 0;
 
@@ -194,7 +193,7 @@ parse_options(Options& options, int argc, char* argv[])
            << "': " << ss.str();
         die(es.str());
       }
-      ss >> g_options.seed;
+      ss >> options.seed;
     }
     else if (arg == "-t" || arg == "--time")
     {
@@ -208,41 +207,41 @@ parse_options(Options& options, int argc, char* argv[])
         es << "invalid argument to " << argv[i - 1] << ": " << ss.str();
         die(es.str());
       }
-      ss >> g_options.time;
+      ss >> options.time;
     }
     else if (arg == "-v" || arg == "--verbosity")
     {
-      g_options.verbosity += 1;
+      options.verbosity += 1;
     }
     else if (arg == "-a" || arg == "--api-trace")
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      g_options.api_trace = argv[i];
+      options.api_trace = argv[i];
     }
     else if (arg == "-u" || arg == "--untrace")
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      g_options.untrace = argv[i];
+      options.untrace = argv[i];
     }
     else if (arg == "--btor")
     {
-      g_options.use_btor = true;
+      options.use_btor = true;
     }
     else if (arg == "--cvc4")
     {
-      g_options.use_cvc4 = true;
+      options.use_cvc4 = true;
     }
     else if (arg == "-o" || arg == "--options")
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      g_options.solver_options_file = std::string(argv[i]);
+      options.solver_options_file = std::string(argv[i]);
     }
     else if (arg == "-S" || arg == "--trace-seeds")
     {
-      g_options.trace_seeds = true;
+      options.trace_seeds = true;
     }
   }
 
@@ -261,9 +260,9 @@ run(uint32_t seed, Options& options, SolverOptions& solver_options)
   std::streambuf* trace_buf;
   std::ofstream trace_file;
 
-  if (!g_options.api_trace.empty())
+  if (!options.api_trace.empty())
   {
-    trace_file.open(g_options.api_trace);
+    trace_file.open(options.api_trace);
     trace_buf = trace_file.rdbuf();
   }
   else
@@ -277,7 +276,7 @@ run(uint32_t seed, Options& options, SolverOptions& solver_options)
   result = RESULT_UNKNOWN;
 
   /* If seeded run in main process. */
-  if (!g_options.untrace && options.seed == 0)
+  if (!options.untrace && options.seed == 0)
   {
     pid = fork();
     if (pid == -1)
@@ -295,12 +294,12 @@ run(uint32_t seed, Options& options, SolverOptions& solver_options)
   /* child */
   else
   {
-    if (g_options.time)
+    if (options.time)
     {
       set_alarm();
     }
 
-    if (!g_options.untrace && options.seed == 0)
+    if (!options.untrace && options.seed == 0)
     {
       set_signal_handlers();
       /* redirect stdout and stderr of child process to /dev/null */
@@ -321,14 +320,14 @@ run(uint32_t seed, Options& options, SolverOptions& solver_options)
       solver = new cvc4::CVC4Solver(rng);
     }
 
-    FSM fsm(rng, solver, trace, solver_options, g_options.trace_seeds);
+    FSM fsm(rng, solver, trace, solver_options, options.trace_seeds);
     fsm.configure();
 
     /* replay/untrace given API trace */
-    if (g_options.untrace)
+    if (options.untrace)
     {
       std::ifstream untrace;
-      untrace.open(g_options.untrace);
+      untrace.open(options.untrace);
       assert (untrace.is_open());
       fsm.untrace(untrace);
       untrace.close();
@@ -373,13 +372,13 @@ get_limits(const toml::table& table)
 }
 
 void
-parse_solver_options_file(SolverOptions& solver_options)
+parse_solver_options_file(Options& options, SolverOptions& solver_options)
 {
-  const auto options_data = toml::parse(g_options.solver_options_file);
+  const auto options_data = toml::parse(options.solver_options_file);
   const std::vector<toml::table> tables =
       toml::find<std::vector<toml::table>>(options_data, "option");
 
-  std::unordered_map<std::string, SolverOption*> options;
+  std::unordered_map<std::string, SolverOption*> options_map;
 
   SolverOption* opt;
   for (const toml::table& table : tables)
@@ -451,10 +450,11 @@ parse_solver_options_file(SolverOptions& solver_options)
     }
 
     solver_options.push_back(std::unique_ptr<SolverOption>(opt));
-    options.emplace(std::make_pair(name, opt));
+    options_map.emplace(std::make_pair(name, opt));
   }
 
-  /* Check option names and propagate conflicts/dependencies to all options. */
+  /* Check option names and propagate conflicts/dependencies to all options_map.
+   */
   for (const auto& uptr : solver_options)
   {
     const auto& confl = uptr->get_conflicts();
@@ -462,26 +462,26 @@ parse_solver_options_file(SolverOptions& solver_options)
 
     for (const auto& o : confl)
     {
-      if (options.find(o) == options.end())
+      if (options_map.find(o) == options_map.end())
       {
         std::stringstream es;
         es << "Unknown conflicting option name '" << o << "' for option "
            << uptr->get_name();
         die(es.str());
       }
-      options.at(o)->add_conflict(uptr->get_name());
+      options_map.at(o)->add_conflict(uptr->get_name());
     }
 
     for (const auto& o : deps)
     {
-      if (options.find(o) == options.end())
+      if (options_map.find(o) == options_map.end())
       {
         std::stringstream es;
         es << "Unknown dependency option name '" << o << "' for option "
            << uptr->get_name();
         die(es.str());
       }
-      options.at(o)->add_depends(uptr->get_name());
+      options_map.at(o)->add_depends(uptr->get_name());
     }
   }
 }
@@ -500,7 +500,7 @@ main(int argc, char* argv[])
 
   if (!g_options.solver_options_file.empty())
   {
-    parse_solver_options_file(solver_options);
+    parse_solver_options_file(g_options, solver_options);
   }
 
   if ((env_file_name = getenv("SMTMBTAPITRACE")))
