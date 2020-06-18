@@ -26,7 +26,7 @@ struct Options
   bool use_cvc4    = false;
   bool trace_seeds = false;
   std::string api_trace;
-  char* untrace   = nullptr;
+  std::string untrace_file;
   std::string solver_options_file;
 };
 
@@ -223,7 +223,7 @@ parse_options(Options& options, int argc, char* argv[])
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      options.untrace = argv[i];
+      options.untrace_file = argv[i];
     }
     else if (arg == "--btor")
     {
@@ -259,6 +259,7 @@ run(uint32_t seed,
     std::string file_out,
     std::string file_err)
 {
+  bool untrace = !options.untrace_file.empty();
   int32_t status, fd;
   Result result;
   pid_t pid = 0;
@@ -331,13 +332,13 @@ run(uint32_t seed,
     fsm.configure();
 
     /* replay/untrace given API trace */
-    if (options.untrace)
+    if (untrace)
     {
-      std::ifstream untrace;
-      untrace.open(options.untrace);
-      assert (untrace.is_open());
-      fsm.untrace(untrace);
-      untrace.close();
+      std::ifstream untrace_file;
+      untrace_file.open(options.untrace_file);
+      assert(untrace_file.is_open());
+      fsm.untrace(untrace_file);
+      untrace_file.close();
     }
     /* regular MBT run */
     else
@@ -505,7 +506,7 @@ main(int argc, char* argv[])
   SeedGenerator sg(g_options.seed);
   SolverOptions solver_options;
   bool is_seeded = g_options.seed > 0;
-  bool is_forked = !is_seeded && !g_options.untrace;
+  bool is_forked = !is_seeded && g_options.untrace_file.empty();
 
   if (!g_options.solver_options_file.empty())
   {
@@ -521,7 +522,7 @@ main(int argc, char* argv[])
   {
     seed = sg.next();
 
-    if (!is_seeded && !g_options.untrace)
+    if (is_forked)
     {
       std::cout << num_runs++ << " " << seed << std::flush;
     }
