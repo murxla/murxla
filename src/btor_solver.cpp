@@ -1524,7 +1524,7 @@ class BtorActionSetSatSolver : public Action
  private:
   void _run(std::string sat_solver)
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_id() << " " << sat_solver;
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     boolector_set_sat_solver(solver.get_solver(), sat_solver.c_str());
   }
