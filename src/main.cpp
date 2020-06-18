@@ -255,9 +255,11 @@ static Result
 run(uint32_t seed,
     Options& options,
     SolverOptions& solver_options,
-    bool run_forked)
+    bool run_forked,
+    std::string file_out,
+    std::string file_err)
 {
-  int status, devnull;
+  int32_t status, fd;
   Result result;
   pid_t pid = 0;
   std::streambuf* trace_buf;
@@ -306,10 +308,12 @@ run(uint32_t seed,
     {
       set_signal_handlers();
       /* redirect stdout and stderr of child process to /dev/null */
-      devnull = open("/dev/null", O_WRONLY);
-      dup2(devnull, STDOUT_FILENO);
-      dup2(devnull, STDERR_FILENO);
-      close(devnull);
+      fd = open(file_out.c_str(), O_WRONLY);
+      dup2(fd, STDOUT_FILENO);
+      close(fd);
+      fd = open(file_err.c_str(), O_WRONLY);
+      dup2(fd, STDERR_FILENO);
+      close(fd);
     }
 
     Solver *solver= nullptr;
@@ -494,6 +498,7 @@ main(int argc, char* argv[])
 {
   uint32_t seed, num_runs = 0;
   char* env_file_name = nullptr;
+  std::string devnull = "/dev/null";
 
   parse_options(g_options, argc, argv);
 
@@ -523,7 +528,8 @@ main(int argc, char* argv[])
 
     /* We do not trace into file by default, only on replay in case of an error.
      * We also do not fork when a seed is given, or when untracing. */
-    Result res = run(seed, g_options, solver_options, is_forked);
+    Result res =
+        run(seed, g_options, solver_options, is_forked, devnull, devnull);
 
     /* report status */
     std::stringstream info;
@@ -564,7 +570,8 @@ main(int argc, char* argv[])
         }
       }
       setenv("SMTMBTAPITRACE", g_options.api_trace.c_str(), 1);
-      Result res_replay = run(seed, g_options, solver_options, true);
+      Result res_replay =
+          run(seed, g_options, solver_options, true, devnull, devnull);
       assert(res == res_replay);
       unsetenv("SMTMBTAPITRACE");
       if (!env_file_name)
