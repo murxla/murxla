@@ -27,6 +27,8 @@ struct Options
   bool trace_seeds = false;
   std::string api_trace;
   std::string untrace_file;
+  bool dd = false;
+  std::string dd_trace;
   std::string solver_options_file;
 };
 
@@ -309,10 +311,10 @@ run(uint32_t seed,
     {
       set_signal_handlers();
       /* redirect stdout and stderr of child process to /dev/null */
-      fd = open(file_out.c_str(), O_WRONLY);
+      fd = open(file_out.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
       dup2(fd, STDOUT_FILENO);
       close(fd);
-      fd = open(file_err.c_str(), O_WRONLY);
+      fd = open(file_err.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
       dup2(fd, STDERR_FILENO);
       close(fd);
     }
@@ -506,12 +508,16 @@ main(int argc, char* argv[])
   SeedGenerator sg(g_options.seed);
   SolverOptions solver_options;
   bool is_seeded = g_options.seed > 0;
-  bool is_forked = !is_seeded && g_options.untrace_file.empty();
+  bool is_untrace = !g_options.untrace_file.empty();
+  bool is_forked;
 
   if (!g_options.solver_options_file.empty())
   {
     parse_solver_options_file(g_options, solver_options);
   }
+
+  g_options.dd = true;
+  is_forked    = g_options.dd || (!is_seeded && g_options.untrace_file.empty());
 
   if ((env_file_name = getenv("SMTMBTAPITRACE")))
   {
@@ -555,33 +561,63 @@ main(int argc, char* argv[])
     std::cout << res;
 
     /* replay and trace on error */
-    if (is_forked && res != RESULT_OK && res != RESULT_TIMEOUT)
+    if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
-      if (g_options.api_trace.empty())
+      if (g_options.dd)
       {
+        std::string gold_out_file_name  = "smtmbt-dd-gold-tmp.out";
+        std::string gold_err_file_name  = "smtmbt-dd-gold-tmp.err";
+        std::string tmp_out_file_name   = "smtmbt-dd-tmp.out";
+        std::string tmp_err_file_name   = "smtmbt-dd-tmp.err";
+        std::string tmp_trace_file_name = "smtmbt-dd-tmp.trace";
+
+        Options o(g_options);
+        o.verbosity = 0;
+        o.api_trace = tmp_trace_file_name;
+        o.dd        = false;
+        o.dd_trace  = std::string();
+
+        // golden run
+
+        setenv("SMTMBTAPITRACE", o.api_trace.c_str(), 1);
+        Result golden_res = run(seed,
+                                o,
+                                solver_options,
+                                true,
+                                gold_out_file_name,
+                                gold_err_file_name);
+        unsetenv("SMTMBTAPITRACE");
+
+        // start delta debugging
+      }
+      else if (is_forked)
+      {
+        if (g_options.api_trace.empty())
+        {
+          if (!env_file_name)
+          {
+            std::stringstream ss;
+            ss << "smtmbt-" << seed << ".trace";
+            g_options.api_trace = ss.str();
+          }
+          else
+          {
+            g_options.api_trace = env_file_name;
+          }
+        }
+        setenv("SMTMBTAPITRACE", g_options.api_trace.c_str(), 1);
+        Result res_replay =
+            run(seed, g_options, solver_options, true, devnull, devnull);
+        assert(res == res_replay);
+        unsetenv("SMTMBTAPITRACE");
         if (!env_file_name)
         {
-          std::stringstream ss;
-          ss << "smtmbt-" << seed << ".trace";
-          g_options.api_trace = ss.str();
+          g_options.api_trace = "";
         }
-        else
-        {
-          g_options.api_trace = env_file_name;
-        }
-      }
-      setenv("SMTMBTAPITRACE", g_options.api_trace.c_str(), 1);
-      Result res_replay =
-          run(seed, g_options, solver_options, true, devnull, devnull);
-      assert(res == res_replay);
-      unsetenv("SMTMBTAPITRACE");
-      if (!env_file_name)
-      {
-        g_options.api_trace = "";
       }
     }
     std::cout << "\r" << std::flush;
-  } while (!is_seeded);
+  } while (!is_seeded && !is_untrace);
 
   return 0;
 }
