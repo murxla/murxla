@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <numeric>
 #include <sstream>
 #include <toml.hpp>
 
@@ -25,10 +26,10 @@ struct Options
   bool use_btor    = false;
   bool use_cvc4    = false;
   bool trace_seeds = false;
-  std::string api_trace;
-  std::string untrace_file;
+  std::string api_trace_file_name;
+  std::string untrace_file_name;
   bool dd = false;
-  std::string dd_trace;
+  std::string dd_trace_file_name;
   std::string solver_options_file;
 };
 
@@ -154,6 +155,8 @@ set_alarm(void)
   "  -s, --seed <int>        seed for random number generator\n"    \
   "  -t, --time <int>        time limit for MBT runs\n"             \
   "  -v, --verbosity         increase verbosity\n"                  \
+  "  -d, --dd                enable delta debugging\n"              \
+  "  -D, --dd-trace <file>   delta debug API trace into <file>\n"   \
   "  -a, --api-trace <file>  trace API call sequence into <file>\n" \
   "  -u, --untrace <file>    replay given API call sequence\n"      \
   "  -o, --options <file>    solver option model toml file\n"       \
@@ -219,13 +222,23 @@ parse_options(Options& options, int argc, char* argv[])
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      options.api_trace = argv[i];
+      options.api_trace_file_name = argv[i];
+    }
+    else if (arg == "-d" || arg == "--dd")
+    {
+      options.dd = true;
+    }
+    else if (arg == "-D" || arg == "--dd-trace")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      options.dd_trace_file_name = argv[i];
     }
     else if (arg == "-u" || arg == "--untrace")
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      options.untrace_file = argv[i];
+      options.untrace_file_name = argv[i];
     }
     else if (arg == "--btor")
     {
@@ -261,16 +274,19 @@ run(uint32_t seed,
     std::string file_out,
     std::string file_err)
 {
-  bool untrace = !options.untrace_file.empty();
+  bool untrace = !options.untrace_file_name.empty();
   int32_t status, fd;
   Result result;
   pid_t pid = 0;
   std::streambuf* trace_buf;
   std::ofstream trace_file;
+  std::ifstream untrace_file;
 
-  if (!options.api_trace.empty())
+  if (!options.api_trace_file_name.empty())
   {
-    trace_file.open(options.api_trace);
+    trace_file.open(options.api_trace_file_name,
+                    std::ofstream::out | std::ofstream::trunc);
+    assert(trace_file.is_open());
     trace_buf = trace_file.rdbuf();
   }
   else
@@ -293,6 +309,12 @@ run(uint32_t seed,
     }
   }
 
+  if (untrace)
+  {
+    untrace_file.open(options.untrace_file_name);
+    assert(untrace_file.is_open());
+  }
+
   /* parent */
   if (pid)
   {
@@ -311,10 +333,12 @@ run(uint32_t seed,
     {
       set_signal_handlers();
       /* redirect stdout and stderr of child process to /dev/null */
-      fd = open(file_out.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+      fd = open(
+          file_out.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
       dup2(fd, STDOUT_FILENO);
       close(fd);
-      fd = open(file_err.c_str(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+      fd = open(
+          file_err.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
       dup2(fd, STDERR_FILENO);
       close(fd);
     }
@@ -336,11 +360,7 @@ run(uint32_t seed,
     /* replay/untrace given API trace */
     if (untrace)
     {
-      std::ifstream untrace_file;
-      untrace_file.open(options.untrace_file);
-      assert(untrace_file.is_open());
       fsm.untrace(untrace_file);
-      untrace_file.close();
     }
     /* regular MBT run */
     else
@@ -349,6 +369,7 @@ run(uint32_t seed,
     }
 
     if (trace_file.is_open()) trace_file.close();
+    if (untrace_file.is_open()) untrace_file.close();
     exit(EXIT_OK);
   }
 
@@ -368,6 +389,193 @@ run(uint32_t seed,
     result = RESULT_SIGNAL;
   }
   return result;
+}
+
+void
+write_strs_to_file(const std::vector<std::string>& lines,
+                   std::string& out_file_name)
+{
+  std::ofstream out_file(out_file_name);
+  assert(out_file.is_open());
+  std::ostream_iterator<std::string> it(out_file, "\n");
+  std::copy(lines.begin(), lines.end(), it);
+  out_file.close();
+}
+
+void
+write_idxs_to_file(const std::vector<std::string>& lines,
+                   const std::vector<size_t> indices,
+                   std::string& out_file_name)
+{
+  size_t size = lines.size();
+  std::ofstream out_file(out_file_name,
+                         std::ofstream::out | std::ofstream::trunc);
+  assert(out_file.is_open());
+  for (size_t idx : indices)
+  {
+    assert(idx < size);
+    out_file << lines[idx] << std::endl;
+  }
+  out_file.close();
+}
+
+static bool
+compare_files(std::string file_name1, std::string file_name2)
+{
+  std::ifstream file1(file_name1, std::ifstream::binary | std::ifstream::ate);
+  std::ifstream file2(file_name2, std::ifstream::binary | std::ifstream::ate);
+
+  if (file1.fail() || file2.fail())
+  {
+    return false;
+  }
+
+  if (file1.tellg() != file2.tellg())
+  {
+    return false;
+  }
+
+  file1.seekg(0, file1.beg);
+  file2.seekg(0, file2.beg);
+  return std::equal(std::istreambuf_iterator<char>(file1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(file2.rdbuf()));
+}
+
+std::vector<size_t>
+remove_subsets(std::vector<std::vector<size_t>>& subsets,
+               std::unordered_set<size_t>& excluded_sets)
+{
+  std::vector<size_t> res;
+
+  for (size_t i = 0, n = subsets.size(); i < n; ++i)
+  {
+    if (excluded_sets.find(i) != excluded_sets.end()) continue;
+    res.insert(res.end(), subsets[i].begin(), subsets[i].end());
+  }
+  return res;
+}
+
+void
+dd(uint32_t seed,
+   SolverOptions& solver_options,
+   std::string& trace_file_name,
+   std::string& dd_trace_file_name)
+{
+  assert(!trace_file_name.empty());
+  assert(!dd_trace_file_name.empty());
+
+  std::string gold_out_file_name  = "smtmbt-dd-gold-tmp.out";
+  std::string gold_err_file_name  = "smtmbt-dd-gold-tmp.err";
+  std::string tmp_trace_file_name = "smtmbt-dd-tmp.trace";
+  std::string tmp_out_file_name   = "smtmbt-dd-tmp.out";
+  std::string tmp_err_file_name   = "smtmbt-dd-tmp.err";
+  std::ifstream gold_out_file, gold_err_file;
+  std::ofstream dd_trace_file;
+  std::vector<std::string> lines;
+  std::string line, token;
+  Result gold_exit, exit;
+
+  /* init options object for golden (replay of original) run */
+  Options o(g_options);
+  o.verbosity           = 0;
+  o.api_trace_file_name = tmp_trace_file_name;
+  o.dd                  = false;
+  o.untrace_file_name   = trace_file_name;
+
+  /* golden run */
+  gold_exit = run(
+      seed, o, solver_options, true, gold_out_file_name, gold_err_file_name);
+
+  /* start delta debugging */
+
+  /* represent input trace as vector of lines, trace statements that expect and
+   * are accompanied by a return statement are represented as one element of
+   * the vector */
+  std::ifstream trace_file(tmp_trace_file_name);
+  assert(trace_file.is_open());
+  while (std::getline(trace_file, line))
+  {
+    if (line[0] == '#') continue;
+    if (std::getline(std::stringstream(line), token, ' ') && token == "return")
+    {
+      std::stringstream ss;
+      assert(lines.size() > 0);
+      std::string prev = lines.back();
+      ss << prev << std::endl << line;
+      lines.pop_back();
+      lines.push_back(ss.str());
+    }
+    else
+    {
+      lines.push_back(line);
+    }
+  }
+  trace_file.close();
+
+  /* while delta debugging, do not trace to file */
+  o.api_trace_file_name = "/dev/null";
+  o.untrace_file_name   = tmp_trace_file_name;
+
+  int64_t size = lines.size();
+  std::vector<size_t> superset(size);
+  std::iota(superset.begin(), superset.end(), 0);
+  int64_t subset_size = size / 2;
+  while (subset_size > 0)
+  {
+    std::vector<std::vector<size_t>> subsets;
+    auto begin = superset.begin();
+    auto end   = superset.begin();
+    for (int64_t lo = 0; end != superset.end(); lo += subset_size)
+    {
+      /* split original set into chunks of size 'subset_size' (last subset will
+       * contain the remaining m > subset_size lines if 'subset_size' does not
+       * divide 'size') */
+      int64_t hi = lo + subset_size;
+      end =
+          hi > size || (size - hi) < subset_size ? superset.end() : begin + hi;
+      std::vector<size_t> subset(begin + lo, end);
+      subsets.push_back(subset);
+    }
+    assert(subsets.size() == (size_t) size / subset_size);
+
+    std::vector<size_t> cur_superset;
+    std::unordered_set<size_t> excluded_sets;
+    for (size_t i = 0, n = subsets.size(); i < n; ++i)
+    {
+      std::unordered_set<size_t> ex(excluded_sets);
+      ex.insert(i);
+      std::vector<size_t> tmp = remove_subsets(subsets, ex);
+      write_idxs_to_file(lines, tmp, tmp_trace_file_name);
+      exit = run(
+          seed, o, solver_options, true, tmp_out_file_name, tmp_err_file_name);
+      if (exit == gold_exit
+          && compare_files(tmp_out_file_name, gold_out_file_name)
+          && compare_files(tmp_err_file_name, gold_err_file_name))
+      {
+        /* found subset that triggers the same behavior */
+        cur_superset = tmp;
+        excluded_sets.insert(i);
+      }
+    }
+    if (cur_superset.empty())
+    {
+      subset_size = subset_size / 2;
+    }
+    else
+    {
+      /* write found subset immediately to file and continue */
+      write_idxs_to_file(lines, cur_superset, dd_trace_file_name);
+      superset    = cur_superset;
+      size        = superset.size();
+      subset_size = size / 2;
+    }
+  }
+  std::remove(gold_out_file_name.c_str());
+  std::remove(gold_err_file_name.c_str());
+  std::remove(tmp_trace_file_name.c_str());
+  std::remove(tmp_out_file_name.c_str());
+  std::remove(tmp_err_file_name.c_str());
 }
 
 template <class T>
@@ -508,7 +716,7 @@ main(int argc, char* argv[])
   SeedGenerator sg(g_options.seed);
   SolverOptions solver_options;
   bool is_seeded = g_options.seed > 0;
-  bool is_untrace = !g_options.untrace_file.empty();
+  bool is_untrace = !g_options.untrace_file_name.empty();
   bool is_forked;
 
   if (!g_options.solver_options_file.empty())
@@ -516,8 +724,7 @@ main(int argc, char* argv[])
     parse_solver_options_file(g_options, solver_options);
   }
 
-  g_options.dd = true;
-  is_forked    = g_options.dd || (!is_seeded && g_options.untrace_file.empty());
+  is_forked = g_options.dd || (!is_seeded && !is_untrace);
 
   if ((env_file_name = getenv("SMTMBTAPITRACE")))
   {
@@ -528,7 +735,7 @@ main(int argc, char* argv[])
   {
     seed = sg.next();
 
-    if (is_forked)
+    if (!is_seeded && !is_untrace)
     {
       std::cout << num_runs++ << " " << seed << std::flush;
     }
@@ -550,69 +757,76 @@ main(int argc, char* argv[])
         break;
       default: assert(res == RESULT_UNKNOWN); info << " unknown";
     }
-    if (info.str().empty())
+    if (!is_seeded && !is_untrace)
     {
-      std::cout << "\33[2K\r" << std::flush;
+      if (info.str().empty())
+      {
+        std::cout << "\33[2K\r" << std::flush;
+      }
+      else
+      {
+        std::cout << info.str() << std::endl << std::flush;
+      }
+      std::cout << res << std::flush;
     }
-    else
-    {
-      std::cout << info.str() << std::endl << std::flush;
-    }
-    std::cout << res;
 
     /* replay and trace on error */
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
       if (g_options.dd)
       {
-        std::string gold_out_file_name  = "smtmbt-dd-gold-tmp.out";
-        std::string gold_err_file_name  = "smtmbt-dd-gold-tmp.err";
-        std::string tmp_out_file_name   = "smtmbt-dd-tmp.out";
-        std::string tmp_err_file_name   = "smtmbt-dd-tmp.err";
-        std::string tmp_trace_file_name = "smtmbt-dd-tmp.trace";
-
-        Options o(g_options);
-        o.verbosity = 0;
-        o.api_trace = tmp_trace_file_name;
-        o.dd        = false;
-        o.dd_trace  = std::string();
-
-        // golden run
-
-        setenv("SMTMBTAPITRACE", o.api_trace.c_str(), 1);
-        Result golden_res = run(seed,
-                                o,
-                                solver_options,
-                                true,
-                                gold_out_file_name,
-                                gold_err_file_name);
-        unsetenv("SMTMBTAPITRACE");
-
-        // start delta debugging
+        std::stringstream dd_trace_file_name;
+        if (g_options.dd_trace_file_name.empty())
+        {
+          if (is_seeded)
+          {
+            dd_trace_file_name << "smtmbt-dd-" << seed << ".trace";
+          }
+          else if (is_untrace)
+          {
+            dd_trace_file_name << g_options.untrace_file_name << ".dd.trace";
+          }
+          else
+          {
+            if (!env_file_name)
+            {
+              dd_trace_file_name << "smtmbt-dd-" << seed << ".trace";
+            }
+            else
+            {
+              dd_trace_file_name << env_file_name << ".dd.trace";
+            }
+          }
+          g_options.dd_trace_file_name = dd_trace_file_name.str();
+        }
+        dd(seed,
+           solver_options,
+           g_options.untrace_file_name,
+           g_options.dd_trace_file_name);
       }
       else if (is_forked)
       {
-        if (g_options.api_trace.empty())
+        if (g_options.api_trace_file_name.empty())
         {
           if (!env_file_name)
           {
             std::stringstream ss;
             ss << "smtmbt-" << seed << ".trace";
-            g_options.api_trace = ss.str();
+            g_options.api_trace_file_name = ss.str();
           }
           else
           {
-            g_options.api_trace = env_file_name;
+            g_options.api_trace_file_name = env_file_name;
           }
         }
-        setenv("SMTMBTAPITRACE", g_options.api_trace.c_str(), 1);
+        setenv("SMTMBTAPITRACE", g_options.api_trace_file_name.c_str(), 1);
         Result res_replay =
             run(seed, g_options, solver_options, true, devnull, devnull);
         assert(res == res_replay);
         unsetenv("SMTMBTAPITRACE");
         if (!env_file_name)
         {
-          g_options.api_trace = "";
+          g_options.api_trace_file_name = "";
         }
       }
     }
