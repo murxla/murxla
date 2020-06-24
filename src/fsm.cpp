@@ -83,9 +83,11 @@ FSM::FSM(RNGenerator& rng,
          std::ostream& trace,
          SolverOptions& options,
          bool trace_seeds,
+         bool smt,
          statistics::Statistics* stats)
     : d_smgr(solver, rng, trace, options, trace_seeds, stats),
       d_rng(rng),
+      d_smt(smt),
       d_mbt_stats(stats)
 {
 }
@@ -1407,7 +1409,7 @@ FSM::configure()
   /* Configure solver specific actions/states                              */
   /* --------------------------------------------------------------------- */
 
-  d_smgr.get_solver().configure_fsm(this);
+  if (!d_smt) d_smgr.get_solver().configure_fsm(this);
 
   /* --------------------------------------------------------------------- */
   /* Add actions that are configured via add_action_to_all_states          */

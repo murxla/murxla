@@ -31,6 +31,7 @@ struct Options
   bool use_btor    = false;
   bool use_cvc4    = false;
   bool trace_seeds = false;
+  bool smt         = false;
   bool print_stats = false;
   std::string api_trace_file_name;
   std::string untrace_file_name;
@@ -180,22 +181,23 @@ set_sigint_handler_stats(void)
 
 /*****************************************************************************/
 
-#define SMTMBT_USAGE                                                \
-  "smtmbt: a model-based tester for SMT solvers\n"                  \
-  "usage:\n"                                                        \
-  "  smtmbt [options]\n\n"                                          \
-  "  -h, --help              print this message and exit\n"         \
-  "  -s, --seed <int>        seed for random number generator\n"    \
-  "  -t, --time <int>        time limit for MBT runs\n"             \
-  "  -v, --verbosity         increase verbosity\n"                  \
-  "  -d, --dd                enable delta debugging\n"              \
-  "  -D, --dd-trace <file>   delta debug API trace into <file>\n"   \
-  "  -a, --api-trace <file>  trace API call sequence into <file>\n" \
-  "  -u, --untrace <file>    replay given API call sequence\n"      \
-  "  -o, --options <file>    solver option model toml file\n"       \
-  "  -m, --max-runs <N>      maximum number of runs\n"              \
-  "  --btor                  test Boolector\n"                      \
-  "  --cvc4                  test CVC4\n"                           \
+#define SMTMBT_USAGE                                                   \
+  "smtmbt: a model-based tester for SMT solvers\n"                     \
+  "usage:\n"                                                           \
+  "  smtmbt [options]\n\n"                                             \
+  "  -h, --help              print this message and exit\n"            \
+  "  -s, --seed <int>        seed for random number generator\n"       \
+  "  -S, --trace-seeds       trace seed for each API call\n"           \
+  "  -t, --time <int>        time limit for MBT runs\n"                \
+  "  -v, --verbosity         increase verbosity\n"                     \
+  "  -d, --dd                enable delta debugging\n"                 \
+  "  -D, --dd-trace <file>   delta debug API trace into <file>\n"      \
+  "  -a, --api-trace <file>  trace API call sequence into <file>\n"    \
+  "  -u, --untrace <file>    replay given API call sequence\n"         \
+  "  -o, --options <file>    solver option model toml file\n"          \
+  "  -l, --smt-lib           generate SMT-LIB compliant traces only\n" \
+  "  --btor                  test Boolector\n"                         \
+  "  --cvc4                  test CVC4\n"                              \
   "  --stats                 print statistics\n"
 
 void
@@ -302,6 +304,10 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, argc);
       options.max_runs = std::stoi(std::string(argv[i]));
+    }
+    else if (arg == "-l" || arg == "--smt-lib")
+    {
+      options.smt = true;
     }
   }
 
@@ -416,7 +422,13 @@ run(uint32_t seed,
       solver = new cvc4::CVC4Solver(rng);
     }
 
-    FSM fsm(rng, solver, trace, solver_options, options.trace_seeds, stats);
+    FSM fsm(rng,
+            solver,
+            trace,
+            solver_options,
+            options.trace_seeds,
+            options.smt,
+            stats);
     fsm.configure();
 
     /* replay/untrace given API trace */

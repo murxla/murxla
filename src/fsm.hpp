@@ -174,6 +174,7 @@ class FSM
       std::ostream& trace,
       SolverOptions& options,
       bool trace_seeds,
+      bool smt,
       statistics::Statistics* stats);
 
   /** Default constructor is disabled. */
@@ -267,6 +268,9 @@ class FSM
   State* d_state_init = nullptr;
   /** The current state. */
   State* d_state_cur = nullptr;
+
+  /** True to generate SMT-LIB compliant traces only. */
+  bool d_smt = false;
 
   statistics::Statistics* d_mbt_stats;
 };
