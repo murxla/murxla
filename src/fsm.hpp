@@ -127,7 +127,7 @@ class State
    * action  : The action to add.
    * priority: The priority of the action, determines the weight, and thus the
    *           probability to choose running the action. The actual weight of
-   *           the action is computed as priority/sum, with <sum> being the
+   *           the action is computed as sum/priority, with <sum> being the
    *           sum of the priorities of all actions in that state.
    * next    : The state to transition into after running the action. Optional,
    *           if not set, we stay in the current state.
