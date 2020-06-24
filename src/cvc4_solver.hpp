@@ -59,6 +59,7 @@ class CVC4Solver : public Solver
 {
  public:
   CVC4Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  ~CVC4Solver() override{};
 
   OpKindSet get_unsupported_op_kinds() const override;
 

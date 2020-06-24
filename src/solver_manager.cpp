@@ -16,8 +16,10 @@ SolverManager::SolverManager(Solver* solver,
                              RNGenerator& rng,
                              std::ostream& trace,
                              SolverOptions& options,
-                             bool trace_seeds)
-    : d_trace_seeds(trace_seeds),
+                             bool trace_seeds,
+                             statistics::Statistics* stats)
+    : d_mbt_stats(stats),
+      d_trace_seeds(trace_seeds),
       d_solver(solver),
       d_rng(rng),
       d_trace(trace),

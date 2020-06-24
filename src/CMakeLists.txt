@@ -8,6 +8,7 @@ set(smtmbt_src_files
   solver_manager.cpp
   solver_option.cpp
   sort.cpp
+  statistics.cpp
   theory.cpp
   util.cpp
 )

@@ -11,6 +11,7 @@
 
 #include "solver_manager.hpp"
 #include "solver_option.hpp"
+#include "statistics.hpp"
 #include "util.hpp"
 
 /* -------------------------------------------------------------------------- */
@@ -146,6 +147,8 @@ class State
   std::vector<ActionTuple> d_actions;
   /* The weights of the actions associated with this state. */
   std::vector<uint32_t> d_weights;
+
+  statistics::Statistics* d_mbt_stats;
 };
 
 class FSM
@@ -170,7 +173,8 @@ class FSM
       Solver* solver,
       std::ostream& trace,
       SolverOptions& options,
-      bool trace_seeds);
+      bool trace_seeds,
+      statistics::Statistics* stats);
 
   /** Default constructor is disabled. */
   FSM() = delete;
@@ -263,6 +267,8 @@ class FSM
   State* d_state_init = nullptr;
   /** The current state. */
   State* d_state_cur = nullptr;
+
+  statistics::Statistics* d_mbt_stats;
 };
 
 template <class T>

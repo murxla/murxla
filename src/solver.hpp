@@ -135,7 +135,7 @@ class Solver
 
   Solver(RNGenerator& rng);
   Solver() = delete;
-  ~Solver() = default;
+  virtual ~Solver() = default;
 
   virtual void new_solver() = 0;
   virtual void delete_solver() = 0;

@@ -35,6 +35,14 @@ State::run(RNGenerator& rng)
   assert(!d_actions.empty());
   uint32_t idx      = rng.pick_uint32_weighted(d_weights);
   ActionTuple& atup = d_actions[idx];
+
+  /* record state statistics */
+  {
+    auto it = statistics::g_state_str_to_enum.find(get_id());
+    assert(it != statistics::g_state_str_to_enum.end());
+    ++d_mbt_stats->d_states[it->second];
+  }
+
   /* only pick empty transitions if precondition of this state is false */
   if (f_precond != nullptr && !f_precond())
   {
@@ -44,11 +52,27 @@ State::run(RNGenerator& rng)
       atup = d_actions[idx];
     }
   }
+
+  /* record action statistics */
+  {
+    auto it = statistics::g_action_str_to_enum.find(atup.d_action->get_id());
+    assert(it != statistics::g_action_str_to_enum.end());
+    ++d_mbt_stats->d_actions[it->second];
+  }
+
   if (atup.d_action->run()
       && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
   {
+    /* record action statistics */
+    {
+      auto it = statistics::g_action_str_to_enum.find(atup.d_action->get_id());
+      assert(it != statistics::g_action_str_to_enum.end());
+      ++d_mbt_stats->d_actions_ok[it->second];
+    }
+
     return d_actions[idx].d_next;
   }
+
   return this;
 }
 
@@ -58,8 +82,11 @@ FSM::FSM(RNGenerator& rng,
          Solver* solver,
          std::ostream& trace,
          SolverOptions& options,
-         bool trace_seeds)
-    : d_smgr(solver, rng, trace, options, trace_seeds), d_rng(rng)
+         bool trace_seeds,
+         statistics::Statistics* stats)
+    : d_smgr(solver, rng, trace, options, trace_seeds, stats),
+      d_rng(rng),
+      d_mbt_stats(stats)
 {
 }
 
@@ -72,8 +99,12 @@ FSM::get_smgr()
 State*
 FSM::new_state(std::string id, std::function<bool(void)> fun, bool is_final)
 {
+  State* new_state;
   d_states.emplace_back(new State(id, fun, is_final));
-  return d_states.back().get();
+
+  new_state              = d_states.back().get();
+  new_state->d_mbt_stats = d_mbt_stats;
+  return new_state;
 }
 
 void
@@ -544,6 +575,8 @@ class ActionMkTerm : public Action
     assert(sort_kind != SORT_ANY);
     _run(kind, sort_kind, args, params);
 
+    d_smgr.d_mbt_stats->d_ops[kind]++;
+
     return true;
   }
 
@@ -940,6 +973,8 @@ class ActionCheckSat : public Action
     d_smgr.d_sat_result = d_solver.check_sat();
     d_smgr.d_sat_called = true;
     d_smgr.d_n_sat_calls += 1;
+
+    d_smgr.d_mbt_stats->d_results[d_smgr.d_sat_result]++;
   }
 };
 

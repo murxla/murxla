@@ -10,6 +10,7 @@
 #include "solver.hpp"
 #include "solver_option.hpp"
 #include "sort.hpp"
+#include "statistics.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
@@ -38,8 +39,11 @@ class SolverManager
                 RNGenerator& rng,
                 std::ostream& trace,
                 SolverOptions& options,
-                bool trace_seeds);
+                bool trace_seeds,
+                statistics::Statistics* stats);
   ~SolverManager() = default;
+
+  statistics::Statistics* d_mbt_stats;
 
   /** Clear all data. */
   void clear();

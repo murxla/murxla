@@ -64,6 +64,7 @@ class BtorSolver : public Solver
 {
  public:
   BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  ~BtorSolver() override{};
 
   void new_solver() override;
 

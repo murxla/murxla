@@ -1,9 +1,11 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -14,8 +16,10 @@
 #include "cvc4_solver.hpp"
 #include "fsm.hpp"
 #include "solver_option.hpp"
+#include "statistics.hpp"
 
 using namespace smtmbt;
+using namespace statistics;
 
 struct Options
 {
@@ -26,6 +30,7 @@ struct Options
   bool use_btor    = false;
   bool use_cvc4    = false;
   bool trace_seeds = false;
+  bool print_stats = false;
   std::string api_trace_file_name;
   std::string untrace_file_name;
   bool dd = false;
@@ -34,6 +39,7 @@ struct Options
 };
 
 static Options g_options;
+static Statistics* g_stats;
 
 enum Result
 {
@@ -147,6 +153,32 @@ set_alarm(void)
 
 /*****************************************************************************/
 
+/* Signal handler for printing statistics */
+
+static void (*sig_int_handler_stats)(int32_t);
+
+static void
+catch_signal_stats(int32_t sig)
+{
+  static int32_t caught_signal = 0;
+  if (!caught_signal)
+  {
+    caught_signal = sig;
+    g_stats->print();
+  }
+  (void) signal(SIGINT, sig_int_handler_stats);
+  raise(sig);
+  exit(EXIT_ERROR);
+}
+
+static void
+set_sigint_handler_stats(void)
+{
+  sig_int_handler_stats = signal(SIGINT, catch_signal_stats);
+}
+
+/*****************************************************************************/
+
 #define SMTMBT_USAGE                                                \
   "smtmbt: a model-based tester for SMT solvers\n"                  \
   "usage:\n"                                                        \
@@ -161,7 +193,8 @@ set_alarm(void)
   "  -u, --untrace <file>    replay given API call sequence\n"      \
   "  -o, --options <file>    solver option model toml file\n"       \
   "  --btor                  test Boolector\n"                      \
-  "  --cvc4                  test CVC4\n"
+  "  --cvc4                  test CVC4\n"                           \
+  "  --stats                 print statistics\n"
 
 void
 check_next_arg(std::string& option, int i, int argc)
@@ -258,6 +291,10 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.trace_seeds = true;
     }
+    else if (arg == "--stats")
+    {
+      options.print_stats = true;
+    }
   }
 
   if (!options.use_btor && !options.use_cvc4)
@@ -272,7 +309,8 @@ run(uint32_t seed,
     SolverOptions& solver_options,
     bool run_forked,
     std::string file_out,
-    std::string file_err)
+    std::string file_err,
+    Statistics* stats)
 {
   bool untrace = !options.untrace_file_name.empty();
   int32_t status, fd;
@@ -320,6 +358,22 @@ run(uint32_t seed,
   {
     reset_alarm();
     wait(&status);
+
+    if (WIFEXITED(status))
+    {
+      int exit_code = WEXITSTATUS(status);
+      switch (exit_code)
+      {
+        case EXIT_OK: result = RESULT_OK; break;
+        case EXIT_ERROR: result = RESULT_ERROR; break;
+        case EXIT_TIMEOUT: result = RESULT_TIMEOUT; break;
+        default: result = RESULT_UNKNOWN;
+      }
+    }
+    else if (WIFSIGNALED(status))
+    {
+      result = RESULT_SIGNAL;
+    }
   }
   /* child */
   else
@@ -354,7 +408,7 @@ run(uint32_t seed,
       solver = new cvc4::CVC4Solver(rng);
     }
 
-    FSM fsm(rng, solver, trace, solver_options, options.trace_seeds);
+    FSM fsm(rng, solver, trace, solver_options, options.trace_seeds, stats);
     fsm.configure();
 
     /* replay/untrace given API trace */
@@ -370,24 +424,17 @@ run(uint32_t seed,
 
     if (trace_file.is_open()) trace_file.close();
     if (untrace_file.is_open()) untrace_file.close();
-    exit(EXIT_OK);
-  }
 
-  if (WIFEXITED(status))
-  {
-    int exit_code = WEXITSTATUS(status);
-    switch (exit_code)
+    if (run_forked)
     {
-      case EXIT_OK: result = RESULT_OK; break;
-      case EXIT_ERROR: result = RESULT_ERROR; break;
-      case EXIT_TIMEOUT: result = RESULT_TIMEOUT; break;
-      default: result = RESULT_UNKNOWN;
+      exit(EXIT_OK);
+    }
+    else
+    {
+      result = RESULT_OK;
     }
   }
-  else if (WIFSIGNALED(status))
-  {
-    result = RESULT_SIGNAL;
-  }
+
   return result;
 }
 
@@ -475,6 +522,7 @@ dd(uint32_t seed,
   std::vector<std::string> lines;
   std::string line, token;
   Result gold_exit, exit;
+  statistics::Statistics stats;
 
   /* init options object for golden (replay of original) run */
   Options o(g_options);
@@ -484,8 +532,13 @@ dd(uint32_t seed,
   o.untrace_file_name   = trace_file_name;
 
   /* golden run */
-  gold_exit = run(
-      seed, o, solver_options, true, gold_out_file_name, gold_err_file_name);
+  gold_exit = run(seed,
+                  o,
+                  solver_options,
+                  true,
+                  gold_out_file_name,
+                  gold_err_file_name,
+                  &stats);
 
   /* start delta debugging */
 
@@ -547,8 +600,13 @@ dd(uint32_t seed,
       ex.insert(i);
       std::vector<size_t> tmp = remove_subsets(subsets, ex);
       write_idxs_to_file(lines, tmp, tmp_trace_file_name);
-      exit = run(
-          seed, o, solver_options, true, tmp_out_file_name, tmp_err_file_name);
+      exit = run(seed,
+                 o,
+                 solver_options,
+                 true,
+                 tmp_out_file_name,
+                 tmp_err_file_name,
+                 &stats);
       if (exit == gold_exit
           && compare_files(tmp_out_file_name, gold_out_file_name)
           && compare_files(tmp_err_file_name, gold_err_file_name))
@@ -704,12 +762,39 @@ parse_solver_options_file(Options& options, SolverOptions& solver_options)
   }
 }
 
+Statistics*
+initialize_statistics()
+{
+  int fd;
+  std::stringstream ss;
+  std::string shmfilename;
+  Statistics* stats;
+
+  ss << "/tmp/smtmbt-shm-" << getpid();
+  shmfilename = ss.str();
+
+  if ((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0)
+    die("failed to create shared memory file for statistics");
+
+  stats = static_cast<Statistics*>(mmap(0,
+                                        sizeof(Statistics),
+                                        PROT_READ | PROT_WRITE,
+                                        MAP_ANONYMOUS | MAP_SHARED,
+                                        fd,
+                                        0));
+
+  if (close(fd)) die("failed to close shared memory file for statistics");
+  (void) unlink(shmfilename.c_str());
+  return stats;
+}
+
 int
 main(int argc, char* argv[])
 {
   uint32_t seed, num_runs = 0;
   char* env_file_name = nullptr;
   std::string devnull = "/dev/null";
+  statistics::Statistics replay_stats;
 
   parse_options(g_options, argc, argv);
 
@@ -731,6 +816,9 @@ main(int argc, char* argv[])
     unsetenv("SMTMBTAPITRACE");
   }
 
+  g_stats = initialize_statistics();
+  set_sigint_handler_stats();
+
   do
   {
     seed = sg.next();
@@ -743,8 +831,8 @@ main(int argc, char* argv[])
     /* We do not trace into file by default, only on replay in case of an error.
      * We also do not fork when a seed is given, or when untracing (except when
      * delta debugging is enabled). */
-    Result res =
-        run(seed, g_options, solver_options, is_forked, devnull, devnull);
+    Result res = run(
+        seed, g_options, solver_options, is_forked, devnull, devnull, g_stats);
 
     /* report status */
     std::stringstream info;
@@ -792,8 +880,13 @@ main(int argc, char* argv[])
         }
         error_trace_file_name = g_options.api_trace_file_name;
         setenv("SMTMBTAPITRACE", g_options.api_trace_file_name.c_str(), 1);
-        Result res_replay =
-            run(seed, g_options, solver_options, true, devnull, devnull);
+        Result res_replay = run(seed,
+                                g_options,
+                                solver_options,
+                                true,
+                                devnull,
+                                devnull,
+                                &replay_stats);
         assert(res == res_replay);
         unsetenv("SMTMBTAPITRACE");
         if (!env_file_name)
@@ -836,6 +929,11 @@ main(int argc, char* argv[])
     }
     std::cout << "\r" << std::flush;
   } while (!is_seeded && !is_untrace);
+
+  if (g_options.print_stats) g_stats->print();
+
+  if (munmap(g_stats, sizeof(Statistics)))
+    die("failed to unmap shared memory for statistics");
 
   return 0;
 }
