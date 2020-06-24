@@ -26,6 +26,7 @@ struct Options
   uint32_t seed      = 0;
   uint32_t verbosity = 0;
   uint32_t time      = 0;
+  uint32_t max_runs  = 0;
 
   bool use_btor    = false;
   bool use_cvc4    = false;
@@ -192,6 +193,7 @@ set_sigint_handler_stats(void)
   "  -a, --api-trace <file>  trace API call sequence into <file>\n" \
   "  -u, --untrace <file>    replay given API call sequence\n"      \
   "  -o, --options <file>    solver option model toml file\n"       \
+  "  -m, --max-runs <N>      maximum number of runs                 \
   "  --btor                  test Boolector\n"                      \
   "  --cvc4                  test CVC4\n"                           \
   "  --stats                 print statistics\n"
@@ -294,6 +296,12 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--stats")
     {
       options.print_stats = true;
+    }
+    else if (arg == "-m" || arg == "--max-runs")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      options.max_runs = std::stoi(std::string(argv[i]));
     }
   }
 
@@ -928,7 +936,8 @@ main(int argc, char* argv[])
       }
     }
     std::cout << "\r" << std::flush;
-  } while (!is_seeded && !is_untrace);
+  } while (!is_seeded && !is_untrace
+           && (g_options.max_runs == 0 || num_runs < g_options.max_runs));
 
   if (g_options.print_stats) g_stats->print();
 
