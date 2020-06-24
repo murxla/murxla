@@ -741,7 +741,8 @@ main(int argc, char* argv[])
     }
 
     /* We do not trace into file by default, only on replay in case of an error.
-     * We also do not fork when a seed is given, or when untracing. */
+     * We also do not fork when a seed is given, or when untracing (except when
+     * delta debugging is enabled). */
     Result res =
         run(seed, g_options, solver_options, is_forked, devnull, devnull);
 
