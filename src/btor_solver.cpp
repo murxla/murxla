@@ -1534,7 +1534,6 @@ class BtorActionResetAssumptions : public Action
   void _run()
   {
     SMTMBT_TRACE << get_id();
-    assert(0);
     d_smgr.clear();
     boolector_reset_assumptions(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
