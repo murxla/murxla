@@ -773,6 +773,34 @@ main(int argc, char* argv[])
     /* replay and trace on error */
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
+      std::string error_trace_file_name = g_options.untrace_file_name;
+      if (!is_seeded && !is_untrace)
+      {
+        if (g_options.api_trace_file_name.empty())
+        {
+          if (!env_file_name)
+          {
+            std::stringstream ss;
+            ss << "smtmbt-" << seed << ".trace";
+            g_options.api_trace_file_name = ss.str();
+          }
+          else
+          {
+            g_options.api_trace_file_name = env_file_name;
+          }
+        }
+        error_trace_file_name = g_options.api_trace_file_name;
+        setenv("SMTMBTAPITRACE", g_options.api_trace_file_name.c_str(), 1);
+        Result res_replay =
+            run(seed, g_options, solver_options, true, devnull, devnull);
+        assert(res == res_replay);
+        unsetenv("SMTMBTAPITRACE");
+        if (!env_file_name)
+        {
+          g_options.api_trace_file_name = "";
+        }
+      }
+      std::cout << error_trace_file_name << std::endl;
       if (g_options.dd)
       {
         std::stringstream dd_trace_file_name;
@@ -801,33 +829,8 @@ main(int argc, char* argv[])
         }
         dd(seed,
            solver_options,
-           g_options.untrace_file_name,
+           error_trace_file_name,
            g_options.dd_trace_file_name);
-      }
-      else if (is_forked)
-      {
-        if (g_options.api_trace_file_name.empty())
-        {
-          if (!env_file_name)
-          {
-            std::stringstream ss;
-            ss << "smtmbt-" << seed << ".trace";
-            g_options.api_trace_file_name = ss.str();
-          }
-          else
-          {
-            g_options.api_trace_file_name = env_file_name;
-          }
-        }
-        setenv("SMTMBTAPITRACE", g_options.api_trace_file_name.c_str(), 1);
-        Result res_replay =
-            run(seed, g_options, solver_options, true, devnull, devnull);
-        assert(res == res_replay);
-        unsetenv("SMTMBTAPITRACE");
-        if (!env_file_name)
-        {
-          g_options.api_trace_file_name = "";
-        }
       }
     }
     std::cout << "\r" << std::flush;
