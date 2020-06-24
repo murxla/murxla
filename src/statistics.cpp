@@ -28,6 +28,8 @@ operator<<(std::ostream& out, Action action)
     case ACTION_SET_OPTION: out << "ACTION_SET_OPTION"; break;
     case ACTION_T: out << "ACTION_T"; break;
     case ACTION_T_CREATE_INPUTS: out << "ACTION_T_CREATE_INPUTS"; break;
+    case ACTION_T_CREATE_SORTS: out << "ACTION_T_CREATE_SORTS"; break;
+    case ACTION_T_MODEL: out << "ACTION_T_MODEL"; break;
 
     /* Boolector specific actions */
     case ACTION_BTOR_OPT_ITERATOR: out << "ACTION_BTOR_OPT_ITERATOR"; break;
@@ -65,6 +67,7 @@ operator<<(std::ostream& out, State state)
     case STATE_OPT: out << "STATE_OPT"; break;
     case STATE_DELETE: out << "STATE_DELETE"; break;
     case STATE_FINAL: out << "STATE_FINAL"; break;
+    case STATE_CREATE_SORTS: out << "STATE_CREATE_SORTS"; break;
     case STATE_CREATE_INPUTS: out << "STATE_CREATE_INPUTS"; break;
     case STATE_CREATE_TERMS: out << "STATE_CREATE_TERMS"; break;
     case STATE_ASSERT: out << "STATE_ASSERT"; break;

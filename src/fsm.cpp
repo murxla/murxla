@@ -213,9 +213,22 @@ FSM::TraceStream::flush()
 class TransitionCreateInputs : public Transition
 {
  public:
-  TransitionCreateInputs(SolverManager& smgr) : Transition(smgr) {}
+  TransitionCreateInputs(SolverManager& smgr) : Transition(smgr, "t_inputs") {}
   bool run() override { return d_smgr.d_stats.inputs > 0; }
-  uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
+};
+
+class TransitionCreateSorts : public Transition
+{
+ public:
+  TransitionCreateSorts(SolverManager& smgr) : Transition(smgr, "t_sorts") {}
+  bool run() override { return d_smgr.d_stats.sorts > 0; }
+};
+
+class TransitionModel : public Transition
+{
+ public:
+  TransitionModel(SolverManager& smgr) : Transition(smgr, "t_model") {}
+  bool run() override { return d_smgr.d_sat_result == Solver::Result::SAT; }
 };
 
 /* ========================================================================== */
@@ -460,6 +473,7 @@ class ActionMkTerm : public Action
     assert(d_smgr.has_term());
 
     /* pick operator kind */
+    // TODO: pick op_kind with existing terms for arguments?
     OpKindData& kind_data   = d_smgr.pick_op_kind_data();
     OpKind kind             = kind_data.d_kind;
     int32_t arity           = kind_data.d_arity;
@@ -1324,6 +1338,8 @@ FSM::configure()
 
   auto t_default = new_action<Transition>();
   auto t_inputs  = new_action<TransitionCreateInputs>();
+  auto t_model   = new_action<TransitionModel>();
+  auto t_sorts   = new_action<TransitionCreateSorts>();
 
   /* --------------------------------------------------------------------- */
   /* States                                                                */
@@ -1334,6 +1350,7 @@ FSM::configure()
   auto s_delete = new_state("delete");
   auto s_final  = new_state("final", nullptr, true);
 
+  auto s_sorts  = new_state("create_sorts");
   auto s_inputs = new_state("create_inputs");
   auto s_terms =
       new_state("create_terms", [this]() { return d_smgr.has_term(); });
@@ -1362,27 +1379,30 @@ FSM::configure()
 
   /* State: opt .......................................................... */
   s_opt->add_action(a_setoption, 1);
-  s_opt->add_action(t_default, 5, s_inputs);
+  s_opt->add_action(t_default, 2, s_sorts);
+
+  s_sorts->add_action(a_mksort, 1);
+  s_sorts->add_action(t_sorts, 2, s_inputs);
 
   /* State: create inputs ................................................ */
-  s_inputs->add_action(a_mksort, 1);
-  s_inputs->add_action(a_mkval, 1);
-  s_inputs->add_action(a_mkconst, 1);
+  s_inputs->add_action(a_mksort, 100, s_sorts);
+  s_inputs->add_action(a_mkval, 10);
+  s_inputs->add_action(a_mkconst, 5);
   s_inputs->add_action(t_inputs, 1, s_terms);
-  s_inputs->add_action(t_inputs, 5, s_sat);
-  s_inputs->add_action(t_inputs, 5, s_push_pop);
+  s_inputs->add_action(t_inputs, 1000, s_sat);
+  s_inputs->add_action(t_inputs, 1000, s_push_pop);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 1);
-  s_terms->add_action(t_default, 1, s_assert);
-  s_terms->add_action(t_default, 5, s_sat);
-  s_terms->add_action(t_inputs, 5, s_push_pop);
+  s_terms->add_action(t_default, 100, s_assert);
+  s_terms->add_action(t_default, 500, s_sat);
+  s_terms->add_action(t_inputs, 1000, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
   s_assert->add_action(a_assert, 1);
-  s_assert->add_action(t_default, 5, s_delete);
-  s_assert->add_action(t_default, 1, s_sat);
-  s_assert->add_action(t_inputs, 5, s_push_pop);
+  s_assert->add_action(t_default, 50, s_delete);
+  s_assert->add_action(t_default, 20, s_sat);
+  s_assert->add_action(t_inputs, 50, s_push_pop);
 
   /* State: check sat .................................................... */
   s_sat->add_action(a_sat, 1);
@@ -1394,12 +1414,12 @@ FSM::configure()
   s_model->add_action(a_printmodel, 1);
   s_model->add_action(a_getvalue, 1);
   add_action_to_all_states_next(t_default, 1, s_model, {"opt"});
-  add_action_to_all_states(t_default, 10, {"opt"}, s_model);
+  add_action_to_all_states(t_model, 10, {"opt"}, s_model);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
   s_push_pop->add_action(a_pop, 1);
-  add_action_to_all_states_next(t_default, 2, s_push_pop, {"opt"});
+  add_action_to_all_states_next(t_default, 1, s_push_pop, {"opt"});
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);

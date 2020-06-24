@@ -88,7 +88,10 @@ class Action
 class Transition : public Action
 {
  public:
-  Transition(SolverManager& smgr) : Action(smgr, "", true) {}
+  Transition(SolverManager& smgr, const std::string& id = "")
+      : Action(smgr, id, true)
+  {
+  }
   bool run() override { return true; }
   uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
 };

@@ -33,6 +33,7 @@ class SolverManager
   {
     uint32_t inputs = 0; /* constants, variables */
     uint32_t terms  = 0; /* all terms, including inputs */
+    uint32_t sorts  = 0; /* all sorts */
   };
 
   SolverManager(Solver* solver,

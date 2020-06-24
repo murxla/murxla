@@ -28,6 +28,8 @@ enum Action
   ACTION_SET_OPTION,
   ACTION_T,
   ACTION_T_CREATE_INPUTS,
+  ACTION_T_CREATE_SORTS,
+  ACTION_T_MODEL,
 
   /* Boolector specific actions */
   ACTION_BTOR_OPT_ITERATOR,
@@ -70,6 +72,9 @@ const std::unordered_map<std::string, Action> g_action_str_to_enum = {
 
     /* default for all transitions */
     {"", ACTION_T},
+    {"t_inputs", ACTION_T_CREATE_INPUTS},
+    {"t_sorts", ACTION_T_CREATE_SORTS},
+    {"t_model", ACTION_T_MODEL},
 
     /* Boolector specific actions */
     {"btor-opt-iterator", ACTION_BTOR_OPT_ITERATOR},
@@ -94,6 +99,7 @@ enum State
   STATE_OPT,
   STATE_DELETE,
   STATE_FINAL,
+  STATE_CREATE_SORTS,
   STATE_CREATE_INPUTS,
   STATE_CREATE_TERMS,
   STATE_ASSERT,
@@ -112,6 +118,7 @@ const std::unordered_map<std::string, State> g_state_str_to_enum = {
     {"opt", STATE_OPT},
     {"delete", STATE_DELETE},
     {"final", STATE_FINAL},
+    {"create_sorts", STATE_CREATE_SORTS},
     {"create_inputs", STATE_CREATE_INPUTS},
     {"create_terms", STATE_CREATE_TERMS},
     {"assert", STATE_ASSERT},
