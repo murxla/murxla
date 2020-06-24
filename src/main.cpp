@@ -193,7 +193,7 @@ set_sigint_handler_stats(void)
   "  -a, --api-trace <file>  trace API call sequence into <file>\n" \
   "  -u, --untrace <file>    replay given API call sequence\n"      \
   "  -o, --options <file>    solver option model toml file\n"       \
-  "  -m, --max-runs <N>      maximum number of runs                 \
+  "  -m, --max-runs <N>      maximum number of runs\n"              \
   "  --btor                  test Boolector\n"                      \
   "  --cvc4                  test CVC4\n"                           \
   "  --stats                 print statistics\n"
