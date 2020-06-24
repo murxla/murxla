@@ -82,10 +82,22 @@ BtorTerm::BtorTerm(Btor* btor, BoolectorNode* term)
 
 BtorTerm::~BtorTerm() { boolector_release(d_solver, d_term); }
 
+/* Boolector_get_node_id does not distinguish between inverted and not inverted
+ * nodes, but for hashing we need this distinction. This function returns a
+ * negative id if the node is inverted, and else a positive id. */
+static int32_t
+get_btor_node_id(Btor* btor, BoolectorNode* node)
+{
+  bool is_inverted = ((uintptr_t) 1 & (uintptr_t) node) != 0;
+  int32_t id       = boolector_get_node_id(btor, node);
+  if (is_inverted) return -id;
+  return id;
+}
+
 size_t
 BtorTerm::hash() const
 {
-  return boolector_get_node_id(d_solver, d_term);
+  return get_btor_node_id(d_solver, d_term);
 }
 
 bool
@@ -94,8 +106,8 @@ BtorTerm::equals(const Term& other) const
   BtorTerm* btor_term = dynamic_cast<BtorTerm*>(other.get());
   if (btor_term)
   {
-    return boolector_get_node_id(d_solver, d_term)
-           == boolector_get_node_id(btor_term->d_solver, btor_term->d_term);
+    return get_btor_node_id(d_solver, d_term)
+           == get_btor_node_id(btor_term->d_solver, btor_term->d_term);
   }
   return false;
 }
