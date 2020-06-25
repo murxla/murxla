@@ -192,9 +192,9 @@ operator<<(std::ostream& out, const Solver::Result& r)
   std::string s;
   switch (r)
   {
-    case Solver::Result::SAT: s = "SAT"; break;
-    case Solver::Result::UNSAT: s = "UNSAT"; break;
-    default: s = "UNKNOWN";
+    case Solver::Result::SAT: s = "sat"; break;
+    case Solver::Result::UNSAT: s = "unsat"; break;
+    default: s = "unknown";
   }
   out << s;
   return out;

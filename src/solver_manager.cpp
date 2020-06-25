@@ -17,9 +17,11 @@ SolverManager::SolverManager(Solver* solver,
                              std::ostream& trace,
                              SolverOptions& options,
                              bool trace_seeds,
+                             bool cross_check,
                              statistics::Statistics* stats)
     : d_mbt_stats(stats),
       d_trace_seeds(trace_seeds),
+      d_cross_check(cross_check),
       d_solver(solver),
       d_rng(rng),
       d_trace(trace),
@@ -76,6 +78,12 @@ SolverManager::trace_seed() const
   std::stringstream ss;
   ss << "set-seed " << d_rng.get_engine() << std::endl;
   return ss.str();
+}
+
+bool
+SolverManager::is_cross_check() const
+{
+  return d_cross_check;
 }
 
 std::ostream&

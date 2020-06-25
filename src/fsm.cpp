@@ -83,9 +83,10 @@ FSM::FSM(RNGenerator& rng,
          std::ostream& trace,
          SolverOptions& options,
          bool trace_seeds,
+         bool cross_check,
          bool smt,
          statistics::Statistics* stats)
-    : d_smgr(solver, rng, trace, options, trace_seeds, stats),
+    : d_smgr(solver, rng, trace, options, trace_seeds, cross_check, stats),
       d_rng(rng),
       d_smt(smt),
       d_mbt_stats(stats)
@@ -998,6 +999,7 @@ class ActionCheckSat : public Action
     d_smgr.d_sat_result = d_solver.check_sat();
     d_smgr.d_sat_called = true;
     d_smgr.d_n_sat_calls += 1;
+    if (d_smgr.is_cross_check()) std::cout << d_smgr.d_sat_result << std::endl;
 
     d_smgr.d_mbt_stats->d_results[d_smgr.d_sat_result]++;
   }
@@ -1050,6 +1052,7 @@ class ActionCheckSatAssuming : public Action
     d_smgr.reset_sat();
     d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
     d_smgr.d_sat_called = true;
+    if (d_smgr.is_cross_check()) std::cout << d_smgr.d_sat_result << std::endl;
   }
 };
 

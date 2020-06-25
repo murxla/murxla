@@ -41,6 +41,7 @@ class SolverManager
                 std::ostream& trace,
                 SolverOptions& options,
                 bool trace_seeds,
+                bool cross_check,
                 statistics::Statistics* stats);
   ~SolverManager() = default;
 
@@ -59,6 +60,9 @@ class SolverManager
 
   /** Get the trace line for the current seed ("set-seed <seed>"). */
   std::string trace_seed() const;
+
+  /** True if current run is a cross check run. */
+  bool is_cross_check() const;
 
   /** Get set of enabled theories. */
   const TheoryIdSet& get_enabled_theories() const;
@@ -251,10 +255,16 @@ class SolverManager
 
   /**
    * True if every non-return trace call should be preceded by a
-   * 'set-seed <seed>' line. We need to provide this in the solver manager
-   * so that actions have access to it (they don't have access to the FMS).
+   * 'set-seed <seed>' line. We need to provide this option in the solver
+   * manager for actions to have access to it.
    */
   bool d_trace_seeds = false;
+
+  /**
+   * True if cross checking is enabled. We need to provide this option in the
+   * solver manager for the actions to have access to it.
+   * */
+  bool d_cross_check = false;
 
  private:
   /**

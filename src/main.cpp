@@ -47,6 +47,7 @@ struct Options
   std::string untrace_file_name;
   bool dd = false;
   std::string dd_trace_file_name;
+  std::string cross_check;
   std::string solver_options_file;
 };
 
@@ -101,7 +102,7 @@ get_info(Result res)
   std::stringstream info;
   switch (res)
   {
-    case RESULT_OK: break;
+    case RESULT_OK: info << " ok"; break;
     case RESULT_ERROR: info << " error"; break;
     case RESULT_TIMEOUT:
       info << " timed out after " << g_options.time << " seconds ";
@@ -138,24 +139,24 @@ set_sigint_handler_stats(void)
 
 /*****************************************************************************/
 
-#define SMTMBT_USAGE                                                   \
-  "smtmbt: a model-based tester for SMT solvers\n"                     \
-  "usage:\n"                                                           \
-  "  smtmbt [options]\n\n"                                             \
-  "  -h, --help              print this message and exit\n"            \
-  "  -s, --seed <int>        seed for random number generator\n"       \
-  "  -S, --trace-seeds       trace seed for each API call\n"           \
-  "  -t, --time <double>     time limit for MBT runs\n"                \
-  "  -v, --verbosity         increase verbosity\n"                     \
-  "  -d, --dd                enable delta debugging\n"                 \
-  "  -D, --dd-trace <file>   delta debug API trace into <file>\n"      \
-  "  -a, --api-trace <file>  trace API call sequence into <file>\n"    \
-  "  -u, --untrace <file>    replay given API call sequence\n"         \
-  "  -o, --options <file>    solver option model toml file\n"          \
-  "  -l, --smt-lib           generate SMT-LIB compliant traces only\n" \
-  "  --btor                  test Boolector\n"                         \
-  "  --cvc4                  test CVC4\n"                              \
-  "  --stats                 print statistics\n"                       \
+#define SMTMBT_USAGE                                                         \
+  "usage:\n"                                                                 \
+  "  smtmbt [options]\n\n"                                                   \
+  "  -h, --help              print this message and exit\n"                  \
+  "  -s, --seed <int>        seed for random number generator\n"             \
+  "  -S, --trace-seeds       trace seed for each API call\n"                 \
+  "  -t, --time <double>     time limit for MBT runs\n"                      \
+  "  -v, --verbosity         increase verbosity\n"                           \
+  "  -d, --dd                enable delta debugging\n"                       \
+  "  -D, --dd-trace <file>   delta debug API trace into <file>\n"            \
+  "  -a, --api-trace <file>  trace API call sequence into <file>\n"          \
+  "  -u, --untrace <file>    replay given API call sequence\n"               \
+  "  -o, --options <file>    solver option model toml file\n"                \
+  "  -l, --smt-lib           generate SMT-LIB compliant traces only\n"       \
+  "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n" \
+  "  --btor                  test Boolector\n"                               \
+  "  --cvc4                  test CVC4\n"                                    \
+  "  --stats                 print statistics\n"                             \
   "  --trace-generic         generate solver independent traces\n"
 
 void
@@ -227,6 +228,20 @@ parse_options(Options& options, int argc, char* argv[])
       check_next_arg(arg, i, argc);
       options.untrace_file_name = argv[i];
     }
+    else if (arg == "-c" || arg == "--cross-check")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      std::string solver = argv[i];
+      if (solver != "btor" && solver != "cvc4")
+      {
+        std::stringstream es;
+        es << "invalid argument " << solver << " to option '" << arg << "'";
+        die(es.str());
+      }
+      options.cross_check = solver;
+      options.generic     = true;
+    }
     else if (arg == "--btor")
     {
       options.solver = SMTMBT_SOLVER_BTOR;
@@ -273,13 +288,13 @@ parse_options(Options& options, int argc, char* argv[])
 }
 
 static Result
-run(uint32_t seed,
-    Options& options,
-    SolverOptions& solver_options,
-    bool run_forked,
-    std::string file_out,
-    std::string file_err,
-    Statistics* stats)
+run_aux(uint32_t seed,
+        Options& options,
+        SolverOptions& solver_options,
+        bool run_forked,
+        std::string file_out,
+        std::string file_err,
+        Statistics* stats)
 {
   bool untrace = !options.untrace_file_name.empty();
   int32_t status, fd;
@@ -402,6 +417,7 @@ run(uint32_t seed,
             trace,
             solver_options,
             options.trace_seeds,
+            !options.cross_check.empty(),
             options.smt,
             stats);
     fsm.configure();
@@ -433,6 +449,131 @@ run(uint32_t seed,
   return result;
 }
 
+static bool
+compare_files(std::string file_name1, std::string file_name2)
+{
+  std::ifstream file1(file_name1, std::ifstream::binary | std::ifstream::ate);
+  std::ifstream file2(file_name2, std::ifstream::binary | std::ifstream::ate);
+
+  if (file1.fail() || file2.fail())
+  {
+    return false;
+  }
+
+  if (file1.tellg() != file2.tellg())
+  {
+    return false;
+  }
+
+  file1.seekg(0, file1.beg);
+  file2.seekg(0, file2.beg);
+  return std::equal(std::istreambuf_iterator<char>(file1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(file2.rdbuf()));
+}
+
+static void
+diff_files(std::ostream& out, std::string file_name1, std::string file_name2)
+{
+  std::ifstream file1(file_name1);
+  std::ifstream file2(file_name2);
+  std::string line1, line2;
+
+  assert(file1.is_open());
+  assert(file2.is_open());
+  while (std::getline(file1, line1))
+  {
+    if (std::getline(file2, line2))
+    {
+      if (line1 == line2)
+      {
+        out << COLOR_DEFAULT << "  ";
+      }
+      else
+      {
+        out << COLOR_RED << "x ";
+      }
+      out << std::left << std::setw(9) << line1;
+      out << std::left << std::setw(9) << line2;
+    }
+    else
+    {
+      out << COLOR_RED << "x ";
+      out << std::left << std::setw(9) << line1;
+    }
+    out << std::endl;
+  }
+  while (std::getline(file2, line2))
+  {
+    out << COLOR_RED << "x ";
+    out << std::left << std::setw(9) << " ";
+    out << std::left << std::setw(9) << line2 << std::endl;
+  }
+  file1.close();
+  file2.close();
+}
+
+static Result
+run(uint32_t seed,
+    Options& options,
+    SolverOptions& solver_options,
+    bool run_forked,
+    std::string file_out,
+    std::string file_err,
+    std::string file_cross_out,
+    std::string file_cross_err,
+    Statistics* stats)
+{
+  bool cross  = !options.cross_check.empty();
+  bool forked = run_forked || cross;
+  Result res =
+      run_aux(seed, options, solver_options, forked, file_out, file_err, stats);
+
+  if (cross)
+  {
+    SolverOptions csolver_options;  // not used for now
+
+    Options coptions(options);
+    coptions.solver = options.cross_check;
+
+    Result cres = run_aux(seed,
+                          coptions,
+                          csolver_options,
+                          forked,
+                          file_cross_out,
+                          file_cross_err,
+                          stats);
+
+    if (res != cres)
+    {
+      std::cout << options.solver << ":" << get_info(res) << std::endl;
+      if (res == RESULT_ERROR)
+      {
+        std::ifstream err(file_err);
+        assert(err.is_open());
+        std::cout << err.rdbuf();
+        err.close();
+      }
+      std::cout << std::endl
+                << options.cross_check << ":" << get_info(cres) << std::endl;
+      if (cres == RESULT_ERROR)
+      {
+        std::ifstream err(file_cross_err);
+        assert(err.is_open());
+        std::cout << err.rdbuf();
+        err.close();
+      }
+      return RESULT_ERROR;
+    }
+    if (!compare_files(file_out, file_cross_out))
+    {
+      diff_files(std::cout, file_out, file_cross_out);
+      return RESULT_ERROR;
+    }
+  }
+  return res;
+}
+
 void
 write_strs_to_file(const std::vector<std::string>& lines,
                    std::string& out_file_name)
@@ -459,29 +600,6 @@ write_idxs_to_file(const std::vector<std::string>& lines,
     out_file << lines[idx] << std::endl;
   }
   out_file.close();
-}
-
-static bool
-compare_files(std::string file_name1, std::string file_name2)
-{
-  std::ifstream file1(file_name1, std::ifstream::binary | std::ifstream::ate);
-  std::ifstream file2(file_name2, std::ifstream::binary | std::ifstream::ate);
-
-  if (file1.fail() || file2.fail())
-  {
-    return false;
-  }
-
-  if (file1.tellg() != file2.tellg())
-  {
-    return false;
-  }
-
-  file1.seekg(0, file1.beg);
-  file2.seekg(0, file2.beg);
-  return std::equal(std::istreambuf_iterator<char>(file1.rdbuf()),
-                    std::istreambuf_iterator<char>(),
-                    std::istreambuf_iterator<char>(file2.rdbuf()));
 }
 
 std::vector<size_t>
@@ -512,6 +630,10 @@ dd(uint32_t seed,
   std::string tmp_trace_file_name = "smtmbt-dd-tmp.trace";
   std::string tmp_out_file_name   = "smtmbt-dd-tmp.out";
   std::string tmp_err_file_name   = "smtmbt-dd-tmp.err";
+  std::string gold_cross_out_file_name = "smtmbt-dd-cross-gold-tmp.out";
+  std::string gold_cross_err_file_name = "smtmbt-dd-cross-gold-tmp.err";
+  std::string tmp_cross_out_file_name  = "smtmbt-dd-cross-tmp.out";
+  std::string tmp_cross_err_file_name  = "smtmbt-dd-cross-tmp.err";
   std::ifstream gold_out_file, gold_err_file;
   std::ofstream dd_trace_file;
   std::vector<std::string> lines;
@@ -533,6 +655,8 @@ dd(uint32_t seed,
                   true,
                   gold_out_file_name,
                   gold_err_file_name,
+                  gold_cross_out_file_name,
+                  gold_cross_err_file_name,
                   &stats);
 
   /* start delta debugging */
@@ -601,6 +725,8 @@ dd(uint32_t seed,
                  true,
                  tmp_out_file_name,
                  tmp_err_file_name,
+                 tmp_cross_out_file_name,
+                 tmp_err_file_name,
                  &stats);
       if (exit == gold_exit
           && compare_files(tmp_out_file_name, gold_out_file_name)
@@ -629,6 +755,7 @@ dd(uint32_t seed,
   std::remove(tmp_trace_file_name.c_str());
   std::remove(tmp_out_file_name.c_str());
   std::remove(tmp_err_file_name.c_str());
+  // TODO remove cross files
 }
 
 template <class T>
@@ -800,6 +927,10 @@ main(int argc, char* argv[])
   uint32_t seed, num_runs = 0;
   char* env_file_name = nullptr;
   std::string devnull = "/dev/null";
+  std::string out_file_name       = devnull;
+  std::string err_file_name       = devnull;
+  std::string cross_out_file_name = "smtmbt-cross-tmp.out";
+  std::string cross_err_file_name = "smtmbt-cross-tmp.err";
   statistics::Statistics replay_stats;
 
   double start_time = get_cur_wall_time();
@@ -810,6 +941,7 @@ main(int argc, char* argv[])
   SolverOptions solver_options;
   bool is_seeded = g_options.seed > 0;
   bool is_untrace = !g_options.untrace_file_name.empty();
+  bool is_cross   = !g_options.cross_check.empty();
   bool is_forked;
 
   if (!g_options.solver_options_file.empty())
@@ -846,11 +978,25 @@ main(int argc, char* argv[])
       std::cout << std::flush;
     }
 
+    if (is_cross)
+    {
+      g_options.api_trace_file_name = devnull;
+      out_file_name                 = "smtmbt-tmp.out";
+      err_file_name                 = "smtmbt-tmp.err";
+    }
+
     /* We do not trace into file by default, only on replay in case of an error.
      * We also do not fork when a seed is given, or when untracing (except when
      * delta debugging is enabled). */
-    Result res = run(
-        seed, g_options, solver_options, is_forked, devnull, devnull, g_stats);
+    Result res = run(seed,
+                     g_options,
+                     solver_options,
+                     is_forked,
+                     out_file_name,
+                     err_file_name,
+                     cross_out_file_name,
+                     cross_err_file_name,
+                     g_stats);
 
     /* report status */
     if (!is_seeded && !is_untrace)
@@ -904,8 +1050,10 @@ main(int argc, char* argv[])
                                 g_options,
                                 solver_options,
                                 true,
-                                devnull,
-                                devnull,
+                                out_file_name,
+                                err_file_name,
+                                cross_out_file_name,
+                                cross_err_file_name,
                                 &replay_stats);
         assert(res == res_replay);
         unsetenv("SMTMBTAPITRACE");

@@ -177,6 +177,7 @@ class FSM
       std::ostream& trace,
       SolverOptions& options,
       bool trace_seeds,
+      bool cross_check,
       bool smt,
       statistics::Statistics* stats);
 
