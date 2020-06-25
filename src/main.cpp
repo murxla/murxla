@@ -33,6 +33,7 @@ struct Options
   bool trace_seeds = false;
   bool smt         = false;
   bool print_stats = false;
+  bool generic     = false;
   std::string api_trace_file_name;
   std::string untrace_file_name;
   bool dd = false;
@@ -198,7 +199,8 @@ set_sigint_handler_stats(void)
   "  -l, --smt-lib           generate SMT-LIB compliant traces only\n" \
   "  --btor                  test Boolector\n"                         \
   "  --cvc4                  test CVC4\n"                              \
-  "  --stats                 print statistics\n"
+  "  --stats                 print statistics\n"                       \
+  "  --trace-generic         generate solver independent traces\n"
 
 void
 check_next_arg(std::string& option, int i, int argc)
@@ -309,6 +311,11 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.smt = true;
     }
+    else if (arg == "--trace-generic")
+    {
+      options.generic = true;
+      options.smt     = true;
+    }
   }
 
   if (!options.use_btor && !options.use_cvc4)
@@ -415,11 +422,11 @@ run(uint32_t seed,
 
     if (options.use_btor)
     {
-      solver = new btor::BtorSolver(rng);
+      solver = new btor::BtorSolver(rng, options.generic);
     }
     else if (options.use_cvc4)
     {
-      solver = new cvc4::CVC4Solver(rng);
+      solver = new cvc4::CVC4Solver(rng, options.generic);
     }
 
     FSM fsm(rng,

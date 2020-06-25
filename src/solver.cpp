@@ -127,8 +127,14 @@ HashTerm::operator()(const Term t) const
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Solver::Solver(RNGenerator& rng) : d_rng(rng)
+Solver::Solver(RNGenerator& rng, bool generic) : d_rng(rng), d_generic(generic)
 {
+}
+
+bool
+Solver::is_generic() const
+{
+  return d_generic;
 }
 
 TheoryIdVector
