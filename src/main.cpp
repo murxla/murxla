@@ -2,10 +2,12 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include <cstdlib>
+#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -20,6 +22,11 @@
 
 using namespace smtmbt;
 using namespace statistics;
+
+const std::string COLOR_BLUE    = "\33[94m";
+const std::string COLOR_DEFAULT = "\33[39m";
+const std::string COLOR_GREEN   = "\33[92m";
+const std::string COLOR_RED     = "\33[91m";
 
 struct Options
 {
@@ -815,6 +822,17 @@ initialize_statistics()
   return stats;
 }
 
+static double
+get_cur_wall_time()
+{
+  struct timeval time;
+  if (gettimeofday(&time, nullptr))
+  {
+    die("failed to get time");
+  }
+  return (double) time.tv_sec + (double) time.tv_usec / 1000000;
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -822,6 +840,8 @@ main(int argc, char* argv[])
   char* env_file_name = nullptr;
   std::string devnull = "/dev/null";
   statistics::Statistics replay_stats;
+
+  double start_time = get_cur_wall_time();
 
   parse_options(g_options, argc, argv);
 
@@ -852,7 +872,17 @@ main(int argc, char* argv[])
 
     if (!is_seeded && !is_untrace)
     {
-      std::cout << num_runs++ << " " << seed << std::flush;
+      double cur_time = get_cur_wall_time();
+      std::cout << std::setw(10) << seed;
+      std::cout << " " << std::setw(5) << num_runs++ << " runs";
+      std::cout << " " << std::setw(8);
+      std::cout << std::setprecision(2) << std::fixed;
+      std::cout << num_runs / (cur_time - start_time) << " r/s";
+      std::cout << " " << std::setw(4);
+      std::cout << g_stats->d_results[Solver::Result::SAT] << " sat";
+      std::cout << " " << std::setw(4);
+      std::cout << g_stats->d_results[Solver::Result::UNSAT] << " unsat";
+      std::cout << std::flush;
     }
 
     /* We do not trace into file by default, only on replay in case of an error.
@@ -862,28 +892,31 @@ main(int argc, char* argv[])
         seed, g_options, solver_options, is_forked, devnull, devnull, g_stats);
 
     /* report status */
-    std::stringstream info;
-    switch (res)
-    {
-      case RESULT_OK: break;
-      case RESULT_ERROR: info << " error"; break;
-      case RESULT_SIGNAL: info << " signal"; break;
-      case RESULT_TIMEOUT:
-        info << " timed out after " << g_options.time << " seconds ";
-        break;
-      default: assert(res == RESULT_UNKNOWN); info << " unknown";
-    }
     if (!is_seeded && !is_untrace)
     {
-      if (info.str().empty())
+      if (res == RESULT_OK)
       {
         std::cout << "\33[2K\r" << std::flush;
       }
       else
       {
-        std::cout << info.str() << std::endl << std::flush;
+        std::stringstream info;
+        info << " [";
+        switch (res)
+        {
+          case RESULT_ERROR: info << COLOR_RED << "error"; break;
+          case RESULT_SIGNAL: info << COLOR_GREEN << "signal"; break;
+          case RESULT_TIMEOUT: info << COLOR_BLUE << "timeout"; break;
+          default: assert(res == RESULT_UNKNOWN); info << "unknown";
+        }
+        info << COLOR_DEFAULT << "]";
+
+        std::cout << info.str() << std::flush;
+        if (res == RESULT_ERROR)
+          std::cout << " ";
+        else
+          std::cout << std::endl;
       }
-      std::cout << res << std::flush;
     }
 
     /* replay and trace on error */
