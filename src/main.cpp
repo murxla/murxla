@@ -35,7 +35,7 @@ struct Options
 {
   uint32_t seed      = 0;
   uint32_t verbosity = 0;
-  uint32_t time      = 0;
+  double time        = 0;
   uint32_t max_runs  = 0;
 
   bool trace_seeds = false;
@@ -159,7 +159,14 @@ set_signal_handlers(void)
 static void
 reset_alarm(void)
 {
-  alarm(0);
+  struct itimerval it_val;
+  it_val.it_interval.tv_sec  = 0;
+  it_val.it_interval.tv_usec = 0;
+  it_val.it_value            = it_val.it_interval;
+  if (setitimer(ITIMER_REAL, &it_val, nullptr) == -1)
+  {
+    die("failed to stop itimer");
+  }
   (void) signal(SIGALRM, sig_alrm_handler);
 }
 
@@ -177,7 +184,17 @@ set_alarm(void)
 {
   sig_alrm_handler = signal(SIGALRM, catch_alarm);
   assert(g_options.time > 0);
-  alarm(g_options.time);
+
+  struct itimerval it_val;
+  it_val.it_interval.tv_usec = 0;
+  it_val.it_interval.tv_sec  = 0;
+  it_val.it_value.tv_sec     = (long int) g_options.time;
+  it_val.it_value.tv_usec = (g_options.time - it_val.it_value.tv_sec) * 1000000;
+
+  if (setitimer(ITIMER_REAL, &it_val, nullptr) == -1)
+  {
+    die("failed to set itimer");
+  }
 }
 
 /*****************************************************************************/
@@ -267,17 +284,9 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "-t" || arg == "--time")
     {
-      std::stringstream ss;
       i += 1;
       check_next_arg(arg, i, argc);
-      ss << argv[i];
-      if (ss.str().find('-') != std::string::npos)
-      {
-        std::stringstream es;
-        es << "invalid argument to " << argv[i - 1] << ": " << ss.str();
-        die(es.str());
-      }
-      ss >> options.time;
+      options.time = std::atof(argv[i]);
     }
     else if (arg == "-v" || arg == "--verbosity")
     {
