@@ -593,24 +593,6 @@ CVC4Solver::option_unsat_assumptions_enabled() const
   return d_solver->getOption("produce-unsat-assumptions") == "true";
 }
 
-std::string
-CVC4Solver::get_option_value_enable_incremental() const
-{
-  return "true";
-}
-
-std::string
-CVC4Solver::get_option_value_enable_model_gen() const
-{
-  return "true";
-}
-
-std::string
-CVC4Solver::get_option_value_enable_unsat_assumptions() const
-{
-  return "true";
-}
-
 std::vector<Term>
 CVC4Solver::cvc4_terms_to_terms(std::vector<CVC4::api::Term>& terms) const
 {

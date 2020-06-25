@@ -1006,25 +1006,6 @@ BtorSolver::option_unsat_assumptions_enabled() const
   return true;
 }
 
-std::string
-BtorSolver::get_option_value_enable_incremental() const
-{
-  return "1";
-}
-
-std::string
-BtorSolver::get_option_value_enable_model_gen() const
-{
-  return "1";
-}
-
-std::string
-BtorSolver::get_option_value_enable_unsat_assumptions() const
-{
-  /* always enabled in Boolector, can not be configured via set_opt */
-  return "1";
-}
-
 /* -------------------------------------------------------------------------- */
 
 std::vector<Term>

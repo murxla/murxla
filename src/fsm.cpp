@@ -287,23 +287,32 @@ class ActionSetOption : public Action
     assert(d_solver.is_initialized());
     std::string opt, value;
 
+    /**
+     * We handle the following special options differently than the rest:
+     * - setting these options has higher priority
+     * - setting these options *must* be implemented in the solvers
+     *   (even when no solver options are configured)
+     * - no matter what the underlying solver API expects, we pass their
+     *   Boolean values as "true" and "false" (the implementations of class
+     *   Solver must support/consider this)
+     */
     if (!d_smgr.d_incremental && d_rng.pick_with_prob(10))
     {
       /* explicitly enable this option with higher priority */
       opt   = d_solver.get_option_name_incremental();
-      value = d_solver.get_option_value_enable_incremental();
+      value = "true";
     }
     else if (!d_smgr.d_model_gen && d_rng.pick_with_prob(10))
     {
       /* explicitly enable this option with higher priority */
       opt   = d_solver.get_option_name_model_gen();
-      value = d_solver.get_option_value_enable_model_gen();
+      value = "true";
     }
     else if (!d_smgr.d_unsat_assumptions && d_rng.pick_with_prob(10))
     {
       /* explicitly enable this option with higher priority */
       opt   = d_solver.get_option_name_unsat_assumptions();
-      value = d_solver.get_option_value_enable_unsat_assumptions();
+      value = "true";
     }
     else
     {

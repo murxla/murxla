@@ -82,9 +82,6 @@ class CVC4Solver : public Solver
   bool option_incremental_enabled() const override;
   bool option_model_gen_enabled() const override;
   bool option_unsat_assumptions_enabled() const override;
-  std::string get_option_value_enable_incremental() const override;
-  std::string get_option_value_enable_model_gen() const override;
-  std::string get_option_value_enable_unsat_assumptions() const override;
 
   std::vector<CVC4::api::Term> terms_to_cvc4_terms(
       std::vector<Term>& terms) const;
