@@ -23,6 +23,9 @@
 using namespace smtmbt;
 using namespace statistics;
 
+#define SMTMBT_SOLVER_BTOR "btor"
+#define SMTMBT_SOLVER_CVC4 "cvc4"
+
 const std::string COLOR_BLUE    = "\33[94m";
 const std::string COLOR_DEFAULT = "\33[39m";
 const std::string COLOR_GREEN   = "\33[92m";
@@ -35,12 +38,11 @@ struct Options
   uint32_t time      = 0;
   uint32_t max_runs  = 0;
 
-  bool use_btor    = false;
-  bool use_cvc4    = false;
   bool trace_seeds = false;
   bool smt         = false;
   bool print_stats = false;
   bool generic     = false;
+  std::string solver;
   std::string api_trace_file_name;
   std::string untrace_file_name;
   bool dd = false;
@@ -288,11 +290,11 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "--btor")
     {
-      options.use_btor = true;
+      options.solver = SMTMBT_SOLVER_BTOR;
     }
     else if (arg == "--cvc4")
     {
-      options.use_cvc4 = true;
+      options.solver = SMTMBT_SOLVER_CVC4;
     }
     else if (arg == "-o" || arg == "--options")
     {
@@ -325,7 +327,7 @@ parse_options(Options& options, int argc, char* argv[])
     }
   }
 
-  if (!options.use_btor && !options.use_cvc4)
+  if (options.solver.empty())
   {
     die("No solver selected");
   }
@@ -427,11 +429,11 @@ run(uint32_t seed,
 
     Solver *solver= nullptr;
 
-    if (options.use_btor)
+    if (options.solver == SMTMBT_SOLVER_BTOR)
     {
       solver = new btor::BtorSolver(rng, options.generic);
     }
-    else if (options.use_cvc4)
+    else if (options.solver == SMTMBT_SOLVER_CVC4)
     {
       solver = new cvc4::CVC4Solver(rng, options.generic);
     }
