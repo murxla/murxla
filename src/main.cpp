@@ -97,6 +97,23 @@ die(const std::string& msg)
   exit(EXIT_ERROR);
 }
 
+static std::string
+get_info(Result res)
+{
+  std::stringstream info;
+  switch (res)
+  {
+    case RESULT_OK: break;
+    case RESULT_ERROR: info << " error"; break;
+    case RESULT_SIGNAL: info << " signal"; break;
+    case RESULT_TIMEOUT:
+      info << " timed out after " << g_options.time << " seconds ";
+      break;
+    default: assert(res == RESULT_UNKNOWN); info << " unknown";
+  }
+  return info.str();
+}
+
 /*****************************************************************************/
 
 static void (*sig_int_handler)(int32_t);
@@ -956,7 +973,6 @@ main(int argc, char* argv[])
           g_options.api_trace_file_name = "";
         }
       }
-      std::cout << error_trace_file_name << std::endl;
       if (g_options.dd)
       {
         std::stringstream dd_trace_file_name;
