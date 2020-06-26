@@ -57,7 +57,6 @@ enum Result
 {
   RESULT_ERROR,
   RESULT_OK,
-  RESULT_SIGNAL,
   RESULT_TIMEOUT,
   RESULT_UNKNOWN,
 };
@@ -66,7 +65,6 @@ enum ExitCodes
 {
   EXIT_ERROR,
   EXIT_OK,
-  EXIT_TIMEOUT,
 };
 
 /*****************************************************************************/
@@ -116,91 +114,7 @@ get_info(Result res)
 
 /*****************************************************************************/
 
-static void (*sig_int_handler)(int32_t);
-static void (*sig_segv_handler)(int32_t);
-static void (*sig_abrt_handler)(int32_t);
-static void (*sig_term_handler)(int32_t);
-static void (*sig_bus_handler)(int32_t);
-static void (*sig_alrm_handler)(int32_t);
-
-static void
-reset_signal_handlers(void)
-{
-  (void) signal(SIGINT, sig_int_handler);
-  (void) signal(SIGSEGV, sig_segv_handler);
-  (void) signal(SIGABRT, sig_abrt_handler);
-  (void) signal(SIGTERM, sig_term_handler);
-  (void) signal(SIGBUS, sig_bus_handler);
-}
-
-static void
-catch_signal(int32_t signal)
-{
-  static int32_t caught_signal = 0;
-  if (!caught_signal)
-  {
-    caught_signal = signal;
-  }
-  reset_signal_handlers();
-  raise(signal);
-  exit(EXIT_ERROR);
-}
-
-static void
-set_signal_handlers(void)
-{
-  sig_int_handler  = signal(SIGINT, catch_signal);
-  sig_segv_handler = signal(SIGSEGV, catch_signal);
-  sig_abrt_handler = signal(SIGABRT, catch_signal);
-  sig_term_handler = signal(SIGTERM, catch_signal);
-  sig_bus_handler  = signal(SIGBUS, catch_signal);
-}
-
-static void
-reset_alarm(void)
-{
-  struct itimerval it_val;
-  it_val.it_interval.tv_sec  = 0;
-  it_val.it_interval.tv_usec = 0;
-  it_val.it_value            = it_val.it_interval;
-  if (setitimer(ITIMER_REAL, &it_val, nullptr) == -1)
-  {
-    die("failed to stop itimer");
-  }
-  (void) signal(SIGALRM, sig_alrm_handler);
-}
-
-static void
-catch_alarm(int32_t signal)
-{
-  (void) signal;
-  assert(signal == SIGALRM);
-  reset_alarm();
-  exit(EXIT_TIMEOUT);
-}
-
-static void
-set_alarm(void)
-{
-  sig_alrm_handler = signal(SIGALRM, catch_alarm);
-  assert(g_options.time > 0);
-
-  struct itimerval it_val;
-  it_val.it_interval.tv_usec = 0;
-  it_val.it_interval.tv_sec  = 0;
-  it_val.it_value.tv_sec     = (long int) g_options.time;
-  it_val.it_value.tv_usec = (g_options.time - it_val.it_value.tv_sec) * 1000000;
-
-  if (setitimer(ITIMER_REAL, &it_val, nullptr) == -1)
-  {
-    die("failed to set itimer");
-  }
-}
-
-/*****************************************************************************/
-
 /* Signal handler for printing statistics */
-
 static void (*sig_int_handler_stats)(int32_t);
 
 static void
@@ -232,7 +146,7 @@ set_sigint_handler_stats(void)
   "  -h, --help              print this message and exit\n"            \
   "  -s, --seed <int>        seed for random number generator\n"       \
   "  -S, --trace-seeds       trace seed for each API call\n"           \
-  "  -t, --time <int>        time limit for MBT runs\n"                \
+  "  -t, --time <double>     time limit for MBT runs\n"                \
   "  -v, --verbosity         increase verbosity\n"                     \
   "  -d, --dd                enable delta debugging\n"                 \
   "  -D, --dd-trace <file>   delta debug API trace into <file>\n"      \
@@ -371,7 +285,7 @@ run(uint32_t seed,
   bool untrace = !options.untrace_file_name.empty();
   int32_t status, fd;
   Result result;
-  pid_t pid = 0;
+  pid_t solver_pid = 0, timeout_pid = 0;
   std::streambuf* trace_buf;
   std::ofstream trace_file;
   std::ifstream untrace_file;
@@ -396,10 +310,10 @@ run(uint32_t seed,
   /* If seeded run in main process. */
   if (run_forked)
   {
-    pid = fork();
-    if (pid == -1)
+    solver_pid = fork();
+    if (solver_pid == -1)
     {
-      die("Fork failed.");
+      die("forking solver process failed.");
     }
   }
 
@@ -410,38 +324,58 @@ run(uint32_t seed,
   }
 
   /* parent */
-  if (pid)
+  if (solver_pid)
   {
-    reset_alarm();
-    wait(&status);
-
-    if (WIFEXITED(status))
+    /* If a time limit is given, fork another process that kills the solver_pid
+     * after g_option.time seconds. (https://stackoverflow.com/a/8020324) */
+    if (g_options.time)
     {
-      int exit_code = WEXITSTATUS(status);
-      switch (exit_code)
+      timeout_pid = fork();
+      if (timeout_pid == -1)
       {
-        case EXIT_OK: result = RESULT_OK; break;
-        case EXIT_ERROR: result = RESULT_ERROR; break;
-        case EXIT_TIMEOUT: result = RESULT_TIMEOUT; break;
-        default: result = RESULT_UNKNOWN;
+        die("forking timeout process failed");
+      }
+      if (timeout_pid == 0)
+      {
+        usleep(g_options.time * 1000000);
+        _exit(EXIT_OK);
       }
     }
-    else if (WIFSIGNALED(status))
+
+    /* Wait for the first process to finish (solver_pid or timeout_pid). */
+    pid_t exited_pid = wait(&status);
+
+    if (exited_pid == solver_pid)
     {
-      result = RESULT_SIGNAL;
+      /* Kill and collect timeout process if solver process terminated first. */
+      if (timeout_pid)
+      {
+        kill(timeout_pid, SIGKILL);
+        waitpid(timeout_pid, nullptr, 0);
+      }
+      if (WIFEXITED(status))
+      {
+        result = WEXITSTATUS(status) == EXIT_OK ? RESULT_OK : RESULT_ERROR;
+      }
+      else if (WIFSIGNALED(status))
+      {
+        result = RESULT_ERROR;
+      }
+    }
+    else
+    {
+      /* Kill and collect solver process if time limit is exceeded. */
+      assert(timeout_pid);
+      kill(solver_pid, SIGKILL);
+      waitpid(solver_pid, nullptr, 0);
+      result = RESULT_TIMEOUT;
     }
   }
   /* child */
   else
   {
-    if (options.time)
-    {
-      set_alarm();
-    }
-
     if (run_forked)
     {
-      set_signal_handlers();
       /* redirect stdout and stderr of child process to /dev/null */
       fd = open(
           file_out.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -489,7 +423,7 @@ run(uint32_t seed,
 
     if (run_forked)
     {
-      exit(EXIT_OK);
+      _exit(EXIT_OK);
     }
     else
     {
@@ -933,7 +867,6 @@ main(int argc, char* argv[])
         switch (res)
         {
           case RESULT_ERROR: info << COLOR_RED << "error"; break;
-          case RESULT_SIGNAL: info << COLOR_GREEN << "signal"; break;
           case RESULT_TIMEOUT: info << COLOR_BLUE << "timeout"; break;
           default: assert(res == RESULT_UNKNOWN); info << "unknown";
         }
