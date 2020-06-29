@@ -1217,7 +1217,7 @@ class BtorActionBvAssignment : public Action
      *       as it is implemented now, and since its API will not change / be
      *       extended anymore (Boolector is succeeded by Bitwuzla), we consider
      *       it not worth the effort. */
-    SMTMBT_TRACE << get_id() << " ";
+    SMTMBT_TRACE << get_id();
     uint64_t n = d_rng.pick<uint64_t>(1, d_smgr.get_n_terms(SORT_BV));
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     std::vector<const char*> assignments;
