@@ -64,8 +64,8 @@ enum Result
 
 enum ExitCodes
 {
-  EXIT_ERROR,
   EXIT_OK,
+  EXIT_ERROR,
 };
 
 /*****************************************************************************/
@@ -104,9 +104,7 @@ get_info(Result res)
   {
     case RESULT_OK: info << " ok"; break;
     case RESULT_ERROR: info << " error"; break;
-    case RESULT_TIMEOUT:
-      info << " timed out after " << g_options.time << " seconds ";
-      break;
+    case RESULT_TIMEOUT: info << " timeout"; break;
     default: assert(res == RESULT_UNKNOWN); info << " unknown";
   }
   return info.str();
@@ -390,7 +388,7 @@ run_aux(uint32_t seed,
   {
     if (run_forked)
     {
-      /* redirect stdout and stderr of child process to /dev/null */
+      /* Redirect stdout and stderr of child process into given files. */
       fd = open(
           file_out.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
       dup2(fd, STDOUT_FILENO);
@@ -509,6 +507,7 @@ diff_files(std::ostream& out, std::string file_name1, std::string file_name2)
     out << std::left << std::setw(9) << " ";
     out << std::left << std::setw(9) << line2 << std::endl;
   }
+  out << COLOR_DEFAULT << std::flush;
   file1.close();
   file2.close();
 }
@@ -520,18 +519,38 @@ run(uint32_t seed,
     bool run_forked,
     std::string file_out,
     std::string file_err,
-    std::string file_cross_out,
-    std::string file_cross_err,
     Statistics* stats)
 {
   bool cross  = !options.cross_check.empty();
   bool forked = run_forked || cross;
-  Result res =
-      run_aux(seed, options, solver_options, forked, file_out, file_err, stats);
+  std::string tmp_file_out = "smtmbt-run-tmp1.out";
+  std::string tmp_file_err = "smtmbt-run-tmp1.err";
+
+  Result res = run_aux(
+      seed, options, solver_options, forked, tmp_file_out, tmp_file_err, stats);
 
   if (cross)
   {
+    std::streambuf *obuf, *ebuf;
+    std::ofstream fout, ferr;
+
+    if (options.dd)
+    {
+      fout.open(file_out);
+      ferr.open(file_err);
+      obuf = fout.rdbuf();
+      ebuf = ferr.rdbuf();
+    }
+    else
+    {
+      obuf = std::cout.rdbuf();
+      ebuf = std::cout.rdbuf();
+    }
+    std::ostream out(obuf), err(ebuf);
+
     SolverOptions csolver_options;  // not used for now
+    std::string tmp_file_cross_out = "smtmbt-run-tmp2.out";
+    std::string tmp_file_cross_err = "smtmbt-run-tmp2.err";
 
     Options coptions(options);
     coptions.solver = options.cross_check;
@@ -540,37 +559,74 @@ run(uint32_t seed,
                           coptions,
                           csolver_options,
                           forked,
-                          file_cross_out,
-                          file_cross_err,
+                          tmp_file_cross_out,
+                          tmp_file_cross_err,
                           stats);
 
+    /* write result / error output to .err */
     if (res != cres)
     {
-      std::cout << options.solver << ":" << get_info(res) << std::endl;
+      err << options.solver << ":" << get_info(res) << std::endl;
       if (res == RESULT_ERROR)
       {
-        std::ifstream err(file_err);
-        assert(err.is_open());
-        std::cout << err.rdbuf();
-        err.close();
+        std::ifstream tmp_err(tmp_file_err);
+        assert(tmp_err.is_open());
+        err << tmp_err.rdbuf();
+        tmp_err.close();
+        err << std::endl;
       }
-      std::cout << std::endl
-                << options.cross_check << ":" << get_info(cres) << std::endl;
+      err << options.cross_check << ":" << get_info(cres) << std::endl;
+
       if (cres == RESULT_ERROR)
       {
-        std::ifstream err(file_cross_err);
-        assert(err.is_open());
-        std::cout << err.rdbuf();
-        err.close();
+        std::ifstream tmp_err(tmp_file_cross_err);
+        assert(tmp_err.is_open());
+        err << tmp_err.rdbuf();
+        tmp_err.close();
       }
-      return RESULT_ERROR;
+      res = RESULT_ERROR;
     }
-    if (!compare_files(file_out, file_cross_out))
+
+    /* write output diff to .out */
+    if (!compare_files(tmp_file_out, tmp_file_cross_out))
     {
-      diff_files(std::cout, file_out, file_cross_out);
-      return RESULT_ERROR;
+      out << "output differs";
+      if (options.dd)
+      {
+        out << std::endl;
+      }
+      else
+      {
+        out << ":" << std::endl;
+        diff_files(out, tmp_file_out, tmp_file_cross_out);
+      }
+      res = RESULT_ERROR;
     }
+    std::remove(tmp_file_cross_out.c_str());
+    std::remove(tmp_file_cross_err.c_str());
   }
+  else if (forked)
+  {
+    std::ofstream err(file_err);
+    assert(err.is_open());
+    std::ofstream out(file_out);
+    assert(out.is_open());
+
+    std::ifstream tmp_out(tmp_file_out);
+    assert(tmp_out.is_open());
+    out << tmp_out.rdbuf();
+    tmp_out.close();
+
+    std::ifstream tmp_err(tmp_file_err);
+    assert(tmp_err.is_open());
+    err << tmp_err.rdbuf();
+    tmp_err.close();
+
+    out.close();
+    err.close();
+  }
+  std::remove(tmp_file_out.c_str());
+  std::remove(tmp_file_err.c_str());
   return res;
 }
 
@@ -630,10 +686,6 @@ dd(uint32_t seed,
   std::string tmp_trace_file_name = "smtmbt-dd-tmp.trace";
   std::string tmp_out_file_name   = "smtmbt-dd-tmp.out";
   std::string tmp_err_file_name   = "smtmbt-dd-tmp.err";
-  std::string gold_cross_out_file_name = "smtmbt-dd-cross-gold-tmp.out";
-  std::string gold_cross_err_file_name = "smtmbt-dd-cross-gold-tmp.err";
-  std::string tmp_cross_out_file_name  = "smtmbt-dd-cross-tmp.out";
-  std::string tmp_cross_err_file_name  = "smtmbt-dd-cross-tmp.err";
   std::ifstream gold_out_file, gold_err_file;
   std::ofstream dd_trace_file;
   std::vector<std::string> lines;
@@ -645,7 +697,6 @@ dd(uint32_t seed,
   Options o(g_options);
   o.verbosity           = 0;
   o.api_trace_file_name = tmp_trace_file_name;
-  o.dd                  = false;
   o.untrace_file_name   = trace_file_name;
 
   /* golden run */
@@ -655,8 +706,6 @@ dd(uint32_t seed,
                   true,
                   gold_out_file_name,
                   gold_err_file_name,
-                  gold_cross_out_file_name,
-                  gold_cross_err_file_name,
                   &stats);
 
   /* start delta debugging */
@@ -725,14 +774,11 @@ dd(uint32_t seed,
                  true,
                  tmp_out_file_name,
                  tmp_err_file_name,
-                 tmp_cross_out_file_name,
-                 tmp_err_file_name,
                  &stats);
       if (exit == gold_exit
           && compare_files(tmp_out_file_name, gold_out_file_name)
           && compare_files(tmp_err_file_name, gold_err_file_name))
       {
-        /* found subset that triggers the same behavior */
         cur_superset = tmp;
         excluded_sets.insert(i);
       }
@@ -755,7 +801,6 @@ dd(uint32_t seed,
   std::remove(tmp_trace_file_name.c_str());
   std::remove(tmp_out_file_name.c_str());
   std::remove(tmp_err_file_name.c_str());
-  // TODO remove cross files
 }
 
 template <class T>
@@ -929,8 +974,6 @@ main(int argc, char* argv[])
   std::string devnull = "/dev/null";
   std::string out_file_name       = devnull;
   std::string err_file_name       = devnull;
-  std::string cross_out_file_name = "smtmbt-cross-tmp.out";
-  std::string cross_err_file_name = "smtmbt-cross-tmp.err";
   statistics::Statistics replay_stats;
 
   double start_time = get_cur_wall_time();
@@ -994,8 +1037,6 @@ main(int argc, char* argv[])
                      is_forked,
                      out_file_name,
                      err_file_name,
-                     cross_out_file_name,
-                     cross_err_file_name,
                      g_stats);
 
     /* report status */
@@ -1045,18 +1086,14 @@ main(int argc, char* argv[])
           }
         }
         error_trace_file_name = g_options.api_trace_file_name;
-        setenv("SMTMBTAPITRACE", g_options.api_trace_file_name.c_str(), 1);
         Result res_replay = run(seed,
                                 g_options,
                                 solver_options,
                                 true,
                                 out_file_name,
                                 err_file_name,
-                                cross_out_file_name,
-                                cross_err_file_name,
                                 &replay_stats);
         assert(res == res_replay);
-        unsetenv("SMTMBTAPITRACE");
         if (!env_file_name)
         {
           g_options.api_trace_file_name = "";
@@ -1097,6 +1134,12 @@ main(int argc, char* argv[])
     std::cout << "\r" << std::flush;
   } while (!is_seeded && !is_untrace
            && (g_options.max_runs == 0 || num_runs < g_options.max_runs));
+
+  if (is_cross)
+  {
+    std::remove(out_file_name.c_str());
+    std::remove(err_file_name.c_str());
+  }
 
   if (g_options.print_stats) g_stats->print();
 
