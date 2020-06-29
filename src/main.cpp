@@ -103,7 +103,6 @@ get_info(Result res)
   {
     case RESULT_OK: break;
     case RESULT_ERROR: info << " error"; break;
-    case RESULT_SIGNAL: info << " signal"; break;
     case RESULT_TIMEOUT:
       info << " timed out after " << g_options.time << " seconds ";
       break;
