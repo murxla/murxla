@@ -475,22 +475,22 @@ class ActionMkTerm : public Action
 
     /* pick operator kind */
     // TODO: pick op_kind with existing terms for arguments?
-    OpKindData& kind_data   = d_smgr.pick_op_kind_data();
-    OpKind kind             = kind_data.d_kind;
-    int32_t arity           = kind_data.d_arity;
-    uint32_t n_params       = kind_data.d_nparams;
-    SortKind sort_kind      = kind_data.d_sort_kind;
+    Op& op             = d_smgr.pick_op();
+    OpKind kind        = op.d_kind;
+    int32_t arity      = op.d_arity;
+    uint32_t n_params  = op.d_nparams;
+    SortKind sort_kind = op.d_sort_kind;
 
     if (arity < 0)
     {
       /* All arguments have the same sort */
-      if (!d_smgr.has_term(kind_data.get_arg_sort_kind(0))) return false;
+      if (!d_smgr.has_term(op.get_arg_sort_kind(0))) return false;
     }
     else
     {
       for (int32_t i = 0; i < arity; ++i)
       {
-        if (!d_smgr.has_term(kind_data.get_arg_sort_kind(i))) return false;
+        if (!d_smgr.has_term(op.get_arg_sort_kind(i))) return false;
       }
     }
 
@@ -514,7 +514,7 @@ class ActionMkTerm : public Action
     }
     else if (kind == OpKind::OP_ITE)
     {
-      sort = d_smgr.pick_sort(kind_data.get_arg_sort_kind(1));
+      sort = d_smgr.pick_sort(op.get_arg_sort_kind(1));
       args.push_back(d_smgr.pick_term(SORT_BOOL));
       args.push_back(d_smgr.pick_term(sort));
       args.push_back(d_smgr.pick_term(sort));
@@ -522,7 +522,7 @@ class ActionMkTerm : public Action
     }
     else if (kind == OpKind::OP_ARRAY_SELECT)
     {
-      Sort array_sort = d_smgr.pick_sort(kind_data.get_arg_sort_kind(0));
+      Sort array_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
       const std::vector<Sort>& sorts = array_sort->get_sorts();
       assert(sorts.size() == 2);
       Sort index_sort = sorts[0];
@@ -535,7 +535,7 @@ class ActionMkTerm : public Action
     }
     else if (kind == OpKind::OP_ARRAY_STORE)
     {
-      Sort array_sort = d_smgr.pick_sort(kind_data.get_arg_sort_kind(0));
+      Sort array_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
       const std::vector<Sort>& sorts = array_sort->get_sorts();
       assert(sorts.size() == 2);
       Sort index_sort   = sorts[0];
@@ -551,7 +551,7 @@ class ActionMkTerm : public Action
     else
     {
       /* Assume same sort for every argument */
-      sort = d_smgr.pick_sort(kind_data.get_arg_sort_kind(0));
+      sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
 
       if (arity == SMTMBT_MK_TERM_N_ARGS)
       {

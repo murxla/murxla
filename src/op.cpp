@@ -17,7 +17,8 @@ OpKindHashFunction::operator()(OpKind kind) const
   return kind;
 }
 
-bool OpKindData::operator == (const OpKindData& other) const
+bool
+Op::operator==(const Op& other) const
 {
   if (d_kind != other.d_kind || d_arity != other.d_arity
       || d_sort_kind != other.d_sort_kind)
@@ -33,7 +34,7 @@ bool OpKindData::operator == (const OpKindData& other) const
 }
 
 SortKind
-OpKindData::get_arg_sort_kind(size_t i) const
+Op::get_arg_sort_kind(size_t i) const
 {
   if (i >= d_sort_kind_args.size())
   {

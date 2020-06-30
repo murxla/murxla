@@ -84,13 +84,13 @@ struct OpKindHashFunction
   size_t operator()(OpKind kind) const;
 };
 
-struct OpKindData
+struct Op
 {
-  OpKindData(OpKind kind,
-             int32_t arity,
-             uint32_t nparams,
-             SortKind sort_kind,
-             const std::vector<SortKind>& sort_kind_args)
+  Op(OpKind kind,
+     int32_t arity,
+     uint32_t nparams,
+     SortKind sort_kind,
+     const std::vector<SortKind>& sort_kind_args)
       : d_kind(kind),
         d_arity(arity),
         d_nparams(nparams),
@@ -99,7 +99,7 @@ struct OpKindData
   {
   }
 
-  bool operator==(const OpKindData& other) const;
+  bool operator==(const Op& other) const;
 
   SortKind get_arg_sort_kind(size_t i) const;
 
@@ -116,29 +116,6 @@ struct OpKindData
   /* The sort kind of the term arguments of this kind. */
   std::vector<SortKind> d_sort_kind_args;
 };
-
-#if 0
-struct Op
-{
-  Op() : d_kind(OpKind::UNDEFINED), d_indices(){};
-  Op(OpKind k, std::vector<uint32_t>& indices)
-      : d_kind(k), d_indices(indices){};
-
-  bool operator==(const Op& other) const
-  {
-    // TODO
-    return false;
-  }
-
-  OpKind d_kind;
-  std::vector<uint32_t> d_indices;
-
-  //  /* The theory of a term of this kind. */
-  //  TheoryId d_theory_term;
-  //  /* The theory of the term arguments of this kind. */
-  //  TheoryId d_theory_args;
-};
-#endif
 
 #define SMTMBT_OP_TO_STR(kind) \
   {                            \
@@ -217,7 +194,7 @@ OpKind op_kind_from_str(std::string& s);
 
 using OpKindVector = std::vector<OpKind>;
 using OpKindSet    = std::unordered_set<OpKind, OpKindHashFunction>;
-using OpKindMap    = std::unordered_map<OpKind, OpKindData, OpKindHashFunction>;
+using OpKindMap    = std::unordered_map<OpKind, Op, OpKindHashFunction>;
 using OpKinds = std::unordered_map<SortKind, OpKindVector>;
 
 }  // namespace smtmbt

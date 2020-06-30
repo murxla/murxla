@@ -229,10 +229,10 @@ SolverManager::pick_sort_kind_data()
   return pick_kind<SortKind, SortKindData, SortKindMap>(d_sort_kinds);
 }
 
-OpKindData&
-SolverManager::pick_op_kind_data()
+Op&
+SolverManager::pick_op()
 {
-  return pick_kind<OpKind, OpKindData, OpKindMap>(d_op_kinds);
+  return pick_kind<OpKind, Op, OpKindMap>(d_op_kinds);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -713,8 +713,8 @@ SolverManager::add_op_kind(const OpKindSet& supported_kinds,
 {
   if (supported_kinds.find(kind) != supported_kinds.end())
   {
-    d_op_kinds.emplace(
-        kind, OpKindData(kind, arity, nparams, sort_kind, sort_kind_args));
+    d_op_kinds.emplace(kind,
+                       Op(kind, arity, nparams, sort_kind, sort_kind_args));
   }
 }
 

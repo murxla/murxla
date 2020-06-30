@@ -101,7 +101,7 @@ class SolverManager
    * Pick enabled operator kind (and get its data).
    * Only operator kinds of enabled theories are picked.
    */
-  OpKindData& pick_op_kind_data();
+  Op& pick_op();
 
   /** Pick any of the enabled theories. */
   TheoryId pick_theory();
@@ -334,7 +334,7 @@ class SolverManager
 
   /** The set of enabled sort kinds. Maps SortKind to SortKindData. */
   SortKindMap d_sort_kinds;
-  /** The set of enabled operator kinds. Maps OpKind to OpKindData. */
+  /** The set of enabled operator kinds. Maps OpKind to Op. */
   OpKindMap d_op_kinds;
 
   /** The set of enabled theories. */
