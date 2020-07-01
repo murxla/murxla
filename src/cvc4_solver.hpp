@@ -26,6 +26,8 @@ class CVC4Sort : public AbsSort
   bool is_bool() const override;
   bool is_bv() const override;
   uint32_t get_bv_size() const override;
+  uint32_t get_exp_size() const override;
+  uint32_t get_sig_size() const override;
 
  private:
   CVC4::api::Solver* d_solver;
@@ -110,6 +112,7 @@ class CVC4Solver : public Solver
 
   Sort mk_sort(SortKind kind) const override;
   Sort mk_sort(SortKind kind, uint32_t size) const override;
+  Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) const override;
 
   Term mk_const(Sort sort, const std::string name) const override;

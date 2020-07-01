@@ -13,6 +13,8 @@ enum SortKind
   SORT_ARRAY,
   SORT_BV,
   SORT_BOOL,
+  SORT_FP,
+  SORT_RM,
   SORT_ANY,
 };
 
@@ -25,6 +27,8 @@ static std::unordered_map<SortKind, std::string, SortKindHashFunction>
     sort_kinds_to_str{{SORT_ARRAY, "SORT_ARRAY"},
                       {SORT_BV, "SORT_BV"},
                       {SORT_BOOL, "SORT_BOOL"},
+                      {SORT_FP, "SORT_FP"},
+                      {SORT_RM, "SORT_RM"},
                       {SORT_ANY, "SORT_ANY"}};
 
 struct SortKindData

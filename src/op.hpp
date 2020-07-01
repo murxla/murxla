@@ -13,10 +13,13 @@ namespace smtmbt {
 enum OpKind
 {
   OP_UNDEFINED,
+
+  /* Special cases */
   OP_DISTINCT,
   OP_EQUAL,
   OP_ITE,
 
+  /* Boolean */
   OP_AND,
   OP_IFF,
   OP_IMPLIES,
@@ -24,6 +27,11 @@ enum OpKind
   OP_OR,
   OP_XOR,
 
+  /* Arrays */
+  OP_ARRAY_SELECT,
+  OP_ARRAY_STORE,
+
+  /* BV */
   OP_BV_EXTRACT,
   OP_BV_REPEAT,
   OP_BV_ROTATE_LEFT,
@@ -73,10 +81,42 @@ enum OpKind
   OP_BV_DEC,
   OP_BV_REDXOR,
 
-  OP_ARRAY_SELECT,
-  OP_ARRAY_STORE,
+  /* FP */
+  OP_FP_ABS,
+  OP_FP_ADD,
+  OP_FP_DIV,
+  OP_FP_EQ,
+  OP_FP_FMA,
+  OP_FP_FP,
+  OP_FP_IS_NORMAL,
+  OP_FP_IS_SUBNORMAL,
+  OP_FP_IS_INF,
+  OP_FP_IS_NAN,
+  OP_FP_IS_NEG,
+  OP_FP_IS_POS,
+  OP_FP_IS_ZERO,
+  OP_FP_LT,
+  OP_FP_LTE,
+  OP_FP_GT,
+  OP_FP_GTE,
+  OP_FP_MAX,
+  OP_FP_MIN,
+  OP_FP_MUL,
+  OP_FP_NEG,
+  OP_FP_REM,
+  OP_FP_RTI,
+  OP_FP_SQRT,
+  OP_FP_SUB,
+  OP_FP_TO_FP_FROM_BV,
+  OP_FP_TO_FP_FRON_INT_BV,
+  OP_FP_TO_FP_FROM_FP,
+  OP_FP_TO_FP_FROM_UINT_BV,
+  OP_FP_TO_FP_FROM_REAL,
+  OP_FP_TO_REAL,
+  OP_FP_TO_SBV,
+  OP_FP_TO_UBV,
 
-  OP_ALL,
+  OP_ALL, /* must be last */
 };
 
 struct OpKindHashFunction
@@ -125,6 +165,9 @@ struct Op
 static std::unordered_map<OpKind, std::string, OpKindHashFunction>
     op_kinds_to_str{
         SMTMBT_OP_TO_STR(OP_UNDEFINED),
+
+        SMTMBT_OP_TO_STR(OP_ARRAY_SELECT),
+        SMTMBT_OP_TO_STR(OP_ARRAY_STORE),
 
         SMTMBT_OP_TO_STR(OP_AND),
         SMTMBT_OP_TO_STR(OP_DISTINCT),
@@ -184,8 +227,40 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_BV_USUBO),
         SMTMBT_OP_TO_STR(OP_BV_XNOR),
         SMTMBT_OP_TO_STR(OP_BV_XOR),
-        SMTMBT_OP_TO_STR(OP_ARRAY_SELECT),
-        SMTMBT_OP_TO_STR(OP_ARRAY_STORE),
+
+        SMTMBT_OP_TO_STR(OP_FP_ABS),
+        SMTMBT_OP_TO_STR(OP_FP_ADD),
+        SMTMBT_OP_TO_STR(OP_FP_DIV),
+        SMTMBT_OP_TO_STR(OP_FP_EQ),
+        SMTMBT_OP_TO_STR(OP_FP_FMA),
+        SMTMBT_OP_TO_STR(OP_FP_FP),
+        SMTMBT_OP_TO_STR(OP_FP_IS_NORMAL),
+        SMTMBT_OP_TO_STR(OP_FP_IS_SUBNORMAL),
+        SMTMBT_OP_TO_STR(OP_FP_IS_INF),
+        SMTMBT_OP_TO_STR(OP_FP_IS_NAN),
+        SMTMBT_OP_TO_STR(OP_FP_IS_NEG),
+        SMTMBT_OP_TO_STR(OP_FP_IS_POS),
+        SMTMBT_OP_TO_STR(OP_FP_IS_ZERO),
+        SMTMBT_OP_TO_STR(OP_FP_LT),
+        SMTMBT_OP_TO_STR(OP_FP_LTE),
+        SMTMBT_OP_TO_STR(OP_FP_GT),
+        SMTMBT_OP_TO_STR(OP_FP_GTE),
+        SMTMBT_OP_TO_STR(OP_FP_MAX),
+        SMTMBT_OP_TO_STR(OP_FP_MIN),
+        SMTMBT_OP_TO_STR(OP_FP_MUL),
+        SMTMBT_OP_TO_STR(OP_FP_NEG),
+        SMTMBT_OP_TO_STR(OP_FP_REM),
+        SMTMBT_OP_TO_STR(OP_FP_RTI),
+        SMTMBT_OP_TO_STR(OP_FP_SQRT),
+        SMTMBT_OP_TO_STR(OP_FP_SUB),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_BV),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FRON_INT_BV),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_FP),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_UINT_BV),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_REAL),
+        SMTMBT_OP_TO_STR(OP_FP_TO_REAL),
+        SMTMBT_OP_TO_STR(OP_FP_TO_SBV),
+        SMTMBT_OP_TO_STR(OP_FP_TO_UBV),
     };
 
 std::ostream& operator<<(std::ostream& out, OpKind kind);

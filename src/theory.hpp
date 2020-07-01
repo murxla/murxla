@@ -9,10 +9,11 @@ namespace smtmbt {
 
 enum TheoryId
 {
+  THEORY_ARRAY,
   THEORY_BOOL,
   THEORY_BV,
-  THEORY_ARRAY,
-  THEORY_ALL,
+  THEORY_FP,
+  THEORY_ALL, /* must be last */
 };
 
 using TheoryIdVector = std::vector<TheoryId>;

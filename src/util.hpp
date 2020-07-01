@@ -33,6 +33,7 @@ class RNGenerator
      FIRST,
      SECOND,
      THIRD,
+     FOURTH,
    };
 
    /** Constructor. */
@@ -94,6 +95,8 @@ class RNGenerator
    bool flip_coin();
    /** Pick one out of three choices. */
    Choice pick_one_of_three();
+   /** Pick one out of four choices. */
+   Choice pick_one_of_four();
    /** Pick random string of given length from set of 256 printable chars. */
    std::string pick_string(uint32_t len);
    /** Pick random string of given length from given character set. */

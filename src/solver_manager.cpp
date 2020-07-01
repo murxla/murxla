@@ -608,6 +608,11 @@ SolverManager::add_sort_kinds()
         d_sort_kinds.emplace(SORT_BOOL,
                              SortKindData(SORT_BOOL, 0, THEORY_BOOL));
         break;
+      case THEORY_FP:
+        d_sort_kinds.emplace(SORT_RM, SortKindData(SORT_RM, 0, THEORY_FP));
+        d_sort_kinds.emplace(SORT_FP, SortKindData(SORT_FP, 0, THEORY_FP));
+        break;
+
       default: assert(false);
     }
   }
@@ -698,7 +703,46 @@ SolverManager::add_op_kinds()
         add_op_kind(ops, OP_BV_ZERO_EXTEND, 1, 1, SORT_BV, {SORT_BV});
         break;
 
-      default: assert(false);
+      case SORT_FP:
+        add_op_kind(ops, OP_FP_ABS, 1, 0, SORT_FP, {SORT_FP});
+        add_op_kind(ops, OP_FP_ADD, 3, 0, SORT_FP, {SORT_RM, SORT_FP});
+        add_op_kind(ops, OP_FP_DIV, 3, 0, SORT_FP, {SORT_RM, SORT_FP});
+        add_op_kind(ops, OP_FP_EQ, n, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_FMA, 4, 0, SORT_FP, {SORT_RM, SORT_FP});
+        add_op_kind(ops, OP_FP_FP, 3, 0, SORT_FP, {SORT_FP});
+        add_op_kind(ops, OP_FP_IS_NORMAL, 1, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_IS_SUBNORMAL, 1, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_IS_INF, 1, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_IS_NAN, 1, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_IS_NEG, 1, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_IS_POS, 1, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_IS_ZERO, 1, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_LT, 2, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_LTE, 2, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_GT, 2, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_GTE, 2, 0, SORT_BOOL, {SORT_FP});
+        add_op_kind(ops, OP_FP_MAX, 2, 0, SORT_FP, {SORT_FP});
+        add_op_kind(ops, OP_FP_MIN, 2, 0, SORT_FP, {SORT_FP});
+        add_op_kind(ops, OP_FP_MUL, 3, 0, SORT_FP, {SORT_RM, SORT_FP});
+        add_op_kind(ops, OP_FP_NEG, 1, 0, SORT_FP, {SORT_FP});
+        add_op_kind(ops, OP_FP_REM, 2, 0, SORT_FP, {SORT_FP});
+        add_op_kind(ops, OP_FP_RTI, 2, 0, SORT_FP, {SORT_RM, SORT_FP});
+        add_op_kind(ops, OP_FP_SQRT, 2, 0, SORT_FP, {SORT_RM, SORT_FP});
+        add_op_kind(ops, OP_FP_SUB, 3, 0, SORT_FP, {SORT_RM, SORT_FP});
+        add_op_kind(ops, OP_FP_TO_FP_FROM_BV, 1, 0, SORT_FP, {SORT_BV});
+        add_op_kind(
+            ops, OP_FP_TO_FP_FRON_INT_BV, 2, 0, SORT_FP, {SORT_RM, SORT_BV});
+        add_op_kind(
+            ops, OP_FP_TO_FP_FROM_FP, 2, 0, SORT_FP, {SORT_RM, SORT_FP});
+        add_op_kind(
+            ops, OP_FP_TO_FP_FROM_UINT_BV, 2, 0, SORT_FP, {SORT_RM, SORT_BV});
+        // add_op_kind(ops,OP_FP_TO_FP_FROM_REAL, 1, 0, SORT_FP, {SORT_REAL});
+        // add_op_kind(ops,OP_FP_TO_REAL, 1, 0, SORT_REAL, {SORT_FP});
+        add_op_kind(ops, OP_FP_TO_SBV, 2, 0, SORT_BV, {SORT_RM, SORT_FP});
+        add_op_kind(ops, OP_FP_TO_UBV, 2, 0, SORT_BV, {SORT_RM, SORT_FP});
+        break;
+
+      default: assert(sort_kind == SORT_RM);
     }
   }
 }

@@ -83,6 +83,17 @@ RNGenerator::pick_one_of_three()
   return Choice::THIRD;
 }
 
+RNGenerator::Choice
+RNGenerator::pick_one_of_four()
+{
+  uint32_t r = pick<uint32_t>(0, 11);
+  if (r < 3) return Choice::FIRST;
+  if (r < 6) return Choice::SECOND;
+  if (r < 9) return Choice::THIRD;
+  assert(r < 12);
+  return Choice::FOURTH;
+}
+
 std::string
 RNGenerator::pick_string(uint32_t len)
 {

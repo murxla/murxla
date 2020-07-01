@@ -40,7 +40,9 @@ class AbsSort
 
   virtual bool is_bool() const         = 0;
   virtual bool is_bv() const           = 0;
-  virtual uint32_t get_bv_size() const = 0;
+  virtual uint32_t get_bv_size() const;
+  virtual uint32_t get_exp_size() const;
+  virtual uint32_t get_sig_size() const;
 
   void set_id(uint64_t id);
   uint64_t get_id() const;
@@ -157,7 +159,8 @@ class Solver
 
   virtual Sort mk_sort(const std::string name, uint32_t arity) const        = 0;
   virtual Sort mk_sort(SortKind kind) const                                 = 0;
-  virtual Sort mk_sort(SortKind kind, uint32_t size) const                  = 0;
+  virtual Sort mk_sort(SortKind kind, uint32_t size) const;
+  virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const;
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) const = 0;
 
   virtual Term mk_term(const OpKind& kind,

@@ -45,6 +45,23 @@ AbsSort::get_sorts() const
   return d_sorts;
 }
 
+uint32_t
+AbsSort::get_bv_size() const
+{
+  return 0;
+}
+
+uint32_t
+AbsSort::get_exp_size() const
+{
+  return 0;
+}
+uint32_t
+AbsSort::get_sig_size() const
+{
+  return 0;
+}
+
 bool
 operator==(const Sort& a, const Sort& b)
 {
@@ -184,6 +201,18 @@ const std::vector<Solver::SpecialValueBV>&
 Solver::get_special_values_bv() const
 {
   return d_special_values_bv;
+}
+
+Sort
+Solver::mk_sort(SortKind kind, uint32_t size) const
+{
+  return Sort();
+}
+
+Sort
+Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const
+{
+  return Sort();
 }
 
 std::ostream&

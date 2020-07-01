@@ -370,15 +370,10 @@ class ActionMkSort : public Action
   {
     assert(d_solver.is_initialized());
     SortKind kind = d_smgr.pick_sort_kind_data().d_kind;
+    RNGenerator::Choice pick;
 
     switch (kind)
     {
-      case SORT_BOOL: _run(SORT_BOOL); break;
-
-      case SORT_BV:
-        _run(SORT_BV, d_rng.pick<uint32_t>(SMTMBT_BW_MIN, SMTMBT_BW_MAX));
-        break;
-
       case SORT_ARRAY:
       {
         if (!d_smgr.has_sort())
@@ -387,9 +382,31 @@ class ActionMkSort : public Action
         }
         Sort index_sort   = d_smgr.pick_sort();
         Sort element_sort = d_smgr.pick_sort();
-        _run(SORT_ARRAY, {index_sort, element_sort});
+        _run(kind, {index_sort, element_sort});
         break;
       }
+
+      case SORT_BOOL: _run(kind); break;
+
+      case SORT_BV:
+        _run(kind, d_rng.pick<uint32_t>(SMTMBT_BW_MIN, SMTMBT_BW_MAX));
+        break;
+
+      case SORT_FP:
+        /* For now we only support Float16, Float32, Float64, Float128 */
+        pick = d_rng.pick_one_of_four();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST: _run(kind, 5, 11); break;
+          case RNGenerator::Choice::SECOND: _run(kind, 8, 24); break;
+          case RNGenerator::Choice::THIRD: _run(kind, 11, 53); break;
+          default:
+            assert(pick == RNGenerator::Choice::FOURTH);
+            _run(kind, 15, 113);
+        }
+        break;
+
+      case SORT_RM: _run(kind); break;
 
       default: assert(false);
     }
@@ -406,6 +423,9 @@ class ActionMkSort : public Action
 
     switch (kind)
     {
+      // TODO: convert sort str to sort object
+      case SORT_ARRAY: assert(n_tokens == 3); break;
+
       case SORT_BOOL:
         assert(n_tokens == 1);
         res = _run(kind);
@@ -416,8 +436,15 @@ class ActionMkSort : public Action
         res = _run(kind, str_to_uint32(tokens[1]));
         break;
 
-      // TODO: convert sort str to sort object
-      case SORT_ARRAY: assert(n_tokens == 3); break;
+      case SORT_FP:
+        assert(n_tokens == 3);
+        res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
+        break;
+
+      case SORT_RM:
+        assert(n_tokens == 1);
+        res = _run(kind);
+        break;
 
       default: assert(false);
     }
@@ -428,7 +455,7 @@ class ActionMkSort : public Action
   uint64_t _run(SortKind kind)
   {
     SMTMBT_TRACE << get_id() << " " << kind;
-    Sort res = d_solver.mk_sort(SORT_BOOL);
+    Sort res = d_solver.mk_sort(kind);
     d_smgr.add_sort(res, kind);
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
@@ -437,8 +464,21 @@ class ActionMkSort : public Action
   uint64_t _run(SortKind kind, uint32_t bw)
   {
     SMTMBT_TRACE << get_id() << " " << kind << " " << bw;
-    Sort res = d_solver.mk_sort(SORT_BV, bw);
+    assert(kind == SORT_BV);
+    Sort res = d_solver.mk_sort(kind, bw);
     assert(res->get_bv_size() == bw);
+    d_smgr.add_sort(res, kind);
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
+  uint64_t _run(SortKind kind, uint32_t ew, uint32_t sw)
+  {
+    SMTMBT_TRACE << get_id() << " " << kind << " " << ew << " " << sw;
+    assert(kind == SORT_FP);
+    Sort res = d_solver.mk_sort(kind, ew, sw);
+    assert(res->get_exp_size() == ew);
+    assert(res->get_sig_size() == sw);
     d_smgr.add_sort(res, kind);
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
@@ -718,6 +758,8 @@ class ActionMkValue : public Action
     Term res;
     switch (sort_kind)
     {
+      case SORT_ARRAY: return false;
+
       case SORT_BOOL: _run(sort, d_rng.flip_coin()); break;
 
       case SORT_BV:
@@ -864,7 +906,8 @@ class ActionMkValue : public Action
       }
       break;
 
-      case SORT_ARRAY: return false;
+      case SORT_FP:
+      case SORT_RM: return false;  // TODO
 
       default: assert(false);
     }
@@ -1147,7 +1190,6 @@ class ActionGetValue : public Action
     /* Note: The Terms in this vector are solver terms wrapped into Term,
      *       without sort information! */
     std::vector<Term> res = d_solver.get_value(terms);
-    //std::cout << "##terms.size() " << terms.size() << " " << res.size() << std::endl;
     assert(terms.size() == res.size());
     if (d_smgr.d_incremental && d_rng.flip_coin())
     {
@@ -1155,7 +1197,6 @@ class ActionGetValue : public Action
       std::vector<Term> assumptions;
       for (size_t i = 0, n = terms.size(); i < n; ++i)
       {
-        //std::cout << "##eq " << terms[i] << " " << res[i] << std::endl;
         std::vector<Term> args = {terms[i], res[i]};
         std::vector<uint32_t> params;
         assumptions.push_back(d_solver.mk_term(OP_EQUAL, args, params));
@@ -1557,7 +1598,7 @@ FSM::untrace(std::ifstream& trace)
     {
       assert(tokens.size() == 1);
       uint64_t id = str_to_uint64(tokens[0]);
-      assert(id == ret_val);
+      // assert(id == ret_val);
       ret_val = 0;
       continue;
     }

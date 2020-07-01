@@ -41,10 +41,11 @@ rm -rf "$toml_dir"
   if [ "$reinstall" == "no" ]
   then
     ./contrib/get-antlr-3.4
+    ./contrib/get-symfpu
   fi
 
   rm build -rf
-  ./configure.sh debug --asan --prefix="$deps_dir"
+  ./configure.sh debug --asan --prefix="$deps_dir" --symfpu
   cd build
   make install -j $(nproc)
 )

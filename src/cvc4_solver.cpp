@@ -64,6 +64,18 @@ CVC4Sort::get_bv_size() const
   return d_sort.getBVSize();
 }
 
+uint32_t
+CVC4Sort::get_exp_size() const
+{
+  return d_sort.getFPExponentSize();
+}
+
+uint32_t
+CVC4Sort::get_sig_size() const
+{
+  return d_sort.getFPSignificandSize();
+}
+
 /* -------------------------------------------------------------------------- */
 /* CVC4Term                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -162,6 +174,7 @@ CVC4Solver::mk_sort(SortKind kind) const
   switch (kind)
   {
     case SORT_BOOL: cvc4_res = d_solver->getBooleanSort(); break;
+    case SORT_RM: cvc4_res = d_solver->getRoundingmodeSort(); break;
 
     default: assert(false);
   }
@@ -178,6 +191,24 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
   switch (kind)
   {
     case SORT_BV: cvc4_res = d_solver->mkBitVectorSort(size); break;
+
+    default: assert(false);
+  }
+  assert(!cvc4_res.isNull());
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
+  std::shared_ptr<CVC4Sort> res(new CVC4Sort(d_solver, cvc4_res));
+  assert(res);
+  return res;
+}
+
+Sort
+CVC4Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const
+{
+  CVC4::api::Sort cvc4_res;
+  switch (kind)
+  {
+    case SORT_FP: cvc4_res = d_solver->mkFloatingPointSort(esize, ssize); break;
 
     default: assert(false);
   }
@@ -638,6 +669,9 @@ CVC4Solver::init_op_kinds()
       {OP_XOR, CVC4::api::Kind::XOR},
       {OP_IMPLIES, CVC4::api::Kind::IMPLIES},
 
+      {OP_ARRAY_SELECT, CVC4::api::Kind::SELECT},
+      {OP_ARRAY_STORE, CVC4::api::Kind::STORE},
+
       {OP_BV_EXTRACT, CVC4::api::Kind::BITVECTOR_EXTRACT},
       {OP_BV_REPEAT, CVC4::api::Kind::BITVECTOR_REPEAT},
       {OP_BV_ROTATE_LEFT, CVC4::api::Kind::BITVECTOR_ROTATE_LEFT},
@@ -678,8 +712,42 @@ CVC4Solver::init_op_kinds()
       {OP_BV_SGT, CVC4::api::Kind::BITVECTOR_SGT},
       {OP_BV_SGE, CVC4::api::Kind::BITVECTOR_SGE},
 
-      {OP_ARRAY_SELECT, CVC4::api::Kind::SELECT},
-      {OP_ARRAY_STORE, CVC4::api::Kind::STORE},
+      {OP_FP_ABS, CVC4::api::Kind::FLOATINGPOINT_ABS},
+      {OP_FP_ADD, CVC4::api::Kind::FLOATINGPOINT_PLUS},
+      {OP_FP_DIV, CVC4::api::Kind::FLOATINGPOINT_DIV},
+      {OP_FP_EQ, CVC4::api::Kind::FLOATINGPOINT_EQ},
+      {OP_FP_FMA, CVC4::api::Kind::FLOATINGPOINT_FMA},
+      {OP_FP_FP, CVC4::api::Kind::FLOATINGPOINT_FP},
+      {OP_FP_IS_NORMAL, CVC4::api::Kind::FLOATINGPOINT_ISN},
+      {OP_FP_IS_SUBNORMAL, CVC4::api::Kind::FLOATINGPOINT_ISSN},
+      {OP_FP_IS_INF, CVC4::api::Kind::FLOATINGPOINT_ISINF},
+      {OP_FP_IS_NAN, CVC4::api::Kind::FLOATINGPOINT_ISNAN},
+      {OP_FP_IS_NEG, CVC4::api::Kind::FLOATINGPOINT_ISNEG},
+      {OP_FP_IS_POS, CVC4::api::Kind::FLOATINGPOINT_ISPOS},
+      {OP_FP_IS_ZERO, CVC4::api::Kind::FLOATINGPOINT_ISZ},
+      {OP_FP_LT, CVC4::api::Kind::FLOATINGPOINT_LT},
+      {OP_FP_LTE, CVC4::api::Kind::FLOATINGPOINT_LEQ},
+      {OP_FP_GT, CVC4::api::Kind::FLOATINGPOINT_GT},
+      {OP_FP_GTE, CVC4::api::Kind::FLOATINGPOINT_GEQ},
+      {OP_FP_MAX, CVC4::api::Kind::FLOATINGPOINT_MAX},
+      {OP_FP_MIN, CVC4::api::Kind::FLOATINGPOINT_MIN},
+      {OP_FP_MUL, CVC4::api::Kind::FLOATINGPOINT_MULT},
+      {OP_FP_NEG, CVC4::api::Kind::FLOATINGPOINT_NEG},
+      {OP_FP_REM, CVC4::api::Kind::FLOATINGPOINT_REM},
+      {OP_FP_RTI, CVC4::api::Kind::FLOATINGPOINT_RTI},
+      {OP_FP_SQRT, CVC4::api::Kind::FLOATINGPOINT_SQRT},
+      {OP_FP_SUB, CVC4::api::Kind::FLOATINGPOINT_SUB},
+      {OP_FP_TO_FP_FROM_BV,
+       CVC4::api::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
+      {OP_FP_TO_FP_FRON_INT_BV,
+       CVC4::api::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
+      {OP_FP_TO_FP_FROM_FP, CVC4::api::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
+      {OP_FP_TO_FP_FROM_UINT_BV,
+       CVC4::api::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
+      {OP_FP_TO_FP_FROM_REAL, CVC4::api::Kind::FLOATINGPOINT_TO_FP_REAL},
+      {OP_FP_TO_REAL, CVC4::api::Kind::FLOATINGPOINT_TO_REAL},
+      {OP_FP_TO_SBV, CVC4::api::Kind::FLOATINGPOINT_TO_SBV},
+      {OP_FP_TO_UBV, CVC4::api::Kind::FLOATINGPOINT_TO_UBV},
   };
 }
 
