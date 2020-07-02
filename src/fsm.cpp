@@ -423,8 +423,15 @@ class ActionMkSort : public Action
 
     switch (kind)
     {
-      // TODO: convert sort str to sort object
-      case SORT_ARRAY: assert(n_tokens == 3); break;
+      case SORT_ARRAY:
+      {
+        assert(n_tokens == 3);
+        std::vector<Sort> sorts;
+        sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[1])));
+        sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[2])));
+        res = _run(kind, sorts);
+        break;
+      }
 
       case SORT_BOOL:
         assert(n_tokens == 1);
