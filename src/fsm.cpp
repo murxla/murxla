@@ -1557,6 +1557,43 @@ FSM::configure()
 /* ========================================================================== */
 
 void
+tokenize(std::string& line, std::string& id, std::vector<std::string>& tokens)
+{
+  std::stringstream ss;
+  std::string token;
+  std::stringstream tokenstream(line);
+  bool open_str = false;
+
+  /* Note: this std::getline() call also splits piped symbols that have
+   *       spaces, e.g., "|a b|". We join these together again. */
+  while (std::getline(tokenstream, token, ' '))
+  {
+    if (id.empty())
+    {
+      id = token;
+    }
+    else if (open_str)
+    {
+      ss << " " << token;
+      if (token[token.size() - 1] == '"')
+      {
+        open_str = false;
+        tokens.push_back(ss.str());
+      }
+    }
+    else if (token[0] == '"' && token[token.size() - 1] != '"')
+    {
+      open_str = true;
+      ss << token;
+    }
+    else
+    {
+      tokens.push_back(token);
+    }
+  }
+}
+
+void
 FSM::untrace(std::ifstream& trace)
 {
   assert(trace.is_open());
@@ -1566,50 +1603,55 @@ FSM::untrace(std::ifstream& trace)
   while (std::getline(trace, line))
   {
     if (line[0] == '#') continue;
-    bool open_str = false;
-    std::stringstream ss;
-    std::stringstream tokenstream(line);
-    std::string token;
+
     std::string id;
     std::vector<std::string> tokens;
-    /* Note: this std::getline() call also splits piped symbols that have
-     *       spaces, e.g., "|a b|". We join these together again. */
-    while (std::getline(tokenstream, token, ' '))
+    tokenize(line, id, tokens);
+
+    /* Make sure that ids for terms/sorts are the same as in the trace. */
+    if (id == "mk-sort" || id == "mk-term" || id == "mk-const"
+        || id == "mk-value")
     {
-      if (id.empty())
+      uint64_t rid = 0;
+      if (std::getline(trace, line))
       {
-        id = token;
-      }
-      else if (open_str)
-      {
-        ss << " " << token;
-        if (token[token.size() - 1] == '"')
+        std::string next_id;
+        std::vector<std::string> next_tokens;
+
+        tokenize(line, next_id, next_tokens);
+
+        if (next_id == "return")
         {
-          open_str = false;
-          tokens.push_back(ss.str());
+          assert(next_tokens.size() == 1);
+          rid = str_to_uint64(next_tokens[0]);
+
+          /* Restore ids for sorts and terms. */
+          if (id == "mk-sort")
+          {
+            d_smgr.set_n_sorts(rid - 1);
+          }
+          else
+          {
+            d_smgr.set_n_terms(rid - 1);
+          }
         }
       }
-      else if (token[0] == '"' && token[token.size() - 1] != '"')
-      {
-        open_str = true;
-        ss << token;
-      }
-      else
-      {
-        tokens.push_back(token);
-      }
+      assert(d_actions.find(id) != d_actions.end());
+      ret_val = d_actions.at(id)->untrace(tokens);
+      assert(ret_val == rid);
+      ret_val = 0;
+      continue;
     }
-
     assert(ret_val == 0 || id == "return");
     if (id == "return")
     {
       assert(tokens.size() == 1);
-      uint64_t id = str_to_uint64(tokens[0]);
-      // assert(id == ret_val);
+      uint64_t rid = str_to_uint64(tokens[0]);
+      assert(rid == ret_val);
       ret_val = 0;
       continue;
     }
-    if (id == "set-seed")
+    else if (id == "set-seed")
     {
       std::stringstream sss;
       for (auto t : tokens) sss << " " << t;

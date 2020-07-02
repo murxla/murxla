@@ -214,6 +214,18 @@ class SolverManager
   Sort get_sort(uint32_t id) const;
 
   /**
+   * Set d_n_terms to id.
+   * Note: Only used for untracing.
+   */
+  void set_n_terms(uint64_t id);
+
+  /**
+   * Set d_n_sorts to id.
+   * Note: Only used for untracing.
+   */
+  void set_n_sorts(uint64_t id);
+
+  /**
    * Pick an option and an option value.
    */
   std::pair<std::string, std::string> pick_option();

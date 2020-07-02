@@ -490,6 +490,18 @@ SolverManager::get_sort(uint32_t id) const
   return nullptr;
 }
 
+void
+SolverManager::set_n_terms(uint64_t id)
+{
+  d_n_terms = id;
+}
+
+void
+SolverManager::set_n_sorts(uint64_t id)
+{
+  d_n_sorts = id;
+}
+
 bool
 SolverManager::has_sort_bv(uint32_t bw_max, bool with_terms) const
 {
