@@ -113,6 +113,7 @@ get_info(Result res)
 /*****************************************************************************/
 
 /* Signal handler for printing statistics */
+// TODO: Remove handler
 static void (*sig_int_handler_stats)(int32_t);
 
 static void
@@ -122,7 +123,6 @@ catch_signal_stats(int32_t sig)
   if (!caught_signal)
   {
     caught_signal = sig;
-    g_stats->print();
   }
   (void) signal(SIGINT, sig_int_handler_stats);
   raise(sig);
@@ -1129,6 +1129,11 @@ main(int argc, char* argv[])
            solver_options,
            error_trace_file_name,
            g_options.dd_trace_file_name);
+        std::cout << dd_trace_file_name.str() << std::endl;
+      }
+      else
+      {
+        std::cout << g_options.api_trace_file_name << std::endl;
       }
     }
     std::cout << "\r" << std::flush;

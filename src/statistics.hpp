@@ -135,6 +135,7 @@ struct Statistics
 {
   uint64_t d_results[3];
   uint64_t d_ops[OpKind::OP_ALL];
+  uint64_t d_ops_ok[OpKind::OP_ALL];
   uint64_t d_states[State::NUM_STATES];
   uint64_t d_actions[Action::NUM_ACTIONS];
   uint64_t d_actions_ok[Action::NUM_ACTIONS];

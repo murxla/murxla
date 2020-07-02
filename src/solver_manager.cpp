@@ -230,16 +230,68 @@ SolverManager::pick_sort_kind_data()
 }
 
 Op&
-SolverManager::pick_op()
+SolverManager::pick_op(TheoryId theory, bool with_terms)
 {
+  if (with_terms)
+  {
+    std::unordered_set<OpKind> op_kinds;
+
+    for (const auto& p : d_op_kinds)
+    {
+      auto kind  = p.first;
+      auto kdata = p.second;
+      if (kdata.d_theory != theory && kdata.d_theory != THEORY_ALL)
+      {
+        continue;
+      }
+      bool has_terms = true;
+
+      /* Check if we already have terms that can be used with this operator. */
+      if (kdata.d_arity < 0)
+      {
+        has_terms = has_term(kdata.get_arg_sort_kind(0));
+      }
+      else
+      {
+        for (int32_t i = 0; i < kdata.d_arity; ++i)
+        {
+          if (!has_term(kdata.get_arg_sort_kind(i)))
+          {
+            has_terms = false;
+            break;
+          }
+        }
+      }
+      if (has_terms)
+      {
+        op_kinds.insert(kind);
+      }
+    }
+    assert(op_kinds.size() > 0);
+
+    OpKind kind =
+        d_rng.pick_from_set<std::unordered_set<OpKind>, OpKind>(op_kinds);
+    return d_op_kinds.at(kind);
+  }
   return pick_kind<OpKind, Op, OpKindMap>(d_op_kinds);
 }
 
 /* -------------------------------------------------------------------------- */
 
 TheoryId
-SolverManager::pick_theory()
+SolverManager::pick_theory(bool with_terms)
 {
+  if (with_terms)
+  {
+    TheoryIdSet theories;
+    for (const auto& p : d_terms)
+    {
+      TheoryId theory = d_sort_kinds.find(p.first)->second.d_theory;
+      assert(d_enabled_theories.find(theory) != d_enabled_theories.end());
+      theories.insert(theory);
+    }
+    return d_rng.pick_from_set<TheoryIdSet, TheoryId>(theories);
+  }
   return d_rng.pick_from_set<TheoryIdSet, TheoryId>(d_enabled_theories);
 }
 
@@ -502,6 +554,17 @@ SolverManager::set_n_sorts(uint64_t id)
   d_n_sorts = id;
 }
 
+Sort
+SolverManager::find_sort(Sort sort) const
+{
+  auto it = d_sorts.find(sort);
+  if (it == d_sorts.end())
+  {
+    return sort;
+  }
+  return *it;
+}
+
 bool
 SolverManager::has_sort_bv(uint32_t bw_max, bool with_terms) const
 {
@@ -638,7 +701,8 @@ SolverManager::add_op_kinds()
   uint32_t n    = SMTMBT_MK_TERM_N_ARGS;
   OpKindSet ops = d_solver->get_supported_op_kinds();
 
-  add_op_kind(ops, OP_ITE, 3, 0, SORT_ANY, {SORT_BOOL, SORT_ANY, SORT_ANY});
+  add_op_kind(
+      ops, OP_ITE, 3, 0, SORT_ANY, {SORT_BOOL, SORT_ANY, SORT_ANY}, THEORY_ALL);
 
   for (const auto& s : d_sort_kinds)
   {
@@ -648,110 +712,149 @@ SolverManager::add_op_kinds()
     switch (sort_kind)
     {
       case SORT_ARRAY:
-        add_op_kind(
-            ops, OP_ARRAY_SELECT, 2, 0, SORT_ANY, {SORT_ARRAY, SORT_ANY});
+        add_op_kind(ops,
+                    OP_ARRAY_SELECT,
+                    2,
+                    0,
+                    SORT_ANY,
+                    {SORT_ARRAY, SORT_ANY},
+                    THEORY_ARRAY);
         add_op_kind(ops,
                     OP_ARRAY_STORE,
                     3,
                     0,
                     SORT_ARRAY,
-                    {SORT_ARRAY, SORT_ANY, SORT_ANY});
+                    {SORT_ARRAY, SORT_ANY, SORT_ANY},
+                    THEORY_ARRAY);
         break;
 
       case SORT_BOOL:
-        add_op_kind(ops, OP_DISTINCT, n, 0, SORT_BOOL, {SORT_ANY});
-        add_op_kind(ops, OP_EQUAL, 2, 0, SORT_BOOL, {SORT_ANY});
-        add_op_kind(ops, OP_AND, n, 0, SORT_BOOL, {SORT_BOOL});
-        add_op_kind(ops, OP_OR, n, 0, SORT_BOOL, {SORT_BOOL});
-        add_op_kind(ops, OP_NOT, 1, 0, SORT_BOOL, {SORT_BOOL});
-        add_op_kind(ops, OP_XOR, 2, 0, SORT_BOOL, {SORT_BOOL});
-        add_op_kind(ops, OP_IMPLIES, 2, 0, SORT_BOOL, {SORT_BOOL});
+        add_op_kind(ops, OP_DISTINCT, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_BOOL);
+        add_op_kind(ops, OP_EQUAL, 2, 0, SORT_BOOL, {SORT_ANY}, THEORY_BOOL);
+        add_op_kind(ops, OP_AND, n, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+        add_op_kind(ops, OP_OR, n, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+        add_op_kind(ops, OP_NOT, 1, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+        add_op_kind(ops, OP_XOR, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+        add_op_kind(ops, OP_IMPLIES, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
         break;
 
       case SORT_BV:
-        add_op_kind(ops, OP_BV_CONCAT, n, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_AND, n, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_OR, n, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_XOR, n, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_MULT, n, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_ADD, n, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_NOT, 1, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_NEG, 1, 0, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_CONCAT, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_AND, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_OR, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_XOR, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_MULT, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_ADD, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_NOT, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_NEG, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 #if 0
   // TODO not in SMT-LIB and CVC4 and Boolector disagree on return type
   // CVC4: Bool
   // Boolector: BV
   // >> should be BV
-        add_op_kind(ops, OP_BV_REDOR, 1, 0, SORT_BOOL, SORT_BV);
-        add_op_kind(ops, OP_BV_REDAND, 1, 0, SORT_BOOL, SORT_BV);
+        add_op_kind(ops, OP_BV_REDOR, 1, 0, SORT_BOOL, SORT_BV, THEORY_BV);
+        add_op_kind(ops, OP_BV_REDAND, 1, 0, SORT_BOOL, SORT_BV, THEORY_BV);
 #endif
-        add_op_kind(ops, OP_BV_NAND, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_NOR, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_XNOR, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_COMP, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_SUB, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_UDIV, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_UREM, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_SDIV, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_SREM, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_SMOD, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_SHL, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_LSHR, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_ASHR, 2, 0, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_ULT, 2, 0, SORT_BOOL, {SORT_BV});
-        add_op_kind(ops, OP_BV_ULE, 2, 0, SORT_BOOL, {SORT_BV});
-        add_op_kind(ops, OP_BV_UGT, 2, 0, SORT_BOOL, {SORT_BV});
-        add_op_kind(ops, OP_BV_UGE, 2, 0, SORT_BOOL, {SORT_BV});
-        add_op_kind(ops, OP_BV_SLT, 2, 0, SORT_BOOL, {SORT_BV});
-        add_op_kind(ops, OP_BV_SLE, 2, 0, SORT_BOOL, {SORT_BV});
-        add_op_kind(ops, OP_BV_SGT, 2, 0, SORT_BOOL, {SORT_BV});
-        add_op_kind(ops, OP_BV_SGE, 2, 0, SORT_BOOL, {SORT_BV});
+        add_op_kind(ops, OP_BV_NAND, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_NOR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_XNOR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_COMP, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SUB, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_UDIV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_UREM, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SDIV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SREM, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SMOD, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SHL, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_LSHR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_ASHR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_ULT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_ULE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_UGT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_UGE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SLT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SLE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SGT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SGE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
         /* indexed */
-        add_op_kind(ops, OP_BV_EXTRACT, 1, 2, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_REPEAT, 1, 1, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_ROTATE_LEFT, 1, 1, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_ROTATE_RIGHT, 1, 1, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_SIGN_EXTEND, 1, 1, SORT_BV, {SORT_BV});
-        add_op_kind(ops, OP_BV_ZERO_EXTEND, 1, 1, SORT_BV, {SORT_BV});
+        add_op_kind(ops, OP_BV_EXTRACT, 1, 2, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_REPEAT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(
+            ops, OP_BV_ROTATE_LEFT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(
+            ops, OP_BV_ROTATE_RIGHT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(
+            ops, OP_BV_SIGN_EXTEND, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(
+            ops, OP_BV_ZERO_EXTEND, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
         break;
 
       case SORT_FP:
-        add_op_kind(ops, OP_FP_ABS, 1, 0, SORT_FP, {SORT_FP});
-        add_op_kind(ops, OP_FP_ADD, 3, 0, SORT_FP, {SORT_RM, SORT_FP});
-        add_op_kind(ops, OP_FP_DIV, 3, 0, SORT_FP, {SORT_RM, SORT_FP});
-        add_op_kind(ops, OP_FP_EQ, n, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_FMA, 4, 0, SORT_FP, {SORT_RM, SORT_FP});
-        add_op_kind(ops, OP_FP_FP, 3, 0, SORT_FP, {SORT_FP});
-        add_op_kind(ops, OP_FP_IS_NORMAL, 1, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_IS_SUBNORMAL, 1, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_IS_INF, 1, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_IS_NAN, 1, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_IS_NEG, 1, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_IS_POS, 1, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_IS_ZERO, 1, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_LT, 2, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_LTE, 2, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_GT, 2, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_GTE, 2, 0, SORT_BOOL, {SORT_FP});
-        add_op_kind(ops, OP_FP_MAX, 2, 0, SORT_FP, {SORT_FP});
-        add_op_kind(ops, OP_FP_MIN, 2, 0, SORT_FP, {SORT_FP});
-        add_op_kind(ops, OP_FP_MUL, 3, 0, SORT_FP, {SORT_RM, SORT_FP});
-        add_op_kind(ops, OP_FP_NEG, 1, 0, SORT_FP, {SORT_FP});
-        add_op_kind(ops, OP_FP_REM, 2, 0, SORT_FP, {SORT_FP});
-        add_op_kind(ops, OP_FP_RTI, 2, 0, SORT_FP, {SORT_RM, SORT_FP});
-        add_op_kind(ops, OP_FP_SQRT, 2, 0, SORT_FP, {SORT_RM, SORT_FP});
-        add_op_kind(ops, OP_FP_SUB, 3, 0, SORT_FP, {SORT_RM, SORT_FP});
-        add_op_kind(ops, OP_FP_TO_FP_FROM_BV, 1, 0, SORT_FP, {SORT_BV});
+        add_op_kind(ops, OP_FP_ABS, 1, 0, SORT_FP, {SORT_FP}, THEORY_FP);
         add_op_kind(
-            ops, OP_FP_TO_FP_FRON_INT_BV, 2, 0, SORT_FP, {SORT_RM, SORT_BV});
+            ops, OP_FP_ADD, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
         add_op_kind(
-            ops, OP_FP_TO_FP_FROM_FP, 2, 0, SORT_FP, {SORT_RM, SORT_FP});
+            ops, OP_FP_DIV, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_EQ, n, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
         add_op_kind(
-            ops, OP_FP_TO_FP_FROM_UINT_BV, 2, 0, SORT_FP, {SORT_RM, SORT_BV});
-        // add_op_kind(ops,OP_FP_TO_FP_FROM_REAL, 1, 0, SORT_FP, {SORT_REAL});
-        // add_op_kind(ops,OP_FP_TO_REAL, 1, 0, SORT_REAL, {SORT_FP});
-        add_op_kind(ops, OP_FP_TO_SBV, 2, 0, SORT_BV, {SORT_RM, SORT_FP});
-        add_op_kind(ops, OP_FP_TO_UBV, 2, 0, SORT_BV, {SORT_RM, SORT_FP});
+            ops, OP_FP_FMA, 4, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_FP, 3, 0, SORT_FP, {SORT_FP}, THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_IS_NORMAL, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_IS_SUBNORMAL, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_IS_INF, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_IS_NAN, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_IS_NEG, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_IS_POS, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_IS_ZERO, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_LT, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_LTE, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_GT, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_GTE, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_MAX, 2, 0, SORT_FP, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_MIN, 2, 0, SORT_FP, {SORT_FP}, THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_MUL, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_NEG, 1, 0, SORT_FP, {SORT_FP}, THEORY_FP);
+        add_op_kind(ops, OP_FP_REM, 2, 0, SORT_FP, {SORT_FP}, THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_RTI, 2, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_SQRT, 2, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_SUB, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_TO_FP_FROM_BV, 1, 0, SORT_FP, {SORT_BV}, THEORY_FP);
+        add_op_kind(ops,
+                    OP_FP_TO_FP_FRON_INT_BV,
+                    2,
+                    0,
+                    SORT_FP,
+                    {SORT_RM, SORT_BV},
+                    THEORY_FP);
+        add_op_kind(ops,
+                    OP_FP_TO_FP_FROM_FP,
+                    2,
+                    0,
+                    SORT_FP,
+                    {SORT_RM, SORT_FP},
+                    THEORY_FP);
+        add_op_kind(ops,
+                    OP_FP_TO_FP_FROM_UINT_BV,
+                    2,
+                    0,
+                    SORT_FP,
+                    {SORT_RM, SORT_BV},
+                    THEORY_FP);
+        // add_op_kind(ops, OP_FP_TO_FP_FROM_REAL, 1, 0, SORT_FP, {SORT_REAL},
+        //             THEORY_FP);
+        // add_op_kind(ops, OP_FP_TO_REAL, 1, 0, SORT_REAL, {SORT_FP},
+        //             THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_TO_SBV, 2, 0, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_TO_UBV, 2, 0, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
         break;
 
       default: assert(sort_kind == SORT_RM);
@@ -765,12 +868,13 @@ SolverManager::add_op_kind(const OpKindSet& supported_kinds,
                            int32_t arity,
                            uint32_t nparams,
                            SortKind sort_kind,
-                           const std::vector<SortKind>& sort_kind_args)
+                           const std::vector<SortKind>& sort_kind_args,
+                           TheoryId theory)
 {
   if (supported_kinds.find(kind) != supported_kinds.end())
   {
-    d_op_kinds.emplace(kind,
-                       Op(kind, arity, nparams, sort_kind, sort_kind_args));
+    d_op_kinds.emplace(
+        kind, Op(kind, arity, nparams, sort_kind, sort_kind_args, theory));
   }
 }
 

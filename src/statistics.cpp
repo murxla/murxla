@@ -129,8 +129,8 @@ Statistics::print() const
   std::cout << "Ops:" << std::endl;
   for (uint32_t i = 0; i < OpKind::OP_ALL; ++i)
   {
-    std::cout << "  " << static_cast<OpKind>(i) << ": " << d_ops[i]
-              << std::endl;
+    std::cout << "  " << static_cast<OpKind>(i) << ": " << d_ops[i] << " ("
+              << d_ops_ok[i] << ")" << std::endl;
     sum += d_ops[i];
   }
   std::cout << "  Total: " << sum << std::endl;

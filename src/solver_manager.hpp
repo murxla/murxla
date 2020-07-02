@@ -101,10 +101,10 @@ class SolverManager
    * Pick enabled operator kind (and get its data).
    * Only operator kinds of enabled theories are picked.
    */
-  Op& pick_op();
+  Op& pick_op(TheoryId theory, bool with_terms = true);
 
   /** Pick any of the enabled theories. */
-  TheoryId pick_theory();
+  TheoryId pick_theory(bool with_terms = false);
 
   /**
    * Pick a term of given sort.
@@ -226,6 +226,12 @@ class SolverManager
   void set_n_sorts(uint64_t id);
 
   /**
+   * Lookup sort in d_sorts. If a no matching sort is found the given sort is
+   * returned.
+   */
+  Sort find_sort(Sort sort) const;
+
+  /**
    * Pick an option and an option value.
    */
   std::pair<std::string, std::string> pick_option();
@@ -312,7 +318,8 @@ class SolverManager
                    int32_t arity,
                    uint32_t nparams,
                    SortKind sort_kind,
-                   const std::vector<SortKind>& sort_kind_args);
+                   const std::vector<SortKind>& sort_kind_args,
+                   TheoryId theory);
 
   /** Clear set of assumptions. */
   void clear_assumptions();

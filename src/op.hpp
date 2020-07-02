@@ -130,11 +130,13 @@ struct Op
      int32_t arity,
      uint32_t nparams,
      SortKind sort_kind,
-     const std::vector<SortKind>& sort_kind_args)
+     const std::vector<SortKind>& sort_kind_args,
+     TheoryId theory)
       : d_kind(kind),
         d_arity(arity),
         d_nparams(nparams),
         d_sort_kind(sort_kind),
+        d_theory(theory),
         d_sort_kind_args(sort_kind_args)
   {
   }
@@ -151,6 +153,8 @@ struct Op
   uint32_t d_nparams;
   /* The sort kind of a term of this kind. */
   SortKind d_sort_kind;
+  /* The theory to which the operator belongs to. */
+  TheoryId d_theory;
 
  private:
   /* The sort kind of the term arguments of this kind. */

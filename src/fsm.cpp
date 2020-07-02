@@ -521,25 +521,17 @@ class ActionMkTerm : public Action
     assert(d_smgr.has_term());
 
     /* pick operator kind */
-    // TODO: pick op_kind with existing terms for arguments?
-    Op& op             = d_smgr.pick_op();
+    TheoryId theory = d_smgr.pick_theory(true);
+
+    /* Op gets only picked if there already exist terms that can be used as
+     * operands. */
+    Op& op             = d_smgr.pick_op(theory, true);
     OpKind kind        = op.d_kind;
     int32_t arity      = op.d_arity;
     uint32_t n_params  = op.d_nparams;
     SortKind sort_kind = op.d_sort_kind;
 
-    if (arity < 0)
-    {
-      /* All arguments have the same sort */
-      if (!d_smgr.has_term(op.get_arg_sort_kind(0))) return false;
-    }
-    else
-    {
-      for (int32_t i = 0; i < arity; ++i)
-      {
-        if (!d_smgr.has_term(op.get_arg_sort_kind(i))) return false;
-      }
-    }
+    ++d_smgr.d_mbt_stats->d_ops[kind];
 
     std::vector<Term> args;
     Sort sort;
@@ -573,12 +565,13 @@ class ActionMkTerm : public Action
       const std::vector<Sort>& sorts = array_sort->get_sorts();
       assert(sorts.size() == 2);
       Sort index_sort = sorts[0];
+      Sort element_sort = sorts[1];
 
       if (!d_smgr.has_term(index_sort)) return false;
 
       args.push_back(d_smgr.pick_term(array_sort));
       args.push_back(d_smgr.pick_term(index_sort));
-      sort_kind = sorts[1]->get_kind();
+      sort_kind = element_sort->get_kind();
     }
     else if (kind == OpKind::OP_ARRAY_STORE)
     {
@@ -648,7 +641,7 @@ class ActionMkTerm : public Action
     assert(sort_kind != SORT_ANY);
     _run(kind, sort_kind, args, params);
 
-    d_smgr.d_mbt_stats->d_ops[kind]++;
+    ++d_smgr.d_mbt_stats->d_ops_ok[kind];
 
     return true;
   }
@@ -702,8 +695,19 @@ class ActionMkTerm : public Action
     }
     SMTMBT_TRACE << get_id() << trace_str.str();
     d_smgr.reset_sat();
+
     Term res = d_solver.mk_term(kind, args, params);
-    d_smgr.add_term(res, d_solver.get_sort(res), sort_kind);
+
+    /* Query solver for sort of newly created term. The returned sort is not
+     * in smgr.d_sorts. Hence, we need to query d_smgr and lookup d_sorts if
+     * we already have a matching sort. */
+    Sort sort = d_solver.get_sort(res);
+    sort->set_kind(sort_kind);
+    /* If we can't find a matching sort is not found we use the sort returned
+     * by the solver. */
+    Sort lookup = d_smgr.find_sort(sort);
+    d_smgr.add_term(res, lookup, sort_kind);
+
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -1433,13 +1437,13 @@ FSM::configure()
   s_opt->add_action(t_default, 2, s_sorts);
 
   s_sorts->add_action(a_mksort, 1);
-  s_sorts->add_action(t_sorts, 2, s_inputs);
+  s_sorts->add_action(t_sorts, 10, s_inputs);
 
   /* State: create inputs ................................................ */
   s_inputs->add_action(a_mksort, 100, s_sorts);
   s_inputs->add_action(a_mkval, 10);
   s_inputs->add_action(a_mkconst, 5);
-  s_inputs->add_action(t_inputs, 1, s_terms);
+  s_inputs->add_action(t_inputs, 50, s_terms);
   s_inputs->add_action(t_inputs, 1000, s_sat);
   s_inputs->add_action(t_inputs, 1000, s_push_pop);
 
