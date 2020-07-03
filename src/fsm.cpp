@@ -484,8 +484,8 @@ class ActionMkSort : public Action
     SMTMBT_TRACE << get_id() << " " << kind << " " << ew << " " << sw;
     assert(kind == SORT_FP);
     Sort res = d_solver.mk_sort(kind, ew, sw);
-    assert(res->get_exp_size() == ew);
-    assert(res->get_sig_size() == sw);
+    assert(res->get_fp_exp_size() == ew);
+    assert(res->get_fp_sig_size() == sw);
     d_smgr.add_sort(res, kind);
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
@@ -520,12 +520,13 @@ class ActionMkTerm : public Action
            != d_smgr.get_enabled_theories().end());
     assert(d_smgr.has_term());
 
-    /* pick operator kind */
-    TheoryId theory = d_smgr.pick_theory(true);
+    /* Pick theory with terms that can be used as operands. */
+    if (!d_smgr.has_theory()) return false;
+    TheoryId theory = d_smgr.pick_theory();
 
     /* Op gets only picked if there already exist terms that can be used as
      * operands. */
-    Op& op             = d_smgr.pick_op(theory, true);
+    Op& op             = d_smgr.pick_op(theory);
     OpKind kind        = op.d_kind;
     int32_t arity      = op.d_arity;
     uint32_t n_params  = op.d_nparams;
@@ -539,17 +540,17 @@ class ActionMkTerm : public Action
     /* Pick term arguments. */
     if (kind == OpKind::OP_BV_CONCAT)
     {
-      if (!d_smgr.has_sort_bv(SMTMBT_BW_MAX - 1)) return false;
-      sort        = d_smgr.pick_sort_bv(SMTMBT_BW_MAX - 1);
+      if (!d_smgr.has_sort_bv_max(SMTMBT_BW_MAX - 1)) return false;
+      sort        = d_smgr.pick_sort_bv_max(SMTMBT_BW_MAX - 1);
       uint32_t bw = SMTMBT_BW_MAX - sort->get_bv_size();
-      if (!d_smgr.has_sort_bv(bw)) return false;
+      if (!d_smgr.has_sort_bv_max(bw)) return false;
       args.push_back(d_smgr.pick_term(sort));
       do
       {
-        sort = d_smgr.pick_sort_bv(bw);
+        sort = d_smgr.pick_sort_bv_max(bw);
         args.push_back(d_smgr.pick_term(sort));
         bw -= sort->get_bv_size();
-      } while (d_smgr.has_sort_bv(bw) && d_rng.pick_one_of_three());
+      } while (d_smgr.has_sort_bv_max(bw) && d_rng.pick_one_of_three());
     }
     else if (kind == OpKind::OP_ITE)
     {
@@ -588,18 +589,47 @@ class ActionMkTerm : public Action
       args.push_back(d_smgr.pick_term(index_sort));
       args.push_back(d_smgr.pick_term(element_sort));
     }
+    else if (kind == OpKind::OP_FP_FP)
+    {
+      if (!d_smgr.has_sort(SORT_FP)) return false;
+      /* we have to pick an FP sort first here, since we don't support
+       * arbitrary FP formats yet */
+      sort        = d_smgr.pick_sort(SORT_FP);
+      uint32_t ew = sort->get_fp_exp_size();
+      uint32_t sw = sort->get_fp_sig_size();
+      if (!d_smgr.has_sort_bv(1)) return false;
+      if (!d_smgr.has_sort_bv(ew)) return false;
+      if (!d_smgr.has_sort_bv(sw - 1)) return false;
+      args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(1)));
+      args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(ew)));
+      args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(sw - 1)));
+    }
     else
     {
-      /* Assume same sort for every argument */
-      sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-
       if (arity == SMTMBT_MK_TERM_N_ARGS)
       {
         arity = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN,
                                      SMTMBT_MK_TERM_N_ARGS_MAX);
       }
+
+      /* In general, all arguments (except for the operators above) have the
+       * same sort. Theory of FP is an exception, where some FP operators have
+       * one RM and the remainder FP arguments ( all FP arguments with the
+       * same sort, and the RM argument always comes first). */
+
+      uint32_t idx = 0;
+      if (op.get_arg_sort_kind(0) == SORT_RM)
+      {
+        if (!d_smgr.has_term(SORT_RM)) return false;
+        args.push_back(d_smgr.pick_term(SORT_RM));
+        idx += 1;
+      }
+
+      /* Remaining arguments have the same sort. */
+      sort = d_smgr.pick_sort(op.get_arg_sort_kind(idx));
+
       /* pick arguments */
-      for (int32_t i = 0; i < arity; ++i)
+      for (int32_t i = idx; i < arity; ++i)
       {
         assert(d_smgr.has_term(sort));
         args.push_back(d_smgr.pick_term(sort));
@@ -610,29 +640,71 @@ class ActionMkTerm : public Action
     std::vector<uint32_t> params;
     if (n_params)
     {
-      uint32_t bw = sort->get_bv_size();
+      uint32_t bw = sort->is_bv() ? sort->get_bv_size() : 0;
       switch (kind)
       {
         case OP_BV_EXTRACT:
           assert(sort->is_bv());
+          assert(bw);
           params.push_back(d_rng.pick<uint32_t>(0, bw - 1));     // high
           params.push_back(d_rng.pick<uint32_t>(0, params[0]));  // low
           break;
+
         case OP_BV_REPEAT:
           assert(sort->is_bv());
+          assert(bw);
           params.push_back(d_rng.pick<uint32_t>(
               1, std::max<uint32_t>(1, SMTMBT_BW_MAX / bw)));
           break;
+
         case OP_BV_ROTATE_LEFT:
         case OP_BV_ROTATE_RIGHT:
           assert(sort->is_bv());
+          assert(bw);
           params.push_back(d_rng.pick<uint32_t>(0, bw));
           break;
+
         case OP_BV_SIGN_EXTEND:
         case OP_BV_ZERO_EXTEND:
           assert(sort->is_bv());
+          assert(bw);
           params.push_back(d_rng.pick<uint32_t>(0, SMTMBT_BW_MAX - bw));
           break;
+
+        case OP_FP_TO_FP_FROM_BV:
+        case OP_FP_TO_FP_FROM_INT_BV:
+        case OP_FP_TO_FP_FROM_UINT_BV:
+          assert(sort->is_bv());
+          assert(bw);
+          assert(sort_kind == SORT_FP);
+          /* term has FP sort, pick sort */
+          if (!d_smgr.has_sort(SORT_FP)) return false;
+          sort = d_smgr.pick_sort(SORT_FP, false);
+          params.push_back(sort->get_fp_exp_size());
+          params.push_back(sort->get_fp_sig_size());
+          break;
+
+        case OP_FP_TO_FP_FROM_FP:
+          assert(sort->is_fp());
+          assert(sort_kind == SORT_FP);
+          /* term has new FP sort, pick sort */
+          if (!d_smgr.has_sort(SORT_FP)) return false;
+          sort = d_smgr.pick_sort(SORT_FP, false);
+          params.push_back(sort->get_fp_exp_size());
+          params.push_back(sort->get_fp_sig_size());
+          break;
+
+        case OP_FP_TO_SBV:
+        case OP_FP_TO_UBV:
+          assert(sort->is_fp());
+          assert(sort_kind == SORT_BV);
+          /* term has BV sort, pick bit-width */
+          params.push_back(
+              d_rng.pick<uint32_t>(1, std::max<uint32_t>(1, SMTMBT_BW_MAX)));
+          break;
+
+          // case OP_FP_TO_FP_FROM_REAL: TODO
+
         default: assert(false);
       }
     }
@@ -764,6 +836,7 @@ class ActionMkValue : public Action
     if (!d_smgr.has_sort()) return false;
     Sort sort          = d_smgr.pick_sort();
     SortKind sort_kind = sort->get_kind();
+    RNGenerator::Choice pick;
 
     /* Pick value. */
     Term res;
@@ -791,17 +864,19 @@ class ActionMkValue : public Action
             /* use special value */
             switch (sval)
             {
-              case Solver::SpecialValueBV::ONE: val = 1u; break;
-              case Solver::SpecialValueBV::ONES:
+              case Solver::SpecialValueBV::SMTMBT_BV_ONE: val = 1u; break;
+              case Solver::SpecialValueBV::SMTMBT_BV_ONES:
                 val = bv_special_value_ones_uint64(bw);
                 break;
-              case Solver::SpecialValueBV::MIN_SIGNED:
+              case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED:
                 val = bv_special_value_min_signed_uint64(bw);
                 break;
-              case Solver::SpecialValueBV::MAX_SIGNED:
+              case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED:
                 val = bv_special_value_max_signed_uint64(bw);
                 break;
-              default: assert(sval == Solver::SpecialValueBV::ZERO); val = 0u;
+              default:
+                assert(sval == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
+                val = 0u;
             }
           }
           else
@@ -824,7 +899,7 @@ class ActionMkValue : public Action
             /* use special value */
             switch (sval)
             {
-              case Solver::SpecialValueBV::ONE:
+              case Solver::SpecialValueBV::SMTMBT_BV_ONE:
                 switch (base)
                 {
                   case Solver::Base::DEC:
@@ -838,7 +913,7 @@ class ActionMkValue : public Action
                     val = bv_special_value_one_str(bw);
                 }
                 break;
-              case Solver::SpecialValueBV::ONES:
+              case Solver::SpecialValueBV::SMTMBT_BV_ONES:
                 switch (base)
                 {
                   case Solver::Base::DEC:
@@ -852,7 +927,7 @@ class ActionMkValue : public Action
                     val = bv_special_value_ones_str(bw);
                 }
                 break;
-              case Solver::SpecialValueBV::MIN_SIGNED:
+              case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED:
                 switch (base)
                 {
                   case Solver::Base::DEC:
@@ -866,7 +941,7 @@ class ActionMkValue : public Action
                     val = bv_special_value_min_signed_str(bw);
                 }
                 break;
-              case Solver::SpecialValueBV::MAX_SIGNED:
+              case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED:
                 switch (base)
                 {
                   case Solver::Base::DEC:
@@ -881,7 +956,7 @@ class ActionMkValue : public Action
                 }
                 break;
               default:
-                assert(sval == Solver::SpecialValueBV::ZERO);
+                assert(sval == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
                 switch (base)
                 {
                   case Solver::Base::DEC:
@@ -918,7 +993,48 @@ class ActionMkValue : public Action
       break;
 
       case SORT_FP:
-      case SORT_RM: return false;  // TODO
+        pick = d_rng.pick_one_of_five();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_NAN);
+            break;
+          case RNGenerator::Choice::SECOND:
+            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_POS_INF);
+            break;
+          case RNGenerator::Choice::THIRD:
+            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_NEG_INF);
+            break;
+          case RNGenerator::Choice::FOURTH:
+            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO);
+            break;
+          default:
+            assert(pick == RNGenerator::Choice::FIFTH);
+            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO);
+        }
+        break;
+
+      case SORT_RM:
+        pick = d_rng.pick_one_of_five();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RNE);
+            break;
+          case RNGenerator::Choice::SECOND:
+            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RNA);
+            break;
+          case RNGenerator::Choice::THIRD:
+            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RTN);
+            break;
+          case RNGenerator::Choice::FOURTH:
+            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RTP);
+            break;
+          default:
+            assert(pick == RNGenerator::Choice::FIFTH);
+            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RTZ);
+        }
+        break;
 
       default: assert(false);
     }
@@ -941,6 +1057,11 @@ class ActionMkValue : public Action
                    static_cast<Solver::Base>(str_to_uint32(tokens[2])));
         break;
 
+      case 4:
+        assert(sort->is_fp());
+        res = _run(sort, tokens[1], tokens[2], tokens[3]);
+        break;
+
       default:
         assert(tokens.size() == 2);
         if (tokens[1] == "true")
@@ -950,6 +1071,18 @@ class ActionMkValue : public Action
         else if (tokens[1] == "false")
         {
           res = _run(sort, false);
+        }
+        else if (sort->is_fp())
+        {
+          assert(Solver::s_special_values_fp.find(tokens[1])
+                 != Solver::s_special_values_fp.end());
+          res = _run(sort, Solver::s_special_values_fp.at(tokens[1]));
+        }
+        else if (sort->is_rm())
+        {
+          assert(Solver::s_special_values_rm.find(tokens[1])
+                 != Solver::s_special_values_rm.end());
+          res = _run(sort, Solver::s_special_values_rm.at(tokens[1]));
         }
         else
         {
@@ -987,6 +1120,40 @@ class ActionMkValue : public Action
                  << " " << base;
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val, base);
+    d_smgr.add_input(res, sort, sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
+  uint64_t _run(Sort sort, Solver::SpecialValueFP val)
+  {
+    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    assert(sort->is_fp());
+    d_smgr.reset_sat();
+    Term res = d_solver.mk_value(sort, val);
+    d_smgr.add_input(res, sort, sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
+  uint64_t _run(Sort sort, Solver::SpecialValueRM val)
+  {
+    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    assert(sort->is_rm());
+    d_smgr.reset_sat();
+    Term res = d_solver.mk_value(sort, val);
+    d_smgr.add_input(res, sort, sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
+  uint64_t _run(Sort sort, std::string val0, std::string val1, std::string val2)
+  {
+    SMTMBT_TRACE << get_id() << " " << sort << " " << val0 << " " << val1 << " "
+                 << val2;
+    assert(sort->is_fp());
+    d_smgr.reset_sat();
+    Term res = d_solver.mk_value(sort, val0, val1, val2);
     d_smgr.add_input(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();

@@ -1070,7 +1070,7 @@ main(int argc, char* argv[])
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
       std::string error_trace_file_name = g_options.untrace_file_name;
-      if (!is_seeded && !is_untrace)
+      if (!is_untrace)
       {
         if (g_options.api_trace_file_name.empty())
         {

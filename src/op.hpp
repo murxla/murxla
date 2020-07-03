@@ -82,6 +82,14 @@ enum OpKind
   OP_BV_REDXOR,
 
   /* FP */
+  OP_FP_TO_FP_FROM_BV,
+  OP_FP_TO_FP_FROM_INT_BV,
+  OP_FP_TO_FP_FROM_FP,
+  OP_FP_TO_FP_FROM_UINT_BV,
+  OP_FP_TO_FP_FROM_REAL,
+  OP_FP_TO_SBV,
+  OP_FP_TO_UBV,
+
   OP_FP_ABS,
   OP_FP_ADD,
   OP_FP_DIV,
@@ -107,14 +115,7 @@ enum OpKind
   OP_FP_RTI,
   OP_FP_SQRT,
   OP_FP_SUB,
-  OP_FP_TO_FP_FROM_BV,
-  OP_FP_TO_FP_FRON_INT_BV,
-  OP_FP_TO_FP_FROM_FP,
-  OP_FP_TO_FP_FROM_UINT_BV,
-  OP_FP_TO_FP_FROM_REAL,
   OP_FP_TO_REAL,
-  OP_FP_TO_SBV,
-  OP_FP_TO_UBV,
 
   OP_ALL, /* must be last */
 };
@@ -232,6 +233,14 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_BV_XNOR),
         SMTMBT_OP_TO_STR(OP_BV_XOR),
 
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_BV),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_INT_BV),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_FP),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_UINT_BV),
+        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_REAL),
+        SMTMBT_OP_TO_STR(OP_FP_TO_SBV),
+        SMTMBT_OP_TO_STR(OP_FP_TO_UBV),
+
         SMTMBT_OP_TO_STR(OP_FP_ABS),
         SMTMBT_OP_TO_STR(OP_FP_ADD),
         SMTMBT_OP_TO_STR(OP_FP_DIV),
@@ -257,14 +266,7 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_FP_RTI),
         SMTMBT_OP_TO_STR(OP_FP_SQRT),
         SMTMBT_OP_TO_STR(OP_FP_SUB),
-        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_BV),
-        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FRON_INT_BV),
-        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_FP),
-        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_UINT_BV),
-        SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_REAL),
         SMTMBT_OP_TO_STR(OP_FP_TO_REAL),
-        SMTMBT_OP_TO_STR(OP_FP_TO_SBV),
-        SMTMBT_OP_TO_STR(OP_FP_TO_UBV),
     };
 
 std::ostream& operator<<(std::ostream& out, OpKind kind);

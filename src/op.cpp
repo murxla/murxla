@@ -38,9 +38,13 @@ Op::get_arg_sort_kind(size_t i) const
 {
   if (i >= d_sort_kind_args.size())
   {
-    /* All arguments have the same sort */
-    assert(d_sort_kind_args.size() == 1);
-    return d_sort_kind_args[0];
+    /* All remaining arguments have the same sort, except for some operators in
+     * theory of FP, where some FP operators have one RM and the remainder FP
+     * arguments. All FP arguments have the same sort, and the RM argument
+     * always comes first. */
+    assert(d_sort_kind_args[0] != SORT_RM || d_sort_kind_args.size() > 1);
+    return d_sort_kind_args[0] == SORT_RM ? d_sort_kind_args[1]
+                                          : d_sort_kind_args[0];
   }
   return d_sort_kind_args[i];
 }

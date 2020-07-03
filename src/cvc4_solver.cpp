@@ -58,6 +58,18 @@ CVC4Sort::is_bv() const
   return d_sort.isBitVector();
 }
 
+bool
+CVC4Sort::is_fp() const
+{
+  return d_sort.isFloatingPoint();
+}
+
+bool
+CVC4Sort::is_rm() const
+{
+  return d_sort.isRoundingMode();
+}
+
 uint32_t
 CVC4Sort::get_bv_size() const
 {
@@ -65,13 +77,13 @@ CVC4Sort::get_bv_size() const
 }
 
 uint32_t
-CVC4Sort::get_exp_size() const
+CVC4Sort::get_fp_exp_size() const
 {
   return d_sort.getFPExponentSize();
 }
 
 uint32_t
-CVC4Sort::get_sig_size() const
+CVC4Sort::get_fp_sig_size() const
 {
   return d_sort.getFPSignificandSize();
 }
@@ -137,6 +149,7 @@ CVC4Solver::new_solver()
   assert(d_solver == nullptr);
   d_solver = new api::Solver();
   init_op_kinds();
+  d_solver->setOption("fp-exp", "true");
 }
 
 void
@@ -332,6 +345,83 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base) const
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res, d_generic));
   assert(res);
   return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, SpecialValueFP value) const
+{
+  assert(sort->is_fp());
+  CVC4::api::Term cvc4_res;
+
+  switch (value)
+  {
+    case Solver::SpecialValueFP::SMTMBT_FP_POS_INF:
+      cvc4_res =
+          d_solver->mkPosInf(sort->get_fp_exp_size(), sort->get_fp_sig_size());
+      break;
+    case Solver::SpecialValueFP::SMTMBT_FP_NEG_INF:
+      cvc4_res =
+          d_solver->mkNegInf(sort->get_fp_exp_size(), sort->get_fp_sig_size());
+      break;
+    case Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO:
+      cvc4_res =
+          d_solver->mkPosZero(sort->get_fp_exp_size(), sort->get_fp_sig_size());
+      break;
+    case Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO:
+      cvc4_res =
+          d_solver->mkNegZero(sort->get_fp_exp_size(), sort->get_fp_sig_size());
+      break;
+    default:
+      assert(value == Solver::SpecialValueFP::SMTMBT_FP_NAN);
+      cvc4_res =
+          d_solver->mkNaN(sort->get_fp_exp_size(), sort->get_fp_sig_size());
+  }
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res, d_generic));
+  assert(res);
+  return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, SpecialValueRM value) const
+{
+  assert(sort->is_rm());
+  CVC4::api::Term cvc4_res;
+
+  switch (value)
+  {
+    case Solver::SpecialValueRM::SMTMBT_FP_RNE:
+      cvc4_res = d_solver->mkRoundingMode(
+          CVC4::api::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
+      break;
+    case Solver::SpecialValueRM::SMTMBT_FP_RNA:
+      cvc4_res = d_solver->mkRoundingMode(
+          CVC4::api::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
+      break;
+    case Solver::SpecialValueRM::SMTMBT_FP_RTN:
+      cvc4_res = d_solver->mkRoundingMode(
+          CVC4::api::RoundingMode::ROUND_TOWARD_NEGATIVE);
+      break;
+    case Solver::SpecialValueRM::SMTMBT_FP_RTP:
+      cvc4_res = d_solver->mkRoundingMode(
+          CVC4::api::RoundingMode::ROUND_TOWARD_POSITIVE);
+      break;
+    default:
+      assert(value == Solver::SpecialValueRM::SMTMBT_FP_RTZ);
+      cvc4_res =
+          d_solver->mkRoundingMode(CVC4::api::RoundingMode::ROUND_TOWARD_ZERO);
+  }
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res, d_generic));
+  assert(res);
+  return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort,
+                     std::string value0,
+                     std::string value1,
+                     std::string value2) const
+{
+  return Term();
 }
 
 Term
@@ -739,7 +829,7 @@ CVC4Solver::init_op_kinds()
       {OP_FP_SUB, CVC4::api::Kind::FLOATINGPOINT_SUB},
       {OP_FP_TO_FP_FROM_BV,
        CVC4::api::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
-      {OP_FP_TO_FP_FRON_INT_BV,
+      {OP_FP_TO_FP_FROM_INT_BV,
        CVC4::api::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
       {OP_FP_TO_FP_FROM_FP, CVC4::api::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
       {OP_FP_TO_FP_FROM_UINT_BV,

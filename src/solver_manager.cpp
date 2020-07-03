@@ -278,6 +278,17 @@ SolverManager::pick_op(TheoryId theory, bool with_terms)
 
 /* -------------------------------------------------------------------------- */
 
+bool
+SolverManager::has_theory(bool with_terms)
+{
+  if (with_terms)
+  {
+    return d_terms.size() > 0
+           && (d_terms.size() > 1 || d_terms.find(SORT_RM) == d_terms.end());
+  }
+  return d_enabled_theories.size() > 0;
+}
+
 TheoryId
 SolverManager::pick_theory(bool with_terms)
 {
@@ -286,6 +297,10 @@ SolverManager::pick_theory(bool with_terms)
     TheoryIdSet theories;
     for (const auto& p : d_terms)
     {
+      /* We have to skip SORT_RM since all operators in THEORY_FP require
+       * terms of SORT_FP, but not necessarily of SORT_RM. If only terms of
+       * SORT_RM have been created, no THEORY_FP operator applies. */
+      if (p.first == SORT_RM) continue;
       TheoryId theory = d_sort_kinds.find(p.first)->second.d_theory;
       assert(d_enabled_theories.find(theory) != d_enabled_theories.end());
       theories.insert(theory);
@@ -487,15 +502,42 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
   {
     return d_rng.pick_from_map<SortMap, Sort>(d_terms.at(sort_kind));
   }
-  assert(d_sort_kinds.find(sort_kind) != d_sort_kinds.end());
-  assert(d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end());
+  assert(has_sort(sort_kind));
   return d_rng.pick_from_set<SortSet, Sort>(d_sort_kind_to_sorts.at(sort_kind));
 }
 
 Sort
-SolverManager::pick_sort_bv(uint32_t bw_max, bool with_terms)
+SolverManager::pick_sort_bv(uint32_t bw, bool with_terms)
 {
-  assert(has_sort_bv(bw_max, with_terms));
+  assert(has_sort_bv(bw, with_terms));
+  std::vector<Sort> sorts;
+  if (with_terms)
+  {
+    for (const auto& p : d_terms.at(SORT_BV))
+    {
+      if (p.first->is_bv() && p.first->get_bv_size() == bw)
+      {
+        sorts.push_back(p.first);
+      }
+    }
+  }
+  else
+  {
+    for (const Sort sort : d_sorts)
+    {
+      if (sort->is_bv() && sort->get_bv_size() == bw)
+      {
+        sorts.push_back(sort);
+      }
+    }
+  }
+  return d_rng.pick_from_set<std::vector<Sort>, Sort>(sorts);
+}
+
+Sort
+SolverManager::pick_sort_bv_max(uint32_t bw_max, bool with_terms)
+{
+  assert(has_sort_bv_max(bw_max, with_terms));
   std::vector<Sort> sorts;
   if (with_terms)
   {
@@ -524,6 +566,14 @@ bool
 SolverManager::has_sort() const
 {
   return !d_sorts.empty();
+}
+
+bool
+SolverManager::has_sort(SortKind sort_kind) const
+{
+  if (d_sort_kinds.find(sort_kind) == d_sort_kinds.end()) return false;
+  return d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end()
+         && !d_sort_kind_to_sorts.at(sort_kind).empty();
 }
 
 bool
@@ -566,7 +616,25 @@ SolverManager::find_sort(Sort sort) const
 }
 
 bool
-SolverManager::has_sort_bv(uint32_t bw_max, bool with_terms) const
+SolverManager::has_sort_bv(uint32_t bw, bool with_terms) const
+{
+  if (with_terms)
+  {
+    if (d_terms.find(SORT_BV) == d_terms.end()) return false;
+    for (const auto& p : d_terms.at(SORT_BV))
+    {
+      if (p.first->is_bv() && p.first->get_bv_size() == bw) return true;
+    }
+    return false;
+  }
+  for (const Sort sort : d_sorts)
+  {
+    if (sort->is_bv() && sort->get_bv_size() == bw) return true;
+  }
+  return false;
+}
+bool
+SolverManager::has_sort_bv_max(uint32_t bw_max, bool with_terms) const
 {
   if (with_terms)
   {
@@ -824,37 +892,38 @@ SolverManager::add_op_kinds()
             ops, OP_FP_SQRT, 2, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
         add_op_kind(
             ops, OP_FP_SUB, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+        // add_op_kind(ops,OP_FP_TO_REAL, 1, 0, SORT_REAL, {SORT_FP},
+        // THEORY_FP);
+        /* indexed */
         add_op_kind(
-            ops, OP_FP_TO_FP_FROM_BV, 1, 0, SORT_FP, {SORT_BV}, THEORY_FP);
+            ops, OP_FP_TO_FP_FROM_BV, 1, 2, SORT_FP, {SORT_BV}, THEORY_FP);
         add_op_kind(ops,
-                    OP_FP_TO_FP_FRON_INT_BV,
+                    OP_FP_TO_FP_FROM_INT_BV,
                     2,
-                    0,
+                    2,
                     SORT_FP,
                     {SORT_RM, SORT_BV},
                     THEORY_FP);
         add_op_kind(ops,
                     OP_FP_TO_FP_FROM_FP,
                     2,
-                    0,
+                    2,
                     SORT_FP,
                     {SORT_RM, SORT_FP},
                     THEORY_FP);
         add_op_kind(ops,
                     OP_FP_TO_FP_FROM_UINT_BV,
                     2,
-                    0,
+                    2,
                     SORT_FP,
                     {SORT_RM, SORT_BV},
                     THEORY_FP);
-        // add_op_kind(ops, OP_FP_TO_FP_FROM_REAL, 1, 0, SORT_FP, {SORT_REAL},
-        //             THEORY_FP);
-        // add_op_kind(ops, OP_FP_TO_REAL, 1, 0, SORT_REAL, {SORT_FP},
-        //             THEORY_FP);
+        // add_op_kind(ops,OP_FP_TO_FP_FROM_REAL, 1, 2, SORT_FP, {SORT_REAL},
+        // THEORY_FP);
         add_op_kind(
-            ops, OP_FP_TO_SBV, 2, 0, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
+            ops, OP_FP_TO_SBV, 2, 1, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
         add_op_kind(
-            ops, OP_FP_TO_UBV, 2, 0, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
+            ops, OP_FP_TO_UBV, 2, 1, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
         break;
 
       default: assert(sort_kind == SORT_RM);

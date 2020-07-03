@@ -65,6 +65,18 @@ BtorSort::is_bv() const
   return boolector_is_bitvec_sort(d_solver, d_sort);
 }
 
+bool
+BtorSort::is_fp() const
+{
+  return false;
+}
+
+bool
+BtorSort::is_rm() const
+{
+  return false;
+}
+
 uint32_t
 BtorSort::get_bv_size() const
 {
@@ -269,11 +281,11 @@ BtorSolver::mk_value(Sort sort, bool value) const
   {
     if (value)
     {
-      check_is_bv_const(Solver::SpecialValueBV::ONE, btor_res);
+      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ONE, btor_res);
     }
     else
     {
-      check_is_bv_const(Solver::SpecialValueBV::ZERO, btor_res);
+      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ZERO, btor_res);
     }
   }
   if (d_rng.pick_with_prob(10))
@@ -304,7 +316,8 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   if (use_special_fun && value == 0)
   {
     btor_res = boolector_zero(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SpecialValueBV::ZERO, btor_res);
+    if (check)
+      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ZERO, btor_res);
     if (check_bits)
     {
       str = std::string(bw, '0');
@@ -313,7 +326,8 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   else if (use_special_fun && value == 1)
   {
     btor_res = boolector_one(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SpecialValueBV::ONE, btor_res);
+    if (check)
+      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ONE, btor_res);
     if (check_bits)
     {
       std::stringstream ss;
@@ -328,19 +342,22 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   else if (use_special_fun && is_bv_special_value_ones_uint64(bw, value))
   {
     btor_res = boolector_ones(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SpecialValueBV::ONES, btor_res);
+    if (check)
+      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ONES, btor_res);
     if (check_bits) str = std::string(bw, '1');
   }
   else if (use_special_fun && is_bv_special_value_min_signed_uint64(bw, value))
   {
     btor_res = boolector_min_signed(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SpecialValueBV::MIN_SIGNED, btor_res);
+    if (check)
+      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED, btor_res);
     if (check_bits) str = bv_special_value_min_signed_str(bw);
   }
   else if (use_special_fun && is_bv_special_value_max_signed_uint64(bw, value))
   {
     btor_res = boolector_max_signed(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SpecialValueBV::MAX_SIGNED, btor_res);
+    if (check)
+      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED, btor_res);
     if (check_bits) str = bv_special_value_max_signed_str(bw);
   }
   else
@@ -1061,7 +1078,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
   {
     BtorFunBoolUnaryVector is_funs;
     BtorFunBoolUnaryVector is_not_funs;
-    if (kind == Solver::SpecialValueBV::ONE)
+    if (kind == Solver::SpecialValueBV::SMTMBT_BV_ONE)
     {
       is_funs.push_back(boolector_is_bv_const_one);
       if (bw > 1)
@@ -1080,7 +1097,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
         is_not_funs.push_back(boolector_is_bv_const_max_signed);
       }
     }
-    else if (kind == Solver::SpecialValueBV::ONES)
+    else if (kind == Solver::SpecialValueBV::SMTMBT_BV_ONES)
     {
       is_funs.push_back(boolector_is_bv_const_ones);
       if (bw > 1)
@@ -1099,7 +1116,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
         is_not_funs.push_back(boolector_is_bv_const_max_signed);
       }
     }
-    else if (kind == Solver::SpecialValueBV::ZERO)
+    else if (kind == Solver::SpecialValueBV::SMTMBT_BV_ZERO)
     {
       is_funs.push_back(boolector_is_bv_const_zero);
       if (bw > 1)
@@ -1118,7 +1135,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
         is_not_funs.push_back(boolector_is_bv_const_min_signed);
       }
     }
-    else if (kind == Solver::SpecialValueBV::MIN_SIGNED)
+    else if (kind == Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED)
     {
       is_funs.push_back(boolector_is_bv_const_min_signed);
       if (bw > 1)
@@ -1139,7 +1156,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
     }
     else
     {
-      assert(kind == Solver::SpecialValueBV::MAX_SIGNED);
+      assert(kind == Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED);
       is_funs.push_back(boolector_is_bv_const_max_signed);
       if (bw > 1)
       {

@@ -34,6 +34,7 @@ class RNGenerator
      SECOND,
      THIRD,
      FOURTH,
+     FIFTH,
    };
 
    /** Constructor. */
@@ -97,6 +98,9 @@ class RNGenerator
    Choice pick_one_of_three();
    /** Pick one out of four choices. */
    Choice pick_one_of_four();
+   /** Pick one out of five choices. */
+   Choice pick_one_of_five();
+
    /** Pick random string of given length from set of 256 printable chars. */
    std::string pick_string(uint32_t len);
    /** Pick random string of given length from given character set. */

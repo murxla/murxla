@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "op.hpp"
@@ -40,9 +41,11 @@ class AbsSort
 
   virtual bool is_bool() const         = 0;
   virtual bool is_bv() const           = 0;
+  virtual bool is_fp() const           = 0;
+  virtual bool is_rm() const           = 0;
   virtual uint32_t get_bv_size() const;
-  virtual uint32_t get_exp_size() const;
-  virtual uint32_t get_sig_size() const;
+  virtual uint32_t get_fp_exp_size() const;
+  virtual uint32_t get_fp_sig_size() const;
 
   void set_id(uint64_t id);
   uint64_t get_id() const;
@@ -128,11 +131,29 @@ class Solver
 
   enum SpecialValueBV
   {
-    ZERO,
-    ONE,
-    ONES,
-    MIN_SIGNED,
-    MAX_SIGNED,
+    SMTMBT_BV_ZERO,
+    SMTMBT_BV_ONE,
+    SMTMBT_BV_ONES,
+    SMTMBT_BV_MIN_SIGNED,
+    SMTMBT_BV_MAX_SIGNED,
+  };
+
+  enum SpecialValueFP
+  {
+    SMTMBT_FP_NAN,
+    SMTMBT_FP_POS_INF,
+    SMTMBT_FP_NEG_INF,
+    SMTMBT_FP_POS_ZERO,
+    SMTMBT_FP_NEG_ZERO,
+  };
+
+  enum SpecialValueRM
+  {
+    SMTMBT_FP_RNE,
+    SMTMBT_FP_RNA,
+    SMTMBT_FP_RTN,
+    SMTMBT_FP_RTP,
+    SMTMBT_FP_RTZ,
   };
 
   Solver(RNGenerator& rng, bool generic);
@@ -153,9 +174,15 @@ class Solver
   virtual Term mk_const(Sort sort, const std::string name) const = 0;
   virtual Term mk_fun(Sort sort, const std::string name) const   = 0;
 
-  virtual Term mk_value(Sort sort, bool value) const                   = 0;
-  virtual Term mk_value(Sort sort, uint64_t value) const               = 0;
-  virtual Term mk_value(Sort sort, std::string value, Base base) const = 0;
+  virtual Term mk_value(Sort sort, bool value) const = 0;
+  virtual Term mk_value(Sort sort, uint64_t value) const;
+  virtual Term mk_value(Sort sort, std::string value, Base base) const;
+  virtual Term mk_value(Sort sort, SpecialValueFP value) const;
+  virtual Term mk_value(Sort sort, SpecialValueRM value) const;
+  virtual Term mk_value(Sort sort,
+                        std::string value0,
+                        std::string value1,
+                        std::string value2) const;
 
   virtual Sort mk_sort(const std::string name, uint32_t arity) const        = 0;
   virtual Sort mk_sort(SortKind kind) const                                 = 0;
@@ -206,6 +233,12 @@ class Solver
   // get_unsat_core()
   //
   //
+
+  static const std::unordered_map<std::string, SpecialValueFP>
+      s_special_values_fp;
+  static const std::unordered_map<std::string, SpecialValueRM>
+      s_special_values_rm;
+
  protected:
   RNGenerator& d_rng;
   bool d_generic = false;
@@ -213,16 +246,21 @@ class Solver
   std::vector<Base> d_bases = {Base::BIN, Base::DEC, Base::HEX};
 
   std::vector<SpecialValueBV> d_special_values_bv = {
-      SpecialValueBV::ZERO,
-      SpecialValueBV::ONE,
-      SpecialValueBV::ONES,
-      SpecialValueBV::MIN_SIGNED,
-      SpecialValueBV::MAX_SIGNED};
+      SpecialValueBV::SMTMBT_BV_ZERO,
+      SpecialValueBV::SMTMBT_BV_ONE,
+      SpecialValueBV::SMTMBT_BV_ONES,
+      SpecialValueBV::SMTMBT_BV_MIN_SIGNED,
+      SpecialValueBV::SMTMBT_BV_MAX_SIGNED};
 };
 
-/**
- * Serialize a solver result to given stream.
- */
+/** Serialize a special BV value to given stream.  */
+std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueBV val);
+/** Serialize a special FP value to given stream.  */
+std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueFP val);
+/** Serialize a special RM value to given stream.  */
+std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueRM val);
+
+/** Serialize a solver result to given stream.  */
 std::ostream& operator<<(std::ostream& out, const Solver::Result& r);
 
 /* -------------------------------------------------------------------------- */

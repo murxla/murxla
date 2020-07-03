@@ -25,9 +25,11 @@ class CVC4Sort : public AbsSort
   bool equals(const Sort& other) const override;
   bool is_bool() const override;
   bool is_bv() const override;
+  bool is_fp() const override;
+  bool is_rm() const override;
   uint32_t get_bv_size() const override;
-  uint32_t get_exp_size() const override;
-  uint32_t get_sig_size() const override;
+  uint32_t get_fp_exp_size() const override;
+  uint32_t get_fp_sig_size() const override;
 
  private:
   CVC4::api::Solver* d_solver;
@@ -104,6 +106,12 @@ class CVC4Solver : public Solver
   Term mk_value(Sort sort, bool value) const override;
   Term mk_value(Sort sort, uint64_t value) const override;
   Term mk_value(Sort sort, std::string value, Base base) const override;
+  Term mk_value(Sort sort, SpecialValueFP value) const override;
+  Term mk_value(Sort sort, SpecialValueRM value) const override;
+  Term mk_value(Sort sort,
+                std::string value0,
+                std::string value1,
+                std::string value2) const override;
 
   Sort mk_sort(const std::string name, uint32_t arity) const override
   {  // TODO:

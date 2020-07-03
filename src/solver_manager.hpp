@@ -103,8 +103,15 @@ class SolverManager
    */
   Op& pick_op(TheoryId theory, bool with_terms = true);
 
+  /**
+   * Return true if
+   *  - with_terms = true : Any terms in any enabled theory have been created
+   *                        such that an operator of that theory applies.
+   *  - with_terms = false: Any theory is enabled.
+   */
+  bool has_theory(bool with_terms = true);
   /** Pick any of the enabled theories. */
-  TheoryId pick_theory(bool with_terms = false);
+  TheoryId pick_theory(bool with_terms = true);
 
   /**
    * Pick a term of given sort.
@@ -185,10 +192,15 @@ class SolverManager
    */
   Sort pick_sort(SortKind sort_kind, bool with_terms = true);
   /**
+   * Pick bit-vector sort with given bit-width.  Optionally restrict
+   * selection to sorts with terms only if 'with_terms' is true.
+   */
+  Sort pick_sort_bv(uint32_t bw, bool with_terms = true);
+  /**
    * Pick bit-vector sort with given maximum bit-width.  Optionally restrict
    * selection to sorts with terms only if 'with_terms' is true.
    */
-  Sort pick_sort_bv(uint32_t bw_max, bool with_terms = true);
+  Sort pick_sort_bv_max(uint32_t bw_max, bool with_terms = true);
 
   /**
    * Return true if any sort has been created.
@@ -196,16 +208,27 @@ class SolverManager
    */
   bool has_sort() const;
   /**
+   * Return true if a sort of given kind exists.
+   * This does not guarantee that any terms of this sort have been created.
+   */
+  bool has_sort(SortKind sort_kind) const;
+  /**
    * Return true if given sort already exists.
    * This does not guarantee that any terms of this sort have been created.
    */
   bool has_sort(Sort sort) const;
   /**
+   * Return true if a bit-vector sort with given bit-width exists.
+   * Optionally restrict selection to sorts with terms only if 'with_terms' is
+   * true.
+   */
+  bool has_sort_bv(uint32_t bw, bool with_terms = true) const;
+  /**
    * Return true if a bit-vector sort up to given maximum bit-width exists.
    * Optionally restrict selection to sorts with terms only if 'with_terms' is
    * true.
    */
-  bool has_sort_bv(uint32_t bw_max, bool with_terms = true) const;
+  bool has_sort_bv_max(uint32_t bw_max, bool with_terms = true) const;
 
   /**
    * Return the sort with the given id.

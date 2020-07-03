@@ -52,12 +52,12 @@ AbsSort::get_bv_size() const
 }
 
 uint32_t
-AbsSort::get_exp_size() const
+AbsSort::get_fp_exp_size() const
 {
   return 0;
 }
 uint32_t
-AbsSort::get_sig_size() const
+AbsSort::get_fp_sig_size() const
 {
   return 0;
 }
@@ -144,6 +144,22 @@ HashTerm::operator()(const Term t) const
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
+const std::unordered_map<std::string, Solver::SpecialValueFP>
+    Solver::s_special_values_fp = {
+        {"nan", Solver::SpecialValueFP::SMTMBT_FP_NAN},
+        {"+oo", Solver::SpecialValueFP::SMTMBT_FP_POS_INF},
+        {"-oo", Solver::SpecialValueFP::SMTMBT_FP_NEG_INF},
+        {"+zero", Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO},
+        {"-zero", Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO}};
+
+const std::unordered_map<std::string, Solver::SpecialValueRM>
+    Solver::s_special_values_rm = {
+        {"rne", Solver::SpecialValueRM::SMTMBT_FP_RNE},
+        {"rna", Solver::SpecialValueRM::SMTMBT_FP_RNA},
+        {"rtn", Solver::SpecialValueRM::SMTMBT_FP_RTN},
+        {"rtp", Solver::SpecialValueRM::SMTMBT_FP_RTP},
+        {"rtz", Solver::SpecialValueRM::SMTMBT_FP_RTZ}};
+
 Solver::Solver(RNGenerator& rng, bool generic) : d_rng(rng), d_generic(generic)
 {
 }
@@ -203,6 +219,39 @@ Solver::get_special_values_bv() const
   return d_special_values_bv;
 }
 
+Term
+Solver::mk_value(Sort sort, uint64_t value) const
+{
+  return Term();
+}
+
+Term
+Solver::mk_value(Sort sort, std::string value, Base base) const
+{
+  return Term();
+}
+
+Term
+Solver::mk_value(Sort sort, SpecialValueFP value) const
+{
+  return Term();
+}
+
+Term
+Solver::mk_value(Sort sort, SpecialValueRM value) const
+{
+  return Term();
+}
+
+Term
+Solver::mk_value(Sort sort,
+                 std::string value0,
+                 std::string value1,
+                 std::string value2) const
+{
+  return Term();
+}
+
 Sort
 Solver::mk_sort(SortKind kind, uint32_t size) const
 {
@@ -216,16 +265,60 @@ Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const
 }
 
 std::ostream&
+operator<<(std::ostream& out, const Solver::SpecialValueBV val)
+{
+  switch (val)
+  {
+    case Solver::SpecialValueBV::SMTMBT_BV_ONE: out << "bv-one";
+    case Solver::SpecialValueBV::SMTMBT_BV_ONES: out << "bv-ones";
+    case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED: out << "bv-min-signed";
+    case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED: out << "bv-max-signed";
+    default:
+      assert(val == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
+      out << "bv-zero";
+  }
+  return out;
+}
+
+std::ostream&
+operator<<(std::ostream& out, const Solver::SpecialValueFP val)
+{
+  for (const auto& p : Solver::s_special_values_fp)
+  {
+    if (p.second == val)
+    {
+      out << p.first;
+      return out;
+    }
+  }
+  out << "unknown";
+  return out;
+}
+
+std::ostream&
+operator<<(std::ostream& out, const Solver::SpecialValueRM val)
+{
+  for (const auto& p : Solver::s_special_values_rm)
+  {
+    if (p.second == val)
+    {
+      out << p.first;
+      return out;
+    }
+  }
+  out << "unknown";
+  return out;
+}
+
+std::ostream&
 operator<<(std::ostream& out, const Solver::Result& r)
 {
-  std::string s;
   switch (r)
   {
-    case Solver::Result::SAT: s = "sat"; break;
-    case Solver::Result::UNSAT: s = "unsat"; break;
-    default: s = "unknown";
+    case Solver::Result::SAT: out << "sat"; break;
+    case Solver::Result::UNSAT: out << "unsat"; break;
+    default: out << "unknown";
   }
-  out << s;
   return out;
 }
 
