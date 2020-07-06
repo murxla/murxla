@@ -179,7 +179,8 @@ class FSM
       bool trace_seeds,
       bool cross_check,
       bool smt,
-      statistics::Statistics* stats);
+      statistics::Statistics* stats,
+      TheoryIdVector& enabled_theories);
 
   /** Default constructor is disabled. */
   FSM() = delete;

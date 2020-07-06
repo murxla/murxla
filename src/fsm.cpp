@@ -85,8 +85,16 @@ FSM::FSM(RNGenerator& rng,
          bool trace_seeds,
          bool cross_check,
          bool smt,
-         statistics::Statistics* stats)
-    : d_smgr(solver, rng, trace, options, trace_seeds, cross_check, stats),
+         statistics::Statistics* stats,
+         TheoryIdVector& enabled_theories)
+    : d_smgr(solver,
+             rng,
+             trace,
+             options,
+             trace_seeds,
+             cross_check,
+             stats,
+             enabled_theories),
       d_rng(rng),
       d_smt(smt),
       d_mbt_stats(stats)

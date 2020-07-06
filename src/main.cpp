@@ -48,6 +48,7 @@ struct Options
   std::string dd_trace_file_name;
   std::string cross_check;
   std::string solver_options_file;
+  TheoryIdVector enabled_theories;
 };
 
 static Options g_options;
@@ -153,7 +154,11 @@ set_sigint_handler_stats(void)
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n" \
   "  --btor                  test Boolector\n"                               \
   "  --cvc4                  test CVC4\n"                                    \
-  "  --stats                 print statistics\n"
+  "  --stats                 print statistics\n\n"                           \
+  " enabling specific theories:\n"                                           \
+  "  --arrays                theory of arrays\n"                             \
+  "  --bv                    theory of bit-vectors\n"                        \
+  "  --fp                    theory of floating-points"
 
 void
 check_next_arg(std::string& option, int i, int argc)
@@ -268,6 +273,18 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-l" || arg == "--smt-lib")
     {
       options.smt = true;
+    }
+    else if (arg == "--arrays")
+    {
+      options.enabled_theories.push_back(THEORY_ARRAY);
+    }
+    else if (arg == "--bv")
+    {
+      options.enabled_theories.push_back(THEORY_BV);
+    }
+    else if (arg == "--fp")
+    {
+      options.enabled_theories.push_back(THEORY_FP);
     }
   }
 
@@ -409,7 +426,8 @@ run_aux(uint32_t seed,
             options.trace_seeds,
             !options.cross_check.empty(),
             options.smt,
-            stats);
+            stats,
+            options.enabled_theories);
     fsm.configure();
 
     /* replay/untrace given API trace */

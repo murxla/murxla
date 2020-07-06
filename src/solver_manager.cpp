@@ -18,7 +18,8 @@ SolverManager::SolverManager(Solver* solver,
                              SolverOptions& options,
                              bool trace_seeds,
                              bool cross_check,
-                             statistics::Statistics* stats)
+                             statistics::Statistics* stats,
+                             TheoryIdVector& enabled_theories)
     : d_mbt_stats(stats),
       d_trace_seeds(trace_seeds),
       d_cross_check(cross_check),
@@ -28,12 +29,10 @@ SolverManager::SolverManager(Solver* solver,
       d_options(options),
       d_used_options()
 {
-  add_enabled_theories();
+  add_enabled_theories(enabled_theories);
   add_sort_kinds();  // adds only sort kinds of enabled theories
   add_op_kinds();    // adds only op kinds where both term and argument sorts
                      // are enabled
-
-  TheoryIdSet enabled_theories = d_enabled_theories;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -731,17 +730,27 @@ SolverManager::pick_option()
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::add_enabled_theories()
+SolverManager::add_enabled_theories(TheoryIdVector& enabled_theories)
 {
   /* Get theories supported by enabled solver. */
   TheoryIdVector solver_theories = d_solver->get_supported_theories();
 
   /* Get all theories supported by MBT. */
   TheoryIdVector all_theories;
-  for (int32_t t = 0; t < THEORY_ALL; ++t)
-    all_theories.push_back(static_cast<TheoryId>(t));
-
-  // TODO filter out based on enabled theories enabled via CLI
+  if (enabled_theories.empty())
+  {
+    for (int32_t t = 0; t < THEORY_ALL; ++t)
+      all_theories.push_back(static_cast<TheoryId>(t));
+  }
+  else
+  {
+    for (auto theory : enabled_theories)
+    {
+      all_theories.push_back(theory);
+    }
+    /* THEORY_BOOL is always enabled. */
+    all_theories.push_back(THEORY_BOOL);
+  }
 
   /* We need to sort these for intersection. */
   std::sort(all_theories.begin(), all_theories.end());
