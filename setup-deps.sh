@@ -26,6 +26,7 @@ rm -rf "$toml_dir"
   then
     ./contrib/setup-btor2tools.sh
     ./contrib/setup-lingeling.sh
+    ./contrib/setup-cadical.sh
   fi
 
   rm build -rf
