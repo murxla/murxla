@@ -492,43 +492,6 @@ BtorSolver::mk_term(const OpKind& kind,
       break;
 
     case OP_BV_ROTATE_LEFT:
-    {
-      assert(n_args == 1);
-      assert(n_params == 1);
-
-      BoolectorNode* arg = get_btor_term(args[0]);
-      BoolectorSort s    = boolector_get_sort(d_solver, arg);
-      uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
-
-      /* use boolector_roli vs boolector_rol with 50% probability */
-      if (d_rng.flip_coin())
-      {
-        btor_res = boolector_roli(d_solver, arg, params[0]);
-      }
-      else
-      {
-        BoolectorNode* tmp;
-        /* use same bit-width vs log2 bit-width (if possible) with 50% prob */
-        if (is_power_of_2(bw) && d_rng.flip_coin())
-        {
-          /* arg has bw that is power of 2, nbits argument with log2 bw */
-          uint32_t bw2     = static_cast<uint32_t>(log2(bw));
-          BoolectorSort s2 = boolector_bitvec_sort(d_solver, bw2);
-          uint32_t nbits   = params[0] % bw;
-          tmp              = boolector_unsigned_int(d_solver, nbits, s2);
-          boolector_release_sort(d_solver, s2);
-        }
-        else
-        {
-          /* arg and nbits argument with same bw */
-          tmp = boolector_unsigned_int(d_solver, params[0], s);
-        }
-        btor_res = boolector_rol(d_solver, arg, tmp);
-        boolector_release(d_solver, tmp);
-      }
-      break;
-    }
-
     case OP_BV_ROTATE_RIGHT:
     {
       assert(n_args == 1);
@@ -540,13 +503,15 @@ BtorSolver::mk_term(const OpKind& kind,
       /* use boolector_rori vs boolector_ror with 50% probability */
       if (d_rng.flip_coin())
       {
-        btor_res = boolector_rori(d_solver, arg, params[0]);
+        btor_res = (kind == OP_BV_ROTATE_LEFT)
+                       ? boolector_roli(d_solver, arg, params[0])
+                       : boolector_rori(d_solver, arg, params[0]);
       }
       else
       {
         BoolectorNode* tmp;
         /* use same bit-width vs log2 bit-width (if possible) with 50% prob */
-        if (is_power_of_2(bw) && d_rng.flip_coin())
+        if (bw > 1 && is_power_of_2(bw) && d_rng.flip_coin())
         {
           /* arg has bw that is power of 2, nbits argument with log2 bw */
           uint32_t bw2     = static_cast<uint32_t>(log2(bw));
@@ -560,7 +525,9 @@ BtorSolver::mk_term(const OpKind& kind,
           /* arg and nbits argument with same bw */
           tmp = boolector_unsigned_int(d_solver, params[0], s);
         }
-        btor_res = boolector_ror(d_solver, arg, tmp);
+        btor_res = (kind == OP_BV_ROTATE_LEFT)
+                       ? boolector_rol(d_solver, arg, tmp)
+                       : boolector_ror(d_solver, arg, tmp);
         boolector_release(d_solver, tmp);
       }
       break;
