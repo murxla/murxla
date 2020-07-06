@@ -87,8 +87,8 @@ BtorSort::get_bv_size() const
 /* BtorTerm                                                                   */
 /* -------------------------------------------------------------------------- */
 
-BtorTerm::BtorTerm(Btor* btor, BoolectorNode* term, bool generic)
-    : d_solver(btor), d_term(boolector_copy(btor, term)), d_generic(generic)
+BtorTerm::BtorTerm(Btor* btor, BoolectorNode* term)
+    : d_solver(btor), d_term(boolector_copy(btor, term))
 {
 }
 
@@ -109,7 +109,6 @@ get_btor_node_id(Btor* btor, BoolectorNode* node)
 size_t
 BtorTerm::hash() const
 {
-  if (d_generic) return d_id;
   return get_btor_node_id(d_solver, d_term);
 }
 
@@ -119,7 +118,6 @@ BtorTerm::equals(const Term& other) const
   BtorTerm* btor_term = dynamic_cast<BtorTerm*>(other.get());
   if (btor_term)
   {
-    if (d_generic) return d_id == btor_term->d_id;
     return get_btor_node_id(d_solver, d_term)
            == get_btor_node_id(btor_term->d_solver, btor_term->d_term);
   }
@@ -263,7 +261,7 @@ BtorSolver::mk_const(Sort sort, const std::string name) const
   {
     assert(boolector_is_equal_sort(d_solver, btor_res, btor_res));
   }
-  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res, d_generic));
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
   return res;
@@ -294,7 +292,7 @@ BtorSolver::mk_value(Sort sort, bool value) const
     assert(std::string(bits) == (value ? "1" : "0"));
     boolector_free_bits(d_solver, bits);
   }
-  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res, d_generic));
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
   return res;
@@ -388,7 +386,7 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
   }
   assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
   assert(btor_res);
-  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res, d_generic));
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
   return res;
@@ -434,7 +432,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base) const
   }
   assert(btor_res);
   assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
-  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res, d_generic));
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
   return res;
@@ -762,7 +760,7 @@ BtorSolver::mk_term(const OpKind& kind,
   }
   assert(btor_res);
   assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
-  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res, d_generic));
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
   return res;
@@ -821,8 +819,8 @@ BtorSolver::get_unsat_assumptions() const
   BoolectorNode** btor_res = boolector_get_failed_assumptions(d_solver);
   for (uint32_t i = 0; btor_res[i] != nullptr; ++i)
   {
-    res.push_back(std::shared_ptr<BtorTerm>(
-        new BtorTerm(d_solver, btor_res[i], d_generic)));
+    res.push_back(
+        std::shared_ptr<BtorTerm>(new BtorTerm(d_solver, btor_res[i])));
   }
   return res;
 }
@@ -1033,8 +1031,7 @@ BtorSolver::btor_terms_to_terms(std::vector<BoolectorNode*>& terms) const
   std::vector<Term> res;
   for (BoolectorNode* t : terms)
   {
-    res.push_back(
-        std::shared_ptr<BtorTerm>(new BtorTerm(d_solver, t, d_generic)));
+    res.push_back(std::shared_ptr<BtorTerm>(new BtorTerm(d_solver, t)));
   }
   return res;
 }

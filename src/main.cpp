@@ -41,7 +41,6 @@ struct Options
   bool trace_seeds = false;
   bool smt         = false;
   bool print_stats = false;
-  bool generic     = false;
   std::string solver;
   std::string api_trace_file_name;
   std::string untrace_file_name;
@@ -154,8 +153,7 @@ set_sigint_handler_stats(void)
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n" \
   "  --btor                  test Boolector\n"                               \
   "  --cvc4                  test CVC4\n"                                    \
-  "  --stats                 print statistics\n"                             \
-  "  --trace-generic         generate solver independent traces\n"
+  "  --stats                 print statistics\n"
 
 void
 check_next_arg(std::string& option, int i, int argc)
@@ -238,7 +236,6 @@ parse_options(Options& options, int argc, char* argv[])
         die(es.str());
       }
       options.cross_check = solver;
-      options.generic     = true;
     }
     else if (arg == "--btor")
     {
@@ -271,11 +268,6 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-l" || arg == "--smt-lib")
     {
       options.smt = true;
-    }
-    else if (arg == "--trace-generic")
-    {
-      options.generic = true;
-      options.smt     = true;
     }
   }
 
@@ -403,11 +395,11 @@ run_aux(uint32_t seed,
 
     if (options.solver == SMTMBT_SOLVER_BTOR)
     {
-      solver = new btor::BtorSolver(rng, options.generic);
+      solver = new btor::BtorSolver(rng);
     }
     else if (options.solver == SMTMBT_SOLVER_CVC4)
     {
-      solver = new cvc4::CVC4Solver(rng, options.generic);
+      solver = new cvc4::CVC4Solver(rng);
     }
 
     FSM fsm(rng,

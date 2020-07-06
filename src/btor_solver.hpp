@@ -48,7 +48,7 @@ class BtorTerm : public AbsTerm
   friend class BtorSolver;
 
  public:
-  BtorTerm(Btor* btor, BoolectorNode* term, bool generic);
+  BtorTerm(Btor* btor, BoolectorNode* term);
   ~BtorTerm() override;
   size_t hash() const override;
   bool equals(const Term& other) const override;
@@ -56,7 +56,6 @@ class BtorTerm : public AbsTerm
  private:
   Btor* d_solver        = nullptr;
   BoolectorNode* d_term = nullptr;
-  bool d_generic        = false;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -66,10 +65,7 @@ class BtorTerm : public AbsTerm
 class BtorSolver : public Solver
 {
  public:
-  BtorSolver(RNGenerator& rng, bool generic)
-      : Solver(rng, generic), d_solver(nullptr)
-  {
-  }
+  BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
   ~BtorSolver() override{};
 
   void new_solver() override;

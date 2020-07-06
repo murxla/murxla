@@ -45,7 +45,7 @@ class CVC4Term : public AbsTerm
   friend class CVC4Solver;
 
  public:
-  CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term d_term, bool generic);
+  CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term d_term);
   ~CVC4Term() override;
   size_t hash() const override;
   bool equals(const Term& other) const override;
@@ -53,7 +53,6 @@ class CVC4Term : public AbsTerm
  private:
   CVC4::api::Solver* d_solver = nullptr;
   CVC4::api::Term d_term;
-  bool d_generic = false;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -63,10 +62,7 @@ class CVC4Term : public AbsTerm
 class CVC4Solver : public Solver
 {
  public:
-  CVC4Solver(RNGenerator& rng, bool generic)
-      : Solver(rng, generic), d_solver(nullptr)
-  {
-  }
+  CVC4Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
   ~CVC4Solver() override{};
 
   OpKindSet get_unsupported_op_kinds() const override;

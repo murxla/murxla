@@ -92,8 +92,8 @@ CVC4Sort::get_fp_sig_size() const
 /* CVC4Term                                                                   */
 /* -------------------------------------------------------------------------- */
 
-CVC4Term::CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term, bool generic)
-    : d_solver(cvc4), d_term(term), d_generic(generic)
+CVC4Term::CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term)
+    : d_solver(cvc4), d_term(term)
 {
 }
 
@@ -105,7 +105,6 @@ CVC4Term::~CVC4Term()
 size_t
 CVC4Term::hash() const
 {
-  if (d_generic) return d_id;
   return CVC4::api::TermHashFunction()(d_term);
 }
 
@@ -113,11 +112,7 @@ bool
 CVC4Term::equals(const Term& other) const
 {
   CVC4Term* cvc4_term = dynamic_cast<CVC4Term*>(other.get());
-  if (cvc4_term)
-  {
-    if (d_generic) return d_id == cvc4_term->d_id;
-    return d_term == cvc4_term->d_term;
-  }
+  if (cvc4_term) return d_term == cvc4_term->d_term;
   return false;
 }
 
@@ -262,7 +257,7 @@ CVC4Solver::mk_const(Sort sort, const std::string name) const
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
-  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res, d_generic));
+  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
 
 Term
@@ -283,7 +278,7 @@ CVC4Solver::mk_value(Sort sort, bool value) const
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res, d_generic));
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
 }
@@ -306,7 +301,7 @@ CVC4Solver::mk_value(Sort sort, uint64_t value) const
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res, d_generic));
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
 }
@@ -342,7 +337,7 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base) const
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res, d_generic));
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
 }
@@ -376,7 +371,7 @@ CVC4Solver::mk_value(Sort sort, SpecialValueFP value) const
       cvc4_res =
           d_solver->mkNaN(sort->get_fp_exp_size(), sort->get_fp_sig_size());
   }
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res, d_generic));
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
 }
@@ -410,7 +405,7 @@ CVC4Solver::mk_value(Sort sort, SpecialValueRM value) const
       cvc4_res =
           d_solver->mkRoundingMode(CVC4::api::RoundingMode::ROUND_TOWARD_ZERO);
   }
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res, d_generic));
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
 }
@@ -563,7 +558,7 @@ CVC4Solver::mk_term(const OpKind& kind,
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
   assert(cvc4_kind == cvc4_res.getKind());
-  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res, d_generic));
+  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
 
 Sort
@@ -725,8 +720,7 @@ CVC4Solver::cvc4_terms_to_terms(std::vector<CVC4::api::Term>& terms) const
   std::vector<Term> res;
   for (CVC4::api::Term& t : terms)
   {
-    res.push_back(
-        std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, t, d_generic)));
+    res.push_back(std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, t)));
   }
   return res;
 }
@@ -1014,8 +1008,7 @@ class CVC4ActionSimplify : public Action
     CVC4::api::Solver* cvc4  = solver.get_solver();
     CVC4::api::Term cvc4_res = cvc4->simplify(solver.get_cvc4_term(term));
     assert (!cvc4_res.isNull());
-    std::shared_ptr<CVC4Term> res(
-        new CVC4Term(cvc4, cvc4_res, solver.is_generic()));
+    std::shared_ptr<CVC4Term> res(new CVC4Term(cvc4, cvc4_res));
     Sort sort = term->get_sort();
     assert (sort != nullptr);
     d_smgr.add_term(res, sort, sort->get_kind());

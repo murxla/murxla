@@ -160,15 +160,7 @@ const std::unordered_map<std::string, Solver::SpecialValueRM>
         {"rtp", Solver::SpecialValueRM::SMTMBT_FP_RTP},
         {"rtz", Solver::SpecialValueRM::SMTMBT_FP_RTZ}};
 
-Solver::Solver(RNGenerator& rng, bool generic) : d_rng(rng), d_generic(generic)
-{
-}
-
-bool
-Solver::is_generic() const
-{
-  return d_generic;
-}
+Solver::Solver(RNGenerator& rng) : d_rng(rng) {}
 
 TheoryIdVector
 Solver::get_supported_theories() const

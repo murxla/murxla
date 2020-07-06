@@ -156,14 +156,13 @@ class Solver
     SMTMBT_FP_RTZ,
   };
 
-  Solver(RNGenerator& rng, bool generic);
+  Solver(RNGenerator& rng);
   Solver() = delete;
   virtual ~Solver() = default;
 
   virtual void new_solver() = 0;
   virtual void delete_solver() = 0;
   virtual bool is_initialized() const = 0;
-  bool is_generic() const;
 
   virtual TheoryIdVector get_supported_theories() const;
   virtual OpKindSet get_supported_op_kinds() const;
@@ -241,7 +240,6 @@ class Solver
 
  protected:
   RNGenerator& d_rng;
-  bool d_generic = false;
 
   std::vector<Base> d_bases = {Base::BIN, Base::DEC, Base::HEX};
 
