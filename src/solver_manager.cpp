@@ -507,6 +507,20 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
 }
 
 Sort
+SolverManager::pick_sort(const std::unordered_set<SortKind>& exclude_sorts)
+{
+  SortSet sorts;
+  for (const auto s : d_sorts)
+  {
+    if (exclude_sorts.find(s->get_kind()) == exclude_sorts.end())
+    {
+      sorts.insert(s);
+    }
+  }
+  return d_rng.pick_from_set<SortSet, Sort>(sorts);
+}
+
+Sort
 SolverManager::pick_sort_bv(uint32_t bw, bool with_terms)
 {
   assert(has_sort_bv(bw, with_terms));
@@ -580,6 +594,19 @@ bool
 SolverManager::has_sort(Sort sort) const
 {
   return d_sorts.find(sort) != d_sorts.end();
+}
+
+bool
+SolverManager::has_sort(const std::unordered_set<SortKind>& exclude_sorts) const
+{
+  for (const auto s : d_sorts)
+  {
+    if (exclude_sorts.find(s->get_kind()) == exclude_sorts.end())
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 Sort
