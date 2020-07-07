@@ -235,15 +235,6 @@ Solver::mk_value(Sort sort, SpecialValueRM value) const
   return Term();
 }
 
-Term
-Solver::mk_value(Sort sort,
-                 std::string value0,
-                 std::string value1,
-                 std::string value2) const
-{
-  return Term();
-}
-
 Sort
 Solver::mk_sort(SortKind kind, uint32_t size) const
 {

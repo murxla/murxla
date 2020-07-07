@@ -104,10 +104,6 @@ class CVC4Solver : public Solver
   Term mk_value(Sort sort, std::string value, Base base) const override;
   Term mk_value(Sort sort, SpecialValueFP value) const override;
   Term mk_value(Sort sort, SpecialValueRM value) const override;
-  Term mk_value(Sort sort,
-                std::string value0,
-                std::string value1,
-                std::string value2) const override;
 
   Sort mk_sort(const std::string name, uint32_t arity) const override
   {  // TODO:

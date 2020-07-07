@@ -24,7 +24,6 @@ CVC4Sort::CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort)
 
 CVC4Sort::~CVC4Sort()
 {
-  // TODO: release sort?
 }
 
 size_t
@@ -408,15 +407,6 @@ CVC4Solver::mk_value(Sort sort, SpecialValueRM value) const
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
   return res;
-}
-
-Term
-CVC4Solver::mk_value(Sort sort,
-                     std::string value0,
-                     std::string value1,
-                     std::string value2) const
-{
-  return Term();
 }
 
 Term

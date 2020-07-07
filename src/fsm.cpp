@@ -1069,11 +1069,6 @@ class ActionMkValue : public Action
                    static_cast<Solver::Base>(str_to_uint32(tokens[2])));
         break;
 
-      case 4:
-        assert(sort->is_fp());
-        res = _run(sort, tokens[1], tokens[2], tokens[3]);
-        break;
-
       default:
         assert(tokens.size() == 2);
         if (tokens[1] == "true")
@@ -1154,18 +1149,6 @@ class ActionMkValue : public Action
     assert(sort->is_rm());
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
-    return res->get_id();
-  }
-
-  uint64_t _run(Sort sort, std::string val0, std::string val1, std::string val2)
-  {
-    SMTMBT_TRACE << get_id() << " " << sort << " " << val0 << " " << val1 << " "
-                 << val2;
-    assert(sort->is_fp());
-    d_smgr.reset_sat();
-    Term res = d_solver.mk_value(sort, val0, val1, val2);
     d_smgr.add_input(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();

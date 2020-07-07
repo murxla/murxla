@@ -178,10 +178,6 @@ class Solver
   virtual Term mk_value(Sort sort, std::string value, Base base) const;
   virtual Term mk_value(Sort sort, SpecialValueFP value) const;
   virtual Term mk_value(Sort sort, SpecialValueRM value) const;
-  virtual Term mk_value(Sort sort,
-                        std::string value0,
-                        std::string value1,
-                        std::string value2) const;
 
   virtual Sort mk_sort(const std::string name, uint32_t arity) const        = 0;
   virtual Sort mk_sort(SortKind kind) const                                 = 0;
