@@ -27,6 +27,7 @@ class SolverManager
   using TermMap = std::unordered_map<Term, size_t, HashTerm>;
   using SortMap = std::unordered_map<Sort, TermMap, HashSort>;
   using SortSet = std::unordered_set<Sort, HashSort>;
+  using SortTermMap = std::unordered_map<SortKind, SortMap>;
 
   /* Statistics. */
   struct Stats
@@ -77,11 +78,14 @@ class SolverManager
   uint64_t get_n_terms(SortKind sort_kind);
 
   /** Add sort to sort databse. */
-  void add_sort(Sort sort, SortKind sort_kind);
+  void add_sort(Sort& sort, SortKind sort_kind);
   /** Add input to term database. */
-  void add_input(Term term, Sort sort, SortKind sort_kind);
+  void add_input(Term& term, Sort& sort, SortKind sort_kind);
   /** Add non-input term to term database. */
-  void add_term(Term term, Sort sort, SortKind sort_kind);
+  void add_term(Term& term,
+                Sort& sort,
+                SortKind sort_kind,
+                const std::vector<Term>& children = {});
 
   /** Pick arbitrary symbol (simple or piped). */
   std::string pick_symbol();
@@ -413,8 +417,9 @@ class SolverManager
 
   /** Maintain all created sorts. */
   SortSet d_sorts;
+
   /* Map sort_kind -> (sort -> terms). */
-  std::unordered_map<SortKind, SortMap> d_terms;
+  SortTermMap d_terms;
 
   /** Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;

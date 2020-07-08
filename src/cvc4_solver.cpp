@@ -998,7 +998,7 @@ class CVC4ActionSimplify : public Action
     CVC4::api::Solver* cvc4  = solver.get_solver();
     CVC4::api::Term cvc4_res = cvc4->simplify(solver.get_cvc4_term(term));
     assert (!cvc4_res.isNull());
-    std::shared_ptr<CVC4Term> res(new CVC4Term(cvc4, cvc4_res));
+    Term res  = std::make_shared<CVC4Term>(cvc4, cvc4_res);
     Sort sort = term->get_sort();
     assert (sort != nullptr);
     d_smgr.add_term(res, sort, sort->get_kind());

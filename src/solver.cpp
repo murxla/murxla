@@ -110,6 +110,18 @@ AbsTerm::get_sort() const
   return d_sort;
 }
 
+void
+AbsTerm::set_level(uint64_t level)
+{
+  d_level = level;
+}
+
+uint64_t
+AbsTerm::get_level() const
+{
+  return d_level;
+}
+
 bool
 operator==(const Term& a, const Term& b)
 {

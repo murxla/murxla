@@ -119,7 +119,7 @@ SolverManager::get_n_terms(SortKind sort_kind)
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::add_input(Term term, Sort sort, SortKind sort_kind)
+SolverManager::add_input(Term& term, Sort& sort, SortKind sort_kind)
 {
   assert(term.get());
 
@@ -128,7 +128,10 @@ SolverManager::add_input(Term term, Sort sort, SortKind sort_kind)
 }
 
 void
-SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
+SolverManager::add_term(Term& term,
+                        Sort& sort,
+                        SortKind sort_kind,
+                        const std::vector<Term>& children)
 {
   assert(term.get());
   assert(term->get_id() == 0);
@@ -137,19 +140,9 @@ SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
   assert(sort_kind != SORT_ANY);
   assert(sort_kind != SORT_BV || sort->get_bv_size() <= SMTMBT_BW_MAX);
 
-  if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
-  assert(!has_sort(sort) || sort->get_kind() == sort_kind);
-
-  d_stats.terms += 1;
-
-  add_sort(sort, sort_kind);
-
-  term->set_sort(sort);
-
   /* add term to d_terms */
   if (d_terms.find(sort_kind) == d_terms.end())
   {
-    d_terms.emplace(sort_kind, SortMap());
     assert(d_n_sort_terms.find(sort_kind) == d_n_sort_terms.end());
     d_n_sort_terms.emplace(sort_kind, 1);
   }
@@ -158,55 +151,71 @@ SolverManager::add_term(Term term, Sort sort, SortKind sort_kind)
     d_n_sort_terms.at(sort_kind) += 1;
   }
 
-  SortMap& map = d_terms.at(sort_kind);
-  if (map.find(sort) == map.end())
-  {
-    map.emplace(sort, TermMap());
-  }
-  if (map.at(sort).find(term) == map.at(sort).end())
+  SortMap& map  = d_terms[sort_kind];
+  TermMap& tmap = map[sort];
+
+  add_sort(sort, sort_kind);
+  /* Sort may not be set since term is a fresh term. */
+  term->set_sort(sort);
+
+  if (tmap.find(term) == tmap.end())
   {
     term->set_id(++d_n_terms);
-    map.at(sort).emplace(term, 0);
+    tmap.emplace(term, 0);
+
+    /* Determine level of term via max level of children. */
+    uint64_t clevel, level = 0;
+    for (const auto& child : children)
+    {
+      clevel = child->get_level();
+      if (clevel > level)
+      {
+        level = clevel;
+      }
+    }
+    term->set_level(level);
+    d_stats.terms += 1;
   }
   else
   {
-    term->set_id(map.at(sort).find(term)->first->get_id());
+    term = tmap.find(term)->first;
+    assert(term->get_id());
   }
-  map.at(sort).at(term) += 1;
+  // TODO: increment reference count of children
+  tmap.at(term) += 1;
 }
 
 void
-SolverManager::add_sort(Sort sort, SortKind sort_kind)
+SolverManager::add_sort(Sort& sort, SortKind sort_kind)
 {
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
 
+  /* SORT_ANY is only set if we queried the sort directly from the solver.
+   * We need to set the sort kind in order to find an existing sort in d_sorts.
+   */
   if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
 
   auto it = d_sorts.find(sort);
   if (it == d_sorts.end())
   {
+    sort->set_kind(sort_kind);
     sort->set_id(++d_n_sorts);
     d_sorts.insert(sort);
+    ++d_stats.sorts;
   }
   else
   {
     assert((*it)->get_kind() == sort_kind);
-    sort->set_id((*it)->get_id());
-  }
-
-  if (d_sort_kind_to_sorts.find(sort_kind) == d_sort_kind_to_sorts.end())
-  {
-    d_sort_kind_to_sorts.emplace(sort_kind, SortSet());
-  }
-  if (d_sort_kind_to_sorts.at(sort_kind).find(sort)
-      != d_sort_kind_to_sorts.at(sort_kind).end())
-  {
-    d_sort_kind_to_sorts.at(sort_kind).insert(sort);
+    sort = *it;
   }
   assert(sort_kind != SORT_ARRAY || !sort->get_sorts().empty());
 
-  ++d_stats.sorts;
+  auto& sorts = d_sort_kind_to_sorts[sort_kind];
+  if (sorts.find(sort) != sorts.end())
+  {
+    sorts.insert(sort);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

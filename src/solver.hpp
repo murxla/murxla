@@ -89,9 +89,15 @@ class AbsTerm
   void set_sort(Sort sort);
   Sort get_sort() const;
 
+  void set_level(uint64_t level);
+  uint64_t get_level() const;
+
  protected:
   uint64_t d_id = 0u;
   Sort d_sort = nullptr;
+
+ private:
+  uint64_t d_level = 0u;
 };
 
 using Term = std::shared_ptr<AbsTerm>;
