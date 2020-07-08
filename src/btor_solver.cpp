@@ -226,16 +226,29 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts) const
 }
 
 Term
-BtorSolver::mk_const(Sort sort, const std::string name) const
+BtorSolver::mk_const(Sort sort, const std::string name)
 {
   BoolectorNode* btor_res;
+  std::stringstream ss;
+  std::string symbol;
+  const char* cname = nullptr;
+
+  /* Make sure that symbol is unique. */
+  if (!name.empty())
+  {
+    ss << "sym" << d_num_symbols << "@" << name;
+    ++d_num_symbols;
+    symbol = ss.str();
+    cname  = symbol.c_str();
+  }
+
   if (sort->get_kind() == SORT_ARRAY)
   {
-    btor_res = boolector_array(d_solver, get_btor_sort(sort), name.c_str());
+    btor_res = boolector_array(d_solver, get_btor_sort(sort), cname);
   }
   else
   {
-    btor_res = boolector_var(d_solver, get_btor_sort(sort), name.c_str());
+    btor_res = boolector_var(d_solver, get_btor_sort(sort), cname);
   }
   assert(btor_res);
   if (d_rng.pick_with_prob(10))

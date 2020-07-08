@@ -119,7 +119,7 @@ class CVC4Solver : public Solver
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) const override;
 
-  Term mk_const(Sort sort, const std::string name) const override;
+  Term mk_const(Sort sort, const std::string name) override;
   Term mk_term(const OpKind& kind,
                std::vector<Term>& args,
                std::vector<uint32_t>& params) const override;

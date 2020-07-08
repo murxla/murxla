@@ -101,7 +101,7 @@ class BtorSolver : public Solver
     return nullptr;
   }
 
-  Term mk_const(Sort sort, const std::string name) const override;
+  Term mk_const(Sort sort, const std::string name) override;
 
   Term mk_fun(Sort sort, const std::string name) const override
   {  // TODO:
@@ -173,6 +173,8 @@ class BtorSolver : public Solver
                                                         BoolectorNode*) ) const;
   Btor* d_solver;
   std::unordered_map<std::string, BtorOption> d_option_name_to_enum;
+
+  uint64_t d_num_symbols;
 };
 
 }  // namespace btor

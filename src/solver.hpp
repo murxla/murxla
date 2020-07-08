@@ -169,9 +169,9 @@ class Solver
   virtual OpKindSet get_unsupported_op_kinds() const;
   virtual void configure_fsm(FSM* fsm) const;
 
-  virtual Term mk_var(Sort sort, const std::string name) const   = 0;
-  virtual Term mk_const(Sort sort, const std::string name) const = 0;
-  virtual Term mk_fun(Sort sort, const std::string name) const   = 0;
+  virtual Term mk_var(Sort sort, const std::string name) const = 0;
+  virtual Term mk_const(Sort sort, const std::string name)     = 0;
+  virtual Term mk_fun(Sort sort, const std::string name) const = 0;
 
   virtual Term mk_value(Sort sort, bool value) const = 0;
   virtual Term mk_value(Sort sort, uint64_t value) const;
