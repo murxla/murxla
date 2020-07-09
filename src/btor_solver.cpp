@@ -181,7 +181,7 @@ BtorSolver::get_unsupported_op_kinds() const
 }
 
 Sort
-BtorSolver::mk_sort(SortKind kind) const
+BtorSolver::mk_sort(SortKind kind)
 {
   assert(kind == SORT_BOOL);
   BoolectorSort btor_res = boolector_bool_sort(d_solver);
@@ -193,7 +193,7 @@ BtorSolver::mk_sort(SortKind kind) const
 }
 
 Sort
-BtorSolver::mk_sort(SortKind kind, uint32_t size) const
+BtorSolver::mk_sort(SortKind kind, uint32_t size)
 {
   assert(kind == SORT_BV);
   BoolectorSort btor_res = boolector_bitvec_sort(d_solver, size);
@@ -205,7 +205,7 @@ BtorSolver::mk_sort(SortKind kind, uint32_t size) const
 }
 
 Sort
-BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts) const
+BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
   BoolectorSort btor_res;
 
@@ -281,7 +281,7 @@ BtorSolver::mk_const(Sort sort, const std::string name)
 }
 
 Term
-BtorSolver::mk_value(Sort sort, bool value) const
+BtorSolver::mk_value(Sort sort, bool value)
 {
   assert(sort->is_bool());
   BoolectorNode* btor_res =
@@ -312,7 +312,7 @@ BtorSolver::mk_value(Sort sort, bool value) const
 }
 
 Term
-BtorSolver::mk_value(Sort sort, uint64_t value) const
+BtorSolver::mk_value(Sort sort, uint64_t value)
 {
   assert(sort->is_bv());
 
@@ -406,7 +406,7 @@ BtorSolver::mk_value(Sort sort, uint64_t value) const
 }
 
 Term
-BtorSolver::mk_value(Sort sort, std::string value, Base base) const
+BtorSolver::mk_value(Sort sort, std::string value, Base base)
 {
   assert(sort->is_bv());
 
@@ -454,7 +454,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base) const
 Term
 BtorSolver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
-                    std::vector<uint32_t>& params) const
+                    std::vector<uint32_t>& params)
 {
   BoolectorNode* btor_res = nullptr;
   size_t n_args           = args.size();
@@ -755,8 +755,9 @@ BtorSolver::mk_term(const OpKind& kind,
 // BoolectorNode *boolector_param (Btor *btor, BoolectorSort sort, const char *symbol);
 
 Sort
-BtorSolver::get_sort(Term term) const
+BtorSolver::get_sort(Term term, SortKind sort_kind) const
 {
+  (void) sort_kind;
   return std::shared_ptr<BtorSort>(new BtorSort(
       d_solver, boolector_get_sort(d_solver, get_btor_term(term))));
 }
@@ -934,7 +935,7 @@ BtorSolver::mk_term_pairwise(std::vector<Term>& args,
 }
 
 void
-BtorSolver::set_opt(const std::string& opt, const std::string& value) const
+BtorSolver::set_opt(const std::string& opt, const std::string& value)
 {
   if (opt == "produce-unsat-assumptions")
   {

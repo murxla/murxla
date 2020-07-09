@@ -98,7 +98,6 @@ CVC4Term::CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term)
 
 CVC4Term::~CVC4Term()
 {
-  // TODO: release term?
 }
 
 size_t
@@ -175,7 +174,7 @@ CVC4Solver::check_failed_assumption(const Term& t) const
 /* -------------------------------------------------------------------------- */
 
 Sort
-CVC4Solver::mk_sort(SortKind kind) const
+CVC4Solver::mk_sort(SortKind kind)
 {
   CVC4::api::Sort cvc4_res;
   switch (kind)
@@ -192,7 +191,7 @@ CVC4Solver::mk_sort(SortKind kind) const
 }
 
 Sort
-CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
+CVC4Solver::mk_sort(SortKind kind, uint32_t size)
 {
   CVC4::api::Sort cvc4_res;
   switch (kind)
@@ -210,7 +209,7 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size) const
 }
 
 Sort
-CVC4Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const
+CVC4Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 {
   CVC4::api::Sort cvc4_res;
   switch (kind)
@@ -228,7 +227,7 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const
 }
 
 Sort
-CVC4Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts) const
+CVC4Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
   CVC4::api::Sort cvc4_res;
 
@@ -260,7 +259,7 @@ CVC4Solver::mk_const(Sort sort, const std::string name)
 }
 
 Term
-CVC4Solver::mk_value(Sort sort, bool value) const
+CVC4Solver::mk_value(Sort sort, bool value)
 {
   assert(sort->is_bool());
 
@@ -283,7 +282,7 @@ CVC4Solver::mk_value(Sort sort, bool value) const
 }
 
 Term
-CVC4Solver::mk_value(Sort sort, uint64_t value) const
+CVC4Solver::mk_value(Sort sort, uint64_t value)
 {
   CVC4::api::Term cvc4_res;
   CVC4::api::Sort cvc4_sort = get_cvc4_sort(sort);
@@ -306,7 +305,7 @@ CVC4Solver::mk_value(Sort sort, uint64_t value) const
 }
 
 Term
-CVC4Solver::mk_value(Sort sort, std::string value, Base base) const
+CVC4Solver::mk_value(Sort sort, std::string value, Base base)
 {
   assert(sort->is_bv());
 
@@ -342,7 +341,7 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base) const
 }
 
 Term
-CVC4Solver::mk_value(Sort sort, SpecialValueFP value) const
+CVC4Solver::mk_value(Sort sort, SpecialValueFP value)
 {
   assert(sort->is_fp());
   CVC4::api::Term cvc4_res;
@@ -376,7 +375,7 @@ CVC4Solver::mk_value(Sort sort, SpecialValueFP value) const
 }
 
 Term
-CVC4Solver::mk_value(Sort sort, SpecialValueRM value) const
+CVC4Solver::mk_value(Sort sort, SpecialValueRM value)
 {
   assert(sort->is_rm());
   CVC4::api::Term cvc4_res;
@@ -412,7 +411,7 @@ CVC4Solver::mk_value(Sort sort, SpecialValueRM value) const
 Term
 CVC4Solver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
-                    std::vector<uint32_t>& params) const
+                    std::vector<uint32_t>& params)
 {
   assert(d_kinds.find(kind) != d_kinds.end());
 
@@ -552,8 +551,9 @@ CVC4Solver::mk_term(const OpKind& kind,
 }
 
 Sort
-CVC4Solver::get_sort(Term term) const
+CVC4Solver::get_sort(Term term, SortKind sort_kind) const
 {
+  (void) sort_kind;
   CVC4::api::Term cvc4_term = get_cvc4_term(term);
   return std::shared_ptr<CVC4Sort>(new CVC4Sort(d_solver, cvc4_term.getSort()));
 }
@@ -661,7 +661,7 @@ CVC4Solver::reset_assertions() const
 }
 
 void
-CVC4Solver::set_opt(const std::string& opt, const std::string& value) const
+CVC4Solver::set_opt(const std::string& opt, const std::string& value)
 {
   d_solver->setOption(opt, value);
 }

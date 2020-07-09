@@ -90,37 +90,37 @@ class CVC4Solver : public Solver
   std::vector<CVC4::api::Term> terms_to_cvc4_terms(
       std::vector<Term>& terms) const;
 
-  Term mk_var(Sort sort, const std::string name) const override
+  Term mk_var(Sort sort, const std::string name) override
   {  // TODO:
     return nullptr;
   }
-  Term mk_fun(Sort sort, const std::string name) const override
-  {  // TODO:
-    return nullptr;
-  }
-
-  Term mk_value(Sort sort, bool value) const override;
-  Term mk_value(Sort sort, uint64_t value) const override;
-  Term mk_value(Sort sort, std::string value, Base base) const override;
-  Term mk_value(Sort sort, SpecialValueFP value) const override;
-  Term mk_value(Sort sort, SpecialValueRM value) const override;
-
-  Sort mk_sort(const std::string name, uint32_t arity) const override
+  Term mk_fun(Sort sort, const std::string name) override
   {  // TODO:
     return nullptr;
   }
 
-  Sort mk_sort(SortKind kind) const override;
-  Sort mk_sort(SortKind kind, uint32_t size) const override;
-  Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const override;
-  Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) const override;
+  Term mk_value(Sort sort, bool value) override;
+  Term mk_value(Sort sort, uint64_t value) override;
+  Term mk_value(Sort sort, std::string value, Base base) override;
+  Term mk_value(Sort sort, SpecialValueFP value) override;
+  Term mk_value(Sort sort, SpecialValueRM value) override;
+
+  Sort mk_sort(const std::string name, uint32_t arity) override
+  {  // TODO:
+    return nullptr;
+  }
+
+  Sort mk_sort(SortKind kind) override;
+  Sort mk_sort(SortKind kind, uint32_t size) override;
+  Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
+  Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
   Term mk_const(Sort sort, const std::string name) override;
   Term mk_term(const OpKind& kind,
                std::vector<Term>& args,
-               std::vector<uint32_t>& params) const override;
+               std::vector<uint32_t>& params) override;
 
-  Sort get_sort(Term term) const override;
+  Sort get_sort(Term term, SortKind sort_kind) const override;
 
   void assert_formula(const Term& t) const override;
 
@@ -138,7 +138,7 @@ class CVC4Solver : public Solver
 
   void reset_assertions() const override;
 
-  void set_opt(const std::string& opt, const std::string& value) const override;
+  void set_opt(const std::string& opt, const std::string& value) override;
 
   //
   // get_model()

@@ -81,7 +81,7 @@ class BtorSolver : public Solver
 
   void configure_fsm(FSM* fsm) const override;
 
-  void set_opt(const std::string& opt, const std::string& value) const override;
+  void set_opt(const std::string& opt, const std::string& value) override;
 
   std::vector<std::string> get_supported_sat_solvers();
 
@@ -96,37 +96,37 @@ class BtorSolver : public Solver
 
   BoolectorNode* get_btor_term(Term term) const;
 
-  Term mk_var(Sort sort, const std::string name) const override
+  Term mk_var(Sort sort, const std::string name) override
   {  // TODO:
     return nullptr;
   }
 
   Term mk_const(Sort sort, const std::string name) override;
 
-  Term mk_fun(Sort sort, const std::string name) const override
+  Term mk_fun(Sort sort, const std::string name) override
   {  // TODO:
     return nullptr;
   }
 
-  Term mk_value(Sort sort, bool value) const override;
-  Term mk_value(Sort sort, uint64_t value) const override;
-  Term mk_value(Sort sort, std::string value, Base base) const override;
+  Term mk_value(Sort sort, bool value) override;
+  Term mk_value(Sort sort, uint64_t value) override;
+  Term mk_value(Sort sort, std::string value, Base base) override;
 
-  Sort mk_sort(const std::string name, uint32_t arity) const override
+  Sort mk_sort(const std::string name, uint32_t arity) override
   {  // TODO:
     return nullptr;
   }
 
-  Sort mk_sort(SortKind kind) const override;
-  Sort mk_sort(SortKind kind, uint32_t size) const override;
+  Sort mk_sort(SortKind kind) override;
+  Sort mk_sort(SortKind kind, uint32_t size) override;
 
-  Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) const override;
+  Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
   Term mk_term(const OpKind& kind,
                std::vector<Term>& args,
-               std::vector<uint32_t>& params) const override;
+               std::vector<uint32_t>& params) override;
 
-  Sort get_sort(Term term) const override;
+  Sort get_sort(Term term, SortKind sort_kind) const override;
 
   void assert_formula(const Term& t) const override;
 

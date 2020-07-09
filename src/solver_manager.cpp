@@ -204,6 +204,7 @@ SolverManager::add_sort(Sort sort, SortKind sort_kind)
   {
     d_sort_kind_to_sorts.at(sort_kind).insert(sort);
   }
+  assert(sort_kind != SORT_ARRAY || !sort->get_sorts().empty());
 
   ++d_stats.sorts;
 }

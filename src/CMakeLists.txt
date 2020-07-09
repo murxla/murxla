@@ -4,6 +4,7 @@ set(smtmbt_src_files
   fsm.cpp
   main.cpp
   op.cpp
+  smt2_solver.cpp
   solver.cpp
   solver_manager.cpp
   solver_option.cpp

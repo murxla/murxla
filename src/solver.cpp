@@ -212,37 +212,37 @@ Solver::get_special_values_bv() const
 }
 
 Term
-Solver::mk_value(Sort sort, uint64_t value) const
+Solver::mk_value(Sort sort, uint64_t value)
 {
   return Term();
 }
 
 Term
-Solver::mk_value(Sort sort, std::string value, Base base) const
+Solver::mk_value(Sort sort, std::string value, Base base)
 {
   return Term();
 }
 
 Term
-Solver::mk_value(Sort sort, SpecialValueFP value) const
+Solver::mk_value(Sort sort, SpecialValueFP value)
 {
   return Term();
 }
 
 Term
-Solver::mk_value(Sort sort, SpecialValueRM value) const
+Solver::mk_value(Sort sort, SpecialValueRM value)
 {
   return Term();
 }
 
 Sort
-Solver::mk_sort(SortKind kind, uint32_t size) const
+Solver::mk_sort(SortKind kind, uint32_t size)
 {
   return Sort();
 }
 
 Sort
-Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const
+Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 {
   return Sort();
 }

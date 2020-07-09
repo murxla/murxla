@@ -787,7 +787,7 @@ class ActionMkTerm : public Action
     /* Query solver for sort of newly created term. The returned sort is not
      * in smgr.d_sorts. Hence, we need to query d_smgr and lookup d_sorts if
      * we already have a matching sort. */
-    Sort sort = d_solver.get_sort(res);
+    Sort sort = d_solver.get_sort(res, sort_kind);
     sort->set_kind(sort_kind);
     /* If we can't find a matching sort is not found we use the sort returned
      * by the solver. */
@@ -903,9 +903,16 @@ class ActionMkValue : public Action
         /* ------------ value: string ------------ */
         else
         {
+          std::vector<Solver::Base> bases;
+          for (auto b : d_solver.get_bases())
+          {
+            /* can not be expressed in hex */
+            if (b == Solver::Base::HEX && bw % 4) continue;
+            bases.push_back(b);
+          }
           Solver::Base base =
               d_rng.pick_from_set<std::vector<Solver::Base>, Solver::Base>(
-                  d_solver.get_bases());
+                  bases);
           std::string val;
 
           if (d_rng.flip_coin())
@@ -1310,7 +1317,8 @@ class ActionGetUnsatAssumptions : public Action
     std::vector<Term> res = d_solver.get_unsat_assumptions();
     for (Term& fa : res)
     {
-      Term t = d_smgr.find_term(fa, d_solver.get_sort(fa), SORT_BOOL);
+      Term t =
+          d_smgr.find_term(fa, d_solver.get_sort(fa, SORT_BOOL), SORT_BOOL);
       assert(t != nullptr);
       assert(d_smgr.is_assumed(t));
       assert(d_solver.check_failed_assumption(t));

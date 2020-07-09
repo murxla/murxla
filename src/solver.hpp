@@ -59,8 +59,6 @@ class AbsSort
  protected:
   uint64_t d_id   = 0u;
   SortKind d_kind = SORT_ANY;
-
- private:
   std::vector<Sort> d_sorts;
 };
 
@@ -169,27 +167,36 @@ class Solver
   virtual OpKindSet get_unsupported_op_kinds() const;
   virtual void configure_fsm(FSM* fsm) const;
 
-  virtual Term mk_var(Sort sort, const std::string name) const = 0;
-  virtual Term mk_const(Sort sort, const std::string name)     = 0;
-  virtual Term mk_fun(Sort sort, const std::string name) const = 0;
+  virtual Term mk_var(Sort sort, const std::string name)   = 0;
+  virtual Term mk_const(Sort sort, const std::string name) = 0;
+  virtual Term mk_fun(Sort sort, const std::string name)   = 0;
 
-  virtual Term mk_value(Sort sort, bool value) const = 0;
-  virtual Term mk_value(Sort sort, uint64_t value) const;
-  virtual Term mk_value(Sort sort, std::string value, Base base) const;
-  virtual Term mk_value(Sort sort, SpecialValueFP value) const;
-  virtual Term mk_value(Sort sort, SpecialValueRM value) const;
+  virtual Term mk_value(Sort sort, bool value) = 0;
+  virtual Term mk_value(Sort sort, uint64_t value);
+  virtual Term mk_value(Sort sort, std::string value, Base base);
+  virtual Term mk_value(Sort sort, SpecialValueFP value);
+  virtual Term mk_value(Sort sort, SpecialValueRM value);
 
-  virtual Sort mk_sort(const std::string name, uint32_t arity) const        = 0;
-  virtual Sort mk_sort(SortKind kind) const                                 = 0;
-  virtual Sort mk_sort(SortKind kind, uint32_t size) const;
-  virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) const;
-  virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) const = 0;
+  virtual Sort mk_sort(const std::string name, uint32_t arity) = 0;
+  virtual Sort mk_sort(SortKind kind)                          = 0;
+  virtual Sort mk_sort(SortKind kind, uint32_t size);
+  virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize);
+  virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
   virtual Term mk_term(const OpKind& kind,
                        std::vector<Term>& args,
-                       std::vector<uint32_t>& params) const = 0;
+                       std::vector<uint32_t>& params) = 0;
 
-  virtual Sort get_sort(Term term) const = 0;
+  /**
+   * Get a freshly wrapped solver sort of the given term.
+   *
+   * This is used for querying the sort of a freshly created term while
+   * delegating sort inference to the solver. The returned sort will have
+   * sort kind SORT_ANY and id 0 (will be assigned in the FSM, before adding
+   * the sort to the sort databse). Given sort kind is typically unused, but
+   * needed by the Smt2Solver.
+   */
+  virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
 
   virtual void assert_formula(const Term& t) const = 0;
 
@@ -208,8 +215,7 @@ class Solver
   const std::vector<Base>& get_bases() const;
   const std::vector<SpecialValueBV>& get_special_values_bv() const;
 
-  virtual void set_opt(const std::string& opt,
-                       const std::string& value) const = 0;
+  virtual void set_opt(const std::string& opt, const std::string& value) = 0;
 
   virtual std::string get_option_name_incremental() const               = 0;
   virtual std::string get_option_name_model_gen() const                 = 0;

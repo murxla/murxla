@@ -17,6 +17,7 @@
 #include "btor_solver.hpp"
 #include "cvc4_solver.hpp"
 #include "fsm.hpp"
+#include "smt2_solver.hpp"
 #include "solver_option.hpp"
 #include "statistics.hpp"
 
@@ -25,6 +26,7 @@ using namespace statistics;
 
 #define SMTMBT_SOLVER_BTOR "btor"
 #define SMTMBT_SOLVER_CVC4 "cvc4"
+#define SMTMBT_SOLVER_SMT2 "smt2"
 
 const std::string COLOR_BLUE    = "\33[94m";
 const std::string COLOR_DEFAULT = "\33[39m";
@@ -156,6 +158,7 @@ set_sigint_handler_stats(void)
   "  -y, --simple-symbols    use symbols of the form '_sX'\n"                \
   "  --btor                  test Boolector\n"                               \
   "  --cvc4                  test CVC4\n"                                    \
+  "  --smt2                  dump SMT-LIB 2\n"                               \
   "  --stats                 print statistics\n\n"                           \
   " enabling specific theories:\n"                                           \
   "  --arrays                theory of arrays\n"                             \
@@ -255,6 +258,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--cvc4")
     {
       options.solver = SMTMBT_SOLVER_CVC4;
+    }
+    else if (arg == "--smt2")
+    {
+      options.solver = SMTMBT_SOLVER_SMT2;
     }
     else if (arg == "-o" || arg == "--options")
     {
@@ -423,6 +430,10 @@ run_aux(uint32_t seed,
     else if (options.solver == SMTMBT_SOLVER_CVC4)
     {
       solver = new cvc4::CVC4Solver(rng);
+    }
+    else if (options.solver == SMTMBT_SOLVER_SMT2)
+    {
+      solver = new smt2::Smt2Solver(rng, std::cout);
     }
 
     FSM fsm(rng,
