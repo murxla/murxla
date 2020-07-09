@@ -26,8 +26,8 @@ SolverManager::SolverManager(Solver* solver,
       d_solver(solver),
       d_rng(rng),
       d_trace(trace),
-      d_options(options),
-      d_used_options()
+      d_solver_options(options),
+      d_used_solver_options()
 {
   add_enabled_theories(enabled_theories);
   add_sort_kinds();  // adds only sort kinds of enabled theories
@@ -681,14 +681,14 @@ SolverManager::has_sort_bv_max(uint32_t bw_max, bool with_terms) const
 std::pair<std::string, std::string>
 SolverManager::pick_option()
 {
-  if (d_options.empty()) return std::make_pair("", "");
+  if (d_solver_options.empty()) return std::make_pair("", "");
 
   SolverOption* option;
 
   std::vector<SolverOption*> available;
 
   bool skip;
-  for (auto const& opt : d_options)
+  for (auto const& opt : d_solver_options)
   {
     option = opt.get();
 
@@ -696,7 +696,7 @@ SolverManager::pick_option()
     skip = false;
     for (auto conflict : option->get_conflicts())
     {
-      if (d_used_options.find(conflict) != d_used_options.end())
+      if (d_used_solver_options.find(conflict) != d_used_solver_options.end())
       {
         skip = true;
         break;
@@ -707,7 +707,7 @@ SolverManager::pick_option()
     /* Filter out options that depend on each other */
     for (auto depend : option->get_depends())
     {
-      if (d_used_options.find(depend) == d_used_options.end())
+      if (d_used_solver_options.find(depend) == d_used_solver_options.end())
       {
         skip = true;
         break;
@@ -721,8 +721,8 @@ SolverManager::pick_option()
   option           = available[d_rng.pick<uint32_t>() % available.size()];
   std::string name = option->get_name();
 
-  if (d_used_options.find(name) == d_used_options.end())
-    d_used_options.insert(name);
+  if (d_used_solver_options.find(name) == d_used_solver_options.end())
+    d_used_solver_options.insert(name);
 
   return std::make_pair(name, option->pick_value(d_rng));
 }

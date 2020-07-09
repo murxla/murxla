@@ -416,9 +416,9 @@ class SolverManager
   std::unordered_set<Term, HashTerm> d_assumptions;
 
   /** Vector of available solver options */
-  SolverOptions& d_options;
+  SolverOptions& d_solver_options;
 
-  std::unordered_set<std::string> d_used_options;
+  std::unordered_set<std::string> d_used_solver_options;
 };
 
 /* -------------------------------------------------------------------------- */
