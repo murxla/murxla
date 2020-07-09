@@ -18,11 +18,13 @@ SolverManager::SolverManager(Solver* solver,
                              SolverOptions& options,
                              bool trace_seeds,
                              bool cross_check,
+                             bool simple_symbols,
                              statistics::Statistics* stats,
                              TheoryIdVector& enabled_theories)
     : d_mbt_stats(stats),
       d_trace_seeds(trace_seeds),
       d_cross_check(cross_check),
+      d_simple_symbols(simple_symbols),
       d_solver(solver),
       d_rng(rng),
       d_trace(trace),
@@ -479,6 +481,12 @@ SolverManager::get_term(uint32_t id) const
 std::string
 SolverManager::pick_symbol()
 {
+  if (d_simple_symbols)
+  {
+    std::stringstream ss;
+    ss << "_s" << d_n_symbols++;
+    return ss.str();
+  }
   uint32_t len = d_rng.pick<uint32_t>(0, SMTMBT_LEN_SYMBOL_MAX);
   /* Pick piped vs simple symbol with 50% probability. */
   return len && d_rng.flip_coin() ? d_rng.pick_piped_symbol(len)

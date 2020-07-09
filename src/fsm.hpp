@@ -178,6 +178,7 @@ class FSM
       SolverOptions& options,
       bool trace_seeds,
       bool cross_check,
+      bool simple_symbols,
       bool smt,
       statistics::Statistics* stats,
       TheoryIdVector& enabled_theories);

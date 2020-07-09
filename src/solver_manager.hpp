@@ -42,6 +42,7 @@ class SolverManager
                 SolverOptions& options,
                 bool trace_seeds,
                 bool cross_check,
+                bool simple_symbols,
                 statistics::Statistics* stats,
                 TheoryIdVector& enabled_theories);
   ~SolverManager() = default;
@@ -319,6 +320,12 @@ class SolverManager
    * */
   bool d_cross_check = false;
 
+  /**
+   * True if all symbols for terms should be of the form '_sX' rather than
+   * a random string.
+   */
+  bool d_simple_symbols = false;
+
  private:
   /**
    * Determine and populate set of enabled theories.
@@ -419,6 +426,9 @@ class SolverManager
   SolverOptions& d_solver_options;
 
   std::unordered_set<std::string> d_used_solver_options;
+
+  /** Counter to create simple symbol names when option is enabled. */
+  uint32_t d_n_symbols = 0;
 };
 
 /* -------------------------------------------------------------------------- */

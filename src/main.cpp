@@ -39,6 +39,7 @@ struct Options
   uint32_t max_runs  = 0;
 
   bool trace_seeds = false;
+  bool simple_symbols = false;
   bool smt         = false;
   bool print_stats = false;
   std::string solver;
@@ -152,6 +153,7 @@ set_sigint_handler_stats(void)
   "  -o, --options <file>    solver option model toml file\n"                \
   "  -l, --smt-lib           generate SMT-LIB compliant traces only\n"       \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n" \
+  "  -y, --simple-symbols    use symbols of the form '_sX'\n"                \
   "  --btor                  test Boolector\n"                               \
   "  --cvc4                  test CVC4\n"                                    \
   "  --stats                 print statistics\n\n"                           \
@@ -241,6 +243,10 @@ parse_options(Options& options, int argc, char* argv[])
         die(es.str());
       }
       options.cross_check = solver;
+    }
+    else if (arg == "-y" || arg == "--simple-symbols")
+    {
+      options.simple_symbols = true;
     }
     else if (arg == "--btor")
     {
@@ -425,6 +431,7 @@ run_aux(uint32_t seed,
             solver_options,
             options.trace_seeds,
             !options.cross_check.empty(),
+            options.simple_symbols,
             options.smt,
             stats,
             options.enabled_theories);
