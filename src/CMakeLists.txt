@@ -10,6 +10,7 @@ set(smtmbt_src_files
   solver_option.cpp
   sort.cpp
   statistics.cpp
+  term_db.cpp
   theory.cpp
   util.cpp
 )

@@ -29,7 +29,8 @@ SolverManager::SolverManager(Solver* solver,
       d_rng(rng),
       d_trace(trace),
       d_solver_options(options),
-      d_used_solver_options()
+      d_used_solver_options(),
+      d_term_db(*this, rng)
 {
   add_enabled_theories(enabled_theories);
   add_sort_kinds();  // adds only sort kinds of enabled theories
@@ -45,7 +46,7 @@ SolverManager::clear()
   d_n_sort_terms.clear();
   d_sorts.clear();
   d_sort_kind_to_sorts.clear();
-  d_terms.clear();
+  d_term_db.clear();
   d_assumptions.clear();
 }
 
@@ -124,7 +125,7 @@ SolverManager::add_input(Term& term, Sort& sort, SortKind sort_kind)
   assert(term.get());
 
   d_stats.inputs += 1;
-  add_term(term, sort, sort_kind);
+  d_term_db.add_input(term, sort, sort_kind);
 }
 
 void
@@ -133,56 +134,8 @@ SolverManager::add_term(Term& term,
                         SortKind sort_kind,
                         const std::vector<Term>& children)
 {
-  assert(term.get());
-  assert(term->get_id() == 0);
-  assert(term->get_sort() == nullptr);
-  assert(sort.get());
-  assert(sort_kind != SORT_ANY);
-  assert(sort_kind != SORT_BV || sort->get_bv_size() <= SMTMBT_BW_MAX);
-
-  /* add term to d_terms */
-  if (d_terms.find(sort_kind) == d_terms.end())
-  {
-    assert(d_n_sort_terms.find(sort_kind) == d_n_sort_terms.end());
-    d_n_sort_terms.emplace(sort_kind, 1);
-  }
-  else
-  {
-    d_n_sort_terms.at(sort_kind) += 1;
-  }
-
-  SortMap& map  = d_terms[sort_kind];
-  TermMap& tmap = map[sort];
-
-  add_sort(sort, sort_kind);
-  /* Sort may not be set since term is a fresh term. */
-  term->set_sort(sort);
-
-  if (tmap.find(term) == tmap.end())
-  {
-    term->set_id(++d_n_terms);
-    tmap.emplace(term, 0);
-
-    /* Determine level of term via max level of children. */
-    uint64_t clevel, level = 0;
-    for (const auto& child : children)
-    {
-      clevel = child->get_level();
-      if (clevel > level)
-      {
-        level = clevel;
-      }
-    }
-    term->set_level(level);
-    d_stats.terms += 1;
-  }
-  else
-  {
-    term = tmap.find(term)->first;
-    assert(term->get_id());
-  }
-  // TODO: increment reference count of children
-  tmap.at(term) += 1;
+  d_stats.terms += 1;
+  d_term_db.add_term(term, sort, sort_kind, children);
 }
 
 void
@@ -226,9 +179,7 @@ SolverManager::pick_sort_kind(bool with_terms)
   assert(!d_sort_kind_to_sorts.empty());
   if (with_terms)
   {
-    assert(has_term());
-    return d_rng.pick_from_map<std::unordered_map<SortKind, SortMap>, SortKind>(
-        d_terms);
+    return d_term_db.pick_sort_kind();
   }
   return d_rng.pick_from_map<std::unordered_map<SortKind, SortSet>, SortKind>(
       d_sort_kind_to_sorts);
@@ -240,33 +191,27 @@ SolverManager::pick_sort_kind_data()
   return pick_kind<SortKind, SortKindData, SortKindMap>(d_sort_kinds);
 }
 
-Op&
-SolverManager::pick_op(TheoryId theory, bool with_terms)
+OpKind
+SolverManager::pick_op_kind(bool with_terms)
 {
   if (with_terms)
   {
-    std::unordered_set<OpKind> op_kinds;
-
+    std::unordered_map<TheoryId, std::unordered_set<OpKind>> kinds;
     for (const auto& p : d_op_kinds)
     {
-      auto kind  = p.first;
-      auto kdata = p.second;
-      if (kdata.d_theory != theory && kdata.d_theory != THEORY_ALL)
-      {
-        continue;
-      }
+      const Op& op   = p.second;
       bool has_terms = true;
 
       /* Check if we already have terms that can be used with this operator. */
-      if (kdata.d_arity < 0)
+      if (op.d_arity < 0)
       {
-        has_terms = has_term(kdata.get_arg_sort_kind(0));
+        has_terms = has_term(op.get_arg_sort_kind(0));
       }
       else
       {
-        for (int32_t i = 0; i < kdata.d_arity; ++i)
+        for (int32_t i = 0; i < op.d_arity; ++i)
         {
-          if (!has_term(kdata.get_arg_sort_kind(i)))
+          if (!has_term(op.get_arg_sort_kind(i)))
           {
             has_terms = false;
             break;
@@ -275,16 +220,29 @@ SolverManager::pick_op(TheoryId theory, bool with_terms)
       }
       if (has_terms)
       {
-        op_kinds.insert(kind);
+        kinds[op.d_theory].insert(op.d_kind);
       }
     }
-    assert(op_kinds.size() > 0);
 
-    OpKind kind =
-        d_rng.pick_from_set<std::unordered_set<OpKind>, OpKind>(op_kinds);
-    return d_op_kinds.at(kind);
+    if (kinds.size() > 0)
+    {
+      /* First pick theory and then operator kind (avoids bias against theories
+       * with many operators). */
+      TheoryId theory = d_rng.pick_from_map<decltype(kinds), TheoryId>(kinds);
+      auto& op_kinds  = kinds[theory];
+      return d_rng.pick_from_set<decltype(op_kinds), OpKind>(op_kinds);
+    }
+
+    /* We cannot create any operation with the current set of terms. */
+    return OP_UNDEFINED;
   }
-  return pick_kind<OpKind, Op, OpKindMap>(d_op_kinds);
+  return d_rng.pick_from_map<OpKindMap, OpKind>(d_op_kinds);
+}
+
+Op&
+SolverManager::get_op(OpKind kind)
+{
+  return d_op_kinds.at(kind);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -294,8 +252,9 @@ SolverManager::has_theory(bool with_terms)
 {
   if (with_terms)
   {
-    return d_terms.size() > 0
-           && (d_terms.size() > 1 || d_terms.find(SORT_RM) == d_terms.end());
+    auto kinds = d_term_db.get_sort_kinds();
+    return kinds.size() > 0
+           && (kinds.size() > 1 || kinds.find(SORT_RM) == kinds.end());
   }
   return d_enabled_theories.size() > 0;
 }
@@ -306,13 +265,13 @@ SolverManager::pick_theory(bool with_terms)
   if (with_terms)
   {
     TheoryIdSet theories;
-    for (const auto& p : d_terms)
+    for (const auto& sort_kind : d_term_db.get_sort_kinds())
     {
       /* We have to skip SORT_RM since all operators in THEORY_FP require
        * terms of SORT_FP, but not necessarily of SORT_RM. If only terms of
        * SORT_RM have been created, no THEORY_FP operator applies. */
-      if (p.first == SORT_RM) continue;
-      TheoryId theory = d_sort_kinds.find(p.first)->second.d_theory;
+      if (sort_kind == SORT_RM) continue;
+      TheoryId theory = d_sort_kinds.find(sort_kind)->second.d_theory;
       assert(d_enabled_theories.find(theory) != d_enabled_theories.end());
       theories.insert(theory);
     }
@@ -326,27 +285,19 @@ SolverManager::pick_theory(bool with_terms)
 Term
 SolverManager::pick_term(Sort sort)
 {
-  assert(has_sort(sort));
-  assert(has_term(sort));
-  SortKind sort_kind = sort->get_kind();
-  assert(d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end());
-  return d_rng.pick_from_map<TermMap, Term>(d_terms.at(sort_kind).at(sort));
+  return d_term_db.pick_term(sort);
 }
 
 Term
 SolverManager::pick_term(SortKind sort_kind)
 {
-  assert(has_term(sort_kind));
-  Sort sort = pick_sort(sort_kind);
-  return pick_term(sort);
+  return d_term_db.pick_term(sort_kind);
 }
 
 Term
 SolverManager::pick_term()
 {
-  assert(has_sort());
-  SortKind sort_kind = pick_sort_kind();
-  return pick_term(sort_kind);
+  return d_term_db.pick_term();
 }
 
 Term
@@ -383,50 +334,19 @@ SolverManager::reset_sat()
 bool
 SolverManager::has_term() const
 {
-  for (const auto& sort_kind : d_terms)
-  {
-    for (const auto& sort_set : sort_kind.second)
-    {
-      assert(!sort_set.second.empty());
-    }
-  }
-  return !d_terms.empty();
+  return d_term_db.has_term();
 }
 
 bool
 SolverManager::has_term(SortKind sort_kind) const
 {
-  if (sort_kind == SORT_ANY) return has_term();
-  assert(d_terms.find(sort_kind) == d_terms.end()
-         || !d_terms.at(sort_kind).empty());
-  return d_terms.find(sort_kind) != d_terms.end();
+  return d_term_db.has_term(sort_kind);
 }
 
 bool
 SolverManager::has_term(Sort sort) const
 {
-  SortKind sort_kind = sort->get_kind();
-  if (d_terms.find(sort_kind) == d_terms.end()) return false;
-  assert(d_terms.at(sort_kind).find(sort) == d_terms.at(sort_kind).end()
-         || !d_terms.at(sort_kind).at(sort).empty());
-  return d_terms.at(sort_kind).find(sort) != d_terms.at(sort_kind).end();
-}
-
-bool
-SolverManager::has_term(Term term) const
-{
-  Sort sort          = term->get_sort();
-  SortKind sort_kind = sort->get_kind();
-  if (d_terms.find(sort_kind) == d_terms.end())
-  {
-    return false;
-  }
-  if (d_terms.at(sort_kind).find(sort) == d_terms.at(sort_kind).end())
-  {
-    return false;
-  }
-  return d_terms.at(sort_kind).at(sort).find(term)
-         != d_terms.at(sort_kind).at(sort).end();
+  return d_term_db.has_term(sort);
 }
 
 bool
@@ -444,46 +364,13 @@ SolverManager::is_assumed(Term term) const
 Term
 SolverManager::find_term(Term term, Sort sort, SortKind sort_kind)
 {
-  assert(term.get());
-  assert(term->get_id() == 0);
-  assert(term->get_sort() == nullptr);
-  assert(sort.get());
-  assert(sort_kind != SORT_ANY);
-  assert(sort_kind != SORT_BV || sort->get_bv_size() <= SMTMBT_BW_MAX);
-
-  if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
-  assert(sort->get_kind() == sort_kind);
-  assert(has_sort(sort));
-  term->set_sort(sort);
-  SortMap& map = d_terms.at(sort_kind);
-  if (map.find(sort) != map.end())
-  {
-    auto it = map.at(sort).find(term);
-    if (it != map.at(sort).end()) return it->first;
-  }
-  return nullptr;
+  return d_term_db.find(term, sort, sort_kind);
 }
 
 Term
 SolverManager::get_term(uint32_t id) const
 {
-  for (const auto& p : d_terms)
-  {
-    const SortMap& sort_map = p.second;
-    for (const auto& q : sort_map)
-    {
-      const TermMap& term_map = q.second;
-      for (const auto& t : term_map)
-      {
-        const Term& term = t.first;
-        if (term->get_id() == id)
-        {
-          return term;
-        }
-      }
-    }
-  }
-  return nullptr;
+  return d_term_db.get_term(id);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -517,7 +404,7 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
 
   if (with_terms)
   {
-    return d_rng.pick_from_map<SortMap, Sort>(d_terms.at(sort_kind));
+    return d_term_db.pick_sort(sort_kind);
   }
   assert(has_sort(sort_kind));
   return d_rng.pick_from_set<SortSet, Sort>(d_sort_kind_to_sorts.at(sort_kind));
@@ -541,56 +428,34 @@ Sort
 SolverManager::pick_sort_bv(uint32_t bw, bool with_terms)
 {
   assert(has_sort_bv(bw, with_terms));
-  std::vector<Sort> sorts;
-  if (with_terms)
+  const SortSet sorts = with_terms ? d_term_db.get_sorts() : d_sorts;
+  for (const auto& sort : sorts)
   {
-    for (const auto& p : d_terms.at(SORT_BV))
+    if (sort->is_bv() && sort->get_bv_size() == bw)
     {
-      if (p.first->is_bv() && p.first->get_bv_size() == bw)
-      {
-        sorts.push_back(p.first);
-      }
+      return sort;
     }
   }
-  else
-  {
-    for (const Sort sort : d_sorts)
-    {
-      if (sort->is_bv() && sort->get_bv_size() == bw)
-      {
-        sorts.push_back(sort);
-      }
-    }
-  }
-  return d_rng.pick_from_set<std::vector<Sort>, Sort>(sorts);
+  assert(false);
+  return nullptr;
 }
 
 Sort
 SolverManager::pick_sort_bv_max(uint32_t bw_max, bool with_terms)
 {
   assert(has_sort_bv_max(bw_max, with_terms));
-  std::vector<Sort> sorts;
-  if (with_terms)
+  std::vector<Sort> bv_sorts;
+
+  const SortSet sorts = with_terms ? d_term_db.get_sorts() : d_sorts;
+  for (const auto& sort : sorts)
   {
-    for (const auto& p : d_terms.at(SORT_BV))
+    if (sort->is_bv() && sort->get_bv_size() <= bw_max)
     {
-      if (p.first->is_bv() && p.first->get_bv_size() <= bw_max)
-      {
-        sorts.push_back(p.first);
-      }
+      bv_sorts.push_back(sort);
     }
   }
-  else
-  {
-    for (const Sort sort : d_sorts)
-    {
-      if (sort->is_bv() && sort->get_bv_size() <= bw_max)
-      {
-        sorts.push_back(sort);
-      }
-    }
-  }
-  return d_rng.pick_from_set<std::vector<Sort>, Sort>(sorts);
+  assert(bv_sorts.size() > 0);
+  return d_rng.pick_from_set<std::vector<Sort>, Sort>(bv_sorts);
 }
 
 bool
@@ -662,36 +527,26 @@ SolverManager::find_sort(Sort sort) const
 bool
 SolverManager::has_sort_bv(uint32_t bw, bool with_terms) const
 {
-  if (with_terms)
+  const SortSet sorts = with_terms ? d_term_db.get_sorts() : d_sorts;
+  for (const auto& sort : sorts)
   {
-    if (d_terms.find(SORT_BV) == d_terms.end()) return false;
-    for (const auto& p : d_terms.at(SORT_BV))
+    if (sort->is_bv() && sort->get_bv_size() == bw)
     {
-      if (p.first->is_bv() && p.first->get_bv_size() == bw) return true;
+      return true;
     }
-    return false;
-  }
-  for (const Sort sort : d_sorts)
-  {
-    if (sort->is_bv() && sort->get_bv_size() == bw) return true;
   }
   return false;
 }
 bool
 SolverManager::has_sort_bv_max(uint32_t bw_max, bool with_terms) const
 {
-  if (with_terms)
+  const SortSet sorts = with_terms ? d_term_db.get_sorts() : d_sorts;
+  for (const auto& sort : sorts)
   {
-    if (d_terms.find(SORT_BV) == d_terms.end()) return false;
-    for (const auto& p : d_terms.at(SORT_BV))
+    if (sort->is_bv() && sort->get_bv_size() <= bw_max)
     {
-      if (p.first->is_bv() && p.first->get_bv_size() <= bw_max) return true;
+      return true;
     }
-    return false;
-  }
-  for (const Sort sort : d_sorts)
-  {
-    if (sort->is_bv() && sort->get_bv_size() <= bw_max) return true;
   }
   return false;
 }

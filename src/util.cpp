@@ -63,13 +63,6 @@ RNGenerator::get_engine()
   return d_rng;
 }
 
-uint32_t
-RNGenerator::pick_uint32_weighted(std::vector<uint32_t>& weights)
-{
-  std::discrete_distribution<uint32_t> dist(weights.begin(), weights.end());
-  return dist(d_rng);
-}
-
 bool
 RNGenerator::pick_with_prob(uint32_t prob)
 {

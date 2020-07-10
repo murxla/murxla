@@ -89,7 +89,8 @@ class RNGenerator
     * The probability to pick each number is w/S with w its weight and S the
     * sum of all weights.
     */
-   uint32_t pick_uint32_weighted(std::vector<uint32_t>& weights);
+   template <typename T>
+   T pick_weighted(std::vector<T>& weights);
 
    /** Pick with given probability, 100% = 1000. */
    bool pick_with_prob(uint32_t prob);
@@ -156,6 +157,14 @@ RNGenerator::pick_from_set(const TSet& set)
   auto it = set.begin();
   std::advance(it, pick<uint32_t>() % set.size());
   return *it;
+}
+
+template <typename T>
+T
+RNGenerator::pick_weighted(std::vector<T>& weights)
+{
+  std::discrete_distribution<T> dist(weights.begin(), weights.end());
+  return dist(d_rng);
 }
 
 /* -------------------------------------------------------------------------- */

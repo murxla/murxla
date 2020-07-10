@@ -11,6 +11,7 @@
 #include "solver_option.hpp"
 #include "sort.hpp"
 #include "statistics.hpp"
+#include "term_db.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
@@ -107,7 +108,9 @@ class SolverManager
    * Pick enabled operator kind (and get its data).
    * Only operator kinds of enabled theories are picked.
    */
-  Op& pick_op(TheoryId theory, bool with_terms = true);
+  OpKind pick_op_kind(bool with_terms = true);
+
+  Op& get_op(OpKind kind);
 
   /**
    * Return true if
@@ -163,8 +166,6 @@ class SolverManager
   bool has_term(SortKind sort_kind) const;
   /** Return true if term database contains any time of given sort. */
   bool has_term(Sort sort) const;
-  /** Return true if term databse contains given term. */
-  bool has_term(Term term) const;
   /** Return true if d_assumptions is not empty. */
   bool has_assumed() const;
 
@@ -418,9 +419,6 @@ class SolverManager
   /** Maintain all created sorts. */
   SortSet d_sorts;
 
-  /* Map sort_kind -> (sort -> terms). */
-  SortTermMap d_terms;
-
   /** Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
 
@@ -434,6 +432,9 @@ class SolverManager
 
   /** Counter to create simple symbol names when option is enabled. */
   uint32_t d_n_symbols = 0;
+
+  /** Term database */
+  TermDb d_term_db;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -33,7 +33,7 @@ State*
 State::run(RNGenerator& rng)
 {
   assert(!d_actions.empty());
-  uint32_t idx      = rng.pick_uint32_weighted(d_weights);
+  uint32_t idx      = rng.pick_weighted<uint32_t>(d_weights);
   ActionTuple& atup = d_actions[idx];
 
   /* record state statistics */
@@ -48,7 +48,7 @@ State::run(RNGenerator& rng)
   {
     while (!atup.d_action->empty())
     {
-      idx  = rng.pick_uint32_weighted(d_weights);
+      idx  = rng.pick_weighted<uint32_t>(d_weights);
       atup = d_actions[idx];
     }
   }
@@ -534,14 +534,11 @@ class ActionMkTerm : public Action
            != d_smgr.get_enabled_theories().end());
     assert(d_smgr.has_term());
 
-    /* Pick theory with terms that can be used as operands. */
-    if (!d_smgr.has_theory()) return false;
-    TheoryId theory = d_smgr.pick_theory();
-
     /* Op gets only picked if there already exist terms that can be used as
      * operands. */
-    Op& op             = d_smgr.pick_op(theory);
-    OpKind kind        = op.d_kind;
+    OpKind kind = d_smgr.pick_op_kind();
+    if (kind == OP_UNDEFINED) return false;
+    Op& op             = d_smgr.get_op(kind);
     int32_t arity      = op.d_arity;
     uint32_t n_params  = op.d_nparams;
     SortKind sort_kind = op.d_sort_kind;
