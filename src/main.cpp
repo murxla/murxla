@@ -47,6 +47,7 @@ struct Options
   std::string solver;
   std::string api_trace_file_name;
   std::string untrace_file_name;
+  std::string smt2_file_name;
   bool dd = false;
   std::string dd_trace_file_name;
   std::string cross_check;
@@ -143,27 +144,28 @@ set_sigint_handler_stats(void)
 #define SMTMBT_USAGE                                                         \
   "usage:\n"                                                                 \
   "  smtmbt [options]\n\n"                                                   \
-  "  -h, --help              print this message and exit\n"                  \
-  "  -s, --seed <int>        seed for random number generator\n"             \
-  "  -S, --trace-seeds       trace seed for each API call\n"                 \
-  "  -t, --time <double>     time limit for MBT runs\n"                      \
-  "  -v, --verbosity         increase verbosity\n"                           \
-  "  -d, --dd                enable delta debugging\n"                       \
-  "  -D, --dd-trace <file>   delta debug API trace into <file>\n"            \
-  "  -a, --api-trace <file>  trace API call sequence into <file>\n"          \
-  "  -u, --untrace <file>    replay given API call sequence\n"               \
-  "  -o, --options <file>    solver option model toml file\n"                \
-  "  -l, --smt-lib           generate SMT-LIB compliant traces only\n"       \
+  "  -h, --help                 print this message and exit\n"               \
+  "  -s, --seed <int>           seed for random number generator\n"          \
+  "  -S, --trace-seeds          trace seed for each API call\n"              \
+  "  -t, --time <double>        time limit for MBT runs\n"                   \
+  "  -v, --verbosity            increase verbosity\n"                        \
+  "  -d, --dd                   enable delta debugging\n"                    \
+  "  -D, --dd-trace <file>      delta debug API trace into <file>\n"         \
+  "  -a, --api-trace <file>     trace API call sequence into <file>\n"       \
+  "  -u, --untrace <file>       replay given API call sequence\n"            \
+  "  -o, --options <file>       solver option model toml file\n"             \
+  "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"    \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n" \
-  "  -y, --simple-symbols    use symbols of the form '_sX'\n"                \
-  "  --btor                  test Boolector\n"                               \
-  "  --cvc4                  test CVC4\n"                                    \
-  "  --smt2                  dump SMT-LIB 2\n"                               \
-  "  --stats                 print statistics\n\n"                           \
+  "  -y, --simple-symbols       use symbols of the form '_sX'\n"             \
+  "  -f, --smt2-out <file>      write --smt2 output to <file>\n"             \
+  "  --btor                     test Boolector\n"                            \
+  "  --cvc4                     test CVC4\n"                                 \
+  "  --smt2                     dump SMT-LIB 2\n"                            \
+  "  --stats                    print statistics\n\n"                        \
   " enabling specific theories:\n"                                           \
-  "  --arrays                theory of arrays\n"                             \
-  "  --bv                    theory of bit-vectors\n"                        \
-  "  --fp                    theory of floating-points"
+  "  --arrays                   theory of arrays\n"                          \
+  "  --bv                       theory of bit-vectors\n"                     \
+  "  --fp                       theory of floating-points"
 
 void
 check_next_arg(std::string& option, int i, int argc)
@@ -263,11 +265,17 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.solver = SMTMBT_SOLVER_SMT2;
     }
+    else if (arg == "-f" || arg == "--smt2-out")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      options.smt2_file_name = argv[i];
+    }
     else if (arg == "-o" || arg == "--options")
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      options.solver_options_file = std::string(argv[i]);
+      options.solver_options_file = argv[i];
     }
     else if (arg == "-S" || arg == "--trace-seeds")
     {
@@ -281,7 +289,7 @@ parse_options(Options& options, int argc, char* argv[])
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      options.max_runs = std::stoi(std::string(argv[i]));
+      options.max_runs = std::stoi(argv[i]);
     }
     else if (arg == "-l" || arg == "--smt-lib")
     {
@@ -320,9 +328,10 @@ run_aux(uint32_t seed,
   int32_t status, fd;
   Result result;
   pid_t solver_pid = 0, timeout_pid = 0;
-  std::streambuf* trace_buf;
+  std::streambuf* trace_buf, *smt2_buf;
   std::ofstream trace_file;
   std::ifstream untrace_file;
+  std::ofstream smt2_file;
 
   if (!options.api_trace_file_name.empty())
   {
@@ -336,6 +345,19 @@ run_aux(uint32_t seed,
     trace_buf = std::cout.rdbuf();
   }
   std::ostream trace(trace_buf);
+
+  if (!options.smt2_file_name.empty())
+  {
+    smt2_file.open(options.smt2_file_name,
+                    std::ofstream::out | std::ofstream::trunc);
+    assert(smt2_file.is_open());
+    smt2_buf = smt2_file.rdbuf();
+  }
+  else
+  {
+    smt2_buf = std::cout.rdbuf();
+  }
+  std::ostream smt2(smt2_buf);
 
   RNGenerator rng(seed);
 
@@ -433,7 +455,7 @@ run_aux(uint32_t seed,
     }
     else if (options.solver == SMTMBT_SOLVER_SMT2)
     {
-      solver = new smt2::Smt2Solver(rng, std::cout);
+      solver = new smt2::Smt2Solver(rng, smt2);
     }
 
     FSM fsm(rng,
@@ -461,6 +483,7 @@ run_aux(uint32_t seed,
 
     if (trace_file.is_open()) trace_file.close();
     if (untrace_file.is_open()) untrace_file.close();
+    if (smt2_file.is_open()) smt2_file.close();
 
     if (run_forked)
     {
@@ -1054,6 +1077,13 @@ main(int argc, char* argv[])
       g_options.api_trace_file_name = devnull;
       out_file_name                 = "smtmbt-tmp.out";
       err_file_name                 = "smtmbt-tmp.err";
+    }
+    else if (g_options.solver == SMTMBT_SOLVER_SMT2)
+    {
+      g_options.api_trace_file_name = devnull;
+      std::stringstream ss;
+      ss << "smtmbt-" << seed << ".smt2";
+      out_file_name = ss.str();
     }
 
     /* We do not trace into file by default, only on replay in case of an error.
