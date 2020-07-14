@@ -1081,46 +1081,6 @@ get_cur_wall_time()
   return (double) time.tv_sec + (double) time.tv_usec / 1000000;
 }
 
-static int
-str_eq_skipws(const char* s, const char* target)
-{
-  const char* c = s;
-  size_t l      = strlen(target);
-  while (*c && isspace(*c)) ++c;
-  if (strncmp(c, target, l) == 0)
-  {
-    c += l;
-    while (*c)
-    {
-      if (!isspace(*c)) return 0;
-      ++c;
-    }
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
-}
-static void
-get_line(FILE* src)
-{
-  while (1)
-  {
-    int c = fgetc(src);
-    if (c == EOF)
-    {
-      // If the end of the file is reached, we return NULL
-      printf("[eof]");
-    }
-    printf("%c", c);
-    if (c == '\n')
-    {
-      break;
-    }
-  }
-}
-
 int
 main(int argc, char* argv[])
 {
