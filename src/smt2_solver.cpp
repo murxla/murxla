@@ -203,7 +203,7 @@ Smt2Solver::get_from_external() const
 void
 Smt2Solver::dump_smt2(std::string s) const
 {
-  d_out << s;
+  d_out << s << std::flush;
   if (d_online) push_to_external(s);
 }
 

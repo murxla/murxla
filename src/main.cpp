@@ -356,11 +356,10 @@ run_aux(uint32_t seed,
     trace_buf = std::cout.rdbuf();
   }
   std::ostream trace(trace_buf);
-
   if (!options.smt2_file_name.empty())
   {
     smt2_file.open(options.smt2_file_name,
-                    std::ofstream::out | std::ofstream::trunc);
+                   std::ofstream::out | std::ofstream::trunc);
     assert(smt2_file.is_open());
     smt2_buf = smt2_file.rdbuf();
   }
@@ -472,7 +471,6 @@ run_aux(uint32_t seed,
     {
       if (smt2_online)
       {
-        if (smt2_file.is_open()) smt2_file.close();
         /* Open input/output pipes from and to the external online solver. */
         if (pipe(fd_to) != 0 || pipe(fd_from) != 0)
         {
@@ -1089,6 +1087,7 @@ main(int argc, char* argv[])
   std::string devnull = "/dev/null";
   std::string out_file_name = devnull;
   std::string err_file_name = devnull;
+  std::string smt2_file_name;
   statistics::Statistics replay_stats;
 
   double start_time = get_cur_wall_time();
@@ -1117,6 +1116,8 @@ main(int argc, char* argv[])
   g_stats = initialize_statistics();
   set_sigint_handler_stats();
 
+  smt2_file_name = g_options.smt2_file_name;
+
   do
   {
     seed = sg.next();
@@ -1144,13 +1145,16 @@ main(int argc, char* argv[])
     }
     else if (g_options.solver == SMTMBT_SOLVER_SMT2)
     {
-      g_options.api_trace_file_name = devnull;
-      if (!g_options.solver_binary.empty())
+      if (is_forked && !g_options.solver_binary.empty())
       {
         g_options.smt2_file_name = "";
       }
       else if (g_options.smt2_file_name.empty())
       {
+        /* If no online solver is configured, we'll never run into the error
+         * case below and repla (the Smt2Solver only answers 'unknown' and
+         * dumps SMT2 -> should never terminate with an error).
+         * We therefore dump every generated sequence to smt2 continuously. */
         std::stringstream ss;
         ss << "smtmbt-" << seed << ".smt2";
         g_options.smt2_file_name = ss.str();
@@ -1167,6 +1171,8 @@ main(int argc, char* argv[])
                      out_file_name,
                      err_file_name,
                      g_stats);
+
+    g_options.smt2_file_name = smt2_file_name;
 
     /* report status */
     if (!is_seeded && !is_untrace)
@@ -1195,7 +1201,8 @@ main(int argc, char* argv[])
       }
     }
 
-    /* replay and trace on error */
+    /* Replay and trace on error.
+     * If online solver configure, dump smt2 on replay. */
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
       std::string error_trace_file_name = g_options.untrace_file_name;
@@ -1215,6 +1222,20 @@ main(int argc, char* argv[])
           }
         }
         error_trace_file_name = g_options.api_trace_file_name;
+        g_options.smt2_file_name = smt2_file_name;
+        if (g_options.smt2_file_name.empty())
+        {
+          if (smt2_file_name.empty())
+          {
+            std::stringstream ss;
+            ss << "smtmbt-" << seed << ".smt2";
+            g_options.smt2_file_name = ss.str();
+          }
+          else
+          {
+            g_options.smt2_file_name = smt2_file_name;
+          }
+        }
         Result res_replay = run(seed,
                                 g_options,
                                 solver_options,
@@ -1227,6 +1248,7 @@ main(int argc, char* argv[])
         {
           g_options.api_trace_file_name = "";
         }
+        g_options.smt2_file_name = "";
       }
       if (g_options.dd)
       {
