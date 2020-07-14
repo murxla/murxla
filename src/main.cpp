@@ -28,6 +28,9 @@ using namespace statistics;
 #define SMTMBT_SOLVER_CVC4 "cvc4"
 #define SMTMBT_SOLVER_SMT2 "smt2"
 
+#define SMTMBT_SMT2_READ_END 0
+#define SMTMBT_SMT2_WRITE_END 1
+
 const std::string COLOR_BLUE    = "\33[94m";
 const std::string COLOR_DEFAULT = "\33[39m";
 const std::string COLOR_GREEN   = "\33[92m";
@@ -45,6 +48,7 @@ struct Options
   bool smt         = false;
   bool print_stats = false;
   std::string solver;
+  std::string solver_binary;
   std::string api_trace_file_name;
   std::string untrace_file_name;
   std::string smt2_file_name;
@@ -141,30 +145,31 @@ set_sigint_handler_stats(void)
 
 /*****************************************************************************/
 
-#define SMTMBT_USAGE                                                         \
-  "usage:\n"                                                                 \
-  "  smtmbt [options]\n\n"                                                   \
-  "  -h, --help                 print this message and exit\n"               \
-  "  -s, --seed <int>           seed for random number generator\n"          \
-  "  -S, --trace-seeds          trace seed for each API call\n"              \
-  "  -t, --time <double>        time limit for MBT runs\n"                   \
-  "  -v, --verbosity            increase verbosity\n"                        \
-  "  -d, --dd                   enable delta debugging\n"                    \
-  "  -D, --dd-trace <file>      delta debug API trace into <file>\n"         \
-  "  -a, --api-trace <file>     trace API call sequence into <file>\n"       \
-  "  -u, --untrace <file>       replay given API call sequence\n"            \
-  "  -o, --options <file>       solver option model toml file\n"             \
-  "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"    \
-  "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n" \
-  "  -y, --simple-symbols       use symbols of the form '_sX'\n"             \
-  "  -f, --smt2-out <file>      write --smt2 output to <file>\n"             \
-  "  --btor                     test Boolector\n"                            \
-  "  --cvc4                     test CVC4\n"                                 \
-  "  --smt2                     dump SMT-LIB 2\n"                            \
-  "  --stats                    print statistics\n\n"                        \
-  " enabling specific theories:\n"                                           \
-  "  --arrays                   theory of arrays\n"                          \
-  "  --bv                       theory of bit-vectors\n"                     \
+#define SMTMBT_USAGE                                                           \
+  "usage:\n"                                                                   \
+  "  smtmbt [options]\n\n"                                                     \
+  "  -h, --help                 print this message and exit\n"                 \
+  "  -s, --seed <int>           seed for random number generator\n"            \
+  "  -S, --trace-seeds          trace seed for each API call\n"                \
+  "  -t, --time <double>        time limit for MBT runs\n"                     \
+  "  -v, --verbosity            increase verbosity\n"                          \
+  "  -d, --dd                   enable delta debugging\n"                      \
+  "  -D, --dd-trace <file>      delta debug API trace into <file>\n"           \
+  "  -a, --api-trace <file>     trace API call sequence into <file>\n"         \
+  "  -u, --untrace <file>       replay given API call sequence\n"              \
+  "  -o, --options <file>       solver option model toml file\n"               \
+  "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
+  "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
+  "  -y, --simple-symbols       use symbols of the form '_sX'\n"               \
+  "  -f, --smt2-out <file>      write --smt2 output to <file>\n"               \
+  "  --btor                     test Boolector\n"                              \
+  "  --cvc4                     test CVC4\n"                                   \
+  "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
+  "                             via stdout)\n"                                 \
+  "  --stats                    print statistics\n\n"                          \
+  " enabling specific theories:\n"                                             \
+  "  --arrays                   theory of arrays\n"                            \
+  "  --bv                       theory of bit-vectors\n"                       \
   "  --fp                       theory of floating-points"
 
 void
@@ -264,6 +269,11 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--smt2")
     {
       options.solver = SMTMBT_SOLVER_SMT2;
+      if (i + 1 < argc && argv[i + 1][0] != '-')
+      {
+        i += 1;
+        options.solver_binary = argv[i];
+      }
     }
     else if (arg == "-f" || arg == "--smt2-out")
     {
@@ -325,6 +335,7 @@ run_aux(uint32_t seed,
         Statistics* stats)
 {
   bool untrace = !options.untrace_file_name.empty();
+  bool smt2_online = !options.solver_binary.empty();
   int32_t status, fd;
   Result result;
   pid_t solver_pid = 0, timeout_pid = 0;
@@ -430,6 +441,10 @@ run_aux(uint32_t seed,
   /* child */
   else
   {
+    int32_t fd_to[2], fd_from[2];
+    FILE *to_external = nullptr, *from_external = nullptr;
+    pid_t smt2_pid = 0;
+
     if (run_forked)
     {
       /* Redirect stdout and stderr of child process into given files. */
@@ -455,7 +470,54 @@ run_aux(uint32_t seed,
     }
     else if (options.solver == SMTMBT_SOLVER_SMT2)
     {
-      solver = new smt2::Smt2Solver(rng, smt2);
+      if (smt2_online)
+      {
+        if (smt2_file.is_open()) smt2_file.close();
+        /* Open input/output pipes from and to the external online solver. */
+        if (pipe(fd_to) != 0 || pipe(fd_from) != 0)
+        {
+          die("creating input and/or output pipes failed");
+        }
+
+        smt2_pid = fork();
+        if (smt2_pid == -1)
+        {
+          die("forking solver process failed.");
+        }
+
+        if (smt2_pid == 0)  // child
+        {
+          close(fd_to[SMTMBT_SMT2_WRITE_END]);
+          dup2(fd_to[SMTMBT_SMT2_READ_END], STDIN_FILENO);
+
+          close(fd_from[SMTMBT_SMT2_READ_END]);
+          /* Redirect stdout of external solver to write end. */
+          dup2(fd_from[SMTMBT_SMT2_WRITE_END], STDOUT_FILENO);
+          /* Redirect stderr of external solver to write end. */
+          dup2(fd_from[SMTMBT_SMT2_WRITE_END], STDERR_FILENO);
+
+          char* execargs[2];
+          execargs[0] = (char*) options.solver_binary.c_str();
+          execargs[1] = nullptr;
+
+          execv(execargs[0], execargs);
+          std::stringstream es;
+          es << "'" << options.solver_binary << "' is not executable";
+          die(es.str());
+        }
+
+        close(fd_to[SMTMBT_SMT2_READ_END]);
+        to_external = fdopen(fd_to[SMTMBT_SMT2_WRITE_END], "w");
+        close(fd_from[SMTMBT_SMT2_WRITE_END]);
+        from_external = fdopen(fd_from[SMTMBT_SMT2_READ_END], "r");
+
+        if (to_external == nullptr || from_external == nullptr)
+        {
+          die("opening read/write channels to external solver failed");
+        }
+      }
+      solver = new smt2::Smt2Solver(
+          rng, smt2, smt2_online, to_external, from_external);
     }
 
     FSM fsm(rng,
@@ -480,6 +542,8 @@ run_aux(uint32_t seed,
     {
       fsm.run();
     }
+
+    if (smt2_online) waitpid(smt2_pid, nullptr, 0);
 
     if (trace_file.is_open()) trace_file.close();
     if (untrace_file.is_open()) untrace_file.close();
@@ -1017,6 +1081,46 @@ get_cur_wall_time()
   return (double) time.tv_sec + (double) time.tv_usec / 1000000;
 }
 
+static int
+str_eq_skipws(const char* s, const char* target)
+{
+  const char* c = s;
+  size_t l      = strlen(target);
+  while (*c && isspace(*c)) ++c;
+  if (strncmp(c, target, l) == 0)
+  {
+    c += l;
+    while (*c)
+    {
+      if (!isspace(*c)) return 0;
+      ++c;
+    }
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+static void
+get_line(FILE* src)
+{
+  while (1)
+  {
+    int c = fgetc(src);
+    if (c == EOF)
+    {
+      // If the end of the file is reached, we return NULL
+      printf("[eof]");
+    }
+    printf("%c", c);
+    if (c == '\n')
+    {
+      break;
+    }
+  }
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -1081,6 +1185,11 @@ main(int argc, char* argv[])
     else if (g_options.solver == SMTMBT_SOLVER_SMT2)
     {
       g_options.api_trace_file_name = devnull;
+      if (!g_options.solver_binary.empty())
+      {
+        g_options.smt2_file_name = "";
+      }
+      // TODO check when to set this in combination with online solver
       std::stringstream ss;
       ss << "smtmbt-" << seed << ".smt2";
       out_file_name = ss.str();

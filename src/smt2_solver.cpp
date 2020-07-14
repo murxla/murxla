@@ -148,7 +148,7 @@ Smt2Term::get_repr() const
   }
   else
   {
-    res << "((_" << d_op_kind_to_str.at(d_kind);
+    res << "((_ " << d_op_kind_to_str.at(d_kind);
     for (uint32_t p : d_params)
     {
       res << " " << p;
@@ -169,15 +169,75 @@ Smt2Term::get_repr() const
 /* -------------------------------------------------------------------------- */
 
 void
+Smt2Solver::push_to_external(std::string s) const
+{
+  assert(d_file_to);
+  assert(d_file_from);
+  fputs(s.c_str(), d_file_to);
+  fflush(d_file_to);
+  std::string res = get_from_external();
+  std::cout << res << std::endl;
+  // assert(res != "[EOF]");
+}
+
+std::string
+Smt2Solver::get_from_external() const
+{
+  std::stringstream ss;
+  while (true)
+  {
+    int32_t c = fgetc(d_file_from);
+    if (c == EOF)
+    {
+      return "[EOF]";
+    }
+    ss << ((char) c);
+    if (c == '\n')
+    {
+      break;
+    }
+  }
+  return ss.str();
+}
+
+void
+Smt2Solver::dump_smt2(std::string s) const
+{
+  d_out << s;
+  if (d_online) push_to_external(s);
+}
+
+Smt2Solver::Smt2Solver(
+    RNGenerator& rng, std::ostream& out, bool online, FILE* to, FILE* from)
+    : Solver(rng),
+      d_out(out),
+      d_online(online),
+      d_file_to(to),
+      d_file_from(from)
+{
+}
+
+void
 Smt2Solver::new_solver()
 {
-  d_out << "(set-logic ALL)" << std::endl;
+  d_initialized = true;
+  if (d_online)
+  {
+    dump_smt2("(set-option :print-success true)\n");
+  }
+  dump_smt2("(set-logic ALL)\n");
+}
+
+void
+Smt2Solver::delete_solver()
+{
+  dump_smt2("(exit)\n");
 }
 
 bool
 Smt2Solver::is_initialized() const
 {
-  return true;
+  return d_initialized;
 }
 
 OpKindSet
@@ -209,8 +269,8 @@ Smt2Solver::mk_var(Sort sort, const std::string name)
 Term
 Smt2Solver::mk_const(Sort sort, const std::string name)
 {
+  std::stringstream smt2;
   std::string n = name;
-  d_out << "(declare-const ";
   if (name.empty())
   {
     std::stringstream ss;
@@ -218,7 +278,9 @@ Smt2Solver::mk_const(Sort sort, const std::string name)
     n = ss.str();
   }
   Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(sort.get());
-  d_out << n << " " << smt2_sort->get_repr() << ")" << std::endl;
+  smt2 << "(declare-const " << n << " " << smt2_sort->get_repr() << ")"
+       << std::endl;
+  dump_smt2(smt2.str());
   return std::shared_ptr<Smt2Term>(
       new Smt2Term(OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::CONST, n));
 }
@@ -547,66 +609,76 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
 void
 Smt2Solver::assert_formula(const Term& t) const
 {
+  std::stringstream smt2;
   Smt2Term* smt2_term = static_cast<Smt2Term*>(t.get());
-  d_out << "(assert " << smt2_term->get_repr() << ")" << std::endl;
+  smt2 << "(assert " << smt2_term->get_repr() << ")" << std::endl;
+  dump_smt2(smt2.str());
 }
 
 Solver::Result
 Smt2Solver::check_sat() const
 {
-  d_out << "(check-sat)" << std::endl;
+  dump_smt2("(check-sat)\n");
   return Solver::Result::UNKNOWN;
 }
 
 Solver::Result
 Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions) const
 {
-  d_out << "(check-sat-assuming ( ";
+  std::stringstream smt2;
+  smt2 << "(check-sat-assuming ( ";
   for (size_t i = 0, n = assumptions.size(); i < n; ++i)
   {
     Smt2Term* smt2_term = static_cast<Smt2Term*>(assumptions[i].get());
-    if (i > 0) d_out << " ";
-    d_out << smt2_term->get_repr();
+    if (i > 0) smt2 << " ";
+    smt2 << smt2_term->get_repr();
   }
-  d_out << "))" << std::endl;
+  smt2 << "))" << std::endl;
+  dump_smt2(smt2.str());
   return Solver::Result::UNKNOWN;
 }
 
 std::vector<Term>
 Smt2Solver::get_unsat_assumptions() const
 {
-  d_out << "(get-unsat-assumptions)" << std::endl;
+  dump_smt2("(get-unsat-assumptions)\n");
   return std::vector<Term>();
 }
 
 void
 Smt2Solver::push(uint32_t n_levels) const
 {
-  d_out << "(push " << n_levels << ")" << std::endl;
+  std::stringstream smt2;
+  smt2 << "(push " << n_levels << ")" << std::endl;
+  dump_smt2(smt2.str());
 }
 
 void
 Smt2Solver::pop(uint32_t n_levels) const
 {
-  d_out << "(pop " << n_levels << ")" << std::endl;
+  std::stringstream smt2;
+  smt2 << "(pop " << n_levels << ")" << std::endl;
+  dump_smt2(smt2.str());
 }
 
 void
 Smt2Solver::print_model() const
 {
-  d_out << "(get-model)" << std::endl;
+  dump_smt2("(get-model)\n");
 }
 
 void
 Smt2Solver::reset_assertions() const
 {
-  d_out << "(reset-assertions)" << std::endl;
+  dump_smt2("(reset-assertions)\n");
 }
 
 void
 Smt2Solver::set_opt(const std::string& opt, const std::string& value)
 {
-  d_out << "(set-option :" << opt << " " << value << std::endl;
+  std::stringstream smt2;
+  smt2 << "(set-option :" << opt << " " << value << std::endl;
+  dump_smt2(smt2.str());
   if (opt == get_option_name_incremental())
   {
     d_incremental = value == "true" ? true : false;
@@ -666,14 +738,16 @@ Smt2Solver::check_failed_assumption(const Term& t) const
 std::vector<Term>
 Smt2Solver::get_value(std::vector<Term>& terms) const
 {
-  d_out << "(get-value (";
+  std::stringstream smt2;
+  smt2 << "(get-value (";
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
     Smt2Term* smt2_term = static_cast<Smt2Term*>(terms[i].get());
-    if (i > 0) d_out << " ";
-    d_out << smt2_term->get_repr();
+    if (i > 0) smt2 << " ";
+    smt2 << smt2_term->get_repr();
   }
-  d_out << "))" << std::endl;
+  smt2 << "))" << std::endl;
+  dump_smt2(smt2.str());
   return terms;
 }
 

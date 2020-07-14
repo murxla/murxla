@@ -199,11 +199,12 @@ class Smt2Term : public AbsTerm
 class Smt2Solver : public Solver
 {
  public:
-  Smt2Solver(RNGenerator& rng, std::ostream& out) : Solver(rng), d_out(out) {}
+  Smt2Solver(
+      RNGenerator& rng, std::ostream& out, bool online, FILE* to, FILE* from);
   ~Smt2Solver() override{};
 
   void new_solver() override;
-  void delete_solver() override {}
+  void delete_solver() override;
   bool is_initialized() const override;
 
   OpKindSet get_unsupported_op_kinds() const override;
@@ -258,7 +259,15 @@ class Smt2Solver : public Solver
   std::vector<Term> get_value(std::vector<Term>& terms) const override;
 
  private:
-  std::ostream& d_out         = std::cout;
+  void push_to_external(std::string s) const;
+  std::string get_from_external() const;
+  void dump_smt2(std::string s) const;
+  std::ostream& d_out = std::cout;
+  bool d_online       = false;
+  FILE* d_file_to     = nullptr;
+  FILE* d_file_from   = nullptr;
+
+  bool d_initialized          = false;
   bool d_incremental          = false;
   bool d_model_gen            = false;
   bool d_unsat_assumptions    = false;
