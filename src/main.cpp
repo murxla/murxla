@@ -1127,8 +1127,8 @@ main(int argc, char* argv[])
   uint32_t seed, num_runs = 0;
   char* env_file_name = nullptr;
   std::string devnull = "/dev/null";
-  std::string out_file_name       = devnull;
-  std::string err_file_name       = devnull;
+  std::string out_file_name = devnull;
+  std::string err_file_name = devnull;
   statistics::Statistics replay_stats;
 
   double start_time = get_cur_wall_time();
@@ -1189,10 +1189,12 @@ main(int argc, char* argv[])
       {
         g_options.smt2_file_name = "";
       }
-      // TODO check when to set this in combination with online solver
-      std::stringstream ss;
-      ss << "smtmbt-" << seed << ".smt2";
-      out_file_name = ss.str();
+      else if (g_options.smt2_file_name.empty())
+      {
+        std::stringstream ss;
+        ss << "smtmbt-" << seed << ".smt2";
+        g_options.smt2_file_name = ss.str();
+      }
     }
 
     /* We do not trace into file by default, only on replay in case of an error.
