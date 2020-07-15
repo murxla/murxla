@@ -259,6 +259,13 @@ class Smt2Solver : public Solver
   std::vector<Term> get_value(std::vector<Term>& terms) const override;
 
  private:
+  enum ResponseKind
+  {
+    SMT2_SUCCESS,
+    SMT2_SAT,
+    SMT2_SEXPR,
+  };
+
   void push_to_external(std::string s) const;
   std::string get_from_external() const;
   void dump_smt2(std::string s) const;
@@ -272,6 +279,7 @@ class Smt2Solver : public Solver
   bool d_model_gen            = false;
   bool d_unsat_assumptions    = false;
   uint32_t d_n_unnamed_consts = 0;
+  ResponseKind d_response     = SMT2_SUCCESS;
 };
 
 /* -------------------------------------------------------------------------- */

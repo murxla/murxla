@@ -1,6 +1,9 @@
 #include "smt2_solver.hpp"
 
+#include <algorithm>
 #include <cassert>
+
+#include "exit.hpp"
 
 namespace smtmbt {
 namespace smt2 {
@@ -168,6 +171,21 @@ Smt2Term::get_repr() const
 /* Smt2Solver                                                                 */
 /* -------------------------------------------------------------------------- */
 
+/* Trim whitespaces (in place) from given str. */
+static void
+trim_str(std::string& s)
+{
+  /* trim from left */
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+            return !std::isspace(ch);
+          }));
+  /* trim from right */
+  s.erase(std::find_if(
+              s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); })
+              .base(),
+          s.end());
+}
+
 void
 Smt2Solver::push_to_external(std::string s) const
 {
@@ -176,8 +194,24 @@ Smt2Solver::push_to_external(std::string s) const
   fputs(s.c_str(), d_file_to);
   fflush(d_file_to);
   std::string res = get_from_external();
-  std::cout << res << std::endl;
-  // assert(res != "[EOF]");
+  trim_str(res);
+  switch (d_response)
+  {
+    case ResponseKind::SMT2_SUCCESS:
+      if (res != "success") exit(EXIT_ERROR);
+      break;
+    case ResponseKind::SMT2_SAT:
+      if (res != "sat" && res != "unsat" && res != "unknown") exit(EXIT_ERROR);
+      break;
+    default:
+      assert(d_response == ResponseKind::SMT2_SEXPR);
+      if (res[0] != '(' || res.find("error") != std::string::npos
+          || res.find("Error") != std::string::npos
+          || res.find("ERROR") != std::string::npos)
+      {
+        exit(EXIT_ERROR);
+      }
+  }
 }
 
 std::string

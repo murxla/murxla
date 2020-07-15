@@ -16,6 +16,7 @@
 
 #include "btor_solver.hpp"
 #include "cvc4_solver.hpp"
+#include "exit.hpp"
 #include "fsm.hpp"
 #include "smt2_solver.hpp"
 #include "solver_option.hpp"
@@ -68,12 +69,6 @@ enum Result
   RESULT_OK,
   RESULT_TIMEOUT,
   RESULT_UNKNOWN,
-};
-
-enum ExitCodes
-{
-  EXIT_OK,
-  EXIT_ERROR,
 };
 
 /*****************************************************************************/
