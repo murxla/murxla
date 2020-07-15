@@ -494,11 +494,29 @@ run_aux(uint32_t seed,
           /* Redirect stderr of external solver to write end. */
           dup2(fd_from[SMTMBT_SMT2_WRITE_END], STDERR_FILENO);
 
-          char* execargs[2];
-          execargs[0] = (char*) options.solver_binary.c_str();
-          execargs[1] = nullptr;
+          std::vector<std::string> args;
+          std::string arg;
+          std::stringstream ss(options.solver_binary);
+          while (std::getline(ss, arg, ' '))
+          {
+            args.push_back(arg);
+          }
+          size_t n        = args.size();
+          char** execargs = new char*[n + 1];
+          for (size_t i = 0; i < n; ++i)
+          {
+            size_t m    = args[i].size() + 1;
+            execargs[i] = new char[m];
+            std::strncpy(execargs[i], args[i].c_str(), m);
+          }
+          execargs[n] = nullptr;
 
           execv(execargs[0], execargs);
+          for (size_t i = 0; i < n; ++i)
+          {
+            delete[] execargs[i];
+          }
+          delete[] execargs;
           std::stringstream es;
           es << "'" << options.solver_binary << "' is not executable";
           die(es.str());
