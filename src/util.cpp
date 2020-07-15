@@ -44,7 +44,18 @@ SeedGenerator::next()
 
 /* -------------------------------------------------------------------------- */
 
-RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed) { d_rng.seed(seed); }
+RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
+{
+  d_rng.seed(seed);
+
+  /* generate set of printable characters */
+  uint32_t i = 32;
+  std::generate_n(
+      std::back_inserter(d_printable_chars), 95, [&i]() { return i++; });
+  i = 128;
+  std::generate_n(
+      std::back_inserter(d_printable_chars), 128, [&i]() { return i++; });
+}
 
 std::mt19937&
 RNGenerator::get_engine()
@@ -111,8 +122,9 @@ RNGenerator::pick_string(uint32_t len)
 {
   if (len == 0) return "";
   std::string str(len, 0);
-  std::generate_n(
-      str.begin(), len, [this]() { return pick<uint32_t>(32, 255); });
+  std::generate_n(str.begin(), len, [this]() {
+    return pick_from_set<std::vector<char>, char>(d_printable_chars);
+  });
   return str;
 }
 

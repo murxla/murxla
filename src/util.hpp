@@ -1,6 +1,7 @@
 #ifndef __SMTMBT__UTIL_H
 #define __SMTMBT__UTIL_H
 
+#include <cassert>
 #include <cstdint>
 #include <random>
 #include <unordered_map>
@@ -101,7 +102,7 @@ class RNGenerator
    /** Pick one out of five choices. */
    Choice pick_one_of_five();
 
-   /** Pick random string of given length from set of 256 printable chars. */
+   /** Pick random string of given length from set of printable chars. */
    std::string pick_string(uint32_t len);
    /** Pick random string of given length from given character set. */
    std::string pick_string(std::string& chars, uint32_t len);
@@ -131,6 +132,8 @@ class RNGenerator
     std::string d_simple_symbol_char_set =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-/"
         "*=%?!.$_&<>@^~";
+    /** The set of printable characters: 32-126 and 127-255 (decimal). */
+    std::vector<char> d_printable_chars;
 };
 
 /* -------------------------------------------------------------------------- */
