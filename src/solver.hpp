@@ -89,15 +89,15 @@ class AbsTerm
   void set_sort(Sort sort);
   Sort get_sort() const;
 
-  void set_level(uint64_t level);
-  uint64_t get_level() const;
+  void set_levels(const std::vector<uint64_t>& levels);
+  const std::vector<uint64_t>& get_levels() const;
 
  protected:
   uint64_t d_id = 0u;
   Sort d_sort = nullptr;
 
  private:
-  uint64_t d_level = 0u;
+  std::vector<uint64_t> d_levels = {};
 };
 
 using Term = std::shared_ptr<AbsTerm>;
@@ -168,6 +168,7 @@ class Solver
   virtual void delete_solver() = 0;
   virtual bool is_initialized() const = 0;
 
+  bool supports_theory(TheoryId theory) const;
   virtual TheoryIdVector get_supported_theories() const;
   virtual OpKindSet get_supported_op_kinds() const;
   virtual OpKindSet get_unsupported_op_kinds() const;

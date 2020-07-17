@@ -275,7 +275,8 @@ set_sigint_handler_stats(void)
   " enabling specific theories:\n"                                             \
   "  --arrays                   theory of arrays\n"                            \
   "  --bv                       theory of bit-vectors\n"                       \
-  "  --fp                       theory of floating-points"
+  "  --fp                       theory of floating-points"                     \
+  "  --quant                    quantifiers"
 
 /* -------------------------------------------------------------------------- */
 /* Command-line option parsing                                                */
@@ -437,6 +438,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--fp")
     {
       options.enabled_theories.push_back(THEORY_FP);
+    }
+    else if (arg == "--quant")
+    {
+      options.enabled_theories.push_back(THEORY_QUANT);
     }
   }
 

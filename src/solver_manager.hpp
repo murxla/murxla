@@ -25,15 +25,13 @@ namespace smtmbt {
 class SolverManager
 {
  public:
-  using TermMap = std::unordered_map<Term, size_t, HashTerm>;
-  using SortMap = std::unordered_map<Sort, TermMap, HashSort>;
   using SortSet = std::unordered_set<Sort, HashSort>;
-  using SortTermMap = std::unordered_map<SortKind, SortMap>;
 
   /* Statistics. */
   struct Stats
   {
-    uint32_t inputs = 0; /* constants, variables */
+    uint32_t inputs = 0; /* values, constants */
+    uint32_t vars   = 0; /* variables */
     uint32_t terms  = 0; /* all terms, including inputs */
     uint32_t sorts  = 0; /* all sorts */
   };
@@ -82,11 +80,13 @@ class SolverManager
   void add_sort(Sort& sort, SortKind sort_kind);
   /** Add input to term database. */
   void add_input(Term& term, Sort& sort, SortKind sort_kind);
+  /** Add var to term database. */
+  void add_var(Term& term, Sort& sort, SortKind sort_kind);
   /** Add non-input term to term database. */
   void add_term(Term& term,
                 Sort& sort,
                 SortKind sort_kind,
-                const std::vector<Term>& children = {});
+                const std::vector<Term>& args = {});
 
   /** Pick arbitrary symbol (simple or piped). */
   std::string pick_symbol();
@@ -128,6 +128,11 @@ class SolverManager
    */
   Term pick_term(Sort sort);
   /**
+   * Pick term of given sort kind and scope level.
+   * Requires that terms of this sort kind exist.
+   */
+  Term pick_term(SortKind sort_kind, size_t level);
+  /**
    * Pick term of given sort kind.
    * Requires that terms of this sort kind exist.
    */
@@ -137,6 +142,22 @@ class SolverManager
    * Requires that terms of any sort kind exist.
    */
   Term pick_term();
+
+  /**
+   * Pick variable from current scope level.
+   */
+  Term pick_var();
+
+  /**
+   * Remove variable from current scope level.
+   */
+  void remove_var(Term& var);
+
+  /**
+   * Pick Boolean term from current scope level.
+   */
+  Term pick_quant_body();
+
   /**
    * Pick term of Bool SortKind SORT_BOOL and add it to asssumptions list.
    * Requires that terms of SortKind SORT_BOOL exist.
@@ -162,12 +183,23 @@ class SolverManager
 
   /** Return true if term database contains any term. */
   bool has_term() const;
+  /**
+   * Return true if term database contains any term of given sort kind at given
+   * level. */
+  bool has_term(SortKind sort_kind, size_t level) const;
   /** Return true if term database contains any term of given sort kind. */
   bool has_term(SortKind sort_kind) const;
   /** Return true if term database contains any time of given sort. */
   bool has_term(Sort sort) const;
   /** Return true if d_assumptions is not empty. */
   bool has_assumed() const;
+  /** Return true if term database contains a variable. */
+  bool has_var() const;
+  /**
+   * Return true if term database contains a Boolean term in the current scope
+   * level.
+   */
+  bool has_quant_body() const;
 
   /** Return true if given term has been previously assumed. */
   bool is_assumed(Term term) const;

@@ -1,4 +1,7 @@
 #include "solver.hpp"
+
+#include <algorithm>
+
 #include "theory.hpp"
 
 /* -------------------------------------------------------------------------- */
@@ -111,15 +114,16 @@ AbsTerm::get_sort() const
 }
 
 void
-AbsTerm::set_level(uint64_t level)
+AbsTerm::set_levels(const std::vector<uint64_t>& levels)
 {
-  d_level = level;
+  d_levels.clear();
+  d_levels.insert(d_levels.end(), levels.begin(), levels.end());
 }
 
-uint64_t
-AbsTerm::get_level() const
+const std::vector<uint64_t>&
+AbsTerm::get_levels() const
 {
-  return d_level;
+  return d_levels;
 }
 
 bool
@@ -173,6 +177,13 @@ const std::unordered_map<std::string, Solver::SpecialValueRM>
         {"rtz", Solver::SpecialValueRM::SMTMBT_FP_RTZ}};
 
 Solver::Solver(RNGenerator& rng) : d_rng(rng) {}
+
+bool
+Solver::supports_theory(TheoryId theory) const
+{
+  const TheoryIdVector& theories = get_supported_theories();
+  return std::find(theories.begin(), theories.end(), theory) != theories.end();
+}
 
 TheoryIdVector
 Solver::get_supported_theories() const

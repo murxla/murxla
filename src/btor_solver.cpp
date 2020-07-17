@@ -171,7 +171,7 @@ BtorSolver::is_initialized() const
 TheoryIdVector
 BtorSolver::get_supported_theories() const
 {
-  return {THEORY_ARRAY, THEORY_BV, THEORY_BOOL};
+  return {THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_QUANT};
 }
 
 OpKindSet
@@ -222,6 +222,31 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   assert(btor_res);
   boolector_release_sort(d_solver, btor_res);
   assert(res);
+  return res;
+}
+
+Term
+BtorSolver::mk_var(Sort sort, const std::string name)
+{
+  BoolectorNode* btor_res;
+  std::stringstream ss;
+  std::string symbol;
+  const char* cname = nullptr;
+
+  /* Make sure that symbol is unique. */
+  if (!name.empty())
+  {
+    ss << "sym" << d_num_symbols << "@" << name;
+    ++d_num_symbols;
+    symbol = ss.str();
+    cname  = symbol.c_str();
+  }
+
+  btor_res = boolector_param(d_solver, get_btor_sort(sort), cname);
+  assert(btor_res);
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
+  assert(res);
+  boolector_release(d_solver, btor_res);
   return res;
 }
 
@@ -459,6 +484,7 @@ BtorSolver::mk_term(const OpKind& kind,
   BoolectorNode* btor_res = nullptr;
   size_t n_args           = args.size();
   size_t n_params         = params.size();
+  std::vector<BoolectorNode*> vars;
 
   // BoolectorNode *boolector_read (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index);
   // BoolectorNode *boolector_write (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index, BoolectorNode *n_value);
@@ -734,6 +760,24 @@ BtorSolver::mk_term(const OpKind& kind,
                                  get_btor_term(args[0]),
                                  get_btor_term(args[1]),
                                  get_btor_term(args[2]));
+      break;
+
+    case OP_EXISTS:
+    case OP_FORALL:
+      for (size_t i = 0; i < args.size() - 1; ++i)
+      {
+        vars.push_back(get_btor_term(args[i]));
+      }
+      if (kind == OP_EXISTS)
+      {
+        btor_res = boolector_exists(
+            d_solver, vars.data(), vars.size(), get_btor_term(args.back()));
+      }
+      else
+      {
+        btor_res = boolector_forall(
+            d_solver, vars.data(), vars.size(), get_btor_term(args.back()));
+      }
       break;
 
     default: assert(false);

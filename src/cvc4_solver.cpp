@@ -259,6 +259,16 @@ CVC4Solver::mk_const(Sort sort, const std::string name)
 }
 
 Term
+CVC4Solver::mk_var(Sort sort, const std::string name)
+{
+  CVC4::api::Term cvc4_res = d_solver->mkVar(get_cvc4_sort(sort), name);
+  assert(!cvc4_res.isNull());
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
+  return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
+}
+
+Term
 CVC4Solver::mk_value(Sort sort, bool value)
 {
   assert(sort->is_bool());
@@ -422,6 +432,20 @@ CVC4Solver::mk_term(const OpKind& kind,
   int32_t n_args    = args.size();
   uint32_t n_params = params.size();
 
+  if (kind == OP_FORALL || kind == OP_EXISTS)
+  {
+    assert(args.size() >= 2);
+    std::vector<api::Term> vars;
+    for (size_t i = 0; i < args.size() - 1; ++i)
+    {
+      vars.push_back(get_cvc4_term(args[i]));
+    }
+    api::Term bvl  = d_solver->mkTerm(api::Kind::BOUND_VAR_LIST, vars);
+    api::Term body = get_cvc4_term(args.back());
+    cvc4_res       = d_solver->mkTerm(cvc4_kind, bvl, body);
+    goto DONE;
+  }
+
   /* create Op for indexed operators */
   switch (n_params)
   {
@@ -543,6 +567,7 @@ CVC4Solver::mk_term(const OpKind& kind,
       cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm, cvc4_args)
                           : d_solver->mkTerm(cvc4_kind, cvc4_args);
   }
+DONE:
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
@@ -822,6 +847,9 @@ CVC4Solver::init_op_kinds()
       {OP_FP_TO_REAL, CVC4::api::Kind::FLOATINGPOINT_TO_REAL},
       {OP_FP_TO_SBV, CVC4::api::Kind::FLOATINGPOINT_TO_SBV},
       {OP_FP_TO_UBV, CVC4::api::Kind::FLOATINGPOINT_TO_UBV},
+
+      {OP_FORALL, CVC4::api::Kind::FORALL},
+      {OP_EXISTS, CVC4::api::Kind::EXISTS},
   };
 }
 
@@ -852,11 +880,11 @@ class CVC4ActionCheckEntailed : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
-    if (!d_smgr.has_term(SORT_BOOL)) return false;
+    if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
 
     if (d_rng.flip_coin())
     {
-      Term term = d_smgr.pick_term(SORT_BOOL);
+      Term term = d_smgr.pick_term(SORT_BOOL, 0);
       _run(term);
     }
     else
@@ -866,7 +894,9 @@ class CVC4ActionCheckEntailed : public Action
       std::vector<Term> terms;
       for (uint32_t i = 0; i < n_terms; ++i)
       {
-        terms.push_back(d_smgr.pick_term(SORT_BOOL));
+        Term t = d_smgr.pick_term(SORT_BOOL, 0);
+        assert(t->get_sort()->get_kind() == SORT_BOOL);
+        terms.push_back(t);
       }
       _run(terms);
     }
@@ -986,12 +1016,11 @@ class CVC4ActionSimplify : public Action
     assert(tokens.size() == 1);
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
     assert(term != nullptr);
-    _run(term);
-    return 0;
+    return _run(term);
   }
 
  private:
-  void _run(Term term)
+  uint64_t _run(Term term)
   {
     SMTMBT_TRACE << get_id() << " " << term;
     CVC4Solver& solver       = static_cast<CVC4Solver&>(d_smgr.get_solver());
@@ -1001,7 +1030,16 @@ class CVC4ActionSimplify : public Action
     Term res  = std::make_shared<CVC4Term>(cvc4, cvc4_res);
     Sort sort = term->get_sort();
     assert (sort != nullptr);
+    /* Note: The simplified term 'res' may or may not be already in the term
+     * DB. However, we assume the same level for 'res' as the original term
+     * since can't always compute the exact level. */
+    if (res->get_levels().empty())
+    {
+      res->set_levels(term->get_levels());
+    }
     d_smgr.add_term(res, sort, sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
   }
 };
 

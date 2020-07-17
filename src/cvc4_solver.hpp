@@ -90,10 +90,8 @@ class CVC4Solver : public Solver
   std::vector<CVC4::api::Term> terms_to_cvc4_terms(
       std::vector<Term>& terms) const;
 
-  Term mk_var(Sort sort, const std::string name) override
-  {  // TODO:
-    return nullptr;
-  }
+  Term mk_var(Sort sort, const std::string name) override;
+
   Term mk_fun(Sort sort, const std::string name) override
   {  // TODO:
     return nullptr;

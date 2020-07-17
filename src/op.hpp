@@ -117,6 +117,11 @@ enum OpKind
   OP_FP_SUB,
   OP_FP_TO_REAL,
 
+  /* Quantifiers */
+
+  OP_FORALL,
+  OP_EXISTS,
+
   OP_ALL, /* must be last */
 };
 
@@ -267,6 +272,9 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_FP_SQRT),
         SMTMBT_OP_TO_STR(OP_FP_SUB),
         SMTMBT_OP_TO_STR(OP_FP_TO_REAL),
+
+        SMTMBT_OP_TO_STR(OP_FORALL),
+        SMTMBT_OP_TO_STR(OP_EXISTS),
     };
 
 std::ostream& operator<<(std::ostream& out, OpKind kind);

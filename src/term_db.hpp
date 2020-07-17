@@ -19,60 +19,129 @@ class TermDb
 
   TermDb(SolverManager& smgr, RNGenerator& rng);
 
+  /** Clear term database. */
   void clear();
 
+  /** Add term to database. */
   void add_term(Term& term,
                 Sort& sort,
                 SortKind sort_kind,
                 const std::vector<Term>& args = {});
+  /** Add input (const, value) to database. */
   void add_input(Term& input, Sort& sort, SortKind sort_kind);
-  void add_var(Term var);
 
+  /** Add variable to database */
+  void add_var(Term& input, Sort& sort, SortKind sort_kind);
+
+  /** Lookup term with given sort and sort_kind in database. */
   Term find(Term term, Sort sort, SortKind sort_kind) const;
+
+  /** Lookup term by id. */
   Term get_term(uint32_t id) const;
 
-  const SortKindSet get_sort_kinds() const;
+  /** Returns all term sorts currently in the database. */
   const SortSet get_sorts() const;
 
+  /**
+   * Return true if term database has a term with given sort kind and scope
+   * level.
+   */
+  bool has_term(SortKind kind, size_t level) const;
+  /** Return true if term database has a term with given sort kind. */
   bool has_term(SortKind kind) const;
+  /** Return true if term database has a term with sort. */
   bool has_term(Sort sort) const;
+  /** Return true if term database contains any term. */
   bool has_term() const;
+  /** Return true if term database contains a variable. */
+  bool has_var() const;
+  /**
+   * Return true if term database contains a Boolena term in the curren scope
+   * level.
+   */
+  bool has_quant_body() const;
 
+  /**
+   * Pick a term of given sort kind at scope level.
+   * Requires that terms of this sort kind and level exist.
+   */
+  Term pick_term(SortKind kind, size_t level);
+  /**
+   * Pick a term of given sort kind.
+   * Requires that terms of this sort kind exist.
+   */
   Term pick_term(SortKind kind);
+  /**
+   * Pick a term of given sort.
+   * Requires that terms of this sort exist.
+   */
   Term pick_term(Sort sort);
+  /**
+   * Pick any term.
+   * Requires that a term exists.
+   */
   Term pick_term();
 
-  Term pick_free_vars();
-  void remove_vars(const std::vector<Term>& vars);
+  /**
+   * Pick variable from current scope.
+   * Requires that a variable exists.
+   */
+  Term pick_var();
+  /**
+   * Pick Boolean term from current scope.
+   * Requires that a Boolean term exists at the current scope level.
+   */
+  Term pick_quant_body();
+  /**
+   * Remove variable from current scope and close scope.
+   */
+  void remove_var(Term& var);
 
+  /** Pick a sort kind. */
   SortKind pick_sort_kind();
 
+  /** Pick sort with given sort kind. */
   Sort pick_sort(SortKind sort_kind);
 
-  //  Sort pick_sort_bv(uint32_t bw);
-  //  Sort pick_sort_bv_max(uint32_t bw);
-
-  //  bool has_sort_bv(uint32_t bw);
-  //  bool has_sort_bv_max(uint32_t bw);
-
  private:
-  void push();
-  void pop();
+  /** Open new scope with given variable. */
+  void push(Term& var);
+  /** Close current scope with given variable. */
+  void pop(Term& var);
 
+  /**
+   * Pick a scope level.
+   * Lower levels are picked less often.
+   */
   size_t pick_level() const;
+  /**
+   * Pick a scope level that has terms with given sort kind.
+   * Lower levels are picked less often.
+   */
   size_t pick_level(SortKind kind) const;
+  /**
+   * Pick a scope level that has terms with given sort.
+   * Lower levels are picked less often.
+   */
   size_t pick_level(Sort sort) const;
 
   SolverManager& d_smgr;
+
   RNGenerator& d_rng;
 
+  /** Term database that maps SortKind -> Sort -> Term -> size_t */
   std::vector<SortTermMap> d_term_db;
 
-  std::unordered_map<uint32_t, Term> d_terms;
+  /** Maps term ids to terms. */
+  std::unordered_map<uint64_t, Term> d_terms;
 
-  SortKindSet d_term_sort_kinds;
+  /** Maps scope level to variable that opened the scope. */
+  std::vector<Term> d_vars;
+
+  /** Sorts currently used in d_term_db. */
   SortSet d_term_sorts;
 
+  /** Counter for term IDs. */
   uint64_t d_n_terms = 0;
 };
 

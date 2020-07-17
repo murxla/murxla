@@ -13,6 +13,7 @@ operator<<(std::ostream& out, Action action)
     case ACTION_MK_SORT: out << "ACTION_MK_SORT"; break;
     case ACTION_MK_VALUE: out << "ACTION_MK_VALUE"; break;
     case ACTION_MK_CONST: out << "ACTION_MK_CONST"; break;
+    case ACTION_MK_VAR: out << "ACTION_MK_VAR"; break;
     case ACTION_MK_TERM: out << "ACTION_MK_TERM"; break;
     case ACTION_ASSERT_FORMULA: out << "ACTION_ASSERT_FORMULA"; break;
     case ACTION_GET_UNSAT_ASSUMPTIONS:

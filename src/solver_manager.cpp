@@ -129,13 +129,22 @@ SolverManager::add_input(Term& term, Sort& sort, SortKind sort_kind)
 }
 
 void
+SolverManager::add_var(Term& term, Sort& sort, SortKind sort_kind)
+{
+  assert(term.get());
+
+  d_stats.vars += 1;
+  d_term_db.add_var(term, sort, sort_kind);
+}
+
+void
 SolverManager::add_term(Term& term,
                         Sort& sort,
                         SortKind sort_kind,
-                        const std::vector<Term>& children)
+                        const std::vector<Term>& args)
 {
   d_stats.terms += 1;
-  d_term_db.add_term(term, sort, sort_kind, children);
+  d_term_db.add_term(term, sort, sort_kind, args);
 }
 
 void
@@ -202,6 +211,13 @@ SolverManager::pick_op_kind(bool with_terms)
       const Op& op   = p.second;
       bool has_terms = true;
 
+      /* Quantifiers can only be created if we already have variables and
+       * Boolean terms in the current scope. */
+      if (op.d_kind == OP_FORALL || op.d_kind == OP_EXISTS)
+      {
+        if (!d_term_db.has_var() || !d_term_db.has_quant_body()) continue;
+      }
+
       /* Check if we already have terms that can be used with this operator. */
       if (op.d_arity < 0)
       {
@@ -252,9 +268,7 @@ SolverManager::has_theory(bool with_terms)
 {
   if (with_terms)
   {
-    auto kinds = d_term_db.get_sort_kinds();
-    return kinds.size() > 0
-           && (kinds.size() > 1 || kinds.find(SORT_RM) == kinds.end());
+    return has_term() && (!has_term(SORT_RM) || has_term(SORT_FP));
   }
   return d_enabled_theories.size() > 0;
 }
@@ -265,15 +279,21 @@ SolverManager::pick_theory(bool with_terms)
   if (with_terms)
   {
     TheoryIdSet theories;
-    for (const auto& sort_kind : d_term_db.get_sort_kinds())
+    for (uint32_t i = 0; i < static_cast<uint32_t>(SORT_ANY); ++i)
     {
+      SortKind sort_kind = static_cast<SortKind>(i);
+
       /* We have to skip SORT_RM since all operators in THEORY_FP require
        * terms of SORT_FP, but not necessarily of SORT_RM. If only terms of
        * SORT_RM have been created, no THEORY_FP operator applies. */
       if (sort_kind == SORT_RM) continue;
-      TheoryId theory = d_sort_kinds.find(sort_kind)->second.d_theory;
-      assert(d_enabled_theories.find(theory) != d_enabled_theories.end());
-      theories.insert(theory);
+
+      if (has_term(sort_kind))
+      {
+        TheoryId theory = d_sort_kinds.find(sort_kind)->second.d_theory;
+        assert(d_enabled_theories.find(theory) != d_enabled_theories.end());
+        theories.insert(theory);
+      }
     }
     return d_rng.pick_from_set<TheoryIdSet, TheoryId>(theories);
   }
@@ -289,6 +309,12 @@ SolverManager::pick_term(Sort sort)
 }
 
 Term
+SolverManager::pick_term(SortKind sort_kind, size_t level)
+{
+  return d_term_db.pick_term(sort_kind, level);
+}
+
+Term
 SolverManager::pick_term(SortKind sort_kind)
 {
   return d_term_db.pick_term(sort_kind);
@@ -301,11 +327,28 @@ SolverManager::pick_term()
 }
 
 Term
+SolverManager::pick_var()
+{
+  return d_term_db.pick_var();
+}
+
+void
+SolverManager::remove_var(Term& var)
+{
+  return d_term_db.remove_var(var);
+}
+
+Term
+SolverManager::pick_quant_body()
+{
+  return d_term_db.pick_quant_body();
+}
+
+Term
 SolverManager::pick_assumption()
 {
   assert(has_term(SORT_BOOL));
-  Sort sort = pick_sort(SORT_BOOL);
-  Term res  = pick_term(sort);
+  Term res = pick_term(SORT_BOOL, 0);
   d_assumptions.insert(res);
   return res;
 }
@@ -338,6 +381,12 @@ SolverManager::has_term() const
 }
 
 bool
+SolverManager::has_term(SortKind sort_kind, size_t level) const
+{
+  return d_term_db.has_term(sort_kind, level);
+}
+
+bool
 SolverManager::has_term(SortKind sort_kind) const
 {
   return d_term_db.has_term(sort_kind);
@@ -353,6 +402,18 @@ bool
 SolverManager::has_assumed() const
 {
   return !d_assumptions.empty();
+}
+
+bool
+SolverManager::has_var() const
+{
+  return d_term_db.has_var();
+}
+
+bool
+SolverManager::has_quant_body() const
+{
+  return d_term_db.has_quant_body();
 }
 
 bool
@@ -665,6 +726,8 @@ SolverManager::add_sort_kinds()
         d_sort_kinds.emplace(SORT_FP, SortKindData(SORT_FP, 0, THEORY_FP));
         break;
 
+      case THEORY_QUANT: break;
+
       default: assert(false);
     }
   }
@@ -713,6 +776,21 @@ SolverManager::add_op_kinds()
         add_op_kind(ops, OP_NOT, 1, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
         add_op_kind(ops, OP_XOR, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
         add_op_kind(ops, OP_IMPLIES, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+        add_op_kind(ops,
+                    OP_FORALL,
+                    2,
+                    0,
+                    SORT_BOOL,
+                    {SORT_ANY, SORT_BOOL},
+                    THEORY_QUANT);
+        add_op_kind(ops,
+                    OP_EXISTS,
+                    2,
+                    0,
+                    SORT_BOOL,
+                    {SORT_ANY, SORT_BOOL},
+                    THEORY_QUANT);
+
         break;
 
       case SORT_BV:

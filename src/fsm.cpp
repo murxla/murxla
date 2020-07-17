@@ -615,6 +615,15 @@ class ActionMkTerm : public Action
       args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(ew)));
       args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(sw - 1)));
     }
+    else if (kind == OpKind::OP_FORALL || kind == OpKind::OP_EXISTS)
+    {
+      if (!d_smgr.has_var() || !d_smgr.has_quant_body()) return false;
+      Term var  = d_smgr.pick_var();
+      Term body = d_smgr.pick_quant_body();
+      args.push_back(var);
+      args.push_back(body);
+      d_smgr.remove_var(var);
+    }
     else
     {
       if (arity == SMTMBT_MK_TERM_N_ARGS)
@@ -789,7 +798,7 @@ class ActionMkTerm : public Action
     /* If we can't find a matching sort is not found we use the sort returned
      * by the solver. */
     Sort lookup = d_smgr.find_sort(sort);
-    d_smgr.add_term(res, lookup, sort_kind);
+    d_smgr.add_term(res, lookup, sort_kind, args);
 
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
@@ -830,6 +839,45 @@ class ActionMkConst : public Action
     d_smgr.reset_sat();
     Term res = d_solver.mk_const(sort, symbol);
     d_smgr.add_input(res, sort, sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+};
+
+class ActionMkVar : public Action
+{
+ public:
+  ActionMkVar(SolverManager& smgr) : Action(smgr, "mk-var") {}
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    /* Pick sort of const. */
+    if (!d_smgr.has_sort()) return false;
+    Sort sort          = d_smgr.pick_sort();
+    std::string symbol = d_smgr.pick_symbol();
+    /* Create var. */
+    _run(sort, symbol);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    assert(tokens.size() == 2);
+
+    Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
+    assert(sort != nullptr);
+    std::string symbol = str_to_str(tokens[1]);
+    return _run(sort, symbol);
+  }
+
+ private:
+  uint64_t _run(Sort sort, std::string& symbol)
+  {
+    SMTMBT_TRACE << get_id() << " " << sort << " \"" << symbol << "\"";
+    d_smgr.reset_sat();
+    Term res = d_solver.mk_var(sort, symbol);
+    d_smgr.add_var(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -1169,8 +1217,8 @@ class ActionAssertFormula : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
-    if (!d_smgr.has_term(SORT_BOOL)) return false;
-    Term assertion = d_smgr.pick_term(SORT_BOOL);
+    if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
+    Term assertion = d_smgr.pick_term(SORT_BOOL, 0);
 
     _run(assertion);
     return true;
@@ -1239,7 +1287,7 @@ class ActionCheckSatAssuming : public Action
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
-    if (!d_smgr.has_term(SORT_BOOL)) return false;
+    if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     uint32_t n_assumptions =
         d_rng.pick<uint32_t>(1, SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT);
     std::vector<Term> assumptions;
@@ -1540,6 +1588,7 @@ FSM::configure()
 
   auto a_mkval   = new_action<ActionMkValue>();
   auto a_mkconst = new_action<ActionMkConst>();
+  auto a_mkvar   = new_action<ActionMkVar>();
   auto a_mkterm  = new_action<ActionMkTerm>();
 
   auto a_assert = new_action<ActionAssertFormula>();
@@ -1612,6 +1661,10 @@ FSM::configure()
   s_inputs->add_action(a_mksort, 100, s_sorts);
   s_inputs->add_action(a_mkval, 10);
   s_inputs->add_action(a_mkconst, 5);
+  if (d_smgr.get_solver().supports_theory(THEORY_QUANT))
+  {
+    s_inputs->add_action(a_mkvar, 200);
+  }
   s_inputs->add_action(t_inputs, 50, s_terms);
   s_inputs->add_action(t_inputs, 1000, s_sat);
   s_inputs->add_action(t_inputs, 1000, s_push_pop);
