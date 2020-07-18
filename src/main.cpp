@@ -37,6 +37,8 @@ const std::string COLOR_DEFAULT = "\33[39m";
 const std::string COLOR_GREEN   = "\33[92m";
 const std::string COLOR_RED     = "\33[91m";
 
+/* -------------------------------------------------------------------------- */
+
 struct Options
 {
   uint32_t seed      = 0;
@@ -71,7 +73,7 @@ enum Result
   RESULT_UNKNOWN,
 };
 
-/*****************************************************************************/
+/* -------------------------------------------------------------------------- */
 
 static void
 warn(const char* msg, ...)
@@ -113,7 +115,111 @@ get_info(Result res)
   return info.str();
 }
 
-/*****************************************************************************/
+static double
+get_cur_wall_time()
+{
+  struct timeval time;
+  if (gettimeofday(&time, nullptr))
+  {
+    die("failed to get time");
+  }
+  return (double) time.tv_sec + (double) time.tv_usec / 1000000;
+}
+
+static Statistics*
+initialize_statistics()
+{
+  int fd;
+  std::stringstream ss;
+  std::string shmfilename;
+  Statistics* stats;
+
+  ss << "/tmp/smtmbt-shm-" << getpid();
+  shmfilename = ss.str();
+
+  if ((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0)
+    die("failed to create shared memory file for statistics");
+
+  stats = static_cast<Statistics*>(mmap(0,
+                                        sizeof(Statistics),
+                                        PROT_READ | PROT_WRITE,
+                                        MAP_ANONYMOUS | MAP_SHARED,
+                                        fd,
+                                        0));
+
+  if (close(fd)) die("failed to close shared memory file for statistics");
+  (void) unlink(shmfilename.c_str());
+  return stats;
+}
+
+static bool
+compare_files(std::string file_name1, std::string file_name2)
+{
+  std::ifstream file1(file_name1, std::ifstream::binary | std::ifstream::ate);
+  std::ifstream file2(file_name2, std::ifstream::binary | std::ifstream::ate);
+
+  if (file1.fail() || file2.fail())
+  {
+    return false;
+  }
+
+  if (file1.tellg() != file2.tellg())
+  {
+    return false;
+  }
+
+  file1.seekg(0, file1.beg);
+  file2.seekg(0, file2.beg);
+  return std::equal(std::istreambuf_iterator<char>(file1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(file2.rdbuf()));
+}
+
+static void
+diff_files(std::ostream& out, std::string file_name1, std::string file_name2)
+{
+  std::ifstream file1(file_name1);
+  std::ifstream file2(file_name2);
+  std::string line1, line2;
+
+  assert(file1.is_open());
+  assert(file2.is_open());
+  while (std::getline(file1, line1))
+  {
+    if (std::getline(file2, line2))
+    {
+      if (line1 == line2)
+      {
+        out << COLOR_DEFAULT << "  ";
+      }
+      else
+      {
+        out << COLOR_RED << "x ";
+      }
+      out << std::left << std::setw(9) << line1;
+      out << std::left << std::setw(9) << line2;
+    }
+    else
+    {
+      out << COLOR_RED << "x ";
+      out << std::left << std::setw(9) << line1;
+    }
+    out << std::endl;
+  }
+  while (std::getline(file2, line2))
+  {
+    out << COLOR_RED << "x ";
+    out << std::left << std::setw(9) << " ";
+    out << std::left << std::setw(9) << line2 << std::endl;
+  }
+  out << COLOR_DEFAULT << std::flush;
+  file1.close();
+  file2.close();
+}
+
+/* -------------------------------------------------------------------------- */
+/* Signal handling                                                            */
+/* -------------------------------------------------------------------------- */
 
 /* Signal handler for printing statistics */
 // TODO: Remove handler
@@ -138,7 +244,9 @@ set_sigint_handler_stats(void)
   sig_int_handler_stats = signal(SIGINT, catch_signal_stats);
 }
 
-/*****************************************************************************/
+/* -------------------------------------------------------------------------- */
+/* Help message                                                               */
+/* -------------------------------------------------------------------------- */
 
 #define SMTMBT_USAGE                                                           \
   "usage:\n"                                                                   \
@@ -166,6 +274,10 @@ set_sigint_handler_stats(void)
   "  --arrays                   theory of arrays\n"                            \
   "  --bv                       theory of bit-vectors\n"                       \
   "  --fp                       theory of floating-points"
+
+/* -------------------------------------------------------------------------- */
+/* Command-line option parsing                                                */
+/* -------------------------------------------------------------------------- */
 
 void
 check_next_arg(std::string& option, int i, int argc)
@@ -319,6 +431,140 @@ parse_options(Options& options, int argc, char* argv[])
     die("No solver selected");
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Solver option parsing                                                      */
+/* -------------------------------------------------------------------------- */
+
+template <class T>
+std::pair<T, T>
+get_limits(const toml::table& table)
+{
+  T min = (table.find("min") != table.end()) ? toml::get<T>(table.at("min"))
+                                             : std::numeric_limits<T>::min();
+  T max = (table.find("max") != table.end()) ? toml::get<T>(table.at("max"))
+                                             : std::numeric_limits<T>::max();
+  return std::make_pair(min, max);
+}
+
+void
+parse_solver_options_file(Options& options, SolverOptions& solver_options)
+{
+  const auto options_data = toml::parse(options.solver_options_file);
+  const std::vector<toml::table> tables =
+      toml::find<std::vector<toml::table>>(options_data, "option");
+
+  std::unordered_map<std::string, SolverOption*> options_map;
+
+  SolverOption* opt;
+  for (const toml::table& table : tables)
+  {
+    std::string name = toml::get<std::string>(table.at("name"));
+    std::string type = toml::get<std::string>(table.at("type"));
+    std::vector<std::string> depends =
+        toml::get<std::vector<std::string>>(table.at("depends"));
+    std::vector<std::string> conflicts =
+        toml::get<std::vector<std::string>>(table.at("conflicts"));
+
+    if (type == "bool")
+    {
+      opt = new SolverOptionBool(name, depends, conflicts);
+    }
+    else if (type == "int" || type == "int16_t" || type == "int32_t"
+             || type == "int64_t")
+    {
+      int64_t min, max;
+      if (type == "int16_t")
+      {
+        std::tie(min, max) = get_limits<int16_t>(table);
+      }
+      else if (type == "int64_t")
+      {
+        std::tie(min, max) = get_limits<int64_t>(table);
+      }
+      else
+      {
+        std::tie(min, max) = get_limits<int32_t>(table);
+      }
+      opt = new SolverOptionNum<int64_t>(name, depends, conflicts, min, max);
+    }
+    else if (type == "unsigned" || type == "unsigned long" || type == "uint16_t"
+             || type == "uint32_t" || type == "uint64_t")
+    {
+      uint64_t min, max;
+      if (type == "uint16_t")
+      {
+        std::tie(min, max) = get_limits<uint16_t>(table);
+      }
+      else if (type == "uint64_t" || type == "unsigned long")
+      {
+        std::tie(min, max) = get_limits<uint64_t>(table);
+      }
+      else
+      {
+        std::tie(min, max) = get_limits<uint32_t>(table);
+      }
+      opt = new SolverOptionNum<uint64_t>(name, depends, conflicts, min, max);
+    }
+    else if (type == "double")
+    {
+      double min, max;
+      std::tie(min, max) = get_limits<double>(table);
+      opt = new SolverOptionNum<double>(name, depends, conflicts, min, max);
+    }
+    else if (type == "list")
+    {
+      std::vector<std::string> values =
+          toml::get<std::vector<std::string>>(table.at("values"));
+      opt = new SolverOptionList(name, depends, conflicts, values);
+    }
+    else
+    {
+      std::stringstream es;
+      es << "Unknown option type " << type;
+      die(es.str());
+    }
+
+    solver_options.push_back(std::unique_ptr<SolverOption>(opt));
+    options_map.emplace(std::make_pair(name, opt));
+  }
+
+  /* Check option names and propagate conflicts/dependencies to all options_map.
+   */
+  for (const auto& uptr : solver_options)
+  {
+    const auto& confl = uptr->get_conflicts();
+    const auto& deps  = uptr->get_depends();
+
+    for (const auto& o : confl)
+    {
+      if (options_map.find(o) == options_map.end())
+      {
+        std::stringstream es;
+        es << "Unknown conflicting option name '" << o << "' for option "
+           << uptr->get_name();
+        die(es.str());
+      }
+      options_map.at(o)->add_conflict(uptr->get_name());
+    }
+
+    for (const auto& o : deps)
+    {
+      if (options_map.find(o) == options_map.end())
+      {
+        std::stringstream es;
+        es << "Unknown dependency option name '" << o << "' for option "
+           << uptr->get_name();
+        die(es.str());
+      }
+      options_map.at(o)->add_depends(uptr->get_name());
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Run MBT                                                                    */
+/* -------------------------------------------------------------------------- */
 
 static Result
 run_aux(uint32_t seed,
@@ -573,71 +819,6 @@ run_aux(uint32_t seed,
   return result;
 }
 
-static bool
-compare_files(std::string file_name1, std::string file_name2)
-{
-  std::ifstream file1(file_name1, std::ifstream::binary | std::ifstream::ate);
-  std::ifstream file2(file_name2, std::ifstream::binary | std::ifstream::ate);
-
-  if (file1.fail() || file2.fail())
-  {
-    return false;
-  }
-
-  if (file1.tellg() != file2.tellg())
-  {
-    return false;
-  }
-
-  file1.seekg(0, file1.beg);
-  file2.seekg(0, file2.beg);
-  return std::equal(std::istreambuf_iterator<char>(file1.rdbuf()),
-                    std::istreambuf_iterator<char>(),
-                    std::istreambuf_iterator<char>(file2.rdbuf()));
-}
-
-static void
-diff_files(std::ostream& out, std::string file_name1, std::string file_name2)
-{
-  std::ifstream file1(file_name1);
-  std::ifstream file2(file_name2);
-  std::string line1, line2;
-
-  assert(file1.is_open());
-  assert(file2.is_open());
-  while (std::getline(file1, line1))
-  {
-    if (std::getline(file2, line2))
-    {
-      if (line1 == line2)
-      {
-        out << COLOR_DEFAULT << "  ";
-      }
-      else
-      {
-        out << COLOR_RED << "x ";
-      }
-      out << std::left << std::setw(9) << line1;
-      out << std::left << std::setw(9) << line2;
-    }
-    else
-    {
-      out << COLOR_RED << "x ";
-      out << std::left << std::setw(9) << line1;
-    }
-    out << std::endl;
-  }
-  while (std::getline(file2, line2))
-  {
-    out << COLOR_RED << "x ";
-    out << std::left << std::setw(9) << " ";
-    out << std::left << std::setw(9) << line2 << std::endl;
-  }
-  out << COLOR_DEFAULT << std::flush;
-  file1.close();
-  file2.close();
-}
-
 static Result
 run(uint32_t seed,
     Options& options,
@@ -756,18 +937,11 @@ run(uint32_t seed,
   return res;
 }
 
-void
-write_strs_to_file(const std::vector<std::string>& lines,
-                   std::string& out_file_name)
-{
-  std::ofstream out_file(out_file_name);
-  assert(out_file.is_open());
-  std::ostream_iterator<std::string> it(out_file, "\n");
-  std::copy(lines.begin(), lines.end(), it);
-  out_file.close();
-}
+/* -------------------------------------------------------------------------- */
+/* Delta debug trace                                                          */
+/* -------------------------------------------------------------------------- */
 
-void
+static void
 write_idxs_to_file(const std::vector<std::string>& lines,
                    const std::vector<size_t> indices,
                    std::string& out_file_name)
@@ -784,7 +958,7 @@ write_idxs_to_file(const std::vector<std::string>& lines,
   out_file.close();
 }
 
-std::vector<size_t>
+static std::vector<size_t>
 remove_subsets(std::vector<std::vector<size_t>>& subsets,
                std::unordered_set<size_t>& excluded_sets)
 {
@@ -929,168 +1103,7 @@ dd(uint32_t seed,
   std::remove(tmp_err_file_name.c_str());
 }
 
-template <class T>
-std::pair<T, T>
-get_limits(const toml::table& table)
-{
-  T min = (table.find("min") != table.end()) ? toml::get<T>(table.at("min"))
-                                             : std::numeric_limits<T>::min();
-  T max = (table.find("max") != table.end()) ? toml::get<T>(table.at("max"))
-                                             : std::numeric_limits<T>::max();
-  return std::make_pair(min, max);
-}
-
-void
-parse_solver_options_file(Options& options, SolverOptions& solver_options)
-{
-  const auto options_data = toml::parse(options.solver_options_file);
-  const std::vector<toml::table> tables =
-      toml::find<std::vector<toml::table>>(options_data, "option");
-
-  std::unordered_map<std::string, SolverOption*> options_map;
-
-  SolverOption* opt;
-  for (const toml::table& table : tables)
-  {
-    std::string name = toml::get<std::string>(table.at("name"));
-    std::string type = toml::get<std::string>(table.at("type"));
-    std::vector<std::string> depends =
-        toml::get<std::vector<std::string>>(table.at("depends"));
-    std::vector<std::string> conflicts =
-        toml::get<std::vector<std::string>>(table.at("conflicts"));
-
-    if (type == "bool")
-    {
-      opt = new SolverOptionBool(name, depends, conflicts);
-    }
-    else if (type == "int" || type == "int16_t" || type == "int32_t"
-             || type == "int64_t")
-    {
-      int64_t min, max;
-      if (type == "int16_t")
-      {
-        std::tie(min, max) = get_limits<int16_t>(table);
-      }
-      else if (type == "int64_t")
-      {
-        std::tie(min, max) = get_limits<int64_t>(table);
-      }
-      else
-      {
-        std::tie(min, max) = get_limits<int32_t>(table);
-      }
-      opt = new SolverOptionNum<int64_t>(name, depends, conflicts, min, max);
-    }
-    else if (type == "unsigned" || type == "unsigned long" || type == "uint16_t"
-             || type == "uint32_t" || type == "uint64_t")
-    {
-      uint64_t min, max;
-      if (type == "uint16_t")
-      {
-        std::tie(min, max) = get_limits<uint16_t>(table);
-      }
-      else if (type == "uint64_t" || type == "unsigned long")
-      {
-        std::tie(min, max) = get_limits<uint64_t>(table);
-      }
-      else
-      {
-        std::tie(min, max) = get_limits<uint32_t>(table);
-      }
-      opt = new SolverOptionNum<uint64_t>(name, depends, conflicts, min, max);
-    }
-    else if (type == "double")
-    {
-      double min, max;
-      std::tie(min, max) = get_limits<double>(table);
-      opt = new SolverOptionNum<double>(name, depends, conflicts, min, max);
-    }
-    else if (type == "list")
-    {
-      std::vector<std::string> values =
-          toml::get<std::vector<std::string>>(table.at("values"));
-      opt = new SolverOptionList(name, depends, conflicts, values);
-    }
-    else
-    {
-      std::stringstream es;
-      es << "Unknown option type " << type;
-      die(es.str());
-    }
-
-    solver_options.push_back(std::unique_ptr<SolverOption>(opt));
-    options_map.emplace(std::make_pair(name, opt));
-  }
-
-  /* Check option names and propagate conflicts/dependencies to all options_map.
-   */
-  for (const auto& uptr : solver_options)
-  {
-    const auto& confl = uptr->get_conflicts();
-    const auto& deps  = uptr->get_depends();
-
-    for (const auto& o : confl)
-    {
-      if (options_map.find(o) == options_map.end())
-      {
-        std::stringstream es;
-        es << "Unknown conflicting option name '" << o << "' for option "
-           << uptr->get_name();
-        die(es.str());
-      }
-      options_map.at(o)->add_conflict(uptr->get_name());
-    }
-
-    for (const auto& o : deps)
-    {
-      if (options_map.find(o) == options_map.end())
-      {
-        std::stringstream es;
-        es << "Unknown dependency option name '" << o << "' for option "
-           << uptr->get_name();
-        die(es.str());
-      }
-      options_map.at(o)->add_depends(uptr->get_name());
-    }
-  }
-}
-
-Statistics*
-initialize_statistics()
-{
-  int fd;
-  std::stringstream ss;
-  std::string shmfilename;
-  Statistics* stats;
-
-  ss << "/tmp/smtmbt-shm-" << getpid();
-  shmfilename = ss.str();
-
-  if ((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0)
-    die("failed to create shared memory file for statistics");
-
-  stats = static_cast<Statistics*>(mmap(0,
-                                        sizeof(Statistics),
-                                        PROT_READ | PROT_WRITE,
-                                        MAP_ANONYMOUS | MAP_SHARED,
-                                        fd,
-                                        0));
-
-  if (close(fd)) die("failed to close shared memory file for statistics");
-  (void) unlink(shmfilename.c_str());
-  return stats;
-}
-
-static double
-get_cur_wall_time()
-{
-  struct timeval time;
-  if (gettimeofday(&time, nullptr))
-  {
-    die("failed to get time");
-  }
-  return (double) time.tv_sec + (double) time.tv_usec / 1000000;
-}
+/* ========================================================================== */
 
 int
 main(int argc, char* argv[])
