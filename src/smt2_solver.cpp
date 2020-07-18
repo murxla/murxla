@@ -198,10 +198,22 @@ Smt2Solver::push_to_external(std::string s) const
   switch (d_response)
   {
     case ResponseKind::SMT2_SUCCESS:
-      if (res != "success") exit(EXIT_ERROR);
+      if (res != "success")
+      {
+        std::cerr << "[smtmbt] SMT2: Error: expected 'success' response from "
+                     "online solver"
+                  << std::endl;
+        exit(EXIT_ERROR);
+      }
       break;
     case ResponseKind::SMT2_SAT:
-      if (res != "sat" && res != "unsat" && res != "unknown") exit(EXIT_ERROR);
+      if (res != "sat" && res != "unsat" && res != "unknown")
+      {
+        std::cerr << "[smtmbt] SMT2: Error: expected 'sat', 'unsat' or "
+                     "'unknown' response from online solver"
+                  << std::endl;
+        exit(EXIT_ERROR);
+      }
       break;
     default:
       assert(d_response == ResponseKind::SMT2_SEXPR);
@@ -209,6 +221,9 @@ Smt2Solver::push_to_external(std::string s) const
           || res.find("Error") != std::string::npos
           || res.find("ERROR") != std::string::npos)
       {
+        std::cerr << "[smtmbt] SMT2: Error: expected S-expression response "
+                     "from online solver"
+                  << std::endl;
         exit(EXIT_ERROR);
       }
   }
