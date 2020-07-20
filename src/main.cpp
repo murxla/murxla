@@ -350,6 +350,12 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "-c" || arg == "--cross-check")
     {
+      if (options.solver == SMTMBT_SOLVER_SMT2)
+      {
+        std::stringstream es;
+        es << "option " << arg << " is incompatible with option --smt2";
+        die(es.str());
+      }
       i += 1;
       check_next_arg(arg, i, argc);
       std::string solver = argv[i];
@@ -375,6 +381,12 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "--smt2")
     {
+      if (!options.cross_check.empty())
+      {
+        std::stringstream es;
+        es << "option " << arg << " is incompatible with option -c, --cross-check";
+        die(es.str());
+      }
       options.solver = SMTMBT_SOLVER_SMT2;
       if (i + 1 < argc && argv[i + 1][0] != '-')
       {
@@ -1178,7 +1190,7 @@ main(int argc, char* argv[])
       else if (g_options.smt2_file_name.empty())
       {
         /* If no online solver is configured, we'll never run into the error
-         * case below and repla (the Smt2Solver only answers 'unknown' and
+         * case below and replay (the Smt2Solver only answers 'unknown' and
          * dumps SMT2 -> should never terminate with an error).
          * We therefore dump every generated sequence to smt2 continuously. */
         std::stringstream ss;
