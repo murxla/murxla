@@ -1027,6 +1027,7 @@ dd(uint32_t seed,
   /* represent input trace as vector of lines, trace statements that expect and
    * are accompanied by a return statement are represented as one element of
    * the vector */
+
   std::ifstream trace_file(tmp_trace_file_name);
   assert(trace_file.is_open());
   while (std::getline(trace_file, line))
@@ -1056,6 +1057,7 @@ dd(uint32_t seed,
   std::vector<size_t> superset(size);
   std::iota(superset.begin(), superset.end(), 0);
   int64_t subset_size = size / 2;
+  uint32_t n_tests = 0, n_failed_tests = 0;
   while (subset_size > 0)
   {
     std::vector<std::vector<size_t>> subsets;
@@ -1081,6 +1083,7 @@ dd(uint32_t seed,
       std::unordered_set<size_t> ex(excluded_sets);
       ex.insert(i);
       std::vector<size_t> tmp = remove_subsets(subsets, ex);
+
       write_idxs_to_file(lines, tmp, tmp_trace_file_name);
       exit = run(seed,
                  o,
@@ -1089,12 +1092,14 @@ dd(uint32_t seed,
                  tmp_out_file_name,
                  tmp_err_file_name,
                  &stats);
+      n_tests += 1;
       if (exit == gold_exit
           && compare_files(tmp_out_file_name, gold_out_file_name)
           && compare_files(tmp_err_file_name, gold_err_file_name))
       {
         cur_superset = tmp;
         excluded_sets.insert(i);
+        n_failed_tests += 1;
       }
     }
     if (cur_superset.empty())
@@ -1110,6 +1115,8 @@ dd(uint32_t seed,
       subset_size = size / 2;
     }
   }
+  std::cout << "[smtmbt] dd: tests " << n_failed_tests << "/" << n_tests
+            << std::endl;
   std::remove(gold_out_file_name.c_str());
   std::remove(gold_err_file_name.c_str());
   std::remove(tmp_trace_file_name.c_str());
