@@ -1136,13 +1136,21 @@ replay(uint32_t seed,
        std::string& err_file_name)
 {
   statistics::Statistics replay_stats;
+  std::string tmp_trace_file_name;
 
   if (api_trace_file_name.empty())
   {
-    if (untrace_file_name.empty() || g_options.dd)
+    if (untrace_file_name.empty())
     {
       std::stringstream ss;
       ss << "smtmbt-" << seed << ".trace";
+      g_options.api_trace_file_name = ss.str();
+    }
+    else if (g_options.dd)
+    {
+      std::stringstream ss;
+      ss << "smtmbt-dd-tmp-" << untrace_file_name;
+      tmp_trace_file_name           = ss.str();
       g_options.api_trace_file_name = ss.str();
     }
     else
@@ -1171,17 +1179,20 @@ replay(uint32_t seed,
     std::stringstream dd_trace_file_name;
     if (g_options.dd_trace_file_name.empty())
     {
-      if (api_trace_file_name.empty())
+      if (untrace_file_name.empty())
       {
-        dd_trace_file_name << "smtmbt-dd-" << seed << ".trace";
-      }
-      else if (untrace_file_name.empty())
-      {
-        dd_trace_file_name << "smtmbt-dd-" << seed << ".trace";
+        if (api_trace_file_name.empty())
+        {
+          dd_trace_file_name << "smtmbt-dd-" << seed << ".trace";
+        }
+        else
+        {
+          dd_trace_file_name << "smtmbt-dd-" << api_trace_file_name;
+        }
       }
       else
       {
-        dd_trace_file_name << g_options.untrace_file_name << ".dd.trace";
+        dd_trace_file_name << "smtmbt-dd-" << g_options.untrace_file_name;
       }
       g_options.dd_trace_file_name = dd_trace_file_name.str();
     }
@@ -1197,6 +1208,7 @@ replay(uint32_t seed,
   }
   g_options.api_trace_file_name = api_trace_file_name;
   g_options.smt2_file_name      = smt2_file_name;
+  if (!tmp_trace_file_name.empty()) std::remove(tmp_trace_file_name.c_str());
   return res;
 }
 
