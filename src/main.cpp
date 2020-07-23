@@ -1050,7 +1050,7 @@ dd(uint32_t seed,
   trace_file.close();
 
   /* while delta debugging, do not trace to file */
-  o.api_trace_file_name = "/dev/null";
+  o.api_trace_file_name = DEVNULL;
   o.untrace_file_name   = tmp_trace_file_name;
 
   int64_t size = lines.size();
@@ -1155,7 +1155,7 @@ replay(uint32_t seed,
     }
     else
     {
-      g_options.api_trace_file_name = "/dev/null/";
+      g_options.api_trace_file_name = DEVNULL;
     }
   }
   if (smt2_file_name.empty())
