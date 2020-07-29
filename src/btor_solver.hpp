@@ -78,6 +78,7 @@ class BtorSolver : public Solver
 
   TheoryIdVector get_supported_theories() const override;
   OpKindSet get_unsupported_op_kinds() const override;
+  SortKindSet get_unsupported_var_sort_kinds() const override;
 
   void configure_fsm(FSM* fsm) const override;
 

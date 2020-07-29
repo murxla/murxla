@@ -216,6 +216,12 @@ Solver::get_unsupported_op_kinds() const
   return {};
 }
 
+SortKindSet
+Solver::get_unsupported_var_sort_kinds() const
+{
+  return {};
+}
+
 void
 Solver::configure_fsm(FSM* fsm) const
 {

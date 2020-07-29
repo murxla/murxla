@@ -57,7 +57,8 @@ bool operator==(const SortKindData& a, const SortKindData& b);
 using SortKindVector = std::vector<SortKind>;
 using SortKindMap =
     std::unordered_map<SortKind, SortKindData, SortKindHashFunction>;
-using SortKinds = std::unordered_map<TheoryId, SortKindVector>;
+using SortKinds   = std::unordered_map<TheoryId, SortKindVector>;
+using SortKindSet = std::unordered_set<SortKind>;
 
 }  // namespace smtmbt
 

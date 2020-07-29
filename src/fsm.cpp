@@ -389,7 +389,7 @@ class ActionMkSort : public Action
         // TODO: Disable nested arrays for now.
         //       Make this configurable via the solver: Solver tells FSM what
         //       sort kinds are allowed for array elements
-        std::unordered_set<SortKind> exclude_sorts = {SORT_ARRAY};
+        SortKindSet exclude_sorts = {SORT_ARRAY};
         if (!d_smgr.has_sort(exclude_sorts))
         {
           return false;
@@ -854,7 +854,7 @@ class ActionMkVar : public Action
     assert(d_solver.is_initialized());
     /* Pick sort of const. */
     if (!d_smgr.has_sort()) return false;
-    Sort sort          = d_smgr.pick_sort();
+    Sort sort = d_smgr.pick_sort(d_solver.get_unsupported_var_sort_kinds());
     std::string symbol = d_smgr.pick_symbol();
     /* Create var. */
     _run(sort, symbol);

@@ -180,6 +180,12 @@ BtorSolver::get_unsupported_op_kinds() const
   return {};
 }
 
+SortKindSet
+BtorSolver::get_unsupported_var_sort_kinds() const
+{
+  return {SORT_ARRAY};
+}
+
 Sort
 BtorSolver::mk_sort(SortKind kind)
 {

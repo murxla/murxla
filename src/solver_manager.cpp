@@ -478,7 +478,7 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
 }
 
 Sort
-SolverManager::pick_sort(const std::unordered_set<SortKind>& exclude_sorts)
+SolverManager::pick_sort(const SortKindSet& exclude_sorts)
 {
   SortSet sorts;
   for (const auto s : d_sorts)
