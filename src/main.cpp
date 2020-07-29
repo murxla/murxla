@@ -48,6 +48,7 @@ struct Options
   double time        = 0;
   uint32_t max_runs  = 0;
 
+  bool is_seeded      = false;
   bool trace_seeds = false;
   bool simple_symbols = false;
   bool smt         = false;
@@ -318,6 +319,7 @@ parse_options(Options& options, int argc, char* argv[])
         die(es.str());
       }
       ss >> options.seed;
+      options.is_seeded = true;
     }
     else if (arg == "-t" || arg == "--time")
     {
@@ -993,12 +995,12 @@ remove_subsets(std::vector<std::vector<size_t>>& subsets,
 
 static void
 dd(uint32_t seed,
+   Options& options,
    SolverOptions& solver_options,
-   std::string& trace_file_name,
-   std::string& dd_trace_file_name)
+   std::string& api_trace_file_name,
+   std::string& untrace_file_name)
 {
-  assert(!trace_file_name.empty());
-  assert(!dd_trace_file_name.empty());
+  assert(!api_trace_file_name.empty());
 
   std::string gold_out_file_name  = "smtmbt-dd-gold-tmp.out";
   std::string gold_err_file_name  = "smtmbt-dd-gold-tmp.err";
@@ -1013,10 +1015,32 @@ dd(uint32_t seed,
   statistics::Statistics stats;
 
   /* init options object for golden (replay of original) run */
-  Options o(g_options);
+  Options o(options);
   o.verbosity           = 0;
   o.api_trace_file_name = tmp_trace_file_name;
-  o.untrace_file_name   = trace_file_name;
+  o.untrace_file_name   = api_trace_file_name;
+
+  /* init trace file name for minimized trace */
+  if (o.dd_trace_file_name.empty())
+  {
+    std::stringstream ss;
+    if (untrace_file_name.empty())
+    {
+      if (api_trace_file_name.empty())
+      {
+        ss << "smtmbt-dd-" << seed << ".trace";
+      }
+      else
+      {
+        ss << "smtmbt-dd-" << api_trace_file_name;
+      }
+    }
+    else
+    {
+      ss << "smtmbt-dd-" << options.untrace_file_name;
+    }
+    o.dd_trace_file_name = ss.str();
+  }
 
   /* golden run */
   gold_exit = run(seed,
@@ -1114,7 +1138,7 @@ dd(uint32_t seed,
     else
     {
       /* write found subset immediately to file and continue */
-      write_idxs_to_file(lines, cur_superset, dd_trace_file_name);
+      write_idxs_to_file(lines, cur_superset, o.dd_trace_file_name);
       superset    = cur_superset;
       size        = superset.size();
       subset_size = size / 2;
@@ -1122,6 +1146,7 @@ dd(uint32_t seed,
   }
   std::cout << "[smtmbt] dd: tests " << n_failed_tests << "/" << n_tests
             << std::endl;
+  std::cout << "[smtmbt] dd: " << o.dd_trace_file_name << std::endl;
   std::remove(gold_out_file_name.c_str());
   std::remove(gold_err_file_name.c_str());
   std::remove(tmp_trace_file_name.c_str());
@@ -1131,8 +1156,45 @@ dd(uint32_t seed,
 
 /* ========================================================================== */
 
+static std::string
+get_api_trace_file_name(uint32_t seed,
+                        bool is_dd,
+                        std::string untrace_file_name = "")
+{
+  if (untrace_file_name.empty())
+  {
+    std::stringstream ss;
+    ss << "smtmbt-" << seed << ".trace";
+    return ss.str();
+  }
+  if (is_dd)
+  {
+    std::stringstream ss;
+    ss << "smtmbt-dd-tmp-" << untrace_file_name;
+    return ss.str();
+  }
+  return DEVNULL;
+}
+
+static std::string
+get_smt2_file_name(uint32_t seed, std::string& untrace_file_name)
+{
+  std::stringstream ss;
+  ss << "smtmbt-";
+  if (untrace_file_name.empty())
+  {
+    ss << seed << ".smt2";
+  }
+  else
+  {
+    ss << untrace_file_name << ".smt2";
+  }
+  return ss.str();
+}
+
 static Result
 replay(uint32_t seed,
+       Options& options,
        SolverOptions& solver_options,
        std::string& api_trace_file_name,
        std::string& untrace_file_name,
@@ -1143,96 +1205,161 @@ replay(uint32_t seed,
   statistics::Statistics replay_stats;
   std::string tmp_trace_file_name;
 
-  if (api_trace_file_name.empty())
-  {
-    if (untrace_file_name.empty())
-    {
-      std::stringstream ss;
-      ss << "smtmbt-" << seed << ".trace";
-      g_options.api_trace_file_name = ss.str();
-    }
-    else if (g_options.dd)
-    {
-      std::stringstream ss;
-      ss << "smtmbt-dd-tmp-" << untrace_file_name;
-      tmp_trace_file_name           = ss.str();
-      g_options.api_trace_file_name = ss.str();
-    }
-    else
-    {
-      g_options.api_trace_file_name = DEVNULL;
-    }
-  }
-  if (smt2_file_name.empty())
-  {
-    std::stringstream ss;
-    ss << "smtmbt-" << seed << ".smt2";
-    g_options.smt2_file_name = ss.str();
-  }
-  g_options.smt2_file_name = smt2_file_name;
+  options.api_trace_file_name =
+      api_trace_file_name.empty()
+          ? get_api_trace_file_name(seed, options.dd, untrace_file_name)
+          : api_trace_file_name;
+  options.smt2_file_name =
+      options.solver == SMTMBT_SOLVER_SMT2 && smt2_file_name.empty()
+          ? get_smt2_file_name(seed, untrace_file_name)
+          : smt2_file_name;
 
   Result res = run(seed,
-                   g_options,
+                   options,
                    solver_options,
                    true,
                    out_file_name,
                    err_file_name,
                    &replay_stats);
 
-  if (g_options.dd)
+  if (options.dd)
   {
-    std::stringstream dd_trace_file_name;
-    if (g_options.dd_trace_file_name.empty())
-    {
-      if (untrace_file_name.empty())
-      {
-        if (api_trace_file_name.empty())
-        {
-          dd_trace_file_name << "smtmbt-dd-" << seed << ".trace";
-        }
-        else
-        {
-          dd_trace_file_name << "smtmbt-dd-" << api_trace_file_name;
-        }
-      }
-      else
-      {
-        dd_trace_file_name << "smtmbt-dd-" << g_options.untrace_file_name;
-      }
-      g_options.dd_trace_file_name = dd_trace_file_name.str();
-    }
-    dd(seed,
-       solver_options,
-       g_options.api_trace_file_name,
-       g_options.dd_trace_file_name);
-    std::cout << dd_trace_file_name.str() << std::endl;
+    dd(seed, options, solver_options, api_trace_file_name, untrace_file_name);
   }
   else
   {
-    std::cout << g_options.api_trace_file_name << std::endl;
+    std::cout << options.api_trace_file_name << std::endl;
   }
-  g_options.api_trace_file_name = api_trace_file_name;
-  g_options.smt2_file_name      = smt2_file_name;
+  options.api_trace_file_name = api_trace_file_name;
+  options.smt2_file_name      = smt2_file_name;
   if (!tmp_trace_file_name.empty()) std::remove(tmp_trace_file_name.c_str());
   return res;
+}
+
+static void
+test(Options& options, SolverOptions& solver_options, Statistics* stats)
+{
+  uint32_t num_runs         = 0;
+  double start_time         = get_cur_wall_time();
+  bool is_cross             = !options.cross_check.empty();
+  std::string out_file_name = DEVNULL;
+  std::string err_file_name = DEVNULL;
+  SeedGenerator sg(options.seed);
+
+  std::string smt2_file_name      = options.smt2_file_name;
+  std::string api_trace_file_name = options.api_trace_file_name;
+
+  do
+  {
+    uint32_t seed   = sg.next();
+    double cur_time = get_cur_wall_time();
+
+    std::cout << std::setw(10) << seed;
+    std::cout << " " << std::setw(5) << num_runs++ << " runs";
+    std::cout << " " << std::setw(8);
+    std::cout << std::setprecision(2) << std::fixed;
+    std::cout << num_runs / (cur_time - start_time) << " r/s";
+    std::cout << " " << std::setw(4);
+    std::cout << stats->d_results[Solver::Result::SAT] << " sat";
+    std::cout << " " << std::setw(4);
+    std::cout << stats->d_results[Solver::Result::UNSAT] << " unsat";
+    std::cout << std::flush;
+
+    if (is_cross)
+    {
+      options.api_trace_file_name = DEVNULL;
+      out_file_name               = "smtmbt-tmp.out";
+      err_file_name               = "smtmbt-tmp.err";
+    }
+    else if (options.solver == SMTMBT_SOLVER_SMT2)
+    {
+      if (!options.solver_binary.empty())
+      {
+        options.smt2_file_name = "";
+      }
+      else if (options.smt2_file_name.empty())
+      {
+        /* If no online solver is configured, we'll never run into the error
+         * case below and replay (the Smt2Solver only answers 'unknown' and
+         * dumps SMT2 -> should never terminate with an error).
+         * We therefore dump every generated sequence to smt2 continuously. */
+        options.smt2_file_name =
+            get_smt2_file_name(seed, options.untrace_file_name);
+      }
+    }
+
+    /* Run and test for error without tracing to trace file (we by default still
+     * trace to stdout here, which is redirected to /dev/null).
+     * If error encountered, replay and trace below. */
+    Result res = run(seed,
+                     options,
+                     solver_options,
+                     true,
+                     out_file_name,
+                     err_file_name,
+                     stats);
+
+    options.smt2_file_name = smt2_file_name;
+
+    /* report status */
+    if (res == RESULT_OK)
+    {
+      std::cout << "\33[2K\r" << std::flush;
+    }
+    else
+    {
+      std::stringstream info;
+      info << " [";
+      switch (res)
+      {
+        case RESULT_ERROR: info << COLOR_RED << "error"; break;
+        case RESULT_TIMEOUT: info << COLOR_BLUE << "timeout"; break;
+        default: assert(res == RESULT_UNKNOWN); info << "unknown";
+      }
+      info << COLOR_DEFAULT << "]";
+
+      std::cout << info.str() << std::flush;
+      if (res == RESULT_ERROR)
+        std::cout << " ";
+      else
+        std::cout << std::endl;
+    }
+
+    /* Replay and trace on error.
+     *
+     * If SMT2 solver with online solver configured, dump smt2 on replay.
+     * If SMT2 solver configured without an online solver, we'll never enter
+     * here (the SMT2 solver should never return an error result). */
+    if (res != RESULT_OK && res != RESULT_TIMEOUT)
+    {
+      Result res_replay = replay(seed,
+                                 options,
+                                 solver_options,
+                                 api_trace_file_name,
+                                 options.untrace_file_name,
+                                 smt2_file_name,
+                                 out_file_name,
+                                 err_file_name);
+      assert(res == res_replay);
+    }
+    std::cout << "\r" << std::flush;
+  } while (options.max_runs == 0 || num_runs < options.max_runs);
+
+  if (is_cross)
+  {
+    std::remove(out_file_name.c_str());
+    std::remove(err_file_name.c_str());
+  }
 }
 
 int
 main(int argc, char* argv[])
 {
-  uint32_t seed, num_runs = 0;
-  std::string out_file_name = DEVNULL;
-  std::string err_file_name = DEVNULL;
-
-  double start_time = get_cur_wall_time();
-
   parse_options(g_options, argc, argv);
 
-  SeedGenerator sg(g_options.seed);
   SolverOptions solver_options;
-  bool is_seeded     = g_options.seed > 0;
   bool is_untrace    = !g_options.untrace_file_name.empty();
-  bool is_continuous = !is_seeded && !is_untrace;
+  bool is_continuous = !g_options.is_seeded && !is_untrace;
   bool is_cross      = !g_options.cross_check.empty();
   bool is_forked     = g_options.dd || is_continuous;
 
@@ -1244,113 +1371,75 @@ main(int argc, char* argv[])
   g_stats = initialize_statistics();
   set_sigint_handler_stats();
 
-  std::string smt2_file_name = g_options.smt2_file_name;
+  std::string smt2_file_name      = g_options.smt2_file_name;
   std::string api_trace_file_name = g_options.api_trace_file_name;
 
-  do
+  if (is_continuous)
   {
-    seed = sg.next();
+    test(g_options, solver_options, g_stats);
+  }
+  else
+  {
+    std::string tmp_api_trace_file_name;
+    std::string out_file_name = DEVNULL;
+    std::string err_file_name = DEVNULL;
 
-    if (is_continuous)
+    if (g_options.dd && g_options.api_trace_file_name.empty())
     {
-      double cur_time = get_cur_wall_time();
-      std::cout << std::setw(10) << seed;
-      std::cout << " " << std::setw(5) << num_runs++ << " runs";
-      std::cout << " " << std::setw(8);
-      std::cout << std::setprecision(2) << std::fixed;
-      std::cout << num_runs / (cur_time - start_time) << " r/s";
-      std::cout << " " << std::setw(4);
-      std::cout << g_stats->d_results[Solver::Result::SAT] << " sat";
-      std::cout << " " << std::setw(4);
-      std::cout << g_stats->d_results[Solver::Result::UNSAT] << " unsat";
-      std::cout << std::flush;
+      /* When delta-debugging, we need to trace into file. */
+      tmp_api_trace_file_name       = "smtmbt-tmp.trace";
+      g_options.api_trace_file_name = tmp_api_trace_file_name;
     }
 
     if (is_cross)
     {
-      g_options.api_trace_file_name = DEVNULL;
-      out_file_name                 = "smtmbt-tmp.out";
-      err_file_name                 = "smtmbt-tmp.err";
+      if (g_options.api_trace_file_name.empty())
+      {
+        /* When cross checking, we don't want to pollute stdout with the api
+         * trace, we need it to only contain the check-sat answers. */
+        g_options.api_trace_file_name = DEVNULL;
+      }
+      /* When cross checking, check-sat answers and the error output of
+       * solver must be recorded for the actual cross check. */
+      out_file_name = "smtmbt-tmp.out";
+      err_file_name = "smtmbt-tmp.err";
     }
-    else if (g_options.solver == SMTMBT_SOLVER_SMT2)
+    else if (g_options.solver == SMTMBT_SOLVER_SMT2
+             && g_options.smt2_file_name.empty())
     {
-      if (is_forked && !g_options.solver_binary.empty())
-      {
-        g_options.smt2_file_name = "";
-      }
-      else if (g_options.smt2_file_name.empty())
-      {
-        /* If no online solver is configured, we'll never run into the error
-         * case below and replay (the Smt2Solver only answers 'unknown' and
-         * dumps SMT2 -> should never terminate with an error).
-         * We therefore dump every generated sequence to smt2 continuously. */
-        std::stringstream ss;
-        ss << "smtmbt-" << seed << ".smt2";
-        g_options.smt2_file_name = ss.str();
-      }
+      /* We always dump .smt2 if the SMT2 solver is enabled. If no file name
+       * given, we use a generic (but unique) file name. */
+      g_options.smt2_file_name =
+          get_smt2_file_name(g_options.seed, g_options.untrace_file_name);
     }
 
-    /* We do not trace into file by default, only on replay in case of an error.
-     * We also do not fork when a seed is given, or when untracing (except when
-     * delta debugging is enabled). */
-    Result res = run(seed,
-                     g_options,
-                     solver_options,
-                     is_forked,
-                     out_file_name,
-                     err_file_name,
-                     g_stats);
+    (void) run(g_options.seed,
+               g_options,
+               solver_options,
+               is_forked,
+               out_file_name,
+               err_file_name,
+               g_stats);
 
-    g_options.smt2_file_name = smt2_file_name;
-
-    /* report status */
-    if (is_continuous)
+    if (g_options.dd)
     {
-      if (res == RESULT_OK)
-      {
-        std::cout << "\33[2K\r" << std::flush;
-      }
-      else
-      {
-        std::stringstream info;
-        info << " [";
-        switch (res)
-        {
-          case RESULT_ERROR: info << COLOR_RED << "error"; break;
-          case RESULT_TIMEOUT: info << COLOR_BLUE << "timeout"; break;
-          default: assert(res == RESULT_UNKNOWN); info << "unknown";
-        }
-        info << COLOR_DEFAULT << "]";
-
-        std::cout << info.str() << std::flush;
-        if (res == RESULT_ERROR)
-          std::cout << " ";
-        else
-          std::cout << std::endl;
-      }
+      dd(g_options.seed,
+         g_options,
+         solver_options,
+         g_options.api_trace_file_name,
+         g_options.untrace_file_name);
     }
 
-    /* Replay and trace on error.
-     * If online solver configure, dump smt2 on replay. */
-    if (res != RESULT_OK && res != RESULT_TIMEOUT)
+    if (is_cross)
     {
-      Result res_replay = replay(seed,
-                                 solver_options,
-                                 api_trace_file_name,
-                                 g_options.untrace_file_name,
-                                 smt2_file_name,
-                                 out_file_name,
-                                 err_file_name);
-      assert(res == res_replay);
+      std::remove(out_file_name.c_str());
+      std::remove(err_file_name.c_str());
     }
-    std::cout << "\r" << std::flush;
-  } while (is_continuous
-           && (g_options.max_runs == 0 || num_runs < g_options.max_runs));
 
-  if (is_cross)
-  {
-    std::remove(out_file_name.c_str());
-    std::remove(err_file_name.c_str());
+    if (!tmp_api_trace_file_name.empty())
+    {
+      std::remove(tmp_api_trace_file_name.c_str());
+    }
   }
 
   if (g_options.print_stats) g_stats->print();
