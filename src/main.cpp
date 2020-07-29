@@ -1221,7 +1221,6 @@ int
 main(int argc, char* argv[])
 {
   uint32_t seed, num_runs = 0;
-  char* env_file_name = nullptr;
   std::string out_file_name = DEVNULL;
   std::string err_file_name = DEVNULL;
 
@@ -1242,17 +1241,11 @@ main(int argc, char* argv[])
     parse_solver_options_file(g_options, solver_options);
   }
 
-  if ((env_file_name = getenv("SMTMBTAPITRACE")))
-  {
-    unsetenv("SMTMBTAPITRACE");
-  }
-
   g_stats = initialize_statistics();
   set_sigint_handler_stats();
 
   std::string smt2_file_name = g_options.smt2_file_name;
-  std::string api_trace_file_name =
-      env_file_name == nullptr ? g_options.api_trace_file_name : env_file_name;
+  std::string api_trace_file_name = g_options.api_trace_file_name;
 
   do
   {
