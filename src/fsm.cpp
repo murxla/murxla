@@ -1836,9 +1836,11 @@ FSM::untrace(std::ifstream& trace)
 
     /* Make sure that ids for terms/sorts are the same as in the trace. */
     if (id == "mk-sort" || id == "mk-term" || id == "mk-const"
-        || id == "mk-value")
+        || id == "mk-value" || id == "mk-var")
     {
-      uint64_t rid = 0;
+      assert(d_actions.find(id) != d_actions.end());
+      ret_val = d_actions.at(id)->untrace(tokens);
+
       if (std::getline(trace, line))
       {
         std::string next_id;
@@ -1849,22 +1851,15 @@ FSM::untrace(std::ifstream& trace)
         if (next_id == "return")
         {
           assert(next_tokens.size() == 1);
-          rid = str_to_uint64(next_tokens[0]);
+          uint64_t rid = str_to_uint64(next_tokens[0]);
 
-          /* Restore ids for sorts and terms. */
-          if (id == "mk-sort")
+          if (id != "mk-sort")
           {
-            d_smgr.set_n_sorts(rid - 1);
-          }
-          else
-          {
-            d_smgr.set_n_terms(rid - 1);
+            Term t = d_smgr.get_term(ret_val);
+            d_smgr.register_term(rid, t);
           }
         }
       }
-      assert(d_actions.find(id) != d_actions.end());
-      ret_val = d_actions.at(id)->untrace(tokens);
-      assert(ret_val == rid);
       ret_val = 0;
       continue;
     }

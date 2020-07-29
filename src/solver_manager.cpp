@@ -429,9 +429,15 @@ SolverManager::find_term(Term term, Sort sort, SortKind sort_kind)
 }
 
 Term
-SolverManager::get_term(uint32_t id) const
+SolverManager::get_term(uint64_t id) const
 {
   return d_term_db.get_term(id);
+}
+
+void
+SolverManager::register_term(uint64_t id, Term term)
+{
+  return d_term_db.register_term(id, term);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -560,12 +566,6 @@ SolverManager::get_sort(uint32_t id) const
     if (sort->get_id() == id) return sort;
   }
   return nullptr;
-}
-
-void
-SolverManager::set_n_terms(uint64_t id)
-{
-  d_n_terms = id;
 }
 
 void

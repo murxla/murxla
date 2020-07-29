@@ -19,7 +19,6 @@ TermDb::clear()
   d_terms.clear();
   d_term_sorts.clear();
   d_vars.clear();
-  d_n_terms = 0;
 }
 
 void
@@ -81,7 +80,7 @@ TermDb::add_term(Term& term,
 
   if (tmap.find(term) == tmap.end())
   {
-    term->set_id(++d_n_terms);
+    term->set_id(d_terms.size() + 1);
     term->set_levels(levels);
     tmap.emplace(term, 0);
 
@@ -147,11 +146,24 @@ TermDb::find(Term term, Sort sort, SortKind sort_kind) const
 }
 
 Term
-TermDb::get_term(uint32_t id) const
+TermDb::get_term(uint64_t id) const
 {
   auto it = d_terms.find(id);
   if (it != d_terms.end()) return it->second;
   return nullptr;
+}
+
+void
+TermDb::register_term(uint64_t id, Term term)
+{
+  // If we already have a term with given 'id' we don't register the term.
+  if (d_terms.find(id) != d_terms.end())
+  {
+    Term t = get_term(id);
+    assert(term->get_sort() == t->get_sort());
+    return;
+  }
+  d_terms.emplace(id, term);
 }
 
 const TermDb::SortSet

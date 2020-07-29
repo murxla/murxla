@@ -22,6 +22,9 @@ class TermDb
   /** Clear term database. */
   void clear();
 
+  /** Reset term id counter to id (required for untracing) */
+  void set_term_id_couter(uint64_t id);
+
   /** Add term to database. */
   void add_term(Term& term,
                 Sort& sort,
@@ -37,7 +40,10 @@ class TermDb
   Term find(Term term, Sort sort, SortKind sort_kind) const;
 
   /** Lookup term by id. */
-  Term get_term(uint32_t id) const;
+  Term get_term(uint64_t id) const;
+
+  /** Register additional id for term. */
+  void register_term(uint64_t id, Term term);
 
   /** Returns all term sorts currently in the database. */
   const SortSet get_sorts() const;
@@ -140,9 +146,6 @@ class TermDb
 
   /** Sorts currently used in d_term_db. */
   SortSet d_term_sorts;
-
-  /** Counter for term IDs. */
-  uint64_t d_n_terms = 0;
 };
 
 }  // namespace smtmbt

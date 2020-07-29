@@ -218,7 +218,13 @@ class SolverManager
    * Return the term with the given id.
    * Note: We only use this for untracing.
    */
-  Term get_term(uint32_t id) const;
+  Term get_term(uint64_t id) const;
+
+  /**
+   * Register id for given term.
+   * Note: Only used for untracing.
+   */
+  void register_term(uint64_t id, Term term);
 
   /**
    * Pick sort.
@@ -285,12 +291,6 @@ class SolverManager
    * Note: We only use this for untracing.
    */
   Sort get_sort(uint32_t id) const;
-
-  /**
-   * Set d_n_terms to id.
-   * Note: Only used for untracing.
-   */
-  void set_n_terms(uint64_t id);
 
   /**
    * Set d_n_sorts to id.
