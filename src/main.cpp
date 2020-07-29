@@ -275,7 +275,7 @@ set_sigint_handler_stats(void)
   " enabling specific theories:\n"                                             \
   "  --arrays                   theory of arrays\n"                            \
   "  --bv                       theory of bit-vectors\n"                       \
-  "  --fp                       theory of floating-points"                     \
+  "  --fp                       theory of floating-points\n"                   \
   "  --quant                    quantifiers"
 
 /* -------------------------------------------------------------------------- */
