@@ -1231,18 +1231,16 @@ main(int argc, char* argv[])
 
   SeedGenerator sg(g_options.seed);
   SolverOptions solver_options;
-  bool is_seeded = g_options.seed > 0;
-  bool is_untrace = !g_options.untrace_file_name.empty();
+  bool is_seeded     = g_options.seed > 0;
+  bool is_untrace    = !g_options.untrace_file_name.empty();
   bool is_continuous = !is_seeded && !is_untrace;
-  bool is_cross   = !g_options.cross_check.empty();
-  bool is_forked;
+  bool is_cross      = !g_options.cross_check.empty();
+  bool is_forked     = g_options.dd || is_continuous;
 
   if (!g_options.solver_options_file.empty())
   {
     parse_solver_options_file(g_options, solver_options);
   }
-
-  is_forked = g_options.dd || (!is_seeded && !is_untrace);
 
   if ((env_file_name = getenv("SMTMBTAPITRACE")))
   {
