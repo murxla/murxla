@@ -260,7 +260,12 @@ class ActionNew : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    if (!tokens.empty())
+    {
+      std::stringstream ss;
+      ss << "unexpected argument(s) to '" << get_id() << "'";
+      throw SmtMbtFSMUntraceException(ss);
+    }
     _run();
     return 0;
   }
@@ -287,7 +292,12 @@ class ActionDelete : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    if (!tokens.empty())
+    {
+      std::stringstream ss;
+      ss << "unexpected argument(s) to '" << get_id() << "'";
+      throw SmtMbtFSMUntraceException(ss);
+    }
     _run();
     return 0;
   }
@@ -355,7 +365,13 @@ class ActionSetOption : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 2);
+    if (tokens.size() != 2)
+    {
+      std::stringstream ss;
+      ss << "expected 2 arguments to '" << get_id() << "', got "
+         << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
     _run(tokens[0], tokens[1]);
     return 0;
   }
@@ -429,17 +445,30 @@ class ActionMkSort : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size());
+    size_t n_tokens = tokens.size();
+
+    if (n_tokens == 0)
+    {
+      std::stringstream ss;
+      ss << "expected at least 1 argument to '" << get_id() << "', got "
+         << n_tokens;
+      throw SmtMbtFSMUntraceException(ss);
+    }
 
     uint64_t res    = 0;
-    size_t n_tokens = tokens.size();
     SortKind kind   = sort_kind_from_str(tokens[0]);
 
     switch (kind)
     {
       case SORT_ARRAY:
       {
-        assert(n_tokens == 3);
+        if (n_tokens != 3)
+        {
+          std::stringstream ss;
+          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
+             << "', got " << n_tokens;
+          throw SmtMbtFSMUntraceException(ss);
+        }
         std::vector<Sort> sorts;
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[1])));
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[2])));
@@ -448,22 +477,46 @@ class ActionMkSort : public Action
       }
 
       case SORT_BOOL:
-        assert(n_tokens == 1);
+        if (n_tokens != 1)
+        {
+          std::stringstream ss;
+          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
+             << "', got " << n_tokens;
+          throw SmtMbtFSMUntraceException(ss);
+        }
         res = _run(kind);
         break;
 
       case SORT_BV:
-        assert(n_tokens == 2);
+        if (n_tokens != 2)
+        {
+          std::stringstream ss;
+          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
+             << "', got " << n_tokens;
+          throw SmtMbtFSMUntraceException(ss);
+        }
         res = _run(kind, str_to_uint32(tokens[1]));
         break;
 
       case SORT_FP:
-        assert(n_tokens == 3);
+        if (n_tokens != 3)
+        {
+          std::stringstream ss;
+          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
+             << "', got " << n_tokens;
+          throw SmtMbtFSMUntraceException(ss);
+        }
         res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
         break;
 
       case SORT_RM:
-        assert(n_tokens == 1);
+        if (n_tokens != 1)
+        {
+          std::stringstream ss;
+          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
+             << "', got " << n_tokens;
+          throw SmtMbtFSMUntraceException(ss);
+        }
         res = _run(kind);
         break;
 
@@ -739,7 +792,14 @@ class ActionMkTerm : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size());
+    if (tokens.size() < 3)
+    {
+      std::stringstream ss;
+      ss << "expected at least 3 arguments (operator kind, sort id, number of "
+            "arguments) to '"
+         << get_id() << ", got " << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
 
     std::vector<Term> args;
     std::vector<uint32_t> params;
@@ -749,19 +809,38 @@ class ActionMkTerm : public Action
     uint32_t n_args    = str_to_uint32(tokens[2]);
     uint32_t idx       = 3;
 
-    assert(idx + n_args <= n_tokens);
+    if (idx + n_args > n_tokens)
+    {
+      std::stringstream ss;
+      ss << "expected " << n_args << " term arguments, got " << n_tokens - 3;
+      throw SmtMbtFSMUntraceException(ss);
+    }
+
     for (uint32_t i = 0; i < n_args; ++i, ++idx)
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-      assert(t != nullptr);
+
+      if (t == nullptr)
+      {
+        std::stringstream ss;
+        ss << "unknown term id " << id;
+        throw SmtMbtFSMUntraceException(ss);
+      }
       args.push_back(t);
     }
 
     if (idx < tokens.size())
     {
       uint32_t n_params = str_to_uint32(tokens[idx++]);
-      assert(idx + n_params == n_tokens);
+      if (idx + n_params != n_tokens)
+      {
+        std::stringstream ss;
+        ss << "expected " << n_args
+           << " parameters to create indexed term, got "
+           << n_tokens - 3 - n_args;
+        throw SmtMbtFSMUntraceException(ss);
+      }
       for (uint32_t i = 0; i < n_params; ++i, ++idx)
       {
         uint32_t param = str_to_uint32(tokens[idx]);
@@ -830,10 +909,21 @@ class ActionMkConst : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 2);
+    if (tokens.size() != 2)
+    {
+      std::stringstream ss;
+      ss << "expected 2 arguments to '" << get_id() << ", got "
+         << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
 
     Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    assert(sort != nullptr);
+    if (sort == nullptr)
+    {
+      std::stringstream ss;
+      ss << "unknown sort id " << tokens[0];
+      throw SmtMbtFSMUntraceException(ss);
+    }
     std::string symbol = str_to_str(tokens[1]);
     return _run(sort, symbol);
   }
@@ -869,10 +959,21 @@ class ActionMkVar : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 2);
+    if (tokens.size() != 2)
+    {
+      std::stringstream ss;
+      ss << "expected 2 arguments to '" << get_id() << ", got "
+         << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
 
     Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    assert(sort != nullptr);
+    if (sort == nullptr)
+    {
+      std::stringstream ss;
+      ss << "unknown sort id " << tokens[0];
+      throw SmtMbtFSMUntraceException(ss);
+    }
     std::string symbol = str_to_str(tokens[1]);
     return _run(sort, symbol);
   }
@@ -1116,11 +1217,22 @@ class ActionMkValue : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size());
+    if (tokens.empty())
+    {
+      std::stringstream ss;
+      ss << "expected at least 1 argument to '" << get_id() << ", got "
+         << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
 
     uint64_t res = 0;
     Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    assert(sort != nullptr);
+    if (sort == nullptr)
+    {
+      std::stringstream ss;
+      ss << "unknown sort id " << tokens[0];
+      throw SmtMbtFSMUntraceException(ss);
+    }
     switch (tokens.size())
     {
       case 3:
@@ -1130,7 +1242,13 @@ class ActionMkValue : public Action
         break;
 
       default:
-        assert(tokens.size() == 2);
+        if (tokens.size() != 2)
+        {
+          std::stringstream ss;
+          ss << "expected 2 arguments to '" << get_id() << ", got "
+             << tokens.size();
+          throw SmtMbtFSMUntraceException(ss);
+        }
         if (tokens[1] == "true")
         {
           res = _run(sort, true);
@@ -1141,14 +1259,24 @@ class ActionMkValue : public Action
         }
         else if (sort->is_fp())
         {
-          assert(Solver::s_special_values_fp.find(tokens[1])
-                 != Solver::s_special_values_fp.end());
+          if (Solver::s_special_values_fp.find(tokens[1])
+              == Solver::s_special_values_fp.end())
+          {
+            std::stringstream ss;
+            ss << "unexpected special FP const value " << tokens[1];
+            throw SmtMbtFSMUntraceException(ss);
+          }
           res = _run(sort, Solver::s_special_values_fp.at(tokens[1]));
         }
         else if (sort->is_rm())
         {
-          assert(Solver::s_special_values_rm.find(tokens[1])
-                 != Solver::s_special_values_rm.end());
+          if (Solver::s_special_values_rm.find(tokens[1])
+              == Solver::s_special_values_rm.end())
+          {
+            std::stringstream ss;
+            ss << "unexpected special RM const value " << tokens[1];
+            throw SmtMbtFSMUntraceException(ss);
+          }
           res = _run(sort, Solver::s_special_values_rm.at(tokens[1]));
         }
         else
@@ -1232,9 +1360,19 @@ class ActionAssertFormula : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 1);
+    if (tokens.size() == 1)
+    {
+      std::stringstream ss;
+      ss << "expected 1 argument to '" << get_id() << ", got " << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
     Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
-    assert(t != nullptr);
+    if (t == nullptr)
+    {
+      std::stringstream ss;
+      ss << "unknown term id " << tokens[0];
+      throw SmtMbtFSMUntraceException(ss);
+    }
     _run(t);
     return 0;
   }
@@ -1263,6 +1401,12 @@ class ActionCheckSat : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.empty());
+    if (!tokens.empty())
+    {
+      std::stringstream ss;
+      ss << "unexpected argument(s) to '" << get_id();
+      throw SmtMbtFSMUntraceException(ss);
+    }
     _run();
     return 0;
   }
@@ -1307,14 +1451,25 @@ class ActionCheckSatAssuming : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() > 1);
+    if (tokens.empty())
+    {
+      std::stringstream ss;
+      ss << "expected at least 1 argument to '" << get_id() << ", got "
+         << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
     std::vector<Term> assumptions;
     uint32_t n_args = str_to_uint32(tokens[0]);
     for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-      assert(t != nullptr);
+      if (t == nullptr)
+      {
+        std::stringstream ss;
+        ss << "unknown term id " << id;
+        throw SmtMbtFSMUntraceException(ss);
+      }
       assumptions.push_back(t);
     }
     _run(assumptions);
@@ -1354,7 +1509,12 @@ class ActionGetUnsatAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    if (!tokens.empty())
+    {
+      std::stringstream ss;
+      ss << "unexpected argument(s) to '" << get_id();
+      throw SmtMbtFSMUntraceException(ss);
+    }
     _run();
     return 0;
   }
@@ -1410,7 +1570,12 @@ class ActionGetValue : public Action
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-      assert(t != nullptr);
+      if (t == nullptr)
+      {
+        std::stringstream ss;
+        ss << "unknown term id " << id;
+        throw SmtMbtFSMUntraceException(ss);
+      }
       terms.push_back(t);
     }
     _run(terms);
@@ -1531,7 +1696,12 @@ class ActionResetAssertions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    if (!tokens.empty())
+    {
+      std::stringstream ss;
+      ss << "unexpected argument(s) to '" << get_id();
+      throw SmtMbtFSMUntraceException(ss);
+    }
     _run();
     return 0;
   }
@@ -1563,7 +1733,12 @@ class ActionPrintModel : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    if (!tokens.empty())
+    {
+      std::stringstream ss;
+      ss << "unexpected argument(s) to '" << get_id();
+      throw SmtMbtFSMUntraceException(ss);
+    }
     _run();
     return 0;
   }
@@ -1826,37 +2001,82 @@ tokenize(std::string& line, std::string& id, std::vector<std::string>& tokens)
 }
 
 void
-FSM::untrace(std::ifstream& trace)
+FSM::untrace(std::string& trace_file_name)
 {
-  assert(trace.is_open());
+  assert(!trace_file_name.empty());
 
+  uint32_t nline   = 0;
   uint64_t ret_val = 0;
   std::string line;
+  std::ifstream trace;
+
+  trace.open(trace_file_name);
+  if (!trace.is_open())
+  {
+    std::stringstream ss;
+    ss << "untrace: unable to open file '" << trace_file_name << "'";
+    throw SmtMbtFSMException(ss);
+  }
+
   while (std::getline(trace, line))
   {
+    nline += 1;
     if (line[0] == '#') continue;
 
     std::string id;
     std::vector<std::string> tokens;
     tokenize(line, id, tokens);
 
+    if (d_actions.find(id) == d_actions.end())
+    {
+      std::stringstream ss;
+      ss << "untrace: " << trace_file_name << ":" << nline
+         << ": unrecognized keyword '" << id << "'";
+      throw SmtMbtFSMException(ss);
+    }
+
     /* Make sure that ids for terms/sorts are the same as in the trace. */
     if (id == "mk-sort" || id == "mk-term" || id == "mk-const"
         || id == "mk-value" || id == "mk-var")
     {
-      assert(d_actions.find(id) != d_actions.end());
-      ret_val = d_actions.at(id)->untrace(tokens);
+      try
+      {
+        ret_val = d_actions.at(id)->untrace(tokens);
+      }
+      catch (SmtMbtFSMUntraceException& e)
+      {
+        std::stringstream ss;
+        ss << "untrace: " << trace_file_name << ":" << nline << ": "
+           << e.get_msg();
+        throw SmtMbtFSMException(ss);
+      }
 
       if (std::getline(trace, line))
       {
+        nline += 1;
         std::string next_id;
         std::vector<std::string> next_tokens;
 
         tokenize(line, next_id, next_tokens);
 
+        if (next_id != "return")
+        {
+          std::stringstream ss;
+          ss << "untrace: " << trace_file_name << ":" << nline << " "
+             << "expected 'return' statement";
+          throw SmtMbtFSMException(ss);
+        }
+
         if (next_id == "return")
         {
-          assert(next_tokens.size() == 1);
+          if (next_tokens.size() != 1)
+          {
+            std::stringstream ss;
+            ss << "untrace: " << trace_file_name << ":" << nline << " "
+               << "expected single argument to 'return'";
+            throw SmtMbtFSMException(ss);
+          }
+
           uint64_t rid = str_to_uint64(next_tokens[0]);
 
           if (id != "mk-sort")
@@ -1869,10 +2089,16 @@ FSM::untrace(std::ifstream& trace)
       ret_val = 0;
       continue;
     }
-    assert(ret_val == 0 || id == "return");
+
     if (id == "return")
     {
-      assert(tokens.size() == 1);
+      if (tokens.size() != 1)
+      {
+        std::stringstream ss;
+        ss << "untrace: " << trace_file_name << ":" << nline << " "
+           << "expected single argument to 'return'";
+        throw SmtMbtFSMException(ss);
+      }
       uint64_t rid = str_to_uint64(tokens[0]);
       assert(rid == ret_val);
       ret_val = 0;
@@ -1887,8 +2113,19 @@ FSM::untrace(std::ifstream& trace)
     }
 
     assert(d_actions.find(id) != d_actions.end());
-    ret_val = d_actions.at(id)->untrace(tokens);
+    try
+    {
+      ret_val = d_actions.at(id)->untrace(tokens);
+    }
+    catch (SmtMbtFSMUntraceException& e)
+    {
+      std::stringstream ss;
+      ss << "untrace: " << trace_file_name << ":" << nline << ": "
+         << e.get_msg();
+      throw SmtMbtFSMException(ss);
+    }
   }
+  if (trace.is_open()) trace.close();
 }
 
 /* ========================================================================== */

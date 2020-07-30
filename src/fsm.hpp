@@ -27,6 +27,33 @@
 /* -------------------------------------------------------------------------- */
 
 namespace smtmbt {
+
+/* -------------------------------------------------------------------------- */
+
+class SmtMbtFSMException : public std::exception
+{
+ public:
+  SmtMbtFSMException(const std::string& str) : d_msg(str) {}
+  SmtMbtFSMException(const std::stringstream& stream) : d_msg(stream.str()) {}
+  std::string get_msg() const { return d_msg; }
+  const char* what() const noexcept override { return d_msg.c_str(); }
+
+ private:
+  std::string d_msg;
+};
+
+class SmtMbtFSMUntraceException : public SmtMbtFSMException
+{
+ public:
+  SmtMbtFSMUntraceException(const std::string& str) : SmtMbtFSMException(str) {}
+  SmtMbtFSMUntraceException(const std::stringstream& stream)
+      : SmtMbtFSMException(stream)
+  {
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+
 class State;
 
 /**
@@ -243,7 +270,7 @@ class FSM
   /** Configure state machine with base configuration. */
   void configure();
   /** Replay given trace. */
-  void untrace(std::ifstream& trace);
+  void untrace(std::string& trace_file_name);
 
  private:
   SolverManager d_smgr;

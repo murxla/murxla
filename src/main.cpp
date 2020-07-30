@@ -603,7 +603,6 @@ run_aux(uint32_t seed,
   pid_t solver_pid = 0, timeout_pid = 0;
   std::streambuf* trace_buf, *smt2_buf;
   std::ofstream trace_file;
-  std::ifstream untrace_file;
   std::ofstream smt2_file;
 
   if (!options.api_trace_file_name.empty())
@@ -643,12 +642,6 @@ run_aux(uint32_t seed,
     {
       die("forking solver process failed.");
     }
-  }
-
-  if (untrace)
-  {
-    untrace_file.open(options.untrace_file_name);
-    assert(untrace_file.is_open());
   }
 
   /* parent */
@@ -810,21 +803,27 @@ run_aux(uint32_t seed,
             options.enabled_theories);
     fsm.configure();
 
-    /* replay/untrace given API trace */
-    if (untrace)
+    try
     {
-      fsm.untrace(untrace_file);
+      /* replay/untrace given API trace */
+      if (untrace)
+      {
+        fsm.untrace(options.untrace_file_name);
+      }
+      /* regular MBT run */
+      else
+      {
+        fsm.run();
+      }
     }
-    /* regular MBT run */
-    else
+    catch (SmtMbtFSMException& e)
     {
-      fsm.run();
+      die(e.get_msg());
     }
 
     if (smt2_online) waitpid(smt2_pid, nullptr, 0);
 
     if (trace_file.is_open()) trace_file.close();
-    if (untrace_file.is_open()) untrace_file.close();
     if (smt2_file.is_open()) smt2_file.close();
 
     if (run_forked)
