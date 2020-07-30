@@ -622,7 +622,6 @@ class ActionMkTerm : public Action
       Term body = d_smgr.pick_quant_body();
       args.push_back(var);
       args.push_back(body);
-      d_smgr.remove_var(var);
     }
     else
     {
@@ -787,6 +786,13 @@ class ActionMkTerm : public Action
     }
     SMTMBT_TRACE << get_id() << trace_str.str();
     d_smgr.reset_sat();
+
+    // Note: We remove the variable in _run instead of run so that we correclty
+    // handle this case for untracing.
+    if (kind == OP_FORALL || kind == OP_EXISTS)
+    {
+      d_smgr.remove_var(args[0]);
+    }
 
     Term res = d_solver.mk_term(kind, args, params);
 
