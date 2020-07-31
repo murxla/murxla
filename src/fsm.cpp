@@ -480,8 +480,8 @@ class ActionMkSort : public Action
         if (n_tokens != 1)
         {
           std::stringstream ss;
-          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
-             << "', got " << n_tokens;
+          ss << "unexpected argument(s) to '" << get_id() << "' of sort '"
+             << kind;
           throw SmtMbtFSMUntraceException(ss);
         }
         res = _run(kind);
@@ -491,8 +491,8 @@ class ActionMkSort : public Action
         if (n_tokens != 2)
         {
           std::stringstream ss;
-          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
-             << "', got " << n_tokens;
+          ss << "expected 1 arguments to '" << get_id() << "' of sort '" << kind
+             << "', got " << n_tokens - 1;
           throw SmtMbtFSMUntraceException(ss);
         }
         res = _run(kind, str_to_uint32(tokens[1]));
@@ -502,8 +502,8 @@ class ActionMkSort : public Action
         if (n_tokens != 3)
         {
           std::stringstream ss;
-          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
-             << "', got " << n_tokens;
+          ss << "expected 2 arguments to '" << get_id() << "' of sort '" << kind
+             << "', got " << n_tokens - 1;
           throw SmtMbtFSMUntraceException(ss);
         }
         res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
@@ -513,14 +513,19 @@ class ActionMkSort : public Action
         if (n_tokens != 1)
         {
           std::stringstream ss;
-          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
-             << "', got " << n_tokens;
+          ss << "unexpected argument(s) to '" << get_id() << "' of sort '"
+             << kind;
           throw SmtMbtFSMUntraceException(ss);
         }
         res = _run(kind);
         break;
 
-      default: assert(false);
+      default:
+      {
+        std::stringstream ss;
+        ss << "unknown sort kind " << tokens[0];
+        throw SmtMbtFSMUntraceException(ss);
+      }
     }
     return res;
   }
@@ -1360,7 +1365,7 @@ class ActionAssertFormula : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() == 1)
+    if (tokens.size() != 1)
     {
       std::stringstream ss;
       ss << "expected 1 argument to '" << get_id() << ", got " << tokens.size();
