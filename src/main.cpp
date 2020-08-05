@@ -155,6 +155,32 @@ initialize_statistics()
   return stats;
 }
 
+static std::ifstream
+open_ifile(std::string& file_name)
+{
+  std::ifstream res(file_name);
+  if (!res.is_open())
+  {
+    std::stringstream ss;
+    ss << "unable to open file " << file_name;
+    die(ss.str());
+  }
+  return res;
+}
+
+static std::ofstream
+open_ofile(std::string& file_name)
+{
+  std::ofstream res(file_name, std::ofstream::out | std::ofstream::trunc);
+  if (!res.is_open())
+  {
+    std::stringstream ss;
+    ss << "unable to open file " << file_name;
+    die(ss.str());
+  }
+  return res;
+}
+
 static bool
 compare_files(std::string file_name1, std::string file_name2)
 {
@@ -181,12 +207,10 @@ compare_files(std::string file_name1, std::string file_name2)
 static void
 diff_files(std::ostream& out, std::string file_name1, std::string file_name2)
 {
-  std::ifstream file1(file_name1);
-  std::ifstream file2(file_name2);
+  std::ifstream file1 = open_ifile(file_name1);
+  std::ifstream file2 = open_ifile(file_name2);
   std::string line1, line2;
 
-  assert(file1.is_open());
-  assert(file2.is_open());
   while (std::getline(file1, line1))
   {
     if (std::getline(file2, line2))
@@ -607,9 +631,7 @@ run_aux(uint32_t seed,
 
   if (!options.api_trace_file_name.empty())
   {
-    trace_file.open(options.api_trace_file_name,
-                    std::ofstream::out | std::ofstream::trunc);
-    assert(trace_file.is_open());
+    trace_file = open_ofile(options.api_trace_file_name);
     trace_buf = trace_file.rdbuf();
   }
   else
@@ -619,9 +641,7 @@ run_aux(uint32_t seed,
   std::ostream trace(trace_buf);
   if (!options.smt2_file_name.empty())
   {
-    smt2_file.open(options.smt2_file_name,
-                   std::ofstream::out | std::ofstream::trunc);
-    assert(smt2_file.is_open());
+    smt2_file = open_ofile(options.smt2_file_name);
     smt2_buf = smt2_file.rdbuf();
   }
   else
@@ -896,8 +916,7 @@ run(uint32_t seed,
       err << options.solver << ":" << get_info(res) << std::endl;
       if (res == RESULT_ERROR)
       {
-        std::ifstream tmp_err(tmp_file_err);
-        assert(tmp_err.is_open());
+        std::ifstream tmp_err = open_ifile(tmp_file_err);
         err << tmp_err.rdbuf();
         tmp_err.close();
         err << std::endl;
@@ -906,8 +925,7 @@ run(uint32_t seed,
 
       if (cres == RESULT_ERROR)
       {
-        std::ifstream tmp_err(tmp_file_cross_err);
-        assert(tmp_err.is_open());
+        std::ifstream tmp_err = open_ifile(tmp_file_cross_err);
         err << tmp_err.rdbuf();
         tmp_err.close();
       }
@@ -934,18 +952,14 @@ run(uint32_t seed,
   }
   else if (forked)
   {
-    std::ofstream err(file_err);
-    assert(err.is_open());
-    std::ofstream out(file_out);
-    assert(out.is_open());
+    std::ofstream err = open_ofile(file_err);
+    std::ofstream out = open_ofile(file_out);
 
-    std::ifstream tmp_out(tmp_file_out);
-    assert(tmp_out.is_open());
+    std::ifstream tmp_out = open_ifile(tmp_file_out);
     out << tmp_out.rdbuf();
     tmp_out.close();
 
-    std::ifstream tmp_err(tmp_file_err);
-    assert(tmp_err.is_open());
+    std::ifstream tmp_err = open_ifile(tmp_file_err);
     err << tmp_err.rdbuf();
     tmp_err.close();
 
@@ -967,9 +981,7 @@ write_idxs_to_file(const std::vector<std::string>& lines,
                    std::string& out_file_name)
 {
   size_t size = lines.size();
-  std::ofstream out_file(out_file_name,
-                         std::ofstream::out | std::ofstream::trunc);
-  assert(out_file.is_open());
+  std::ofstream out_file = open_ofile(out_file_name);
   for (size_t idx : indices)
   {
     assert(idx < size);
@@ -1056,8 +1068,7 @@ dd(uint32_t seed,
    * are accompanied by a return statement are represented as one element of
    * the vector */
 
-  std::ifstream trace_file(tmp_trace_file_name);
-  assert(trace_file.is_open());
+  std::ifstream trace_file = open_ifile(tmp_trace_file_name);
   while (std::getline(trace_file, line))
   {
     if (line[0] == '#') continue;
