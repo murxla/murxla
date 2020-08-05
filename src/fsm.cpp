@@ -32,14 +32,24 @@ State::add_action(Action* a, uint32_t priority, State* next)
 State*
 State::run(RNGenerator& rng)
 {
-  assert(!d_actions.empty());
+  if (d_actions.empty())
+  {
+    throw SmtMbtFSMConfigException("no actions configured");
+  }
+
   uint32_t idx      = rng.pick_weighted<uint32_t>(d_weights);
   ActionTuple& atup = d_actions[idx];
 
   /* record state statistics */
   {
     auto it = statistics::g_state_str_to_enum.find(get_id());
-    assert(it != statistics::g_state_str_to_enum.end());
+    if (it == statistics::g_state_str_to_enum.end())
+    {
+      std::stringstream ss;
+      ss << "state '" << get_id()
+         << "' not configured in statistics::g_state_str_to_enum";
+      throw SmtMbtFSMConfigException(ss);
+    }
     ++d_mbt_stats->d_states[it->second];
   }
 
@@ -56,7 +66,13 @@ State::run(RNGenerator& rng)
   /* record action statistics */
   {
     auto it = statistics::g_action_str_to_enum.find(atup.d_action->get_id());
-    assert(it != statistics::g_action_str_to_enum.end());
+    if (it == statistics::g_action_str_to_enum.end())
+    {
+      std::stringstream ss;
+      ss << "action '" << atup.d_action->get_id()
+         << "' not configured in statistics::g_action_str_to_enum";
+      throw SmtMbtFSMConfigException(ss);
+    }
     ++d_mbt_stats->d_actions[it->second];
   }
 
@@ -66,7 +82,13 @@ State::run(RNGenerator& rng)
     /* record action statistics */
     {
       auto it = statistics::g_action_str_to_enum.find(atup.d_action->get_id());
-      assert(it != statistics::g_action_str_to_enum.end());
+      if (it == statistics::g_action_str_to_enum.end())
+      {
+        std::stringstream ss;
+        ss << "action '" << atup.d_action->get_id()
+           << "' not configured in statistics::g_action_str_to_enum";
+        throw SmtMbtFSMConfigException(ss);
+      }
       ++d_mbt_stats->d_actions_ok[it->second];
     }
 
@@ -156,11 +178,14 @@ FSM::check_states()
   }
 
   /* check for infinite loop */
-  SMTMBT_ABORT(
-      no_next_state
+  if (no_next_state
       && (no_next_state == d_state_init
           || all_next_states.find(no_next_state) != all_next_states.end()))
-      << "infinite loop in state '" << no_next_state->get_id() << "'";
+  {
+    std::stringstream ss;
+    ss << "infinite loop in state '" << no_next_state->get_id() << "'";
+    throw SmtMbtFSMConfigException(ss);
+  }
 }
 
 State*
@@ -174,7 +199,12 @@ FSM::get_state(const std::string& id) const
       res = s.get();
     }
   }
-  assert(res);
+  if (res == nullptr)
+  {
+    std::stringstream ss;
+    ss << "undefined state '" << id << "'";
+    throw SmtMbtFSMConfigException(ss);
+  }
   return res;
 }
 

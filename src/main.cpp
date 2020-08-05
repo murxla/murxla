@@ -71,6 +71,7 @@ static Statistics* g_stats;
 enum Result
 {
   RESULT_ERROR,
+  RESULT_ERROR_CONFIG,
   RESULT_OK,
   RESULT_TIMEOUT,
   RESULT_UNKNOWN,
@@ -98,10 +99,10 @@ warn(const std::string& msg)
 }
 
 static void
-die(const std::string& msg)
+die(const std::string& msg, ExitCode exit_code = EXIT_ERROR)
 {
   warn(msg);
-  exit(EXIT_ERROR);
+  exit(exit_code);
 }
 
 static std::string
@@ -112,6 +113,7 @@ get_info(Result res)
   {
     case RESULT_OK: info << " ok"; break;
     case RESULT_ERROR: info << " error"; break;
+    case RESULT_ERROR_CONFIG: info << " config error"; break;
     case RESULT_TIMEOUT: info << " timeout"; break;
     default: assert(res == RESULT_UNKNOWN); info << " unknown";
   }
@@ -696,7 +698,14 @@ run_aux(uint32_t seed,
       }
       if (WIFEXITED(status))
       {
-        result = WEXITSTATUS(status) == EXIT_OK ? RESULT_OK : RESULT_ERROR;
+        switch (WEXITSTATUS(status))
+        {
+          case EXIT_OK: result = RESULT_OK; break;
+          case EXIT_ERROR_CONFIG: result = RESULT_ERROR_CONFIG; break;
+          default:
+            assert(WEXITSTATUS(status) == EXIT_ERROR);
+            result = RESULT_ERROR;
+        }
       }
       else if (WIFSIGNALED(status))
       {
@@ -835,6 +844,10 @@ run_aux(uint32_t seed,
       {
         fsm.run();
       }
+    }
+    catch (SmtMbtFSMConfigException& e)
+    {
+      die(e.get_msg(), EXIT_ERROR_CONFIG);
     }
     catch (SmtMbtFSMException& e)
     {

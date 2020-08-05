@@ -52,6 +52,16 @@ class SmtMbtFSMUntraceException : public SmtMbtFSMException
   }
 };
 
+class SmtMbtFSMConfigException : public SmtMbtFSMException
+{
+ public:
+  SmtMbtFSMConfigException(const std::string& str) : SmtMbtFSMException(str) {}
+  SmtMbtFSMConfigException(const std::stringstream& stream)
+      : SmtMbtFSMException(stream)
+  {
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 class State;
