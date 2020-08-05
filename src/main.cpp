@@ -293,7 +293,7 @@ set_sigint_handler_stats(void)
   "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
   "  -y, --simple-symbols       use symbols of the form '_sX'\n"               \
-  "  -f, --smt2-out <file>      write --smt2 output to <file>\n"               \
+  "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
   "  --btor                     test Boolector\n"                              \
   "  --cvc4                     test CVC4\n"                                   \
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
@@ -425,7 +425,7 @@ parse_options(Options& options, int argc, char* argv[])
         options.solver_binary = argv[i];
       }
     }
-    else if (arg == "-f" || arg == "--smt2-out")
+    else if (arg == "-f" || arg == "--smt2-file")
     {
       i += 1;
       check_next_arg(arg, i, argc);
