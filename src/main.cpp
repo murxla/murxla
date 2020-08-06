@@ -131,7 +131,9 @@ warn(const std::string& msg)
 static void
 die(const std::string& msg, ExitCode exit_code = EXIT_ERROR)
 {
-  warn(msg);
+  std::stringstream ss;
+  ss << "error: " << msg;
+  warn(ss.str());
   exit(exit_code);
 }
 
@@ -434,10 +436,18 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "--btor")
     {
+      if (!options.solver.empty())
+      {
+        die("multiple solvers defined");
+      }
       options.solver = SMTMBT_SOLVER_BTOR;
     }
     else if (arg == "--cvc4")
     {
+      if (!options.solver.empty())
+      {
+        die("multiple solvers defined");
+      }
       options.solver = SMTMBT_SOLVER_CVC4;
     }
     else if (arg == "--smt2")
@@ -449,12 +459,16 @@ parse_options(Options& options, int argc, char* argv[])
            << " is incompatible with option -c, --cross-check";
         die(es.str());
       }
-      options.solver = SMTMBT_SOLVER_SMT2;
       if (i + 1 < argc && argv[i + 1][0] != '-')
       {
+        if (!options.solver.empty())
+        {
+          die("multiple solvers defined");
+        }
         i += 1;
         options.solver_binary = argv[i];
       }
+      options.solver = SMTMBT_SOLVER_SMT2;
     }
     else if (arg == "-f" || arg == "--smt2-file")
     {
@@ -607,8 +621,7 @@ parse_solver_options_file(Options& options, SolverOptions& solver_options)
     options_map.emplace(std::make_pair(name, opt));
   }
 
-  /* Check option names and propagate conflicts/dependencies to all options_map.
-   */
+  /* Check option names and propagate conflicts/dependencies to options_map. */
   for (const auto& uptr : solver_options)
   {
     const auto& confl = uptr->get_conflicts();
@@ -671,6 +684,7 @@ run_aux(Options& options,
     trace_buf = std::cout.rdbuf();
   }
   std::ostream trace(trace_buf);
+
   if (!options.smt2_file_name.empty())
   {
     smt2_file = open_ofile(options.smt2_file_name);
