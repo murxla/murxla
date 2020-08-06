@@ -110,12 +110,16 @@ enum Result
 /* -------------------------------------------------------------------------- */
 
 static void
-warn(const char* msg, ...)
+message(const char* prefix, const char* msg, ...)
 {
   assert(msg);
   va_list list;
   va_start(list, msg);
   fprintf(stdout, "[smtmbt] ");
+  if (prefix)
+  {
+    fprintf(stdout, "%s: ", prefix);
+  }
   vfprintf(stdout, msg, list);
   fprintf(stdout, "\n");
   va_end(list);
@@ -123,17 +127,29 @@ warn(const char* msg, ...)
 }
 
 static void
-warn(const std::string& msg)
+message(const std::string& prefix, const std::string& msg)
 {
-  warn(msg.c_str());
+  std::stringstream ss;
+  ss << prefix << ": " << msg;
+  message(nullptr, ss.str().c_str());
+}
+
+static void
+message(const std::string& msg)
+{
+  message("", msg);
+}
+
+static void
+message(const std::string& prefix, const std::stringstream& msg)
+{
+  message(prefix, msg.str());
 }
 
 static void
 die(const std::string& msg, ExitCode exit_code = EXIT_ERROR)
 {
-  std::stringstream ss;
-  ss << "error: " << msg;
-  warn(ss.str());
+  message(msg, "error");
   exit(exit_code);
 }
 
@@ -143,11 +159,11 @@ get_info(Result res)
   std::stringstream info;
   switch (res)
   {
-    case RESULT_OK: info << " ok"; break;
-    case RESULT_ERROR: info << " error"; break;
-    case RESULT_ERROR_CONFIG: info << " config error"; break;
-    case RESULT_TIMEOUT: info << " timeout"; break;
-    default: assert(res == RESULT_UNKNOWN); info << " unknown";
+    case RESULT_OK: info << "ok"; break;
+    case RESULT_ERROR: info << "error"; break;
+    case RESULT_ERROR_CONFIG: info << "config error"; break;
+    case RESULT_TIMEOUT: info << "timeout"; break;
+    default: assert(res == RESULT_UNKNOWN); info << "unknown";
   }
   return info.str();
 }
@@ -360,7 +376,7 @@ parse_options(Options& options, int argc, char* argv[])
     std::string arg = argv[i];
     if (arg == "-h" || arg == "--help")
     {
-      std::cout << SMTMBT_USAGE << std::endl;
+      message(SMTMBT_USAGE);
       exit(0);
     }
     else if (arg == "-s" || arg == "--seed")
@@ -968,7 +984,7 @@ run(Options& options,
     /* write result / error output to .err */
     if (res != cres)
     {
-      err << options.solver << ":" << get_info(res) << std::endl;
+      err << options.solver << ": " << get_info(res) << std::endl;
       if (res == RESULT_ERROR)
       {
         std::ifstream tmp_err = open_ifile(tmp_file_err);
@@ -976,7 +992,7 @@ run(Options& options,
         tmp_err.close();
         err << std::endl;
       }
-      err << options.cross_check << ":" << get_info(cres) << std::endl;
+      err << options.cross_check << ": " << get_info(cres) << std::endl;
 
       if (cres == RESULT_ERROR)
       {
@@ -1069,8 +1085,6 @@ dd(Options& options, SolverOptions& solver_options)
   std::string tmp_trace_file_name = "smtmbt-dd-tmp.trace";
   std::string tmp_out_file_name   = "smtmbt-dd-tmp.out";
   std::string tmp_err_file_name   = "smtmbt-dd-tmp.err";
-  std::ifstream gold_out_file, gold_err_file;
-  std::ofstream dd_trace_file;
   std::vector<std::string> lines;
   std::string line, token;
   Result gold_exit, exit;
@@ -1091,15 +1105,19 @@ dd(Options& options, SolverOptions& solver_options)
       if (options.api_trace_file_name.empty())
       {
         ss << "smtmbt-dd-" << options.seed << ".trace";
+        message("dd", "minimizing run with seed %u", options.seed);
       }
       else
       {
         ss << "smtmbt-dd-" << options.api_trace_file_name;
+        message(
+            "dd", "minimizing file '%s'", options.api_trace_file_name.c_str());
       }
     }
     else
     {
       ss << "smtmbt-dd-" << options.untrace_file_name;
+      message("dd", "minimizing file '%s'", options.untrace_file_name.c_str());
     }
     opts.dd_trace_file_name = ss.str();
   }
@@ -1111,6 +1129,22 @@ dd(Options& options, SolverOptions& solver_options)
                   gold_out_file_name,
                   gold_err_file_name,
                   &stats);
+
+  message("dd", "golden exit: %s", get_info(gold_exit).c_str());
+  {
+    std::ifstream gold_out_file = open_ifile(gold_out_file_name);
+    std::stringstream ss;
+    ss << "golden stdout output: " << gold_out_file.rdbuf();
+    message("dd", ss);
+    gold_out_file.close();
+  }
+  {
+    std::ifstream gold_err_file = open_ifile(gold_err_file_name);
+    std::stringstream ss;
+    ss << "golden stderr output: " << gold_err_file.rdbuf();
+    message("dd", ss);
+    gold_err_file.close();
+  }
 
   /* start delta debugging */
 
@@ -1142,11 +1176,12 @@ dd(Options& options, SolverOptions& solver_options)
   opts.api_trace_file_name = DEVNULL;
   opts.untrace_file_name   = tmp_trace_file_name;
 
-  int64_t size = lines.size();
+  int64_t orig_size = lines.size();
+  int64_t size      = orig_size;
   std::vector<size_t> superset(size);
   std::iota(superset.begin(), superset.end(), 0);
   int64_t subset_size = size / 2;
-  uint32_t n_tests = 0, n_failed_tests = 0;
+  uint32_t n_tests = 0, n_failed = 0;
   while (subset_size > 0)
   {
     std::vector<std::vector<size_t>> subsets;
@@ -1187,7 +1222,10 @@ dd(Options& options, SolverOptions& solver_options)
       {
         cur_superset = tmp;
         excluded_sets.insert(i);
-        n_failed_tests += 1;
+        n_failed += 1;
+        message("dd",
+                "reduced to %.2f%% of original size",
+                ((double) cur_superset.size()) / orig_size * 100);
       }
     }
     if (cur_superset.empty())
@@ -1203,9 +1241,9 @@ dd(Options& options, SolverOptions& solver_options)
       subset_size = size / 2;
     }
   }
-  std::cout << "[smtmbt] dd: tests " << n_failed_tests << "/" << n_tests
-            << std::endl;
-  std::cout << "[smtmbt] dd: " << opts.dd_trace_file_name << std::endl;
+  message("dd", "");
+  message("dd", "%u of %u successful (reducing) tests", n_failed, n_tests);
+  message("dd", "written to: %s", opts.dd_trace_file_name.c_str());
   std::remove(gold_out_file_name.c_str());
   std::remove(gold_err_file_name.c_str());
   std::remove(tmp_trace_file_name.c_str());
