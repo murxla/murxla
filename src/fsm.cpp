@@ -1051,45 +1051,14 @@ class ActionMkValue : public Action
       {
         uint32_t bw = sort->get_bv_size();
 
-        Solver::SpecialValueBV sval =
-            d_rng.pick_from_set<std::vector<Solver::SpecialValueBV>,
-                                Solver::SpecialValueBV>(
-                d_solver.get_special_values_bv());
-
-        /* ------------ value: uint64_t ------------ */
         if (bw <= 64 && d_rng.flip_coin())
         {
-          uint64_t val = 0u;
-          if (d_rng.flip_coin())
-          {
-            /* use special value */
-            switch (sval)
-            {
-              case Solver::SpecialValueBV::SMTMBT_BV_ONE: val = 1u; break;
-              case Solver::SpecialValueBV::SMTMBT_BV_ONES:
-                val = bv_special_value_ones_uint64(bw);
-                break;
-              case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED:
-                val = bv_special_value_min_signed_uint64(bw);
-                break;
-              case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED:
-                val = bv_special_value_max_signed_uint64(bw);
-                break;
-              default:
-                assert(sval == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
-                val = 0u;
-            }
-          }
-          else
-          {
-            /* use random value */
-            val = d_rng.pick<uint64_t>(0, (1 << bw) - 1);
-          }
-          _run(sort, val);
+          /* value: uint64_t */
+          _run(sort, mk_value_bv_uint64(bw));
         }
-        /* ------------ value: string ------------ */
         else
         {
+          /* value: string */
           std::vector<Solver::Base> bases;
           for (auto b : d_solver.get_bases())
           {
@@ -1100,102 +1069,7 @@ class ActionMkValue : public Action
           Solver::Base base =
               d_rng.pick_from_set<std::vector<Solver::Base>, Solver::Base>(
                   bases);
-          std::string val;
-
-          if (d_rng.flip_coin())
-          {
-            /* use special value */
-            switch (sval)
-            {
-              case Solver::SpecialValueBV::SMTMBT_BV_ONE:
-                switch (base)
-                {
-                  case Solver::Base::DEC:
-                    val = str_bin_to_dec(bv_special_value_one_str(bw));
-                    break;
-                  case Solver::Base::HEX:
-                    val = str_bin_to_hex(bv_special_value_one_str(bw));
-                    break;
-                  default:
-                    assert(base == Solver::Base::BIN);
-                    val = bv_special_value_one_str(bw);
-                }
-                break;
-              case Solver::SpecialValueBV::SMTMBT_BV_ONES:
-                switch (base)
-                {
-                  case Solver::Base::DEC:
-                    val = str_bin_to_dec(bv_special_value_ones_str(bw));
-                    break;
-                  case Solver::Base::HEX:
-                    val = str_bin_to_hex(bv_special_value_ones_str(bw));
-                    break;
-                  default:
-                    assert(base == Solver::Base::BIN);
-                    val = bv_special_value_ones_str(bw);
-                }
-                break;
-              case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED:
-                switch (base)
-                {
-                  case Solver::Base::DEC:
-                    val = str_bin_to_dec(bv_special_value_min_signed_str(bw));
-                    break;
-                  case Solver::Base::HEX:
-                    val = str_bin_to_hex(bv_special_value_min_signed_str(bw));
-                    break;
-                  default:
-                    assert(base == Solver::Base::BIN);
-                    val = bv_special_value_min_signed_str(bw);
-                }
-                break;
-              case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED:
-                switch (base)
-                {
-                  case Solver::Base::DEC:
-                    val = str_bin_to_dec(bv_special_value_max_signed_str(bw));
-                    break;
-                  case Solver::Base::HEX:
-                    val = str_bin_to_hex(bv_special_value_max_signed_str(bw));
-                    break;
-                  default:
-                    assert(base == Solver::Base::BIN);
-                    val = bv_special_value_max_signed_str(bw);
-                }
-                break;
-              default:
-                assert(sval == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
-                switch (base)
-                {
-                  case Solver::Base::DEC:
-                    val = str_bin_to_dec(bv_special_value_zero_str(bw));
-                    break;
-                  case Solver::Base::HEX:
-                    val = str_bin_to_hex(bv_special_value_zero_str(bw));
-                    break;
-                  default:
-                    assert(base == Solver::Base::BIN);
-                    val = bv_special_value_zero_str(bw);
-                }
-            }
-          }
-          else
-          {
-            /* use random value */
-            switch (base)
-            {
-              case Solver::Base::DEC:
-                val = d_rng.pick_dec_bin_string(bw);
-                break;
-              case Solver::Base::HEX:
-                val = d_rng.pick_hex_bin_string(bw);
-                break;
-              default:
-                assert(base == Solver::Base::BIN);
-                val = d_rng.pick_bin_string(bw);
-            }
-          }
-          _run(sort, val, base);
+          _run(sort, mk_value_bv_str(bw, base), base);
         }
       }
       break;
@@ -1375,6 +1249,141 @@ class ActionMkValue : public Action
     d_smgr.add_input(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
+  }
+
+  uint64_t mk_value_bv_uint64(uint32_t bw)
+  {
+    uint64_t val = 0u;
+    if (d_rng.flip_coin())
+    {
+      /* use special value */
+      Solver::SpecialValueBV sval =
+          d_rng.pick_from_set<std::vector<Solver::SpecialValueBV>,
+                              Solver::SpecialValueBV>(
+              d_solver.get_special_values_bv());
+      switch (sval)
+      {
+        case Solver::SpecialValueBV::SMTMBT_BV_ONE: val = 1u; break;
+        case Solver::SpecialValueBV::SMTMBT_BV_ONES:
+          val = bv_special_value_ones_uint64(bw);
+          break;
+        case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED:
+          val = bv_special_value_min_signed_uint64(bw);
+          break;
+        case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED:
+          val = bv_special_value_max_signed_uint64(bw);
+          break;
+        default:
+          assert(sval == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
+          val = 0u;
+      }
+    }
+    else
+    {
+      /* use random value */
+      val = d_rng.pick<uint64_t>(0, (1 << bw) - 1);
+    }
+    return val;
+  }
+
+  std::string mk_value_bv_str(uint32_t bw, Solver::Base base)
+  {
+    std::string val;
+
+    if (d_rng.flip_coin())
+    {
+      /* use special value */
+      Solver::SpecialValueBV sval =
+          d_rng.pick_from_set<std::vector<Solver::SpecialValueBV>,
+                              Solver::SpecialValueBV>(
+              d_solver.get_special_values_bv());
+      switch (sval)
+      {
+        case Solver::SpecialValueBV::SMTMBT_BV_ONE:
+          switch (base)
+          {
+            case Solver::Base::DEC:
+              val = str_bin_to_dec(bv_special_value_one_str(bw));
+              break;
+            case Solver::Base::HEX:
+              val = str_bin_to_hex(bv_special_value_one_str(bw));
+              break;
+            default:
+              assert(base == Solver::Base::BIN);
+              val = bv_special_value_one_str(bw);
+          }
+          break;
+        case Solver::SpecialValueBV::SMTMBT_BV_ONES:
+          switch (base)
+          {
+            case Solver::Base::DEC:
+              val = str_bin_to_dec(bv_special_value_ones_str(bw));
+              break;
+            case Solver::Base::HEX:
+              val = str_bin_to_hex(bv_special_value_ones_str(bw));
+              break;
+            default:
+              assert(base == Solver::Base::BIN);
+              val = bv_special_value_ones_str(bw);
+          }
+          break;
+        case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED:
+          switch (base)
+          {
+            case Solver::Base::DEC:
+              val = str_bin_to_dec(bv_special_value_min_signed_str(bw));
+              break;
+            case Solver::Base::HEX:
+              val = str_bin_to_hex(bv_special_value_min_signed_str(bw));
+              break;
+            default:
+              assert(base == Solver::Base::BIN);
+              val = bv_special_value_min_signed_str(bw);
+          }
+          break;
+        case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED:
+          switch (base)
+          {
+            case Solver::Base::DEC:
+              val = str_bin_to_dec(bv_special_value_max_signed_str(bw));
+              break;
+            case Solver::Base::HEX:
+              val = str_bin_to_hex(bv_special_value_max_signed_str(bw));
+              break;
+            default:
+              assert(base == Solver::Base::BIN);
+              val = bv_special_value_max_signed_str(bw);
+          }
+          break;
+        default:
+          assert(sval == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
+          switch (base)
+          {
+            case Solver::Base::DEC:
+              val = str_bin_to_dec(bv_special_value_zero_str(bw));
+              break;
+            case Solver::Base::HEX:
+              val = str_bin_to_hex(bv_special_value_zero_str(bw));
+              break;
+            default:
+              assert(base == Solver::Base::BIN);
+              val = bv_special_value_zero_str(bw);
+          }
+      }
+    }
+    else
+    {
+      /* use random value */
+      switch (base)
+      {
+        case Solver::Base::DEC: val = d_rng.pick_dec_bin_string(bw); break;
+        case Solver::Base::HEX: val = d_rng.pick_hex_bin_string(bw); break;
+        default:
+          assert(base == Solver::Base::BIN);
+          val = d_rng.pick_bin_string(bw);
+      }
+    }
+    return val;
   }
 };
 
