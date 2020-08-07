@@ -6,13 +6,8 @@
 #include <sstream>
 #include <unordered_set>
 
+#include "config.hpp"
 #include "solver_manager.hpp"
-
-/* -------------------------------------------------------------------------- */
-
-#define SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT 5
-#define SMTMBT_MAX_N_PUSH_LEVELS 5
-#define SMTMBT_MAX_N_TERMS_GET_VALUE 5
 
 /* -------------------------------------------------------------------------- */
 

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "config.hpp"
 #include "solver_manager.hpp"
 
 namespace smtmbt {

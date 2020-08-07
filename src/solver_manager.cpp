@@ -4,6 +4,7 @@
 #include <iterator>
 #include <sstream>
 
+#include "config.hpp"
 #include "util.hpp"
 
 namespace smtmbt {

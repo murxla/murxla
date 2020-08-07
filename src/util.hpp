@@ -9,8 +9,6 @@
 
 namespace smtmbt {
 
-#define SMTMBT_PROB_MAX 1000  /* Maximum probability 100% = 1000. */
-
 /* -------------------------------------------------------------------------- */
 
 class SeedGenerator

@@ -15,12 +15,6 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_MK_TERM_N_ARGS -1
-#define SMTMBT_MK_TERM_N_ARGS_MIN 2
-#define SMTMBT_MK_TERM_N_ARGS_MAX 11
-
-/* -------------------------------------------------------------------------- */
-
 namespace smtmbt {
 class FSM;
 

@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "config.hpp"
 #include "cvc4/api/cvc4cpp.h"
 #include "theory.hpp"
 #include "util.hpp"

@@ -15,9 +15,6 @@
 #include "theory.hpp"
 #include "util.hpp"
 
-#define SMTMBT_BW_MIN 1
-#define SMTMBT_BW_MAX 128
-
 namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
