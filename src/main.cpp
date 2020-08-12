@@ -82,16 +82,26 @@ struct Options
    * traces are reduced.
    */
   bool dd = false;
+  /**
+   * Check for occurrence of this string in stdout output (rather than matching
+   * against the whole stderr output) when delta debugging.
+   */
+  std::string dd_out_string;
+  /**
+   * Check for occurrence of this string in stderr output (rather than matching
+   * against the whole stderr output) when delta debugging.
+   */
+  std::string dd_err_string;
   /** The file to write the reduced API trace to. */
   std::string dd_trace_file_name;
 
-  /* The name of the solver to cross-check given solver with. */
+  /** The name of the solver to cross-check given solver with. */
   std::string cross_check;
 
-  /* The name of the options file of the enabled solver. */
+  /** The name of the options file of the enabled solver. */
   std::string solver_options_file;
 
-  /* The list of currently enabled theories. */
+  /** The list of currently enabled theories. */
   TheoryIdVector enabled_theories;
 };
 
@@ -294,6 +304,18 @@ diff_files(std::ostream& out, std::string file_name1, std::string file_name2)
   file2.close();
 }
 
+static bool
+find_in_file(std::string file_name, std::string& s)
+{
+  std::ifstream file = open_ifile(file_name);
+  std::string line;
+  while (std::getline(file, line))
+  {
+    if (line.find(s) != std::string::npos) return true;
+  }
+  return false;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Signal handling                                                            */
 /* -------------------------------------------------------------------------- */
@@ -334,14 +356,18 @@ set_sigint_handler_stats(void)
   "  -t, --time <double>        time limit for MBT runs\n"                     \
   "  -v, --verbosity            increase verbosity\n"                          \
   "  -d, --dd                   enable delta debugging\n"                      \
+  "  --dd-err <string>          check for occurrence of <string> in stderr\n"  \
+  "                             output when delta debugging\n"                 \
+  "  --dd-out <string>          check for occurrence of <string> in stdout\n"  \
+  "                             output when delta debugging\n"                 \
   "  -D, --dd-trace <file>      delta debug API trace into <file>\n"           \
   "  -a, --api-trace <file>     trace API call sequence into <file>\n"         \
   "  -u, --untrace <file>       replay given API call sequence\n"              \
   "  -o, --options <file>       solver option model toml file\n"               \
+  "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
   "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
   "  -y, --simple-symbols       use symbols of the form '_sX'\n"               \
-  "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
   "  --btor                     test Boolector\n"                              \
   "  --cvc4                     test CVC4\n"                                   \
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
@@ -414,6 +440,18 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-d" || arg == "--dd")
     {
       options.dd = true;
+    }
+    else if (arg == "--dd-out")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      options.dd_out_string = argv[i];
+    }
+    else if (arg == "--dd-err")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      options.dd_err_string = argv[i];
     }
     else if (arg == "-D" || arg == "--dd-trace")
     {
@@ -1145,6 +1183,18 @@ dd(Options& options, SolverOptions& solver_options)
     message("dd", ss);
     gold_err_file.close();
   }
+  if (!opts.dd_out_string.empty())
+  {
+    message("dd",
+            "checking for occurrence of '%s' in stdout output",
+            opts.dd_out_string.c_str());
+  }
+  if (!opts.dd_err_string.empty())
+  {
+    message("dd",
+            "checking for occurrence of '%s' in stderr output",
+            opts.dd_err_string.c_str());
+  }
 
   /* start delta debugging */
 
@@ -1217,8 +1267,12 @@ dd(Options& options, SolverOptions& solver_options)
                  &stats);
       n_tests += 1;
       if (exit == gold_exit
-          && compare_files(tmp_out_file_name, gold_out_file_name)
-          && compare_files(tmp_err_file_name, gold_err_file_name))
+          && ((!opts.dd_out_string.empty()
+               && find_in_file(tmp_err_file_name, opts.dd_out_string))
+              || compare_files(tmp_out_file_name, gold_out_file_name))
+          && ((!opts.dd_err_string.empty()
+               && find_in_file(tmp_err_file_name, opts.dd_err_string))
+              || compare_files(tmp_err_file_name, gold_err_file_name)))
       {
         cur_superset = tmp;
         excluded_sets.insert(i);
