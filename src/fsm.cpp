@@ -255,7 +255,7 @@ FSM::get_state(const State::Kind kind) const
   if (res == nullptr)
   {
     std::stringstream ss;
-    ss << "undefined state '" << id << "'";
+    ss << "undefined state '" << kind << "'";
     throw SmtMbtFSMConfigException(ss);
   }
   return res;
@@ -355,7 +355,7 @@ class ActionNew : public Action
     if (!tokens.empty())
     {
       std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_id() << "'";
+      ss << "unexpected argument(s) to '" << get_kind() << "'";
       throw SmtMbtFSMUntraceException(ss);
     }
     _run();
@@ -387,7 +387,7 @@ class ActionDelete : public Action
     if (!tokens.empty())
     {
       std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_id() << "'";
+      ss << "unexpected argument(s) to '" << get_kind() << "'";
       throw SmtMbtFSMUntraceException(ss);
     }
     _run();
@@ -462,7 +462,7 @@ class ActionSetOption : public Action
     if (tokens.size() != 2)
     {
       std::stringstream ss;
-      ss << "expected 2 arguments to '" << get_id() << "', got "
+      ss << "expected 2 arguments to '" << get_kind() << "', got "
          << tokens.size();
       throw SmtMbtFSMUntraceException(ss);
     }
@@ -544,7 +544,7 @@ class ActionMkSort : public Action
     if (n_tokens == 0)
     {
       std::stringstream ss;
-      ss << "expected at least 1 argument to '" << get_id() << "', got "
+      ss << "expected at least 1 argument to '" << get_kind() << "', got "
          << n_tokens;
       throw SmtMbtFSMUntraceException(ss);
     }
@@ -559,8 +559,8 @@ class ActionMkSort : public Action
         if (n_tokens != 3)
         {
           std::stringstream ss;
-          ss << "expected 3 arguments to '" << get_id() << "' of sort '" << kind
-             << "', got " << n_tokens;
+          ss << "expected 3 arguments to '" << get_kind() << "' of sort '"
+             << kind << "', got " << n_tokens;
           throw SmtMbtFSMUntraceException(ss);
         }
         std::vector<Sort> sorts;
@@ -574,7 +574,7 @@ class ActionMkSort : public Action
         if (n_tokens != 1)
         {
           std::stringstream ss;
-          ss << "unexpected argument(s) to '" << get_id() << "' of sort '"
+          ss << "unexpected argument(s) to '" << get_kind() << "' of sort '"
              << kind;
           throw SmtMbtFSMUntraceException(ss);
         }
@@ -585,8 +585,8 @@ class ActionMkSort : public Action
         if (n_tokens != 2)
         {
           std::stringstream ss;
-          ss << "expected 1 arguments to '" << get_id() << "' of sort '" << kind
-             << "', got " << n_tokens - 1;
+          ss << "expected 1 arguments to '" << get_kind() << "' of sort '"
+             << kind << "', got " << n_tokens - 1;
           throw SmtMbtFSMUntraceException(ss);
         }
         res = _run(kind, str_to_uint32(tokens[1]));
@@ -596,8 +596,8 @@ class ActionMkSort : public Action
         if (n_tokens != 3)
         {
           std::stringstream ss;
-          ss << "expected 2 arguments to '" << get_id() << "' of sort '" << kind
-             << "', got " << n_tokens - 1;
+          ss << "expected 2 arguments to '" << get_kind() << "' of sort '"
+             << kind << "', got " << n_tokens - 1;
           throw SmtMbtFSMUntraceException(ss);
         }
         res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
@@ -607,7 +607,7 @@ class ActionMkSort : public Action
         if (n_tokens != 1)
         {
           std::stringstream ss;
-          ss << "unexpected argument(s) to '" << get_id() << "' of sort '"
+          ss << "unexpected argument(s) to '" << get_kind() << "' of sort '"
              << kind;
           throw SmtMbtFSMUntraceException(ss);
         }
@@ -618,7 +618,7 @@ class ActionMkSort : public Action
         if (n_tokens != 1)
         {
           std::stringstream ss;
-          ss << "unexpected argument(s) to '" << get_id() << "' of sort '"
+          ss << "unexpected argument(s) to '" << get_kind() << "' of sort '"
              << kind;
           throw SmtMbtFSMUntraceException(ss);
         }
@@ -913,7 +913,7 @@ class ActionMkTerm : public Action
       std::stringstream ss;
       ss << "expected at least 3 arguments (operator kind, sort id, number of "
             "arguments) to '"
-         << get_id() << ", got " << tokens.size();
+         << get_kind() << ", got " << tokens.size();
       throw SmtMbtFSMUntraceException(ss);
     }
 
@@ -1028,7 +1028,7 @@ class ActionMkConst : public Action
     if (tokens.size() != 2)
     {
       std::stringstream ss;
-      ss << "expected 2 arguments to '" << get_id() << ", got "
+      ss << "expected 2 arguments to '" << get_kind() << ", got "
          << tokens.size();
       throw SmtMbtFSMUntraceException(ss);
     }
@@ -1078,7 +1078,7 @@ class ActionMkVar : public Action
     if (tokens.size() != 2)
     {
       std::stringstream ss;
-      ss << "expected 2 arguments to '" << get_id() << ", got "
+      ss << "expected 2 arguments to '" << get_kind() << ", got "
          << tokens.size();
       throw SmtMbtFSMUntraceException(ss);
     }
@@ -1228,7 +1228,7 @@ class ActionMkValue : public Action
     if (tokens.empty())
     {
       std::stringstream ss;
-      ss << "expected at least 1 argument to '" << get_id() << ", got "
+      ss << "expected at least 1 argument to '" << get_kind() << ", got "
          << tokens.size();
       throw SmtMbtFSMUntraceException(ss);
     }
@@ -1253,7 +1253,7 @@ class ActionMkValue : public Action
         if (tokens.size() != 2)
         {
           std::stringstream ss;
-          ss << "expected 2 arguments to '" << get_id() << ", got "
+          ss << "expected 2 arguments to '" << get_kind() << ", got "
              << tokens.size();
           throw SmtMbtFSMUntraceException(ss);
         }
@@ -1320,7 +1320,7 @@ class ActionMkValue : public Action
 
   uint64_t _run(Sort sort, int64_t val)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, sort, sort->get_kind());
@@ -1330,7 +1330,7 @@ class ActionMkValue : public Action
 
   uint64_t _run(Sort sort, std::string val)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " \"" << val << "\"";
+    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, sort, sort->get_kind());
@@ -1530,7 +1530,8 @@ class ActionAssertFormula : public Action
     if (tokens.size() != 1)
     {
       std::stringstream ss;
-      ss << "expected 1 argument to '" << get_id() << ", got " << tokens.size();
+      ss << "expected 1 argument to '" << get_kind() << ", got "
+         << tokens.size();
       throw SmtMbtFSMUntraceException(ss);
     }
     Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
@@ -1571,7 +1572,7 @@ class ActionCheckSat : public Action
     if (!tokens.empty())
     {
       std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_id();
+      ss << "unexpected argument(s) to '" << get_kind();
       throw SmtMbtFSMUntraceException(ss);
     }
     _run();
@@ -1621,7 +1622,7 @@ class ActionCheckSatAssuming : public Action
     if (tokens.empty())
     {
       std::stringstream ss;
-      ss << "expected at least 1 argument to '" << get_id() << ", got "
+      ss << "expected at least 1 argument to '" << get_kind() << ", got "
          << tokens.size();
       throw SmtMbtFSMUntraceException(ss);
     }
@@ -1679,7 +1680,7 @@ class ActionGetUnsatAssumptions : public Action
     if (!tokens.empty())
     {
       std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_id();
+      ss << "unexpected argument(s) to '" << get_kind();
       throw SmtMbtFSMUntraceException(ss);
     }
     _run();
@@ -1867,7 +1868,7 @@ class ActionResetAssertions : public Action
     if (!tokens.empty())
     {
       std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_id();
+      ss << "unexpected argument(s) to '" << get_kind();
       throw SmtMbtFSMUntraceException(ss);
     }
     _run();
@@ -1907,7 +1908,7 @@ class ActionPrintModel : public Action
     if (!tokens.empty())
     {
       std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_id();
+      ss << "unexpected argument(s) to '" << get_kind();
       throw SmtMbtFSMUntraceException(ss);
     }
     _run();
