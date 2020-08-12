@@ -954,7 +954,7 @@ class CVC4ActionCheckEntailed : public Action
 {
  public:
   CVC4ActionCheckEntailed(SolverManager& smgr)
-      : Action(smgr, "cvc4-check-entailed")
+      : Action(smgr, Action::Kind::CVC4_CHECK_ENTAILED)
   {
   }
 
@@ -1012,7 +1012,7 @@ class CVC4ActionCheckEntailed : public Action
  private:
   void _run(Term term)
   {
-    SMTMBT_TRACE << get_id() << " " << term;
+    SMTMBT_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
     CVC4Solver& solver        = static_cast<CVC4Solver&>(d_smgr.get_solver());
     CVC4::api::Solver* cvc4   = solver.get_solver();
@@ -1046,7 +1046,7 @@ class CVC4ActionCheckEntailed : public Action
 
   void _run(std::vector<Term> terms)
   {
-    SMTMBT_TRACE << get_id() << " " << terms.size() << terms;
+    SMTMBT_TRACE << get_kind() << " " << terms.size() << terms;
     d_smgr.reset_sat();
     CVC4Solver& solver      = static_cast<CVC4Solver&>(d_smgr.get_solver());
     CVC4::api::Solver* cvc4 = solver.get_solver();
@@ -1081,7 +1081,10 @@ class CVC4ActionCheckEntailed : public Action
 class CVC4ActionSimplify : public Action
 {
  public:
-  CVC4ActionSimplify(SolverManager& smgr) : Action(smgr, "cvc4-simplify") {}
+  CVC4ActionSimplify(SolverManager& smgr)
+      : Action(smgr, Action::Kind::CVC4_SIMPLIFY)
+  {
+  }
 
   bool run() override
   {
@@ -1103,7 +1106,7 @@ class CVC4ActionSimplify : public Action
  private:
   uint64_t _run(Term term)
   {
-    SMTMBT_TRACE << get_id() << " " << term;
+    SMTMBT_TRACE << get_kind() << " " << term;
     CVC4Solver& solver       = static_cast<CVC4Solver&>(d_smgr.get_solver());
     CVC4::api::Solver* cvc4  = solver.get_solver();
     CVC4::api::Term cvc4_res = cvc4->simplify(solver.get_cvc4_term(term));
@@ -1129,11 +1132,12 @@ class CVC4ActionSimplify : public Action
 void
 CVC4Solver::configure_fsm(FSM* fsm) const
 {
-  State* s_sat = fsm->get_state("check_sat");
+  State* s_sat = fsm->get_state(State::Kind::CHECK_SAT);
 
   // Solver::simplify(const Term& term)
   auto a_simplify = fsm->new_action<CVC4ActionSimplify>();
-  fsm->add_action_to_all_states(a_simplify, 100, {"new", "delete"});
+  fsm->add_action_to_all_states(
+      a_simplify, 100, {State::Kind::NEW, State::Kind::DELETE});
 
   // Solver::checkEntailed(Term term)
   // Solver::checkEntailed(std::vector<Term> terms)

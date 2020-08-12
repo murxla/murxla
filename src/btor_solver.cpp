@@ -1236,7 +1236,7 @@ class BtorActionBvAssignment : public Action
 {
  public:
   BtorActionBvAssignment(SolverManager& smgr)
-      : Action(smgr, "btor-bv-assignment")
+      : Action(smgr, Action::Kind::BTOR_BV_ASSIGNMENT)
   {
   }
 
@@ -1268,7 +1268,7 @@ class BtorActionBvAssignment : public Action
      *       as it is implemented now, and since its API will not change / be
      *       extended anymore (Boolector is succeeded by Bitwuzla), we consider
      *       it not worth the effort. */
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     uint64_t n = d_rng.pick<uint64_t>(1, d_smgr.get_n_terms(SORT_BV));
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     std::vector<const char*> assignments;
@@ -1289,7 +1289,9 @@ class BtorActionBvAssignment : public Action
 class BtorActionClone : public Action
 {
  public:
-  BtorActionClone(SolverManager& smgr) : Action(smgr, "btor-clone") {}
+  BtorActionClone(SolverManager& smgr) : Action(smgr, Action::Kind::BTOR_CLONE)
+  {
+  }
 
   bool run() override
   {
@@ -1308,7 +1310,7 @@ class BtorActionClone : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     Btor* btor         = solver.get_solver();
     Btor* clone        = boolector_clone(btor);
@@ -1404,7 +1406,10 @@ class BtorActionClone : public Action
 class BtorActionFailed : public Action
 {
  public:
-  BtorActionFailed(SolverManager& smgr) : Action(smgr, "btor-failed") {}
+  BtorActionFailed(SolverManager& smgr)
+      : Action(smgr, Action::Kind::BTOR_FAILED)
+  {
+  }
 
   bool run() override
   {
@@ -1430,7 +1435,7 @@ class BtorActionFailed : public Action
  private:
   void _run(Term term)
   {
-    SMTMBT_TRACE << get_id() << " " << term;
+    SMTMBT_TRACE << get_kind() << " " << term;
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     (void) boolector_failed(btor_solver.get_solver(),
                             btor_solver.get_btor_term(term));
@@ -1441,7 +1446,7 @@ class BtorActionFixateAssumptions : public Action
 {
  public:
   BtorActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, "btor-fixate-assumptions")
+      : Action(smgr, Action::Kind::BTOR_FIXATE_ASSUMPTIONS)
   {
   }
 
@@ -1463,7 +1468,7 @@ class BtorActionFixateAssumptions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     d_smgr.clear();
     boolector_fixate_assumptions(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
@@ -1473,7 +1478,8 @@ class BtorActionFixateAssumptions : public Action
 class BtorActionOptIterator : public Action
 {
  public:
-  BtorActionOptIterator(SolverManager& smgr) : Action(smgr, "btor-opt-iterator")
+  BtorActionOptIterator(SolverManager& smgr)
+      : Action(smgr, Action::Kind::BTOR_OPT_ITERATOR)
   {
   }
 
@@ -1494,7 +1500,7 @@ class BtorActionOptIterator : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     Btor* btor = static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver();
     for (BtorOption opt = boolector_first_opt(btor); opt < BTOR_OPT_NUM_OPTS;
          opt            = boolector_next_opt(btor, opt))
@@ -1526,7 +1532,8 @@ class BtorActionOptIterator : public Action
 class BtorActionReleaseAll : public Action
 {
  public:
-  BtorActionReleaseAll(SolverManager& smgr) : Action(smgr, "btor-release-all")
+  BtorActionReleaseAll(SolverManager& smgr)
+      : Action(smgr, Action::Kind::BTOR_RELEASE_ALL)
   {
   }
 
@@ -1547,7 +1554,7 @@ class BtorActionReleaseAll : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     d_smgr.clear();
     boolector_release_all(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
@@ -1558,7 +1565,7 @@ class BtorActionResetAssumptions : public Action
 {
  public:
   BtorActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, "btor-reset-assumptions")
+      : Action(smgr, Action::Kind::BTOR_RESET_ASSUMPTIONS)
   {
   }
 
@@ -1580,7 +1587,7 @@ class BtorActionResetAssumptions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     d_smgr.clear();
     boolector_reset_assumptions(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
@@ -1591,7 +1598,7 @@ class BtorActionSetSatSolver : public Action
 {
  public:
   BtorActionSetSatSolver(SolverManager& smgr)
-      : Action(smgr, "btor-set-sat-solver")
+      : Action(smgr, Action::Kind::BTOR_SET_SAT_SOLVER)
   {
   }
 
@@ -1616,7 +1623,7 @@ class BtorActionSetSatSolver : public Action
  private:
   void _run(std::string sat_solver)
   {
-    SMTMBT_TRACE << get_id() << " " << sat_solver;
+    SMTMBT_TRACE << get_kind() << " " << sat_solver;
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     boolector_set_sat_solver(solver.get_solver(), sat_solver.c_str());
   }
@@ -1625,7 +1632,10 @@ class BtorActionSetSatSolver : public Action
 class BtorActionSimplify : public Action
 {
  public:
-  BtorActionSimplify(SolverManager& smgr) : Action(smgr, "btor-simplify") {}
+  BtorActionSimplify(SolverManager& smgr)
+      : Action(smgr, Action::Kind::BTOR_SIMPLIFY)
+  {
+  }
 
   bool run() override
   {
@@ -1646,7 +1656,7 @@ class BtorActionSimplify : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     boolector_simplify(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
   }
@@ -1655,7 +1665,10 @@ class BtorActionSimplify : public Action
 class BtorActionSetSymbol : public Action
 {
  public:
-  BtorActionSetSymbol(SolverManager& smgr) : Action(smgr, "btor-set-symbol") {}
+  BtorActionSetSymbol(SolverManager& smgr)
+      : Action(smgr, Action::Kind::BTOR_SET_SYMBOL)
+  {
+  }
 
   bool run() override
   {
@@ -1680,7 +1693,7 @@ class BtorActionSetSymbol : public Action
  private:
   void _run(Term term, std::string symbol)
   {
-    SMTMBT_TRACE << get_id() << " " << term << " \"" << symbol << "\"";
+    SMTMBT_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     (void) boolector_set_symbol(btor_solver.get_solver(),
                                 btor_solver.get_btor_term(term),
@@ -1693,13 +1706,14 @@ class BtorActionSetSymbol : public Action
 void
 BtorSolver::configure_fsm(FSM* fsm) const
 {
-  State* s_assert = fsm->get_state("assert");
-  State* s_delete = fsm->get_state("delete");
-  State* s_opt    = fsm->get_state("opt");
+  State* s_assert = fsm->get_state(State::Kind::ASSERT);
+  State* s_delete = fsm->get_state(State::Kind::DELETE);
+  State* s_opt    = fsm->get_state(State::Kind::OPT);
 
-  State* s_fix_reset_assumptions = fsm->new_state("btor-fix-reset-assumptions");
+  State* s_fix_reset_assumptions =
+      fsm->new_state(State::Kind::BTOR_FIX_RESET_ASSUMPTIONS);
 
-  auto t_default = fsm->new_action<Transition>();
+  auto t_default = fsm->new_action<TransitionDefault>();
 
   // options
   auto a_opt_it = fsm->new_action<BtorActionOptIterator>();
@@ -1725,7 +1739,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 5);
   s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
   fsm->add_action_to_all_states_next(
-      t_default, 2, s_fix_reset_assumptions, {"opt"});
+      t_default, 2, s_fix_reset_assumptions, {State::Kind::OPT});
 
   // boolector_release_all
   auto a_release_all = fsm->new_action<BtorActionReleaseAll>();

@@ -11,7 +11,6 @@
 
 #include "solver_manager.hpp"
 #include "solver_option.hpp"
-#include "statistics.hpp"
 #include "util.hpp"
 
 /* -------------------------------------------------------------------------- */
@@ -27,6 +26,7 @@
 /* -------------------------------------------------------------------------- */
 
 namespace smtmbt {
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -64,6 +64,10 @@ class SmtMbtFSMConfigException : public SmtMbtFSMException
 
 /* -------------------------------------------------------------------------- */
 
+namespace statistics {
+struct Statistics;
+}
+
 class State;
 
 /**
@@ -73,18 +77,67 @@ class State;
 class Action
 {
  public:
+  enum Kind
+  {
+    UNDEFINED,
+    NEW,
+    DELETE,
+    MK_SORT,
+    MK_VALUE,
+    MK_CONST,
+    MK_VAR,
+    MK_TERM,
+    ASSERT_FORMULA,
+    GET_UNSAT_ASSUMPTIONS,
+    GET_VALUE,
+    PRINT_MODEL,
+    CHECK_SAT,
+    CHECK_SAT_ASSUMING,
+    PUSH,
+    POP,
+    RESET_ASSERTIONS,
+    SET_OPTION,
+    TRANS,
+    TRANS_CREATE_INPUTS,
+    TRANS_CREATE_SORTS,
+    TRANS_MODEL,
+
+    /* Boolector specific actions */
+    BTOR_OPT_ITERATOR,
+    BTOR_BV_ASSIGNMENT,
+    BTOR_CLONE,
+    BTOR_FAILED,
+    BTOR_FIXATE_ASSUMPTIONS,
+    BTOR_RESET_ASSUMPTIONS,
+    BTOR_RELEASE_ALL,
+    BTOR_SIMPLIFY,
+    BTOR_SET_SAT_SOLVER,
+    BTOR_SET_SYMBOL,
+
+    /* CVC4 specific actions */
+    CVC4_CHECK_ENTAILED,
+    CVC4_SIMPLIFY,
+
+    NUM_ACTIONS
+  };
+
+  static const std::unordered_map<Kind, std::string> s_kind_to_str;
+
+  static const Kind get_kind(const std::string& s);
+
   /** Disallow default constructor. */
   Action() = delete;
   /** Constructor. */
-  Action(SolverManager& smgr, const std::string& id, bool empty = false)
+  Action(SolverManager& smgr, const Kind kind, bool empty = false)
       : d_rng(smgr.get_rng()),
         d_solver(smgr.get_solver()),
         d_smgr(smgr),
         d_is_empty(empty),
-        d_id(id)
+        d_kind(kind)
+
   {
-    assert(d_is_empty || !id.empty());
   }
+
   /** Destructor. */
   virtual ~Action()  = default;
 
@@ -100,7 +153,7 @@ class Action
    */
   virtual uint64_t untrace(std::vector<std::string>& tokens) = 0;
 
-  const std::string& get_id() const { return d_id; }
+  const Kind get_kind() const { return d_kind; }
   bool empty() const { return d_is_empty; }
 
  protected:
@@ -114,10 +167,12 @@ class Action
   bool d_is_empty = false;
 
  private:
-  /* A string identifying this action.
-   * Must not be empty for non-empty transitions. */
-  std::string d_id;
+  /* Action kind. */
+  Kind d_kind;
 };
+
+/* Overload for string representation of Action kind. */
+std::ostream& operator<<(std::ostream& out, Action::Kind kind);
 
 /**
  * (Empty) transition from current state to next state without pre-conditions.
@@ -125,12 +180,23 @@ class Action
 class Transition : public Action
 {
  public:
-  Transition(SolverManager& smgr, const std::string& id = "")
-      : Action(smgr, id, true)
-  {
-  }
+  Transition(SolverManager& smgr, const Kind kind) : Action(smgr, kind, true) {}
   bool run() override { return true; }
   uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
+};
+
+/**
+ * Default (generic) transition.
+ *
+ * State:      create inputs
+ * Transition: if there exists at least one input
+ */
+class TransitionDefault : public Transition
+{
+ public:
+  TransitionDefault(SolverManager& smgr) : Transition(smgr, Action::Kind::TRANS)
+  {
+  }
 };
 
 struct ActionTuple
@@ -146,16 +212,39 @@ class State
   friend class FSM;
 
  public:
+  enum Kind
+  {
+    UNDEFINED,
+    NEW,
+    OPT,
+    DELETE,
+    FINAL,
+    CREATE_SORTS,
+    CREATE_INPUTS,
+    CREATE_TERMS,
+    ASSERT,
+    MODEL,
+    CHECK_SAT,
+    PUSH_POP,
+
+    /* Boolector */
+    BTOR_FIX_RESET_ASSUMPTIONS,
+
+    NUM_STATES
+  };
+
+  static const std::unordered_map<Kind, std::string> s_kind_to_str;
+
   /** Default constructor. */
-  State() : d_id(""), d_is_final(false) {}
+  State() : d_kind(Kind::UNDEFINED), d_is_final(false) {}
   /** Constructor. */
-  State(std::string id, std::function<bool(void)> fun, bool is_final)
-      : d_id(id), d_is_final(is_final), f_precond(fun)
+  State(Kind kind, std::function<bool(void)> fun, bool is_final)
+      : d_kind(kind), d_is_final(is_final), f_precond(fun)
   {
   }
 
   /** Returns the identifier of this state. */
-  const std::string& get_id() { return d_id; }
+  const Kind get_kind() { return d_kind; }
   /** Returns true if state is a final state. */
   bool is_final() { return d_is_final; }
 
@@ -175,8 +264,8 @@ class State
   void add_action(Action* action, uint32_t priority, State* next = nullptr);
 
  private:
-  /* A unique string identifying the state. */
-  std::string d_id;
+  /* State kind. */
+  Kind d_kind;
   /* True if state is a final state. */
   bool d_is_final = false;
   /* True if state represents the place holder for all states. */
@@ -190,6 +279,9 @@ class State
 
   statistics::Statistics* d_mbt_stats;
 };
+
+/* Overload for string representation of State kind. */
+std::ostream& operator<<(std::ostream& out, State::Kind kind);
 
 class FSM
 {
@@ -232,7 +324,7 @@ class FSM
    * fun     : The precondition for transitioning to the next state.
    * is_final: True if this is the final state.
    */
-  State* new_state(std::string id                = "",
+  State* new_state(State::Kind kind,
                    std::function<bool(void)> fun = nullptr,
                    bool is_final                 = false);
 
@@ -252,7 +344,7 @@ class FSM
   void add_action_to_all_states(
       T* action,
       uint32_t priority,
-      std::unordered_set<std::string> excluded_states = {},
+      std::unordered_set<State::Kind> excluded_states = {},
       State* next                                     = nullptr);
 
   /* Add transition with given action from given state to all configured states
@@ -267,14 +359,14 @@ class FSM
       T* action,
       uint32_t priority,
       State* state,
-      std::unordered_set<std::string> excluded_states = {});
+      std::unordered_set<State::Kind> excluded_states = {});
 
   /** Set given state as initial state. */
   void set_init_state(State* init_state);
   /** Check configured states for unreachable states and infinite loops. */
   void check_states();
   /** Get state with given id. */
-  State* get_state(const std::string& id) const;
+  State* get_state(const State::Kind kind) const;
   /** Run state machine. */
   void run();
   /** Configure state machine with base configuration. */
@@ -286,7 +378,7 @@ class FSM
   SolverManager d_smgr;
   RNGenerator& d_rng;
   std::vector<std::unique_ptr<State>> d_states;
-  std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
+  std::unordered_map<Action::Kind, std::unique_ptr<Action>> d_actions;
 
   /**
    * A temporary list with actions (incl. priorities, the next state and
@@ -295,7 +387,7 @@ class FSM
    * states and actions is finalized.
    */
   std::vector<
-      std::tuple<Action*, uint32_t, std::unordered_set<std::string>, State*>>
+      std::tuple<Action*, uint32_t, std::unordered_set<State::Kind>, State*>>
       d_actions_all_states;
   /**
    * A temporary list with actions (incl. priorities) that will be added to
@@ -304,7 +396,7 @@ class FSM
    * and actions is finalized.
    */
   std::vector<
-      std::tuple<Action*, uint32_t, State*, std::unordered_set<std::string>>>
+      std::tuple<Action*, uint32_t, State*, std::unordered_set<State::Kind>>>
       d_actions_all_states_next;
 
   /** The initial state. */
@@ -325,7 +417,7 @@ FSM::new_action()
   static_assert(std::is_base_of<Action, T>::value,
                 "expected class (derived from) Action");
   T* action             = new T(d_smgr);
-  const std::string& id = action->get_id();
+  const auto id         = action->get_kind();
   if (d_actions.find(id) == d_actions.end())
   {
     d_actions[id].reset(action);
@@ -341,11 +433,11 @@ template <class T>
 void
 FSM::add_action_to_all_states(T* action,
                               uint32_t priority,
-                              std::unordered_set<std::string> excluded_states,
+                              std::unordered_set<State::Kind> excluded_states,
                               State* next)
 {
   d_actions_all_states.push_back(
-      std::tuple<Action*, uint32_t, std::unordered_set<std::string>, State*>(
+      std::tuple<Action*, uint32_t, std::unordered_set<State::Kind>, State*>(
           action, priority, excluded_states, next));
 }
 
@@ -355,10 +447,10 @@ FSM::add_action_to_all_states_next(
     T* action,
     uint32_t priority,
     State* state,
-    std::unordered_set<std::string> excluded_states)
+    std::unordered_set<State::Kind> excluded_states)
 {
   d_actions_all_states_next.push_back(
-      std::tuple<Action*, uint32_t, State*, std::unordered_set<std::string>>(
+      std::tuple<Action*, uint32_t, State*, std::unordered_set<State::Kind>>(
           action, priority, state, excluded_states));
 }
 

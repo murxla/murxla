@@ -8,10 +8,98 @@
 
 #include "config.hpp"
 #include "solver_manager.hpp"
+#include "statistics.hpp"
 
 /* -------------------------------------------------------------------------- */
 
 namespace smtmbt {
+
+const std::unordered_map<State::Kind, std::string> State::s_kind_to_str = {
+    {State::Kind::NEW, "new"},
+    {State::Kind::OPT, "opt"},
+    {State::Kind::DELETE, "delete"},
+    {State::Kind::FINAL, "final"},
+    {State::Kind::CREATE_SORTS, "create_sorts"},
+    {State::Kind::CREATE_INPUTS, "create_inputs"},
+    {State::Kind::CREATE_TERMS, "create_terms"},
+    {State::Kind::ASSERT, "assert"},
+    {State::Kind::MODEL, "model"},
+    {State::Kind::CHECK_SAT, "check_sat"},
+    {State::Kind::PUSH_POP, "push_pop"},
+
+    {State::Kind::BTOR_FIX_RESET_ASSUMPTIONS, "btor-fix-reset-assumptions"},
+};
+
+std::ostream&
+operator<<(std::ostream& out, State::Kind kind)
+{
+  assert(State::s_kind_to_str.find(kind) != State::s_kind_to_str.end());
+  out << State::s_kind_to_str.at(kind);
+  return out;
+}
+
+const std::unordered_map<Action::Kind, std::string> Action::s_kind_to_str = {
+    {Action::Kind::NEW, "new"},
+    {Action::Kind::DELETE, "delete"},
+    {Action::Kind::MK_SORT, "mk-sort"},
+    {Action::Kind::MK_VALUE, "mk-value"},
+    {Action::Kind::MK_CONST, "mk-const"},
+    {Action::Kind::MK_VAR, "mk-var"},
+    {Action::Kind::MK_TERM, "mk-term"},
+    {Action::Kind::ASSERT_FORMULA, "assert-formula"},
+    {Action::Kind::GET_UNSAT_ASSUMPTIONS, "get-unsat-assumptions"},
+    {Action::Kind::GET_VALUE, "get-value"},
+    {Action::Kind::PRINT_MODEL, "print-model"},
+    {Action::Kind::CHECK_SAT, "check-sat"},
+    {Action::Kind::CHECK_SAT_ASSUMING, "check-sat-assuming"},
+    {Action::Kind::PUSH, "push"},
+    {Action::Kind::POP, "pop"},
+    {Action::Kind::RESET_ASSERTIONS, "reset-assertions"},
+    {Action::Kind::SET_OPTION, "set-option"},
+
+    /* default for all transitions */
+    {Action::Kind::TRANS, ""},
+    {Action::Kind::TRANS_CREATE_INPUTS, "t_inputs"},
+    {Action::Kind::TRANS_CREATE_SORTS, "t_sorts"},
+    {Action::Kind::TRANS_MODEL, "t_model"},
+
+    /* Boolector specific actions */
+    {Action::Kind::BTOR_OPT_ITERATOR, "btor-opt-iterator"},
+    {Action::Kind::BTOR_BV_ASSIGNMENT, "btor-bv-assignment"},
+    {Action::Kind::BTOR_CLONE, "btor-clone"},
+    {Action::Kind::BTOR_FAILED, "btor-failed"},
+    {Action::Kind::BTOR_FIXATE_ASSUMPTIONS, "btor-fixate-assumptions"},
+    {Action::Kind::BTOR_RESET_ASSUMPTIONS, "btor-reset-assumptions"},
+    {Action::Kind::BTOR_RELEASE_ALL, "btor-release-all"},
+    {Action::Kind::BTOR_SIMPLIFY, "btor-simplify"},
+    {Action::Kind::BTOR_SET_SAT_SOLVER, "btor-set-sat-solver"},
+    {Action::Kind::BTOR_SET_SYMBOL, "btor-set-symbol"},
+
+    /* CVC4 specific actions */
+    {Action::Kind::CVC4_CHECK_ENTAILED, "cvc4-check-entailed"},
+    {Action::Kind::CVC4_SIMPLIFY, "cvc4-simplify"},
+};
+
+const Action::Kind
+Action::get_kind(const std::string& s)
+{
+  for (const auto& it : Action::s_kind_to_str)
+  {
+    if (it.second == s)
+    {
+      return it.first;
+    }
+  }
+  return Action::Kind::UNDEFINED;
+}
+
+std::ostream&
+operator<<(std::ostream& out, Action::Kind kind)
+{
+  assert(Action::s_kind_to_str.find(kind) != Action::s_kind_to_str.end());
+  out << Action::s_kind_to_str.at(kind);
+  return out;
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -36,17 +124,7 @@ State::run(RNGenerator& rng)
   ActionTuple& atup = d_actions[idx];
 
   /* record state statistics */
-  {
-    auto it = statistics::g_state_str_to_enum.find(get_id());
-    if (it == statistics::g_state_str_to_enum.end())
-    {
-      std::stringstream ss;
-      ss << "state '" << get_id()
-         << "' not configured in statistics::g_state_str_to_enum";
-      throw SmtMbtFSMConfigException(ss);
-    }
-    ++d_mbt_stats->d_states[it->second];
-  }
+  ++d_mbt_stats->d_states[get_kind()];
 
   /* only pick empty transitions if precondition of this state is false */
   if (f_precond != nullptr && !f_precond())
@@ -59,33 +137,13 @@ State::run(RNGenerator& rng)
   }
 
   /* record action statistics */
-  {
-    auto it = statistics::g_action_str_to_enum.find(atup.d_action->get_id());
-    if (it == statistics::g_action_str_to_enum.end())
-    {
-      std::stringstream ss;
-      ss << "action '" << atup.d_action->get_id()
-         << "' not configured in statistics::g_action_str_to_enum";
-      throw SmtMbtFSMConfigException(ss);
-    }
-    ++d_mbt_stats->d_actions[it->second];
-  }
+  ++d_mbt_stats->d_actions[atup.d_action->get_kind()];
 
   if (atup.d_action->run()
       && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
   {
     /* record action statistics */
-    {
-      auto it = statistics::g_action_str_to_enum.find(atup.d_action->get_id());
-      if (it == statistics::g_action_str_to_enum.end())
-      {
-        std::stringstream ss;
-        ss << "action '" << atup.d_action->get_id()
-           << "' not configured in statistics::g_action_str_to_enum";
-        throw SmtMbtFSMConfigException(ss);
-      }
-      ++d_mbt_stats->d_actions_ok[it->second];
-    }
+    ++d_mbt_stats->d_actions_ok[atup.d_action->get_kind()];
 
     return d_actions[idx].d_next;
   }
@@ -127,10 +185,10 @@ FSM::get_smgr()
 }
 
 State*
-FSM::new_state(std::string id, std::function<bool(void)> fun, bool is_final)
+FSM::new_state(State::Kind kind, std::function<bool(void)> fun, bool is_final)
 {
   State* new_state;
-  d_states.emplace_back(new State(id, fun, is_final));
+  d_states.emplace_back(new State(kind, fun, is_final));
 
   new_state              = d_states.back().get();
   new_state->d_mbt_stats = d_mbt_stats;
@@ -169,7 +227,7 @@ FSM::check_states()
   {
     SMTMBT_WARN(s.get() != d_state_init
                 && all_next_states.find(s.get()) == all_next_states.end())
-        << "unreachable state '" << s->get_id() << "'";
+        << "unreachable state '" << s->get_kind() << "'";
   }
 
   /* check for infinite loop */
@@ -178,18 +236,18 @@ FSM::check_states()
           || all_next_states.find(no_next_state) != all_next_states.end()))
   {
     std::stringstream ss;
-    ss << "infinite loop in state '" << no_next_state->get_id() << "'";
+    ss << "infinite loop in state '" << no_next_state->get_kind() << "'";
     throw SmtMbtFSMConfigException(ss);
   }
 }
 
 State*
-FSM::get_state(const std::string& id) const
+FSM::get_state(const State::Kind kind) const
 {
   State* res = nullptr;
   for (const auto& s : d_states)
   {
-    if (s->d_id == id)
+    if (s->d_kind == kind)
     {
       res = s.get();
     }
@@ -249,21 +307,30 @@ FSM::TraceStream::flush()
 class TransitionCreateInputs : public Transition
 {
  public:
-  TransitionCreateInputs(SolverManager& smgr) : Transition(smgr, "t_inputs") {}
+  TransitionCreateInputs(SolverManager& smgr)
+      : Transition(smgr, Action::Kind::TRANS_CREATE_INPUTS)
+  {
+  }
   bool run() override { return d_smgr.d_stats.inputs > 0; }
 };
 
 class TransitionCreateSorts : public Transition
 {
  public:
-  TransitionCreateSorts(SolverManager& smgr) : Transition(smgr, "t_sorts") {}
+  TransitionCreateSorts(SolverManager& smgr)
+      : Transition(smgr, Action::Kind::TRANS_CREATE_SORTS)
+  {
+  }
   bool run() override { return d_smgr.d_stats.sorts > 0; }
 };
 
 class TransitionModel : public Transition
 {
  public:
-  TransitionModel(SolverManager& smgr) : Transition(smgr, "t_model") {}
+  TransitionModel(SolverManager& smgr)
+      : Transition(smgr, Action::Kind::TRANS_MODEL)
+  {
+  }
   bool run() override { return d_smgr.d_sat_result == Solver::Result::SAT; }
 };
 
@@ -274,7 +341,7 @@ class TransitionModel : public Transition
 class ActionNew : public Action
 {
  public:
-  ActionNew(SolverManager& smgr) : Action(smgr, "new") {}
+  ActionNew(SolverManager& smgr) : Action(smgr, Action::Kind::NEW) {}
 
   bool run() override
   {
@@ -298,7 +365,7 @@ class ActionNew : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     d_solver.new_solver();
   }
 };
@@ -306,7 +373,7 @@ class ActionNew : public Action
 class ActionDelete : public Action
 {
  public:
-  ActionDelete(SolverManager& smgr) : Action(smgr, "delete") {}
+  ActionDelete(SolverManager& smgr) : Action(smgr, Action::Kind::DELETE) {}
 
   bool run() override
   {
@@ -330,7 +397,7 @@ class ActionDelete : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     d_smgr.clear();
     d_solver.delete_solver();
   }
@@ -339,7 +406,9 @@ class ActionDelete : public Action
 class ActionSetOption : public Action
 {
  public:
-  ActionSetOption(SolverManager& smgr) : Action(smgr, "set-option") {}
+  ActionSetOption(SolverManager& smgr) : Action(smgr, Action::Kind::SET_OPTION)
+  {
+  }
 
   bool run() override
   {
@@ -404,7 +473,7 @@ class ActionSetOption : public Action
  private:
   void _run(const std::string& opt, const std::string& value)
   {
-    SMTMBT_TRACE << get_id() << " " << opt << " " << value;
+    SMTMBT_TRACE << get_kind() << " " << opt << " " << value;
     d_solver.set_opt(opt, value);
     d_smgr.d_incremental       = d_solver.option_incremental_enabled();
     d_smgr.d_model_gen         = d_solver.option_model_gen_enabled();
@@ -415,7 +484,7 @@ class ActionSetOption : public Action
 class ActionMkSort : public Action
 {
  public:
-  ActionMkSort(SolverManager& smgr) : Action(smgr, "mk-sort") {}
+  ActionMkSort(SolverManager& smgr) : Action(smgr, Action::Kind::MK_SORT) {}
 
   bool run() override
   {
@@ -569,7 +638,7 @@ class ActionMkSort : public Action
  private:
   uint64_t _run(SortKind kind)
   {
-    SMTMBT_TRACE << get_id() << " " << kind;
+    SMTMBT_TRACE << get_kind() << " " << kind;
     Sort res = d_solver.mk_sort(kind);
     d_smgr.add_sort(res, kind);
     SMTMBT_TRACE_RETURN << res;
@@ -578,7 +647,7 @@ class ActionMkSort : public Action
 
   uint64_t _run(SortKind kind, uint32_t bw)
   {
-    SMTMBT_TRACE << get_id() << " " << kind << " " << bw;
+    SMTMBT_TRACE << get_kind() << " " << kind << " " << bw;
     assert(kind == SORT_BV);
     Sort res = d_solver.mk_sort(kind, bw);
     assert(res->get_bv_size() == bw);
@@ -589,7 +658,7 @@ class ActionMkSort : public Action
 
   uint64_t _run(SortKind kind, uint32_t ew, uint32_t sw)
   {
-    SMTMBT_TRACE << get_id() << " " << kind << " " << ew << " " << sw;
+    SMTMBT_TRACE << get_kind() << " " << kind << " " << ew << " " << sw;
     assert(kind == SORT_FP);
     Sort res = d_solver.mk_sort(kind, ew, sw);
     assert(res->get_fp_exp_size() == ew);
@@ -606,7 +675,7 @@ class ActionMkSort : public Action
     {
       ss << " " << sort;
     }
-    SMTMBT_TRACE << get_id() << " " << kind << ss.str();
+    SMTMBT_TRACE << get_kind() << " " << kind << ss.str();
     Sort res = d_solver.mk_sort(kind, sorts);
     res->set_sorts(sorts);
     assert(res->get_sorts().size() == 2);
@@ -619,7 +688,7 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
-  ActionMkTerm(SolverManager& smgr) : Action(smgr, "mk-term") {}
+  ActionMkTerm(SolverManager& smgr) : Action(smgr, Action::Kind::MK_TERM) {}
 
   bool run() override
   {
@@ -910,7 +979,7 @@ class ActionMkTerm : public Action
     {
       trace_str << " " << params.size() << params;
     }
-    SMTMBT_TRACE << get_id() << trace_str.str();
+    SMTMBT_TRACE << get_kind() << trace_str.str();
     d_smgr.reset_sat();
 
     // Note: We remove the variable in _run instead of run so that we correclty
@@ -940,7 +1009,7 @@ class ActionMkTerm : public Action
 class ActionMkConst : public Action
 {
  public:
-  ActionMkConst(SolverManager& smgr) : Action(smgr, "mk-const") {}
+  ActionMkConst(SolverManager& smgr) : Action(smgr, Action::Kind::MK_CONST) {}
 
   bool run() override
   {
@@ -978,7 +1047,7 @@ class ActionMkConst : public Action
  private:
   uint64_t _run(Sort sort, std::string& symbol)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " \"" << symbol << "\"";
+    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
     d_smgr.reset_sat();
     Term res = d_solver.mk_const(sort, symbol);
     d_smgr.add_input(res, sort, sort->get_kind());
@@ -990,7 +1059,7 @@ class ActionMkConst : public Action
 class ActionMkVar : public Action
 {
  public:
-  ActionMkVar(SolverManager& smgr) : Action(smgr, "mk-var") {}
+  ActionMkVar(SolverManager& smgr) : Action(smgr, Action::Kind::MK_VAR) {}
 
   bool run() override
   {
@@ -1028,7 +1097,7 @@ class ActionMkVar : public Action
  private:
   uint64_t _run(Sort sort, std::string& symbol)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " \"" << symbol << "\"";
+    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
     d_smgr.reset_sat();
     Term res = d_solver.mk_var(sort, symbol);
     d_smgr.add_var(res, sort, sort->get_kind());
@@ -1040,7 +1109,7 @@ class ActionMkVar : public Action
 class ActionMkValue : public Action
 {
  public:
-  ActionMkValue(SolverManager& smgr) : Action(smgr, "mk-value") {}
+  ActionMkValue(SolverManager& smgr) : Action(smgr, Action::Kind::MK_VALUE) {}
 
   bool run() override
   {
@@ -1230,7 +1299,8 @@ class ActionMkValue : public Action
  private:
   uint64_t _run(Sort sort, bool val)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " " << (val ? "true" : "false");
+    SMTMBT_TRACE << get_kind() << " " << sort << " "
+                 << (val ? "true" : "false");
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, sort, sort->get_kind());
@@ -1240,7 +1310,7 @@ class ActionMkValue : public Action
 
   uint64_t _run(Sort sort, uint64_t val)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, sort, sort->get_kind());
@@ -1270,7 +1340,7 @@ class ActionMkValue : public Action
 
   uint64_t _run(Sort sort, std::string val, Solver::Base base)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " \"" << val << "\""
+    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\""
                  << " " << base;
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val, base);
@@ -1281,7 +1351,7 @@ class ActionMkValue : public Action
 
   uint64_t _run(Sort sort, Solver::SpecialValueFP val)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
     assert(sort->is_fp());
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
@@ -1292,7 +1362,7 @@ class ActionMkValue : public Action
 
   uint64_t _run(Sort sort, Solver::SpecialValueRM val)
   {
-    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
     assert(sort->is_rm());
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
@@ -1440,7 +1510,10 @@ class ActionMkValue : public Action
 class ActionAssertFormula : public Action
 {
  public:
-  ActionAssertFormula(SolverManager& smgr) : Action(smgr, "assert-formula") {}
+  ActionAssertFormula(SolverManager& smgr)
+      : Action(smgr, Action::Kind::ASSERT_FORMULA)
+  {
+  }
 
   bool run() override
   {
@@ -1474,7 +1547,7 @@ class ActionAssertFormula : public Action
  private:
   void _run(Term assertion)
   {
-    SMTMBT_TRACE << get_id() << " " << assertion;
+    SMTMBT_TRACE << get_kind() << " " << assertion;
     d_smgr.reset_sat();
     d_solver.assert_formula(assertion);
   }
@@ -1483,7 +1556,7 @@ class ActionAssertFormula : public Action
 class ActionCheckSat : public Action
 {
  public:
-  ActionCheckSat(SolverManager& smgr) : Action(smgr, "check-sat") {}
+  ActionCheckSat(SolverManager& smgr) : Action(smgr, Action::Kind::CHECK_SAT) {}
 
   bool run() override
   {
@@ -1508,7 +1581,7 @@ class ActionCheckSat : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     d_smgr.reset_sat();
     d_smgr.d_sat_result = d_solver.check_sat();
     d_smgr.d_sat_called = true;
@@ -1523,7 +1596,7 @@ class ActionCheckSatAssuming : public Action
 {
  public:
   ActionCheckSatAssuming(SolverManager& smgr)
-      : Action(smgr, "check-sat-assuming")
+      : Action(smgr, Action::Kind::CHECK_SAT_ASSUMING)
   {
   }
 
@@ -1573,7 +1646,7 @@ class ActionCheckSatAssuming : public Action
  private:
   void _run(std::vector<Term> assumptions)
   {
-    SMTMBT_TRACE << get_id() << " " << assumptions.size() << assumptions;
+    SMTMBT_TRACE << get_kind() << " " << assumptions.size() << assumptions;
     d_smgr.reset_sat();
     d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
     d_smgr.d_sat_called = true;
@@ -1585,7 +1658,7 @@ class ActionGetUnsatAssumptions : public Action
 {
  public:
   ActionGetUnsatAssumptions(SolverManager& smgr)
-      : Action(smgr, "get-unsat-assumptions")
+      : Action(smgr, Action::Kind::GET_UNSAT_ASSUMPTIONS)
   {
   }
 
@@ -1616,7 +1689,7 @@ class ActionGetUnsatAssumptions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     /* Note: The Terms in this vector are solver terms wrapped into Term,
      *       without sort information! */
     std::vector<Term> res = d_solver.get_unsat_assumptions();
@@ -1635,7 +1708,7 @@ class ActionGetUnsatAssumptions : public Action
 class ActionGetValue : public Action
 {
  public:
-  ActionGetValue(SolverManager& smgr) : Action(smgr, "get-value") {}
+  ActionGetValue(SolverManager& smgr) : Action(smgr, Action::Kind::GET_VALUE) {}
 
   bool run() override
   {
@@ -1679,7 +1752,7 @@ class ActionGetValue : public Action
  private:
   void _run(std::vector<Term> terms)
   {
-    SMTMBT_TRACE << get_id() << " " << terms.size() << terms;
+    SMTMBT_TRACE << get_kind() << " " << terms.size() << terms;
     /* Note: The Terms in this vector are solver terms wrapped into Term,
      *       without sort information! */
     std::vector<Term> res = d_solver.get_value(terms);
@@ -1714,7 +1787,7 @@ class ActionGetValue : public Action
 class ActionPush : public Action
 {
  public:
-  ActionPush(SolverManager& smgr) : Action(smgr, "push") {}
+  ActionPush(SolverManager& smgr) : Action(smgr, Action::Kind::PUSH) {}
 
   bool run() override
   {
@@ -1735,7 +1808,7 @@ class ActionPush : public Action
  private:
   void _run(uint32_t n_levels)
   {
-    SMTMBT_TRACE << get_id() << " " << n_levels;
+    SMTMBT_TRACE << get_kind() << " " << n_levels;
     d_smgr.reset_sat();
     d_solver.push(n_levels);
     d_smgr.d_n_push_levels += n_levels;
@@ -1745,7 +1818,7 @@ class ActionPush : public Action
 class ActionPop : public Action
 {
  public:
-  ActionPop(SolverManager& smgr) : Action(smgr, "pop") {}
+  ActionPop(SolverManager& smgr) : Action(smgr, Action::Kind::POP) {}
 
   bool run() override
   {
@@ -1767,7 +1840,7 @@ class ActionPop : public Action
  private:
   void _run(uint32_t n_levels)
   {
-    SMTMBT_TRACE << get_id() << " " << n_levels;
+    SMTMBT_TRACE << get_kind() << " " << n_levels;
     d_smgr.reset_sat();
     d_solver.pop(n_levels);
     d_smgr.d_n_push_levels -= n_levels;
@@ -1777,7 +1850,8 @@ class ActionPop : public Action
 class ActionResetAssertions : public Action
 {
  public:
-  ActionResetAssertions(SolverManager& smgr) : Action(smgr, "reset-assertions")
+  ActionResetAssertions(SolverManager& smgr)
+      : Action(smgr, Action::Kind::RESET_ASSERTIONS)
   {
   }
 
@@ -1803,7 +1877,7 @@ class ActionResetAssertions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     d_smgr.reset_sat();
     d_solver.reset_assertions();
     d_smgr.d_n_push_levels = 0;
@@ -1813,7 +1887,10 @@ class ActionResetAssertions : public Action
 class ActionPrintModel : public Action
 {
  public:
-  ActionPrintModel(SolverManager& smgr) : Action(smgr, "print-model") {}
+  ActionPrintModel(SolverManager& smgr)
+      : Action(smgr, Action::Kind::PRINT_MODEL)
+  {
+  }
 
   bool run() override
   {
@@ -1840,7 +1917,7 @@ class ActionPrintModel : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_id();
+    SMTMBT_TRACE << get_kind();
     d_solver.print_model();
   }
 };
@@ -1884,7 +1961,7 @@ FSM::configure()
 
   auto a_setoption = new_action<ActionSetOption>();
 
-  auto t_default = new_action<Transition>();
+  auto t_default = new_action<TransitionDefault>();
   auto t_inputs  = new_action<TransitionCreateInputs>();
   auto t_model   = new_action<TransitionModel>();
   auto t_sorts   = new_action<TransitionCreateSorts>();
@@ -1893,30 +1970,30 @@ FSM::configure()
   /* States                                                                */
   /* --------------------------------------------------------------------- */
 
-  auto s_new    = new_state("new");
-  auto s_opt    = new_state("opt");
-  auto s_delete = new_state("delete");
-  auto s_final  = new_state("final", nullptr, true);
+  auto s_new    = new_state(State::Kind::NEW);
+  auto s_opt    = new_state(State::Kind::OPT);
+  auto s_delete = new_state(State::Kind::DELETE);
+  auto s_final  = new_state(State::Kind::FINAL, nullptr, true);
 
-  auto s_sorts  = new_state("create_sorts");
-  auto s_inputs = new_state("create_inputs");
-  auto s_terms =
-      new_state("create_terms", [this]() { return d_smgr.has_term(); });
+  auto s_sorts  = new_state(State::Kind::CREATE_SORTS);
+  auto s_inputs = new_state(State::Kind::CREATE_INPUTS);
+  auto s_terms  = new_state(State::Kind::CREATE_TERMS,
+                           [this]() { return d_smgr.has_term(); });
 
-  auto s_assert =
-      new_state("assert", [this]() { return d_smgr.has_term(SORT_BOOL); });
+  auto s_assert = new_state(State::Kind::ASSERT,
+                            [this]() { return d_smgr.has_term(SORT_BOOL); });
 
-  auto s_model = new_state("model", [this]() {
+  auto s_model = new_state(State::Kind::MODEL, [this]() {
     return d_smgr.d_model_gen && d_smgr.d_sat_called
            && d_smgr.d_sat_result == Solver::Result::SAT;
   });
 
-  auto s_sat = new_state("check_sat", [this]() {
+  auto s_sat = new_state(State::Kind::CHECK_SAT, [this]() {
     return d_smgr.d_n_sat_calls == 0 || d_smgr.d_incremental;
   });
 
-  auto s_push_pop =
-      new_state("push_pop", [this]() { return d_smgr.d_incremental; });
+  auto s_push_pop = new_state(State::Kind::PUSH_POP,
+                              [this]() { return d_smgr.d_incremental; });
 
   /* --------------------------------------------------------------------- */
   /* Add actions/transitions to states                                     */
@@ -1965,13 +2042,13 @@ FSM::configure()
   /* State: model ........................................................ */
   s_model->add_action(a_printmodel, 1);
   s_model->add_action(a_getvalue, 1);
-  add_action_to_all_states_next(t_default, 1, s_model, {"opt"});
-  add_action_to_all_states(t_model, 10, {"opt"}, s_model);
+  add_action_to_all_states_next(t_default, 1, s_model, {State::Kind::OPT});
+  add_action_to_all_states(t_model, 10, {State::Kind::OPT}, s_model);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
   s_push_pop->add_action(a_pop, 1);
-  add_action_to_all_states_next(t_default, 1, s_push_pop, {"opt"});
+  add_action_to_all_states_next(t_default, 1, s_push_pop, {State::Kind::OPT});
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);
@@ -2000,13 +2077,14 @@ FSM::configure()
   {
     Action* action                                  = std::get<0>(t);
     uint32_t priority                               = std::get<1>(t);
-    std::unordered_set<std::string> excluded_states = std::get<2>(t);
+    std::unordered_set<State::Kind> excluded_states = std::get<2>(t);
     State* next                                     = std::get<3>(t);
     for (const auto& s : d_states)
     {
-      const std::string& id = s->get_id();
-      if (id == "new" || id == "delete" || id == "final"
-          || excluded_states.find(s->get_id()) != excluded_states.end())
+      const auto id = s->get_kind();
+      if (id == State::Kind::NEW || id == State::Kind::DELETE
+          || id == State::Kind::FINAL
+          || excluded_states.find(s->get_kind()) != excluded_states.end())
       {
         continue;
       }
@@ -2023,12 +2101,13 @@ FSM::configure()
     Action* action                                  = std::get<0>(t);
     uint32_t priority                               = std::get<1>(t);
     State* state                                    = std::get<2>(t);
-    std::unordered_set<std::string> excluded_states = std::get<3>(t);
+    std::unordered_set<State::Kind> excluded_states = std::get<3>(t);
     for (const auto& s : d_states)
     {
-      const std::string& id = s->get_id();
-      if (id == "new" || id == "delete" || id == "final"
-          || excluded_states.find(s->get_id()) != excluded_states.end())
+      const auto id = s->get_kind();
+      if (id == State::Kind::NEW || id == State::Kind::DELETE
+          || id == State::Kind::FINAL
+          || excluded_states.find(s->get_kind()) != excluded_states.end())
       {
         continue;
       }
@@ -2117,74 +2196,12 @@ FSM::untrace(std::string& trace_file_name)
     nline += 1;
     if (line[0] == '#') continue;
 
-    std::string id;
+    std::string id_str;
     std::vector<std::string> tokens;
-    tokenize(line, id, tokens);
 
-    if (d_actions.find(id) == d_actions.end())
-    {
-      std::stringstream ss;
-      ss << "untrace: " << trace_file_name << ":" << nline
-         << ": unrecognized keyword '" << id << "'";
-      throw SmtMbtFSMException(ss);
-    }
+    tokenize(line, id_str, tokens);
 
-    /* Make sure that ids for terms/sorts are the same as in the trace. */
-    if (id == "mk-sort" || id == "mk-term" || id == "mk-const"
-        || id == "mk-value" || id == "mk-var")
-    {
-      try
-      {
-        ret_val = d_actions.at(id)->untrace(tokens);
-      }
-      catch (SmtMbtFSMUntraceException& e)
-      {
-        std::stringstream ss;
-        ss << "untrace: " << trace_file_name << ":" << nline << ": "
-           << e.get_msg();
-        throw SmtMbtFSMException(ss);
-      }
-
-      if (std::getline(trace, line))
-      {
-        nline += 1;
-        std::string next_id;
-        std::vector<std::string> next_tokens;
-
-        tokenize(line, next_id, next_tokens);
-
-        if (next_id != "return")
-        {
-          std::stringstream ss;
-          ss << "untrace: " << trace_file_name << ":" << nline << " "
-             << "expected 'return' statement";
-          throw SmtMbtFSMException(ss);
-        }
-
-        if (next_id == "return")
-        {
-          if (next_tokens.size() != 1)
-          {
-            std::stringstream ss;
-            ss << "untrace: " << trace_file_name << ":" << nline << " "
-               << "expected single argument to 'return'";
-            throw SmtMbtFSMException(ss);
-          }
-
-          uint64_t rid = str_to_uint64(next_tokens[0]);
-
-          if (id != "mk-sort")
-          {
-            Term t = d_smgr.get_term(ret_val);
-            d_smgr.register_term(rid, t);
-          }
-        }
-      }
-      ret_val = 0;
-      continue;
-    }
-
-    if (id == "return")
+    if (id_str == "return")
     {
       if (tokens.size() != 1)
       {
@@ -2196,27 +2213,81 @@ FSM::untrace(std::string& trace_file_name)
       uint64_t rid = str_to_uint64(tokens[0]);
       assert(rid == ret_val);
       ret_val = 0;
-      continue;
     }
-    else if (id == "set-seed")
+    else if (id_str == "set-seed")
     {
       std::stringstream sss;
       for (auto t : tokens) sss << " " << t;
       sss >> d_rng.get_engine();
-      continue;
     }
+    else
+    {
+      Action::Kind id = Action::get_kind(id_str);
+      if (id == Action::Kind::UNDEFINED)
+      {
+        std::stringstream ss;
+        ss << "untrace: " << trace_file_name << ":" << nline
+           << ": unrecognized keyword '" << id_str << "'";
+        throw SmtMbtFSMException(ss);
+      }
 
-    assert(d_actions.find(id) != d_actions.end());
-    try
-    {
+      /* Make sure that ids for terms/sorts are the same as in the trace. */
+      if (id == Action::Kind::MK_SORT || id == Action::Kind::MK_TERM
+          || id == Action::Kind::MK_CONST || id == Action::Kind::MK_VALUE
+          || id == Action::Kind::MK_VAR)
+      {
+        assert(d_actions.find(id) != d_actions.end());
+
+        try
+        {
+          ret_val = d_actions.at(id)->untrace(tokens);
+        }
+        catch (SmtMbtFSMUntraceException& e)
+        {
+          std::stringstream ss;
+          ss << "untrace: " << trace_file_name << ":" << nline << ": "
+             << e.get_msg();
+          throw SmtMbtFSMException(ss);
+        }
+
+        if (std::getline(trace, line))
+        {
+          std::string next_id;
+          std::vector<std::string> next_tokens;
+
+          tokenize(line, next_id, next_tokens);
+
+          if (next_id == "return")
+          {
+            if (next_tokens.size() != 1)
+            {
+              std::stringstream ss;
+              ss << "untrace: " << trace_file_name << ":" << nline << " "
+                 << "expected single argument to 'return'";
+              throw SmtMbtFSMException(ss);
+            }
+
+            uint64_t rid = str_to_uint64(next_tokens[0]);
+            if (id != Action::Kind::MK_SORT)
+            {
+              Term t = d_smgr.get_term(ret_val);
+              d_smgr.register_term(rid, t);
+            }
+          }
+          else
+          {
+            std::stringstream ss;
+            ss << "untrace: " << trace_file_name << ":" << nline << " "
+               << "expected 'return' statement";
+            throw SmtMbtFSMException(ss);
+          }
+        }
+        ret_val = 0;
+        continue;
+      }
+
+      assert(d_actions.find(id) != d_actions.end());
       ret_val = d_actions.at(id)->untrace(tokens);
-    }
-    catch (SmtMbtFSMUntraceException& e)
-    {
-      std::stringstream ss;
-      ss << "untrace: " << trace_file_name << ":" << nline << ": "
-         << e.get_msg();
-      throw SmtMbtFSMException(ss);
     }
   }
   if (trace.is_open()) trace.close();

@@ -10,12 +10,15 @@
 #include "solver.hpp"
 #include "solver_option.hpp"
 #include "sort.hpp"
-#include "statistics.hpp"
 #include "term_db.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
 namespace smtmbt {
+
+namespace statistics {
+struct Statistics;
+}
 
 /* -------------------------------------------------------------------------- */
 
