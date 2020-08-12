@@ -154,19 +154,6 @@ TermDb::get_term(uint64_t id) const
   return nullptr;
 }
 
-void
-TermDb::register_term(uint64_t id, Term term)
-{
-  // If we already have a term with given 'id' we don't register the term.
-  if (d_terms.find(id) != d_terms.end())
-  {
-    Term t = get_term(id);
-    assert(term->get_sort() == t->get_sort());
-    return;
-  }
-  d_terms.emplace(id, term);
-}
-
 const TermDb::SortSet
 TermDb::get_sorts() const
 {

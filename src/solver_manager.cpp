@@ -33,7 +33,8 @@ SolverManager::SolverManager(Solver* solver,
       d_trace(trace),
       d_solver_options(options),
       d_used_solver_options(),
-      d_term_db(*this, rng)
+      d_term_db(*this, rng),
+      d_untraced_terms()
 {
   add_enabled_theories(enabled_theories);
   add_sort_kinds();  // adds only sort kinds of enabled theories
@@ -434,13 +435,24 @@ SolverManager::find_term(Term term, Sort sort, SortKind sort_kind)
 Term
 SolverManager::get_term(uint64_t id) const
 {
-  return d_term_db.get_term(id);
+  auto it = d_untraced_terms.find(id);
+  if (it != d_untraced_terms.end()) return it->second;
+  return nullptr;
 }
 
 void
-SolverManager::register_term(uint64_t id, Term term)
+SolverManager::register_term(uint64_t untraced_id, uint64_t term_id)
 {
-  return d_term_db.register_term(id, term);
+  Term term = d_term_db.get_term(term_id);
+
+  // If we already have a term with given 'id' we don't register the term.
+  if (d_untraced_terms.find(untraced_id) != d_untraced_terms.end())
+  {
+    Term t = get_term(untraced_id);
+    assert(t->get_sort() == term->get_sort());
+    return;
+  }
+  d_untraced_terms.emplace(untraced_id, term);
 }
 
 /* -------------------------------------------------------------------------- */

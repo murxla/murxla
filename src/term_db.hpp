@@ -42,9 +42,6 @@ class TermDb
   /** Lookup term by id. */
   Term get_term(uint64_t id) const;
 
-  /** Register additional id for term. */
-  void register_term(uint64_t id, Term term);
-
   /** Returns all term sorts currently in the database. */
   const SortSet get_sorts() const;
 

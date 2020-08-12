@@ -2271,8 +2271,7 @@ FSM::untrace(std::string& trace_file_name)
             uint64_t rid = str_to_uint64(next_tokens[0]);
             if (id != Action::Kind::MK_SORT)
             {
-              Term t = d_smgr.get_term(ret_val);
-              d_smgr.register_term(rid, t);
+              d_smgr.register_term(rid, ret_val);
             }
           }
           else

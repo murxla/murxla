@@ -221,10 +221,10 @@ class SolverManager
   Term get_term(uint64_t id) const;
 
   /**
-   * Register id for given term.
+   * Map an id from a trace to an actual term ID.
    * Note: Only used for untracing.
    */
-  void register_term(uint64_t id, Term term);
+  void register_term(uint64_t untraced_id, uint64_t term_id);
 
   /**
    * Pick sort.
@@ -467,6 +467,8 @@ class SolverManager
 
   /** Term database */
   TermDb d_term_db;
+
+  std::unordered_map<uint64_t, Term> d_untraced_terms;
 };
 
 /* -------------------------------------------------------------------------- */
