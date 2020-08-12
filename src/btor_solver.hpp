@@ -31,6 +31,7 @@ class BtorSort : public AbsSort
   bool is_bool() const override;
   bool is_bv() const override;
   bool is_fp() const override;
+  bool is_int() const override;
   bool is_rm() const override;
   uint32_t get_bv_size() const override;
 

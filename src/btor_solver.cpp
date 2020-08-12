@@ -72,6 +72,12 @@ BtorSort::is_fp() const
 }
 
 bool
+BtorSort::is_int() const
+{
+  return false;
+}
+
+bool
 BtorSort::is_rm() const
 {
   return false;

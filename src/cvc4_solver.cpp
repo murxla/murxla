@@ -65,6 +65,12 @@ CVC4Sort::is_fp() const
 }
 
 bool
+CVC4Sort::is_int() const
+{
+  return d_sort.isInteger();
+}
+
+bool
 CVC4Sort::is_rm() const
 {
   return d_sort.isRoundingMode();
@@ -181,6 +187,7 @@ CVC4Solver::mk_sort(SortKind kind)
   switch (kind)
   {
     case SORT_BOOL: cvc4_res = d_solver->getBooleanSort(); break;
+    case SORT_INT: cvc4_res = d_solver->getIntegerSort(); break;
     case SORT_RM: cvc4_res = d_solver->getRoundingmodeSort(); break;
 
     default: assert(false);
@@ -304,6 +311,56 @@ CVC4Solver::mk_value(Sort sort, uint64_t value)
     case SORT_BV:
       assert(sort->is_bv());
       cvc4_res = d_solver->mkBitVector(sort->get_bv_size(), value);
+      break;
+    case SORT_INT:
+      assert(sort->is_int());
+      cvc4_res = d_solver->mkReal(static_cast<int64_t>(value));
+      break;
+    default: assert(false);
+  }
+  assert(!cvc4_res.isNull());
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
+  assert(res);
+  return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, int64_t value)
+{
+  CVC4::api::Term cvc4_res;
+  CVC4::api::Sort cvc4_sort = get_cvc4_sort(sort);
+  SortKind sort_kind        = sort->get_kind();
+
+  switch (sort_kind)
+  {
+    case SORT_INT:
+      assert(sort->is_int());
+      cvc4_res = d_solver->mkReal(value);
+      break;
+    default: assert(false);
+  }
+  assert(!cvc4_res.isNull());
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
+  assert(res);
+  return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, std::string value)
+{
+  CVC4::api::Term cvc4_res;
+  CVC4::api::Sort cvc4_sort = get_cvc4_sort(sort);
+  SortKind sort_kind        = sort->get_kind();
+
+  switch (sort_kind)
+  {
+    case SORT_INT:
+      assert(sort->is_int());
+      cvc4_res = d_solver->mkReal(value);
       break;
     default: assert(false);
   }
@@ -458,7 +515,17 @@ CVC4Solver::mk_term(const OpKind& kind,
       assert(!d_rng.pick_with_prob(1) || !(cvc4_opterm != cvc4_opterm));
       assert(cvc4_opterm.isIndexed());
       assert(cvc4_opterm.getKind() == cvc4_kind);
-      uint32_t idx = cvc4_opterm.getIndices<uint32_t>();
+      uint32_t idx;
+      if (kind == OP_INT_IS_DIV)
+      {
+        std::string sidx = cvc4_opterm.getIndices<std::string>();
+        /* we only generate 32 bit indices, so this shouldn't throw */
+        idx = str_to_uint32(sidx);
+      }
+      else
+      {
+        idx = cvc4_opterm.getIndices<uint32_t>();
+      }
       assert(idx == params[0]);
       break;
     }
@@ -848,6 +915,19 @@ CVC4Solver::init_op_kinds()
       {OP_FP_TO_REAL, CVC4::api::Kind::FLOATINGPOINT_TO_REAL},
       {OP_FP_TO_SBV, CVC4::api::Kind::FLOATINGPOINT_TO_SBV},
       {OP_FP_TO_UBV, CVC4::api::Kind::FLOATINGPOINT_TO_UBV},
+
+      {OP_INT_IS_DIV, CVC4::api::Kind::DIVISIBLE},
+      {OP_INT_NEG, CVC4::api::Kind::UMINUS},
+      {OP_INT_SUB, CVC4::api::Kind::MINUS},
+      {OP_INT_ADD, CVC4::api::Kind::PLUS},
+      {OP_INT_MUL, CVC4::api::Kind::MULT},
+      {OP_INT_DIV, CVC4::api::Kind::INTS_DIVISION},
+      {OP_INT_MOD, CVC4::api::Kind::INTS_MODULUS},
+      {OP_INT_ABS, CVC4::api::Kind::ABS},
+      {OP_INT_LT, CVC4::api::Kind::LT},
+      {OP_INT_LTE, CVC4::api::Kind::LEQ},
+      {OP_INT_GT, CVC4::api::Kind::GT},
+      {OP_INT_GTE, CVC4::api::Kind::GEQ},
 
       {OP_FORALL, CVC4::api::Kind::FORALL},
       {OP_EXISTS, CVC4::api::Kind::EXISTS},

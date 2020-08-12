@@ -117,6 +117,20 @@ enum OpKind
   OP_FP_SUB,
   OP_FP_TO_REAL,
 
+  /* Ints */
+  OP_INT_IS_DIV,
+  OP_INT_NEG,
+  OP_INT_SUB,
+  OP_INT_ADD,
+  OP_INT_MUL,
+  OP_INT_DIV,
+  OP_INT_MOD,
+  OP_INT_ABS,
+  OP_INT_LT,
+  OP_INT_LTE,
+  OP_INT_GT,
+  OP_INT_GTE,
+
   /* Quantifiers */
   OP_FORALL,
   OP_EXISTS,
@@ -271,6 +285,19 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_FP_SQRT),
         SMTMBT_OP_TO_STR(OP_FP_SUB),
         SMTMBT_OP_TO_STR(OP_FP_TO_REAL),
+
+        SMTMBT_OP_TO_STR(OP_INT_IS_DIV),
+        SMTMBT_OP_TO_STR(OP_INT_NEG),
+        SMTMBT_OP_TO_STR(OP_INT_SUB),
+        SMTMBT_OP_TO_STR(OP_INT_ADD),
+        SMTMBT_OP_TO_STR(OP_INT_MUL),
+        SMTMBT_OP_TO_STR(OP_INT_DIV),
+        SMTMBT_OP_TO_STR(OP_INT_MOD),
+        SMTMBT_OP_TO_STR(OP_INT_ABS),
+        SMTMBT_OP_TO_STR(OP_INT_LT),
+        SMTMBT_OP_TO_STR(OP_INT_LTE),
+        SMTMBT_OP_TO_STR(OP_INT_GT),
+        SMTMBT_OP_TO_STR(OP_INT_GTE),
 
         SMTMBT_OP_TO_STR(OP_FORALL),
         SMTMBT_OP_TO_STR(OP_EXISTS),

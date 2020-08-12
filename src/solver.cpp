@@ -247,6 +247,18 @@ Solver::mk_value(Sort sort, uint64_t value)
 }
 
 Term
+Solver::mk_value(Sort sort, int64_t value)
+{
+  return Term();
+}
+
+Term
+Solver::mk_value(Sort sort, std::string value)
+{
+  return Term();
+}
+
+Term
 Solver::mk_value(Sort sort, std::string value, Base base)
 {
   return Term();

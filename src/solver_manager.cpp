@@ -715,12 +715,15 @@ SolverManager::add_sort_kinds()
         d_sort_kinds.emplace(SORT_ARRAY,
                              SortKindData(SORT_ARRAY, 2, THEORY_ARRAY));
         break;
-      case THEORY_BV:
-        d_sort_kinds.emplace(SORT_BV, SortKindData(SORT_BV, 0, THEORY_BV));
-        break;
       case THEORY_BOOL:
         d_sort_kinds.emplace(SORT_BOOL,
                              SortKindData(SORT_BOOL, 0, THEORY_BOOL));
+        break;
+      case THEORY_BV:
+        d_sort_kinds.emplace(SORT_BV, SortKindData(SORT_BV, 0, THEORY_BV));
+        break;
+      case THEORY_INT:
+        d_sort_kinds.emplace(SORT_INT, SortKindData(SORT_INT, 0, THEORY_INT));
         break;
       case THEORY_FP:
         d_sort_kinds.emplace(SORT_RM, SortKindData(SORT_RM, 0, THEORY_FP));
@@ -912,6 +915,22 @@ SolverManager::add_op_kinds()
             ops, OP_FP_TO_SBV, 2, 1, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
         add_op_kind(
             ops, OP_FP_TO_UBV, 2, 1, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
+        break;
+
+      case SORT_INT:
+        add_op_kind(
+            ops, OP_INT_IS_DIV, 1, 1, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_NEG, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_ABS, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_SUB, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_ADD, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_MUL, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_DIV, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_MOD, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_LT, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_LTE, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_GT, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_GTE, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
         break;
 
       default: assert(sort_kind == SORT_RM);

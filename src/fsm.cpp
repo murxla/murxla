@@ -441,8 +441,6 @@ class ActionMkSort : public Action
         break;
       }
 
-      case SORT_BOOL: _run(kind); break;
-
       case SORT_BV:
         _run(kind, d_rng.pick<uint32_t>(SMTMBT_BW_MIN, SMTMBT_BW_MAX));
         break;
@@ -461,6 +459,8 @@ class ActionMkSort : public Action
         }
         break;
 
+      case SORT_BOOL:
+      case SORT_INT:
       case SORT_RM: _run(kind); break;
 
       default: assert(false);
@@ -532,6 +532,17 @@ class ActionMkSort : public Action
           throw SmtMbtFSMUntraceException(ss);
         }
         res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
+        break;
+
+      case SORT_INT:
+        if (n_tokens != 1)
+        {
+          std::stringstream ss;
+          ss << "unexpected argument(s) to '" << get_id() << "' of sort '"
+             << kind;
+          throw SmtMbtFSMUntraceException(ss);
+        }
+        res = _run(kind);
         break;
 
       case SORT_RM:
@@ -806,6 +817,12 @@ class ActionMkTerm : public Action
           break;
 
           // case OP_FP_TO_FP_FROM_REAL: TODO
+
+        case OP_INT_IS_DIV:
+          assert(sort->is_int());
+          assert(sort_kind == SORT_BOOL);
+          params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          break;
 
         default: assert(false);
       }
@@ -1091,6 +1108,24 @@ class ActionMkValue : public Action
         }
         break;
 
+      case SORT_INT:
+        pick = d_rng.pick_one_of_three();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            _run(sort,
+                 d_rng.pick_dec_string(
+                     d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
+            break;
+          case RNGenerator::Choice::SECOND:
+            _run(sort, d_rng.pick<int64_t>(INT64_MIN, INT64_MAX));
+            break;
+          default:
+            assert(pick == RNGenerator::Choice::THIRD);
+            _run(sort, d_rng.pick<uint64_t>(0u, UINT64_MAX));
+        }
+        break;
+
       case SORT_RM:
         pick = d_rng.pick_one_of_five();
         switch (pick)
@@ -1206,6 +1241,26 @@ class ActionMkValue : public Action
   uint64_t _run(Sort sort, uint64_t val)
   {
     SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    d_smgr.reset_sat();
+    Term res = d_solver.mk_value(sort, val);
+    d_smgr.add_input(res, sort, sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
+  uint64_t _run(Sort sort, int64_t val)
+  {
+    SMTMBT_TRACE << get_id() << " " << sort << " " << val;
+    d_smgr.reset_sat();
+    Term res = d_solver.mk_value(sort, val);
+    d_smgr.add_input(res, sort, sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
+  uint64_t _run(Sort sort, std::string val)
+  {
+    SMTMBT_TRACE << get_id() << " " << sort << " \"" << val << "\"";
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, sort, sort->get_kind());

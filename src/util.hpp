@@ -111,6 +111,8 @@ class RNGenerator
    std::string pick_dec_bin_string(uint32_t bin_len);
    /** Pick hexadecimal string of given length in binary representation. */
    std::string pick_hex_bin_string(uint32_t bin_len);
+   /** Pick decimal string of given length. */
+   std::string pick_dec_string(uint32_t len);
    /** Pick simple symbol string (as defined in SMT-LIB) of given length. */
    std::string pick_simple_symbol(uint32_t len);
    /** Pick piped symbol string (as defined in SMT-LIB) of given length. */

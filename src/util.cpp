@@ -160,6 +160,19 @@ RNGenerator::pick_hex_bin_string(uint32_t bin_len)
 }
 
 std::string
+RNGenerator::pick_dec_string(uint32_t len)
+{
+  assert(len);
+  std::string str(len, 0);
+  std::generate_n(str.begin(), len, [this]() {
+    return pick_from_set<std::vector<char>, char>(
+        {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'});
+  });
+  std::cout << "### " << str << std::endl;
+  return str;
+}
+
+std::string
 RNGenerator::pick_simple_symbol(uint32_t len)
 {
   std::string s = pick_string(d_simple_symbol_char_set, len);

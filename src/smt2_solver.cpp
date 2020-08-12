@@ -37,6 +37,12 @@ Smt2Sort::is_bv() const
 }
 
 bool
+Smt2Sort::is_int() const
+{
+  return d_kind == SORT_INT;
+}
+
+bool
 Smt2Sort::is_fp() const
 {
   return d_kind == SORT_FP;
@@ -376,6 +382,25 @@ Smt2Solver::mk_value(Sort sort, bool value)
 }
 
 Term
+Smt2Solver::mk_value(Sort sort, int64_t value)
+{
+  SortKind sort_kind = sort->get_kind();
+  std::stringstream val;
+
+  switch (sort_kind)
+  {
+    case SORT_INT:
+      assert(sort->is_int());
+      val << value;
+      break;
+
+    default: assert(false);
+  }
+  return std::shared_ptr<Smt2Term>(new Smt2Term(
+      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+}
+
+Term
 Smt2Solver::mk_value(Sort sort, uint64_t value)
 {
   SortKind sort_kind = sort->get_kind();
@@ -386,6 +411,30 @@ Smt2Solver::mk_value(Sort sort, uint64_t value)
     case SORT_BV:
       assert(sort->is_bv());
       val << "(_ bv" << value << " " << sort->get_bv_size() << ")";
+      break;
+
+    case SORT_INT:
+      assert(sort->is_int());
+      val << value;
+      break;
+
+    default: assert(false);
+  }
+  return std::shared_ptr<Smt2Term>(new Smt2Term(
+      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+}
+
+Term
+Smt2Solver::mk_value(Sort sort, std::string value)
+{
+  SortKind sort_kind = sort->get_kind();
+  std::stringstream val;
+
+  switch (sort_kind)
+  {
+    case SORT_INT:
+      assert(sort->is_int());
+      val << value;
       break;
 
     default: assert(false);
@@ -477,6 +526,12 @@ get_bool_sort_string()
 }
 
 static std::string
+get_int_sort_string()
+{
+  return "Int";
+}
+
+static std::string
 get_rm_sort_string()
 {
   return "RoundingMode";
@@ -525,6 +580,7 @@ Smt2Solver::mk_sort(SortKind kind)
   switch (kind)
   {
     case SORT_BOOL: sort = get_bool_sort_string(); break;
+    case SORT_INT: sort = get_int_sort_string(); break;
     case SORT_RM: sort = get_rm_sort_string(); break;
     default: assert(false);
   }
@@ -605,6 +661,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
   switch (sort_kind)
   {
     case SORT_BOOL: sort = get_bool_sort_string(); break;
+
+    case SORT_INT: sort = get_int_sort_string(); break;
 
     case SORT_RM: sort = get_rm_sort_string(); break;
 

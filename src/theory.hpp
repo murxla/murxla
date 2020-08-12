@@ -13,6 +13,7 @@ enum TheoryId
   THEORY_BOOL,
   THEORY_BV,
   THEORY_FP,
+  THEORY_INT,
   THEORY_QUANT,
   THEORY_ALL, /* must be last */
 };
