@@ -118,7 +118,6 @@ enum OpKind
   OP_FP_TO_REAL,
 
   /* Quantifiers */
-
   OP_FORALL,
   OP_EXISTS,
 

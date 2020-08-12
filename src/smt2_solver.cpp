@@ -143,11 +143,29 @@ Smt2Term::get_repr() const
     return d_repr;
   }
 
+  size_t i = 0;
   assert(d_op_kind_to_str.find(d_kind) != d_op_kind_to_str.end());
   std::stringstream res;
   if (d_params.size() == 0)
   {
     res << "(" << d_op_kind_to_str.at(d_kind);
+    if (d_kind == OP_FORALL || d_kind == OP_EXISTS)
+    {
+      assert(d_args.size() > 1);
+      /* print bound variables, body is last argument term in d_args */
+      res << " (";
+      for (size_t size = d_args.size() - 1; i < size; ++i)
+      {
+        if (i > 0) res << " ";
+        Smt2Term* smt2_term = static_cast<Smt2Term*>(d_args[i].get());
+        assert(smt2_term->d_leaf_kind == LeafKind::VAR);
+        Smt2Sort* smt2_sort =
+            static_cast<Smt2Sort*>(d_args[i]->get_sort().get());
+        res << "(" << smt2_term->get_repr() << " " << smt2_sort->get_repr()
+            << ")";
+      }
+      res << ")";
+    }
   }
   else
   {
@@ -158,9 +176,9 @@ Smt2Term::get_repr() const
     }
     res << ")";
   }
-  for (const Term& t : d_args)
+  for (size_t size = d_args.size(); i < size; ++i)
   {
-    Smt2Term* smt2_term = static_cast<Smt2Term*>(t.get());
+    Smt2Term* smt2_term = static_cast<Smt2Term*>(d_args[i].get());
     res << " " << smt2_term->get_repr();
   }
   res << ")";
@@ -309,33 +327,40 @@ Smt2Solver::get_unsupported_op_kinds() const
 }
 
 Term
-Smt2Solver::mk_var(Sort sort, const std::string name)
+Smt2Solver::mk_var(Sort sort, const std::string& name)
 {
-  // TODO
-  return nullptr;
+  std::string symbol = name;
+  if (name.empty())
+  {
+    std::stringstream ss;
+    ss << "_v" << d_n_unnamed_vars++;
+    symbol = ss.str();
+  }
+  return std::shared_ptr<Smt2Term>(new Smt2Term(
+      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VAR, symbol));
 }
 
 Term
-Smt2Solver::mk_const(Sort sort, const std::string name)
+Smt2Solver::mk_const(Sort sort, const std::string& name)
 {
   std::stringstream smt2;
-  std::string n = name;
+  std::string symbol = name;
   if (name.empty())
   {
     std::stringstream ss;
     ss << "_c" << d_n_unnamed_consts++;
-    n = ss.str();
+    symbol = ss.str();
   }
   Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(sort.get());
-  smt2 << "(declare-const " << n << " " << smt2_sort->get_repr() << ")"
+  smt2 << "(declare-const " << symbol << " " << smt2_sort->get_repr() << ")"
        << std::endl;
   dump_smt2(smt2.str());
-  return std::shared_ptr<Smt2Term>(
-      new Smt2Term(OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::CONST, n));
+  return std::shared_ptr<Smt2Term>(new Smt2Term(
+      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::CONST, symbol));
 }
 
 Term
-Smt2Solver::mk_fun(Sort sort, const std::string name)
+Smt2Solver::mk_fun(Sort sort, const std::string& name)
 {
   // TODO
   return nullptr;

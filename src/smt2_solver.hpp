@@ -184,6 +184,10 @@ class Smt2Term : public AbsTerm
       {OP_FP_SQRT, "fp.sqrt"},
       {OP_FP_SUB, "fp.sub"},
       {OP_FP_TO_REAL, "fp.to_real"},
+
+      /* Quantifiers */
+      {OP_FORALL, "forall"},
+      {OP_EXISTS, "exists"},
   };
 };
 
@@ -204,9 +208,9 @@ class Smt2Solver : public Solver
 
   OpKindSet get_unsupported_op_kinds() const override;
 
-  Term mk_var(Sort sort, const std::string name) override;
-  Term mk_const(Sort sort, const std::string name) override;
-  Term mk_fun(Sort sort, const std::string name) override;
+  Term mk_var(Sort sort, const std::string& name) override;
+  Term mk_const(Sort sort, const std::string& name) override;
+  Term mk_fun(Sort sort, const std::string& name) override;
 
   Term mk_value(Sort sort, bool value) override;
   Term mk_value(Sort sort, uint64_t value) override;
@@ -274,6 +278,7 @@ class Smt2Solver : public Solver
   bool d_model_gen            = false;
   bool d_unsat_assumptions    = false;
   uint32_t d_n_unnamed_consts = 0;
+  uint32_t d_n_unnamed_vars   = 0;
   ResponseKind d_response     = SMT2_SUCCESS;
 };
 

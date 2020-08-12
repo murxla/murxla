@@ -97,11 +97,11 @@ class BtorSolver : public Solver
 
   BoolectorNode* get_btor_term(Term term) const;
 
-  Term mk_var(Sort sort, const std::string name) override;
+  Term mk_var(Sort sort, const std::string& name) override;
 
-  Term mk_const(Sort sort, const std::string name) override;
+  Term mk_const(Sort sort, const std::string& name) override;
 
-  Term mk_fun(Sort sort, const std::string name) override
+  Term mk_fun(Sort sort, const std::string& name) override
   {  // TODO:
     return nullptr;
   }

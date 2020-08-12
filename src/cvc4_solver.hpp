@@ -90,9 +90,9 @@ class CVC4Solver : public Solver
   std::vector<CVC4::api::Term> terms_to_cvc4_terms(
       std::vector<Term>& terms) const;
 
-  Term mk_var(Sort sort, const std::string name) override;
+  Term mk_var(Sort sort, const std::string& name) override;
 
-  Term mk_fun(Sort sort, const std::string name) override
+  Term mk_fun(Sort sort, const std::string& name) override
   {  // TODO:
     return nullptr;
   }
@@ -113,7 +113,7 @@ class CVC4Solver : public Solver
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
-  Term mk_const(Sort sort, const std::string name) override;
+  Term mk_const(Sort sort, const std::string& name) override;
   Term mk_term(const OpKind& kind,
                std::vector<Term>& args,
                std::vector<uint32_t>& params) override;

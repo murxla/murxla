@@ -250,7 +250,7 @@ CVC4Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 }
 
 Term
-CVC4Solver::mk_const(Sort sort, const std::string name)
+CVC4Solver::mk_const(Sort sort, const std::string& name)
 {
   CVC4::api::Term cvc4_res = d_solver->mkConst(get_cvc4_sort(sort), name);
   assert(!cvc4_res.isNull());
@@ -260,7 +260,7 @@ CVC4Solver::mk_const(Sort sort, const std::string name)
 }
 
 Term
-CVC4Solver::mk_var(Sort sort, const std::string name)
+CVC4Solver::mk_var(Sort sort, const std::string& name)
 {
   CVC4::api::Term cvc4_res = d_solver->mkVar(get_cvc4_sort(sort), name);
   assert(!cvc4_res.isNull());

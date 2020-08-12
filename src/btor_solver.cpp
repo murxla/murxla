@@ -232,7 +232,7 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 }
 
 Term
-BtorSolver::mk_var(Sort sort, const std::string name)
+BtorSolver::mk_var(Sort sort, const std::string& name)
 {
   BoolectorNode* btor_res;
   std::stringstream ss;
@@ -257,7 +257,7 @@ BtorSolver::mk_var(Sort sort, const std::string name)
 }
 
 Term
-BtorSolver::mk_const(Sort sort, const std::string name)
+BtorSolver::mk_const(Sort sort, const std::string& name)
 {
   BoolectorNode* btor_res;
   std::stringstream ss;
