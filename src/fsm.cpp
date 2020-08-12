@@ -58,7 +58,7 @@ const std::unordered_map<Action::Kind, std::string> Action::s_kind_to_str = {
     {Action::Kind::SET_OPTION, "set-option"},
 
     /* default for all transitions */
-    {Action::Kind::TRANS, ""},
+    {Action::Kind::TRANS, "t_default"},
     {Action::Kind::TRANS_CREATE_INPUTS, "t_inputs"},
     {Action::Kind::TRANS_CREATE_SORTS, "t_sorts"},
     {Action::Kind::TRANS_MODEL, "t_model"},

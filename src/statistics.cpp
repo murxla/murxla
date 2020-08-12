@@ -11,7 +11,8 @@ Statistics::print() const
   uint64_t sum = 0;
 
   std::cout << "States:" << std::endl;
-  for (uint32_t i = 0; i < State::Kind::NUM_STATES; ++i)
+  for (uint32_t i = State::Kind::UNDEFINED + 1; i < State::Kind::NUM_STATES;
+       ++i)
   {
     std::cout << "  " << static_cast<State::Kind>(i) << ": " << d_states[i]
               << std::endl;
@@ -21,7 +22,8 @@ Statistics::print() const
 
   sum = 0;
   std::cout << "Actions:" << std::endl;
-  for (uint32_t i = 0; i < Action::Kind::NUM_ACTIONS; ++i)
+  for (uint32_t i = Action::Kind::UNDEFINED + 1; i < Action::Kind::NUM_ACTIONS;
+       ++i)
   {
     std::cout << "  " << static_cast<Action::Kind>(i) << ": " << d_actions[i]
               << " (" << d_actions_ok[i] << ")" << std::endl;
