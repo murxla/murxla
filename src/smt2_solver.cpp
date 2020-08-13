@@ -296,15 +296,15 @@ Smt2Solver::new_solver()
   d_initialized = true;
   if (d_online)
   {
-    dump_smt2("(set-option :print-success true)\n");
+    dump_smt2("(set-option :print-success true)");
   }
-  dump_smt2("(set-logic ALL)\n");
+  dump_smt2("(set-logic ALL)");
 }
 
 void
 Smt2Solver::delete_solver()
 {
-  dump_smt2("(exit)\n");
+  dump_smt2("(exit)");
 }
 
 bool
@@ -358,8 +358,7 @@ Smt2Solver::mk_const(Sort sort, const std::string& name)
     symbol = ss.str();
   }
   Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(sort.get());
-  smt2 << "(declare-const " << symbol << " " << smt2_sort->get_repr() << ")"
-       << std::endl;
+  smt2 << "(declare-const " << symbol << " " << smt2_sort->get_repr() << ")";
   dump_smt2(smt2.str());
   return std::shared_ptr<Smt2Term>(new Smt2Term(
       OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::CONST, symbol));
@@ -743,14 +742,14 @@ Smt2Solver::assert_formula(const Term& t) const
 {
   std::stringstream smt2;
   Smt2Term* smt2_term = static_cast<Smt2Term*>(t.get());
-  smt2 << "(assert " << smt2_term->get_repr() << ")" << std::endl;
+  smt2 << "(assert " << smt2_term->get_repr() << ")";
   dump_smt2(smt2.str());
 }
 
 Solver::Result
 Smt2Solver::check_sat() const
 {
-  dump_smt2("(check-sat)\n");
+  dump_smt2("(check-sat)");
   return Solver::Result::UNKNOWN;
 }
 
@@ -765,7 +764,7 @@ Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions) const
     if (i > 0) smt2 << " ";
     smt2 << smt2_term->get_repr();
   }
-  smt2 << "))" << std::endl;
+  smt2 << "))";
   dump_smt2(smt2.str());
   return Solver::Result::UNKNOWN;
 }
@@ -773,7 +772,7 @@ Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions) const
 std::vector<Term>
 Smt2Solver::get_unsat_assumptions() const
 {
-  dump_smt2("(get-unsat-assumptions)\n");
+  dump_smt2("(get-unsat-assumptions)");
   return std::vector<Term>();
 }
 
@@ -781,7 +780,7 @@ void
 Smt2Solver::push(uint32_t n_levels) const
 {
   std::stringstream smt2;
-  smt2 << "(push " << n_levels << ")" << std::endl;
+  smt2 << "(push " << n_levels << ")";
   dump_smt2(smt2.str());
 }
 
@@ -789,27 +788,27 @@ void
 Smt2Solver::pop(uint32_t n_levels) const
 {
   std::stringstream smt2;
-  smt2 << "(pop " << n_levels << ")" << std::endl;
+  smt2 << "(pop " << n_levels << ")";
   dump_smt2(smt2.str());
 }
 
 void
 Smt2Solver::print_model() const
 {
-  dump_smt2("(get-model)\n");
+  dump_smt2("(get-model)");
 }
 
 void
 Smt2Solver::reset_assertions() const
 {
-  dump_smt2("(reset-assertions)\n");
+  dump_smt2("(reset-assertions)");
 }
 
 void
 Smt2Solver::set_opt(const std::string& opt, const std::string& value)
 {
   std::stringstream smt2;
-  smt2 << "(set-option :" << opt << " " << value << std::endl;
+  smt2 << "(set-option :" << opt << " " << value << ")";
   dump_smt2(smt2.str());
   if (opt == get_option_name_incremental())
   {
@@ -878,7 +877,7 @@ Smt2Solver::get_value(std::vector<Term>& terms) const
     if (i > 0) smt2 << " ";
     smt2 << smt2_term->get_repr();
   }
-  smt2 << "))" << std::endl;
+  smt2 << "))";
   dump_smt2(smt2.str());
   return terms;
 }

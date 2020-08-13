@@ -186,6 +186,20 @@ class Smt2Term : public AbsTerm
       {OP_FP_SUB, "fp.sub"},
       {OP_FP_TO_REAL, "fp.to_real"},
 
+      /* Ints */
+      {OP_INT_IS_DIV, "divisible"},
+      {OP_INT_NEG, "-"},
+      {OP_INT_SUB, "-"},
+      {OP_INT_ADD, "+"},
+      {OP_INT_MUL, "*"},
+      {OP_INT_DIV, "div"},
+      {OP_INT_MOD, "mod"},
+      {OP_INT_ABS, "abs"},
+      {OP_INT_LT, "<"},
+      {OP_INT_LTE, "<="},
+      {OP_INT_GT, ">"},
+      {OP_INT_GTE, ">="},
+
       /* Quantifiers */
       {OP_FORALL, "forall"},
       {OP_EXISTS, "exists"},
