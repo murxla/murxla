@@ -160,7 +160,7 @@ RNGenerator::pick_hex_bin_string(uint32_t bin_len)
 }
 
 std::string
-RNGenerator::pick_dec_string(uint32_t len)
+RNGenerator::pick_dec_int_string(uint32_t len)
 {
   assert(len);
   std::string str(len, 0);

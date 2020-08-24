@@ -1168,9 +1168,9 @@ class ActionMkValue : public Action
         break;
 
       case SORT_INT:
-        _run(
-            sort,
-            d_rng.pick_dec_string(d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
+        _run(sort,
+             d_rng.pick_dec_int_string(
+                 d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
         break;
 
       case SORT_RM:
