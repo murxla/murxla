@@ -468,6 +468,7 @@ class SolverManager
   /** Term database */
   TermDb d_term_db;
 
+  /** Map untraced ids to corresponding Terms. */
   std::unordered_map<uint64_t, Term> d_untraced_terms;
 };
 

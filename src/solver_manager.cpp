@@ -52,6 +52,7 @@ SolverManager::clear()
   d_sort_kind_to_sorts.clear();
   d_term_db.clear();
   d_assumptions.clear();
+  d_untraced_terms.clear();
 }
 
 /* -------------------------------------------------------------------------- */
