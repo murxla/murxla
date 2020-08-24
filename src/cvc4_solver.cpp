@@ -300,56 +300,6 @@ CVC4Solver::mk_value(Sort sort, bool value)
 }
 
 Term
-CVC4Solver::mk_value(Sort sort, uint64_t value)
-{
-  CVC4::api::Term cvc4_res;
-  CVC4::api::Sort cvc4_sort = get_cvc4_sort(sort);
-  SortKind sort_kind        = sort->get_kind();
-
-  switch (sort_kind)
-  {
-    case SORT_BV:
-      assert(sort->is_bv());
-      cvc4_res = d_solver->mkBitVector(sort->get_bv_size(), value);
-      break;
-    case SORT_INT:
-      assert(sort->is_int());
-      cvc4_res = d_solver->mkReal(static_cast<int64_t>(value));
-      break;
-    default: assert(false);
-  }
-  assert(!cvc4_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
-  assert(res);
-  return res;
-}
-
-Term
-CVC4Solver::mk_value(Sort sort, int64_t value)
-{
-  CVC4::api::Term cvc4_res;
-  CVC4::api::Sort cvc4_sort = get_cvc4_sort(sort);
-  SortKind sort_kind        = sort->get_kind();
-
-  switch (sort_kind)
-  {
-    case SORT_INT:
-      assert(sort->is_int());
-      cvc4_res = d_solver->mkReal(value);
-      break;
-    default: assert(false);
-  }
-  assert(!cvc4_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
-  assert(res);
-  return res;
-}
-
-Term
 CVC4Solver::mk_value(Sort sort, std::string value)
 {
   CVC4::api::Term cvc4_res;
@@ -360,7 +310,15 @@ CVC4Solver::mk_value(Sort sort, std::string value)
   {
     case SORT_INT:
       assert(sort->is_int());
-      cvc4_res = d_solver->mkReal(value);
+      if (d_rng.flip_coin())
+      {
+        cvc4_res = d_solver->mkReal(
+            static_cast<int64_t>(strtoull(value.c_str(), nullptr, 16)));
+      }
+      else
+      {
+        cvc4_res = d_solver->mkReal(value);
+      }
       break;
     default: assert(false);
   }
@@ -384,21 +342,45 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base)
   switch (base)
   {
     case DEC:
-      cvc4_res = d_rng.flip_coin()
-                     ? d_solver->mkBitVector(bw, value, 10)
-                     : d_solver->mkBitVector(bw, value.c_str(), 10);
+      if (d_rng.flip_coin())
+      {
+        cvc4_res =
+            d_solver->mkBitVector(bw, strtoull(value.c_str(), nullptr, 10));
+      }
+      else
+      {
+        cvc4_res = d_rng.flip_coin()
+                       ? d_solver->mkBitVector(bw, value, 10)
+                       : d_solver->mkBitVector(bw, value.c_str(), 10);
+      }
       break;
 
     case HEX:
-      cvc4_res = d_rng.flip_coin()
-                     ? d_solver->mkBitVector(bw, value, 16)
-                     : d_solver->mkBitVector(bw, value.c_str(), 16);
+      if (d_rng.flip_coin())
+      {
+        cvc4_res =
+            d_solver->mkBitVector(bw, strtoull(value.c_str(), nullptr, 16));
+      }
+      else
+      {
+        cvc4_res = d_rng.flip_coin()
+                       ? d_solver->mkBitVector(bw, value, 16)
+                       : d_solver->mkBitVector(bw, value.c_str(), 16);
+      }
       break;
 
     default:
       assert(base == BIN);
-      cvc4_res = d_rng.flip_coin() ? d_solver->mkBitVector(value, 2)
-                                   : d_solver->mkBitVector(value.c_str(), 2);
+      if (d_rng.flip_coin())
+      {
+        cvc4_res =
+            d_solver->mkBitVector(bw, strtoull(value.c_str(), nullptr, 2));
+      }
+      else
+      {
+        cvc4_res = d_rng.flip_coin() ? d_solver->mkBitVector(value, 2)
+                                     : d_solver->mkBitVector(value.c_str(), 2);
+      }
   }
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);

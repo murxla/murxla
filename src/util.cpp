@@ -269,18 +269,21 @@ bv_special_value_max_signed_uint64(uint32_t bw)
 bool
 is_bv_special_value_ones_uint64(uint32_t bw, uint64_t value)
 {
+  if (bw > 64) return false;
   return value == bv_special_value_ones_uint64(bw);
 }
 
 bool
 is_bv_special_value_min_signed_uint64(uint32_t bw, uint64_t value)
 {
+  if (bw > 64) return false;
   return value == bv_special_value_min_signed_uint64(bw);
 }
 
 bool
 is_bv_special_value_max_signed_uint64(uint32_t bw, uint64_t value)
 {
+  if (bw > 64) return false;
   return value == bv_special_value_max_signed_uint64(bw);
 }
 

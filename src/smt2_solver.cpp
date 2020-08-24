@@ -381,49 +381,6 @@ Smt2Solver::mk_value(Sort sort, bool value)
 }
 
 Term
-Smt2Solver::mk_value(Sort sort, int64_t value)
-{
-  SortKind sort_kind = sort->get_kind();
-  std::stringstream val;
-
-  switch (sort_kind)
-  {
-    case SORT_INT:
-      assert(sort->is_int());
-      val << value;
-      break;
-
-    default: assert(false);
-  }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
-}
-
-Term
-Smt2Solver::mk_value(Sort sort, uint64_t value)
-{
-  SortKind sort_kind = sort->get_kind();
-  std::stringstream val;
-
-  switch (sort_kind)
-  {
-    case SORT_BV:
-      assert(sort->is_bv());
-      val << "(_ bv" << value << " " << sort->get_bv_size() << ")";
-      break;
-
-    case SORT_INT:
-      assert(sort->is_int());
-      val << value;
-      break;
-
-    default: assert(false);
-  }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
-}
-
-Term
 Smt2Solver::mk_value(Sort sort, std::string value)
 {
   SortKind sort_kind = sort->get_kind();

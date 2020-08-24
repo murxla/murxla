@@ -175,8 +175,6 @@ class Solver
   virtual Term mk_fun(Sort sort, const std::string& name)   = 0;
 
   virtual Term mk_value(Sort sort, bool value) = 0;
-  virtual Term mk_value(Sort sort, int64_t value);
-  virtual Term mk_value(Sort sort, uint64_t value);
   virtual Term mk_value(Sort sort, std::string value);
   virtual Term mk_value(Sort sort, std::string value, Base base);
   virtual Term mk_value(Sort sort, SpecialValueFP value);

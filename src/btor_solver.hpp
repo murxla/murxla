@@ -108,7 +108,6 @@ class BtorSolver : public Solver
   }
 
   Term mk_value(Sort sort, bool value) override;
-  Term mk_value(Sort sort, uint64_t value) override;
   Term mk_value(Sort sort, std::string value, Base base) override;
 
   Sort mk_sort(const std::string name, uint32_t arity) override
@@ -163,6 +162,7 @@ class BtorSolver : public Solver
   void check_is_bv_const(SpecialValueBV kind, BoolectorNode* node) const;
 
   BoolectorSort get_btor_sort(Sort sort) const;
+  BoolectorNode* mk_value_bv_uint64 (Sort sort, uint64_t value);
   BoolectorNode* mk_term_left_assoc(
       std::vector<Term>& args,
       BoolectorNode* (*fun)(Btor*, BoolectorNode*, BoolectorNode*) ) const;

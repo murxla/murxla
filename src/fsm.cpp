@@ -1132,26 +1132,16 @@ class ActionMkValue : public Action
       {
         uint32_t bw = sort->get_bv_size();
 
-        if (bw <= 64 && d_rng.flip_coin())
+        std::vector<Solver::Base> bases;
+        for (auto b : d_solver.get_bases())
         {
-          /* value: uint64_t */
-          _run(sort, mk_value_bv_uint64(bw));
+          /* can not be expressed in hex */
+          if (b == Solver::Base::HEX && bw % 4) continue;
+          bases.push_back(b);
         }
-        else
-        {
-          /* value: string */
-          std::vector<Solver::Base> bases;
-          for (auto b : d_solver.get_bases())
-          {
-            /* can not be expressed in hex */
-            if (b == Solver::Base::HEX && bw % 4) continue;
-            bases.push_back(b);
-          }
-          Solver::Base base =
-              d_rng.pick_from_set<std::vector<Solver::Base>, Solver::Base>(
-                  bases);
-          _run(sort, mk_value_bv_str(bw, base), base);
-        }
+        Solver::Base base =
+            d_rng.pick_from_set<std::vector<Solver::Base>, Solver::Base>(bases);
+        _run(sort, mk_value_bv_str(bw, base), base);
       }
       break;
 
@@ -1178,21 +1168,9 @@ class ActionMkValue : public Action
         break;
 
       case SORT_INT:
-        pick = d_rng.pick_one_of_three();
-        switch (pick)
-        {
-          case RNGenerator::Choice::FIRST:
-            _run(sort,
-                 d_rng.pick_dec_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
-            break;
-          case RNGenerator::Choice::SECOND:
-            _run(sort, d_rng.pick<int64_t>(INT64_MIN, INT64_MAX));
-            break;
-          default:
-            assert(pick == RNGenerator::Choice::THIRD);
-            _run(sort, d_rng.pick<uint64_t>(0u, UINT64_MAX));
-        }
+        _run(
+            sort,
+            d_rng.pick_dec_string(d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
         break;
 
       case SORT_RM:
@@ -1301,26 +1279,6 @@ class ActionMkValue : public Action
   {
     SMTMBT_TRACE << get_kind() << " " << sort << " "
                  << (val ? "true" : "false");
-    d_smgr.reset_sat();
-    Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
-    return res->get_id();
-  }
-
-  uint64_t _run(Sort sort, uint64_t val)
-  {
-    SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
-    d_smgr.reset_sat();
-    Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
-    return res->get_id();
-  }
-
-  uint64_t _run(Sort sort, int64_t val)
-  {
-    SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_input(res, sort, sort->get_kind());

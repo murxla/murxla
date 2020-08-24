@@ -2,6 +2,7 @@
 
 #include <bitset>
 #include <cassert>
+#include <cstdlib>
 
 #include "theory.hpp"
 #include "util.hpp"
@@ -348,8 +349,8 @@ BtorSolver::mk_value(Sort sort, bool value)
   return res;
 }
 
-Term
-BtorSolver::mk_value(Sort sort, uint64_t value)
+BoolectorNode*
+BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 {
   assert(sort->is_bv());
 
@@ -436,10 +437,7 @@ BtorSolver::mk_value(Sort sort, uint64_t value)
   }
   assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
   assert(btor_res);
-  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
-  assert(res);
-  boolector_release(d_solver, btor_res);
-  return res;
+  return btor_res;
 }
 
 Term
@@ -453,31 +451,57 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
   switch (base)
   {
     case HEX:
-      btor_res = boolector_consth(d_solver, btor_sort, value.c_str());
-      if (d_rng.pick_with_prob(10))
+      if (d_rng.flip_coin())
       {
-        const char* bits = boolector_get_bits(d_solver, btor_res);
-        assert(str_bin_to_hex(bits) == value);
-        boolector_free_bits(d_solver, bits);
+        btor_res =
+            mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 16));
+      }
+      else
+      {
+        btor_res = boolector_consth(d_solver, btor_sort, value.c_str());
+        if (d_rng.pick_with_prob(10))
+        {
+          const char* bits = boolector_get_bits(d_solver, btor_res);
+          assert(str_bin_to_hex(bits) == value);
+          boolector_free_bits(d_solver, bits);
+        }
       }
       break;
+
     case DEC:
-      btor_res = boolector_constd(d_solver, btor_sort, value.c_str());
-      if (d_rng.pick_with_prob(10))
+      if (d_rng.flip_coin())
       {
-        const char* bits = boolector_get_bits(d_solver, btor_res);
-        assert(str_bin_to_dec(bits) == value);
-        boolector_free_bits(d_solver, bits);
+        btor_res =
+            mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 10));
+      }
+      else
+      {
+        btor_res = boolector_constd(d_solver, btor_sort, value.c_str());
+        if (d_rng.pick_with_prob(10))
+        {
+          const char* bits = boolector_get_bits(d_solver, btor_res);
+          assert(str_bin_to_dec(bits) == value);
+          boolector_free_bits(d_solver, bits);
+        }
       }
       break;
+
     default:
       assert(base == BIN);
-      btor_res = boolector_const(d_solver, value.c_str());
-      if (d_rng.pick_with_prob(10))
+      if (d_rng.flip_coin())
       {
-        const char* bits = boolector_get_bits(d_solver, btor_res);
-        assert(bits == value);
-        boolector_free_bits(d_solver, bits);
+        btor_res =
+            mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 2));
+      }
+      else
+      {
+        btor_res = boolector_const(d_solver, value.c_str());
+        if (d_rng.pick_with_prob(10))
+        {
+          const char* bits = boolector_get_bits(d_solver, btor_res);
+          assert(bits == value);
+          boolector_free_bits(d_solver, bits);
+        }
       }
   }
   assert(btor_res);

@@ -241,18 +241,6 @@ Solver::get_special_values_bv() const
 }
 
 Term
-Solver::mk_value(Sort sort, uint64_t value)
-{
-  return Term();
-}
-
-Term
-Solver::mk_value(Sort sort, int64_t value)
-{
-  return Term();
-}
-
-Term
 Solver::mk_value(Sort sort, std::string value)
 {
   return Term();
