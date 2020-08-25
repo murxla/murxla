@@ -19,12 +19,14 @@ SolverManager::SolverManager(Solver* solver,
                              RNGenerator& rng,
                              std::ostream& trace,
                              SolverOptions& options,
+                             bool arith_linear,
                              bool trace_seeds,
                              bool cross_check,
                              bool simple_symbols,
                              statistics::Statistics* stats,
                              TheoryIdVector& enabled_theories)
     : d_mbt_stats(stats),
+      d_arith_linear(arith_linear),
       d_trace_seeds(trace_seeds),
       d_cross_check(cross_check),
       d_simple_symbols(simple_symbols),
@@ -123,6 +125,15 @@ SolverManager::get_n_terms(SortKind sort_kind)
 }
 
 /* -------------------------------------------------------------------------- */
+
+void
+SolverManager::add_value(Term& term, Sort& sort, SortKind sort_kind)
+{
+  assert(term.get());
+
+  term->set_is_value(true);
+  add_input(term, sort, sort_kind);
+}
 
 void
 SolverManager::add_input(Term& term, Sort& sort, SortKind sort_kind)
@@ -308,6 +319,12 @@ SolverManager::pick_theory(bool with_terms)
 /* -------------------------------------------------------------------------- */
 
 Term
+SolverManager::pick_value(Sort sort)
+{
+  return d_term_db.pick_value(sort);
+}
+
+Term
 SolverManager::pick_term(Sort sort)
 {
   return d_term_db.pick_term(sort);
@@ -377,6 +394,12 @@ SolverManager::reset_sat()
 {
   clear_assumptions();
   d_sat_called = false;
+}
+
+bool
+SolverManager::has_value(Sort sort) const
+{
+  return d_term_db.has_value(sort);
 }
 
 bool
@@ -942,8 +965,11 @@ SolverManager::add_op_kinds()
         add_op_kind(ops, OP_INT_SUB, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
         add_op_kind(ops, OP_INT_ADD, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
         add_op_kind(ops, OP_INT_MUL, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-        add_op_kind(ops, OP_INT_DIV, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-        add_op_kind(ops, OP_INT_MOD, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        if (!d_arith_linear)
+        {
+          add_op_kind(ops, OP_INT_DIV, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+          add_op_kind(ops, OP_INT_MOD, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        }
         add_op_kind(ops, OP_INT_LT, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
         add_op_kind(ops, OP_INT_LTE, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
         add_op_kind(ops, OP_INT_GT, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
@@ -959,8 +985,11 @@ SolverManager::add_op_kinds()
             ops, OP_REAL_ADD, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
         add_op_kind(
             ops, OP_REAL_MUL, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-        add_op_kind(
-            ops, OP_REAL_DIV, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+        if (!d_arith_linear)
+        {
+          add_op_kind(
+              ops, OP_REAL_DIV, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+        }
         add_op_kind(ops, OP_REAL_LT, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
         add_op_kind(
             ops, OP_REAL_LTE, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);

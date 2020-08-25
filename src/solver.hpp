@@ -88,11 +88,15 @@ class AbsTerm
   void set_levels(const std::vector<uint64_t>& levels);
   const std::vector<uint64_t>& get_levels() const;
 
+  void set_is_value(bool is_value);
+  bool is_value();
+
  protected:
   uint64_t d_id = 0u;
   Sort d_sort = nullptr;
 
  private:
+  bool d_is_value                = false;
   std::vector<uint64_t> d_levels = {};
 };
 

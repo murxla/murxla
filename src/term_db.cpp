@@ -161,6 +161,25 @@ TermDb::get_sorts() const
 }
 
 bool
+TermDb::has_value(Sort sort) const
+{
+  assert(sort != nullptr);
+  if (d_term_sorts.find(sort) == d_term_sorts.end()) return false;
+  SortKind sort_kind = sort->get_kind();
+  for (const auto& level : d_term_db)
+  {
+    assert(level.find(sort_kind) != level.end());
+    assert(level.at(sort_kind).find(sort) != level.at(sort_kind).end());
+    const TermMap& terms = level.at(sort_kind).at(sort);
+    for (const auto& p : terms)
+    {
+      if (p.first->is_value()) return true;
+    }
+  }
+  return false;
+}
+
+bool
 TermDb::has_term(SortKind kind) const
 {
   if (kind == SORT_ANY) return has_term();
@@ -206,6 +225,28 @@ TermDb::has_quant_body() const
   if (!has_var()) return false;
   size_t max_level = d_vars.size() - 1;
   return has_term(SORT_BOOL, max_level);
+}
+
+Term
+TermDb::pick_value(Sort sort)
+{
+  assert(has_value(sort));
+  assert(d_smgr.has_sort(sort));
+
+  SortKind sort_kind = sort->get_kind();
+  std::vector<Term> values;
+  for (auto& level : d_term_db)
+  {
+    assert(level.find(sort_kind) != level.end());
+    assert(level.at(sort_kind).find(sort) != level.at(sort_kind).end());
+    TermMap& terms = level.at(sort_kind).at(sort);
+    for (auto& p : terms)
+    {
+      if (p.first->is_value()) values.push_back(p.first);
+    }
+  }
+  assert(!values.empty());
+  return d_rng.pick_from_set<std::vector<Term>, Term>(values);
 }
 
 Term

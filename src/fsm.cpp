@@ -157,6 +157,7 @@ FSM::FSM(RNGenerator& rng,
          Solver* solver,
          std::ostream& trace,
          SolverOptions& options,
+         bool arith_linear,
          bool trace_seeds,
          bool cross_check,
          bool simple_symbols,
@@ -167,12 +168,14 @@ FSM::FSM(RNGenerator& rng,
              rng,
              trace,
              options,
+             arith_linear,
              trace_seeds,
              cross_check,
              simple_symbols,
              stats,
              enabled_theories),
       d_rng(rng),
+      d_arith_linear(arith_linear),
       d_smt(smt),
       d_mbt_stats(stats)
 {
@@ -692,7 +695,11 @@ class ActionMkTerm : public Action
     /* Op gets only picked if there already exist terms that can be used as
      * operands. */
     OpKind kind = d_smgr.pick_op_kind();
+    assert(!d_smgr.d_arith_linear || kind != OP_INT_MOD);
+    assert(!d_smgr.d_arith_linear || kind != OP_INT_DIV);
+    assert(!d_smgr.d_arith_linear || kind != OP_REAL_DIV);
     if (kind == OP_UNDEFINED) return false;
+
     Op& op             = d_smgr.get_op(kind);
     int32_t arity      = op.d_arity;
     uint32_t n_params  = op.d_nparams;
@@ -720,6 +727,8 @@ class ActionMkTerm : public Action
     }
     else if (kind == OpKind::OP_ITE)
     {
+      if (!d_smgr.has_sort(SORT_BOOL)) return false;
+      if (!d_smgr.has_sort(op.get_arg_sort_kind(1))) return false;
       sort = d_smgr.pick_sort(op.get_arg_sort_kind(1));
       args.push_back(d_smgr.pick_term(SORT_BOOL));
       args.push_back(d_smgr.pick_term(sort));
@@ -734,6 +743,7 @@ class ActionMkTerm : public Action
       Sort index_sort = sorts[0];
       Sort element_sort = sorts[1];
 
+      if (!d_smgr.has_term(array_sort)) return false;
       if (!d_smgr.has_term(index_sort)) return false;
 
       args.push_back(d_smgr.pick_term(array_sort));
@@ -748,8 +758,9 @@ class ActionMkTerm : public Action
       Sort index_sort   = sorts[0];
       Sort element_sort = sorts[1];
 
-      if (!d_smgr.has_term(index_sort) || !d_smgr.has_term(element_sort))
-        return false;
+      if (!d_smgr.has_term(array_sort)) return false;
+      if (!d_smgr.has_term(index_sort)) return false;
+      if (!d_smgr.has_term(element_sort)) return false;
 
       args.push_back(d_smgr.pick_term(array_sort));
       args.push_back(d_smgr.pick_term(index_sort));
@@ -777,6 +788,32 @@ class ActionMkTerm : public Action
       Term body = d_smgr.pick_quant_body();
       args.push_back(var);
       args.push_back(body);
+    }
+    else if (d_smgr.d_arith_linear
+             && (kind == OP_INT_MUL || kind == OP_REAL_MUL))
+    {
+      if (!d_smgr.has_sort(sort_kind)) return false;
+      sort = d_smgr.pick_sort(sort_kind);
+      if (!d_smgr.has_value(sort)) return false;
+      assert(arity == SMTMBT_MK_TERM_N_ARGS);
+      arity                 = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN,
+                                   SMTMBT_MK_TERM_N_ARGS_MAX);
+      bool picked_non_const = false;
+      /* pick arguments */
+      for (int32_t i = 0; i < arity; ++i)
+      {
+        assert(d_smgr.has_term(sort));
+        if (picked_non_const)
+        {
+          args.push_back(d_smgr.pick_value(sort));
+          assert(args.back()->is_value());
+        }
+        else
+        {
+          args.push_back(d_smgr.pick_term(sort));
+          if (!args.back()->is_value()) picked_non_const = true;
+        }
+      }
     }
     else
     {
@@ -1318,7 +1355,7 @@ class ActionMkValue : public Action
                  << (val ? "true" : "false");
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, sort, sort->get_kind());
+    d_smgr.add_value(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -1328,7 +1365,7 @@ class ActionMkValue : public Action
     SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, sort, sort->get_kind());
+    d_smgr.add_value(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -1339,7 +1376,7 @@ class ActionMkValue : public Action
                  << " \"" << v1 << "\"";
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, v0, v1);
-    d_smgr.add_input(res, sort, sort->get_kind());
+    d_smgr.add_value(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -1350,7 +1387,7 @@ class ActionMkValue : public Action
                  << " " << base;
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val, base);
-    d_smgr.add_input(res, sort, sort->get_kind());
+    d_smgr.add_value(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -1361,7 +1398,7 @@ class ActionMkValue : public Action
     assert(sort->is_fp());
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, sort, sort->get_kind());
+    d_smgr.add_value(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -1372,7 +1409,7 @@ class ActionMkValue : public Action
     assert(sort->is_rm());
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_input(res, sort, sort->get_kind());
+    d_smgr.add_value(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }

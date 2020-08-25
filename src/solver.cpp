@@ -107,6 +107,18 @@ AbsTerm::set_sort(Sort sort)
   d_sort = sort;
 }
 
+void
+AbsTerm::set_is_value(bool is_value)
+{
+  d_is_value = is_value;
+}
+
+bool
+AbsTerm::is_value()
+{
+  return d_is_value;
+}
+
 Sort
 AbsTerm::get_sort() const
 {

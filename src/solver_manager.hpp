@@ -40,6 +40,7 @@ class SolverManager
                 RNGenerator& rng,
                 std::ostream& trace,
                 SolverOptions& options,
+                bool arith_linear,
                 bool trace_seeds,
                 bool cross_check,
                 bool simple_symbols,
@@ -78,6 +79,8 @@ class SolverManager
 
   /** Add sort to sort databse. */
   void add_sort(Sort& sort, SortKind sort_kind);
+  /** Add value to term database. */
+  void add_value(Term& term, Sort& sort, SortKind sort_kind);
   /** Add input to term database. */
   void add_input(Term& term, Sort& sort, SortKind sort_kind);
   /** Add var to term database. */
@@ -121,6 +124,12 @@ class SolverManager
   bool has_theory(bool with_terms = true);
   /** Pick any of the enabled theories. */
   TheoryId pick_theory(bool with_terms = true);
+
+  /**
+   * Pick a value of given sort.
+   * Requires that a value of given sort exists.
+   */
+  Term pick_value(Sort sort);
 
   /**
    * Pick a term of given sort.
@@ -181,6 +190,9 @@ class SolverManager
    */
   void reset_sat();
 
+  /** Return true if term database contains any value of given sort. */
+  bool has_value(Sort sort) const;
+
   /** Return true if term database contains any term. */
   bool has_term() const;
   /**
@@ -189,7 +201,7 @@ class SolverManager
   bool has_term(SortKind sort_kind, size_t level) const;
   /** Return true if term database contains any term of given sort kind. */
   bool has_term(SortKind sort_kind) const;
-  /** Return true if term database contains any time of given sort. */
+  /** Return true if term database contains any term of given sort. */
   bool has_term(Sort sort) const;
   /** Return true if d_assumptions is not empty. */
   bool has_assumed() const;
@@ -343,6 +355,9 @@ class SolverManager
 
   /** Statistics. */
   Stats d_stats;
+
+  /** True to restrict arithmetic operators to linear fragment. */
+  bool d_arith_linear = false;
 
   /**
    * True if every non-return trace call should be preceded by a

@@ -308,6 +308,7 @@ class FSM
       Solver* solver,
       std::ostream& trace,
       SolverOptions& options,
+      bool arith_linear,
       bool trace_seeds,
       bool cross_check,
       bool simple_symbols,
@@ -407,6 +408,8 @@ class FSM
   /** The current state. */
   State* d_state_cur = nullptr;
 
+  /** True to restrict arithmetic to the linear fragment. */
+  bool d_arith_linear = false;
   /** True to generate SMT-LIB compliant traces only. */
   bool d_smt = false;
 

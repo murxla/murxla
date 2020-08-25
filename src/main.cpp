@@ -62,6 +62,8 @@ struct Options
   bool smt = false;
   /** True to print statistics. */
   bool print_stats = false;
+  /** Restrict arithmetic operators to linear fragment. */
+  bool arith_linear = false;
 
   /** The selected solver to test. */
   std::string solver;
@@ -379,7 +381,9 @@ set_sigint_handler_stats(void)
   "  --fp                       theory of floating-points\n"                   \
   "  --ints                     theory of integers\n"                          \
   "  --quant                    quantifiers\n"                                 \
-  "  --reals                    theory of reals"
+  "  --reals                    theory of reals\n"                             \
+  " constraining/extending features based for enabled theories:\n"             \
+  "  --linear                   restrict arithmetic to linear fragment"
 
 /* -------------------------------------------------------------------------- */
 /* Command-line option parsing                                                */
@@ -579,6 +583,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--reals")
     {
       options.enabled_theories.push_back(THEORY_REAL);
+    }
+    else if (arg == "--linear")
+    {
+      options.arith_linear = true;
     }
     else
     {
@@ -938,6 +946,7 @@ run_aux(Options& options,
             solver,
             trace,
             solver_options,
+            options.arith_linear,
             options.trace_seeds,
             !options.cross_check.empty(),
             options.simple_symbols,

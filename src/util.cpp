@@ -183,10 +183,9 @@ RNGenerator::pick_dec_int_string(uint32_t len)
     res = std::string(len, 0);
     std::generate_n(res.begin(), len, [this]() {
       return pick_from_set<std::vector<char>, char>(
-          {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'});
+          {'1', '2', '3', '4', '5', '6', '7', '8', '9'});
     });
   }
-  std::cout << "### " << res << std::endl;
   return res;
 }
 
@@ -203,7 +202,6 @@ RNGenerator::pick_dec_real_string(uint32_t len)
   uint32_t len1 = len - len0 - 1;
   std::stringstream ss;
   ss << pick_dec_int_string(len0) << "." << pick_dec_int_string(len1);
-  std::cout << "##r " << ss.str() << std::endl;
   assert(ss.str().size() == len);
   return ss.str();
 }
@@ -240,7 +238,6 @@ RNGenerator::pick_dec_rational_string(uint32_t nlen, uint32_t dlen)
   ss << num << "/" << den;
   std::cout << "n " << nlen << " '" << num << "' d " << dlen << " '" << den
             << "'" << std::endl;
-  std::cout << "##R " << ss.str() << std::endl;
   return ss.str();
 }
 

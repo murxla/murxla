@@ -45,6 +45,9 @@ class TermDb
   /** Returns all term sorts currently in the database. */
   const SortSet get_sorts() const;
 
+  /** Return true if term database has a value with given sort. */
+  bool has_value(Sort sort) const;
+
   /**
    * Return true if term database has a term with given sort kind and scope
    * level.
@@ -63,6 +66,12 @@ class TermDb
    * level.
    */
   bool has_quant_body() const;
+
+  /**
+   * Pick a value of given sort.
+   * Requires that values of this sort exist.
+   */
+  Term pick_value(Sort sort);
 
   /**
    * Pick a term of given sort kind at scope level.
