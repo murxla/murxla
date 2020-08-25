@@ -247,6 +247,12 @@ Solver::mk_value(Sort sort, std::string value)
 }
 
 Term
+Solver::mk_value(Sort sort, std::string num, std::string den)
+{
+  return Term();
+}
+
+Term
 Solver::mk_value(Sort sort, std::string value, Base base)
 {
   return Term();

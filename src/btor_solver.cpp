@@ -84,6 +84,12 @@ BtorSort::is_rm() const
   return false;
 }
 
+bool
+BtorSort::is_real() const
+{
+  return false;
+}
+
 uint32_t
 BtorSort::get_bv_size() const
 {

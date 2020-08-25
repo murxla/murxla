@@ -530,6 +530,7 @@ class ActionMkSort : public Action
 
       case SORT_BOOL:
       case SORT_INT:
+      case SORT_REAL:
       case SORT_RM: _run(kind); break;
 
       default: assert(false);
@@ -604,16 +605,7 @@ class ActionMkSort : public Action
         break;
 
       case SORT_INT:
-        if (n_tokens != 1)
-        {
-          std::stringstream ss;
-          ss << "unexpected argument(s) to '" << get_kind() << "' of sort '"
-             << kind;
-          throw SmtMbtFSMUntraceException(ss);
-        }
-        res = _run(kind);
-        break;
-
+      case SORT_REAL:
       case SORT_RM:
         if (n_tokens != 1)
         {
@@ -996,8 +988,7 @@ class ActionMkTerm : public Action
      * we already have a matching sort. */
     Sort sort = d_solver.get_sort(res, sort_kind);
     sort->set_kind(sort_kind);
-    /* If we can't find a matching sort is not found we use the sort returned
-     * by the solver. */
+    /* If no matching sort is found, we use the sort returned by the solver. */
     Sort lookup = d_smgr.find_sort(sort);
     d_smgr.add_term(res, lookup, sort_kind, args);
 
@@ -1173,6 +1164,36 @@ class ActionMkValue : public Action
                  d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
         break;
 
+      case SORT_REAL:
+        pick = d_rng.pick_one_of_four();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            _run(sort,
+                 d_rng.pick_dec_int_string(
+                     d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
+            break;
+          case RNGenerator::Choice::SECOND:
+            _run(sort,
+                 d_rng.pick_dec_real_string(
+                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX)));
+            break;
+          case RNGenerator::Choice::THIRD:
+            _run(sort,
+                 d_rng.pick_dec_rational_string(
+                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX),
+                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX)));
+            break;
+          default:
+            assert(pick == RNGenerator::Choice::FOURTH);
+            _run(sort,
+                 d_rng.pick_dec_int_string(
+                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX)),
+                 d_rng.pick_dec_int_string(
+                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX)));
+        }
+        break;
+
       case SORT_RM:
         pick = d_rng.pick_one_of_five();
         switch (pick)
@@ -1222,9 +1243,17 @@ class ActionMkValue : public Action
     switch (tokens.size())
     {
       case 3:
-        res = _run(sort,
-                   str_to_str(tokens[1]),
-                   static_cast<Solver::Base>(str_to_uint32(tokens[2])));
+        if (sort->is_bv())
+        {
+          res = _run(sort,
+                     str_to_str(tokens[1]),
+                     static_cast<Solver::Base>(str_to_uint32(tokens[2])));
+        }
+        else
+        {
+          assert(sort->is_real());
+          res = _run(sort, str_to_str(tokens[1]), str_to_str(tokens[2]));
+        }
         break;
 
       default:
@@ -1267,7 +1296,7 @@ class ActionMkValue : public Action
         }
         else
         {
-          res = _run(sort, str_to_uint64(tokens[1]));
+          res = _run(sort, str_to_str(tokens[1]));
         }
     }
 
@@ -1291,6 +1320,17 @@ class ActionMkValue : public Action
     SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
+    d_smgr.add_input(res, sort, sort->get_kind());
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
+  uint64_t _run(Sort sort, std::string v0, std::string v1)
+  {
+    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << v0 << "\""
+                 << " \"" << v1 << "\"";
+    d_smgr.reset_sat();
+    Term res = d_solver.mk_value(sort, v0, v1);
     d_smgr.add_input(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();

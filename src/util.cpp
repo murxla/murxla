@@ -163,13 +163,85 @@ std::string
 RNGenerator::pick_dec_int_string(uint32_t len)
 {
   assert(len);
-  std::string str(len, 0);
-  std::generate_n(str.begin(), len, [this]() {
-    return pick_from_set<std::vector<char>, char>(
-        {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'});
-  });
-  std::cout << "### " << str << std::endl;
-  return str;
+  std::string res;
+  if (len > 1)
+  {
+    // numeral may not start with 0 if len > 1
+    std::stringstream ss;
+    ss << pick_from_set<std::vector<char>, char>(
+        {'1', '2', '3', '4', '5', '6', '7', '8', '9'});
+    std::string str(len - 1, 0);
+    std::generate_n(str.begin(), len - 1, [this]() {
+      return pick_from_set<std::vector<char>, char>(
+          {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'});
+    });
+    ss << str;
+    res = ss.str();
+  }
+  else
+  {
+    res = std::string(len, 0);
+    std::generate_n(res.begin(), len, [this]() {
+      return pick_from_set<std::vector<char>, char>(
+          {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'});
+    });
+  }
+  std::cout << "### " << res << std::endl;
+  return res;
+}
+
+std::string
+RNGenerator::pick_dec_real_string(uint32_t len)
+{
+  assert(len);
+  if (len < 3)
+  {
+    return pick_dec_int_string(len);
+  }
+  uint32_t len0 = pick<uint32_t>(1, len);
+  if (len0 > len - 2) return pick_dec_int_string(len);
+  uint32_t len1 = len - len0 - 1;
+  std::stringstream ss;
+  ss << pick_dec_int_string(len0) << "." << pick_dec_int_string(len1);
+  std::cout << "##r " << ss.str() << std::endl;
+  assert(ss.str().size() == len);
+  return ss.str();
+}
+
+std::string
+RNGenerator::pick_dec_rational_string(uint32_t nlen, uint32_t dlen)
+{
+  assert(nlen);
+  assert(dlen);
+  std::string num;
+  std::string den;
+
+  if (nlen > 1)
+  {
+    num = pick_dec_int_string(nlen);
+  }
+  else
+  {
+    // numerator may not be 0
+    num = pick_from_set<std::vector<char>, char>(
+        {'1', '2', '3', '4', '5', '6', '7', '8', '9'});
+  }
+  if (dlen > 1)
+  {
+    den = pick_dec_int_string(dlen);
+  }
+  else
+  {
+    // denominator must be > 1
+    den = pick_from_set<std::vector<char>, char>(
+        {'2', '3', '4', '5', '6', '7', '8', '9'});
+  }
+  std::stringstream ss;
+  ss << num << "/" << den;
+  std::cout << "n " << nlen << " '" << num << "' d " << dlen << " '" << den
+            << "'" << std::endl;
+  std::cout << "##R " << ss.str() << std::endl;
+  return ss.str();
 }
 
 std::string

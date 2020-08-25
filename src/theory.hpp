@@ -15,6 +15,7 @@ enum TheoryId
   THEORY_FP,
   THEORY_INT,
   THEORY_QUANT,
+  THEORY_REAL,
   THEORY_ALL, /* must be last */
 };
 

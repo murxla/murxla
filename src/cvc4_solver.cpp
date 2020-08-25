@@ -39,8 +39,6 @@ CVC4Sort::equals(const Sort& other) const
   CVC4Sort* cvc4_sort = dynamic_cast<CVC4Sort*>(other.get());
   if (cvc4_sort)
   {
-    assert(d_kind == cvc4_sort->d_kind);
-    assert(d_sort.isNull() == cvc4_sort->d_sort.isNull());
     return d_sort == cvc4_sort->d_sort;
   }
   return false;
@@ -74,6 +72,12 @@ bool
 CVC4Sort::is_rm() const
 {
   return d_sort.isRoundingMode();
+}
+
+bool
+CVC4Sort::is_real() const
+{
+  return d_sort.isReal();
 }
 
 uint32_t
@@ -188,6 +192,7 @@ CVC4Solver::mk_sort(SortKind kind)
   {
     case SORT_BOOL: cvc4_res = d_solver->getBooleanSort(); break;
     case SORT_INT: cvc4_res = d_solver->getIntegerSort(); break;
+    case SORT_REAL: cvc4_res = d_solver->getRealSort(); break;
     case SORT_RM: cvc4_res = d_solver->getRoundingmodeSort(); break;
 
     default: assert(false);
@@ -313,15 +318,46 @@ CVC4Solver::mk_value(Sort sort, std::string value)
       if (d_rng.flip_coin())
       {
         cvc4_res = d_solver->mkReal(
-            static_cast<int64_t>(strtoull(value.c_str(), nullptr, 16)));
+            static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10)));
       }
       else
       {
         cvc4_res = d_solver->mkReal(value);
       }
       break;
+
+    case SORT_REAL:
+      assert(sort->is_real());
+      if (value.find('.') != std::string::npos && d_rng.flip_coin())
+      {
+        cvc4_res = d_solver->mkReal(
+            static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10)));
+      }
+      else
+      {
+        cvc4_res = d_solver->mkReal(value);
+      }
+      break;
+
     default: assert(false);
   }
+  assert(!cvc4_res.isNull());
+  assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
+  assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
+  assert(res);
+  return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, std::string num, std::string den)
+{
+  assert(sort->is_real());
+  CVC4::api::Term cvc4_res;
+
+  cvc4_res = d_solver->mkReal(
+      static_cast<int64_t>(strtoull(num.c_str(), nullptr, 10)),
+      static_cast<int64_t>(strtoull(den.c_str(), nullptr, 10)));
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
@@ -807,20 +843,24 @@ void
 CVC4Solver::init_op_kinds()
 {
   d_kinds = {
+      /* Special Cases */
       {OP_UNDEFINED, CVC4::api::Kind::UNDEFINED_KIND},
       {OP_DISTINCT, CVC4::api::Kind::DISTINCT},
       {OP_EQUAL, CVC4::api::Kind::EQUAL},
       {OP_ITE, CVC4::api::Kind::ITE},
 
+      /* Bool */
       {OP_AND, CVC4::api::Kind::AND},
       {OP_OR, CVC4::api::Kind::OR},
       {OP_NOT, CVC4::api::Kind::NOT},
       {OP_XOR, CVC4::api::Kind::XOR},
       {OP_IMPLIES, CVC4::api::Kind::IMPLIES},
 
+      /* Arrays */
       {OP_ARRAY_SELECT, CVC4::api::Kind::SELECT},
       {OP_ARRAY_STORE, CVC4::api::Kind::STORE},
 
+      /* BV */
       {OP_BV_EXTRACT, CVC4::api::Kind::BITVECTOR_EXTRACT},
       {OP_BV_REPEAT, CVC4::api::Kind::BITVECTOR_REPEAT},
       {OP_BV_ROTATE_LEFT, CVC4::api::Kind::BITVECTOR_ROTATE_LEFT},
@@ -861,6 +901,7 @@ CVC4Solver::init_op_kinds()
       {OP_BV_SGT, CVC4::api::Kind::BITVECTOR_SGT},
       {OP_BV_SGE, CVC4::api::Kind::BITVECTOR_SGE},
 
+      /* FP */
       {OP_FP_ABS, CVC4::api::Kind::FLOATINGPOINT_ABS},
       {OP_FP_ADD, CVC4::api::Kind::FLOATINGPOINT_PLUS},
       {OP_FP_DIV, CVC4::api::Kind::FLOATINGPOINT_DIV},
@@ -898,6 +939,7 @@ CVC4Solver::init_op_kinds()
       {OP_FP_TO_SBV, CVC4::api::Kind::FLOATINGPOINT_TO_SBV},
       {OP_FP_TO_UBV, CVC4::api::Kind::FLOATINGPOINT_TO_UBV},
 
+      /* Ints */
       {OP_INT_IS_DIV, CVC4::api::Kind::DIVISIBLE},
       {OP_INT_NEG, CVC4::api::Kind::UMINUS},
       {OP_INT_SUB, CVC4::api::Kind::MINUS},
@@ -911,6 +953,18 @@ CVC4Solver::init_op_kinds()
       {OP_INT_GT, CVC4::api::Kind::GT},
       {OP_INT_GTE, CVC4::api::Kind::GEQ},
 
+      /* Reals */
+      {OP_REAL_NEG, CVC4::api::Kind::UMINUS},
+      {OP_REAL_SUB, CVC4::api::Kind::MINUS},
+      {OP_REAL_ADD, CVC4::api::Kind::PLUS},
+      {OP_REAL_MUL, CVC4::api::Kind::MULT},
+      {OP_REAL_DIV, CVC4::api::Kind::DIVISION},
+      {OP_REAL_LT, CVC4::api::Kind::LT},
+      {OP_REAL_LTE, CVC4::api::Kind::LEQ},
+      {OP_REAL_GT, CVC4::api::Kind::GT},
+      {OP_REAL_GTE, CVC4::api::Kind::GEQ},
+
+      /* Quantifiers */
       {OP_FORALL, CVC4::api::Kind::FORALL},
       {OP_EXISTS, CVC4::api::Kind::EXISTS},
   };

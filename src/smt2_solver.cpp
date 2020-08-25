@@ -49,6 +49,12 @@ Smt2Sort::is_fp() const
 }
 
 bool
+Smt2Sort::is_real() const
+{
+  return d_kind == SORT_REAL;
+}
+
+bool
 Smt2Sort::is_rm() const
 {
   return d_kind == SORT_RM;

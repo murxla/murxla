@@ -19,6 +19,10 @@ enum OpKind
   OP_EQUAL,
   OP_ITE,
 
+  /* Arrays */
+  OP_ARRAY_SELECT,
+  OP_ARRAY_STORE,
+
   /* Boolean */
   OP_AND,
   OP_IFF,
@@ -26,10 +30,6 @@ enum OpKind
   OP_NOT,
   OP_OR,
   OP_XOR,
-
-  /* Arrays */
-  OP_ARRAY_SELECT,
-  OP_ARRAY_STORE,
 
   /* BV */
   OP_BV_EXTRACT,
@@ -131,6 +131,17 @@ enum OpKind
   OP_INT_GT,
   OP_INT_GTE,
 
+  /* Reals */
+  OP_REAL_NEG,
+  OP_REAL_SUB,
+  OP_REAL_ADD,
+  OP_REAL_MUL,
+  OP_REAL_DIV,
+  OP_REAL_LT,
+  OP_REAL_LTE,
+  OP_REAL_GT,
+  OP_REAL_GTE,
+
   /* Quantifiers */
   OP_FORALL,
   OP_EXISTS,
@@ -189,19 +200,24 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
     op_kinds_to_str{
         SMTMBT_OP_TO_STR(OP_UNDEFINED),
 
+        /* Special Cases */
+        SMTMBT_OP_TO_STR(OP_DISTINCT),
+        SMTMBT_OP_TO_STR(OP_EQUAL),
+        SMTMBT_OP_TO_STR(OP_ITE),
+
+        /* Arrays */
         SMTMBT_OP_TO_STR(OP_ARRAY_SELECT),
         SMTMBT_OP_TO_STR(OP_ARRAY_STORE),
 
+        /* Boolean */
         SMTMBT_OP_TO_STR(OP_AND),
-        SMTMBT_OP_TO_STR(OP_DISTINCT),
-        SMTMBT_OP_TO_STR(OP_EQUAL),
         SMTMBT_OP_TO_STR(OP_IFF),
         SMTMBT_OP_TO_STR(OP_IMPLIES),
-        SMTMBT_OP_TO_STR(OP_ITE),
         SMTMBT_OP_TO_STR(OP_NOT),
         SMTMBT_OP_TO_STR(OP_OR),
         SMTMBT_OP_TO_STR(OP_XOR),
 
+        /* BV */
         SMTMBT_OP_TO_STR(OP_BV_EXTRACT),
         SMTMBT_OP_TO_STR(OP_BV_REPEAT),
         SMTMBT_OP_TO_STR(OP_BV_ROTATE_LEFT),
@@ -251,6 +267,7 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_BV_XNOR),
         SMTMBT_OP_TO_STR(OP_BV_XOR),
 
+        /* FP */
         SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_BV),
         SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_INT_BV),
         SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_FP),
@@ -286,6 +303,7 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_FP_SUB),
         SMTMBT_OP_TO_STR(OP_FP_TO_REAL),
 
+        /* Ints */
         SMTMBT_OP_TO_STR(OP_INT_IS_DIV),
         SMTMBT_OP_TO_STR(OP_INT_NEG),
         SMTMBT_OP_TO_STR(OP_INT_SUB),
@@ -299,6 +317,18 @@ static std::unordered_map<OpKind, std::string, OpKindHashFunction>
         SMTMBT_OP_TO_STR(OP_INT_GT),
         SMTMBT_OP_TO_STR(OP_INT_GTE),
 
+        /* Reals */
+        SMTMBT_OP_TO_STR(OP_REAL_NEG),
+        SMTMBT_OP_TO_STR(OP_REAL_SUB),
+        SMTMBT_OP_TO_STR(OP_REAL_ADD),
+        SMTMBT_OP_TO_STR(OP_REAL_MUL),
+        SMTMBT_OP_TO_STR(OP_REAL_DIV),
+        SMTMBT_OP_TO_STR(OP_REAL_LT),
+        SMTMBT_OP_TO_STR(OP_REAL_LTE),
+        SMTMBT_OP_TO_STR(OP_REAL_GT),
+        SMTMBT_OP_TO_STR(OP_REAL_GTE),
+
+        /* Quantifiers */
         SMTMBT_OP_TO_STR(OP_FORALL),
         SMTMBT_OP_TO_STR(OP_EXISTS),
     };

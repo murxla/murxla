@@ -377,7 +377,9 @@ set_sigint_handler_stats(void)
   "  --arrays                   theory of arrays\n"                            \
   "  --bv                       theory of bit-vectors\n"                       \
   "  --fp                       theory of floating-points\n"                   \
-  "  --quant                    quantifiers"
+  "  --ints                     theory of integers\n"                          \
+  "  --quant                    quantifiers\n"                                 \
+  "  --reals                    theory of reals"
 
 /* -------------------------------------------------------------------------- */
 /* Command-line option parsing                                                */
@@ -566,9 +568,23 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.enabled_theories.push_back(THEORY_FP);
     }
+    else if (arg == "--ints")
+    {
+      options.enabled_theories.push_back(THEORY_INT);
+    }
     else if (arg == "--quant")
     {
       options.enabled_theories.push_back(THEORY_QUANT);
+    }
+    else if (arg == "--reals")
+    {
+      options.enabled_theories.push_back(THEORY_REAL);
+    }
+    else
+    {
+      std::stringstream ss;
+      ss << "unknown option '" << arg << "'";
+      die(ss.str());
     }
   }
 

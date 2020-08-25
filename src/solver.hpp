@@ -37,6 +37,7 @@ class AbsSort
   virtual bool is_bv() const   = 0;
   virtual bool is_fp() const   = 0;
   virtual bool is_int() const  = 0;
+  virtual bool is_real() const = 0;
   virtual bool is_rm() const   = 0;
   virtual uint32_t get_bv_size() const;
   virtual uint32_t get_fp_exp_size() const;
@@ -176,6 +177,7 @@ class Solver
 
   virtual Term mk_value(Sort sort, bool value) = 0;
   virtual Term mk_value(Sort sort, std::string value);
+  virtual Term mk_value(Sort sort, std::string num, std::string den);
   virtual Term mk_value(Sort sort, std::string value, Base base);
   virtual Term mk_value(Sort sort, SpecialValueFP value);
   virtual Term mk_value(Sort sort, SpecialValueRM value);

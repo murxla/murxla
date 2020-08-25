@@ -740,6 +740,9 @@ SolverManager::add_sort_kinds()
       case THEORY_INT:
         d_sort_kinds.emplace(SORT_INT, SortKindData(SORT_INT, 0, THEORY_INT));
         break;
+      case THEORY_REAL:
+        d_sort_kinds.emplace(SORT_REAL,
+                             SortKindData(SORT_REAL, 0, THEORY_REAL));
       case THEORY_FP:
         d_sort_kinds.emplace(SORT_RM, SortKindData(SORT_RM, 0, THEORY_FP));
         d_sort_kinds.emplace(SORT_FP, SortKindData(SORT_FP, 0, THEORY_FP));
@@ -946,6 +949,25 @@ SolverManager::add_op_kinds()
         add_op_kind(ops, OP_INT_LTE, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
         add_op_kind(ops, OP_INT_GT, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
         add_op_kind(ops, OP_INT_GTE, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        break;
+
+      case SORT_REAL:
+        add_op_kind(
+            ops, OP_REAL_NEG, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(
+            ops, OP_REAL_SUB, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(
+            ops, OP_REAL_ADD, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(
+            ops, OP_REAL_MUL, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(
+            ops, OP_REAL_DIV, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(ops, OP_REAL_LT, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(
+            ops, OP_REAL_LTE, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(ops, OP_REAL_GT, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(
+            ops, OP_REAL_GTE, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
         break;
 
       default: assert(sort_kind == SORT_RM);
