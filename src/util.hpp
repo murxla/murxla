@@ -27,6 +27,10 @@ class SeedGenerator
 class RNGenerator
 {
   public:
+   /**
+    * The values for the selected choice when picking from multiple choices,
+    * see, e.g., pick_one_of_three().
+    */
    enum Choice
    {
      FIRST,
@@ -39,6 +43,7 @@ class RNGenerator
    /** Constructor. */
    explicit RNGenerator(uint32_t seed = 0);
 
+   /** Get the RNG Mersenne Twister engine. */
    std::mt19937& get_engine();
 
    /** Pick an integral number with type T. */
@@ -133,7 +138,9 @@ class RNGenerator
     uint32_t d_seed;
     std::mt19937 d_rng;
 
+    /** The character set for binary strings. */
     std::string d_bin_char_set = "01";
+    /** The character set for (non-piped) symbol strings. */
     std::string d_simple_symbol_char_set =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-/"
         "*=%?!.$_&<>@^~";

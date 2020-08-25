@@ -121,8 +121,10 @@ class Action
     NUM_ACTIONS
   };
 
+  /** Map Action kind to trace string. */
   static const std::unordered_map<Kind, std::string> s_kind_to_str;
 
+  /** Get Action kind from string representation. */
   static const Kind get_kind(const std::string& s);
 
   /** Disallow default constructor. */
@@ -227,12 +229,13 @@ class State
     CHECK_SAT,
     PUSH_POP,
 
-    /* Boolector */
+    /* Boolector specific states */
     BTOR_FIX_RESET_ASSUMPTIONS,
 
     NUM_STATES
   };
 
+  /** Map State kind to string representation. */
   static const std::unordered_map<Kind, std::string> s_kind_to_str;
 
   /** Default constructor. */
