@@ -752,6 +752,8 @@ run_aux(Options& options,
   std::ofstream trace_file;
   std::ofstream smt2_file;
 
+  if (smt2_online) run_forked = true;
+
   if (!options.api_trace_file_name.empty())
   {
     trace_file = open_ofile(options.api_trace_file_name);
@@ -1417,6 +1419,7 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
   do
   {
     double cur_time = get_cur_wall_time();
+    std::string smt2_file_name = opts.smt2_file_name;
 
     opts.seed = sg.next();
 
@@ -1497,6 +1500,7 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
       assert(res == res_replay);
     }
     std::cout << "\r" << std::flush;
+    opts.smt2_file_name = smt2_file_name;
   } while (opts.max_runs == 0 || num_runs < opts.max_runs);
 
   if (is_cross)

@@ -201,6 +201,17 @@ class Smt2Term : public AbsTerm
       {OP_INT_GT, ">"},
       {OP_INT_GTE, ">="},
 
+      /* Reals */
+      {OP_REAL_NEG, "-"},
+      {OP_REAL_SUB, "-"},
+      {OP_REAL_ADD, "+"},
+      {OP_REAL_MUL, "*"},
+      {OP_REAL_DIV, "/"},
+      {OP_REAL_LT, "<"},
+      {OP_REAL_LTE, "<="},
+      {OP_REAL_GT, ">"},
+      {OP_REAL_GTE, ">="},
+
       /* Quantifiers */
       {OP_FORALL, "forall"},
       {OP_EXISTS, "exists"},
@@ -230,6 +241,7 @@ class Smt2Solver : public Solver
 
   Term mk_value(Sort sort, bool value) override;
   Term mk_value(Sort sort, std::string value) override;
+  Term mk_value(Sort sort, std::string num, std::string den) override;
   Term mk_value(Sort sort, std::string value, Base base) override;
   Term mk_value(Sort sort, SpecialValueFP value) override;
   Term mk_value(Sort sort, SpecialValueRM value) override;

@@ -282,7 +282,7 @@ Smt2Solver::get_from_external() const
 void
 Smt2Solver::dump_smt2(std::string s) const
 {
-  d_out << s << std::flush;
+  d_out << s << std::endl << std::flush;
   if (d_online) push_to_external(s);
 }
 
@@ -399,8 +399,23 @@ Smt2Solver::mk_value(Sort sort, std::string value)
       val << value;
       break;
 
+    case SORT_REAL:
+      assert(sort->is_real());
+      val << value;
+      break;
+
     default: assert(false);
   }
+  return std::shared_ptr<Smt2Term>(new Smt2Term(
+      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+}
+
+Term
+Smt2Solver::mk_value(Sort sort, std::string num, std::string den)
+{
+  assert(sort->is_real());
+  std::stringstream val;
+  val << num << "/" << den;
   return std::shared_ptr<Smt2Term>(new Smt2Term(
       OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
 }
@@ -494,6 +509,12 @@ get_int_sort_string()
 }
 
 static std::string
+get_real_sort_string()
+{
+  return "Real";
+}
+
+static std::string
 get_rm_sort_string()
 {
   return "RoundingMode";
@@ -543,6 +564,7 @@ Smt2Solver::mk_sort(SortKind kind)
   {
     case SORT_BOOL: sort = get_bool_sort_string(); break;
     case SORT_INT: sort = get_int_sort_string(); break;
+    case SORT_REAL: sort = get_real_sort_string(); break;
     case SORT_RM: sort = get_rm_sort_string(); break;
     default: assert(false);
   }
@@ -625,6 +647,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     case SORT_BOOL: sort = get_bool_sort_string(); break;
 
     case SORT_INT: sort = get_int_sort_string(); break;
+
+    case SORT_REAL: sort = get_real_sort_string(); break;
 
     case SORT_RM: sort = get_rm_sort_string(); break;
 
