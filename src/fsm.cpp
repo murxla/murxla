@@ -877,7 +877,15 @@ class ActionMkTerm : public Action
               d_rng.pick<uint32_t>(1, std::max<uint32_t>(1, SMTMBT_BW_MAX)));
           break;
 
-          // case OP_FP_TO_FP_FROM_REAL: TODO
+        case OP_FP_TO_FP_FROM_REAL:
+          assert(sort->is_real());
+          assert(sort_kind == SORT_FP);
+          /* term has FP sort, pick sort */
+          if (!d_smgr.has_sort(SORT_FP)) return false;
+          sort = d_smgr.pick_sort(SORT_FP, false);
+          params.push_back(sort->get_fp_exp_size());
+          params.push_back(sort->get_fp_sig_size());
+          break;
 
         case OP_INT_IS_DIV:
           assert(sort->is_int());

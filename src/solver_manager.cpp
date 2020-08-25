@@ -901,8 +901,7 @@ SolverManager::add_op_kinds()
             ops, OP_FP_SQRT, 2, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
         add_op_kind(
             ops, OP_FP_SUB, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
-        // add_op_kind(ops,OP_FP_TO_REAL, 1, 0, SORT_REAL, {SORT_FP},
-        // THEORY_FP);
+        add_op_kind(ops, OP_FP_TO_REAL, 1, 0, SORT_REAL, {SORT_FP}, THEORY_FP);
         /* indexed */
         add_op_kind(
             ops, OP_FP_TO_FP_FROM_BV, 1, 2, SORT_FP, {SORT_BV}, THEORY_FP);
@@ -927,8 +926,8 @@ SolverManager::add_op_kinds()
                     SORT_FP,
                     {SORT_RM, SORT_BV},
                     THEORY_FP);
-        // add_op_kind(ops,OP_FP_TO_FP_FROM_REAL, 1, 2, SORT_FP, {SORT_REAL},
-        // THEORY_FP);
+        add_op_kind(
+            ops, OP_FP_TO_FP_FROM_REAL, 1, 2, SORT_FP, {SORT_REAL}, THEORY_FP);
         add_op_kind(
             ops, OP_FP_TO_SBV, 2, 1, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
         add_op_kind(
