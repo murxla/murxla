@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -64,6 +65,11 @@ struct Options
   bool print_stats = false;
   /** Restrict arithmetic operators to linear fragment. */
   bool arith_linear = false;
+
+  /** The directory for tmp files (default: current). */
+  std::string tmp_dir = "";
+  /** The directory for output files (default: current). */
+  std::string out_dir = "";
 
   /** The selected solver to test. */
   std::string solver;
@@ -161,7 +167,7 @@ message(const std::string& prefix, const std::stringstream& msg)
 static void
 die(const std::string& msg, ExitCode exit_code = EXIT_ERROR)
 {
-  message(msg, "error");
+  message("error", msg);
   exit(exit_code);
 }
 
@@ -224,7 +230,7 @@ open_ifile(std::string& file_name)
   if (!res.is_open())
   {
     std::stringstream ss;
-    ss << "unable to open file " << file_name;
+    ss << "unable to open input file " << file_name;
     die(ss.str());
   }
   return res;
@@ -237,7 +243,7 @@ open_ofile(std::string& file_name)
   if (!res.is_open())
   {
     std::stringstream ss;
-    ss << "unable to open file " << file_name;
+    ss << "unable to open output file " << file_name;
     die(ss.str());
   }
   return res;
@@ -318,6 +324,22 @@ find_in_file(std::string file_name, std::string& s)
   return false;
 }
 
+static std::string
+prepend_path(std::string& prefix, std::string& file_name)
+{
+  std::stringstream ss;
+  ss << prefix << "/" << file_name;
+  return ss.str();
+}
+
+static bool
+path_is_dir(const std::string& path)
+{
+  struct stat buffer;
+  if (stat(path.c_str(), &buffer) != 0) return false;  // doesn't exist
+  return (buffer.st_mode & S_IFMT) == S_IFDIR;         // is a directory?
+}
+
 /* -------------------------------------------------------------------------- */
 /* Signal handling                                                            */
 /* -------------------------------------------------------------------------- */
@@ -370,6 +392,8 @@ set_sigint_handler_stats(void)
   "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
   "  -y, --simple-symbols       use symbols of the form '_sX'\n"               \
+  "  -T, --tmp-dir <dir>        write tmp files to given directory\n"          \
+  "  -O, --out-dir <dir>        write output files to given directory\n"       \
   "  --btor                     test Boolector\n"                              \
   "  --cvc4                     test CVC4\n"                                   \
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
@@ -493,6 +517,30 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-y" || arg == "--simple-symbols")
     {
       options.simple_symbols = true;
+    }
+    else if (arg == "-T" || arg == "--tmp-dir")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      if (!path_is_dir(argv[i]))
+      {
+        std::stringstream ss;
+        ss << "given path is not a directory '" << argv[i] << "'";
+        die(ss.str());
+      }
+      options.tmp_dir = argv[i];
+    }
+    else if (arg == "-O" || arg == "--out-dir")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      if (!path_is_dir(argv[i]))
+      {
+        std::stringstream ss;
+        ss << "given path is not a directory '" << argv[i] << "'";
+        die(ss.str());
+      }
+      options.out_dir = argv[i];
     }
     else if (arg == "--btor")
     {
@@ -857,10 +905,23 @@ run_aux(Options& options,
       /* Redirect stdout and stderr of child process into given files. */
       fd = open(
           file_out.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+      if (fd < 0)
+      {
+        std::stringstream ss;
+        ss << "unable to open file " << file_out;
+        die(ss.str());
+      }
       dup2(fd, STDOUT_FILENO);
       close(fd);
       fd = open(
           file_err.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
+      if (fd < 0)
+      {
+        perror(0);
+        std::stringstream ss;
+        ss << "unable to open file " << file_err;
+        die(ss.str());
+      }
       dup2(fd, STDERR_FILENO);
       close(fd);
     }
@@ -1007,8 +1068,14 @@ run(Options& options,
 {
   bool cross  = !options.cross_check.empty();
   bool forked = run_forked || cross;
+
   std::string tmp_file_out = "smtmbt-run-tmp1.out";
   std::string tmp_file_err = "smtmbt-run-tmp1.err";
+  if (!options.tmp_dir.empty())
+  {
+    tmp_file_out = prepend_path(options.tmp_dir, tmp_file_out);
+    tmp_file_err = prepend_path(options.tmp_dir, tmp_file_err);
+  }
 
   Result res = run_aux(
       options, solver_options, forked, tmp_file_out, tmp_file_err, stats);
@@ -1035,6 +1102,11 @@ run(Options& options,
     SolverOptions csolver_options;  // not used for now
     std::string tmp_file_cross_out = "smtmbt-run-tmp2.out";
     std::string tmp_file_cross_err = "smtmbt-run-tmp2.err";
+    if (!options.tmp_dir.empty())
+    {
+      tmp_file_out = prepend_path(options.tmp_dir, tmp_file_out);
+      tmp_file_err = prepend_path(options.tmp_dir, tmp_file_err);
+    }
 
     Options coptions(options);
     coptions.solver = options.cross_check;
@@ -1145,15 +1217,24 @@ dd(Options& options, SolverOptions& solver_options)
 {
   assert(!options.api_trace_file_name.empty());
 
+  std::vector<std::string> lines;
+  std::string line, token;
+  Result gold_exit, exit;
+  statistics::Statistics stats;
+
   std::string gold_out_file_name  = "smtmbt-dd-gold-tmp.out";
   std::string gold_err_file_name  = "smtmbt-dd-gold-tmp.err";
   std::string tmp_trace_file_name = "smtmbt-dd-tmp.trace";
   std::string tmp_out_file_name   = "smtmbt-dd-tmp.out";
   std::string tmp_err_file_name   = "smtmbt-dd-tmp.err";
-  std::vector<std::string> lines;
-  std::string line, token;
-  Result gold_exit, exit;
-  statistics::Statistics stats;
+  if (!options.tmp_dir.empty())
+  {
+    gold_out_file_name  = prepend_path(options.tmp_dir, gold_out_file_name);
+    gold_err_file_name  = prepend_path(options.tmp_dir, gold_err_file_name);
+    tmp_trace_file_name = prepend_path(options.tmp_dir, tmp_trace_file_name);
+    tmp_out_file_name   = prepend_path(options.tmp_dir, tmp_out_file_name);
+    tmp_err_file_name   = prepend_path(options.tmp_dir, tmp_err_file_name);
+  }
 
   /* init options object for golden (replay of original) run */
   Options opts(options);
@@ -1377,17 +1458,25 @@ replay(Options& options,
        std::string& err_file_name)
 {
   statistics::Statistics replay_stats;
-  std::string tmp_trace_file_name;
   Options opts(options);
 
   if (opts.api_trace_file_name.empty())
   {
     opts.api_trace_file_name =
         get_api_trace_file_name(opts.seed, opts.dd, opts.untrace_file_name);
+    if (!opts.out_dir.empty())
+    {
+      opts.api_trace_file_name =
+          prepend_path(opts.out_dir, opts.api_trace_file_name);
+    }
   }
   if (opts.smt2_file_name.empty() && opts.solver == SMTMBT_SOLVER_SMT2)
   {
     opts.smt2_file_name = get_smt2_file_name(opts.seed, opts.untrace_file_name);
+    if (!opts.out_dir.empty())
+    {
+      opts.smt2_file_name = prepend_path(opts.out_dir, opts.smt2_file_name);
+    }
   }
 
   Result res = run(
@@ -1401,7 +1490,6 @@ replay(Options& options,
   {
     std::cout << opts.api_trace_file_name << std::endl;
   }
-  if (!tmp_trace_file_name.empty()) std::remove(tmp_trace_file_name.c_str());
   return res;
 }
 
@@ -1439,6 +1527,11 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
       opts.api_trace_file_name    = DEVNULL;
       out_file_name               = "smtmbt-tmp.out";
       err_file_name               = "smtmbt-tmp.err";
+      if (!opts.tmp_dir.empty())
+      {
+        out_file_name = prepend_path(opts.tmp_dir, out_file_name);
+        err_file_name = prepend_path(opts.tmp_dir, err_file_name);
+      }
     }
     else if (opts.solver == SMTMBT_SOLVER_SMT2)
     {
@@ -1454,6 +1547,10 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
          * We therefore dump every generated sequence to smt2 continuously. */
         opts.smt2_file_name =
             get_smt2_file_name(opts.seed, opts.untrace_file_name);
+        if (!opts.out_dir.empty())
+        {
+          opts.smt2_file_name = prepend_path(opts.out_dir, opts.smt2_file_name);
+        }
       }
     }
 
@@ -1545,7 +1642,12 @@ main(int argc, char* argv[])
     if (g_options.dd && g_options.api_trace_file_name.empty())
     {
       /* When delta-debugging, we need to trace into file. */
-      tmp_api_trace_file_name       = "smtmbt-tmp.trace";
+      tmp_api_trace_file_name = "smtmbt-tmp.trace";
+      if (!g_options.tmp_dir.empty())
+      {
+        tmp_api_trace_file_name =
+            prepend_path(g_options.tmp_dir, tmp_api_trace_file_name);
+      }
       g_options.api_trace_file_name = tmp_api_trace_file_name;
     }
 
@@ -1561,6 +1663,11 @@ main(int argc, char* argv[])
        * solver must be recorded for the actual cross check. */
       out_file_name = "smtmbt-tmp.out";
       err_file_name = "smtmbt-tmp.err";
+      if (!g_options.tmp_dir.empty())
+      {
+        out_file_name = prepend_path(g_options.tmp_dir, out_file_name);
+        err_file_name = prepend_path(g_options.tmp_dir, err_file_name);
+      }
     }
     else if (g_options.solver == SMTMBT_SOLVER_SMT2
              && g_options.smt2_file_name.empty())
@@ -1569,6 +1676,11 @@ main(int argc, char* argv[])
        * given, we use a generic (but unique) file name. */
       g_options.smt2_file_name =
           get_smt2_file_name(g_options.seed, g_options.untrace_file_name);
+      if (!g_options.out_dir.empty())
+      {
+        g_options.smt2_file_name =
+            prepend_path(g_options.out_dir, g_options.smt2_file_name);
+      }
     }
 
     (void) run(g_options,

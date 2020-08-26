@@ -144,7 +144,7 @@ class RNGenerator
     std::string d_simple_symbol_char_set =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-/"
         "*=%?!.$_&<>@^~";
-    /** The set of printable characters: 32-126 and 127-255 (decimal). */
+    /** The set of printable characters: 32-126 and 128-255 (decimal). */
     std::vector<char> d_printable_chars;
 };
 
