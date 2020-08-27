@@ -19,8 +19,12 @@ class CVC4Sort : public AbsSort
   friend class CVC4Solver;
 
  public:
-  CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort);
-  ~CVC4Sort() override;
+  CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort)
+      : d_solver(cvc4), d_sort(sort)
+  {
+  }
+
+  ~CVC4Sort() override {}
   size_t hash() const override;
   bool equals(const Sort& other) const override;
   bool is_bool() const override;
@@ -47,8 +51,12 @@ class CVC4Term : public AbsTerm
   friend class CVC4Solver;
 
  public:
-  CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term d_term);
-  ~CVC4Term() override;
+  CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term)
+      : d_solver(cvc4), d_term(term)
+  {
+  }
+
+  ~CVC4Term() override {}
   size_t hash() const override;
   bool equals(const Term& other) const override;
 

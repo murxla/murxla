@@ -18,15 +18,6 @@ namespace cvc4 {
 /* CVC4Sort                                                                   */
 /* -------------------------------------------------------------------------- */
 
-CVC4Sort::CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort)
-    : d_solver(cvc4), d_sort(sort)
-{
-}
-
-CVC4Sort::~CVC4Sort()
-{
-}
-
 size_t
 CVC4Sort::hash() const
 {
@@ -101,15 +92,6 @@ CVC4Sort::get_fp_sig_size() const
 /* -------------------------------------------------------------------------- */
 /* CVC4Term                                                                   */
 /* -------------------------------------------------------------------------- */
-
-CVC4Term::CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term)
-    : d_solver(cvc4), d_term(term)
-{
-}
-
-CVC4Term::~CVC4Term()
-{
-}
 
 size_t
 CVC4Term::hash() const
