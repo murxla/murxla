@@ -379,6 +379,7 @@ set_sigint_handler_stats(void)
   "  -S, --trace-seeds          trace seed for each API call\n"                \
   "  -t, --time <double>        time limit for MBT runs\n"                     \
   "  -v, --verbosity            increase verbosity\n"                          \
+  "  -m, --max-runs <int>       limit number of test runs\n"                   \
   "  -d, --dd                   enable delta debugging\n"                      \
   "  --dd-err <string>          check for occurrence of <string> in stderr\n"  \
   "                             output when delta debugging\n"                 \
@@ -1459,6 +1460,8 @@ replay(Options& options,
 {
   statistics::Statistics replay_stats;
   Options opts(options);
+
+  opts.time = 0;  // reset time limit
 
   if (opts.api_trace_file_name.empty())
   {
