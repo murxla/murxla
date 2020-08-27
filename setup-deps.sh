@@ -4,13 +4,67 @@ set -e -o pipefail
 
 deps_dir=$(pwd)/deps
 toml_dir=$(pwd)/libs/toml11
+
 reinstall=no
+freshinstall=no
+coverage=no
+
+btor=yes
+cvc4=yes
+yices=yes
+
+#--------------------------------------------------------------------------#
+
+die () {
+  echo "*** `basename "$0"`: $*" 1>&2
+  exit 1
+}
+
+usage () {
+cat <<EOF
+usage: $0 [<option> ...]
+
+where <option> is one of the following:
+
+  -h, --help            print this message and exit
+  -f, --fresh-install   install solvers from a fresh checkout
+  -c, --coverage        compile solvers with support for coverage testing
+  --only-btor           only set up Boolector
+  --only-cvc4           only set up CVC4
+  --only-yices          only set up Yices
+EOF
+  exit 0
+}
+
+while [ $# -gt 0 ]
+do
+  opt=$1
+  case $opt in
+    -h|--help) usage;;
+    -f|--fresh-install) freshinstall=yes;;
+    -c|--coverage) coverage=yes;;
+    --only-btor) cvc4=no; yices=no;;
+    --only-cvc4) btor=no; yices=no;;
+    --only-yices) btor=no; cvc4=no;;
+
+    -*) die "invalid option '$opt' (try '-h')";;
+  esac
+  shift
+done
+
+#--------------------------------------------------------------------------#
 
 git submodule update --init --recursive
 
+if [ "$freshinstall" == "yes" ]
+then
+  rm -rf "$deps_dir"
+fi
 if [ -e "$deps_dir" ]; then
-  echo "Dependencies already installed -- will reinstall without cloning."
-  echo "If you want to install from a fresh checkout first delete '$deps_dir'."
+  echo "(Some) dependencies already installed. Will reinstall already installed"
+  echo "dependencies without cloning."
+  echo "If you want to install from a fresh checkout, use -f (--fresh-install) "
+  echo "or delete $deps_dir."
   echo ""
   reinstall=yes
 fi
@@ -20,35 +74,71 @@ rm -rf "$toml_dir"
 
 # Setup Boolector
 (
-  cd solvers/boolector || exit 1
-
-  if [ "$reinstall" == "no" ]
+  if [ "$btor" == "yes" ]
   then
-    ./contrib/setup-btor2tools.sh
-    ./contrib/setup-lingeling.sh
-    ./contrib/setup-cadical.sh
-  fi
+    cd solvers/boolector || exit 1
 
-  rm build -rf
-  ./configure.sh -g --asan --prefix "$deps_dir"
-  cd build
-  make install -j $(nproc)
+    if [ "$reinstall" == "no" ]
+    then
+      ./contrib/setup-btor2tools.sh
+      ./contrib/setup-lingeling.sh
+      ./contrib/setup-cadical.sh
+    fi
+
+    cov=
+    if [ "$coverage" == "yes" ]
+    then
+      cov="-gcov"
+    fi
+
+    rm build -rf
+    ./configure.sh -g --asan --prefix "$deps_dir" "$cov"
+    cd build
+    make install -j $(nproc)
+  fi
 )
 
 # Setup CVC4
 (
-  cd solvers/cvc4 || exit 1
-
-  if [ "$reinstall" == "no" ]
+  if [ "$btor" == "yes" ]
   then
-    ./contrib/get-antlr-3.4
-    ./contrib/get-symfpu
-  fi
+    cd solvers/cvc4 || exit 1
 
-  rm build -rf
-  ./configure.sh debug --asan --prefix="$deps_dir" --symfpu
-  cd build
-  make install -j $(nproc)
+    if [ "$reinstall" == "no" ]
+    then
+      ./contrib/get-antlr-3.4
+      ./contrib/get-symfpu
+    fi
+
+    cov=
+    if [ "$coverage" == "yes" ]
+    then
+      cov="--coverage"
+    fi
+
+    rm build -rf
+    ./configure.sh debug --asan --prefix="$deps_dir" --symfpu $cov
+    cd build
+    make install -j $(nproc)
+  fi
+)
+
+# Setup Yices
+(
+  if [ "$yices" == "yes" ]
+  then
+    cd solvers/yices || exit 1
+
+    rm build -rf
+    autoconf
+    if [ "$coverage" == "yes" ]
+    then
+      cov="-fprofile-arcs -ftest-coverage"
+    fi
+    CCFLAGS="-g -g3 -ggdb $cov" ./configure --prefix="$deps_dir"
+    make -j $(nproc)
+    make install -j $(nproc)
+  fi
 )
 
 # Setup toml11

@@ -7,3 +7,6 @@
 [submodule "traces"]
 	path = traces
 	url = git@gitlab.com:monkeyzoo/smtmbt-bugs.git
+[submodule "solvers/yices"]
+	path = solvers/yices
+	url = git@github.com:SRI-CSL/yices2.git
