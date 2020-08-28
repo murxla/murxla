@@ -844,7 +844,7 @@ run_aux(Options& options,
   {
     /* If a time limit is given, fork another process that kills the solver_pid
      * after g_option.time seconds. (https://stackoverflow.com/a/8020324) */
-    if (g_options.time)
+    if (options.time)
     {
       timeout_pid = fork();
       if (timeout_pid == -1)
@@ -853,7 +853,7 @@ run_aux(Options& options,
       }
       if (timeout_pid == 0)
       {
-        usleep(g_options.time * 1000000);
+        usleep(options.time * 1000000);
         _exit(EXIT_OK);
       }
     }
