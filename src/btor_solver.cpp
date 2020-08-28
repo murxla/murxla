@@ -1,3 +1,5 @@
+#ifdef SMTMBT_USE_BOOLECTOR
+
 #include "btor_solver.hpp"
 
 #include <bitset>
@@ -93,7 +95,10 @@ BtorSort::is_real() const
 uint32_t
 BtorSort::get_bv_size() const
 {
-  return boolector_bitvec_sort_get_width(d_solver, d_sort);
+  assert(is_bv());
+  uint32_t res = boolector_bitvec_sort_get_width(d_solver, d_sort);
+  assert(res);
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1790,3 +1795,5 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
 }  // namespace btor
 }  // namespace smtmbt
+
+#endif
