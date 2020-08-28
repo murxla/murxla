@@ -780,7 +780,7 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
 }
 
 void
-Smt2Solver::assert_formula(const Term& t) const
+Smt2Solver::assert_formula(const Term& t)
 {
   std::stringstream smt2;
   Smt2Term* smt2_term = static_cast<Smt2Term*>(t.get());

@@ -217,7 +217,7 @@ class Solver
    */
   virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
 
-  virtual void assert_formula(const Term& t) const = 0;
+  virtual void assert_formula(const Term& t) = 0;
 
   virtual Result check_sat() const = 0;
   virtual Result check_sat_assuming(std::vector<Term>& assumptions) const = 0;
@@ -236,12 +236,13 @@ class Solver
 
   virtual void set_opt(const std::string& opt, const std::string& value) = 0;
 
-  virtual std::string get_option_name_incremental() const               = 0;
-  virtual std::string get_option_name_model_gen() const                 = 0;
-  virtual std::string get_option_name_unsat_assumptions() const         = 0;
-  virtual bool option_incremental_enabled() const                       = 0;
-  virtual bool option_model_gen_enabled() const                         = 0;
-  virtual bool option_unsat_assumptions_enabled() const                 = 0;
+  virtual std::string get_option_name_incremental() const       = 0;
+  virtual std::string get_option_name_model_gen() const         = 0;
+  virtual std::string get_option_name_unsat_assumptions() const = 0;
+
+  virtual bool option_incremental_enabled() const       = 0;
+  virtual bool option_model_gen_enabled() const         = 0;
+  virtual bool option_unsat_assumptions_enabled() const = 0;
 
   virtual bool check_failed_assumption(const Term& t) const = 0;
 

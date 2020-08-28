@@ -436,19 +436,25 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
   {
     if (d_rng.flip_coin())
     {
-      btor_res = boolector_unsigned_int(d_solver, (uint32_t) value, btor_sort);
+      btor_res = boolector_unsigned_int(
+          d_solver, static_cast<uint32_t>(value), btor_sort);
       if (check_bits)
       {
-        str = std::bitset<64>((uint32_t) value).to_string().substr(64 - bw, bw);
+        str = std::bitset<64>(static_cast<uint32_t>(value))
+                  .to_string()
+                  .substr(64 - bw, bw);
       }
     }
     else
     {
-      btor_res = boolector_int(d_solver, (int32_t) value, btor_sort);
-    if (check_bits)
-    {
-      str = std::bitset<64>((int32_t) value).to_string().substr(64 - bw, bw);
-    }
+      btor_res =
+          boolector_int(d_solver, static_cast<int32_t>(value), btor_sort);
+      if (check_bits)
+      {
+        str = std::bitset<64>(static_cast<int32_t>(value))
+                  .to_string()
+                  .substr(64 - bw, bw);
+      }
     }
   }
   if (check_bits)
@@ -866,7 +872,7 @@ BtorSolver::get_sort(Term term, SortKind sort_kind) const
 }
 
 void
-BtorSolver::assert_formula(const Term& t) const
+BtorSolver::assert_formula(const Term& t)
 {
   boolector_assert(d_solver, get_btor_term(t));
 }

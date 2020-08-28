@@ -3,9 +3,12 @@
 #ifndef __SMTMBT__YICES_SOLVER_H
 #define __SMTMBT__YICES_SOLVER_H
 
+#include <bitset>
+
 #include "fsm.hpp"
 #include "solver.hpp"
 #include "theory.hpp"
+#include "yices.h"
 #include "yices_types.h"
 
 namespace smtmbt {
@@ -81,6 +84,7 @@ class YicesSolver : public Solver
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
   std::string get_option_name_unsat_assumptions() const override;
+
   bool option_incremental_enabled() const override;
   bool option_model_gen_enabled() const override;
   bool option_unsat_assumptions_enabled() const override;
@@ -97,6 +101,7 @@ class YicesSolver : public Solver
   }
 
   Term mk_value(Sort sort, bool value) override;
+  Term mk_value(Sort sort, std::string value) override;
   Term mk_value(Sort sort, std::string num, std::string den) override;
   Term mk_value(Sort sort, std::string value, Base base) override;
 
@@ -116,7 +121,7 @@ class YicesSolver : public Solver
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
-  void assert_formula(const Term& t) const override;
+  void assert_formula(const Term& t) override;
 
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
@@ -139,8 +144,15 @@ class YicesSolver : public Solver
   //
   //
  private:
-  context_t* d_context = nullptr;
   type_t get_yices_sort(Sort sort) const;
+  std::vector<int32_t> bin_str_to_int_array(std::string s);
+
+  term_t mk_value_bv_int_or_special(Sort sort, std::string value, Base base);
+
+  bool d_is_initialized;
+  bool d_incremental     = false;
+  ctx_config_t* d_config = nullptr;
+  context_t* d_context   = nullptr;
 };
 
 }  // namespace yices

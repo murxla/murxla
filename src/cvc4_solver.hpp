@@ -95,6 +95,7 @@ class CVC4Solver : public Solver
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
   std::string get_option_name_unsat_assumptions() const override;
+
   bool option_incremental_enabled() const override;
   bool option_model_gen_enabled() const override;
   bool option_unsat_assumptions_enabled() const override;
@@ -134,7 +135,7 @@ class CVC4Solver : public Solver
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
-  void assert_formula(const Term& t) const override;
+  void assert_formula(const Term& t) override;
 
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;

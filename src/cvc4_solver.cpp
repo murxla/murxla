@@ -706,7 +706,7 @@ CVC4Solver::get_sort(Term term, SortKind sort_kind) const
 }
 
 void
-CVC4Solver::assert_formula(const Term& t) const
+CVC4Solver::assert_formula(const Term& t)
 {
   d_solver->assertFormula(get_cvc4_term(t));
 }

@@ -295,7 +295,7 @@ class Smt2Solver : public Solver
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
-  void assert_formula(const Term& t) const override;
+  void assert_formula(const Term& t) override;
 
   Result check_sat() const override;
   Result check_sat_assuming(std::vector<Term>& assumptions) const override;
