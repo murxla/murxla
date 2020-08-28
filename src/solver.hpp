@@ -39,6 +39,8 @@ class AbsSort
   virtual bool is_int() const  = 0;
   virtual bool is_real() const = 0;
   virtual bool is_rm() const   = 0;
+  virtual bool is_string() const = 0;
+  virtual bool is_reglan() const = 0;
   virtual uint32_t get_bv_size() const;
   virtual uint32_t get_fp_exp_size() const;
   virtual uint32_t get_fp_sig_size() const;
@@ -160,6 +162,13 @@ class Solver
     SMTMBT_FP_RTZ,
   };
 
+  enum SpecialValueString
+  {
+    SMTMBT_RE_NONE,
+    SMTMBT_RE_ALL,
+    SMTMBT_RE_ALLCHAR,
+  };
+
   Solver(RNGenerator& rng);
   Solver() = delete;
   virtual ~Solver() = default;
@@ -185,6 +194,7 @@ class Solver
   virtual Term mk_value(Sort sort, std::string value, Base base);
   virtual Term mk_value(Sort sort, SpecialValueFP value);
   virtual Term mk_value(Sort sort, SpecialValueRM value);
+  virtual Term mk_value(Sort sort, SpecialValueString value);
 
   virtual Sort mk_sort(const std::string name, uint32_t arity) = 0;
   virtual Sort mk_sort(SortKind kind)                          = 0;
@@ -248,6 +258,8 @@ class Solver
       s_special_values_fp;
   static const std::unordered_map<std::string, SpecialValueRM>
       s_special_values_rm;
+  static const std::unordered_map<std::string, SpecialValueString>
+      s_special_values_string;
 
  protected:
   RNGenerator& d_rng;
@@ -268,6 +280,9 @@ std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueBV val);
 std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueFP val);
 /** Serialize a special RM value to given stream.  */
 std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueRM val);
+/** Serialize a special String value to given stream.  */
+std::ostream& operator<<(std::ostream& out,
+                         const Solver::SpecialValueString val);
 
 /** Serialize a solver result to given stream.  */
 std::ostream& operator<<(std::ostream& out, const Solver::Result& r);

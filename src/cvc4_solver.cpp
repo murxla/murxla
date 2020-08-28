@@ -62,15 +62,27 @@ CVC4Sort::is_int() const
 }
 
 bool
+CVC4Sort::is_real() const
+{
+  return d_sort.isReal();
+}
+
+bool
 CVC4Sort::is_rm() const
 {
   return d_sort.isRoundingMode();
 }
 
 bool
-CVC4Sort::is_real() const
+CVC4Sort::is_string() const
 {
-  return d_sort.isReal();
+  return d_sort.isString();
+}
+
+bool
+CVC4Sort::is_reglan() const
+{
+  return d_sort.isRegExp();
 }
 
 uint32_t
@@ -147,6 +159,7 @@ CVC4Solver::new_solver()
   d_solver = new api::Solver();
   init_op_kinds();
   d_solver->setOption("fp-exp", "true");
+  d_solver->setOption("strings-exp", "true");
 }
 
 void
@@ -187,6 +200,8 @@ CVC4Solver::mk_sort(SortKind kind)
     case SORT_INT: cvc4_res = d_solver->getIntegerSort(); break;
     case SORT_REAL: cvc4_res = d_solver->getRealSort(); break;
     case SORT_RM: cvc4_res = d_solver->getRoundingmodeSort(); break;
+    case SORT_STRING: cvc4_res = d_solver->getStringSort(); break;
+    case SORT_REGLAN: cvc4_res = d_solver->getRegExpSort(); break;
 
     default: assert(false);
   }
@@ -330,6 +345,12 @@ CVC4Solver::mk_value(Sort sort, std::string value)
       {
         cvc4_res = d_solver->mkReal(value);
       }
+      break;
+
+    case SORT_REGLAN:
+    case SORT_STRING:
+      // TODO: test more mkString functions
+      cvc4_res = d_solver->mkString(value);
       break;
 
     default: assert(false);
@@ -481,6 +502,28 @@ CVC4Solver::mk_value(Sort sort, SpecialValueRM value)
       assert(value == Solver::SpecialValueRM::SMTMBT_FP_RTZ);
       cvc4_res =
           d_solver->mkRoundingMode(CVC4::api::RoundingMode::ROUND_TOWARD_ZERO);
+  }
+  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
+  assert(res);
+  return res;
+}
+
+Term
+CVC4Solver::mk_value(Sort sort, SpecialValueString value)
+{
+  CVC4::api::Term cvc4_res;
+
+  switch (value)
+  {
+    case Solver::SpecialValueString::SMTMBT_RE_ALL:
+      cvc4_res = d_solver->mkTerm(api::REGEXP_STAR, d_solver->mkRegexpSigma());
+      break;
+    case Solver::SpecialValueString::SMTMBT_RE_ALLCHAR:
+      cvc4_res = d_solver->mkRegexpSigma();
+      break;
+    default:
+      assert(value == Solver::SpecialValueString::SMTMBT_RE_NONE);
+      cvc4_res = d_solver->mkRegexpEmpty();
   }
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
@@ -960,6 +1003,40 @@ CVC4Solver::init_op_kinds()
       /* Quantifiers */
       {OP_FORALL, CVC4::api::Kind::FORALL},
       {OP_EXISTS, CVC4::api::Kind::EXISTS},
+
+      {OP_STR_CONCAT, CVC4::api::Kind::STRING_CONCAT},
+      {OP_STR_LEN, CVC4::api::Kind::STRING_LENGTH},
+      {OP_STR_LT, CVC4::api::Kind::STRING_LT},
+      {OP_STR_TO_RE, CVC4::api::Kind::STRING_TO_REGEXP},
+      {OP_STR_IN_RE, CVC4::api::Kind::STRING_IN_REGEXP},
+      {OP_RE_CONCAT, CVC4::api::Kind::REGEXP_CONCAT},
+      {OP_RE_UNION, CVC4::api::Kind::REGEXP_UNION},
+      {OP_RE_INTER, CVC4::api::Kind::REGEXP_INTER},
+      {OP_RE_STAR, CVC4::api::Kind::REGEXP_STAR},
+      {OP_STR_LE, CVC4::api::Kind::STRING_LEQ},
+      {OP_STR_AT, CVC4::api::Kind::STRING_CHARAT},
+      {OP_STR_SUBSTR, CVC4::api::Kind::STRING_SUBSTR},
+      {OP_STR_PREFIXOF, CVC4::api::Kind::STRING_PREFIX},
+      {OP_STR_SUFFIXOF, CVC4::api::Kind::STRING_SUFFIX},
+      {OP_STR_CONTAINS, CVC4::api::Kind::STRING_CONTAINS},
+      {OP_STR_INDEXOF, CVC4::api::Kind::STRING_INDEXOF},
+      {OP_STR_REPLACE, CVC4::api::Kind::STRING_REPLACE},
+      {OP_STR_REPLACE_ALL, CVC4::api::Kind::STRING_REPLACE_ALL},
+      {OP_STR_REPLACE_RE, CVC4::api::Kind::STRING_REPLACE_RE},
+      {OP_STR_REPLACE_RE_ALL, CVC4::api::Kind::STRING_REPLACE_RE_ALL},
+      {OP_RE_COMP, CVC4::api::Kind::REGEXP_COMPLEMENT},
+      {OP_RE_DIFF, CVC4::api::Kind::REGEXP_DIFF},
+      {OP_RE_PLUS, CVC4::api::Kind::REGEXP_PLUS},
+      {OP_RE_OPT, CVC4::api::Kind::REGEXP_OPT},
+      {OP_RE_RANGE, CVC4::api::Kind::REGEXP_RANGE},
+      {OP_RE_POW, CVC4::api::Kind::REGEXP_REPEAT},
+      {OP_RE_LOOP, CVC4::api::Kind::REGEXP_LOOP},
+      {OP_STR_IS_DIGIT, CVC4::api::Kind::STRING_IS_DIGIT},
+      {OP_STR_TO_CODE, CVC4::api::Kind::STRING_TO_CODE},
+      {OP_STR_FROM_CODE, CVC4::api::Kind::STRING_FROM_CODE},
+      {OP_STR_TO_INT, CVC4::api::Kind::STRING_TO_INT},
+      {OP_STR_FROM_INT, CVC4::api::Kind::STRING_FROM_INT},
+
   };
 }
 

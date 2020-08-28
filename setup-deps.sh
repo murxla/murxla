@@ -100,7 +100,7 @@ rm -rf "$toml_dir"
 
 # Setup CVC4
 (
-  if [ "$btor" == "yes" ]
+  if [ "$cvc4" == "yes" ]
   then
     cd solvers/cvc4 || exit 1
 

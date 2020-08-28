@@ -81,13 +81,25 @@ BtorSort::is_int() const
 }
 
 bool
+BtorSort::is_real() const
+{
+  return false;
+}
+
+bool
 BtorSort::is_rm() const
 {
   return false;
 }
 
 bool
-BtorSort::is_real() const
+BtorSort::is_string() const
+{
+  return false;
+}
+
+bool
+BtorSort::is_reglan() const
 {
   return false;
 }

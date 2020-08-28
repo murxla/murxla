@@ -531,6 +531,8 @@ class ActionMkSort : public Action
         }
         break;
 
+      case SORT_STRING:
+      case SORT_REGLAN:
       case SORT_BOOL:
       case SORT_INT:
       case SORT_REAL:
@@ -575,6 +577,11 @@ class ActionMkSort : public Action
       }
 
       case SORT_BOOL:
+      case SORT_INT:
+      case SORT_REAL:
+      case SORT_REGLAN:
+      case SORT_RM:
+      case SORT_STRING:
         if (n_tokens != 1)
         {
           std::stringstream ss;
@@ -605,19 +612,6 @@ class ActionMkSort : public Action
           throw SmtMbtFSMUntraceException(ss);
         }
         res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
-        break;
-
-      case SORT_INT:
-      case SORT_REAL:
-      case SORT_RM:
-        if (n_tokens != 1)
-        {
-          std::stringstream ss;
-          ss << "unexpected argument(s) to '" << get_kind() << "' of sort '"
-             << kind;
-          throw SmtMbtFSMUntraceException(ss);
-        }
-        res = _run(kind);
         break;
 
       default:
@@ -815,6 +809,12 @@ class ActionMkTerm : public Action
         }
       }
     }
+    else if (kind == OpKind::OP_RE_RANGE)
+    {
+      if (!d_smgr.has_string_char_value()) return false;
+      args.push_back(d_smgr.pick_string_char_value());
+      args.push_back(d_smgr.pick_string_char_value());
+    }
     else
     {
       if (arity == SMTMBT_MK_TERM_N_ARGS)
@@ -823,27 +823,30 @@ class ActionMkTerm : public Action
                                      SMTMBT_MK_TERM_N_ARGS_MAX);
       }
 
-      /* In general, all arguments (except for the operators above) have the
-       * same sort. Theory of FP is an exception, where some FP operators have
-       * one RM and the remainder FP arguments ( all FP arguments with the
-       * same sort, and the RM argument always comes first). */
-
-      uint32_t idx = 0;
-      if (op.get_arg_sort_kind(0) == SORT_RM)
+      if (kind == OpKind::OP_EQUAL || kind == OpKind::OP_DISTINCT)
       {
-        if (!d_smgr.has_term(SORT_RM)) return false;
-        args.push_back(d_smgr.pick_term(SORT_RM));
-        idx += 1;
+        /* creating relations over SORT_REGLAN not supported by any solver
+         * right now. */
+        SortKindSet exclude = {SORT_REGLAN};
+        sort                = d_smgr.pick_sort(exclude);
+        if (sort == nullptr)
+        {
+          return false;
+        }
+        for (int32_t i = 0; i < arity; ++i)
+        {
+          assert(d_smgr.has_term(sort));
+          args.push_back(d_smgr.pick_term(sort));
+        }
       }
-
-      /* Remaining arguments have the same sort. */
-      sort = d_smgr.pick_sort(op.get_arg_sort_kind(idx));
-
-      /* pick arguments */
-      for (int32_t i = idx; i < arity; ++i)
+      else
       {
-        assert(d_smgr.has_term(sort));
-        args.push_back(d_smgr.pick_term(sort));
+        for (int32_t i = 0; i < arity; ++i)
+        {
+          sort = d_smgr.pick_sort(op.get_arg_sort_kind(i));
+          assert(d_smgr.has_term(sort));
+          args.push_back(d_smgr.pick_term(sort));
+        }
       }
     }
 
@@ -927,6 +930,19 @@ class ActionMkTerm : public Action
         case OP_INT_IS_DIV:
           assert(sort->is_int());
           assert(sort_kind == SORT_BOOL);
+          params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          break;
+
+        case OP_RE_LOOP:
+          assert(sort->is_reglan());
+          assert(sort_kind == SORT_REGLAN);
+          params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          break;
+
+        case OP_RE_POW:
+          assert(sort->is_reglan());
+          assert(sort_kind == SORT_REGLAN);
           params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
           break;
 
@@ -1050,9 +1066,15 @@ class ActionMkConst : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
+
+    /* creating constants with SORT_REGLAN not supported by any solver right
+     * now. */
+    SortKindSet exclude = {SORT_REGLAN};
+
     /* Pick sort of const. */
-    if (!d_smgr.has_sort()) return false;
-    Sort sort          = d_smgr.pick_sort();
+    if (!d_smgr.has_sort(exclude)) return false;
+
+    Sort sort          = d_smgr.pick_sort(exclude, false);
     std::string symbol = d_smgr.pick_symbol();
     /* Create const. */
     _run(sort, symbol);
@@ -1100,9 +1122,11 @@ class ActionMkVar : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
+    SortKindSet exclude = d_solver.get_unsupported_var_sort_kinds();
+
     /* Pick sort of const. */
-    if (!d_smgr.has_sort()) return false;
-    Sort sort = d_smgr.pick_sort(d_solver.get_unsupported_var_sort_kinds());
+    if (!d_smgr.has_sort(exclude)) return false;
+    Sort sort          = d_smgr.pick_sort(exclude, false);
     std::string symbol = d_smgr.pick_symbol();
     /* Create var. */
     _run(sort, symbol);
@@ -1186,20 +1210,25 @@ class ActionMkValue : public Action
         switch (pick)
         {
           case RNGenerator::Choice::FIRST:
-            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_NAN);
+            _run<Solver::SpecialValueFP>(sort,
+                                         Solver::SpecialValueFP::SMTMBT_FP_NAN);
             break;
           case RNGenerator::Choice::SECOND:
-            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_POS_INF);
+            _run<Solver::SpecialValueFP>(
+                sort, Solver::SpecialValueFP::SMTMBT_FP_POS_INF);
             break;
           case RNGenerator::Choice::THIRD:
-            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_NEG_INF);
+            _run<Solver::SpecialValueFP>(
+                sort, Solver::SpecialValueFP::SMTMBT_FP_NEG_INF);
             break;
           case RNGenerator::Choice::FOURTH:
-            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO);
+            _run<Solver::SpecialValueFP>(
+                sort, Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO);
             break;
           default:
             assert(pick == RNGenerator::Choice::FIFTH);
-            _run(sort, Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO);
+            _run<Solver::SpecialValueFP>(
+                sort, Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO);
         }
         break;
 
@@ -1257,7 +1286,36 @@ class ActionMkValue : public Action
             break;
           default:
             assert(pick == RNGenerator::Choice::FIFTH);
-            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RTZ);
+            _run<Solver::SpecialValueRM>(sort,
+                                         Solver::SpecialValueRM::SMTMBT_FP_RTZ);
+        }
+        break;
+
+      case SORT_STRING:
+      {
+        uint32_t len = d_rng.pick<uint32_t>(0, SMTMBT_STR_LEN_MAX);
+        std::string value;
+        if (len)
+        {
+          d_rng.pick_string_literal(len);
+        }
+        _run(sort, value);
+      }
+      break;
+
+      case SORT_REGLAN:
+        pick = d_rng.pick_one_of_three();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            _run(sort, Solver::SpecialValueString::SMTMBT_RE_ALL);
+            break;
+          case RNGenerator::Choice::SECOND:
+            _run(sort, Solver::SpecialValueString::SMTMBT_RE_ALLCHAR);
+            break;
+          default:
+            assert(pick == RNGenerator::Choice::THIRD);
+            _run(sort, Solver::SpecialValueString::SMTMBT_RE_NONE);
         }
         break;
 
@@ -1339,6 +1397,21 @@ class ActionMkValue : public Action
           }
           res = _run(sort, Solver::s_special_values_rm.at(tokens[1]));
         }
+        else if (sort->is_reglan())
+        {
+          if (Solver::s_special_values_string.find(tokens[1])
+              == Solver::s_special_values_string.end())
+          {
+            std::stringstream ss;
+            ss << "unexpected special String const value " << tokens[1];
+            throw SmtMbtFSMUntraceException(ss);
+          }
+          res = _run(sort, Solver::s_special_values_string.at(tokens[1]));
+        }
+        else if (sort->is_string())
+        {
+          res = _run(sort, tokens[1]);
+        }
         else
         {
           res = _run(sort, str_to_str(tokens[1]));
@@ -1370,6 +1443,21 @@ class ActionMkValue : public Action
     return res->get_id();
   }
 
+  uint64_t _run(Sort sort, std::string val, size_t len)
+  {
+    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
+    d_smgr.reset_sat();
+    Term res = d_solver.mk_value(sort, val);
+    d_smgr.add_value(res, sort, sort->get_kind());
+    if (len == 1)
+    {
+      assert(sort->is_string());
+      d_smgr.add_string_char_value(res);
+    }
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
+
   uint64_t _run(Sort sort, std::string v0, std::string v1)
   {
     SMTMBT_TRACE << get_kind() << " " << sort << " \"" << v0 << "\""
@@ -1392,21 +1480,10 @@ class ActionMkValue : public Action
     return res->get_id();
   }
 
-  uint64_t _run(Sort sort, Solver::SpecialValueFP val)
+  template <typename T>
+  uint64_t _run(Sort sort, T val)
   {
     SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
-    assert(sort->is_fp());
-    d_smgr.reset_sat();
-    Term res = d_solver.mk_value(sort, val);
-    d_smgr.add_value(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
-    return res->get_id();
-  }
-
-  uint64_t _run(Sort sort, Solver::SpecialValueRM val)
-  {
-    SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
-    assert(sort->is_rm());
     d_smgr.reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_value(res, sort, sort->get_kind());
@@ -2275,10 +2352,12 @@ FSM::untrace(std::string& trace_file_name)
         throw SmtMbtFSMException(ss);
       }
 
+      // TODO: we also need a register_sort in case sorts get removed while
+      // delta debugging
       /* Make sure that ids for terms/sorts are the same as in the trace. */
       if (id == Action::Kind::MK_SORT || id == Action::Kind::MK_TERM
           || id == Action::Kind::MK_CONST || id == Action::Kind::MK_VALUE
-          || id == Action::Kind::MK_VAR)
+          || id == Action::Kind::MK_VAR || id == Action::Kind::CVC4_SIMPLIFY)
       {
         assert(d_actions.find(id) != d_actions.end());
 

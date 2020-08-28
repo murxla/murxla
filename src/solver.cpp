@@ -188,6 +188,13 @@ const std::unordered_map<std::string, Solver::SpecialValueRM>
         {"rtp", Solver::SpecialValueRM::SMTMBT_FP_RTP},
         {"rtz", Solver::SpecialValueRM::SMTMBT_FP_RTZ}};
 
+const std::unordered_map<std::string, Solver::SpecialValueString>
+    Solver::s_special_values_string = {
+        {"re.all", Solver::SpecialValueString::SMTMBT_RE_ALL},
+        {"re.allchar", Solver::SpecialValueString::SMTMBT_RE_ALLCHAR},
+        {"renone", Solver::SpecialValueString::SMTMBT_RE_NONE},
+};
+
 Solver::Solver(RNGenerator& rng) : d_rng(rng) {}
 
 bool
@@ -282,6 +289,12 @@ Solver::mk_value(Sort sort, SpecialValueRM value)
   return Term();
 }
 
+Term
+Solver::mk_value(Sort sort, SpecialValueString value)
+{
+  return Term();
+}
+
 Sort
 Solver::mk_sort(SortKind kind, uint32_t size)
 {
@@ -329,6 +342,21 @@ std::ostream&
 operator<<(std::ostream& out, const Solver::SpecialValueRM val)
 {
   for (const auto& p : Solver::s_special_values_rm)
+  {
+    if (p.second == val)
+    {
+      out << p.first;
+      return out;
+    }
+  }
+  out << "unknown";
+  return out;
+}
+
+std::ostream&
+operator<<(std::ostream& out, const Solver::SpecialValueString val)
+{
+  for (const auto& p : Solver::s_special_values_string)
   {
     if (p.second == val)
     {

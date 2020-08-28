@@ -136,6 +136,13 @@ SolverManager::add_value(Term& term, Sort& sort, SortKind sort_kind)
 }
 
 void
+SolverManager::add_string_char_value(Term& term)
+{
+  assert(term.get());
+  d_string_char_values.insert(term);
+}
+
+void
 SolverManager::add_input(Term& term, Sort& sort, SortKind sort_kind)
 {
   assert(term.get());
@@ -325,6 +332,14 @@ SolverManager::pick_value(Sort sort)
 }
 
 Term
+SolverManager::pick_string_char_value()
+{
+  assert(has_string_char_value());
+  return d_rng.pick_from_set<std::unordered_set<Term, HashTerm>, Term>(
+      d_string_char_values);
+}
+
+Term
 SolverManager::pick_term(Sort sort)
 {
   return d_term_db.pick_term(sort);
@@ -400,6 +415,12 @@ bool
 SolverManager::has_value(Sort sort) const
 {
   return d_term_db.has_value(sort);
+}
+
+bool
+SolverManager::has_string_char_value() const
+{
+  return !d_string_char_values.empty();
 }
 
 bool
@@ -517,15 +538,22 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
 }
 
 Sort
-SolverManager::pick_sort(const SortKindSet& exclude_sorts)
+SolverManager::pick_sort(const SortKindSet& exclude_sorts, bool with_terms)
 {
   SortSet sorts;
   for (const auto s : d_sorts)
   {
     if (exclude_sorts.find(s->get_kind()) == exclude_sorts.end())
     {
-      sorts.insert(s);
+      if (!with_terms || d_term_db.has_term(s))
+      {
+        sorts.insert(s);
+      }
     }
+  }
+  if (sorts.empty())
+  {
+    return nullptr;
   }
   return d_rng.pick_from_set<SortSet, Sort>(sorts);
 }
@@ -773,6 +801,13 @@ SolverManager::add_sort_kinds()
 
       case THEORY_QUANT: break;
 
+      case THEORY_STRING:
+        d_sort_kinds.emplace(SORT_STRING,
+                             SortKindData(SORT_STRING, 0, THEORY_STRING));
+        d_sort_kinds.emplace(SORT_REGLAN,
+                             SortKindData(SORT_REGLAN, 0, THEORY_STRING));
+        break;
+
       default: assert(false);
     }
   }
@@ -998,7 +1033,144 @@ SolverManager::add_op_kinds()
             ops, OP_REAL_GTE, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
         break;
 
-      default: assert(sort_kind == SORT_RM);
+      case SORT_STRING:
+        add_op_kind(ops,
+                    OP_STR_CONCAT,
+                    n,
+                    0,
+                    SORT_STRING,
+                    {SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(
+            ops, OP_STR_LEN, 1, 0, SORT_INT, {SORT_STRING}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_STR_LT, 2, 0, SORT_BOOL, {SORT_STRING}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_STR_TO_RE, 1, 0, SORT_REGLAN, {SORT_STRING}, THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_IN_RE,
+                    2,
+                    0,
+                    SORT_BOOL,
+                    {SORT_STRING, SORT_REGLAN},
+                    THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_CONCAT, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_UNION, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_INTER, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_STAR, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_STR_LE, 2, 0, SORT_BOOL, {SORT_STRING}, THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_AT,
+                    2,
+                    0,
+                    SORT_STRING,
+                    {SORT_STRING, SORT_INT},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_SUBSTR,
+                    3,
+                    0,
+                    SORT_STRING,
+                    {SORT_STRING, SORT_INT, SORT_INT},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_PREFIXOF,
+                    2,
+                    0,
+                    SORT_BOOL,
+                    {SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_SUFFIXOF,
+                    2,
+                    0,
+                    SORT_BOOL,
+                    {SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_CONTAINS,
+                    2,
+                    0,
+                    SORT_BOOL,
+                    {SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_INDEXOF,
+                    3,
+                    0,
+                    SORT_INT,
+                    {SORT_STRING, SORT_STRING, SORT_INT},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_REPLACE,
+                    3,
+                    0,
+                    SORT_STRING,
+                    {SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_REPLACE_ALL,
+                    3,
+                    0,
+                    SORT_STRING,
+                    {SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_REPLACE_RE,
+                    3,
+                    0,
+                    SORT_STRING,
+                    {SORT_STRING, SORT_REGLAN, SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_REPLACE_RE_ALL,
+                    3,
+                    0,
+                    SORT_STRING,
+                    {SORT_STRING, SORT_REGLAN, SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_COMP, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_DIFF, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_PLUS, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_OPT, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_RANGE, 2, 0, SORT_REGLAN, {SORT_STRING}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_POW, 1, 1, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_RE_LOOP, 1, 2, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_IS_DIGIT,
+                    1,
+                    0,
+                    SORT_BOOL,
+                    {SORT_STRING},
+                    THEORY_STRING);
+        add_op_kind(
+            ops, OP_STR_TO_CODE, 1, 0, SORT_INT, {SORT_STRING}, THEORY_STRING);
+        add_op_kind(ops,
+                    OP_STR_FROM_CODE,
+                    1,
+                    0,
+                    SORT_STRING,
+                    {SORT_INT},
+                    THEORY_STRING);
+        add_op_kind(
+            ops, OP_STR_TO_INT, 1, 0, SORT_INT, {SORT_STRING}, THEORY_STRING);
+        add_op_kind(
+            ops, OP_STR_FROM_INT, 1, 0, SORT_STRING, {SORT_INT}, THEORY_STRING);
+        break;
+
+      default: assert(sort_kind == SORT_RM || sort_kind == SORT_REGLAN);
     }
   }
 }

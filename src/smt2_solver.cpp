@@ -60,6 +60,18 @@ Smt2Sort::is_rm() const
   return d_kind == SORT_RM;
 }
 
+bool
+Smt2Sort::is_string() const
+{
+  return d_kind == SORT_STRING;
+}
+
+bool
+Smt2Sort::is_reglan() const
+{
+  return d_kind == SORT_REGLAN;
+}
+
 uint32_t
 Smt2Sort::get_bv_size() const
 {
@@ -404,6 +416,11 @@ Smt2Solver::mk_value(Sort sort, std::string value)
       val << value;
       break;
 
+    case SORT_STRING:
+      assert(sort->is_string());
+      val << "\"" << value << "\"";
+      break;
+
     default: assert(false);
   }
   return std::shared_ptr<Smt2Term>(new Smt2Term(
@@ -496,6 +513,26 @@ Smt2Solver::mk_value(Sort sort, SpecialValueRM value)
       OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
 }
 
+Term
+Smt2Solver::mk_value(Sort sort, SpecialValueString value)
+{
+  assert(sort->is_reglan());
+  std::string val;
+
+  switch (value)
+  {
+    case Solver::SpecialValueString::SMTMBT_RE_ALL: val = "re.all"; break;
+    case Solver::SpecialValueString::SMTMBT_RE_ALLCHAR:
+      val = "re.allchar";
+      break;
+    default:
+      assert(value == Solver::SpecialValueString::SMTMBT_RE_NONE);
+      val = "re.none";
+  }
+  return std::shared_ptr<Smt2Term>(new Smt2Term(
+      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
+}
+
 static std::string
 get_bool_sort_string()
 {
@@ -518,6 +555,18 @@ static std::string
 get_rm_sort_string()
 {
   return "RoundingMode";
+}
+
+static std::string
+get_string_sort_string()
+{
+  return "String";
+}
+
+static std::string
+get_reglan_sort_string()
+{
+  return "RegLan";
 }
 
 static std::string
@@ -566,6 +615,8 @@ Smt2Solver::mk_sort(SortKind kind)
     case SORT_INT: sort = get_int_sort_string(); break;
     case SORT_REAL: sort = get_real_sort_string(); break;
     case SORT_RM: sort = get_rm_sort_string(); break;
+    case SORT_STRING: sort = get_string_sort_string(); break;
+    case SORT_REGLAN: sort = get_reglan_sort_string(); break;
     default: assert(false);
   }
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));
@@ -651,6 +702,10 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     case SORT_REAL: sort = get_real_sort_string(); break;
 
     case SORT_RM: sort = get_rm_sort_string(); break;
+
+    case SORT_STRING: sort = get_string_sort_string(); break;
+
+    case SORT_REGLAN: sort = get_reglan_sort_string(); break;
 
     case SORT_ARRAY:
     {

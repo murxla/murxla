@@ -31,6 +31,8 @@ class Smt2Sort : public AbsSort
   bool is_int() const override;
   bool is_real() const override;
   bool is_rm() const override;
+  bool is_string() const override;
+  bool is_reglan() const override;
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
@@ -215,6 +217,40 @@ class Smt2Term : public AbsTerm
       /* Quantifiers */
       {OP_FORALL, "forall"},
       {OP_EXISTS, "exists"},
+
+      /* Strings */
+      {OP_STR_CONCAT, "str.++"},
+      {OP_STR_LEN, "str.len"},
+      {OP_STR_LT, "str.<"},
+      {OP_STR_TO_RE, "str.to_re"},
+      {OP_STR_IN_RE, "str.in_re"},
+      {OP_RE_CONCAT, "re.++"},
+      {OP_RE_UNION, "re.union"},
+      {OP_RE_INTER, "re.inter"},
+      {OP_RE_STAR, "re.*"},
+      {OP_STR_LE, "str.<="},
+      {OP_STR_AT, "str.at"},
+      {OP_STR_SUBSTR, "str.substr"},
+      {OP_STR_PREFIXOF, "str.prefixof"},
+      {OP_STR_SUFFIXOF, "str.suffixof"},
+      {OP_STR_CONTAINS, "str.contains"},
+      {OP_STR_INDEXOF, "str.indexof"},
+      {OP_STR_REPLACE, "str.replace"},
+      {OP_STR_REPLACE_ALL, "str.replace_all"},
+      {OP_STR_REPLACE_RE, "str.replace_re"},
+      {OP_STR_REPLACE_RE_ALL, "str.replace_re_all"},
+      {OP_RE_COMP, "re.comp"},
+      {OP_RE_DIFF, "re.diff"},
+      {OP_RE_PLUS, "re.+"},
+      {OP_RE_OPT, "re.opt"},
+      {OP_RE_RANGE, "re.range"},
+      {OP_RE_POW, "re.^"},
+      {OP_RE_LOOP, "re.loop"},
+      {OP_STR_IS_DIGIT, "str.is_digit"},
+      {OP_STR_TO_CODE, "str.to_code"},
+      {OP_STR_FROM_CODE, "str.from_code"},
+      {OP_STR_TO_INT, "str.to_int"},
+      {OP_STR_FROM_INT, "str.from_int"},
   };
 };
 
@@ -245,6 +281,7 @@ class Smt2Solver : public Solver
   Term mk_value(Sort sort, std::string value, Base base) override;
   Term mk_value(Sort sort, SpecialValueFP value) override;
   Term mk_value(Sort sort, SpecialValueRM value) override;
+  Term mk_value(Sort sort, SpecialValueString value) override;
 
   Sort mk_sort(const std::string name, uint32_t arity) override;
   Sort mk_sort(SortKind kind) override;

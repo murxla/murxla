@@ -81,6 +81,8 @@ class SolverManager
   void add_sort(Sort& sort, SortKind sort_kind);
   /** Add value to term database. */
   void add_value(Term& term, Sort& sort, SortKind sort_kind);
+  /** Add string value of lenght 1. */
+  void add_string_char_value(Term& term);
   /** Add input to term database. */
   void add_input(Term& term, Sort& sort, SortKind sort_kind);
   /** Add var to term database. */
@@ -130,6 +132,11 @@ class SolverManager
    * Requires that a value of given sort exists.
    */
   Term pick_value(Sort sort);
+
+  /**
+   * Pick string value with lenght 1.
+   */
+  Term pick_string_char_value();
 
   /**
    * Pick a term of given sort.
@@ -190,8 +197,12 @@ class SolverManager
    */
   void reset_sat();
 
-  /** Return true if term database contains any value of given sort. */
+  /** Return true if term database contains any value of given sort with a
+   * given length. */
   bool has_value(Sort sort) const;
+
+  /** Return true if we already created string values with lenght 1. */
+  bool has_string_char_value() const;
 
   /** Return true if term database contains any term. */
   bool has_term() const;
@@ -252,7 +263,7 @@ class SolverManager
    * Pick sort, but exclude some of them.
    * It is not guaranteed that there exist terms of the returned sort.
    */
-  Sort pick_sort(const SortKindSet& exclude_sorts);
+  Sort pick_sort(const SortKindSet& exclude_sorts, bool with_terms = true);
   /**
    * Pick bit-vector sort with given bit-width.  Optionally restrict
    * selection to sorts with terms only if 'with_terms' is true.
@@ -485,6 +496,9 @@ class SolverManager
 
   /** Map untraced ids to corresponding Terms. */
   std::unordered_map<uint64_t, Term> d_untraced_terms;
+
+  /** Set of currently created string values with length 1. */
+  std::unordered_set<Term, HashTerm> d_string_char_values;
 };
 
 /* -------------------------------------------------------------------------- */

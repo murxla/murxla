@@ -408,7 +408,8 @@ set_sigint_handler_stats(void)
   "  --quant                    quantifiers\n"                                 \
   "  --reals                    theory of reals\n"                             \
   " constraining/extending features based for enabled theories:\n"             \
-  "  --linear                   restrict arithmetic to linear fragment"
+  "  --linear                   restrict arithmetic to linear fragment\n"      \
+  "  --strings                  theory of strings"
 
 /* -------------------------------------------------------------------------- */
 /* Command-line option parsing                                                */
@@ -636,6 +637,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--linear")
     {
       options.arith_linear = true;
+    }
+    else if (arg == "--strings")
+    {
+      options.enabled_theories.push_back(THEORY_STRING);
     }
     else
     {

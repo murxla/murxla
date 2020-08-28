@@ -126,6 +126,10 @@ class RNGenerator
    std::string pick_simple_symbol(uint32_t len);
    /** Pick piped symbol string (as defined in SMT-LIB) of given length. */
    std::string pick_piped_symbol(uint32_t len);
+   /** Pick escaped unicode character (theory of strings) */
+   std::string pick_unicode_character();
+   /** Pick string literal (theory of strings) */
+   std::string pick_string_literal(uint32_t len);
 
    /* Pick random element from given map. */
    template <typename TMap, typename TPicked>
@@ -146,6 +150,8 @@ class RNGenerator
         "*=%?!.$_&<>@^~";
     /** The set of printable characters: 32-126 and 128-255 (decimal). */
     std::vector<char> d_printable_chars;
+    /** The set of hexadecimal characters */
+    std::vector<char> d_hex_chars;
 };
 
 /* -------------------------------------------------------------------------- */

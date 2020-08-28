@@ -17,6 +17,8 @@ enum SortKind
   SORT_INT,
   SORT_REAL,
   SORT_RM,
+  SORT_REGLAN,
+  SORT_STRING,
   SORT_ANY,
 };
 
@@ -33,6 +35,8 @@ static std::unordered_map<SortKind, std::string, SortKindHashFunction>
                       {SORT_INT, "SORT_INT"},
                       {SORT_REAL, "SORT_REAL"},
                       {SORT_RM, "SORT_RM"},
+                      {SORT_STRING, "SORT_STRING"},
+                      {SORT_REGLAN, "SORT_REGLAN"},
                       {SORT_ANY, "SORT_ANY"}};
 
 struct SortKindData

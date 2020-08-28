@@ -33,6 +33,8 @@ class CVC4Sort : public AbsSort
   bool is_int() const override;
   bool is_real() const override;
   bool is_rm() const override;
+  bool is_string() const override;
+  bool is_reglan() const override;
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
@@ -113,6 +115,7 @@ class CVC4Solver : public Solver
   Term mk_value(Sort sort, std::string value, Base base) override;
   Term mk_value(Sort sort, SpecialValueFP value) override;
   Term mk_value(Sort sort, SpecialValueRM value) override;
+  Term mk_value(Sort sort, SpecialValueString value) override;
 
   Sort mk_sort(const std::string name, uint32_t arity) override
   {  // TODO:

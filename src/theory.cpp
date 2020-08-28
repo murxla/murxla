@@ -14,6 +14,7 @@ operator<<(std::ostream& out, TheoryId theory)
     case THEORY_INT: out << "THEORY_INT"; break;
     case THEORY_QUANT: out << "THEORY_QUANT"; break;
     case THEORY_REAL: out << "THEORY_REAL"; break;
+    case THEORY_STRING: out << "THEORY_STRING"; break;
     default: out << "UNKNOWN THEORY!" << int(theory); break;
   }
   return out;

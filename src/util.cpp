@@ -61,6 +61,15 @@ RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
   i = 128;
   std::generate_n(
       std::back_inserter(d_printable_chars), 128, [&i]() { return i++; });
+  /* A-F */
+  i = 65;
+  std::generate_n(std::back_inserter(d_hex_chars), 6, [&i]() { return i++; });
+  /* a-f */
+  i = 97;
+  std::generate_n(std::back_inserter(d_hex_chars), 6, [&i]() { return i++; });
+  /* 0-9 */
+  i = 48;
+  std::generate_n(std::back_inserter(d_hex_chars), 10, [&i]() { return i++; });
 }
 
 std::mt19937&
@@ -257,6 +266,94 @@ RNGenerator::pick_piped_symbol(uint32_t len)
   s[0]       = '|';
   s[len - 1] = '|';
   return s;
+}
+
+/**
+ * Generate strings of the form
+ *
+ *  \ud3d2d1d0
+ *  \u{d0}
+ *  \u{d1d0}
+ *  \u{d2d1d0}
+ *  \u{d3d2d1d0}
+ *  \u{d4d3d2d1d0}
+ *
+ * where d0 - d3 are hexadecimal digits and d4 is restricted to the range 0-2.
+ */
+std::string
+RNGenerator::pick_unicode_character()
+{
+  uint32_t len = pick<uint32_t>(1, 5);
+  std::vector<char> digits;
+
+  for (uint32_t i = 0; i < std::min<uint32_t>(3, len); ++i)
+  {
+    digits.push_back(pick_from_set<std::vector<char>, char>(d_hex_chars));
+  }
+
+  bool use_braces = true;
+  if (len == 5)
+  {
+    digits.push_back(pick<uint32_t>('0', '2'));
+  }
+  else if (len == 4)
+  {
+    use_braces = flip_coin();
+  }
+
+  std::stringstream ss;
+  ss << "\\u";
+
+  if (use_braces)
+  {
+    ss << "{";
+  }
+
+  for (auto it = digits.rbegin(); it != digits.rend(); ++it)
+  {
+    ss << *it;
+  }
+
+  if (use_braces)
+  {
+    ss << "}";
+  }
+
+  return ss.str();
+}
+
+std::string
+RNGenerator::pick_string_literal(uint32_t len)
+{
+  assert(len);
+
+  uint32_t len_ascii   = pick<uint32_t>(0, len);
+  uint32_t len_unicode = len - len_ascii;
+
+  std::vector<std::string> chars;
+
+  // pick ASCII chars
+  for (uint32_t i = 0; i < len_ascii; ++i)
+  {
+    chars.push_back(std::string(
+        1, pick_from_set<std::vector<char>, char>(d_printable_chars)));
+  }
+
+  // pick escaped unicode chars
+  for (uint32_t i = 0; i < len_unicode; ++i)
+  {
+    chars.push_back(pick_unicode_character());
+  }
+
+  std::shuffle(std::begin(chars), std::end(chars), d_rng);
+
+  std::stringstream ss;
+  for (auto s : chars)
+  {
+    ss << s;
+  }
+
+  return ss.str();
 }
 
 /* -------------------------------------------------------------------------- */
