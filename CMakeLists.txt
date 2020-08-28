@@ -64,6 +64,7 @@ list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
 find_package(Boolector)
 find_package(CVC4)
 find_package(toml11)
+find_package(Yices)
 
 add_subdirectory(src)
 
