@@ -427,23 +427,23 @@ class ActionSetOption : public Action
      *   Boolean values as "true" and "false" (the implementations of class
      *   Solver must support/consider this)
      */
-    if (!d_smgr.d_incremental && d_rng.pick_with_prob(10))
+    if (d_rng.pick_with_prob(10))
     {
       /* explicitly enable this option with higher priority */
       opt   = d_solver.get_option_name_incremental();
-      value = "true";
+      value = d_smgr.d_incremental ? "false" : "true";
     }
-    else if (!d_smgr.d_model_gen && d_rng.pick_with_prob(10))
+    else if (d_rng.pick_with_prob(10))
     {
       /* explicitly enable this option with higher priority */
       opt   = d_solver.get_option_name_model_gen();
-      value = "true";
+      value = d_smgr.d_model_gen ? "false" : "true";
     }
-    else if (!d_smgr.d_unsat_assumptions && d_rng.pick_with_prob(10))
+    else if (d_rng.pick_with_prob(10))
     {
       /* explicitly enable this option with higher priority */
       opt   = d_solver.get_option_name_unsat_assumptions();
-      value = "true";
+      value = d_smgr.d_unsat_assumptions ? "false" : "true";
     }
     else
     {
