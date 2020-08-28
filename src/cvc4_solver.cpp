@@ -1,3 +1,5 @@
+#ifdef SMTMBT_USE_CVC4
+
 #include "cvc4_solver.hpp"
 
 #include <cassert>
@@ -74,19 +76,28 @@ CVC4Sort::is_real() const
 uint32_t
 CVC4Sort::get_bv_size() const
 {
-  return d_sort.getBVSize();
+  assert(is_bv());
+  uint32_t res = d_sort.getBVSize();
+  assert(res);
+  return res;
 }
 
 uint32_t
 CVC4Sort::get_fp_exp_size() const
 {
-  return d_sort.getFPExponentSize();
+  assert(is_fp());
+  uint32_t res = d_sort.getFPExponentSize();
+  assert(res);
+  return res;
 }
 
 uint32_t
 CVC4Sort::get_fp_sig_size() const
 {
-  return d_sort.getFPSignificandSize();
+  assert(is_fp());
+  uint32_t res = d_sort.getFPSignificandSize();
+  assert(res);
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1164,3 +1175,5 @@ CVC4Solver::configure_fsm(FSM* fsm) const
 }
 }  // namespace btor
 }  // namespace smtmbt
+
+#endif
