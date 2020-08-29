@@ -874,6 +874,7 @@ SolverManager::add_op_kinds()
         break;
 
       case SORT_BV:
+        // TODO overflow operators?
         add_op_kind(ops, OP_BV_CONCAT, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_AND, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_OR, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);

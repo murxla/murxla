@@ -63,7 +63,19 @@ YicesSort::is_real() const
 }
 
 bool
+YicesSort::is_reglan() const
+{
+  return false;
+}
+
+bool
 YicesSort::is_rm() const
+{
+  return false;
+}
+
+bool
+YicesSort::is_string() const
 {
   return false;
 }
@@ -135,12 +147,6 @@ OpKindSet
 YicesSolver::get_unsupported_op_kinds() const
 {
   return {};
-}
-
-void
-YicesSolver::configure_fsm(FSM* fsm) const
-{
-  // TODO
 }
 
 void
@@ -290,20 +296,25 @@ YicesSolver::mk_value(Sort sort, std::string value)
       assert(sort->is_real());
       if (value.find('.') == std::string::npos && d_rng.flip_coin())
       {
-        if (d_rng.flip_coin())
+        RNGenerator::Choice pick = d_rng.pick_one_of_three();
+        switch (pick)
         {
-          yices_res = yices_int32(
-              static_cast<int32_t>(strtoul(value.c_str(), nullptr, 10)));
-        }
-        else
-        {
-          yices_res = yices_int64(
-              static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10)));
+          case RNGenerator::Choice::FIRST:
+            yices_res = yices_int32(
+                static_cast<int32_t>(strtoul(value.c_str(), nullptr, 10)));
+            break;
+          case RNGenerator::Choice::SECOND:
+            yices_res = yices_int64(
+                static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10)));
+            break;
+          default:
+            assert(pick == RNGenerator::Choice::THIRD);
+            yices_res = yices_parse_rational(value.c_str());
         }
       }
       else
       {
-        yices_res = yices_parse_rational(value.c_str());
+        yices_res = yices_parse_float(value.c_str());
       }
       break;
 
@@ -532,13 +543,21 @@ YicesSolver::mk_sort(SortKind kind)
     default: assert(false);
   }
   assert(yices_res > 0);
-  return std::shared_ptr<YicesSort>(new YicesSort(yices_res));
+  std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
+  assert(res);
 }
 
 Sort
 YicesSolver::mk_sort(SortKind kind, uint32_t size)
 {
-  // TODO
+  type_t yices_res;
+  switch (kind)
+  {
+    case SORT_BV: yices_res = yices_bv_type(size); break;
+    default: assert(false);
+  }
+  std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
+  assert(res);
 }
 
 Sort
@@ -547,12 +566,788 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   // TODO
 }
 
+//////
+////
+//__YICES_DLLSPEC__ extern term_t yices_application(term_t fun, uint32_t n,
+//const term_t arg[]);
+//__YICES_DLLSPEC__ extern term_t yices_application1(term_t fun, term_t arg1);
+//__YICES_DLLSPEC__ extern term_t yices_application2(term_t fun, term_t arg1,
+//term_t arg2);
+//__YICES_DLLSPEC__ extern term_t yices_application3(term_t fun, term_t arg1,
+//term_t arg2, term_t arg3);
+//__YICES_DLLSPEC__ extern term_t yices_tuple(uint32_t n, const term_t arg[]);
+//__YICES_DLLSPEC__ extern term_t yices_pair(term_t arg1, term_t arg2);
+//__YICES_DLLSPEC__ extern term_t yices_triple(term_t arg1, term_t arg2, term_t
+//arg3);
+//__YICES_DLLSPEC__ extern term_t yices_select(uint32_t index, term_t tuple);
+//__YICES_DLLSPEC__ extern term_t yices_tuple_update(term_t tuple, uint32_t
+//index, term_t new_v);
+//__YICES_DLLSPEC__ extern term_t yices_update(term_t fun, uint32_t n, const
+//term_t arg[], term_t new_v);
+//__YICES_DLLSPEC__ extern term_t yices_update1(term_t fun, term_t arg1, term_t
+//new_v);
+//__YICES_DLLSPEC__ extern term_t yices_update2(term_t fun, term_t arg1, term_t
+//arg2, term_t new_v);
+//__YICES_DLLSPEC__ extern term_t yices_update3(term_t fun, term_t arg1, term_t
+//arg2, term_t arg3, term_t new_v);
+//__YICES_DLLSPEC__ extern term_t yices_forall(uint32_t n, term_t var[], term_t
+//body);
+//__YICES_DLLSPEC__ extern term_t yices_exists(uint32_t n, term_t var[], term_t
+//body);
+//__YICES_DLLSPEC__ extern term_t yices_lambda(uint32_t n, const term_t var[],
+//term_t body);
+//__YICES_DLLSPEC__ extern term_t yices_zero(void);
+//__YICES_DLLSPEC__ extern term_t yices_parse_float(const char *s);
+//__YICES_DLLSPEC__ extern term_t yices_add(term_t t1, term_t t2);     // t1 +
+//t2
+//__YICES_DLLSPEC__ extern term_t yices_sub(term_t t1, term_t t2);     // t1 -
+//t2
+//__YICES_DLLSPEC__ extern term_t yices_neg(term_t t1);                // -t1
+//__YICES_DLLSPEC__ extern term_t yices_mul(term_t t1, term_t t2);     // t1 *
+//t2
+//__YICES_DLLSPEC__ extern term_t yices_square(term_t t1);             // t1 *
+//t1
+//__YICES_DLLSPEC__ extern term_t yices_power(term_t t1, uint32_t d);  // t1 ^ d
+//__YICES_DLLSPEC__ extern term_t yices_sum(uint32_t n, const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_product(uint32_t n, const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_division(term_t t1, term_t t2);
+//__YICES_DLLSPEC__ extern term_t yices_idiv(term_t t1, term_t t2);
+//__YICES_DLLSPEC__ extern term_t yices_imod(term_t t1, term_t t2);
+//__YICES_DLLSPEC__ extern term_t yices_divides_atom(term_t t1, term_t t2);
+//__YICES_DLLSPEC__ extern term_t yices_is_int_atom(term_t t);
+//__YICES_DLLSPEC__ extern term_t yices_abs(term_t t);
+//__YICES_DLLSPEC__ extern term_t yices_floor(term_t t);
+//__YICES_DLLSPEC__ extern term_t yices_ceil(term_t t);
+//__YICES_DLLSPEC__ extern term_t yices_poly_int32(uint32_t n, const int32_t
+//a[], const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_poly_int64(uint32_t n, const int64_t
+//a[], const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_poly_rational32(uint32_t n, const
+//int32_t num[], const uint32_t den[], const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_poly_rational64(uint32_t n, const
+//int64_t num[], const uint64_t den[], const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_arith_eq_atom(term_t t1, term_t t2); //
+//t1 == t2
+//__YICES_DLLSPEC__ extern term_t yices_arith_neq_atom(term_t t1, term_t t2); //
+//t1 != t2
+//__YICES_DLLSPEC__ extern term_t yices_arith_geq_atom(term_t t1, term_t t2); //
+//t1 >= t2
+//__YICES_DLLSPEC__ extern term_t yices_arith_leq_atom(term_t t1, term_t t2); //
+//t1 <= t2
+//__YICES_DLLSPEC__ extern term_t yices_arith_gt_atom(term_t t1, term_t t2); //
+//t1 > t2
+//__YICES_DLLSPEC__ extern term_t yices_arith_lt_atom(term_t t1, term_t t2); //
+//t1 < t2
+//__YICES_DLLSPEC__ extern term_t yices_arith_eq0_atom(term_t t);   // t == 0
+//__YICES_DLLSPEC__ extern term_t yices_arith_neq0_atom(term_t t);  // t != 0
+//__YICES_DLLSPEC__ extern term_t yices_arith_geq0_atom(term_t t);  // t >= 0
+//__YICES_DLLSPEC__ extern term_t yices_arith_leq0_atom(term_t t);  // t <= 0
+//__YICES_DLLSPEC__ extern term_t yices_arith_gt0_atom(term_t t);   // t > 0
+//__YICES_DLLSPEC__ extern term_t yices_arith_lt0_atom(term_t t);   // t < 0
+//__YICES_DLLSPEC__ extern term_t yices_bvconst_uint32(uint32_t n, uint32_t x);
+//__YICES_DLLSPEC__ extern term_t yices_bvconst_uint64(uint32_t n, uint64_t x);
+//__YICES_DLLSPEC__ extern term_t yices_bvconst_int32(uint32_t n, int32_t x);
+//__YICES_DLLSPEC__ extern term_t yices_bvconst_int64(uint32_t n, int64_t x);
+//__YICES_DLLSPEC__ extern term_t yices_bvconst_zero(uint32_t n);
+//__YICES_DLLSPEC__ extern term_t yices_bvconst_one(uint32_t n);
+//__YICES_DLLSPEC__ extern term_t yices_bvconst_minus_one(uint32_t n);
+//__YICES_DLLSPEC__ extern term_t yices_bvconst_from_array(uint32_t n, const
+//int32_t a[]);
+//__YICES_DLLSPEC__ extern term_t yices_parse_bvbin(const char *s);
+//__YICES_DLLSPEC__ extern term_t yices_parse_bvhex(const char *s);
+//__YICES_DLLSPEC__ extern term_t yices_bvsub(term_t t1, term_t t2);     //
+//subtraction (t1 - t2)
+//__YICES_DLLSPEC__ extern term_t yices_bvneg(term_t t1);                //
+//negation (- t1)
+//__YICES_DLLSPEC__ extern term_t yices_bvmul(term_t t1, term_t t2);     //
+//multiplication (t1 * t2)
+//__YICES_DLLSPEC__ extern term_t yices_bvsquare(term_t t1);             //
+//square (t1 * t1)
+//__YICES_DLLSPEC__ extern term_t yices_bvpower(term_t t1, uint32_t d);  //
+//exponentiation (t1 ^ d)
+//__YICES_DLLSPEC__ extern term_t yices_bvdiv(term_t t1, term_t t2);   //
+//unsigned div
+//__YICES_DLLSPEC__ extern term_t yices_bvrem(term_t t1, term_t t2);   //
+//unsigned rem
+//__YICES_DLLSPEC__ extern term_t yices_bvsdiv(term_t t1, term_t t2);  // signed
+//div
+//__YICES_DLLSPEC__ extern term_t yices_bvsrem(term_t t1, term_t t2);  // signed
+//rem
+//__YICES_DLLSPEC__ extern term_t yices_bvsmod(term_t t1, term_t t2);  // signed
+//mod
+//__YICES_DLLSPEC__ extern term_t yices_bvnot(term_t t1);              //
+//bitwise not
+//__YICES_DLLSPEC__ extern term_t yices_bvnand(term_t t1, term_t t2);  //
+//bitwise not and
+//__YICES_DLLSPEC__ extern term_t yices_bvnor(term_t t1, term_t t2);   //
+//bitwise not or
+//__YICES_DLLSPEC__ extern term_t yices_bvxnor(term_t t1, term_t t2);  //
+//bitwise not xor
+//__YICES_DLLSPEC__ extern term_t yices_bvshl(term_t t1, term_t t2);   // shift
+//t1 left by k bits where k = value of t2
+//__YICES_DLLSPEC__ extern term_t yices_bvlshr(term_t t1, term_t t2);  //
+//logical shift t1 right by k bits, where k = value of t2
+//__YICES_DLLSPEC__ extern term_t yices_bvashr(term_t t1, term_t t2);  //
+//arithmetic shift t1 right by k bits, k = value of t2
+//__YICES_DLLSPEC__ extern term_t yices_bvsum(uint32_t n, const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_bvproduct(uint32_t n, const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_shift_left0(term_t t, uint32_t n);
+//__YICES_DLLSPEC__ extern term_t yices_shift_left1(term_t t, uint32_t n);
+//__YICES_DLLSPEC__ extern term_t yices_shift_right0(term_t t, uint32_t n);
+//__YICES_DLLSPEC__ extern term_t yices_shift_right1(term_t t, uint32_t n);
+//__YICES_DLLSPEC__ extern term_t yices_ashift_right(term_t t, uint32_t n);
+//__YICES_DLLSPEC__ extern term_t yices_bvconcat2(term_t t1, term_t t2);
+//__YICES_DLLSPEC__ extern term_t yices_bvconcat(uint32_t n, const term_t t[]);
+//__YICES_DLLSPEC__ extern term_t yices_redand(term_t t);
+//__YICES_DLLSPEC__ extern term_t yices_redor(term_t t);
+//__YICES_DLLSPEC__ extern term_t yices_redcomp(term_t t1, term_t t2);
+//__YICES_DLLSPEC__ extern term_t yices_bvarray(uint32_t n, const term_t arg[]);
+//__YICES_DLLSPEC__ extern term_t yices_bitextract(term_t t, uint32_t i);
+//__YICES_DLLSPEC__ extern term_t yices_bveq_atom(term_t t1, term_t t2);   // t1
+//== t2
+//__YICES_DLLSPEC__ extern term_t yices_bvneq_atom(term_t t1, term_t t2);  // t1
+//!= t2
+//__YICES_DLLSPEC__ extern term_t yices_bvge_atom(term_t t1, term_t t2);  // t1
+//>= t2
+//__YICES_DLLSPEC__ extern term_t yices_bvgt_atom(term_t t1, term_t t2);  // t1
+//> t2
+//__YICES_DLLSPEC__ extern term_t yices_bvle_atom(term_t t1, term_t t2);  // t1
+//<= t2
+//__YICES_DLLSPEC__ extern term_t yices_bvlt_atom(term_t t1, term_t t2);  // t1
+//< t2
+//__YICES_DLLSPEC__ extern term_t yices_bvsge_atom(term_t t1, term_t t2);  // t1
+//>= t2
+//__YICES_DLLSPEC__ extern term_t yices_bvsgt_atom(term_t t1, term_t t2);  // t1
+//> t2
+//__YICES_DLLSPEC__ extern term_t yices_bvsle_atom(term_t t1, term_t t2);  // t1
+//<= t2
+//__YICES_DLLSPEC__ extern term_t yices_bvslt_atom(term_t t1, term_t t2);  // t1
+//< t2
+//////
+
 Term
 YicesSolver::mk_term(const OpKind& kind,
                      std::vector<Term>& args,
                      std::vector<uint32_t>& params)
 {
-  // TODO
+  term_t yices_res;
+  size_t n_args                  = args.size();
+  size_t n_params                = params.size();
+  std::vector<term_t> yices_args = terms_to_yices_terms(args);
+  std::vector<term_t> vars;
+
+  switch (kind)
+  {
+    case OP_DISTINCT:
+      assert(n_args > 1);
+      if (d_rng.flip_coin())
+      {
+        yices_res = yices_distinct(n_args, &yices_args[0]);
+      }
+      else
+      {
+        yices_res = mk_term_pairwise(yices_args, yices_neq);
+      }
+      break;
+
+    case OP_EQUAL:
+      assert(n_args == 2);
+      yices_res = yices_eq(yices_args[0], yices_args[1]);
+      break;
+
+    case OP_ITE:
+      assert(n_args == 3);
+      yices_res = yices_ite(yices_args[0], yices_args[1], yices_args[2]);
+      break;
+
+    /* Arrays */
+    case OP_ARRAY_SELECT:
+      // TODO
+      break;
+
+    case OP_ARRAY_STORE:
+      // TODO
+      break;
+
+    /* Boolean */
+    case OP_AND:
+      if (n_args > 3)
+      {
+        yices_res = yices_and(n_args, &yices_args[0]);
+      }
+      else if (n_args == 3)
+      {
+        RNGenerator::Choice pick = d_rng.pick_one_of_three();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            yices_res = yices_and3(yices_args[0], yices_args[1], yices_args[2]);
+            break;
+          case RNGenerator::Choice::SECOND:
+            yices_res = mk_term_pairwise(yices_args, yices_and2);
+            break;
+          default:
+          {
+            assert(pick == RNGenerator::Choice::THIRD);
+            yices_res = yices_and(n_args, &yices_args[0]);
+          }
+        }
+      }
+      else
+      {
+        assert(n_args == 2);
+        if (d_rng.flip_coin())
+        {
+          yices_res = yices_and2(yices_args[0], yices_args[1]);
+        }
+        else
+        {
+          yices_res = yices_and(n_args, &yices_args[0]);
+        }
+      }
+      break;
+
+    case OP_IFF:
+      assert(n_args == 2);
+      yices_res = yices_iff(yices_args[0], yices_args[1]);
+      break;
+
+    case OP_IMPLIES:
+      assert(n_args == 2);
+      yices_res = yices_implies(yices_args[0], yices_args[1]);
+      break;
+
+    case OP_NOT:
+      assert(n_args == 1);
+      yices_res = yices_not(yices_args[0]);
+      break;
+
+    case OP_OR:
+      if (n_args > 3)
+      {
+        yices_res = yices_or(n_args, &yices_args[0]);
+      }
+      else if (n_args == 3)
+      {
+        RNGenerator::Choice pick = d_rng.pick_one_of_three();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            yices_res = yices_or3(yices_args[0], yices_args[1], yices_args[2]);
+            break;
+          case RNGenerator::Choice::SECOND:
+            yices_res = mk_term_pairwise(yices_args, yices_or2);
+            break;
+          default:
+          {
+            assert(pick == RNGenerator::Choice::THIRD);
+            yices_res = yices_or(n_args, &yices_args[0]);
+          }
+        }
+      }
+      else
+      {
+        assert(n_args == 2);
+        if (d_rng.flip_coin())
+        {
+          yices_res =
+              yices_or2(get_yices_term(args[0]), get_yices_term(args[1]));
+        }
+        else
+        {
+          yices_res = yices_or(n_args, &yices_args[0]);
+        }
+      }
+      break;
+
+    case OP_XOR:
+      if (n_args > 3)
+      {
+        yices_res = yices_xor(n_args, &yices_args[0]);
+      }
+      else if (n_args == 3)
+      {
+        RNGenerator::Choice pick = d_rng.pick_one_of_three();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            yices_res = yices_xor3(yices_args[0], yices_args[1], yices_args[2]);
+            break;
+          case RNGenerator::Choice::SECOND:
+            yices_res = mk_term_pairwise(yices_args, yices_xor2);
+            break;
+          default:
+          {
+            assert(pick == RNGenerator::Choice::THIRD);
+            yices_res = yices_xor(n_args, &yices_args[0]);
+          }
+        }
+      }
+      else
+      {
+        assert(n_args == 2);
+        if (d_rng.flip_coin())
+        {
+          yices_res = yices_xor2(yices_args[0], yices_args[1]);
+        }
+        else
+        {
+          yices_res = yices_xor(n_args, &yices_args[0]);
+        }
+      }
+      break;
+
+    /* BV */
+    case OP_BV_EXTRACT:
+      assert(n_args == 1);
+      assert(n_params == 2);
+      yices_res = yices_bvextract(yices_args[0], params[1], params[0]);
+      break;
+
+    case OP_BV_REPEAT:
+      assert(n_args == 1);
+      assert(n_params == 1);
+      yices_res = yices_bvrepeat(yices_args[0], params[0]);
+      break;
+
+    case OP_BV_ROTATE_LEFT:
+      assert(n_args == 1);
+      assert(n_params == 1);
+      yices_res = yices_rotate_left(yices_args[0], params[0]);
+      break;
+
+    case OP_BV_ROTATE_RIGHT:
+      assert(n_args == 1);
+      assert(n_params == 1);
+      yices_res = yices_rotate_right(yices_args[0], params[0]);
+      break;
+
+    case OP_BV_SIGN_EXTEND:
+      assert(n_args == 1);
+      assert(n_params == 1);
+      yices_res = yices_sign_extend(yices_args[0], params[0]);
+      break;
+    case OP_BV_ZERO_EXTEND:
+      assert(n_args == 1);
+      assert(n_params == 1);
+      yices_res = yices_zero_extend(yices_args[0], params[0]);
+      break;
+
+    case OP_BV_ADD:
+      assert(n_args == 2);
+      yices_res = yices_bvadd(yices_args[0], yices_args[1]);
+      break;
+
+    case OP_BV_AND:
+      if (n_args > 3)
+      {
+        yices_res = yices_bvand(n_args, &yices_args[0]);
+      }
+      else if (n_args == 3)
+      {
+        RNGenerator::Choice pick = d_rng.pick_one_of_three();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            yices_res =
+                yices_bvand3(yices_args[0], yices_args[1], yices_args[2]);
+            break;
+          case RNGenerator::Choice::SECOND:
+            yices_res = mk_term_pairwise(yices_args, yices_bvand2);
+            break;
+          default:
+          {
+            assert(pick == RNGenerator::Choice::THIRD);
+            yices_res = yices_bvand(n_args, &yices_args[0]);
+          }
+        }
+      }
+      else
+      {
+        assert(n_args == 2);
+        if (d_rng.flip_coin())
+        {
+          yices_res = yices_bvand2(yices_args[0], yices_args[1]);
+        }
+        else
+        {
+          yices_res = yices_bvand(n_args, &yices_args[0]);
+        }
+      }
+      break;
+
+    case OP_BV_ASHR:
+      // TODO
+      break;
+    case OP_BV_COMP:
+      // TODO
+      break;
+    case OP_BV_CONCAT:
+      // TODO
+      break;
+    case OP_BV_LSHR:
+      // TODO
+      break;
+    case OP_BV_MULT:
+      // TODO
+      break;
+    case OP_BV_NAND:
+      // TODO
+      break;
+    case OP_BV_NEG:
+      // TODO
+      break;
+    case OP_BV_NOR:
+      // TODO
+      break;
+    case OP_BV_NOT:
+      // TODO
+      break;
+
+    case OP_BV_OR:
+      if (n_args > 3)
+      {
+        yices_res = yices_bvor(n_args, &yices_args[0]);
+      }
+      else if (n_args == 3)
+      {
+        RNGenerator::Choice pick = d_rng.pick_one_of_three();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            yices_res =
+                yices_bvor3(yices_args[0], yices_args[1], yices_args[2]);
+            break;
+          case RNGenerator::Choice::SECOND:
+            yices_res = mk_term_pairwise(yices_args, yices_bvor2);
+            break;
+          default:
+          {
+            assert(pick == RNGenerator::Choice::THIRD);
+            yices_res = yices_bvor(n_args, &yices_args[0]);
+          }
+        }
+      }
+      else
+      {
+        assert(n_args == 2);
+        if (d_rng.flip_coin())
+        {
+          yices_res = yices_bvor2(yices_args[0], yices_args[1]);
+        }
+        else
+        {
+          yices_res = yices_bvor(n_args, &yices_args[0]);
+        }
+      }
+      break;
+
+    case OP_BV_REDAND:
+      // TODO
+      break;
+    case OP_BV_REDOR:
+      // TODO
+      break;
+    case OP_BV_SADDO:
+      // TODO
+      break;
+    case OP_BV_SDIV:
+      // TODO
+      break;
+    case OP_BV_SDIVO:
+      // TODO
+      break;
+    case OP_BV_SGE:
+      // TODO
+      break;
+    case OP_BV_SGT:
+      // TODO
+      break;
+    case OP_BV_SHL:
+      // TODO
+      break;
+    case OP_BV_SLE:
+      // TODO
+      break;
+    case OP_BV_SLT:
+      // TODO
+      break;
+    case OP_BV_SMOD:
+      // TODO
+      break;
+    case OP_BV_SMULO:
+      // TODO
+      break;
+    case OP_BV_SREM:
+      // TODO
+      break;
+    case OP_BV_SSUBO:
+      // TODO
+      break;
+    case OP_BV_SUB:
+      // TODO
+      break;
+    case OP_BV_UADDO:
+      // TODO
+      break;
+    case OP_BV_UDIV:
+      // TODO
+      break;
+    case OP_BV_UGE:
+      // TODO
+      break;
+    case OP_BV_UGT:
+      // TODO
+      break;
+    case OP_BV_ULE:
+      // TODO
+      break;
+    case OP_BV_ULT:
+      // TODO
+      break;
+    case OP_BV_UMULO:
+      // TODO
+      break;
+    case OP_BV_UREM:
+      // TODO
+      break;
+    case OP_BV_USUBO:
+      // TODO
+      break;
+    case OP_BV_XNOR:
+      // TODO
+      break;
+
+    case OP_BV_XOR:
+      if (n_args > 3)
+      {
+        yices_res = yices_bvor(n_args, &yices_args[0]);
+      }
+      else if (n_args == 3)
+      {
+        RNGenerator::Choice pick = d_rng.pick_one_of_three();
+        switch (pick)
+        {
+          case RNGenerator::Choice::FIRST:
+            yices_res =
+                yices_bvor3(yices_args[0], yices_args[1], yices_args[2]);
+            break;
+          case RNGenerator::Choice::SECOND:
+            yices_res = mk_term_pairwise(yices_args, yices_bvor2);
+            break;
+          default:
+          {
+            assert(pick == RNGenerator::Choice::THIRD);
+            yices_res = yices_bvor(n_args, &yices_args[0]);
+          }
+        }
+      }
+      else
+      {
+        assert(n_args == 2);
+        if (d_rng.flip_coin())
+        {
+          yices_res = yices_bvor2(yices_args[0], yices_args[1]);
+        }
+        else
+        {
+          yices_res = yices_bvor(n_args, &yices_args[0]);
+        }
+      }
+      break;
+
+    case OP_BV_INC:
+      // TODO
+      break;
+
+    case OP_BV_DEC:
+      // TODO
+      break;
+
+    case OP_BV_REDXOR:
+      // TODO
+      break;
+
+    /* FP */
+    case OP_FP_TO_FP_FROM_BV:
+      // TODO
+      break;
+    case OP_FP_TO_FP_FROM_INT_BV:
+      // TODO
+      break;
+    case OP_FP_TO_FP_FROM_FP:
+      // TODO
+      break;
+    case OP_FP_TO_FP_FROM_UINT_BV:
+      // TODO
+      break;
+    case OP_FP_TO_FP_FROM_REAL:
+      // TODO
+      break;
+    case OP_FP_TO_SBV:
+      // TODO
+      break;
+    case OP_FP_TO_UBV:
+      // TODO
+      break;
+
+    case OP_FP_ABS:
+      // TODO
+      break;
+    case OP_FP_ADD:
+      // TODO
+      break;
+    case OP_FP_DIV:
+      // TODO
+      break;
+    case OP_FP_EQ:
+      // TODO
+      break;
+    case OP_FP_FMA:
+      // TODO
+      break;
+    case OP_FP_FP:
+      // TODO
+      break;
+    case OP_FP_IS_NORMAL:
+      // TODO
+      break;
+    case OP_FP_IS_SUBNORMAL:
+      // TODO
+      break;
+    case OP_FP_IS_INF:
+      // TODO
+      break;
+    case OP_FP_IS_NAN:
+      // TODO
+      break;
+    case OP_FP_IS_NEG:
+      // TODO
+      break;
+    case OP_FP_IS_POS:
+      // TODO
+      break;
+    case OP_FP_IS_ZERO:
+      // TODO
+      break;
+    case OP_FP_LT:
+      // TODO
+      break;
+    case OP_FP_LTE:
+      // TODO
+      break;
+    case OP_FP_GT:
+      // TODO
+      break;
+    case OP_FP_GTE:
+      // TODO
+      break;
+    case OP_FP_MAX:
+      // TODO
+      break;
+    case OP_FP_MIN:
+      // TODO
+      break;
+    case OP_FP_MUL:
+      // TODO
+      break;
+    case OP_FP_NEG:
+      // TODO
+      break;
+    case OP_FP_REM:
+      // TODO
+      break;
+    case OP_FP_RTI:
+      // TODO
+      break;
+    case OP_FP_SQRT:
+      // TODO
+      break;
+    case OP_FP_SUB:
+      // TODO
+      break;
+    case OP_FP_TO_REAL:
+      // TODO
+      break;
+
+    /* Ints */
+    case OP_INT_IS_DIV:
+      // TODO
+      break;
+    case OP_INT_NEG:
+      // TODO
+      break;
+    case OP_INT_SUB:
+      // TODO
+      break;
+    case OP_INT_ADD:
+      // TODO
+      break;
+    case OP_INT_MUL:
+      // TODO
+      break;
+    case OP_INT_DIV:
+      // TODO
+      break;
+    case OP_INT_MOD:
+      // TODO
+      break;
+    case OP_INT_ABS:
+      // TODO
+      break;
+    case OP_INT_LT:
+      // TODO
+      break;
+    case OP_INT_LTE:
+      // TODO
+      break;
+    case OP_INT_GT:
+      // TODO
+      break;
+    case OP_INT_GTE:
+      // TODO
+      break;
+
+    /* Reals */
+    case OP_REAL_NEG:
+      // TODO
+      break;
+    case OP_REAL_SUB:
+      // TODO
+      break;
+    case OP_REAL_ADD:
+      // TODO
+      break;
+    case OP_REAL_MUL:
+      // TODO
+      break;
+    case OP_REAL_DIV:
+      // TODO
+      break;
+    case OP_REAL_LT:
+      // TODO
+      break;
+    case OP_REAL_LTE:
+      // TODO
+      break;
+    case OP_REAL_GT:
+      // TODO
+      break;
+    case OP_REAL_GTE:
+      // TODO
+      break;
+
+    /* Quantifiers */
+    case OP_FORALL:
+      // TODO
+      break;
+    case OP_EXISTS:
+      // TODO
+      break;
+
+    default: assert(false);
+  }
+  assert(yices_res >= 0);
 }
 
 Sort
@@ -615,6 +1410,75 @@ YicesSolver::reset_assertions() const
 {
   // TODO
 }
+
+/* -------------------------------------------------------------------------- */
+
+term_t
+YicesSolver::mk_term_left_assoc(std::vector<term_t>& args,
+                                term_t (*fun)(term_t, term_t)) const
+{
+  assert(args.size() >= 2);
+  term_t res, tmp;
+
+  res = fun(args[0], args[1]);
+  for (uint32_t i = 2, n_args = args.size(); i < n_args; ++i)
+  {
+    tmp = fun(res, args[i]);
+    assert(tmp >= 0);
+    res = tmp;
+  }
+  assert(res >= 0);
+  return res;
+}
+
+term_t
+YicesSolver::mk_term_pairwise(std::vector<term_t>& args,
+                              term_t (*fun)(term_t, term_t)) const
+{
+  assert(args.size() >= 2);
+  term_t res, tmp, old;
+
+  res = 0;
+  for (uint32_t i = 0, n_args = args.size(); i < n_args - 1; ++i)
+  {
+    for (uint32_t j = i + 1; j < n_args; ++j)
+    {
+      tmp = fun(args[i], args[j]);
+      if (res)
+      {
+        old = res;
+        res = yices_and2(old, tmp);
+      }
+      else
+      {
+        res = tmp;
+      }
+    }
+  }
+  assert(res);
+  return res;
+}
+
+std::vector<term_t>
+YicesSolver::terms_to_yices_terms(std::vector<Term>& terms) const
+{
+  std::vector<term_t> res;
+  for (Term& t : terms)
+  {
+    res.push_back(get_yices_term(t));
+  }
+  return res;
+}
+
+/* -------------------------------------------------------------------------- */
+
+void
+YicesSolver::configure_fsm(FSM* fsm) const
+{
+  // TODO
+}
+
+/* -------------------------------------------------------------------------- */
 
 }  // namespace yices
 }  // namespace smtmbt

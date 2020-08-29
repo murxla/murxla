@@ -32,7 +32,9 @@ class YicesSort : public AbsSort
   bool is_fp() const override;
   bool is_int() const override;
   bool is_real() const override;
+  bool is_reglan() const override;
   bool is_rm() const override;
+  bool is_string() const override;
   uint32_t get_bv_size() const override;
 
  private:
@@ -148,6 +150,13 @@ class YicesSolver : public Solver
   std::vector<int32_t> bin_str_to_int_array(std::string s);
 
   term_t mk_value_bv_int_or_special(Sort sort, std::string value, Base base);
+
+  term_t mk_term_left_assoc(std::vector<term_t>& args,
+                            term_t (*fun)(term_t, term_t)) const;
+  term_t mk_term_pairwise(std::vector<term_t>& args,
+                          term_t (*fun)(term_t, term_t)) const;
+
+  std::vector<term_t> terms_to_yices_terms(std::vector<Term>& terms) const;
 
   bool d_is_initialized;
   bool d_incremental     = false;

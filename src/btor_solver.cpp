@@ -562,7 +562,6 @@ BtorSolver::mk_term(const OpKind& kind,
       btor_res = mk_term_pairwise(args, boolector_ne);
       break;
     case OP_EQUAL:
-
     case OP_BV_COMP:
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(args, boolector_eq);
