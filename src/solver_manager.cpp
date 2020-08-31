@@ -794,6 +794,7 @@ SolverManager::add_sort_kinds()
       case THEORY_REAL:
         d_sort_kinds.emplace(SORT_REAL,
                              SortKindData(SORT_REAL, 0, THEORY_REAL));
+        break;
       case THEORY_FP:
         d_sort_kinds.emplace(SORT_RM, SortKindData(SORT_RM, 0, THEORY_FP));
         d_sort_kinds.emplace(SORT_FP, SortKindData(SORT_FP, 0, THEORY_FP));
@@ -1007,40 +1008,40 @@ SolverManager::add_op_kinds()
             ops, OP_INT_IS_DIV, 1, 1, SORT_BOOL, {SORT_INT}, THEORY_INT);
         add_op_kind(ops, OP_INT_NEG, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
         add_op_kind(ops, OP_INT_ABS, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-        add_op_kind(ops, OP_INT_SUB, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-        add_op_kind(ops, OP_INT_ADD, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-        add_op_kind(ops, OP_INT_MUL, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_SUB, n, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_ADD, n, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_MUL, n, 0, SORT_INT, {SORT_INT}, THEORY_INT);
         if (!d_arith_linear)
         {
-          add_op_kind(ops, OP_INT_DIV, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+          add_op_kind(ops, OP_INT_DIV, n, 0, SORT_INT, {SORT_INT}, THEORY_INT);
           add_op_kind(ops, OP_INT_MOD, 2, 0, SORT_INT, {SORT_INT}, THEORY_INT);
         }
-        add_op_kind(ops, OP_INT_LT, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-        add_op_kind(ops, OP_INT_LTE, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-        add_op_kind(ops, OP_INT_GT, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-        add_op_kind(ops, OP_INT_GTE, 2, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_LT, n, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_LTE, n, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_GT, n, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+        add_op_kind(ops, OP_INT_GTE, n, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
         break;
 
       case SORT_REAL:
         add_op_kind(
             ops, OP_REAL_NEG, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
         add_op_kind(
-            ops, OP_REAL_SUB, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+            ops, OP_REAL_SUB, n, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
         add_op_kind(
-            ops, OP_REAL_ADD, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+            ops, OP_REAL_ADD, n, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
         add_op_kind(
-            ops, OP_REAL_MUL, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+            ops, OP_REAL_MUL, n, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
         if (!d_arith_linear)
         {
           add_op_kind(
-              ops, OP_REAL_DIV, 2, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+              ops, OP_REAL_DIV, n, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
         }
-        add_op_kind(ops, OP_REAL_LT, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(ops, OP_REAL_LT, n, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
         add_op_kind(
-            ops, OP_REAL_LTE, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-        add_op_kind(ops, OP_REAL_GT, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+            ops, OP_REAL_LTE, n, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+        add_op_kind(ops, OP_REAL_GT, n, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
         add_op_kind(
-            ops, OP_REAL_GTE, 2, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+            ops, OP_REAL_GTE, n, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
         break;
 
       case SORT_STRING:

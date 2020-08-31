@@ -693,7 +693,9 @@ DONE:
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
-  assert(cvc4_kind == cvc4_res.getKind());
+  assert(cvc4_kind == cvc4_res.getKind()
+         || (cvc4_res.getSort().isBoolean()
+             && cvc4_res.getKind() == CVC4::api::Kind::AND));
   return std::shared_ptr<CVC4Term>(new CVC4Term(d_solver, cvc4_res));
 }
 
