@@ -883,35 +883,44 @@ SolverManager::add_op_kinds()
         add_op_kind(ops, OP_BV_ADD, n, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_NOT, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_NEG, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-#if 0
-  // TODO not in SMT-LIB and CVC4 and Boolector disagree on return type
-  // CVC4: Bool
-  // Boolector: BV
-  // >> should be BV
-        add_op_kind(ops, OP_BV_REDOR, 1, 0, SORT_BOOL, SORT_BV, THEORY_BV);
-        add_op_kind(ops, OP_BV_REDAND, 1, 0, SORT_BOOL, SORT_BV, THEORY_BV);
-#endif
+        // TODO not in SMT-LIB and CVC4 and Boolector/Yices disagree
+        //      on return type
+        // CVC4: Bool
+        // Boolector: BV
+        // Yices: BV
+        // >> should be BV
+        //      add_op_kind(ops, OP_BV_REDOR, 1, 0, SORT_BOOL, SORT_BV,
+        //      THEORY_BV); add_op_kind(ops, OP_BV_REDAND, 1, 0, SORT_BOOL,
+        //      SORT_BV, THEORY_BV);
+        add_op_kind(ops, OP_BV_ASHR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_COMP, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_LSHR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_NAND, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_NOR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_XNOR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_COMP, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SDIV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SGE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SGT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SHL, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SLE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SLT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SMOD, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SREM, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_SUB, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_UDIV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_UREM, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SDIV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SREM, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SMOD, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SHL, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_LSHR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_ASHR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_ULT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_ULE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_UGT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_UGE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SLT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SLE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SGT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SGE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_UGT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_ULE, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_ULT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_UREM, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_XNOR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        /* overflow operators */
+        add_op_kind(ops, OP_BV_SADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_SSUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_UADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_UMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+        add_op_kind(ops, OP_BV_USUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         /* indexed */
         add_op_kind(ops, OP_BV_EXTRACT, 1, 2, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_REPEAT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
