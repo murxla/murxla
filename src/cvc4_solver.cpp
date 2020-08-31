@@ -1215,6 +1215,7 @@ class CVC4ActionSimplify : public Action
   uint64_t _run(Term term)
   {
     SMTMBT_TRACE << get_kind() << " " << term;
+    d_smgr.reset_sat();
     CVC4Solver& solver       = static_cast<CVC4Solver&>(d_smgr.get_solver());
     CVC4::api::Solver* cvc4  = solver.get_solver();
     CVC4::api::Term cvc4_res = cvc4->simplify(solver.get_cvc4_term(term));
