@@ -115,6 +115,7 @@ struct Options
 
 static Options g_options;
 static Statistics* g_stats;
+static std::unordered_map<std::string, std::vector<uint32_t>> g_errors;
 
 enum Result
 {
@@ -340,23 +341,48 @@ path_is_dir(const std::string& path)
   return (buffer.st_mode & S_IFMT) == S_IFDIR;         // is a directory?
 }
 
+void
+print_error_summary()
+{
+  if (g_errors.size())
+  {
+    std::cout << "\n caught: " << getpid() << std::endl;
+    std::cout << "\nError statistics:\n" << std::endl;
+    for (const auto& p : g_errors)
+    {
+      const auto& err   = p.first;
+      const auto& seeds = p.second;
+      std::cout << COLOR_RED << seeds.size() << " errors: " << COLOR_DEFAULT;
+      for (size_t i = 0; i < std::min<size_t>(seeds.size(), 10); ++i)
+      {
+        if (i > 0)
+        {
+          std::cout << ", ";
+        }
+        std::cout << seeds[i];
+      }
+      std::cout << "\n" << err << "\n" << std::endl;
+    }
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 /* Signal handling                                                            */
 /* -------------------------------------------------------------------------- */
 
-/* Signal handler for printing statistics */
-// TODO: Remove handler
-static void (*sig_int_handler_stats)(int32_t);
+/* Signal handler for printing error summary. */
+static void (*sig_int_handler_esummary)(int32_t);
 
 static void
-catch_signal_stats(int32_t sig)
+catch_signal_esummary(int32_t sig)
 {
   static int32_t caught_signal = 0;
   if (!caught_signal)
   {
+    print_error_summary();
     caught_signal = sig;
   }
-  (void) signal(SIGINT, sig_int_handler_stats);
+  (void) signal(SIGINT, sig_int_handler_esummary);
   raise(sig);
   exit(EXIT_ERROR);
 }
@@ -364,7 +390,7 @@ catch_signal_stats(int32_t sig)
 static void
 set_sigint_handler_stats(void)
 {
-  sig_int_handler_stats = signal(SIGINT, catch_signal_stats);
+  sig_int_handler_esummary = signal(SIGINT, catch_signal_esummary);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -858,6 +884,7 @@ run_aux(Options& options,
       }
       if (timeout_pid == 0)
       {
+        signal(SIGINT, SIG_DFL);  // reset stats signal handler
         usleep(options.time * 1000000);
         _exit(EXIT_OK);
       }
@@ -902,6 +929,8 @@ run_aux(Options& options,
   /* child */
   else
   {
+    signal(SIGINT, SIG_DFL);  // reset stats signal handler
+
     int32_t fd_to[2], fd_from[2];
     FILE *to_external = nullptr, *from_external = nullptr;
     pid_t smt2_pid = 0;
@@ -1508,7 +1537,7 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
   double start_time         = get_cur_wall_time();
   bool is_cross             = !options.cross_check.empty();
   std::string out_file_name = DEVNULL;
-  std::string err_file_name = DEVNULL;
+  std::string err_file_name = "smtmbt-tmp.err";
   SeedGenerator sg(options.seed);
   Options opts(options);
 
@@ -1528,6 +1557,8 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
     std::cout << stats->d_results[Solver::Result::SAT] << " sat";
     std::cout << " " << std::setw(4);
     std::cout << stats->d_results[Solver::Result::UNSAT] << " unsat";
+    std::cout << " " << std::setw(4);
+    std::cout << g_errors.size() << " errors";
     std::cout << std::flush;
 
     if (is_cross)
@@ -1575,11 +1606,35 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
     }
     else
     {
+      /* Read error file and check if we already encounterd the same error. */
+      bool duplicate = false;
+      if (res == RESULT_ERROR)
+      {
+        std::ifstream errs = open_ifile(err_file_name);
+        std::string errmsg, line;
+        while (std::getline(errs, line))
+        {
+          errmsg += line + "\n";
+        }
+
+        duplicate = g_errors.find(errmsg) != g_errors.end();
+        g_errors[errmsg].push_back(opts.seed);
+      }
+
       std::stringstream info;
       info << " [";
       switch (res)
       {
-        case RESULT_ERROR: info << COLOR_RED << "error"; break;
+        case RESULT_ERROR:
+          if (duplicate)
+          {
+            info << COLOR_GREEN << "duplicate";
+          }
+          else
+          {
+            info << COLOR_RED << "error";
+          }
+          break;
         case RESULT_TIMEOUT: info << COLOR_BLUE << "timeout"; break;
         default: assert(res == RESULT_UNKNOWN); info << "unknown";
       }
@@ -1632,13 +1687,13 @@ main(int argc, char* argv[])
   }
 
   g_stats = initialize_statistics();
-  set_sigint_handler_stats();
 
   std::string smt2_file_name      = g_options.smt2_file_name;
   std::string api_trace_file_name = g_options.api_trace_file_name;
 
   if (is_continuous)
   {
+    set_sigint_handler_stats();
     test(g_options, solver_options, g_stats);
   }
   else
@@ -1714,6 +1769,8 @@ main(int argc, char* argv[])
       std::remove(tmp_api_trace_file_name.c_str());
     }
   }
+
+  print_error_summary();
 
   if (g_options.print_stats) g_stats->print();
 

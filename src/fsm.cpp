@@ -507,8 +507,8 @@ class ActionMkSort : public Action
         {
           return false;
         }
-        Sort index_sort   = d_smgr.pick_sort(exclude_sorts);
-        Sort element_sort = d_smgr.pick_sort(exclude_sorts);
+        Sort index_sort   = d_smgr.pick_sort(exclude_sorts, false);
+        Sort element_sort = d_smgr.pick_sort(exclude_sorts, false);
         _run(kind, {index_sort, element_sort});
         break;
       }
