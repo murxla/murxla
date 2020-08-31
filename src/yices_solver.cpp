@@ -599,10 +599,6 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 // arg2, term_t new_v);
 //__YICES_DLLSPEC__ extern term_t yices_update3(term_t fun, term_t arg1, term_t
 // arg2, term_t arg3, term_t new_v);
-//__YICES_DLLSPEC__ extern term_t yices_forall(uint32_t n, term_t var[], term_t
-// body);
-//__YICES_DLLSPEC__ extern term_t yices_exists(uint32_t n, term_t var[], term_t
-// body);
 //__YICES_DLLSPEC__ extern term_t yices_lambda(uint32_t n, const term_t var[],
 // term_t body);
 //__YICES_DLLSPEC__ extern term_t yices_zero(void);
@@ -662,7 +658,7 @@ YicesSolver::mk_term(const OpKind& kind,
                      std::vector<Term>& args,
                      std::vector<uint32_t>& params)
 {
-  term_t yices_res;
+  term_t yices_res               = -1;
   size_t n_args                  = args.size();
   size_t n_params                = params.size();
   std::vector<term_t> yices_args = terms_to_yices_terms(args);
@@ -1168,15 +1164,30 @@ YicesSolver::mk_term(const OpKind& kind,
 
     /* Quantifiers */
     case OP_FORALL:
-      // TODO
-      break;
     case OP_EXISTS:
-      // TODO
+    {
+      uint32_t n = yices_args.size() - 1;
+      for (uint32_t i = 0; i < n; ++i)
+      {
+        vars.push_back(yices_args[i]);
+      }
+      if (kind == OP_EXISTS)
+      {
+        yices_res = yices_exists(n, vars.data(), yices_args.back());
+      }
+      else
+      {
+        yices_res = yices_forall(n, vars.data(), yices_args.back());
+      }
+    }
       break;
 
     default: assert(false);
   }
   assert(yices_res >= 0);
+  std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
+  assert(res);
+  return res;
 }
 
 Sort

@@ -822,7 +822,7 @@ BtorSolver::mk_term(const OpKind& kind,
 
     case OP_EXISTS:
     case OP_FORALL:
-      for (size_t i = 0, size = btor_args.size() - 1; i < size; ++i)
+      for (size_t i = 0, n = btor_args.size() - 1; i < n; ++i)
       {
         vars.push_back(btor_args[i]);
       }
