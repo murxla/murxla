@@ -78,6 +78,7 @@ class YicesSolver : public Solver
   OpKindSet get_unsupported_op_kinds() const override;  // check if needed
 
   void configure_fsm(FSM* fsm) const override;
+  void reset_sat() override;
 
   void set_opt(const std::string& opt, const std::string& value) override;
 
@@ -130,12 +131,12 @@ class YicesSolver : public Solver
 
   std::vector<Term> get_unsat_assumptions() const override;
 
-  std::vector<Term> get_value(std::vector<Term>& terms) const override;
+  std::vector<Term> get_value(std::vector<Term>& terms) override;
 
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
 
-  void print_model() const override;
+  void print_model() override;
 
   void reset_assertions() const override;
 
@@ -147,6 +148,9 @@ class YicesSolver : public Solver
   //
  private:
   type_t get_yices_sort(Sort sort) const;
+  bool is_valid_sort(type_t sort) const;
+  bool is_valid_term(term_t term) const;
+
   std::vector<int32_t> bin_str_to_int_array(std::string s);
 
   term_t mk_value_bv_int_or_special(Sort sort, std::string value, Base base);
@@ -156,12 +160,18 @@ class YicesSolver : public Solver
   term_t mk_term_pairwise(std::vector<term_t>& args,
                           term_t (*fun)(term_t, term_t)) const;
 
+  std::vector<type_t> sorts_to_yices_sorts(
+      const std::vector<Sort>& sorts) const;
+
+  std::vector<Term> yices_terms_to_terms(term_vector_t* terms) const;
+  std::vector<Term> yices_terms_to_terms(std::vector<term_t>& terms) const;
   std::vector<term_t> terms_to_yices_terms(std::vector<Term>& terms) const;
 
   bool d_is_initialized;
   bool d_incremental     = false;
   ctx_config_t* d_config = nullptr;
   context_t* d_context   = nullptr;
+  model_t* d_model       = nullptr;
 };
 
 }  // namespace yices

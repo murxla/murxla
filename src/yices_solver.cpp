@@ -2,6 +2,7 @@
 
 #include "yices_solver.hpp"
 
+#include "config.hpp"
 #include "util.hpp"
 
 namespace smtmbt {
@@ -159,6 +160,16 @@ YicesSolver::get_unsupported_op_kinds() const
 }
 
 void
+YicesSolver::reset_sat()
+{
+  if (d_model)
+  {
+    yices_free_model(d_model);
+    d_model = nullptr;
+  }
+}
+
+void
 YicesSolver::set_opt(const std::string& opt, const std::string& value)
 {
   if (opt == "produce-models" || opt == "produce-unsat-assumptions")
@@ -187,6 +198,7 @@ bool
 YicesSolver::check_failed_assumption(const Term& t) const
 {
   // TODO
+  return true;
 }
 
 std::string
@@ -227,6 +239,18 @@ YicesSolver::option_unsat_assumptions_enabled() const
   return true;
 }
 
+bool
+YicesSolver::is_valid_sort(type_t sort) const
+{
+  return sort >= 0;
+}
+
+bool
+YicesSolver::is_valid_term(term_t term) const
+{
+  return term >= 0;
+}
+
 type_t
 YicesSolver::get_yices_sort(Sort sort) const
 {
@@ -247,7 +271,7 @@ Term
 YicesSolver::mk_var(Sort sort, const std::string& name)
 {
   term_t yices_term = yices_new_variable(get_yices_sort(sort));
-  assert(yices_term >= 0);
+  assert(is_valid_term(yices_term));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_term));
   assert(res);
   return res;
@@ -257,7 +281,7 @@ Term
 YicesSolver::mk_const(Sort sort, const std::string& name)
 {
   term_t yices_term = yices_new_uninterpreted_term(get_yices_sort(sort));
-  assert(yices_term >= 0);
+  assert(is_valid_term(yices_term));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_term));
   assert(res);
   return res;
@@ -267,7 +291,7 @@ Term
 YicesSolver::mk_value(Sort sort, bool value)
 {
   term_t yices_term = value ? yices_true() : yices_false();
-  assert(yices_term >= 0);
+  assert(is_valid_term(yices_term));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_term));
   assert(res);
   return res;
@@ -329,7 +353,7 @@ YicesSolver::mk_value(Sort sort, std::string value)
 
     default: assert(false);
   }
-  assert(yices_res >= 0);
+  assert(is_valid_term(yices_res));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
   assert(res);
   return res;
@@ -353,7 +377,7 @@ YicesSolver::mk_value(Sort sort, std::string num, std::string den)
         static_cast<int64_t>(strtoull(num.c_str(), nullptr, 10)),
         static_cast<uint64_t>(strtoull(den.c_str(), nullptr, 10)));
   }
-  assert(yices_res >= 0);
+  assert(is_valid_term(yices_res));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
   assert(res);
   return res;
@@ -470,7 +494,7 @@ YicesSolver::mk_value_bv_int_or_special(Sort sort, std::string value, Base base)
         }
     }
   }
-  assert(yices_res >= 0);
+  assert(is_valid_term(yices_res));
   if (check_bits)
   {
     assert(!str.empty());
@@ -533,7 +557,7 @@ YicesSolver::mk_value(Sort sort, std::string value, Base base)
       }
     }
   }
-  assert(yices_res >= 0);
+  assert(is_valid_term(yices_res));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
   assert(res);
   return res;
@@ -551,9 +575,10 @@ YicesSolver::mk_sort(SortKind kind)
 
     default: assert(false);
   }
-  assert(yices_res > 0);
+  assert(is_valid_sort(yices_res));
   std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
   assert(res);
+  return res;
 }
 
 Sort
@@ -565,14 +590,44 @@ YicesSolver::mk_sort(SortKind kind, uint32_t size)
     case SORT_BV: yices_res = yices_bv_type(size); break;
     default: assert(false);
   }
+  assert(is_valid_sort(yices_res));
   std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
   assert(res);
+  return res;
 }
 
 Sort
 YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
-  // TODO
+  type_t yices_res;
+  std::vector<type_t> yices_sorts = sorts_to_yices_sorts(sorts);
+
+  switch (kind)
+  {
+    case SORT_ARRAY:
+    {
+      assert(sorts.size() == 2);
+      type_t yices_domain = yices_sorts[0];
+      type_t yices_range  = yices_sorts[1];
+      if (d_rng.flip_coin())
+      {
+        std::vector<type_t> yices_domain_vector = {yices_domain};
+        yices_res =
+            yices_function_type(2, yices_domain_vector.data(), yices_range);
+      }
+      else
+      {
+        yices_res = yices_function_type1(yices_domain, yices_range);
+      }
+    }
+    break;
+
+    default: assert(false);
+  }
+  assert(is_valid_sort(yices_res));
+  std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
+  assert(res);
+  return res;
 }
 
 //////
@@ -631,9 +686,6 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 //__YICES_DLLSPEC__ extern term_t yices_arith_gt0_atom(term_t t);   // t > 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_lt0_atom(term_t t);   // t < 0
 // int32_t a[]);
-//__YICES_DLLSPEC__ extern term_t yices_parse_bvbin(const char *s);
-//__YICES_DLLSPEC__ extern term_t yices_parse_bvhex(const char *s);
-// ubtraction (t1 - t2)
 //__YICES_DLLSPEC__ extern term_t yices_bvsquare(term_t t1);             //
 // square (t1 * t1)
 //__YICES_DLLSPEC__ extern term_t yices_bvpower(term_t t1, uint32_t d);  //
@@ -1184,7 +1236,7 @@ YicesSolver::mk_term(const OpKind& kind,
 
     default: assert(false);
   }
-  assert(yices_res >= 0);
+  assert(is_valid_term(yices_res));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
   assert(res);
   return res;
@@ -1193,62 +1245,104 @@ YicesSolver::mk_term(const OpKind& kind,
 Sort
 YicesSolver::get_sort(Term term, SortKind sort_kind) const
 {
-  // TODO
+  (void) sort_kind;
+  return std::shared_ptr<YicesSort>(
+      new YicesSort(yices_type_of_term(get_yices_term(term))));
 }
 
 void
 YicesSolver::assert_formula(const Term& t)
 {
   if (d_context == nullptr) d_context = yices_new_context(d_config);
-  // TODO
+  yices_assert_formula(d_context, get_yices_term(t));
 }
 
 Solver::Result
 YicesSolver::check_sat() const
 {
-  // TODO
+  // TODO parameters?
+  smt_status_t res = yices_check_context(d_context, nullptr);
+  if (res == STATUS_SAT) return Result::SAT;
+  if (res == STATUS_UNSAT) return Result::UNSAT;
+  return Result::UNKNOWN;
 }
 
 Solver::Result
 YicesSolver::check_sat_assuming(std::vector<Term>& assumptions) const
 {
-  // TODO
+  // TODO parameters?
+  std::vector<term_t> yices_assumptions = terms_to_yices_terms(assumptions);
+  smt_status_t res                      = yices_check_context_with_assumptions(
+      d_context, nullptr, yices_assumptions.size(), yices_assumptions.data());
+  if (res == STATUS_SAT) return Result::SAT;
+  if (res == STATUS_UNSAT) return Result::UNSAT;
+  return Result::UNKNOWN;
 }
 
 std::vector<Term>
 YicesSolver::get_unsat_assumptions() const
 {
-  // TODO
+  term_vector_t yices_res;
+  yices_init_term_vector(&yices_res);
+  int32_t status = yices_get_unsat_core(d_context, &yices_res);
+  assert(status == 0);
+  return yices_terms_to_terms(&yices_res);
 }
 
 std::vector<Term>
-YicesSolver::get_value(std::vector<Term>& terms) const
+YicesSolver::get_value(std::vector<Term>& terms)
 {
-  // TODO
+  std::vector<Term> res;
+  std::vector<term_t> yices_res;
+  std::vector<term_t> yices_terms = terms_to_yices_terms(terms);
+
+  if (!d_model)
+  {
+    d_model = yices_get_model(d_context, 1);
+    assert(d_model);
+  }
+  for (term_t t : yices_terms)
+  {
+    term_t v = yices_get_value_as_term(d_model, t);
+    assert(is_valid_term(v));
+    yices_res.push_back(v);
+  }
+  res = yices_terms_to_terms(yices_res);
+  return res;
 }
 
 void
 YicesSolver::push(uint32_t n_levels) const
 {
-  // TODO
+  for (uint32_t i = 0; i < n_levels; ++i)
+  {
+    yices_push(d_context);
+  }
 }
 
 void
 YicesSolver::pop(uint32_t n_levels) const
 {
-  // TODO
+  for (uint32_t i = 0; i < n_levels; ++i)
+  {
+    yices_pop(d_context);
+  }
 }
 
 void
-YicesSolver::print_model() const
+YicesSolver::print_model()
 {
-  // TODO
+  if (!d_model)
+  {
+    d_model = yices_get_model(d_context, 1);
+    assert(d_model);
+  }
 }
 
 void
 YicesSolver::reset_assertions() const
 {
-  // TODO
+  yices_reset_context(d_context);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1264,10 +1358,10 @@ YicesSolver::mk_term_left_assoc(std::vector<term_t>& args,
   for (uint32_t i = 2, n_args = args.size(); i < n_args; ++i)
   {
     tmp = fun(res, args[i]);
-    assert(tmp >= 0);
+    assert(is_valid_term(tmp));
     res = tmp;
   }
-  assert(res >= 0);
+  assert(is_valid_term(res));
   return res;
 }
 
@@ -1296,6 +1390,39 @@ YicesSolver::mk_term_pairwise(std::vector<term_t>& args,
     }
   }
   assert(res);
+  return res;
+}
+
+std::vector<type_t>
+YicesSolver::sorts_to_yices_sorts(const std::vector<Sort>& sorts) const
+{
+  std::vector<type_t> res;
+  for (const Sort& s : sorts)
+  {
+    res.push_back(get_yices_sort(s));
+  }
+  return res;
+}
+
+std::vector<Term>
+YicesSolver::yices_terms_to_terms(term_vector_t* terms) const
+{
+  std::vector<Term> res;
+  for (uint32_t i = 0; i < terms->size; ++i)
+  {
+    res.push_back(std::shared_ptr<YicesTerm>(new YicesTerm(terms->data[i])));
+  }
+  return res;
+}
+
+std::vector<Term>
+YicesSolver::yices_terms_to_terms(std::vector<term_t>& terms) const
+{
+  std::vector<Term> res;
+  for (term_t t : terms)
+  {
+    res.push_back(std::shared_ptr<YicesTerm>(new YicesTerm(t)));
+  }
   return res;
 }
 

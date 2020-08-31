@@ -183,6 +183,7 @@ class Solver
   virtual OpKindSet get_unsupported_op_kinds() const;
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
   virtual void configure_fsm(FSM* fsm) const;
+  virtual void reset_sat();
 
   virtual Term mk_var(Sort sort, const std::string& name)   = 0;
   virtual Term mk_const(Sort sort, const std::string& name) = 0;
@@ -227,7 +228,7 @@ class Solver
   virtual void push(uint32_t n_levels) const = 0;
   virtual void pop(uint32_t n_levels) const  = 0;
 
-  virtual void print_model() const = 0;
+  virtual void print_model() = 0;
 
   virtual void reset_assertions() const = 0;
 
@@ -246,7 +247,7 @@ class Solver
 
   virtual bool check_failed_assumption(const Term& t) const = 0;
 
-  virtual std::vector<Term> get_value(std::vector<Term>& terms) const = 0;
+  virtual std::vector<Term> get_value(std::vector<Term>& terms) = 0;
 
   //
   // get_model()

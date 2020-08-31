@@ -247,6 +247,12 @@ Solver::configure_fsm(FSM* fsm) const
   // default: do nothing
 }
 
+void
+Solver::reset_sat()
+{
+  // default: do nothing
+}
+
 const std::vector<Solver::Base>&
 Solver::get_bases() const
 {

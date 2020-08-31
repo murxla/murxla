@@ -765,7 +765,7 @@ CVC4Solver::get_unsat_assumptions() const
 }
 
 std::vector<Term>
-CVC4Solver::get_value(std::vector<Term>& terms) const
+CVC4Solver::get_value(std::vector<Term>& terms)
 {
   std::vector<Term> res;
   std::vector<CVC4::api::Term> cvc4_res;
@@ -798,7 +798,7 @@ CVC4Solver::pop(uint32_t n_levels) const
 }
 
 void
-CVC4Solver::print_model() const
+CVC4Solver::print_model()
 {
   d_solver->printModel(std::cout);
 }

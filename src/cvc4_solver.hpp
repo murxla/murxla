@@ -142,12 +142,12 @@ class CVC4Solver : public Solver
 
   std::vector<Term> get_unsat_assumptions() const override;
 
-  std::vector<Term> get_value(std::vector<Term>& terms) const override;
+  std::vector<Term> get_value(std::vector<Term>& terms) override;
 
   void push(uint32_t n_levels) const override;
   void pop(uint32_t n_levels) const override;
 
-  void print_model() const override;
+  void print_model() override;
 
   void reset_assertions() const override;
 

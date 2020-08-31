@@ -904,7 +904,7 @@ BtorSolver::get_unsat_assumptions() const
 }
 
 std::vector<Term>
-BtorSolver::get_value(std::vector<Term>& terms) const
+BtorSolver::get_value(std::vector<Term>& terms)
 {
   std::vector<Term> res;
   std::vector<BoolectorNode*> btor_res;
@@ -935,7 +935,7 @@ BtorSolver::pop(uint32_t n_levels) const
 }
 
 void
-BtorSolver::print_model() const
+BtorSolver::print_model()
 {
   const char* fmt = d_rng.flip_coin() ? "btor" : "smt2";
   boolector_print_model(d_solver, (char*) fmt, stdout);

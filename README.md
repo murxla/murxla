@@ -66,3 +66,9 @@ solver options??
 solver specific actions
 solver specific operators
 supported/unsupported ops/theories
+
+call `Action::reset_sat()` in solver-specific actions that perform
+actions that require to leave the SAT state (SMT-LIB state)
+
+if solver caches a model, unsat core, or similar, make sure to override
+`Solver::reset_sat()` (called by `Action`)

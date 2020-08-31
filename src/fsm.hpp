@@ -159,6 +159,7 @@ class Action
   bool empty() const { return d_is_empty; }
 
  protected:
+  void reset_sat();
   /* The random number generator associated with this action. */
   RNGenerator& d_rng;
   /* The solver associated with this action. */

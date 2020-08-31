@@ -835,7 +835,7 @@ Smt2Solver::pop(uint32_t n_levels) const
 }
 
 void
-Smt2Solver::print_model() const
+Smt2Solver::print_model()
 {
   dump_smt2("(get-model)");
 }
@@ -909,7 +909,7 @@ Smt2Solver::check_failed_assumption(const Term& t) const
 }
 
 std::vector<Term>
-Smt2Solver::get_value(std::vector<Term>& terms) const
+Smt2Solver::get_value(std::vector<Term>& terms)
 {
   std::stringstream smt2;
   smt2 << "(get-value (";
