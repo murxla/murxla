@@ -146,7 +146,16 @@ YicesSolver::get_supported_theories() const
 OpKindSet
 YicesSolver::get_unsupported_op_kinds() const
 {
-  return {};
+  return {OP_BV_DEC,
+          OP_BV_INC,
+          OP_BV_REDXOR,
+          OP_BV_SADDO,
+          OP_BV_SDIVO,
+          OP_BV_SMULO,
+          OP_BV_SSUBO,
+          OP_BV_UADDO,
+          OP_BV_UMULO,
+          OP_BV_USUBO};
 }
 
 void
@@ -569,44 +578,44 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 //////
 ////
 //__YICES_DLLSPEC__ extern term_t yices_application(term_t fun, uint32_t n,
-//const term_t arg[]);
+// const term_t arg[]);
 //__YICES_DLLSPEC__ extern term_t yices_application1(term_t fun, term_t arg1);
 //__YICES_DLLSPEC__ extern term_t yices_application2(term_t fun, term_t arg1,
-//term_t arg2);
+// term_t arg2);
 //__YICES_DLLSPEC__ extern term_t yices_application3(term_t fun, term_t arg1,
-//term_t arg2, term_t arg3);
+// term_t arg2, term_t arg3);
 //__YICES_DLLSPEC__ extern term_t yices_tuple(uint32_t n, const term_t arg[]);
 //__YICES_DLLSPEC__ extern term_t yices_pair(term_t arg1, term_t arg2);
 //__YICES_DLLSPEC__ extern term_t yices_triple(term_t arg1, term_t arg2, term_t
-//arg3);
+// arg3);
 //__YICES_DLLSPEC__ extern term_t yices_select(uint32_t index, term_t tuple);
 //__YICES_DLLSPEC__ extern term_t yices_tuple_update(term_t tuple, uint32_t
-//index, term_t new_v);
+// index, term_t new_v);
 //__YICES_DLLSPEC__ extern term_t yices_update(term_t fun, uint32_t n, const
-//term_t arg[], term_t new_v);
+// term_t arg[], term_t new_v);
 //__YICES_DLLSPEC__ extern term_t yices_update1(term_t fun, term_t arg1, term_t
-//new_v);
+// new_v);
 //__YICES_DLLSPEC__ extern term_t yices_update2(term_t fun, term_t arg1, term_t
-//arg2, term_t new_v);
+// arg2, term_t new_v);
 //__YICES_DLLSPEC__ extern term_t yices_update3(term_t fun, term_t arg1, term_t
-//arg2, term_t arg3, term_t new_v);
+// arg2, term_t arg3, term_t new_v);
 //__YICES_DLLSPEC__ extern term_t yices_forall(uint32_t n, term_t var[], term_t
-//body);
+// body);
 //__YICES_DLLSPEC__ extern term_t yices_exists(uint32_t n, term_t var[], term_t
-//body);
+// body);
 //__YICES_DLLSPEC__ extern term_t yices_lambda(uint32_t n, const term_t var[],
-//term_t body);
+// term_t body);
 //__YICES_DLLSPEC__ extern term_t yices_zero(void);
 //__YICES_DLLSPEC__ extern term_t yices_parse_float(const char *s);
 //__YICES_DLLSPEC__ extern term_t yices_add(term_t t1, term_t t2);     // t1 +
-//t2
+// t2
 //__YICES_DLLSPEC__ extern term_t yices_sub(term_t t1, term_t t2);     // t1 -
-//t2
+// t2
 //__YICES_DLLSPEC__ extern term_t yices_neg(term_t t1);                // -t1
 //__YICES_DLLSPEC__ extern term_t yices_mul(term_t t1, term_t t2);     // t1 *
-//t2
+// t2
 //__YICES_DLLSPEC__ extern term_t yices_square(term_t t1);             // t1 *
-//t1
+// t1
 //__YICES_DLLSPEC__ extern term_t yices_power(term_t t1, uint32_t d);  // t1 ^ d
 //__YICES_DLLSPEC__ extern term_t yices_sum(uint32_t n, const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_product(uint32_t n, const term_t t[]);
@@ -619,76 +628,39 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 //__YICES_DLLSPEC__ extern term_t yices_floor(term_t t);
 //__YICES_DLLSPEC__ extern term_t yices_ceil(term_t t);
 //__YICES_DLLSPEC__ extern term_t yices_poly_int32(uint32_t n, const int32_t
-//a[], const term_t t[]);
+// a[], const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_poly_int64(uint32_t n, const int64_t
-//a[], const term_t t[]);
+// a[], const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_poly_rational32(uint32_t n, const
-//int32_t num[], const uint32_t den[], const term_t t[]);
+// int32_t num[], const uint32_t den[], const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_poly_rational64(uint32_t n, const
-//int64_t num[], const uint64_t den[], const term_t t[]);
+// int64_t num[], const uint64_t den[], const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_arith_eq_atom(term_t t1, term_t t2); //
-//t1 == t2
+// t1 == t2
 //__YICES_DLLSPEC__ extern term_t yices_arith_neq_atom(term_t t1, term_t t2); //
-//t1 != t2
+// t1 != t2
 //__YICES_DLLSPEC__ extern term_t yices_arith_geq_atom(term_t t1, term_t t2); //
-//t1 >= t2
+// t1 >= t2
 //__YICES_DLLSPEC__ extern term_t yices_arith_leq_atom(term_t t1, term_t t2); //
-//t1 <= t2
+// t1 <= t2
 //__YICES_DLLSPEC__ extern term_t yices_arith_gt_atom(term_t t1, term_t t2); //
-//t1 > t2
+// t1 > t2
 //__YICES_DLLSPEC__ extern term_t yices_arith_lt_atom(term_t t1, term_t t2); //
-//t1 < t2
+// t1 < t2
 //__YICES_DLLSPEC__ extern term_t yices_arith_eq0_atom(term_t t);   // t == 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_neq0_atom(term_t t);  // t != 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_geq0_atom(term_t t);  // t >= 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_leq0_atom(term_t t);  // t <= 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_gt0_atom(term_t t);   // t > 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_lt0_atom(term_t t);   // t < 0
-//__YICES_DLLSPEC__ extern term_t yices_bvconst_uint32(uint32_t n, uint32_t x);
-//__YICES_DLLSPEC__ extern term_t yices_bvconst_uint64(uint32_t n, uint64_t x);
-//__YICES_DLLSPEC__ extern term_t yices_bvconst_int32(uint32_t n, int32_t x);
-//__YICES_DLLSPEC__ extern term_t yices_bvconst_int64(uint32_t n, int64_t x);
-//__YICES_DLLSPEC__ extern term_t yices_bvconst_zero(uint32_t n);
-//__YICES_DLLSPEC__ extern term_t yices_bvconst_one(uint32_t n);
-//__YICES_DLLSPEC__ extern term_t yices_bvconst_minus_one(uint32_t n);
-//__YICES_DLLSPEC__ extern term_t yices_bvconst_from_array(uint32_t n, const
-//int32_t a[]);
+// int32_t a[]);
 //__YICES_DLLSPEC__ extern term_t yices_parse_bvbin(const char *s);
 //__YICES_DLLSPEC__ extern term_t yices_parse_bvhex(const char *s);
-//__YICES_DLLSPEC__ extern term_t yices_bvsub(term_t t1, term_t t2);     //
-//subtraction (t1 - t2)
-//__YICES_DLLSPEC__ extern term_t yices_bvneg(term_t t1);                //
-//negation (- t1)
-//__YICES_DLLSPEC__ extern term_t yices_bvmul(term_t t1, term_t t2);     //
-//multiplication (t1 * t2)
+// ubtraction (t1 - t2)
 //__YICES_DLLSPEC__ extern term_t yices_bvsquare(term_t t1);             //
-//square (t1 * t1)
+// square (t1 * t1)
 //__YICES_DLLSPEC__ extern term_t yices_bvpower(term_t t1, uint32_t d);  //
-//exponentiation (t1 ^ d)
-//__YICES_DLLSPEC__ extern term_t yices_bvdiv(term_t t1, term_t t2);   //
-//unsigned div
-//__YICES_DLLSPEC__ extern term_t yices_bvrem(term_t t1, term_t t2);   //
-//unsigned rem
-//__YICES_DLLSPEC__ extern term_t yices_bvsdiv(term_t t1, term_t t2);  // signed
-//div
-//__YICES_DLLSPEC__ extern term_t yices_bvsrem(term_t t1, term_t t2);  // signed
-//rem
-//__YICES_DLLSPEC__ extern term_t yices_bvsmod(term_t t1, term_t t2);  // signed
-//mod
-//__YICES_DLLSPEC__ extern term_t yices_bvnot(term_t t1);              //
-//bitwise not
-//__YICES_DLLSPEC__ extern term_t yices_bvnand(term_t t1, term_t t2);  //
-//bitwise not and
-//__YICES_DLLSPEC__ extern term_t yices_bvnor(term_t t1, term_t t2);   //
-//bitwise not or
-//__YICES_DLLSPEC__ extern term_t yices_bvxnor(term_t t1, term_t t2);  //
-//bitwise not xor
-//__YICES_DLLSPEC__ extern term_t yices_bvshl(term_t t1, term_t t2);   // shift
-//t1 left by k bits where k = value of t2
-//__YICES_DLLSPEC__ extern term_t yices_bvlshr(term_t t1, term_t t2);  //
-//logical shift t1 right by k bits, where k = value of t2
-//__YICES_DLLSPEC__ extern term_t yices_bvashr(term_t t1, term_t t2);  //
-//arithmetic shift t1 right by k bits, k = value of t2
+// exponentiation (t1 ^ d)
 //__YICES_DLLSPEC__ extern term_t yices_bvsum(uint32_t n, const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_bvproduct(uint32_t n, const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_shift_left0(term_t t, uint32_t n);
@@ -696,33 +668,12 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 //__YICES_DLLSPEC__ extern term_t yices_shift_right0(term_t t, uint32_t n);
 //__YICES_DLLSPEC__ extern term_t yices_shift_right1(term_t t, uint32_t n);
 //__YICES_DLLSPEC__ extern term_t yices_ashift_right(term_t t, uint32_t n);
-//__YICES_DLLSPEC__ extern term_t yices_bvconcat2(term_t t1, term_t t2);
-//__YICES_DLLSPEC__ extern term_t yices_bvconcat(uint32_t n, const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_redand(term_t t);
-//__YICES_DLLSPEC__ extern term_t yices_redor(term_t t);
-//__YICES_DLLSPEC__ extern term_t yices_redcomp(term_t t1, term_t t2);
 //__YICES_DLLSPEC__ extern term_t yices_bvarray(uint32_t n, const term_t arg[]);
 //__YICES_DLLSPEC__ extern term_t yices_bitextract(term_t t, uint32_t i);
 //__YICES_DLLSPEC__ extern term_t yices_bveq_atom(term_t t1, term_t t2);   // t1
 //== t2
 //__YICES_DLLSPEC__ extern term_t yices_bvneq_atom(term_t t1, term_t t2);  // t1
 //!= t2
-//__YICES_DLLSPEC__ extern term_t yices_bvge_atom(term_t t1, term_t t2);  // t1
-//>= t2
-//__YICES_DLLSPEC__ extern term_t yices_bvgt_atom(term_t t1, term_t t2);  // t1
-//> t2
-//__YICES_DLLSPEC__ extern term_t yices_bvle_atom(term_t t1, term_t t2);  // t1
-//<= t2
-//__YICES_DLLSPEC__ extern term_t yices_bvlt_atom(term_t t1, term_t t2);  // t1
-//< t2
-//__YICES_DLLSPEC__ extern term_t yices_bvsge_atom(term_t t1, term_t t2);  // t1
-//>= t2
-//__YICES_DLLSPEC__ extern term_t yices_bvsgt_atom(term_t t1, term_t t2);  // t1
-//> t2
-//__YICES_DLLSPEC__ extern term_t yices_bvsle_atom(term_t t1, term_t t2);  // t1
-//<= t2
-//__YICES_DLLSPEC__ extern term_t yices_bvslt_atom(term_t t1, term_t t2);  // t1
-//< t2
 //////
 
 Term
@@ -977,31 +928,47 @@ YicesSolver::mk_term(const OpKind& kind,
       break;
 
     case OP_BV_ASHR:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvashr(yices_args[0], yices_args[1]);
       break;
     case OP_BV_COMP:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_redcomp(yices_args[0], yices_args[1]);
       break;
     case OP_BV_CONCAT:
-      // TODO
+      assert(n_args > 1);
+      if (d_rng.flip_coin())
+      {
+        yices_res = yices_bvconcat(n_args, &yices_args[0]);
+      }
+      else
+      {
+        yices_res = mk_term_pairwise(yices_args, yices_bvconcat2);
+      }
       break;
     case OP_BV_LSHR:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvlshr(yices_args[0], yices_args[1]);
       break;
     case OP_BV_MULT:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvmul(yices_args[0], yices_args[1]);
       break;
     case OP_BV_NAND:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvnand(yices_args[0], yices_args[1]);
       break;
     case OP_BV_NEG:
-      // TODO
+      assert(n_args == 1);
+      yices_res = yices_bvneg(yices_args[0]);
       break;
     case OP_BV_NOR:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvnor(yices_args[0], yices_args[1]);
       break;
     case OP_BV_NOT:
-      // TODO
+      assert(n_args == 1);
+      yices_res = yices_bvnot(yices_args[0]);
       break;
 
     case OP_BV_OR:
@@ -1043,79 +1010,76 @@ YicesSolver::mk_term(const OpKind& kind,
       break;
 
     case OP_BV_REDAND:
-      // TODO
+      assert(n_args == 1);
+      yices_res = yices_redand(yices_args[0]);
       break;
     case OP_BV_REDOR:
-      // TODO
-      break;
-    case OP_BV_SADDO:
-      // TODO
+      assert(n_args == 1);
+      yices_res = yices_redor(yices_args[0]);
       break;
     case OP_BV_SDIV:
-      // TODO
-      break;
-    case OP_BV_SDIVO:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvsdiv(yices_args[0], yices_args[1]);
       break;
     case OP_BV_SGE:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvsge_atom(yices_args[0], yices_args[1]);
       break;
     case OP_BV_SGT:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvsgt_atom(yices_args[0], yices_args[1]);
       break;
     case OP_BV_SHL:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvshl(yices_args[0], yices_args[1]);
       break;
     case OP_BV_SLE:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvsle_atom(yices_args[0], yices_args[1]);
       break;
     case OP_BV_SLT:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvslt_atom(yices_args[0], yices_args[1]);
       break;
     case OP_BV_SMOD:
-      // TODO
-      break;
-    case OP_BV_SMULO:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvsmod(yices_args[0], yices_args[1]);
       break;
     case OP_BV_SREM:
-      // TODO
-      break;
-    case OP_BV_SSUBO:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvsrem(yices_args[0], yices_args[1]);
       break;
     case OP_BV_SUB:
-      // TODO
-      break;
-    case OP_BV_UADDO:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvsub(yices_args[0], yices_args[1]);
       break;
     case OP_BV_UDIV:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvdiv(yices_args[0], yices_args[1]);
       break;
     case OP_BV_UGE:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvge_atom(yices_args[0], yices_args[1]);
       break;
     case OP_BV_UGT:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvgt_atom(yices_args[0], yices_args[1]);
       break;
     case OP_BV_ULE:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvle_atom(yices_args[0], yices_args[1]);
       break;
     case OP_BV_ULT:
-      // TODO
-      break;
-    case OP_BV_UMULO:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvlt_atom(yices_args[0], yices_args[1]);
       break;
     case OP_BV_UREM:
-      // TODO
-      break;
-    case OP_BV_USUBO:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvrem(yices_args[0], yices_args[1]);
       break;
     case OP_BV_XNOR:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_bvxnor(yices_args[0], yices_args[1]);
       break;
 
     case OP_BV_XOR:
@@ -1154,120 +1118,6 @@ YicesSolver::mk_term(const OpKind& kind,
           yices_res = yices_bvor(n_args, &yices_args[0]);
         }
       }
-      break;
-
-    case OP_BV_INC:
-      // TODO
-      break;
-
-    case OP_BV_DEC:
-      // TODO
-      break;
-
-    case OP_BV_REDXOR:
-      // TODO
-      break;
-
-    /* FP */
-    case OP_FP_TO_FP_FROM_BV:
-      // TODO
-      break;
-    case OP_FP_TO_FP_FROM_INT_BV:
-      // TODO
-      break;
-    case OP_FP_TO_FP_FROM_FP:
-      // TODO
-      break;
-    case OP_FP_TO_FP_FROM_UINT_BV:
-      // TODO
-      break;
-    case OP_FP_TO_FP_FROM_REAL:
-      // TODO
-      break;
-    case OP_FP_TO_SBV:
-      // TODO
-      break;
-    case OP_FP_TO_UBV:
-      // TODO
-      break;
-
-    case OP_FP_ABS:
-      // TODO
-      break;
-    case OP_FP_ADD:
-      // TODO
-      break;
-    case OP_FP_DIV:
-      // TODO
-      break;
-    case OP_FP_EQ:
-      // TODO
-      break;
-    case OP_FP_FMA:
-      // TODO
-      break;
-    case OP_FP_FP:
-      // TODO
-      break;
-    case OP_FP_IS_NORMAL:
-      // TODO
-      break;
-    case OP_FP_IS_SUBNORMAL:
-      // TODO
-      break;
-    case OP_FP_IS_INF:
-      // TODO
-      break;
-    case OP_FP_IS_NAN:
-      // TODO
-      break;
-    case OP_FP_IS_NEG:
-      // TODO
-      break;
-    case OP_FP_IS_POS:
-      // TODO
-      break;
-    case OP_FP_IS_ZERO:
-      // TODO
-      break;
-    case OP_FP_LT:
-      // TODO
-      break;
-    case OP_FP_LTE:
-      // TODO
-      break;
-    case OP_FP_GT:
-      // TODO
-      break;
-    case OP_FP_GTE:
-      // TODO
-      break;
-    case OP_FP_MAX:
-      // TODO
-      break;
-    case OP_FP_MIN:
-      // TODO
-      break;
-    case OP_FP_MUL:
-      // TODO
-      break;
-    case OP_FP_NEG:
-      // TODO
-      break;
-    case OP_FP_REM:
-      // TODO
-      break;
-    case OP_FP_RTI:
-      // TODO
-      break;
-    case OP_FP_SQRT:
-      // TODO
-      break;
-    case OP_FP_SUB:
-      // TODO
-      break;
-    case OP_FP_TO_REAL:
-      // TODO
       break;
 
     /* Ints */
