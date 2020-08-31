@@ -841,9 +841,22 @@ class ActionMkTerm : public Action
       }
       else
       {
+        /* Always pick the same sort for a given sort kind. */
+        std::unordered_map<SortKind, Sort> sorts;
+        SortKind skind;
         for (int32_t i = 0; i < arity; ++i)
         {
-          sort = d_smgr.pick_sort(op.get_arg_sort_kind(i));
+          skind   = op.get_arg_sort_kind(i);
+          auto it = sorts.find(skind);
+          if (it == sorts.end())
+          {
+            sort = d_smgr.pick_sort(skind);
+            sorts.emplace(skind, sort);
+          }
+          else
+          {
+            sort = it->second;
+          }
           assert(d_smgr.has_term(sort));
           args.push_back(d_smgr.pick_term(sort));
         }
