@@ -12,6 +12,7 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include <regex>
 #include <sstream>
 #include <toml.hpp>
 
@@ -342,6 +343,29 @@ path_is_dir(const std::string& path)
   return (buffer.st_mode & S_IFMT) == S_IFDIR;         // is a directory?
 }
 
+/**
+ * Removes memory addresses and ==...== from ASAN messages.
+ */
+std::string
+normalize_asan_error(const std::string& s)
+{
+  std::vector<std::string> regex = {"0x[0-9a-fA-F]+", "==[0-9]+=="};
+
+  std::string res, cur_s(s);
+  for (const auto& re : regex)
+  {
+    res.clear();
+    std::regex_replace(std::back_inserter(res),
+                       cur_s.begin(),
+                       cur_s.end(),
+                       std::regex(re),
+                       "");
+    cur_s = res;
+  }
+
+  return res;
+}
+
 void
 print_error_summary()
 {
@@ -354,6 +378,7 @@ print_error_summary()
     for (auto it1 = g_errors.begin(); it1 != g_errors.end(); ++it1)
     {
       const auto& err1 = it1->first;
+      const auto& nerr1 = normalize_asan_error(err1);
 
       if (cache.find(err1) != cache.end())
       {
@@ -368,14 +393,19 @@ print_error_summary()
       ++it2;
       for (; it2 != g_errors.end(); ++it2)
       {
-        const auto& err2 = it2->first;
-        size_t len       = std::max(err1.size(), err2.size());
+        const auto& err2  = it2->first;
+        const auto& nerr2 = normalize_asan_error(err2);
 
-        auto dist    = levenshtein_dist(err1, err2);
-        double pdist = (len - dist) / static_cast<double>(len);
+        bool merge = nerr1 == nerr2;
+        if (!merge)
+        {
+          size_t len   = std::max(nerr1.size(), nerr2.size());
+          auto dist    = levenshtein_dist(nerr1, nerr2);
+          double pdist = (len - dist) / static_cast<double>(len);
+          merge        = pdist >= 0.95;
+        }
 
-        /* merge errors if difference is less than 5% */
-        if (pdist >= 0.95)
+        if (merge)
         {
           cache.insert(err2);
           seeds.insert(seeds.end(), it2->second.begin(), it2->second.end());
