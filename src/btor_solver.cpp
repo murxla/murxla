@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstdlib>
 
+#include "config.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
@@ -382,7 +383,7 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
   uint32_t bw             = sort->get_bv_size();
   bool use_special_fun    = d_rng.flip_coin();
   bool check              = d_rng.pick_with_prob(10);
-  bool check_bits         = d_rng.pick_with_prob(10);
+  bool check_bits         = bw <= 64 && d_rng.pick_with_prob(10);
   std::string str;
 
   if (use_special_fun && value == 0)
@@ -440,9 +441,10 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
           d_solver, static_cast<uint32_t>(value), btor_sort);
       if (check_bits)
       {
-        str = std::bitset<64>(static_cast<uint32_t>(value))
+        str = std::bitset<SMTMBT_BW_MAX>(static_cast<uint32_t>(value))
                   .to_string()
-                  .substr(64 - bw, bw);
+                  .substr(SMTMBT_BW_MAX - bw, bw);
+        assert(str.size() == bw);
       }
     }
     else
@@ -451,9 +453,10 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
           boolector_int(d_solver, static_cast<int32_t>(value), btor_sort);
       if (check_bits)
       {
-        str = std::bitset<64>(static_cast<int32_t>(value))
+        str = std::bitset<SMTMBT_BW_MAX>(static_cast<int32_t>(value))
                   .to_string()
-                  .substr(64 - bw, bw);
+                  .substr(SMTMBT_BW_MAX - bw, bw);
+        assert(str.size() == bw);
       }
     }
   }
