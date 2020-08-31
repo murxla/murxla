@@ -22,6 +22,7 @@
 #include "smt2_solver.hpp"
 #include "solver_option.hpp"
 #include "statistics.hpp"
+#include "util.hpp"
 
 using namespace smtmbt;
 using namespace statistics;
@@ -346,9 +347,45 @@ print_error_summary()
 {
   if (g_errors.size())
   {
-    std::cout << "\n caught: " << getpid() << std::endl;
-    std::cout << "\nError statistics:\n" << std::endl;
-    for (const auto& p : g_errors)
+    std::unordered_map<std::string, std::vector<uint32_t>> errors;
+    std::unordered_set<std::string> cache;
+
+    /* merge similar errors */
+    for (auto it1 = g_errors.begin(); it1 != g_errors.end(); ++it1)
+    {
+      const auto& err1 = it1->first;
+
+      if (cache.find(err1) != cache.end())
+      {
+        continue;
+      }
+
+      cache.insert(err1);
+      auto& seeds = errors[err1];
+      seeds.insert(seeds.end(), it1->second.begin(), it1->second.end());
+
+      auto it2 = it1;
+      ++it2;
+      for (; it2 != g_errors.end(); ++it2)
+      {
+        const auto& err2 = it2->first;
+        size_t len       = std::max(err1.size(), err2.size());
+
+        auto dist    = levenshtein_dist(err1, err2);
+        double pdist = (len - dist) / static_cast<double>(len);
+
+        /* merge errors if difference is less than 5% */
+        if (pdist >= 0.95)
+        {
+          cache.insert(err2);
+          seeds.insert(seeds.end(), it2->second.begin(), it2->second.end());
+        }
+      }
+    }
+
+    std::cout << "\nError statistics (" << errors.size() << " in total):\n"
+              << std::endl;
+    for (const auto& p : errors)
     {
       const auto& err   = p.first;
       const auto& seeds = p.second;

@@ -277,6 +277,18 @@ class OstreamVoider
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Compute the Levenshtein distance between two strings.
+ *
+ * This implementation is based on:
+ *
+ * https://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#C++
+ *
+ * and is covered under the same license as the original algorithm
+ * (CC BY-SA 3.0 - https://creativecommons.org/licenses/by-sa/3.0/).
+ */
+std::size_t levenshtein_dist(const std::string& s1, const std::string& s2);
+
 }  // namespace smtmbt
 
 #endif
