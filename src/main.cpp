@@ -67,7 +67,7 @@ struct Options
   bool arith_linear = false;
 
   /** The directory for tmp files (default: current). */
-  std::string tmp_dir = "";
+  std::string tmp_dir = "/tmp";
   /** The directory for output files (default: current). */
   std::string out_dir = "";
 
