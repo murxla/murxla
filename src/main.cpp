@@ -394,7 +394,7 @@ print_error_summary()
       {
         if (i > 0)
         {
-          std::cout << ", ";
+          std::cout << " ";
         }
         std::cout << seeds[i];
       }
