@@ -550,48 +550,42 @@ BtorSolver::mk_term(const OpKind& kind,
   size_t n_args           = args.size();
   size_t n_params         = params.size();
   std::vector<BoolectorNode*> vars;
-
-  // BoolectorNode *boolector_read (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index);
-  // BoolectorNode *boolector_write (Btor *btor, BoolectorNode *n_array, BoolectorNode *n_index, BoolectorNode *n_value);
-  // BoolectorNode *boolector_apply (Btor *btor, BoolectorNode **arg_nodes, uint32_t argc, BoolectorNode *n_fun);
+  std::vector<BoolectorNode*> btor_args = terms_to_btor_terms(args);
 
   switch (kind)
   {
     case OP_DISTINCT:
       assert(n_args > 1);
-      btor_res = mk_term_pairwise(args, boolector_ne);
+      btor_res = mk_term_pairwise(btor_args, boolector_ne);
       break;
     case OP_EQUAL:
     case OP_BV_COMP:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_eq);
+      btor_res = mk_term_left_assoc(btor_args, boolector_eq);
       break;
     case OP_IFF:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_iff);
+      btor_res = mk_term_left_assoc(btor_args, boolector_iff);
       break;
     case OP_ITE:
       assert(n_args == 3);
-      btor_res = boolector_cond(d_solver,
-                                get_btor_term(args[0]),
-                                get_btor_term(args[1]),
-                                get_btor_term(args[2]));
+      btor_res =
+          boolector_cond(d_solver, btor_args[0], btor_args[1], btor_args[2]);
       break;
     case OP_IMPLIES:
       assert(n_args > 1);
-      btor_res = mk_term_left_assoc(args, boolector_implies);
+      btor_res = mk_term_left_assoc(btor_args, boolector_implies);
       break;
 
     case OP_BV_EXTRACT:
       assert(n_args == 1);
       assert(n_params == 2);
-      btor_res = boolector_slice(
-          d_solver, get_btor_term(args[0]), params[0], params[1]);
+      btor_res = boolector_slice(d_solver, btor_args[0], params[0], params[1]);
       break;
     case OP_BV_REPEAT:
       assert(n_args == 1);
       assert(n_params == 1);
-      btor_res = boolector_repeat(d_solver, get_btor_term(args[0]), params[0]);
+      btor_res = boolector_repeat(d_solver, btor_args[0], params[0]);
       break;
 
     case OP_BV_ROTATE_LEFT:
@@ -599,7 +593,7 @@ BtorSolver::mk_term(const OpKind& kind,
     {
       assert(n_args == 1);
       assert(n_params == 1);
-      BoolectorNode* arg = get_btor_term(args[0]);
+      BoolectorNode* arg = btor_args[0];
       BoolectorSort s    = boolector_get_sort(d_solver, arg);
       uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
 
@@ -639,208 +633,205 @@ BtorSolver::mk_term(const OpKind& kind,
     case OP_BV_SIGN_EXTEND:
       assert(n_args == 1);
       assert(n_params == 1);
-      btor_res = boolector_sext(d_solver, get_btor_term(args[0]), params[0]);
+      btor_res = boolector_sext(d_solver, btor_args[0], params[0]);
       break;
     case OP_BV_ZERO_EXTEND:
       assert(n_args == 1);
       assert(n_params == 1);
-      btor_res = boolector_uext(d_solver, get_btor_term(args[0]), params[0]);
+      btor_res = boolector_uext(d_solver, btor_args[0], params[0]);
       break;
     case OP_BV_CONCAT:
       assert(n_args > 1);
-      btor_res = mk_term_left_assoc(args, boolector_concat);
+      btor_res = mk_term_left_assoc(btor_args, boolector_concat);
       break;
     case OP_AND:
     case OP_BV_AND:
       assert(n_args > 1);
-      btor_res = mk_term_left_assoc(args, boolector_and);
+      btor_res = mk_term_left_assoc(btor_args, boolector_and);
       break;
     case OP_OR:
     case OP_BV_OR:
       assert(n_args > 1);
-      btor_res = mk_term_left_assoc(args, boolector_or);
+      btor_res = mk_term_left_assoc(btor_args, boolector_or);
       break;
     case OP_XOR:
     case OP_BV_XOR:
       assert(n_args > 1);
-      btor_res = mk_term_left_assoc(args, boolector_xor);
+      btor_res = mk_term_left_assoc(btor_args, boolector_xor);
       break;
     case OP_BV_MULT:
       assert(n_args > 1);
-      btor_res = mk_term_left_assoc(args, boolector_mul);
+      btor_res = mk_term_left_assoc(btor_args, boolector_mul);
       break;
     case OP_BV_ADD:
       assert(n_args > 1);
-      btor_res = mk_term_left_assoc(args, boolector_add);
+      btor_res = mk_term_left_assoc(btor_args, boolector_add);
       break;
 
     case OP_NOT:
     case OP_BV_NOT:
       assert(n_args == 1);
-      btor_res = boolector_not(d_solver, get_btor_term(args[0]));
+      btor_res = boolector_not(d_solver, btor_args[0]);
       break;
     case OP_BV_NEG:
       assert(n_args == 1);
-      btor_res = boolector_neg(d_solver, get_btor_term(args[0]));
+      btor_res = boolector_neg(d_solver, btor_args[0]);
       break;
     case OP_BV_REDAND:
       assert(n_args == 1);
-      btor_res = boolector_redand(d_solver, get_btor_term(args[0]));
+      btor_res = boolector_redand(d_solver, btor_args[0]);
       break;
     case OP_BV_REDOR:
       assert(n_args == 1);
-      btor_res = boolector_redor(d_solver, get_btor_term(args[0]));
+      btor_res = boolector_redor(d_solver, btor_args[0]);
       break;
     case OP_BV_REDXOR:
       assert(n_args == 1);
-      btor_res = boolector_redxor(d_solver, get_btor_term(args[0]));
+      btor_res = boolector_redxor(d_solver, btor_args[0]);
       break;
     case OP_BV_INC:
       assert(n_args == 1);
-      btor_res = boolector_inc(d_solver, get_btor_term(args[0]));
+      btor_res = boolector_inc(d_solver, btor_args[0]);
       break;
     case OP_BV_DEC:
       assert(n_args == 1);
-      btor_res = boolector_dec(d_solver, get_btor_term(args[0]));
+      btor_res = boolector_dec(d_solver, btor_args[0]);
       break;
 
     case OP_BV_NAND:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_nand);
+      btor_res = mk_term_left_assoc(btor_args, boolector_nand);
       break;
     case OP_BV_NOR:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_nor);
+      btor_res = mk_term_left_assoc(btor_args, boolector_nor);
       break;
     case OP_BV_XNOR:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_xnor);
+      btor_res = mk_term_left_assoc(btor_args, boolector_xnor);
       break;
     case OP_BV_SUB:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_sub);
+      btor_res = mk_term_left_assoc(btor_args, boolector_sub);
       break;
     case OP_BV_UDIV:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_udiv);
+      btor_res = mk_term_left_assoc(btor_args, boolector_udiv);
       break;
     case OP_BV_UREM:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_urem);
+      btor_res = mk_term_left_assoc(btor_args, boolector_urem);
       break;
     case OP_BV_SDIV:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_sdiv);
+      btor_res = mk_term_left_assoc(btor_args, boolector_sdiv);
       break;
     case OP_BV_SREM:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_srem);
+      btor_res = mk_term_left_assoc(btor_args, boolector_srem);
       break;
     case OP_BV_SMOD:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_smod);
+      btor_res = mk_term_left_assoc(btor_args, boolector_smod);
       break;
     case OP_BV_SHL:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_sll);
+      btor_res = mk_term_left_assoc(btor_args, boolector_sll);
       break;
     case OP_BV_LSHR:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_srl);
+      btor_res = mk_term_left_assoc(btor_args, boolector_srl);
       break;
     case OP_BV_ASHR:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_sra);
+      btor_res = mk_term_left_assoc(btor_args, boolector_sra);
       break;
     case OP_BV_UADDO:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_uaddo);
+      btor_res = mk_term_left_assoc(btor_args, boolector_uaddo);
       break;
     case OP_BV_UGT:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_ugt);
+      btor_res = mk_term_left_assoc(btor_args, boolector_ugt);
       break;
     case OP_BV_UGE:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_ugte);
+      btor_res = mk_term_left_assoc(btor_args, boolector_ugte);
       break;
     case OP_BV_ULT:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_ult);
+      btor_res = mk_term_left_assoc(btor_args, boolector_ult);
       break;
     case OP_BV_ULE:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_ulte);
+      btor_res = mk_term_left_assoc(btor_args, boolector_ulte);
       break;
     case OP_BV_UMULO:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_umulo);
+      btor_res = mk_term_left_assoc(btor_args, boolector_umulo);
       break;
     case OP_BV_USUBO:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_usubo);
+      btor_res = mk_term_left_assoc(btor_args, boolector_usubo);
       break;
     case OP_BV_SADDO:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_saddo);
+      btor_res = mk_term_left_assoc(btor_args, boolector_saddo);
       break;
     case OP_BV_SDIVO:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_sdivo);
+      btor_res = mk_term_left_assoc(btor_args, boolector_sdivo);
       break;
     case OP_BV_SGT:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_sgt);
+      btor_res = mk_term_left_assoc(btor_args, boolector_sgt);
       break;
     case OP_BV_SGE:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_sgte);
+      btor_res = mk_term_left_assoc(btor_args, boolector_sgte);
       break;
     case OP_BV_SLT:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_slt);
+      btor_res = mk_term_left_assoc(btor_args, boolector_slt);
       break;
     case OP_BV_SLE:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_slte);
+      btor_res = mk_term_left_assoc(btor_args, boolector_slte);
       break;
     case OP_BV_SMULO:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_smulo);
+      btor_res = mk_term_left_assoc(btor_args, boolector_smulo);
       break;
     case OP_BV_SSUBO:
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(args, boolector_ssubo);
+      btor_res = mk_term_left_assoc(btor_args, boolector_ssubo);
       break;
 
     case OP_ARRAY_SELECT:
       assert(n_args == 2);
-      btor_res = boolector_read(
-          d_solver, get_btor_term(args[0]), get_btor_term(args[1]));
+      btor_res = boolector_read(d_solver, btor_args[0], btor_args[1]);
       break;
     case OP_ARRAY_STORE:
       assert(n_args == 3);
-      btor_res = boolector_write(d_solver,
-                                 get_btor_term(args[0]),
-                                 get_btor_term(args[1]),
-                                 get_btor_term(args[2]));
+      btor_res =
+          boolector_write(d_solver, btor_args[0], btor_args[1], btor_args[2]);
       break;
 
     case OP_EXISTS:
     case OP_FORALL:
-      for (size_t i = 0; i < args.size() - 1; ++i)
+      for (size_t i = 0, size = btor_args.size() - 1; i < size; ++i)
       {
-        vars.push_back(get_btor_term(args[i]));
+        vars.push_back(btor_args[i]);
       }
       if (kind == OP_EXISTS)
       {
         btor_res = boolector_exists(
-            d_solver, vars.data(), vars.size(), get_btor_term(args.back()));
+            d_solver, vars.data(), vars.size(), btor_args.back());
       }
       else
       {
         btor_res = boolector_forall(
-            d_solver, vars.data(), vars.size(), get_btor_term(args.back()));
+            d_solver, vars.data(), vars.size(), btor_args.back());
       }
       break;
 
@@ -854,13 +845,8 @@ BtorSolver::mk_term(const OpKind& kind,
   return res;
 }
 
-// BoolectorNode *boolector_var (Btor *btor, BoolectorSort sort, const char *symbol); 
-// BoolectorNode *boolector_array (Btor *btor, BoolectorSort sort, const char *symbol); 
 // BoolectorNode *boolector_uf (Btor *btor, BoolectorSort sort, const char *symbol);
-// BoolectorNode *boolector_forall (Btor *btor, BoolectorNode *params[], uint32_t paramc, BoolectorNode *body);
-// BoolectorNode *boolector_exists (Btor *btor, BoolectorNode *param[], uint32_t paramc, BoolectorNode *body);
 // BoolectorNode *boolector_fun (Btor *btor, BoolectorNode **param_nodes, uint32_t paramc, BoolectorNode *node);
-// BoolectorNode *boolector_param (Btor *btor, BoolectorSort sort, const char *symbol);
 
 Sort
 BtorSolver::get_sort(Term term, SortKind sort_kind) const
@@ -991,7 +977,7 @@ BtorSolver::get_btor_term(Term term) const
 }
 
 BoolectorNode*
-BtorSolver::mk_term_left_assoc(std::vector<Term>& args,
+BtorSolver::mk_term_left_assoc(std::vector<BoolectorNode*>& args,
                                BoolectorNode* (*fun)(Btor*,
                                                      BoolectorNode*,
                                                      BoolectorNode*) ) const
@@ -999,10 +985,10 @@ BtorSolver::mk_term_left_assoc(std::vector<Term>& args,
   assert(args.size() >= 2);
   BoolectorNode *res, *tmp;
 
-  res = fun(d_solver, get_btor_term(args[0]), get_btor_term(args[1]));
+  res = fun(d_solver, args[0], args[1]);
   for (uint32_t i = 2, n_args = args.size(); i < n_args; ++i)
   {
-    tmp = fun(d_solver, res, get_btor_term(args[i]));
+    tmp = fun(d_solver, res, args[i]);
     boolector_release(d_solver, res);
     res = tmp;
   }
@@ -1011,7 +997,7 @@ BtorSolver::mk_term_left_assoc(std::vector<Term>& args,
 }
 
 BoolectorNode*
-BtorSolver::mk_term_pairwise(std::vector<Term>& args,
+BtorSolver::mk_term_pairwise(std::vector<BoolectorNode*>& args,
                              BoolectorNode* (*fun)(Btor*,
                                                    BoolectorNode*,
                                                    BoolectorNode*) ) const
@@ -1024,7 +1010,7 @@ BtorSolver::mk_term_pairwise(std::vector<Term>& args,
   {
     for (uint32_t j = i + 1; j < n_args; ++j)
     {
-      tmp = fun(d_solver, get_btor_term(args[i]), get_btor_term(args[j]));
+      tmp = fun(d_solver, args[i], args[j]);
       if (res)
       {
         old = res;

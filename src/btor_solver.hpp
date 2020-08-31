@@ -168,9 +168,9 @@ class BtorSolver : public Solver
   BoolectorSort get_btor_sort(Sort sort) const;
   BoolectorNode* mk_value_bv_uint64 (Sort sort, uint64_t value);
   BoolectorNode* mk_term_left_assoc(
-      std::vector<Term>& args,
+      std::vector<BoolectorNode*>& args,
       BoolectorNode* (*fun)(Btor*, BoolectorNode*, BoolectorNode*) ) const;
-  BoolectorNode* mk_term_pairwise(std::vector<Term>& args,
+  BoolectorNode* mk_term_pairwise(std::vector<BoolectorNode*>& args,
                                   BoolectorNode* (*fun)(Btor*,
                                                         BoolectorNode*,
                                                         BoolectorNode*) ) const;
