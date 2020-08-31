@@ -62,3 +62,7 @@ helpers needed:
 
 
 solver options??
+
+solver specific actions
+solver specific operators
+supported/unsupported ops/theories

@@ -607,24 +607,13 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 // term_t body);
 //__YICES_DLLSPEC__ extern term_t yices_zero(void);
 //__YICES_DLLSPEC__ extern term_t yices_parse_float(const char *s);
-//__YICES_DLLSPEC__ extern term_t yices_add(term_t t1, term_t t2);     // t1 +
-// t2
-//__YICES_DLLSPEC__ extern term_t yices_sub(term_t t1, term_t t2);     // t1 -
-// t2
-//__YICES_DLLSPEC__ extern term_t yices_neg(term_t t1);                // -t1
-//__YICES_DLLSPEC__ extern term_t yices_mul(term_t t1, term_t t2);     // t1 *
-// t2
 //__YICES_DLLSPEC__ extern term_t yices_square(term_t t1);             // t1 *
 // t1
 //__YICES_DLLSPEC__ extern term_t yices_power(term_t t1, uint32_t d);  // t1 ^ d
 //__YICES_DLLSPEC__ extern term_t yices_sum(uint32_t n, const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_product(uint32_t n, const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_division(term_t t1, term_t t2);
-//__YICES_DLLSPEC__ extern term_t yices_idiv(term_t t1, term_t t2);
-//__YICES_DLLSPEC__ extern term_t yices_imod(term_t t1, term_t t2);
 //__YICES_DLLSPEC__ extern term_t yices_divides_atom(term_t t1, term_t t2);
 //__YICES_DLLSPEC__ extern term_t yices_is_int_atom(term_t t);
-//__YICES_DLLSPEC__ extern term_t yices_abs(term_t t);
 //__YICES_DLLSPEC__ extern term_t yices_floor(term_t t);
 //__YICES_DLLSPEC__ extern term_t yices_ceil(term_t t);
 //__YICES_DLLSPEC__ extern term_t yices_poly_int32(uint32_t n, const int32_t
@@ -639,14 +628,6 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 // t1 == t2
 //__YICES_DLLSPEC__ extern term_t yices_arith_neq_atom(term_t t1, term_t t2); //
 // t1 != t2
-//__YICES_DLLSPEC__ extern term_t yices_arith_geq_atom(term_t t1, term_t t2); //
-// t1 >= t2
-//__YICES_DLLSPEC__ extern term_t yices_arith_leq_atom(term_t t1, term_t t2); //
-// t1 <= t2
-//__YICES_DLLSPEC__ extern term_t yices_arith_gt_atom(term_t t1, term_t t2); //
-// t1 > t2
-//__YICES_DLLSPEC__ extern term_t yices_arith_lt_atom(term_t t1, term_t t2); //
-// t1 < t2
 //__YICES_DLLSPEC__ extern term_t yices_arith_eq0_atom(term_t t);   // t == 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_neq0_atom(term_t t);  // t != 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_geq0_atom(term_t t);  // t >= 0
@@ -1120,71 +1101,69 @@ YicesSolver::mk_term(const OpKind& kind,
       }
       break;
 
+    /* Ints, Reals */
+    case OP_INT_NEG:
+    case OP_REAL_NEG:
+      assert(n_args == 1);
+      yices_res = yices_neg(yices_args[0]);
+      break;
+    case OP_INT_SUB:
+    case OP_REAL_SUB:
+      assert(n_args > 1);
+      yices_res = mk_term_left_assoc(yices_args, yices_sub);
+      break;
+    case OP_INT_ADD:
+    case OP_REAL_ADD:
+      assert(n_args > 1);
+      yices_res = mk_term_left_assoc(yices_args, yices_add);
+      break;
+    case OP_INT_MUL:
+    case OP_REAL_MUL:
+      assert(n_args > 1);
+      yices_res = mk_term_left_assoc(yices_args, yices_mul);
+      break;
+
     /* Ints */
     case OP_INT_IS_DIV:
       // TODO
       break;
-    case OP_INT_NEG:
-      // TODO
-      break;
-    case OP_INT_SUB:
-      // TODO
-      break;
-    case OP_INT_ADD:
-      // TODO
-      break;
-    case OP_INT_MUL:
-      // TODO
-      break;
     case OP_INT_DIV:
-      // TODO
+      assert(n_args > 1);
+      yices_res = mk_term_left_assoc(yices_args, yices_idiv);
       break;
     case OP_INT_MOD:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_imod(yices_args[0], yices_args[1]);
       break;
     case OP_INT_ABS:
-      // TODO
+      assert(n_args == 1);
+      yices_res = yices_abs(yices_args[0]);
       break;
     case OP_INT_LT:
-      // TODO
+    case OP_REAL_LT:
+      assert(n_args > 1);
+      yices_res = mk_term_pairwise(yices_args, yices_arith_lt_atom);
       break;
     case OP_INT_LTE:
-      // TODO
+    case OP_REAL_LTE:
+      assert(n_args > 1);
+      yices_res = mk_term_pairwise(yices_args, yices_arith_leq_atom);
       break;
     case OP_INT_GT:
-      // TODO
+    case OP_REAL_GT:
+      assert(n_args > 1);
+      yices_res = mk_term_pairwise(yices_args, yices_arith_gt_atom);
       break;
     case OP_INT_GTE:
-      // TODO
+    case OP_REAL_GTE:
+      assert(n_args > 1);
+      yices_res = mk_term_pairwise(yices_args, yices_arith_geq_atom);
       break;
 
     /* Reals */
-    case OP_REAL_NEG:
-      // TODO
-      break;
-    case OP_REAL_SUB:
-      // TODO
-      break;
-    case OP_REAL_ADD:
-      // TODO
-      break;
-    case OP_REAL_MUL:
-      // TODO
-      break;
     case OP_REAL_DIV:
-      // TODO
-      break;
-    case OP_REAL_LT:
-      // TODO
-      break;
-    case OP_REAL_LTE:
-      // TODO
-      break;
-    case OP_REAL_GT:
-      // TODO
-      break;
-    case OP_REAL_GTE:
-      // TODO
+      assert(n_args > 1);
+      yices_res = mk_term_left_assoc(yices_args, yices_division);
       break;
 
     /* Quantifiers */
