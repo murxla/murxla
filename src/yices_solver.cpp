@@ -1175,7 +1175,15 @@ YicesSolver::mk_term(const OpKind& kind,
 
     /* Ints */
     case OP_INT_IS_DIV:
-      // TODO
+    {
+      assert(n_args == 1);
+      assert(n_params == 1);
+      std::stringstream ss;
+      ss << params[0];
+      term_t c = yices_parse_rational(ss.str().c_str());
+      assert(is_valid_term(c));
+      yices_res = yices_divides_atom(c, yices_args[0]);
+    }
       break;
     case OP_INT_DIV:
       assert(n_args > 1);
