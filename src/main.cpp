@@ -119,7 +119,6 @@ struct Options
 
 static Options g_options;
 static Statistics* g_stats;
-static std::unordered_map<std::string, std::vector<uint32_t>> g_errors;
 
 enum Result
 {
@@ -129,6 +128,118 @@ enum Result
   RESULT_TIMEOUT,
   RESULT_UNKNOWN,
 };
+
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Maps normalized error message to a pair of (original error message, seeds).
+ */
+static std::unordered_map<std::string,
+                          std::pair<std::string, std::vector<uint32_t>>>
+    g_errors;
+
+/**
+ * Removes memory addresses and ==...== from ASAN messages.
+ */
+static std::string
+normalize_asan_error(const std::string& s)
+{
+  std::vector<std::string> regex = {"0x[0-9a-fA-F]+", "==[0-9]+=="};
+
+  std::string res, cur_s(s);
+  for (const auto& re : regex)
+  {
+    res.clear();
+    std::regex_replace(std::back_inserter(res),
+                       cur_s.begin(),
+                       cur_s.end(),
+                       std::regex(re),
+                       "");
+    cur_s = res;
+  }
+
+  return res;
+}
+
+static size_t
+str_diff(const std::string& s1, const std::string& s2)
+{
+  size_t diff;
+
+  if (s1.size() > s2.size())
+  {
+    return str_diff(s2, s1);
+  }
+
+  diff = s2.size() - s1.size();
+  for (size_t i = 0; i < s1.size(); ++i)
+  {
+    if (s1.at(i) != s2.at(i))
+    {
+      ++diff;
+    }
+  }
+  return diff;
+}
+
+bool
+add_error(const std::string& err, uint32_t seed)
+{
+  bool duplicate       = false;
+  std::string err_norm = normalize_asan_error(err);
+
+  for (auto& p : g_errors)
+  {
+    const auto& e_norm = p.first;
+    auto& seeds        = p.second.second;
+
+    size_t len   = std::max(err_norm.size(), e_norm.size());
+    size_t diff  = str_diff(err_norm, e_norm);
+    double pdiff = diff / static_cast<double>(len);
+
+    /* Errors are classified as the same error if they differ in at most 5% of
+     * characters. */
+    if (pdiff <= 0.05)
+    {
+      seeds.push_back(seed);
+      duplicate = true;
+      break;
+    }
+  }
+
+  if (!duplicate)
+  {
+    std::vector<uint32_t> seeds = {seed};
+    g_errors.emplace(err_norm, std::make_pair(err, seeds));
+  }
+
+  return duplicate;
+}
+
+void
+print_error_summary()
+{
+  if (g_errors.size())
+  {
+    std::cout << "\nError statistics (" << g_errors.size() << " in total):\n"
+              << std::endl;
+    for (const auto& p : g_errors)
+    {
+      const auto& err   = p.second.first;
+      const auto& seeds = p.second.second;
+      std::cout << COLOR_RED << seeds.size() << " errors: " << COLOR_DEFAULT;
+      for (size_t i = 0; i < std::min<size_t>(seeds.size(), 10); ++i)
+      {
+        if (i > 0)
+        {
+          std::cout << " ";
+        }
+        std::cout << seeds[i];
+      }
+      std::cout << "\n" << err << "\n" << std::endl;
+    }
+  }
+}
 
 /* -------------------------------------------------------------------------- */
 
@@ -343,96 +454,6 @@ path_is_dir(const std::string& path)
   struct stat buffer;
   if (stat(path.c_str(), &buffer) != 0) return false;  // doesn't exist
   return (buffer.st_mode & S_IFMT) == S_IFDIR;         // is a directory?
-}
-
-/**
- * Removes memory addresses and ==...== from ASAN messages.
- */
-std::string
-normalize_asan_error(const std::string& s)
-{
-  std::vector<std::string> regex = {"0x[0-9a-fA-F]+", "==[0-9]+=="};
-
-  std::string res, cur_s(s);
-  for (const auto& re : regex)
-  {
-    res.clear();
-    std::regex_replace(std::back_inserter(res),
-                       cur_s.begin(),
-                       cur_s.end(),
-                       std::regex(re),
-                       "");
-    cur_s = res;
-  }
-
-  return res;
-}
-
-void
-print_error_summary()
-{
-  if (g_errors.size())
-  {
-    std::unordered_map<std::string, std::vector<uint32_t>> errors;
-    std::unordered_set<std::string> cache;
-
-    /* merge similar errors */
-    for (auto it1 = g_errors.begin(); it1 != g_errors.end(); ++it1)
-    {
-      const auto& err1 = it1->first;
-      const auto& nerr1 = normalize_asan_error(err1);
-
-      if (cache.find(err1) != cache.end())
-      {
-        continue;
-      }
-
-      cache.insert(err1);
-      auto& seeds = errors[err1];
-      seeds.insert(seeds.end(), it1->second.begin(), it1->second.end());
-
-      auto it2 = it1;
-      ++it2;
-      for (; it2 != g_errors.end(); ++it2)
-      {
-        const auto& err2  = it2->first;
-        const auto& nerr2 = normalize_asan_error(err2);
-
-        bool merge = nerr1 == nerr2;
-        if (!merge)
-        {
-          size_t len   = std::max(nerr1.size(), nerr2.size());
-          auto dist    = levenshtein_dist(nerr1, nerr2);
-          double pdist = (len - dist) / static_cast<double>(len);
-          merge        = pdist >= 0.95;
-        }
-
-        if (merge)
-        {
-          cache.insert(err2);
-          seeds.insert(seeds.end(), it2->second.begin(), it2->second.end());
-        }
-      }
-    }
-
-    std::cout << "\nError statistics (" << errors.size() << " in total):\n"
-              << std::endl;
-    for (const auto& p : errors)
-    {
-      const auto& err   = p.first;
-      const auto& seeds = p.second;
-      std::cout << COLOR_RED << seeds.size() << " errors: " << COLOR_DEFAULT;
-      for (size_t i = 0; i < std::min<size_t>(seeds.size(), 10); ++i)
-      {
-        if (i > 0)
-        {
-          std::cout << " ";
-        }
-        std::cout << seeds[i];
-      }
-      std::cout << "\n" << err << "\n" << std::endl;
-    }
-  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1703,9 +1724,7 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
         {
           errmsg += line + "\n";
         }
-
-        duplicate = g_errors.find(errmsg) != g_errors.end();
-        g_errors[errmsg].push_back(opts.seed);
+        duplicate = add_error(errmsg, opts.seed);
       }
 
       std::stringstream info;
