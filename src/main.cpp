@@ -1623,6 +1623,22 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
   SeedGenerator sg(options.seed);
   Options opts(options);
 
+  if (is_cross)
+  {
+    opts.api_trace_file_name = DEVNULL;
+    out_file_name            = "smtmbt-tmp.out";
+    err_file_name            = "smtmbt-tmp.err";
+    if (!opts.tmp_dir.empty())
+    {
+      out_file_name = prepend_path(opts.tmp_dir, out_file_name);
+    }
+  }
+
+  if (!opts.tmp_dir.empty())
+  {
+    err_file_name = prepend_path(opts.tmp_dir, err_file_name);
+  }
+
   do
   {
     double cur_time = get_cur_wall_time();
@@ -1643,18 +1659,7 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
     std::cout << g_errors.size() << " errors";
     std::cout << std::flush;
 
-    if (is_cross)
-    {
-      opts.api_trace_file_name    = DEVNULL;
-      out_file_name               = "smtmbt-tmp.out";
-      err_file_name               = "smtmbt-tmp.err";
-      if (!opts.tmp_dir.empty())
-      {
-        out_file_name = prepend_path(opts.tmp_dir, out_file_name);
-        err_file_name = prepend_path(opts.tmp_dir, err_file_name);
-      }
-    }
-    else if (opts.solver == SMTMBT_SOLVER_SMT2)
+    if (!is_cross && opts.solver == SMTMBT_SOLVER_SMT2)
     {
       if (!opts.solver_binary.empty())
       {
