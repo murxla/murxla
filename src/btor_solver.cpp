@@ -562,6 +562,9 @@ BtorSolver::mk_term(const OpKind& kind,
       btor_res = mk_term_pairwise(btor_args, boolector_ne);
       break;
     case OP_EQUAL:
+      assert(n_args > 1);
+      btor_res = mk_term_chained(btor_args, boolector_eq);
+      break;
     case OP_BV_COMP:
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(btor_args, boolector_eq);
@@ -1025,6 +1028,35 @@ BtorSolver::mk_term_pairwise(std::vector<BoolectorNode*>& args,
       {
         res = tmp;
       }
+    }
+  }
+  assert(res);
+  return res;
+}
+
+BoolectorNode*
+BtorSolver::mk_term_chained(std::vector<BoolectorNode*>& args,
+                            BoolectorNode* (*fun)(Btor*,
+                                                  BoolectorNode*,
+                                                  BoolectorNode*) ) const
+{
+  assert(args.size() >= 2);
+  BoolectorNode *res, *tmp, *old;
+
+  res = 0;
+  for (uint32_t i = 0, j = 1, n_args = args.size(); j < n_args; ++i, ++j)
+  {
+    tmp = fun(d_solver, args[i], args[j]);
+    if (res)
+    {
+      old = res;
+      res = boolector_and(d_solver, old, tmp);
+      boolector_release(d_solver, old);
+      boolector_release(d_solver, tmp);
+    }
+    else
+    {
+      res = tmp;
     }
   }
   assert(res);

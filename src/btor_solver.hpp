@@ -174,6 +174,10 @@ class BtorSolver : public Solver
                                   BoolectorNode* (*fun)(Btor*,
                                                         BoolectorNode*,
                                                         BoolectorNode*) ) const;
+  BoolectorNode* mk_term_chained(std::vector<BoolectorNode*>& args,
+                                 BoolectorNode* (*fun)(Btor*,
+                                                       BoolectorNode*,
+                                                       BoolectorNode*) ) const;
   Btor* d_solver;
   std::unordered_map<std::string, BtorOption> d_option_name_to_enum;
 

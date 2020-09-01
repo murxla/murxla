@@ -851,7 +851,7 @@ SolverManager::add_op_kinds()
 
       case SORT_BOOL:
         add_op_kind(ops, OP_DISTINCT, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_BOOL);
-        add_op_kind(ops, OP_EQUAL, 2, 0, SORT_BOOL, {SORT_ANY}, THEORY_BOOL);
+        add_op_kind(ops, OP_EQUAL, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_BOOL);
         add_op_kind(ops, OP_AND, n, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
         add_op_kind(ops, OP_OR, n, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
         add_op_kind(ops, OP_NOT, 1, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
