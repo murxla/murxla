@@ -218,24 +218,8 @@ class Solver
    */
   virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
 
-  virtual void assert_formula(const Term& t) = 0;
-
-  virtual Result check_sat() const = 0;
-  virtual Result check_sat_assuming(std::vector<Term>& assumptions) const = 0;
-
-  virtual std::vector<Term> get_unsat_assumptions() const = 0;
-
-  virtual void push(uint32_t n_levels) const = 0;
-  virtual void pop(uint32_t n_levels) const  = 0;
-
-  virtual void print_model() = 0;
-
-  virtual void reset_assertions() const = 0;
-
   const std::vector<Base>& get_bases() const;
   const std::vector<SpecialValueBV>& get_special_values_bv() const;
-
-  virtual void set_opt(const std::string& opt, const std::string& value) = 0;
 
   virtual std::string get_option_name_incremental() const       = 0;
   virtual std::string get_option_name_model_gen() const         = 0;
@@ -246,6 +230,22 @@ class Solver
   virtual bool option_unsat_assumptions_enabled() const = 0;
 
   virtual bool check_failed_assumption(const Term& t) const = 0;
+
+  virtual void assert_formula(const Term& t) = 0;
+
+  virtual Result check_sat()                                        = 0;
+  virtual Result check_sat_assuming(std::vector<Term>& assumptions) = 0;
+
+  virtual std::vector<Term> get_unsat_assumptions() = 0;
+
+  virtual void push(uint32_t n_levels) = 0;
+  virtual void pop(uint32_t n_levels)  = 0;
+
+  virtual void print_model() = 0;
+
+  virtual void reset_assertions() = 0;
+
+  virtual void set_opt(const std::string& opt, const std::string& value) = 0;
 
   virtual std::vector<Term> get_value(std::vector<Term>& terms) = 0;
 

@@ -714,7 +714,7 @@ CVC4Solver::assert_formula(const Term& t)
 }
 
 Solver::Result
-CVC4Solver::check_sat() const
+CVC4Solver::check_sat()
 {
   CVC4::api::Result res = d_solver->checkSat();
   assert(res != CVC4::api::Result());
@@ -730,7 +730,7 @@ CVC4Solver::check_sat() const
 }
 
 Solver::Result
-CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
+CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions)
 {
   CVC4::api::Result res;
   std::vector<CVC4::api::Term> cvc4_assumptions =
@@ -757,7 +757,7 @@ CVC4Solver::check_sat_assuming(std::vector<Term>& assumptions) const
 }
 
 std::vector<Term>
-CVC4Solver::get_unsat_assumptions() const
+CVC4Solver::get_unsat_assumptions()
 {
   std::vector<Term> res;
   std::vector<CVC4::api::Term> cvc4_res = d_solver->getUnsatAssumptions();
@@ -786,13 +786,13 @@ CVC4Solver::get_value(std::vector<Term>& terms)
 }
 
 void
-CVC4Solver::push(uint32_t n_levels) const
+CVC4Solver::push(uint32_t n_levels)
 {
   d_solver->push(n_levels);
 }
 
 void
-CVC4Solver::pop(uint32_t n_levels) const
+CVC4Solver::pop(uint32_t n_levels)
 {
   d_solver->pop(n_levels);
 }
@@ -804,7 +804,7 @@ CVC4Solver::print_model()
 }
 
 void
-CVC4Solver::reset_assertions() const
+CVC4Solver::reset_assertions()
 {
   d_solver->resetAssertions();
 }

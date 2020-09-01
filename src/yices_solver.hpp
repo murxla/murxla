@@ -126,19 +126,19 @@ class YicesSolver : public Solver
 
   void assert_formula(const Term& t) override;
 
-  Result check_sat() const override;
-  Result check_sat_assuming(std::vector<Term>& assumptions) const override;
+  Result check_sat() override;
+  Result check_sat_assuming(std::vector<Term>& assumptions) override;
 
-  std::vector<Term> get_unsat_assumptions() const override;
+  std::vector<Term> get_unsat_assumptions() override;
 
   std::vector<Term> get_value(std::vector<Term>& terms) override;
 
-  void push(uint32_t n_levels) const override;
-  void pop(uint32_t n_levels) const override;
+  void push(uint32_t n_levels) override;
+  void pop(uint32_t n_levels) override;
 
   void print_model() override;
 
-  void reset_assertions() const override;
+  void reset_assertions() override;
 
   //
   // get_model()
@@ -167,7 +167,7 @@ class YicesSolver : public Solver
   std::vector<Term> yices_terms_to_terms(std::vector<term_t>& terms) const;
   std::vector<term_t> terms_to_yices_terms(std::vector<Term>& terms) const;
 
-  bool d_is_initialized;
+  bool d_is_initialized  = false;
   bool d_incremental     = false;
   ctx_config_t* d_config = nullptr;
   context_t* d_context   = nullptr;

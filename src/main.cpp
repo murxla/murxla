@@ -24,6 +24,7 @@
 #include "solver_option.hpp"
 #include "statistics.hpp"
 #include "util.hpp"
+#include "yices_solver.hpp"
 
 using namespace smtmbt;
 using namespace statistics;
@@ -31,6 +32,7 @@ using namespace statistics;
 #define SMTMBT_SOLVER_BTOR "btor"
 #define SMTMBT_SOLVER_CVC4 "cvc4"
 #define SMTMBT_SOLVER_SMT2 "smt2"
+#define SMTMBT_SOLVER_YICES "yices"
 
 #define SMTMBT_SMT2_READ_END 0
 #define SMTMBT_SMT2_WRITE_END 1
@@ -490,6 +492,7 @@ set_sigint_handler_stats(void)
   "  -O, --out-dir <dir>        write output files to given directory\n"       \
   "  --btor                     test Boolector\n"                              \
   "  --cvc4                     test CVC4\n"                                   \
+  "  --yices                    test Yices\n"                                  \
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
   "                             via stdout)\n"                                 \
   "  --stats                    print statistics\n\n"                          \
@@ -652,6 +655,14 @@ parse_options(Options& options, int argc, char* argv[])
         die("multiple solvers defined");
       }
       options.solver = SMTMBT_SOLVER_CVC4;
+    }
+    else if (arg == "--yices")
+    {
+      if (!options.solver.empty())
+      {
+        die("multiple solvers defined");
+      }
+      options.solver = SMTMBT_SOLVER_YICES;
     }
     else if (arg == "--smt2")
     {
@@ -1037,6 +1048,10 @@ run_aux(Options& options,
     else if (options.solver == SMTMBT_SOLVER_CVC4)
     {
       solver = new cvc4::CVC4Solver(rng);
+    }
+    else if (options.solver == SMTMBT_SOLVER_YICES)
+    {
+      solver = new yices::YicesSolver(rng);
     }
     else if (options.solver == SMTMBT_SOLVER_SMT2)
     {

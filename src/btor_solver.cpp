@@ -866,7 +866,7 @@ BtorSolver::assert_formula(const Term& t)
 }
 
 Solver::Result
-BtorSolver::check_sat() const
+BtorSolver::check_sat()
 {
   int32_t res = boolector_sat(d_solver);
   if (res == BOOLECTOR_SAT) return Result::SAT;
@@ -876,7 +876,7 @@ BtorSolver::check_sat() const
 }
 
 Solver::Result
-BtorSolver::check_sat_assuming(std::vector<Term>& assumptions) const
+BtorSolver::check_sat_assuming(std::vector<Term>& assumptions)
 {
   int32_t res;
   for (const Term& t : assumptions)
@@ -891,7 +891,7 @@ BtorSolver::check_sat_assuming(std::vector<Term>& assumptions) const
 }
 
 std::vector<Term>
-BtorSolver::get_unsat_assumptions() const
+BtorSolver::get_unsat_assumptions()
 {
   std::vector<Term> res;
   BoolectorNode** btor_res = boolector_get_failed_assumptions(d_solver);
@@ -923,13 +923,13 @@ BtorSolver::get_value(std::vector<Term>& terms)
 }
 
 void
-BtorSolver::push(uint32_t n_levels) const
+BtorSolver::push(uint32_t n_levels)
 {
   boolector_push(d_solver, n_levels);
 }
 
 void
-BtorSolver::pop(uint32_t n_levels) const
+BtorSolver::pop(uint32_t n_levels)
 {
   boolector_pop(d_solver, n_levels);
 }
@@ -942,7 +942,7 @@ BtorSolver::print_model()
 }
 
 void
-BtorSolver::reset_assertions() const
+BtorSolver::reset_assertions()
 {
   /* boolector does not support this yet */
 }

@@ -119,7 +119,8 @@ void
 YicesSolver::new_solver()
 {
   yices_init();
-  d_config         = yices_new_config();
+  d_config = yices_new_config();
+  assert(d_config);
   d_is_initialized = true;
 }
 
@@ -1253,13 +1254,14 @@ YicesSolver::get_sort(Term term, SortKind sort_kind) const
 void
 YicesSolver::assert_formula(const Term& t)
 {
-  if (d_context == nullptr) d_context = yices_new_context(d_config);
+  if (!d_context) d_context = yices_new_context(d_config);
   yices_assert_formula(d_context, get_yices_term(t));
 }
 
 Solver::Result
-YicesSolver::check_sat() const
+YicesSolver::check_sat()
 {
+  if (!d_context) d_context = yices_new_context(d_config);
   // TODO parameters?
   smt_status_t res = yices_check_context(d_context, nullptr);
   if (res == STATUS_SAT) return Result::SAT;
@@ -1268,8 +1270,9 @@ YicesSolver::check_sat() const
 }
 
 Solver::Result
-YicesSolver::check_sat_assuming(std::vector<Term>& assumptions) const
+YicesSolver::check_sat_assuming(std::vector<Term>& assumptions)
 {
+  if (!d_context) d_context = yices_new_context(d_config);
   // TODO parameters?
   std::vector<term_t> yices_assumptions = terms_to_yices_terms(assumptions);
   smt_status_t res                      = yices_check_context_with_assumptions(
@@ -1280,8 +1283,9 @@ YicesSolver::check_sat_assuming(std::vector<Term>& assumptions) const
 }
 
 std::vector<Term>
-YicesSolver::get_unsat_assumptions() const
+YicesSolver::get_unsat_assumptions()
 {
+  if (!d_context) d_context = yices_new_context(d_config);
   term_vector_t yices_res;
   yices_init_term_vector(&yices_res);
   int32_t status = yices_get_unsat_core(d_context, &yices_res);
@@ -1292,6 +1296,8 @@ YicesSolver::get_unsat_assumptions() const
 std::vector<Term>
 YicesSolver::get_value(std::vector<Term>& terms)
 {
+  if (!d_context) d_context = yices_new_context(d_config);
+
   std::vector<Term> res;
   std::vector<term_t> yices_res;
   std::vector<term_t> yices_terms = terms_to_yices_terms(terms);
@@ -1312,8 +1318,9 @@ YicesSolver::get_value(std::vector<Term>& terms)
 }
 
 void
-YicesSolver::push(uint32_t n_levels) const
+YicesSolver::push(uint32_t n_levels)
 {
+  if (!d_context) d_context = yices_new_context(d_config);
   for (uint32_t i = 0; i < n_levels; ++i)
   {
     yices_push(d_context);
@@ -1321,8 +1328,9 @@ YicesSolver::push(uint32_t n_levels) const
 }
 
 void
-YicesSolver::pop(uint32_t n_levels) const
+YicesSolver::pop(uint32_t n_levels)
 {
+  if (!d_context) d_context = yices_new_context(d_config);
   for (uint32_t i = 0; i < n_levels; ++i)
   {
     yices_pop(d_context);
@@ -1332,6 +1340,7 @@ YicesSolver::pop(uint32_t n_levels) const
 void
 YicesSolver::print_model()
 {
+  if (!d_context) d_context = yices_new_context(d_config);
   if (!d_model)
   {
     d_model = yices_get_model(d_context, 1);
@@ -1340,8 +1349,9 @@ YicesSolver::print_model()
 }
 
 void
-YicesSolver::reset_assertions() const
+YicesSolver::reset_assertions()
 {
+  if (!d_context) d_context = yices_new_context(d_config);
   yices_reset_context(d_context);
 }
 

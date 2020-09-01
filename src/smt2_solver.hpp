@@ -295,22 +295,6 @@ class Smt2Solver : public Solver
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
-  void assert_formula(const Term& t) override;
-
-  Result check_sat() const override;
-  Result check_sat_assuming(std::vector<Term>& assumptions) const override;
-
-  std::vector<Term> get_unsat_assumptions() const override;
-
-  void push(uint32_t n_levels) const override;
-  void pop(uint32_t n_levels) const override;
-
-  void print_model() override;
-
-  void reset_assertions() const override;
-
-  void set_opt(const std::string& opt, const std::string& value) override;
-
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
   std::string get_option_name_unsat_assumptions() const override;
@@ -319,6 +303,22 @@ class Smt2Solver : public Solver
   bool option_unsat_assumptions_enabled() const override;
 
   bool check_failed_assumption(const Term& t) const override;
+
+  void assert_formula(const Term& t) override;
+
+  Result check_sat() override;
+  Result check_sat_assuming(std::vector<Term>& assumptions) override;
+
+  std::vector<Term> get_unsat_assumptions() override;
+
+  void push(uint32_t n_levels) override;
+  void pop(uint32_t n_levels) override;
+
+  void print_model() override;
+
+  void reset_assertions() override;
+
+  void set_opt(const std::string& opt, const std::string& value) override;
 
   std::vector<Term> get_value(std::vector<Term>& terms) override;
 

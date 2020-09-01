@@ -789,14 +789,14 @@ Smt2Solver::assert_formula(const Term& t)
 }
 
 Solver::Result
-Smt2Solver::check_sat() const
+Smt2Solver::check_sat()
 {
   dump_smt2("(check-sat)");
   return Solver::Result::UNKNOWN;
 }
 
 Solver::Result
-Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions) const
+Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions)
 {
   std::stringstream smt2;
   smt2 << "(check-sat-assuming ( ";
@@ -812,14 +812,14 @@ Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions) const
 }
 
 std::vector<Term>
-Smt2Solver::get_unsat_assumptions() const
+Smt2Solver::get_unsat_assumptions()
 {
   dump_smt2("(get-unsat-assumptions)");
   return std::vector<Term>();
 }
 
 void
-Smt2Solver::push(uint32_t n_levels) const
+Smt2Solver::push(uint32_t n_levels)
 {
   std::stringstream smt2;
   smt2 << "(push " << n_levels << ")";
@@ -827,7 +827,7 @@ Smt2Solver::push(uint32_t n_levels) const
 }
 
 void
-Smt2Solver::pop(uint32_t n_levels) const
+Smt2Solver::pop(uint32_t n_levels)
 {
   std::stringstream smt2;
   smt2 << "(pop " << n_levels << ")";
@@ -841,7 +841,7 @@ Smt2Solver::print_model()
 }
 
 void
-Smt2Solver::reset_assertions() const
+Smt2Solver::reset_assertions()
 {
   dump_smt2("(reset-assertions)");
 }

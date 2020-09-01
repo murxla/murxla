@@ -72,3 +72,14 @@ actions that require to leave the SAT state (SMT-LIB state)
 
 if solver caches a model, unsat core, or similar, make sure to override
 `Solver::reset_sat()` (called by `Action`)
+
+main.cpp:
+`#define SMTMBT_SOLVER_<SOLVER> "<solver>"`
+add option `--<solver>`
+add
+```
+    if (options.solver == SMTMBT_SOLVER_<SOLVER>)
+    {
+      solver = new <solver>::<Solver>Solver(rng);
+    }
+```

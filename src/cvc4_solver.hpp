@@ -137,19 +137,19 @@ class CVC4Solver : public Solver
 
   void assert_formula(const Term& t) override;
 
-  Result check_sat() const override;
-  Result check_sat_assuming(std::vector<Term>& assumptions) const override;
+  Result check_sat() override;
+  Result check_sat_assuming(std::vector<Term>& assumptions) override;
 
-  std::vector<Term> get_unsat_assumptions() const override;
+  std::vector<Term> get_unsat_assumptions() override;
 
   std::vector<Term> get_value(std::vector<Term>& terms) override;
 
-  void push(uint32_t n_levels) const override;
-  void pop(uint32_t n_levels) const override;
+  void push(uint32_t n_levels) override;
+  void pop(uint32_t n_levels) override;
 
   void print_model() override;
 
-  void reset_assertions() const override;
+  void reset_assertions() override;
 
   void set_opt(const std::string& opt, const std::string& value) override;
 
