@@ -159,6 +159,8 @@ class YicesSolver : public Solver
                             term_t (*fun)(term_t, term_t)) const;
   term_t mk_term_pairwise(std::vector<term_t>& args,
                           term_t (*fun)(term_t, term_t)) const;
+  term_t mk_term_chained(std::vector<term_t>& args,
+                         term_t (*fun)(term_t, term_t)) const;
 
   std::vector<type_t> sorts_to_yices_sorts(
       const std::vector<Sort>& sorts) const;
