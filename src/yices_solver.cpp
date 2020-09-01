@@ -615,7 +615,7 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       {
         std::vector<type_t> yices_domain_vector = {yices_domain};
         yices_res =
-            yices_function_type(2, yices_domain_vector.data(), yices_range);
+            yices_function_type(1, yices_domain_vector.data(), yices_range);
       }
       else
       {
@@ -744,11 +744,13 @@ YicesSolver::mk_term(const OpKind& kind,
 
     /* Arrays */
     case OP_ARRAY_SELECT:
-      // TODO
+      assert(n_args == 2);
+      yices_res = yices_application1(yices_args[0], yices_args[1]);
       break;
 
     case OP_ARRAY_STORE:
-      // TODO
+      assert(n_args == 3);
+      yices_res = yices_update1(yices_args[0], yices_args[1], yices_args[2]);
       break;
 
     /* Boolean */
