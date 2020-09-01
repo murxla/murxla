@@ -1352,8 +1352,7 @@ YicesSolver::print_model()
 void
 YicesSolver::reset_assertions()
 {
-  if (!d_context) d_context = yices_new_context(d_config);
-  yices_reset_context(d_context);
+  if (d_context) yices_reset_context(d_context);
 }
 
 /* -------------------------------------------------------------------------- */
