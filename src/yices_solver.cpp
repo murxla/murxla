@@ -502,11 +502,12 @@ YicesSolver::mk_value_bv_int_or_special(Sort sort, std::string value, Base base)
     assert(str.size() == bw);
     std::vector<int32_t> expected = bin_str_to_int_array(str);
     std::vector<int32_t> bits(bw);
+    // LSB is at index 0
     int32_t r = yices_bv_const_value(yices_res, &bits[0]);
     assert(r >= 0);
     for (size_t i = 0; i < bw; ++i)
     {
-      assert(expected[i] == bits[i]);
+      assert(expected[i] == bits[bw - 1 - i]);
     }
   }
   return yices_res;
