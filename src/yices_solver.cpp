@@ -765,7 +765,7 @@ YicesSolver::mk_term(const OpKind& kind,
             yices_res = yices_and3(yices_args[0], yices_args[1], yices_args[2]);
             break;
           case RNGenerator::Choice::SECOND:
-            yices_res = mk_term_pairwise(yices_args, yices_and2);
+            yices_res = mk_term_left_assoc(yices_args, yices_and2);
             break;
           default:
           {
@@ -817,7 +817,7 @@ YicesSolver::mk_term(const OpKind& kind,
             yices_res = yices_or3(yices_args[0], yices_args[1], yices_args[2]);
             break;
           case RNGenerator::Choice::SECOND:
-            yices_res = mk_term_pairwise(yices_args, yices_or2);
+            yices_res = mk_term_left_assoc(yices_args, yices_or2);
             break;
           default:
           {
@@ -855,7 +855,7 @@ YicesSolver::mk_term(const OpKind& kind,
             yices_res = yices_xor3(yices_args[0], yices_args[1], yices_args[2]);
             break;
           case RNGenerator::Choice::SECOND:
-            yices_res = mk_term_pairwise(yices_args, yices_xor2);
+            yices_res = mk_term_left_assoc(yices_args, yices_xor2);
             break;
           default:
           {
@@ -915,8 +915,8 @@ YicesSolver::mk_term(const OpKind& kind,
       break;
 
     case OP_BV_ADD:
-      assert(n_args == 2);
-      yices_res = yices_bvadd(yices_args[0], yices_args[1]);
+      assert(n_args > 1);
+      yices_res = mk_term_left_assoc(yices_args, yices_bvadd);
       break;
 
     case OP_BV_AND:
@@ -934,7 +934,7 @@ YicesSolver::mk_term(const OpKind& kind,
                 yices_bvand3(yices_args[0], yices_args[1], yices_args[2]);
             break;
           case RNGenerator::Choice::SECOND:
-            yices_res = mk_term_pairwise(yices_args, yices_bvand2);
+            yices_res = mk_term_left_assoc(yices_args, yices_bvand2);
             break;
           default:
           {
@@ -973,7 +973,7 @@ YicesSolver::mk_term(const OpKind& kind,
       }
       else
       {
-        yices_res = mk_term_pairwise(yices_args, yices_bvconcat2);
+        yices_res = mk_term_left_assoc(yices_args, yices_bvconcat2);
       }
       break;
     case OP_BV_LSHR:
@@ -981,8 +981,8 @@ YicesSolver::mk_term(const OpKind& kind,
       yices_res = yices_bvlshr(yices_args[0], yices_args[1]);
       break;
     case OP_BV_MULT:
-      assert(n_args == 2);
-      yices_res = yices_bvmul(yices_args[0], yices_args[1]);
+      assert(n_args > 1);
+      yices_res = mk_term_left_assoc(yices_args, yices_bvmul);
       break;
     case OP_BV_NAND:
       assert(n_args == 2);
@@ -1016,7 +1016,7 @@ YicesSolver::mk_term(const OpKind& kind,
                 yices_bvor3(yices_args[0], yices_args[1], yices_args[2]);
             break;
           case RNGenerator::Choice::SECOND:
-            yices_res = mk_term_pairwise(yices_args, yices_bvor2);
+            yices_res = mk_term_left_assoc(yices_args, yices_bvor2);
             break;
           default:
           {
@@ -1127,7 +1127,7 @@ YicesSolver::mk_term(const OpKind& kind,
                 yices_bvor3(yices_args[0], yices_args[1], yices_args[2]);
             break;
           case RNGenerator::Choice::SECOND:
-            yices_res = mk_term_pairwise(yices_args, yices_bvor2);
+            yices_res = mk_term_left_assoc(yices_args, yices_bvor2);
             break;
           default:
           {
@@ -1191,22 +1191,22 @@ YicesSolver::mk_term(const OpKind& kind,
     case OP_INT_LT:
     case OP_REAL_LT:
       assert(n_args > 1);
-      yices_res = mk_term_pairwise(yices_args, yices_arith_lt_atom);
+      yices_res = mk_term_left_assoc(yices_args, yices_arith_lt_atom);
       break;
     case OP_INT_LTE:
     case OP_REAL_LTE:
       assert(n_args > 1);
-      yices_res = mk_term_pairwise(yices_args, yices_arith_leq_atom);
+      yices_res = mk_term_left_assoc(yices_args, yices_arith_leq_atom);
       break;
     case OP_INT_GT:
     case OP_REAL_GT:
       assert(n_args > 1);
-      yices_res = mk_term_pairwise(yices_args, yices_arith_gt_atom);
+      yices_res = mk_term_left_assoc(yices_args, yices_arith_gt_atom);
       break;
     case OP_INT_GTE:
     case OP_REAL_GTE:
       assert(n_args > 1);
-      yices_res = mk_term_pairwise(yices_args, yices_arith_geq_atom);
+      yices_res = mk_term_left_assoc(yices_args, yices_arith_geq_atom);
       break;
 
     /* Reals */
