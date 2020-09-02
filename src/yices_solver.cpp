@@ -58,8 +58,7 @@ YicesSort::is_int() const
 bool
 YicesSort::is_real() const
 {
-  bool res = yices_type_is_real(d_sort);
-  assert(!res || yices_type_is_arithmetic(d_sort));
+  bool res = yices_type_is_arithmetic(d_sort);
   return res;
 }
 

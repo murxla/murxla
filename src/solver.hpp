@@ -37,6 +37,11 @@ class AbsSort
   virtual bool is_bv() const   = 0;
   virtual bool is_fp() const   = 0;
   virtual bool is_int() const  = 0;
+  /**
+   * Return true if this sort is a Real sort.
+   * Note: We consider sort Int as a subtype of sort Real. Hence, this must
+   *       return true for Int sorts.
+   */
   virtual bool is_real() const = 0;
   virtual bool is_rm() const   = 0;
   virtual bool is_string() const = 0;
