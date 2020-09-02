@@ -197,8 +197,7 @@ class SolverManager
    */
   void reset_sat();
 
-  /** Return true if term database contains any value of given sort with a
-   * given length. */
+  /** Return true if term database contains any value of given sort. */
   bool has_value(Sort sort) const;
 
   /** Return true if we already created string values with lenght 1. */
@@ -208,7 +207,8 @@ class SolverManager
   bool has_term() const;
   /**
    * Return true if term database contains any term of given sort kind at given
-   * level. */
+   * level.
+   */
   bool has_term(SortKind sort_kind, size_t level) const;
   /** Return true if term database contains any term of given sort kind. */
   bool has_term(SortKind sort_kind) const;
