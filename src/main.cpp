@@ -37,6 +37,8 @@ using namespace statistics;
 #define SMTMBT_SMT2_READ_END 0
 #define SMTMBT_SMT2_WRITE_END 1
 
+#define SMTMBT_DD_PREFIX "smtmbt-dd-"
+
 const std::string COLOR_BLUE    = "\33[94m";
 const std::string COLOR_DEFAULT = "\33[39m";
 const std::string COLOR_GREEN   = "\33[92m";
@@ -346,7 +348,7 @@ open_ifile(std::string& file_name)
   if (!res.is_open())
   {
     std::stringstream ss;
-    ss << "unable to open input file " << file_name;
+    ss << "unable to open input file '" << file_name << "'";
     die(ss.str());
   }
   return res;
@@ -359,7 +361,7 @@ open_ofile(std::string& file_name)
   if (!res.is_open())
   {
     std::stringstream ss;
-    ss << "unable to open output file " << file_name;
+    ss << "unable to open output file '" << file_name << "'";
     die(ss.str());
   }
   return res;
@@ -445,6 +447,24 @@ prepend_path(std::string& prefix, std::string& file_name)
 {
   std::stringstream ss;
   ss << prefix << "/" << file_name;
+  return ss.str();
+}
+
+static std::string
+prepend_prefix_to_file_name(std::string prefix, std::string& file_name)
+{
+  size_t pos = file_name.find_last_of('/');
+  std::stringstream ss;
+  if (pos == std::string::npos)
+  {
+    ss << prefix << file_name;
+  }
+  else
+  {
+    std::string path = file_name.substr(0, pos);
+    std::string file = file_name.substr(pos + 1);
+    ss << path << "/" << prefix << file;
+  }
   return ss.str();
 }
 
@@ -1383,28 +1403,18 @@ dd(Options& options, SolverOptions& solver_options)
   /* init trace file name for minimized trace */
   if (opts.dd_trace_file_name.empty())
   {
-    std::stringstream ss;
     if (options.untrace_file_name.empty())
     {
-      if (options.api_trace_file_name.empty())
-      {
-        ss << "smtmbt-dd-" << options.seed << ".trace";
-        message("dd", "minimizing run with seed %u", options.seed);
-      }
-      else
-      {
-        ss << "smtmbt-dd-" << options.api_trace_file_name;
-        message(
-            "dd", "minimizing file '%s'", options.api_trace_file_name.c_str());
-      }
+      opts.dd_trace_file_name = prepend_prefix_to_file_name(
+          SMTMBT_DD_PREFIX, options.api_trace_file_name);
     }
     else
     {
-      ss << "smtmbt-dd-" << options.untrace_file_name;
-      message("dd", "minimizing file '%s'", options.untrace_file_name.c_str());
+      opts.dd_trace_file_name = prepend_prefix_to_file_name(
+          SMTMBT_DD_PREFIX, options.untrace_file_name);
     }
-    opts.dd_trace_file_name = ss.str();
   }
+  message("dd", "start minimizing file '%s'", opts.untrace_file_name.c_str());
 
   /* golden run */
   gold_exit = run(opts,
@@ -1810,7 +1820,7 @@ main(int argc, char* argv[])
 
     if (g_options.dd && g_options.api_trace_file_name.empty())
     {
-      /* When delta-debugging, we need to trace into file. */
+      /* When delta-debugging, we need to trace into file instead of stdout. */
       tmp_api_trace_file_name = "smtmbt-tmp.trace";
       if (!g_options.tmp_dir.empty())
       {
@@ -1818,6 +1828,22 @@ main(int argc, char* argv[])
             prepend_path(g_options.tmp_dir, tmp_api_trace_file_name);
       }
       g_options.api_trace_file_name = tmp_api_trace_file_name;
+      /* Minimized trace file name. */
+      if (is_untrace)
+      {
+        g_options.dd_trace_file_name = prepend_prefix_to_file_name(
+            SMTMBT_DD_PREFIX, g_options.untrace_file_name);
+        message("dd",
+                "minimizing untraced file '%s'",
+                g_options.untrace_file_name.c_str());
+      }
+      else
+      {
+        std::stringstream ss;
+        ss << SMTMBT_DD_PREFIX << g_options.seed << ".trace";
+        g_options.dd_trace_file_name = ss.str();
+        message("dd", "minimizing run with seed %u", g_options.seed);
+      }
     }
 
     if (is_cross)
