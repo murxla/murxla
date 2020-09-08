@@ -139,16 +139,6 @@ CVC4Solver::get_unsupported_op_kinds() const
 {
   return {
       OP_IFF,
-      OP_BV_DEC,
-      OP_BV_INC,
-      OP_BV_REDXOR,
-      OP_BV_SADDO,
-      OP_BV_SDIVO,
-      OP_BV_SMULO,
-      OP_BV_SSUBO,
-      OP_BV_UADDO,
-      OP_BV_UMULO,
-      OP_BV_USUBO,
   };
 }
 
@@ -914,8 +904,8 @@ CVC4Solver::init_op_kinds()
       {OP_BV_ADD, CVC4::api::Kind::BITVECTOR_PLUS},
       {OP_BV_NOT, CVC4::api::Kind::BITVECTOR_NOT},
       {OP_BV_NEG, CVC4::api::Kind::BITVECTOR_NEG},
-      {OP_BV_REDOR, CVC4::api::Kind::BITVECTOR_REDOR},
-      {OP_BV_REDAND, CVC4::api::Kind::BITVECTOR_REDAND},
+      //{OP_BV_REDOR, CVC4::api::Kind::BITVECTOR_REDOR},
+      //{OP_BV_REDAND, CVC4::api::Kind::BITVECTOR_REDAND},
       {OP_BV_NAND, CVC4::api::Kind::BITVECTOR_NAND},
       {OP_BV_NOR, CVC4::api::Kind::BITVECTOR_NOR},
       {OP_BV_XNOR, CVC4::api::Kind::BITVECTOR_XNOR},

@@ -42,6 +42,7 @@ SolverManager::SolverManager(Solver* solver,
   add_sort_kinds();  // adds only sort kinds of enabled theories
   add_op_kinds();    // adds only op kinds where both term and argument sorts
                      // are enabled
+  solver->configure_smgr(this);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -914,14 +915,6 @@ SolverManager::add_op_kinds()
         add_op_kind(ops, OP_BV_ULT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_UREM, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_XNOR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        /* overflow operators */
-        add_op_kind(ops, OP_BV_SADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_SSUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_UADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_UMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-        add_op_kind(ops, OP_BV_USUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
         /* indexed */
         add_op_kind(ops, OP_BV_EXTRACT, 1, 2, SORT_BV, {SORT_BV}, THEORY_BV);
         add_op_kind(ops, OP_BV_REPEAT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);

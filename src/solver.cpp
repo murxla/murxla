@@ -248,6 +248,12 @@ Solver::configure_fsm(FSM* fsm) const
 }
 
 void
+Solver::configure_smgr(SolverManager* smgr) const
+{
+  // default: do nothing
+}
+
+void
 Solver::reset_sat()
 {
   // default: do nothing

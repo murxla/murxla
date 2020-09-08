@@ -74,8 +74,6 @@ class YicesSolver : public Solver
   bool is_initialized() const override;
 
   TheoryIdVector get_supported_theories() const override;
-  // OpKindSet get_supported_op_kinds() const override; // check if needed
-  OpKindSet get_unsupported_op_kinds() const override;  // check if needed
 
   void configure_fsm(FSM* fsm) const override;
   void reset_sat() override;

@@ -331,25 +331,6 @@ Smt2Solver::is_initialized() const
   return d_initialized;
 }
 
-OpKindSet
-Smt2Solver::get_unsupported_op_kinds() const
-{
-  return {
-      OP_BV_REDAND,
-      OP_BV_REDOR,
-      OP_BV_SADDO,
-      OP_BV_SDIVO,
-      OP_BV_SMULO,
-      OP_BV_SSUBO,
-      OP_BV_UADDO,
-      OP_BV_UMULO,
-      OP_BV_USUBO,
-      OP_BV_INC,
-      OP_BV_DEC,
-      OP_BV_REDXOR,
-  };
-}
-
 Term
 Smt2Solver::mk_var(Sort sort, const std::string& name)
 {

@@ -85,6 +85,7 @@ class BtorSolver : public Solver
   SortKindSet get_unsupported_var_sort_kinds() const override;
 
   void configure_fsm(FSM* fsm) const override;
+  void configure_smgr(SolverManager* smgr) const override;
 
   void set_opt(const std::string& opt, const std::string& value) override;
 
@@ -182,6 +183,20 @@ class BtorSolver : public Solver
   std::unordered_map<std::string, BtorOption> d_option_name_to_enum;
 
   uint64_t d_num_symbols;
+
+  /* solver-specific operators */
+  const OpKind d_op_dec    = OP_EXT_OP_01;
+  const OpKind d_op_inc    = OP_EXT_OP_02;
+  const OpKind d_op_redand = OP_EXT_OP_03;
+  const OpKind d_op_redor  = OP_EXT_OP_04;
+  const OpKind d_op_redxor = OP_EXT_OP_05;
+  const OpKind d_op_uaddo  = OP_EXT_OP_06;
+  const OpKind d_op_umulo  = OP_EXT_OP_07;
+  const OpKind d_op_usubo  = OP_EXT_OP_08;
+  const OpKind d_op_saddo  = OP_EXT_OP_09;
+  const OpKind d_op_sdivo  = OP_EXT_OP_10;
+  const OpKind d_op_smulo  = OP_EXT_OP_11;
+  const OpKind d_op_ssubo  = OP_EXT_OP_12;
 };
 
 }  // namespace btor

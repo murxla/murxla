@@ -77,6 +77,24 @@ class SolverManager
   /** Get the number of created terms of given sort kind. */
   uint64_t get_n_terms(SortKind sort_kind);
 
+  /**
+   * Add operator kind to operator kinds database.
+   * supported_kinds: the set of operator kinds supported by the solver
+   * kind           : the operator kind
+   * arity          : the arity of the operator
+   * nparams        : the number of parameters of the operator
+   * sort_kind      : the sort kind of the operator
+   * sort_kind_args : a vector of sorts of the operators' arguments, if all or
+   *                  the remaining kinds are the same, it's sufficient to only
+   *                  list it once
+   */
+  void add_op_kind(const OpKindSet& supported_kinds,
+                   OpKind kind,
+                   int32_t arity,
+                   uint32_t nparams,
+                   SortKind sort_kind,
+                   const std::vector<SortKind>& sort_kind_args,
+                   TheoryId theory);
   /** Add sort to sort databse. */
   void add_sort(Sort& sort, SortKind sort_kind);
   /** Add value to term database. */
@@ -407,24 +425,6 @@ class SolverManager
    * Operator kinds are enabled based on the set of enabled theories.
    */
   void add_op_kinds();
-  /**
-   * Add operator kind to operator kinds database.
-   * supported_kinds: the set of operator kinds supported by the solver
-   * kind           : the operator kind
-   * arity          : the arity of the operator
-   * nparams        : the number of parameters of the operator
-   * sort_kind      : the sort kind of the operator
-   * sort_kind_args : a vector of sorts of the operators' arguments, if all or
-   *                  the remaining kinds are the same, it's sufficient to only
-   *                  list it once
-   */
-  void add_op_kind(const OpKindSet& supported_kinds,
-                   OpKind kind,
-                   int32_t arity,
-                   uint32_t nparams,
-                   SortKind sort_kind,
-                   const std::vector<SortKind>& sort_kind_args,
-                   TheoryId theory);
 
   /** Clear set of assumptions. */
   void clear_assumptions();

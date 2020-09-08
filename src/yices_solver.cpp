@@ -144,21 +144,6 @@ YicesSolver::get_supported_theories() const
   return {THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_INT, THEORY_REAL};
 }
 
-OpKindSet
-YicesSolver::get_unsupported_op_kinds() const
-{
-  return {OP_BV_DEC,
-          OP_BV_INC,
-          OP_BV_REDXOR,
-          OP_BV_SADDO,
-          OP_BV_SDIVO,
-          OP_BV_SMULO,
-          OP_BV_SSUBO,
-          OP_BV_UADDO,
-          OP_BV_UMULO,
-          OP_BV_USUBO};
-}
-
 void
 YicesSolver::reset_sat()
 {
@@ -1041,14 +1026,14 @@ YicesSolver::mk_term(const OpKind& kind,
       }
       break;
 
-    case OP_BV_REDAND:
-      assert(n_args == 1);
-      yices_res = yices_redand(yices_args[0]);
-      break;
-    case OP_BV_REDOR:
-      assert(n_args == 1);
-      yices_res = yices_redor(yices_args[0]);
-      break;
+    // case OP_BV_REDAND:
+    //  assert(n_args == 1);
+    //  yices_res = yices_redand(yices_args[0]);
+    //  break;
+    // case OP_BV_REDOR:
+    //  assert(n_args == 1);
+    //  yices_res = yices_redor(yices_args[0]);
+    //  break;
     case OP_BV_SDIV:
       assert(n_args == 2);
       yices_res = yices_bvsdiv(yices_args[0], yices_args[1]);

@@ -683,26 +683,6 @@ BtorSolver::mk_term(const OpKind& kind,
       assert(n_args == 1);
       btor_res = boolector_neg(d_solver, btor_args[0]);
       break;
-    case OP_BV_REDAND:
-      assert(n_args == 1);
-      btor_res = boolector_redand(d_solver, btor_args[0]);
-      break;
-    case OP_BV_REDOR:
-      assert(n_args == 1);
-      btor_res = boolector_redor(d_solver, btor_args[0]);
-      break;
-    case OP_BV_REDXOR:
-      assert(n_args == 1);
-      btor_res = boolector_redxor(d_solver, btor_args[0]);
-      break;
-    case OP_BV_INC:
-      assert(n_args == 1);
-      btor_res = boolector_inc(d_solver, btor_args[0]);
-      break;
-    case OP_BV_DEC:
-      assert(n_args == 1);
-      btor_res = boolector_dec(d_solver, btor_args[0]);
-      break;
 
     case OP_BV_NAND:
       assert(n_args == 2);
@@ -752,10 +732,6 @@ BtorSolver::mk_term(const OpKind& kind,
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(btor_args, boolector_sra);
       break;
-    case OP_BV_UADDO:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_uaddo);
-      break;
     case OP_BV_UGT:
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(btor_args, boolector_ugt);
@@ -772,22 +748,6 @@ BtorSolver::mk_term(const OpKind& kind,
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(btor_args, boolector_ulte);
       break;
-    case OP_BV_UMULO:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_umulo);
-      break;
-    case OP_BV_USUBO:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_usubo);
-      break;
-    case OP_BV_SADDO:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_saddo);
-      break;
-    case OP_BV_SDIVO:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_sdivo);
-      break;
     case OP_BV_SGT:
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(btor_args, boolector_sgt);
@@ -803,14 +763,6 @@ BtorSolver::mk_term(const OpKind& kind,
     case OP_BV_SLE:
       assert(n_args == 2);
       btor_res = mk_term_left_assoc(btor_args, boolector_slte);
-      break;
-    case OP_BV_SMULO:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_smulo);
-      break;
-    case OP_BV_SSUBO:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_ssubo);
       break;
 
     case OP_ARRAY_SELECT:
@@ -841,7 +793,72 @@ BtorSolver::mk_term(const OpKind& kind,
       }
       break;
 
-    default: assert(false);
+    default:
+      /* solver-specific operators */
+      if (kind == d_op_redand)
+      {
+        assert(n_args == 1);
+        btor_res = boolector_redand(d_solver, btor_args[0]);
+      }
+      else if (kind == d_op_redor)
+      {
+        assert(n_args == 1);
+        btor_res = boolector_redor(d_solver, btor_args[0]);
+      }
+      else if (kind == d_op_redxor)
+      {
+        assert(n_args == 1);
+        btor_res = boolector_redxor(d_solver, btor_args[0]);
+      }
+      else if (kind == d_op_inc)
+      {
+        assert(n_args == 1);
+        btor_res = boolector_inc(d_solver, btor_args[0]);
+      }
+      else if (kind == d_op_dec)
+      {
+        assert(n_args == 1);
+        btor_res = boolector_dec(d_solver, btor_args[0]);
+      }
+      else if (kind == d_op_uaddo)
+      {
+        assert(n_args == 2);
+        btor_res = mk_term_left_assoc(btor_args, boolector_uaddo);
+      }
+      else if (kind == d_op_umulo)
+      {
+        assert(n_args == 2);
+        btor_res = mk_term_left_assoc(btor_args, boolector_umulo);
+      }
+      else if (kind == d_op_usubo)
+      {
+        assert(n_args == 2);
+        btor_res = mk_term_left_assoc(btor_args, boolector_usubo);
+      }
+      else if (kind == d_op_saddo)
+      {
+        assert(n_args == 2);
+        btor_res = mk_term_left_assoc(btor_args, boolector_saddo);
+      }
+      else if (kind == d_op_sdivo)
+      {
+        assert(n_args == 2);
+        btor_res = mk_term_left_assoc(btor_args, boolector_sdivo);
+      }
+      else if (kind == d_op_smulo)
+      {
+        assert(n_args == 2);
+        btor_res = mk_term_left_assoc(btor_args, boolector_smulo);
+      }
+      else if (kind == d_op_ssubo)
+      {
+        assert(n_args == 2);
+        btor_res = mk_term_left_assoc(btor_args, boolector_ssubo);
+      }
+      else
+      {
+        assert(false);
+      }
   }
   assert(btor_res);
   assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
@@ -1302,7 +1319,43 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific actions, FSM configuration. */
+/* Solver-specific operators, SolverManager configuration.                    */
+/* -------------------------------------------------------------------------- */
+
+void
+BtorSolver::configure_smgr(SolverManager* smgr) const
+{
+  OpKindSet ops = get_supported_op_kinds();
+
+  update_op_kinds_to_str(d_op_dec, "btor-OP_DEC");
+  smgr->add_op_kind(ops, d_op_dec, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_inc, "btor-OP_INC");
+  smgr->add_op_kind(ops, d_op_inc, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  update_op_kinds_to_str(d_op_redand, "btor-OP_REDAND");
+  smgr->add_op_kind(ops, d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_redor, "btor-OP_REDOR");
+  smgr->add_op_kind(ops, d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_redxor, "btor-OP_REDXOR");
+  smgr->add_op_kind(ops, d_op_redxor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  update_op_kinds_to_str(d_op_uaddo, "btor-OP_UADDO");
+  smgr->add_op_kind(ops, d_op_uaddo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_umulo, "btor-OP_UMULO");
+  smgr->add_op_kind(ops, d_op_umulo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_usubo, "btor-OP_USUBO");
+  smgr->add_op_kind(ops, d_op_usubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_saddo, "btor-OP_SADDO");
+  smgr->add_op_kind(ops, d_op_saddo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_sdivo, "btor-OP_SDIVO");
+  smgr->add_op_kind(ops, d_op_sdivo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_smulo, "btor-OP_SMULO");
+  smgr->add_op_kind(ops, d_op_smulo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_ssubo, "btor-OP_SSUBO");
+  smgr->add_op_kind(ops, d_op_ssubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+}
+/* -------------------------------------------------------------------------- */
+/* Solver-specific actions, FSM configuration.                                */
 /* -------------------------------------------------------------------------- */
 
 class BtorActionBvAssignment : public Action

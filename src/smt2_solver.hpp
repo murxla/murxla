@@ -269,8 +269,6 @@ class Smt2Solver : public Solver
   void delete_solver() override;
   bool is_initialized() const override;
 
-  OpKindSet get_unsupported_op_kinds() const override;
-
   Term mk_var(Sort sort, const std::string& name) override;
   Term mk_const(Sort sort, const std::string& name) override;
   Term mk_fun(Sort sort, const std::string& name) override;

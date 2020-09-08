@@ -83,3 +83,8 @@ add
       solver = new <solver>::<Solver>Solver(rng);
     }
 ```
+
+solver-specific ops:
+override op string
+solver manager: add op kind
+-> override `Solver::configure_smgr()`
