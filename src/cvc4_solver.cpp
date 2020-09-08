@@ -904,8 +904,6 @@ CVC4Solver::init_op_kinds()
       {OP_BV_ADD, CVC4::api::Kind::BITVECTOR_PLUS},
       {OP_BV_NOT, CVC4::api::Kind::BITVECTOR_NOT},
       {OP_BV_NEG, CVC4::api::Kind::BITVECTOR_NEG},
-      //{OP_BV_REDOR, CVC4::api::Kind::BITVECTOR_REDOR},
-      //{OP_BV_REDAND, CVC4::api::Kind::BITVECTOR_REDAND},
       {OP_BV_NAND, CVC4::api::Kind::BITVECTOR_NAND},
       {OP_BV_NOR, CVC4::api::Kind::BITVECTOR_NOR},
       {OP_BV_XNOR, CVC4::api::Kind::BITVECTOR_XNOR},
@@ -1029,6 +1027,9 @@ CVC4Solver::init_op_kinds()
       {OP_STR_TO_INT, CVC4::api::Kind::STRING_TO_INT},
       {OP_STR_FROM_INT, CVC4::api::Kind::STRING_FROM_INT},
 
+      /* Solver-specific operators */
+      {d_op_redor, CVC4::api::Kind::BITVECTOR_REDOR},
+      {d_op_redand, CVC4::api::Kind::BITVECTOR_REDAND},
   };
 }
 
@@ -1042,6 +1043,21 @@ CVC4::api::Term&
 CVC4Solver::get_cvc4_term(Term term) const
 {
   return static_cast<CVC4Term*>(term.get())->d_term;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Solver-specific operators, SolverManager configuration.                    */
+/* -------------------------------------------------------------------------- */
+
+void
+CVC4Solver::configure_smgr(SolverManager* smgr) const
+{
+  OpKindSet ops = get_supported_op_kinds();
+
+  update_op_kinds_to_str(d_op_redand, "cvc4-OP_REDAND");
+  smgr->add_op_kind(ops, d_op_redand, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_redor, "btor-OP_REDOR");
+  smgr->add_op_kind(ops, d_op_redor, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
 }
 
 /* -------------------------------------------------------------------------- */

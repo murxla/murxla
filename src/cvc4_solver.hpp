@@ -89,6 +89,7 @@ class CVC4Solver : public Solver
   bool is_initialized() const override;
 
   void configure_fsm(FSM* fsm) const override;
+  void configure_smgr(SolverManager* smgr) const override;
 
   bool check_failed_assumption(const Term& t) const override;
 
@@ -168,6 +169,10 @@ class CVC4Solver : public Solver
   CVC4::api::Solver* d_solver;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_kinds;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_op_kinds;
+
+  /* solver-specific operators */
+  const OpKind d_op_redand = OP_EXT_OP_01;
+  const OpKind d_op_redor  = OP_EXT_OP_02;
 };
 
 }  // namespace btor
