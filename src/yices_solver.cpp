@@ -8,6 +8,8 @@
 namespace smtmbt {
 namespace yices {
 
+#define SMTMBT_YICES_MAX_DEGREE 10
+
 /* -------------------------------------------------------------------------- */
 /* YicesSort */
 /* -------------------------------------------------------------------------- */
@@ -290,27 +292,9 @@ YicesSolver::mk_value(Sort sort, std::string value)
   switch (sort->get_kind())
   {
     case SORT_INT:
-    {
-      assert(sort->is_int());
-      RNGenerator::Choice pick = d_rng.pick_one_of_three();
-      switch (pick)
-      {
-        case RNGenerator::Choice::FIRST:
-          yices_res = yices_int32(
-              static_cast<int32_t>(strtoul(value.c_str(), nullptr, 10)));
-          break;
-        case RNGenerator::Choice::SECOND:
-          yices_res = yices_int64(
-              static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10)));
-          break;
-        default:
-          assert(pick == RNGenerator::Choice::THIRD);
-          yices_res = yices_parse_rational(value.c_str());
-      }
-    }
-    break;
-
     case SORT_REAL:
+    {
+      assert(sort->get_kind() != SORT_INT || sort->is_int());
       assert(sort->is_real());
       if (value.find('.') == std::string::npos && d_rng.flip_coin())
       {
@@ -318,13 +302,33 @@ YicesSolver::mk_value(Sort sort, std::string value)
         switch (pick)
         {
           case RNGenerator::Choice::FIRST:
-            yices_res = yices_int32(
-                static_cast<int32_t>(strtoul(value.c_str(), nullptr, 10)));
-            break;
+          {
+            int32_t val =
+                static_cast<int32_t>(strtoul(value.c_str(), nullptr, 10));
+            if (val == 0 && d_rng.flip_coin())
+            {
+              yices_res = yices_zero();
+            }
+            else
+            {
+              yices_res = yices_int32(val);
+            }
+          }
+          break;
           case RNGenerator::Choice::SECOND:
-            yices_res = yices_int64(
-                static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10)));
-            break;
+          {
+            int64_t val =
+                static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10));
+            if (val == 0 && d_rng.flip_coin())
+            {
+              yices_res = yices_zero();
+            }
+            else
+            {
+              yices_res = yices_int64(val);
+            }
+          }
+          break;
           default:
             assert(pick == RNGenerator::Choice::THIRD);
             yices_res = yices_parse_rational(value.c_str());
@@ -334,7 +338,8 @@ YicesSolver::mk_value(Sort sort, std::string value)
       {
         yices_res = yices_parse_float(value.c_str());
       }
-      break;
+    }
+    break;
 
     default: assert(false);
   }
@@ -642,17 +647,6 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 // arg2, term_t arg3, term_t new_v);
 //__YICES_DLLSPEC__ extern term_t yices_lambda(uint32_t n, const term_t var[],
 // term_t body);
-//__YICES_DLLSPEC__ extern term_t yices_zero(void);
-//__YICES_DLLSPEC__ extern term_t yices_parse_float(const char *s);
-//__YICES_DLLSPEC__ extern term_t yices_square(term_t t1);             // t1 *
-// t1
-//__YICES_DLLSPEC__ extern term_t yices_power(term_t t1, uint32_t d);  // t1 ^ d
-//__YICES_DLLSPEC__ extern term_t yices_sum(uint32_t n, const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_product(uint32_t n, const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_divides_atom(term_t t1, term_t t2);
-//__YICES_DLLSPEC__ extern term_t yices_is_int_atom(term_t t);
-//__YICES_DLLSPEC__ extern term_t yices_floor(term_t t);
-//__YICES_DLLSPEC__ extern term_t yices_ceil(term_t t);
 //__YICES_DLLSPEC__ extern term_t yices_poly_int32(uint32_t n, const int32_t
 // a[], const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_poly_int64(uint32_t n, const int64_t
@@ -661,18 +655,6 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 // int32_t num[], const uint32_t den[], const term_t t[]);
 //__YICES_DLLSPEC__ extern term_t yices_poly_rational64(uint32_t n, const
 // int64_t num[], const uint64_t den[], const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_arith_eq_atom(term_t t1, term_t t2); //
-// t1 == t2
-//__YICES_DLLSPEC__ extern term_t yices_arith_neq_atom(term_t t1, term_t t2); //
-// t1 != t2
-//__YICES_DLLSPEC__ extern term_t yices_arith_eq0_atom(term_t t);   // t == 0
-//__YICES_DLLSPEC__ extern term_t yices_arith_neq0_atom(term_t t);  // t != 0
-//__YICES_DLLSPEC__ extern term_t yices_arith_geq0_atom(term_t t);  // t >= 0
-//__YICES_DLLSPEC__ extern term_t yices_arith_leq0_atom(term_t t);  // t <= 0
-//__YICES_DLLSPEC__ extern term_t yices_arith_gt0_atom(term_t t);   // t > 0
-//__YICES_DLLSPEC__ extern term_t yices_arith_lt0_atom(term_t t);   // t < 0
-// int32_t a[]);
-//__YICES_DLLSPEC__ extern term_t yices_bvarray(uint32_t n, const term_t arg[]);
 //////
 
 Term
@@ -700,6 +682,11 @@ YicesSolver::mk_term(const OpKind& kind,
         {
           yices_res = mk_term_pairwise(yices_args, yices_bvneq_atom);
         }
+        else if (args[0]->get_sort()->is_real() && d_rng.flip_coin())
+        {
+          // applies to equalities over Int and Real terms
+          yices_res = mk_term_pairwise(yices_args, yices_arith_neq_atom);
+        }
         else
         {
           yices_res = mk_term_pairwise(yices_args, yices_neq);
@@ -712,6 +699,11 @@ YicesSolver::mk_term(const OpKind& kind,
       if (args[0]->get_sort()->is_bv() && d_rng.flip_coin())
       {
         yices_res = mk_term_chained(yices_args, yices_bveq_atom);
+      }
+      else if (args[0]->get_sort()->is_real() && d_rng.flip_coin())
+      {
+        // applies to equalities over Int and Real terms
+        yices_res = mk_term_chained(yices_args, yices_arith_eq_atom);
       }
       else
       {
@@ -1142,6 +1134,11 @@ YicesSolver::mk_term(const OpKind& kind,
       break;
 
     /* Ints, Reals */
+    case OP_INT_IS_INT:
+    case OP_REAL_IS_INT:
+      assert(n_args == 1);
+      yices_res = yices_is_int_atom(yices_args[0]);
+      break;
     case OP_INT_NEG:
     case OP_REAL_NEG:
       assert(n_args == 1);
@@ -1155,12 +1152,26 @@ YicesSolver::mk_term(const OpKind& kind,
     case OP_INT_ADD:
     case OP_REAL_ADD:
       assert(n_args > 1);
-      yices_res = mk_term_left_assoc(yices_args, yices_add);
+      if (d_rng.flip_coin())
+      {
+        yices_res = yices_sum(n_args, yices_args.data());
+      }
+      else
+      {
+        yices_res = mk_term_left_assoc(yices_args, yices_add);
+      }
       break;
     case OP_INT_MUL:
     case OP_REAL_MUL:
       assert(n_args > 1);
-      yices_res = mk_term_left_assoc(yices_args, yices_mul);
+      if (d_rng.flip_coin())
+      {
+        yices_res = yices_product(n_args, yices_args.data());
+      }
+      else
+      {
+        yices_res = mk_term_left_assoc(yices_args, yices_mul);
+      }
       break;
 
     /* Ints */
@@ -1314,6 +1325,65 @@ YicesSolver::mk_term(const OpKind& kind,
             yices_args[0],
             uint32_to_value_in_range(
                 params[0], 0, args[0]->get_sort()->get_bv_size() - 1));
+      }
+      else if (kind == d_op_bvarray)
+      {
+        assert(n_args > 1);
+        yices_res = yices_bvarray(n_args, yices_args.data());
+      }
+      // Arithmetic
+      else if (kind == d_op_int_eq0 || kind == d_op_real_eq0)
+      {
+        assert(n_args == 1);
+        yices_res = yices_arith_eq0_atom(yices_args[0]);
+      }
+      else if (kind == d_op_int_neq0 || kind == d_op_real_neq0)
+      {
+        assert(n_args == 1);
+        yices_res = yices_arith_neq0_atom(yices_args[0]);
+      }
+      else if (kind == d_op_int_geq0 || kind == d_op_real_geq0)
+      {
+        assert(n_args == 1);
+        yices_res = yices_arith_geq0_atom(yices_args[0]);
+      }
+      else if (kind == d_op_int_leq0 || kind == d_op_real_leq0)
+      {
+        assert(n_args == 1);
+        yices_res = yices_arith_leq0_atom(yices_args[0]);
+      }
+      else if (kind == d_op_int_gt0 || kind == d_op_real_gt0)
+      {
+        assert(n_args == 1);
+        yices_res = yices_arith_gt0_atom(yices_args[0]);
+      }
+      else if (kind == d_op_int_lt0 || kind == d_op_real_lt0)
+      {
+        assert(n_args == 1);
+        yices_res = yices_arith_lt0_atom(yices_args[0]);
+      }
+      else if (kind == d_op_int_power || kind == d_op_real_power)
+      {
+        assert(n_args == 1);
+        assert(n_params == 1);
+        yices_res = yices_power(
+            yices_args[0],
+            uint32_to_value_in_range(params[0], 0, SMTMBT_YICES_MAX_DEGREE));
+      }
+      else if (kind == d_op_int_square || kind == d_op_real_square)
+      {
+        assert(n_args == 1);
+        yices_res = yices_square(yices_args[0]);
+      }
+      else if (kind == d_op_int_ceil || kind == d_op_real_ceil)
+      {
+        assert(n_args == 1);
+        yices_res = yices_ceil(yices_args[0]);
+      }
+      else if (kind == d_op_int_floor || kind == d_op_real_floor)
+      {
+        assert(n_args == 1);
+        yices_res = yices_floor(yices_args[0]);
       }
       // catch all
       else
@@ -1564,16 +1634,16 @@ YicesSolver::configure_smgr(SolverManager* smgr) const
 {
   OpKindSet ops = get_supported_op_kinds();
 
-  // BV
-  update_op_kinds_to_str(d_op_redand, "yices-OP_REDAND");
-  smgr->add_op_kind(ops, d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_redor, "yices-OP_REDOR");
-  smgr->add_op_kind(ops, d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-
+  /* BV */
   update_op_kinds_to_str(d_op_bvsquare, "yices-OP_BVSQUARE");
   smgr->add_op_kind(ops, d_op_bvsquare, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_bvpower, "yices-OP_BVPOWER");
   smgr->add_op_kind(ops, d_op_bvpower, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  update_op_kinds_to_str(d_op_redand, "yices-OP_REDAND");
+  smgr->add_op_kind(ops, d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_redor, "yices-OP_REDOR");
+  smgr->add_op_kind(ops, d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
   update_op_kinds_to_str(d_op_shift_left0, "yices-OP_SHIFT_LEFT0");
   smgr->add_op_kind(ops, d_op_shift_left0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
@@ -1592,6 +1662,75 @@ YicesSolver::configure_smgr(SolverManager* smgr) const
   update_op_kinds_to_str(d_op_bitextract, "yices-OP_BITEXTRACT");
   smgr->add_op_kind(
       ops, d_op_bitextract, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
+
+  update_op_kinds_to_str(d_op_bvarray, "yices-OP_BVARRAY");
+  smgr->add_op_kind(ops,
+                    d_op_bvarray,
+                    SMTMBT_MK_TERM_N_ARGS,
+                    0,
+                    SORT_BV,
+                    {SORT_BOOL},
+                    THEORY_BV);
+
+  /* Ints */
+  update_op_kinds_to_str(d_op_int_eq0, "yices-OP_INT_EQ0");
+  smgr->add_op_kind(ops, d_op_int_eq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_neq0, "yices-OP_INT_NEQ0");
+  smgr->add_op_kind(
+      ops, d_op_int_neq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_geq0, "yices-OP_INT_GEQ0");
+  smgr->add_op_kind(
+      ops, d_op_int_geq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_gt0, "yices-OP_INT_GT0");
+  smgr->add_op_kind(ops, d_op_int_gt0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_leq0, "yices-OP_INT_LEQ0");
+  smgr->add_op_kind(
+      ops, d_op_int_leq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_lt0, "yices-OP_INT_LT0");
+  smgr->add_op_kind(ops, d_op_int_lt0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_power, "yices-OP_INT_POWER");
+  smgr->add_op_kind(
+      ops, d_op_int_power, 1, 1, SORT_INT, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_square, "yices-OP_INT_SQUARE");
+  smgr->add_op_kind(
+      ops, d_op_int_square, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_ceil, "yices-OP_INT_CEIL");
+  smgr->add_op_kind(ops, d_op_int_ceil, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  update_op_kinds_to_str(d_op_int_floor, "yices-OP_INT_FLOOR");
+  smgr->add_op_kind(
+      ops, d_op_int_floor, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+
+  /* Reals */
+  update_op_kinds_to_str(d_op_real_eq0, "yices-OP_REAL_EQ0");
+  smgr->add_op_kind(
+      ops, d_op_real_eq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_neq0, "yices-OP_REAL_NEQ0");
+  smgr->add_op_kind(
+      ops, d_op_real_neq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_geq0, "yices-OP_REAL_GEQ0");
+  smgr->add_op_kind(
+      ops, d_op_real_geq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_gt0, "yices-OP_REAL_GT0");
+  smgr->add_op_kind(
+      ops, d_op_real_gt0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_leq0, "yices-OP_REAL_LEQ0");
+  smgr->add_op_kind(
+      ops, d_op_real_leq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_lt0, "yices-OP_REAL_LT0");
+  smgr->add_op_kind(
+      ops, d_op_real_lt0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_power, "yices-OP_REAL_POWER");
+  smgr->add_op_kind(
+      ops, d_op_real_power, 1, 1, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_square, "yices-OP_REAL_SQUARE");
+  smgr->add_op_kind(
+      ops, d_op_real_square, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_ceil, "yices-OP_REAL_CEIL");
+  smgr->add_op_kind(
+      ops, d_op_real_ceil, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_floor, "yices-OP_REAL_FLOOR");
+  smgr->add_op_kind(
+      ops, d_op_real_floor, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
 }
 
 /* -------------------------------------------------------------------------- */

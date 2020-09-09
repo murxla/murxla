@@ -3,6 +3,11 @@
 
 namespace smtmbt {
 
+#define SMTMBT_OP_TO_STR(kind) \
+  {                            \
+    kind, #kind                \
+  }
+
 std::unordered_map<OpKind, std::string, OpKindHashFunction> op_kinds_to_str = {
     SMTMBT_OP_TO_STR(OP_UNDEFINED),
 
@@ -99,6 +104,7 @@ std::unordered_map<OpKind, std::string, OpKindHashFunction> op_kinds_to_str = {
 
     /* Ints */
     SMTMBT_OP_TO_STR(OP_INT_IS_DIV),
+    SMTMBT_OP_TO_STR(OP_INT_IS_INT),
     SMTMBT_OP_TO_STR(OP_INT_NEG),
     SMTMBT_OP_TO_STR(OP_INT_SUB),
     SMTMBT_OP_TO_STR(OP_INT_ADD),
@@ -112,6 +118,7 @@ std::unordered_map<OpKind, std::string, OpKindHashFunction> op_kinds_to_str = {
     SMTMBT_OP_TO_STR(OP_INT_GTE),
 
     /* Reals */
+    SMTMBT_OP_TO_STR(OP_REAL_IS_INT),
     SMTMBT_OP_TO_STR(OP_REAL_NEG),
     SMTMBT_OP_TO_STR(OP_REAL_SUB),
     SMTMBT_OP_TO_STR(OP_REAL_ADD),
@@ -181,6 +188,26 @@ std::unordered_map<OpKind, std::string, OpKindHashFunction> op_kinds_to_str = {
     SMTMBT_OP_TO_STR(OP_EXT_OP_18),
     SMTMBT_OP_TO_STR(OP_EXT_OP_19),
     SMTMBT_OP_TO_STR(OP_EXT_OP_20),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_21),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_22),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_23),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_24),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_25),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_26),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_27),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_28),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_29),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_30),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_31),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_32),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_33),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_34),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_35),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_36),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_37),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_38),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_39),
+    SMTMBT_OP_TO_STR(OP_EXT_OP_40),
 };
 
 void

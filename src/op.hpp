@@ -107,6 +107,7 @@ enum OpKind
 
   /* Ints */
   OP_INT_IS_DIV,
+  OP_INT_IS_INT,
   OP_INT_NEG,
   OP_INT_SUB,
   OP_INT_ADD,
@@ -120,6 +121,7 @@ enum OpKind
   OP_INT_GTE,
 
   /* Reals */
+  OP_REAL_IS_INT,
   OP_REAL_NEG,
   OP_REAL_SUB,
   OP_REAL_ADD,
@@ -189,6 +191,26 @@ enum OpKind
   OP_EXT_OP_18,
   OP_EXT_OP_19,
   OP_EXT_OP_20,
+  OP_EXT_OP_21,
+  OP_EXT_OP_22,
+  OP_EXT_OP_23,
+  OP_EXT_OP_24,
+  OP_EXT_OP_25,
+  OP_EXT_OP_26,
+  OP_EXT_OP_27,
+  OP_EXT_OP_28,
+  OP_EXT_OP_29,
+  OP_EXT_OP_30,
+  OP_EXT_OP_31,
+  OP_EXT_OP_32,
+  OP_EXT_OP_33,
+  OP_EXT_OP_34,
+  OP_EXT_OP_35,
+  OP_EXT_OP_36,
+  OP_EXT_OP_37,
+  OP_EXT_OP_38,
+  OP_EXT_OP_39,
+  OP_EXT_OP_40,
 
   OP_ALL, /* must be last */
 };
@@ -234,11 +256,6 @@ struct Op
   /** The sort kind of the term arguments of this kind. */
   std::vector<SortKind> d_sort_kind_args;
 };
-
-#define SMTMBT_OP_TO_STR(kind) \
-  {                            \
-    kind, #kind                \
-  }
 
 /** Map OpKind to its string representation. */
 extern std::unordered_map<OpKind, std::string, OpKindHashFunction>
