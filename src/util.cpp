@@ -360,6 +360,20 @@ RNGenerator::pick_string_literal(uint32_t len)
 
 /* -------------------------------------------------------------------------- */
 
+uint32_t
+uint32_to_value_in_range(uint32_t val, uint32_t from, uint32_t to)
+{
+  assert(from <= to);
+
+  from = from == UINT32_MAX ? UINT32_MAX - 1 : from;
+  to   = to == UINT32_MAX ? UINT32_MAX - 1 : to;
+  val %= to - from + 1;
+  val += from;
+  return val;
+}
+
+/* -------------------------------------------------------------------------- */
+
 std::string
 str_bin_to_hex(const std::string& str_bin)
 {

@@ -880,6 +880,7 @@ class ActionMkTerm : public Action
         case OP_BV_EXTRACT:
           assert(sort->is_bv());
           assert(bw);
+          assert(n_params == 2);
           params.push_back(d_rng.pick<uint32_t>(0, bw - 1));     // high
           params.push_back(d_rng.pick<uint32_t>(0, params[0]));  // low
           break;
@@ -887,6 +888,7 @@ class ActionMkTerm : public Action
         case OP_BV_REPEAT:
           assert(sort->is_bv());
           assert(bw);
+          assert(n_params == 1);
           params.push_back(d_rng.pick<uint32_t>(
               1, std::max<uint32_t>(1, SMTMBT_BW_MAX / bw)));
           break;
@@ -895,6 +897,7 @@ class ActionMkTerm : public Action
         case OP_BV_ROTATE_RIGHT:
           assert(sort->is_bv());
           assert(bw);
+          assert(n_params == 1);
           params.push_back(d_rng.pick<uint32_t>(0, bw));
           break;
 
@@ -902,6 +905,7 @@ class ActionMkTerm : public Action
         case OP_BV_ZERO_EXTEND:
           assert(sort->is_bv());
           assert(bw);
+          assert(n_params == 1);
           params.push_back(d_rng.pick<uint32_t>(0, SMTMBT_BW_MAX - bw));
           break;
 
@@ -911,6 +915,7 @@ class ActionMkTerm : public Action
           assert(sort->is_bv());
           assert(bw);
           assert(sort_kind == SORT_FP);
+          assert(n_params == 2);
           /* term has FP sort, pick sort */
           if (!d_smgr.has_sort(SORT_FP)) return false;
           sort = d_smgr.pick_sort(SORT_FP, false);
@@ -921,6 +926,7 @@ class ActionMkTerm : public Action
         case OP_FP_TO_FP_FROM_FP:
           assert(sort->is_fp());
           assert(sort_kind == SORT_FP);
+          assert(n_params == 2);
           /* term has new FP sort, pick sort */
           if (!d_smgr.has_sort(SORT_FP)) return false;
           sort = d_smgr.pick_sort(SORT_FP, false);
@@ -932,6 +938,7 @@ class ActionMkTerm : public Action
         case OP_FP_TO_UBV:
           assert(sort->is_fp());
           assert(sort_kind == SORT_BV);
+          assert(n_params == 1);
           /* term has BV sort, pick bit-width */
           params.push_back(
               d_rng.pick<uint32_t>(1, std::max<uint32_t>(1, SMTMBT_BW_MAX)));
@@ -940,6 +947,7 @@ class ActionMkTerm : public Action
         case OP_FP_TO_FP_FROM_REAL:
           assert(sort->is_real());
           assert(sort_kind == SORT_FP);
+          assert(n_params == 2);
           /* term has FP sort, pick sort */
           if (!d_smgr.has_sort(SORT_FP)) return false;
           sort = d_smgr.pick_sort(SORT_FP, false);
@@ -950,12 +958,14 @@ class ActionMkTerm : public Action
         case OP_INT_IS_DIV:
           assert(sort->is_int());
           assert(sort_kind == SORT_BOOL);
+          assert(n_params == 1);
           params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
           break;
 
         case OP_RE_LOOP:
           assert(sort->is_reglan());
           assert(sort_kind == SORT_REGLAN);
+          assert(n_params == 2);
           params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
           params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
           break;
@@ -963,10 +973,20 @@ class ActionMkTerm : public Action
         case OP_RE_POW:
           assert(sort->is_reglan());
           assert(sort_kind == SORT_REGLAN);
+          assert(n_params == 1);
           params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
           break;
 
-        default: assert(false);
+        default:
+          /* solver-specific op */
+          for (uint32_t i = 0; i < n_params; ++i)
+          {
+            // Note: We select a generic parameter value > 0. If solver expects
+            //       a specific value range for param for given solver-specific
+            //       operator, modify value accordingly in Solver::mk_term.
+            //       See utils::uint32_to_value_in_range().
+            params.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          }
       }
     }
 

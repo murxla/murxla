@@ -186,6 +186,10 @@ RNGenerator::pick_weighted(std::vector<T>& weights)
 
 /* -------------------------------------------------------------------------- */
 
+uint32_t uint32_to_value_in_range(uint32_t val, uint32_t from, uint32_t to);
+
+/* -------------------------------------------------------------------------- */
+
 std::string str_bin_to_hex(const std::string& str_bin);
 std::string str_bin_to_dec(const std::string& str_bin);
 

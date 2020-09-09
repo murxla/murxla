@@ -672,23 +672,7 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 //__YICES_DLLSPEC__ extern term_t yices_arith_gt0_atom(term_t t);   // t > 0
 //__YICES_DLLSPEC__ extern term_t yices_arith_lt0_atom(term_t t);   // t < 0
 // int32_t a[]);
-//__YICES_DLLSPEC__ extern term_t yices_bvsquare(term_t t1);             //
-// square (t1 * t1)
-//__YICES_DLLSPEC__ extern term_t yices_bvpower(term_t t1, uint32_t d);  //
-// exponentiation (t1 ^ d)
-//__YICES_DLLSPEC__ extern term_t yices_bvsum(uint32_t n, const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_bvproduct(uint32_t n, const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_shift_left0(term_t t, uint32_t n);
-//__YICES_DLLSPEC__ extern term_t yices_shift_left1(term_t t, uint32_t n);
-//__YICES_DLLSPEC__ extern term_t yices_shift_right0(term_t t, uint32_t n);
-//__YICES_DLLSPEC__ extern term_t yices_shift_right1(term_t t, uint32_t n);
-//__YICES_DLLSPEC__ extern term_t yices_ashift_right(term_t t, uint32_t n);
 //__YICES_DLLSPEC__ extern term_t yices_bvarray(uint32_t n, const term_t arg[]);
-//__YICES_DLLSPEC__ extern term_t yices_bitextract(term_t t, uint32_t i);
-//__YICES_DLLSPEC__ extern term_t yices_bveq_atom(term_t t1, term_t t2);   // t1
-//== t2
-//__YICES_DLLSPEC__ extern term_t yices_bvneq_atom(term_t t1, term_t t2);  // t1
-//!= t2
 //////
 
 Term
@@ -708,17 +692,31 @@ YicesSolver::mk_term(const OpKind& kind,
       assert(n_args > 1);
       if (d_rng.flip_coin())
       {
-        yices_res = yices_distinct(n_args, &yices_args[0]);
+        yices_res = yices_distinct(n_args, yices_args.data());
       }
       else
       {
-        yices_res = mk_term_pairwise(yices_args, yices_neq);
+        if (args[0]->get_sort()->is_bv() && d_rng.flip_coin())
+        {
+          yices_res = mk_term_pairwise(yices_args, yices_bvneq_atom);
+        }
+        else
+        {
+          yices_res = mk_term_pairwise(yices_args, yices_neq);
+        }
       }
       break;
 
     case OP_EQUAL:
       assert(n_args > 1);
-      yices_res = mk_term_chained(yices_args, yices_eq);
+      if (args[0]->get_sort()->is_bv() && d_rng.flip_coin())
+      {
+        yices_res = mk_term_chained(yices_args, yices_bveq_atom);
+      }
+      else
+      {
+        yices_res = mk_term_chained(yices_args, yices_eq);
+      }
       break;
 
     case OP_ITE:
@@ -741,7 +739,7 @@ YicesSolver::mk_term(const OpKind& kind,
     case OP_AND:
       if (n_args > 3)
       {
-        yices_res = yices_and(n_args, &yices_args[0]);
+        yices_res = yices_and(n_args, yices_args.data());
       }
       else if (n_args == 3)
       {
@@ -757,7 +755,7 @@ YicesSolver::mk_term(const OpKind& kind,
           default:
           {
             assert(pick == RNGenerator::Choice::THIRD);
-            yices_res = yices_and(n_args, &yices_args[0]);
+            yices_res = yices_and(n_args, yices_args.data());
           }
         }
       }
@@ -770,7 +768,7 @@ YicesSolver::mk_term(const OpKind& kind,
         }
         else
         {
-          yices_res = yices_and(n_args, &yices_args[0]);
+          yices_res = yices_and(n_args, yices_args.data());
         }
       }
       break;
@@ -793,7 +791,7 @@ YicesSolver::mk_term(const OpKind& kind,
     case OP_OR:
       if (n_args > 3)
       {
-        yices_res = yices_or(n_args, &yices_args[0]);
+        yices_res = yices_or(n_args, yices_args.data());
       }
       else if (n_args == 3)
       {
@@ -809,7 +807,7 @@ YicesSolver::mk_term(const OpKind& kind,
           default:
           {
             assert(pick == RNGenerator::Choice::THIRD);
-            yices_res = yices_or(n_args, &yices_args[0]);
+            yices_res = yices_or(n_args, yices_args.data());
           }
         }
       }
@@ -823,7 +821,7 @@ YicesSolver::mk_term(const OpKind& kind,
         }
         else
         {
-          yices_res = yices_or(n_args, &yices_args[0]);
+          yices_res = yices_or(n_args, yices_args.data());
         }
       }
       break;
@@ -831,7 +829,7 @@ YicesSolver::mk_term(const OpKind& kind,
     case OP_XOR:
       if (n_args > 3)
       {
-        yices_res = yices_xor(n_args, &yices_args[0]);
+        yices_res = yices_xor(n_args, yices_args.data());
       }
       else if (n_args == 3)
       {
@@ -847,7 +845,7 @@ YicesSolver::mk_term(const OpKind& kind,
           default:
           {
             assert(pick == RNGenerator::Choice::THIRD);
-            yices_res = yices_xor(n_args, &yices_args[0]);
+            yices_res = yices_xor(n_args, yices_args.data());
           }
         }
       }
@@ -860,7 +858,7 @@ YicesSolver::mk_term(const OpKind& kind,
         }
         else
         {
-          yices_res = yices_xor(n_args, &yices_args[0]);
+          yices_res = yices_xor(n_args, yices_args.data());
         }
       }
       break;
@@ -903,13 +901,20 @@ YicesSolver::mk_term(const OpKind& kind,
 
     case OP_BV_ADD:
       assert(n_args > 1);
-      yices_res = mk_term_left_assoc(yices_args, yices_bvadd);
+      if (d_rng.flip_coin())
+      {
+        yices_res = yices_bvsum(n_args, yices_args.data());
+      }
+      else
+      {
+        yices_res = mk_term_left_assoc(yices_args, yices_bvadd);
+      }
       break;
 
     case OP_BV_AND:
       if (n_args > 3)
       {
-        yices_res = yices_bvand(n_args, &yices_args[0]);
+        yices_res = yices_bvand(n_args, yices_args.data());
       }
       else if (n_args == 3)
       {
@@ -926,7 +931,7 @@ YicesSolver::mk_term(const OpKind& kind,
           default:
           {
             assert(pick == RNGenerator::Choice::THIRD);
-            yices_res = yices_bvand(n_args, &yices_args[0]);
+            yices_res = yices_bvand(n_args, yices_args.data());
           }
         }
       }
@@ -939,7 +944,7 @@ YicesSolver::mk_term(const OpKind& kind,
         }
         else
         {
-          yices_res = yices_bvand(n_args, &yices_args[0]);
+          yices_res = yices_bvand(n_args, yices_args.data());
         }
       }
       break;
@@ -956,7 +961,7 @@ YicesSolver::mk_term(const OpKind& kind,
       assert(n_args > 1);
       if (d_rng.flip_coin())
       {
-        yices_res = yices_bvconcat(n_args, &yices_args[0]);
+        yices_res = yices_bvconcat(n_args, yices_args.data());
       }
       else
       {
@@ -969,7 +974,14 @@ YicesSolver::mk_term(const OpKind& kind,
       break;
     case OP_BV_MULT:
       assert(n_args > 1);
-      yices_res = mk_term_left_assoc(yices_args, yices_bvmul);
+      if (d_rng.flip_coin())
+      {
+        yices_res = yices_bvproduct(n_args, yices_args.data());
+      }
+      else
+      {
+        yices_res = mk_term_left_assoc(yices_args, yices_bvmul);
+      }
       break;
     case OP_BV_NAND:
       assert(n_args == 2);
@@ -991,7 +1003,7 @@ YicesSolver::mk_term(const OpKind& kind,
     case OP_BV_OR:
       if (n_args > 3)
       {
-        yices_res = yices_bvor(n_args, &yices_args[0]);
+        yices_res = yices_bvor(n_args, yices_args.data());
       }
       else if (n_args == 3)
       {
@@ -1008,7 +1020,7 @@ YicesSolver::mk_term(const OpKind& kind,
           default:
           {
             assert(pick == RNGenerator::Choice::THIRD);
-            yices_res = yices_bvor(n_args, &yices_args[0]);
+            yices_res = yices_bvor(n_args, yices_args.data());
           }
         }
       }
@@ -1021,19 +1033,11 @@ YicesSolver::mk_term(const OpKind& kind,
         }
         else
         {
-          yices_res = yices_bvor(n_args, &yices_args[0]);
+          yices_res = yices_bvor(n_args, yices_args.data());
         }
       }
       break;
 
-    // case OP_BV_REDAND:
-    //  assert(n_args == 1);
-    //  yices_res = yices_redand(yices_args[0]);
-    //  break;
-    // case OP_BV_REDOR:
-    //  assert(n_args == 1);
-    //  yices_res = yices_redor(yices_args[0]);
-    //  break;
     case OP_BV_SDIV:
       assert(n_args == 2);
       yices_res = yices_bvsdiv(yices_args[0], yices_args[1]);
@@ -1102,7 +1106,7 @@ YicesSolver::mk_term(const OpKind& kind,
     case OP_BV_XOR:
       if (n_args > 3)
       {
-        yices_res = yices_bvor(n_args, &yices_args[0]);
+        yices_res = yices_bvor(n_args, yices_args.data());
       }
       else if (n_args == 3)
       {
@@ -1119,7 +1123,7 @@ YicesSolver::mk_term(const OpKind& kind,
           default:
           {
             assert(pick == RNGenerator::Choice::THIRD);
-            yices_res = yices_bvor(n_args, &yices_args[0]);
+            yices_res = yices_bvor(n_args, yices_args.data());
           }
         }
       }
@@ -1132,7 +1136,7 @@ YicesSolver::mk_term(const OpKind& kind,
         }
         else
         {
-          yices_res = yices_bvor(n_args, &yices_args[0]);
+          yices_res = yices_bvor(n_args, yices_args.data());
         }
       }
       break;
@@ -1228,9 +1232,94 @@ YicesSolver::mk_term(const OpKind& kind,
         yices_res = yices_forall(n, vars.data(), yices_args.back());
       }
     }
-      break;
+    break;
 
-    default: assert(false);
+    /* Solver-specific operators */
+    default:
+      // BV
+      if (kind == d_op_redand)
+      {
+        assert(n_args == 1);
+        yices_res = yices_redand(yices_args[0]);
+      }
+      else if (kind == d_op_redor)
+      {
+        assert(n_args == 1);
+        yices_res = yices_redor(yices_args[0]);
+      }
+      else if (kind == d_op_bvsquare)
+      {
+        assert(n_args == 1);
+        yices_res = yices_bvsquare(yices_args[0]);
+      }
+      else if (kind == d_op_bvpower)
+      {
+        assert(n_args == 1);
+        assert(n_params == 1);
+        yices_res = yices_bvpower(
+            yices_args[0],
+            uint32_to_value_in_range(
+                params[0], 0, args[0]->get_sort()->get_bv_size()));
+      }
+      else if (kind == d_op_shift_left0)
+      {
+        assert(n_args == 1);
+        assert(n_params == 1);
+        yices_res = yices_shift_left0(
+            yices_args[0],
+            uint32_to_value_in_range(
+                params[0], 0, args[0]->get_sort()->get_bv_size()));
+      }
+      else if (kind == d_op_shift_left1)
+      {
+        assert(n_args == 1);
+        assert(n_params == 1);
+        yices_res = yices_shift_left1(
+            yices_args[0],
+            uint32_to_value_in_range(
+                params[0], 0, args[0]->get_sort()->get_bv_size()));
+      }
+      else if (kind == d_op_shift_right0)
+      {
+        assert(n_args == 1);
+        assert(n_params == 1);
+        yices_res = yices_shift_right0(
+            yices_args[0],
+            uint32_to_value_in_range(
+                params[0], 0, args[0]->get_sort()->get_bv_size()));
+      }
+      else if (kind == d_op_shift_right1)
+      {
+        assert(n_args == 1);
+        assert(n_params == 1);
+        yices_res = yices_shift_right1(
+            yices_args[0],
+            uint32_to_value_in_range(
+                params[0], 0, args[0]->get_sort()->get_bv_size()));
+      }
+      else if (kind == d_op_ashift_right)
+      {
+        assert(n_args == 1);
+        assert(n_params == 1);
+        yices_res = yices_ashift_right(
+            yices_args[0],
+            uint32_to_value_in_range(
+                params[0], 0, args[0]->get_sort()->get_bv_size()));
+      }
+      else if (kind == d_op_bitextract)
+      {
+        assert(n_args == 1);
+        assert(n_params == 1);
+        yices_res = yices_bitextract(
+            yices_args[0],
+            uint32_to_value_in_range(
+                params[0], 0, args[0]->get_sort()->get_bv_size() - 1));
+      }
+      // catch all
+      else
+      {
+        assert(false);
+      }
   }
   assert(is_valid_term(yices_res));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
@@ -1466,6 +1555,47 @@ YicesSolver::terms_to_yices_terms(std::vector<Term>& terms) const
   return res;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Solver-specific operators, SolverManager configuration.                    */
+/* -------------------------------------------------------------------------- */
+
+void
+YicesSolver::configure_smgr(SolverManager* smgr) const
+{
+  OpKindSet ops = get_supported_op_kinds();
+
+  // BV
+  update_op_kinds_to_str(d_op_redand, "yices-OP_REDAND");
+  smgr->add_op_kind(ops, d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_redor, "yices-OP_REDOR");
+  smgr->add_op_kind(ops, d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  update_op_kinds_to_str(d_op_bvsquare, "yices-OP_BVSQUARE");
+  smgr->add_op_kind(ops, d_op_bvsquare, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_bvpower, "yices-OP_BVPOWER");
+  smgr->add_op_kind(ops, d_op_bvpower, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  update_op_kinds_to_str(d_op_shift_left0, "yices-OP_SHIFT_LEFT0");
+  smgr->add_op_kind(ops, d_op_shift_left0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_shift_left1, "yices-OP_SHIFT_LEFT1");
+  smgr->add_op_kind(ops, d_op_shift_left1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_shift_right0, "yices-OP_SHIFT_RIGHT0");
+  smgr->add_op_kind(
+      ops, d_op_shift_right0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_shift_right1, "yices-OP_SHIFT_RIGHT1");
+  smgr->add_op_kind(
+      ops, d_op_shift_right1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  update_op_kinds_to_str(d_op_ashift_right, "yices-OP_ASHIFT_RIGHT");
+  smgr->add_op_kind(
+      ops, d_op_ashift_right, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  update_op_kinds_to_str(d_op_bitextract, "yices-OP_BITEXTRACT");
+  smgr->add_op_kind(
+      ops, d_op_bitextract, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Solver-specific actions, FSM configuration.                                */
 /* -------------------------------------------------------------------------- */
 
 void

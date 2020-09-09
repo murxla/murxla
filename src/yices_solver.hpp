@@ -76,6 +76,7 @@ class YicesSolver : public Solver
   TheoryIdVector get_supported_theories() const override;
 
   void configure_fsm(FSM* fsm) const override;
+  void configure_smgr(SolverManager* smgr) const override;
   void reset_sat() override;
 
   void set_opt(const std::string& opt, const std::string& value) override;
@@ -172,6 +173,18 @@ class YicesSolver : public Solver
   ctx_config_t* d_config = nullptr;
   context_t* d_context   = nullptr;
   model_t* d_model       = nullptr;
+
+  /* solver-specific operators */
+  const OpKind d_op_ashift_right = OP_EXT_OP_01;
+  const OpKind d_op_bitextract   = OP_EXT_OP_02;
+  const OpKind d_op_bvpower      = OP_EXT_OP_03;
+  const OpKind d_op_bvsquare     = OP_EXT_OP_04;
+  const OpKind d_op_redand       = OP_EXT_OP_05;
+  const OpKind d_op_redor        = OP_EXT_OP_06;
+  const OpKind d_op_shift_left0  = OP_EXT_OP_07;
+  const OpKind d_op_shift_left1  = OP_EXT_OP_08;
+  const OpKind d_op_shift_right0 = OP_EXT_OP_09;
+  const OpKind d_op_shift_right1 = OP_EXT_OP_10;
 };
 
 }  // namespace yices

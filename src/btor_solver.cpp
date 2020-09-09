@@ -1354,6 +1354,7 @@ BtorSolver::configure_smgr(SolverManager* smgr) const
   update_op_kinds_to_str(d_op_ssubo, "btor-OP_SSUBO");
   smgr->add_op_kind(ops, d_op_ssubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 }
+
 /* -------------------------------------------------------------------------- */
 /* Solver-specific actions, FSM configuration.                                */
 /* -------------------------------------------------------------------------- */
