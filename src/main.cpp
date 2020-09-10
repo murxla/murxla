@@ -546,7 +546,8 @@ set_sigint_handler_stats(void)
   "  --reals                    theory of reals\n"                             \
   " constraining/extending features based for enabled theories:\n"             \
   "  --linear                   restrict arithmetic to linear fragment\n"      \
-  "  --strings                  theory of strings"
+  "  --strings                  theory of strings\n"                           \
+  "  --uf                       uninterpreted functions"
 
 /* -------------------------------------------------------------------------- */
 /* Command-line option parsing                                                */
@@ -786,6 +787,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--strings")
     {
       options.enabled_theories.push_back(THEORY_STRING);
+    }
+    else if (arg == "--uf")
+    {
+      options.enabled_theories.push_back(THEORY_UF);
     }
     else
     {

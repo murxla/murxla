@@ -350,14 +350,28 @@ Smt2Solver::mk_const(Sort sort, const std::string& name)
 {
   std::stringstream smt2;
   std::string symbol = name;
-  if (name.empty())
-  {
-    std::stringstream ss;
-    ss << "_c" << d_n_unnamed_consts++;
-    symbol = ss.str();
-  }
+
   Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(sort.get());
-  smt2 << "(declare-const " << symbol << " " << smt2_sort->get_repr() << ")";
+  if (sort->get_kind() == SORT_FUN)
+  {
+    if (name.empty())
+    {
+      std::stringstream ss;
+      ss << "_f" << d_n_unnamed_ufs++;
+      symbol = ss.str();
+    }
+    smt2 << "(declare-fun " << symbol << " " << smt2_sort->get_repr() << ")";
+  }
+  else
+  {
+    if (name.empty())
+    {
+      std::stringstream ss;
+      ss << "_c" << d_n_unnamed_consts++;
+      symbol = ss.str();
+    }
+    smt2 << "(declare-const " << symbol << " " << smt2_sort->get_repr() << ")";
+  }
   dump_smt2(smt2.str());
   return std::shared_ptr<Smt2Term>(new Smt2Term(
       OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::CONST, symbol));
@@ -579,6 +593,24 @@ get_array_sort_string(const std::vector<Sort>& sorts)
   return sort.str();
 }
 
+static std::string
+get_fun_sort_string(const std::vector<Sort>& sorts)
+{
+  std::stringstream sort;
+  sort << "(";
+  for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
+  {
+    if (it > sorts.begin())
+    {
+      sort << " ";
+    }
+    sort << static_cast<const Smt2Sort*>(it->get())->get_repr();
+  }
+  sort << ") ";
+  sort << static_cast<const Smt2Sort*>(sorts.back().get())->get_repr();
+  return sort.str();
+}
+
 Sort
 Smt2Solver::mk_sort(const std::string name, uint32_t arity)
 {
@@ -634,6 +666,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   switch (kind)
   {
     case SORT_ARRAY: sort = get_array_sort_string(sorts); break;
+    case SORT_FUN: sort = get_fun_sort_string(sorts); break;
     default: assert(false);
   }
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));
@@ -674,6 +707,12 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     return args[0]->get_sort()->get_sorts()[1];
   }
 
+  if (kind == OP_UF_APPLY)
+  {
+    assert(args[0]->get_sort()->get_kind() == SORT_FUN);
+    return args[0]->get_sort()->get_sorts().back();
+  }
+
   switch (sort_kind)
   {
     case SORT_BOOL: sort = get_bool_sort_string(); break;
@@ -695,6 +734,12 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       const std::vector<Sort>& sorts = args[0]->get_sort()->get_sorts();
       assert(sorts.size() == 2);
       sort = get_array_sort_string(sorts);
+    }
+    break;
+
+    case SORT_FUN:
+    {
+      sort = get_fun_sort_string(term->get_sort()->get_sorts());
     }
     break;
 

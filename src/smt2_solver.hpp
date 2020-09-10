@@ -251,6 +251,9 @@ class Smt2Term : public AbsTerm
       {OP_STR_FROM_CODE, "str.from_code"},
       {OP_STR_TO_INT, "str.to_int"},
       {OP_STR_FROM_INT, "str.from_int"},
+
+      /* UF */
+      {OP_UF_APPLY, ""},
   };
 };
 
@@ -341,6 +344,7 @@ class Smt2Solver : public Solver
   bool d_model_gen            = false;
   bool d_unsat_assumptions    = false;
   uint32_t d_n_unnamed_consts = 0;
+  uint32_t d_n_unnamed_ufs    = 0;
   uint32_t d_n_unnamed_vars   = 0;
   ResponseKind d_response     = SMT2_SUCCESS;
 };

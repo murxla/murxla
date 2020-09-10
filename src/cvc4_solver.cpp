@@ -249,6 +249,19 @@ CVC4Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
                                        get_cvc4_sort(sorts[1]));
       break;
 
+    case SORT_FUN:
+    {
+      std::vector<CVC4::api::Sort> domain;
+      for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
+      {
+        domain.push_back(get_cvc4_sort(*it));
+      }
+      CVC4::api::Sort codomain = get_cvc4_sort(sorts.back());
+
+      cvc4_res = d_solver->mkFunctionSort(domain, codomain);
+      break;
+    }
+
     default: assert(false);
   }
   assert(!cvc4_res.isNull());
@@ -994,6 +1007,7 @@ CVC4Solver::init_op_kinds()
       {OP_FORALL, CVC4::api::Kind::FORALL},
       {OP_EXISTS, CVC4::api::Kind::EXISTS},
 
+      /* Strings */
       {OP_STR_CONCAT, CVC4::api::Kind::STRING_CONCAT},
       {OP_STR_LEN, CVC4::api::Kind::STRING_LENGTH},
       {OP_STR_LT, CVC4::api::Kind::STRING_LT},
@@ -1026,6 +1040,9 @@ CVC4Solver::init_op_kinds()
       {OP_STR_FROM_CODE, CVC4::api::Kind::STRING_FROM_CODE},
       {OP_STR_TO_INT, CVC4::api::Kind::STRING_TO_INT},
       {OP_STR_FROM_INT, CVC4::api::Kind::STRING_FROM_INT},
+
+      /* UF */
+      {OP_UF_APPLY, CVC4::api::Kind::APPLY_UF},
 
       /* Solver-specific operators */
       {d_op_redor, CVC4::api::Kind::BITVECTOR_REDOR},

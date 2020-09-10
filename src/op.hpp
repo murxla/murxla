@@ -170,6 +170,9 @@ enum OpKind
   OP_STR_TO_INT,
   OP_STR_FROM_INT,
 
+  /* UF */
+  OP_UF_APPLY,
+
   /* only place-holders for solver-specific operators below ----------------- */
   OP_EXT_OP_01,
   OP_EXT_OP_02,

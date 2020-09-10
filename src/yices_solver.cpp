@@ -595,20 +595,20 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 
   switch (kind)
   {
+    case SORT_FUN:
     case SORT_ARRAY:
     {
-      assert(sorts.size() == 2);
-      type_t yices_domain = yices_sorts[0];
-      type_t yices_range  = yices_sorts[1];
-      if (d_rng.flip_coin())
+      assert(kind != SORT_ARRAY || sorts.size() == 2);
+      type_t yices_range = yices_sorts.back();
+      yices_sorts.pop_back();
+      if (d_rng.flip_coin() || kind != SORT_ARRAY)
       {
-        std::vector<type_t> yices_domain_vector = {yices_domain};
-        yices_res =
-            yices_function_type(1, yices_domain_vector.data(), yices_range);
+        yices_res = yices_function_type(
+            yices_sorts.size(), yices_sorts.data(), yices_range);
       }
       else
       {
-        yices_res = yices_function_type1(yices_domain, yices_range);
+        yices_res = yices_function_type1(yices_sorts[0], yices_range);
       }
     }
     break;
@@ -1236,6 +1236,12 @@ YicesSolver::mk_term(const OpKind& kind,
       }
     }
     break;
+
+    /* UF */
+    case OP_UF_APPLY:
+      yices_res =
+          yices_application(yices_args[0], n_args - 1, yices_args.data() + 1);
+      break;
 
     /* Solver-specific operators */
     default:

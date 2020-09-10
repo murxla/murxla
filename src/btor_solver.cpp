@@ -202,7 +202,7 @@ BtorSolver::is_initialized() const
 TheoryIdVector
 BtorSolver::get_supported_theories() const
 {
-  return {THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_QUANT};
+  return {THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_QUANT, THEORY_UF};
 }
 
 OpKindSet
@@ -252,6 +252,19 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       btor_res = boolector_array_sort(
           d_solver, get_btor_sort(sorts[0]), get_btor_sort(sorts[1]));
       break;
+
+    case SORT_FUN:
+    {
+      BoolectorSort codomain = get_btor_sort(sorts.back());
+      std::vector<BoolectorSort> domain;
+      for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
+      {
+        domain.push_back(get_btor_sort(*it));
+      }
+      btor_res =
+          boolector_fun_sort(d_solver, domain.data(), domain.size(), codomain);
+      break;
+    }
 
     default: assert(false);
   }
@@ -308,6 +321,10 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
   {
     btor_res = boolector_array(d_solver, get_btor_sort(sort), cname);
   }
+  else if (sort->get_kind() == SORT_FUN)
+  {
+    btor_res = boolector_uf(d_solver, get_btor_sort(sort), cname);
+  }
   else
   {
     btor_res = boolector_var(d_solver, get_btor_sort(sort), cname);
@@ -326,10 +343,11 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
         break;
       default:
         assert(pick == RNGenerator::Choice::THIRD);
-        assert(sort->get_kind() == SORT_ARRAY
+        assert(sort->get_kind() == SORT_ARRAY || sort->get_kind() == SORT_FUN
                || boolector_is_var(d_solver, btor_res));
-        assert(sort->get_kind() != SORT_ARRAY
-               || boolector_is_array_var(d_solver, btor_res));
+        assert(sort->get_kind() != SORT_ARRAY || sort->get_kind() != SORT_FUN
+               || boolector_is_array_var(d_solver, btor_res)
+               || boolector_is_uf(d_solver, btor_res));
     }
   }
   if (d_rng.pick_with_prob(1))
@@ -791,6 +809,11 @@ BtorSolver::mk_term(const OpKind& kind,
         btor_res = boolector_forall(
             d_solver, vars.data(), vars.size(), btor_args.back());
       }
+      break;
+
+    case OP_UF_APPLY:
+      btor_res = boolector_apply(
+          d_solver, btor_args.data() + 1, n_args - 1, btor_args[0]);
       break;
 
     default:

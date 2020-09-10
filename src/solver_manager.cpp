@@ -832,6 +832,11 @@ SolverManager::add_sort_kinds()
                              SortKindData(SORT_REGLAN, 0, THEORY_STRING));
         break;
 
+      case THEORY_UF:
+        d_sort_kinds.emplace(
+            SORT_FUN, SortKindData(SORT_FUN, SMTMBT_MK_TERM_N_ARGS, THEORY_UF));
+        break;
+
       default: assert(false);
     }
   }
@@ -1085,6 +1090,10 @@ SolverManager::add_op_kinds()
   // indexed
   add_op_kind(ops, OP_RE_POW, 1, 1, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
   add_op_kind(ops, OP_RE_LOOP, 1, 2, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+
+  /* UF */
+  add_op_kind(
+      ops, OP_UF_APPLY, n, 0, SORT_ANY, {SORT_FUN, SORT_ANY}, THEORY_UF);
 }
 
 void

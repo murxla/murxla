@@ -318,8 +318,6 @@ TermDb::pick_term(Sort sort) const
   {
     size_t n_reals = get_number_of_terms(SORT_REAL);
     size_t n_ints  = get_number_of_terms(SORT_INT);
-    std::cout << std::endl
-              << "n_reals " << n_reals << " n_ints " << n_ints << std::endl;
     assert(n_reals || n_ints);
     std::vector<size_t> weights = {n_reals, n_ints};
     if (d_rng.pick_weighted<size_t>(weights)) s = pick_sort(SORT_INT);

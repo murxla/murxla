@@ -509,13 +509,18 @@ class ActionMkSort : public Action
         // TODO: Disable nested arrays for now.
         //       Make this configurable via the solver: Solver tells FSM what
         //       sort kinds are allowed for array elements
-        SortKindSet exclude_sorts = {SORT_ARRAY};
-        if (!d_smgr.has_sort(exclude_sorts))
+        SortKindSet exclude_index_sorts   = {SORT_ARRAY, SORT_FUN, SORT_REGLAN};
+        SortKindSet exclude_element_sorts = {SORT_ARRAY, SORT_FUN, SORT_REGLAN};
+        if (!d_smgr.has_sort(exclude_index_sorts))
         {
           return false;
         }
-        Sort index_sort   = d_smgr.pick_sort(exclude_sorts, false);
-        Sort element_sort = d_smgr.pick_sort(exclude_sorts, false);
+        Sort index_sort = d_smgr.pick_sort(exclude_index_sorts, false);
+        if (!d_smgr.has_sort(exclude_element_sorts))
+        {
+          return false;
+        }
+        Sort element_sort = d_smgr.pick_sort(exclude_element_sorts, false);
         _run(kind, {index_sort, element_sort});
         break;
       }
@@ -537,6 +542,25 @@ class ActionMkSort : public Action
             _run(kind, 15, 113);
         }
         break;
+
+      case SORT_FUN:
+      {
+        std::vector<Sort> sorts;
+        // TODO: check why SORT_REGLAN is not allowed in CVC4
+        SortKindSet exclude_sorts = {SORT_FUN, SORT_REGLAN};
+        if (!d_smgr.has_sort(exclude_sorts))
+        {
+          return false;
+        }
+        uint32_t nsorts = d_rng.pick<uint32_t>(1, SMTMBT_MK_TERM_N_ARGS_MAX);
+        for (uint32_t i = 0; i < nsorts; ++i)
+        {
+          sorts.push_back(d_smgr.pick_sort(exclude_sorts, false));
+        }
+        sorts.push_back(d_smgr.pick_sort(exclude_sorts, false));
+        _run(kind, sorts);
+        break;
+      }
 
       case SORT_STRING:
       case SORT_REGLAN:
@@ -579,6 +603,17 @@ class ActionMkSort : public Action
         std::vector<Sort> sorts;
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[1])));
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[2])));
+        res = _run(kind, sorts);
+        break;
+      }
+
+      case SORT_FUN:
+      {
+        std::vector<Sort> sorts;
+        for (auto it = tokens.begin() + 1; it < tokens.end(); ++it)
+        {
+          sorts.push_back(d_smgr.get_sort(str_to_uint32(*it)));
+        }
         res = _run(kind, sorts);
         break;
       }
@@ -674,7 +709,6 @@ class ActionMkSort : public Action
     SMTMBT_TRACE << get_kind() << " " << kind << ss.str();
     Sort res = d_solver.mk_sort(kind, sorts);
     res->set_sorts(sorts);
-    assert(res->get_sorts().size() == 2);
     d_smgr.add_sort(res, kind);
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
@@ -822,6 +856,24 @@ class ActionMkTerm : public Action
       if (!d_smgr.has_string_char_value()) return false;
       args.push_back(d_smgr.pick_string_char_value());
       args.push_back(d_smgr.pick_string_char_value());
+    }
+    else if (kind == OpKind::OP_UF_APPLY)
+    {
+      assert(d_smgr.has_term(SORT_FUN));
+
+      Sort fun_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      if (!d_smgr.has_term(fun_sort)) return false;
+
+      args.push_back(d_smgr.pick_term(fun_sort));
+
+      const auto& sorts = fun_sort->get_sorts();
+      /* last sort is the codomain */
+      for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
+      {
+        if (!d_smgr.has_term(*it)) return false;
+        args.push_back(d_smgr.pick_term(*it));
+      }
+      sort_kind = sorts.back()->get_kind();
     }
     else
     {
@@ -1225,7 +1277,8 @@ class ActionMkValue : public Action
     Term res;
     switch (sort_kind)
     {
-      case SORT_ARRAY: return false;
+      case SORT_ARRAY:
+      case SORT_FUN: return false;
 
       case SORT_BOOL: _run(sort, d_rng.flip_coin()); break;
 

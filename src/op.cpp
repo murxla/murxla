@@ -167,6 +167,9 @@ std::unordered_map<OpKind, std::string, OpKindHashFunction> op_kinds_to_str = {
     SMTMBT_OP_TO_STR(OP_STR_TO_INT),
     SMTMBT_OP_TO_STR(OP_STR_FROM_INT),
 
+    /* UF */
+    SMTMBT_OP_TO_STR(OP_UF_APPLY),
+
     /* Placeholders */
     SMTMBT_OP_TO_STR(OP_EXT_OP_01),
     SMTMBT_OP_TO_STR(OP_EXT_OP_02),
