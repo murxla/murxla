@@ -34,7 +34,8 @@ SolverManager::SolverManager(Solver* solver,
       d_solver_options(options),
       d_used_solver_options(),
       d_term_db(*this, rng),
-      d_untraced_terms()
+      d_untraced_terms(),
+      d_untraced_sorts()
 {
   add_enabled_theories(enabled_theories);
   add_sort_kinds();  // adds only sort kinds of enabled theories
@@ -54,6 +55,7 @@ SolverManager::clear()
   d_term_db.clear();
   d_assumptions.clear();
   d_untraced_terms.clear();
+  d_untraced_sorts.clear();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -499,6 +501,30 @@ SolverManager::register_term(uint64_t untraced_id, uint64_t term_id)
   d_untraced_terms.emplace(untraced_id, term);
 }
 
+void
+SolverManager::register_sort(uint64_t untraced_id, uint64_t sort_id)
+{
+  Sort sort;
+  for (const auto& s : d_sorts)
+  {
+    if (s->get_id() == sort_id)
+    {
+      sort = s;
+      break;
+    }
+  }
+  assert(sort != nullptr);
+
+  // If we already have a sort with given 'id' we don't register the sort.
+  if (d_untraced_sorts.find(untraced_id) != d_untraced_sorts.end())
+  {
+    Sort s = get_sort(untraced_id);
+    assert(s == sort);
+    return;
+  }
+  d_untraced_sorts.emplace(untraced_id, sort);
+}
+
 /* -------------------------------------------------------------------------- */
 
 std::string
@@ -625,12 +651,10 @@ SolverManager::has_sort(const std::unordered_set<SortKind>& exclude_sorts) const
 }
 
 Sort
-SolverManager::get_sort(uint32_t id) const
+SolverManager::get_sort(uint64_t id) const
 {
-  for (const Sort& sort : d_sorts)
-  {
-    if (sort->get_id() == id) return sort;
-  }
+  auto it = d_untraced_sorts.find(id);
+  if (it != d_untraced_sorts.end()) return it->second;
   return nullptr;
 }
 

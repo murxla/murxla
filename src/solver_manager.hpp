@@ -268,6 +268,12 @@ class SolverManager
   void register_term(uint64_t untraced_id, uint64_t term_id);
 
   /**
+   * Map an id from a trace to an actual sort ID.
+   * Note: Only used for untracing.
+   */
+  void register_sort(uint64_t untraced_id, uint64_t sort_id);
+
+  /**
    * Pick sort.
    * It is not guaranteed that there exist terms of the returned sort.
    */
@@ -331,7 +337,7 @@ class SolverManager
    * Return the sort with the given id.
    * Note: We only use this for untracing.
    */
-  Sort get_sort(uint32_t id) const;
+  Sort get_sort(uint64_t id) const;
 
   /**
    * Set d_n_sorts to id.
@@ -496,6 +502,9 @@ class SolverManager
 
   /** Map untraced ids to corresponding Terms. */
   std::unordered_map<uint64_t, Term> d_untraced_terms;
+
+  /** Map untraced ids to corresponding Terms. */
+  std::unordered_map<uint64_t, Sort> d_untraced_sorts;
 
   /** Set of currently created string values with length 1. */
   std::unordered_set<Term, HashTerm> d_string_char_values;
