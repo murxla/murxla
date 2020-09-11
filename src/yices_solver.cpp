@@ -647,14 +647,6 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 // arg2, term_t arg3, term_t new_v);
 //__YICES_DLLSPEC__ extern term_t yices_lambda(uint32_t n, const term_t var[],
 // term_t body);
-//__YICES_DLLSPEC__ extern term_t yices_poly_int32(uint32_t n, const int32_t
-// a[], const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_poly_int64(uint32_t n, const int64_t
-// a[], const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_poly_rational32(uint32_t n, const
-// int32_t num[], const uint32_t den[], const term_t t[]);
-//__YICES_DLLSPEC__ extern term_t yices_poly_rational64(uint32_t n, const
-// int64_t num[], const uint64_t den[], const term_t t[]);
 //////
 
 Term
@@ -1328,7 +1320,7 @@ YicesSolver::mk_term(const OpKind& kind,
       }
       else if (kind == d_op_bvarray)
       {
-        assert(n_args > 1);
+        assert(n_args > 0);
         yices_res = yices_bvarray(n_args, yices_args.data());
       }
       // Arithmetic
@@ -1384,6 +1376,56 @@ YicesSolver::mk_term(const OpKind& kind,
       {
         assert(n_args == 1);
         yices_res = yices_floor(yices_args[0]);
+      }
+      else if (kind == d_op_int_poly || kind == d_op_real_poly)
+      {
+        assert(n_args > 0);
+        if (d_rng.flip_coin())
+        {
+          std::vector<int32_t> a;
+          for (uint32_t i = 0; i < n_args; ++i)
+          {
+            a.push_back(d_rng.pick<int32_t>());
+          }
+          yices_res = yices_poly_int32(n_args, a.data(), yices_args.data());
+        }
+        else
+        {
+          std::vector<int64_t> a;
+          for (uint32_t i = 0; i < n_args; ++i)
+          {
+            a.push_back(d_rng.pick<int64_t>());
+          }
+          yices_res = yices_poly_int64(n_args, a.data(), yices_args.data());
+        }
+      }
+      else if (kind == d_op_real_rpoly)
+      {
+        assert(n_args > 0);
+        if (d_rng.flip_coin())
+        {
+          std::vector<int32_t> num;
+          std::vector<uint32_t> den;
+          for (uint32_t i = 0; i < n_args; ++i)
+          {
+            num.push_back(d_rng.pick<int32_t>(INT32_MIN, INT32_MAX));
+            den.push_back(d_rng.pick<uint32_t>());
+          }
+          yices_res = yices_poly_rational32(
+              n_args, num.data(), den.data(), yices_args.data());
+        }
+        else
+        {
+          std::vector<int64_t> num;
+          std::vector<uint64_t> den;
+          for (uint32_t i = 0; i < n_args; ++i)
+          {
+            num.push_back(d_rng.pick<int64_t>(INT64_MIN, INT64_MAX));
+            den.push_back(d_rng.pick<uint64_t>());
+          }
+          yices_res = yices_poly_rational64(
+              n_args, num.data(), den.data(), yices_args.data());
+        }
       }
       // catch all
       else
@@ -1699,7 +1741,14 @@ YicesSolver::configure_smgr(SolverManager* smgr) const
   update_op_kinds_to_str(d_op_int_floor, "yices-OP_INT_FLOOR");
   smgr->add_op_kind(
       ops, d_op_int_floor, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-
+  update_op_kinds_to_str(d_op_int_poly, "yices-OP_INT_POLY");
+  smgr->add_op_kind(ops,
+                    d_op_int_poly,
+                    SMTMBT_MK_TERM_N_ARGS,
+                    0,
+                    SORT_INT,
+                    {SORT_INT},
+                    THEORY_INT);
   /* Reals */
   update_op_kinds_to_str(d_op_real_eq0, "yices-OP_REAL_EQ0");
   smgr->add_op_kind(
@@ -1731,6 +1780,22 @@ YicesSolver::configure_smgr(SolverManager* smgr) const
   update_op_kinds_to_str(d_op_real_floor, "yices-OP_REAL_FLOOR");
   smgr->add_op_kind(
       ops, d_op_real_floor, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_poly, "yices-OP_REAL_POLY");
+  smgr->add_op_kind(ops,
+                    d_op_real_poly,
+                    SMTMBT_MK_TERM_N_ARGS,
+                    0,
+                    SORT_REAL,
+                    {SORT_REAL},
+                    THEORY_REAL);
+  update_op_kinds_to_str(d_op_real_rpoly, "yices-OP_REAL_RPOLY");
+  smgr->add_op_kind(ops,
+                    d_op_real_rpoly,
+                    SMTMBT_MK_TERM_N_ARGS,
+                    0,
+                    SORT_REAL,
+                    {SORT_REAL},
+                    THEORY_REAL);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -11,8 +11,6 @@
 
 namespace smtmbt {
 
-#define SMTMBT_LEN_SYMBOL_MAX 128
-
 /* -------------------------------------------------------------------------- */
 
 SolverManager::SolverManager(Solver* solver,
@@ -512,7 +510,7 @@ SolverManager::pick_symbol()
     ss << "_s" << d_n_symbols++;
     return ss.str();
   }
-  uint32_t len = d_rng.pick<uint32_t>(0, SMTMBT_LEN_SYMBOL_MAX);
+  uint32_t len = d_rng.pick<uint32_t>(0, SMTMBT_SYMBOL_LEN_MAX);
   /* Pick piped vs simple symbol with 50% probability. */
   return len && d_rng.flip_coin() ? d_rng.pick_piped_symbol(len)
                                   : d_rng.pick_simple_symbol(len);
@@ -820,7 +818,7 @@ SolverManager::add_op_kinds()
 {
   assert(d_sort_kinds.size());
 
-  uint32_t n    = SMTMBT_MK_TERM_N_ARGS;
+  uint32_t n    = SMTMBT_MK_TERM_N_ARGS_BIN;
   OpKindSet ops = d_solver->get_supported_op_kinds();
 
   /* Special Cases */

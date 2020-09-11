@@ -797,8 +797,9 @@ class ActionMkTerm : public Action
       sort = d_smgr.pick_sort(sort_kind);
       if (!d_smgr.has_value(sort)) return false;
       assert(arity == SMTMBT_MK_TERM_N_ARGS);
-      arity                 = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN,
+      arity = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN(arity),
                                    SMTMBT_MK_TERM_N_ARGS_MAX);
+
       bool picked_non_const = false;
       /* pick arguments */
       for (int32_t i = 0; i < arity; ++i)
@@ -824,9 +825,9 @@ class ActionMkTerm : public Action
     }
     else
     {
-      if (arity == SMTMBT_MK_TERM_N_ARGS)
+      if (arity == SMTMBT_MK_TERM_N_ARGS || arity == SMTMBT_MK_TERM_N_ARGS_BIN)
       {
-        arity = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN,
+        arity = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN(arity),
                                      SMTMBT_MK_TERM_N_ARGS_MAX);
       }
 

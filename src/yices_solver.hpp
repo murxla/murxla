@@ -195,18 +195,21 @@ class YicesSolver : public Solver
   const OpKind d_op_int_leq0    = OP_EXT_OP_17;
   const OpKind d_op_int_lt0     = OP_EXT_OP_18;
   const OpKind d_op_int_neq0    = OP_EXT_OP_19;
-  const OpKind d_op_int_power   = OP_EXT_OP_20;
-  const OpKind d_op_int_square  = OP_EXT_OP_21;
-  const OpKind d_op_real_ceil   = OP_EXT_OP_22;
-  const OpKind d_op_real_floor  = OP_EXT_OP_23;
-  const OpKind d_op_real_eq0    = OP_EXT_OP_24;
-  const OpKind d_op_real_geq0   = OP_EXT_OP_25;
-  const OpKind d_op_real_gt0    = OP_EXT_OP_26;
-  const OpKind d_op_real_leq0   = OP_EXT_OP_27;
-  const OpKind d_op_real_lt0    = OP_EXT_OP_28;
-  const OpKind d_op_real_neq0   = OP_EXT_OP_29;
-  const OpKind d_op_real_power  = OP_EXT_OP_30;
-  const OpKind d_op_real_square = OP_EXT_OP_31;
+  const OpKind d_op_int_poly    = OP_EXT_OP_20;
+  const OpKind d_op_int_power   = OP_EXT_OP_21;
+  const OpKind d_op_int_square  = OP_EXT_OP_22;
+  const OpKind d_op_real_ceil   = OP_EXT_OP_23;
+  const OpKind d_op_real_floor  = OP_EXT_OP_24;
+  const OpKind d_op_real_eq0    = OP_EXT_OP_25;
+  const OpKind d_op_real_geq0   = OP_EXT_OP_26;
+  const OpKind d_op_real_gt0    = OP_EXT_OP_27;
+  const OpKind d_op_real_leq0   = OP_EXT_OP_28;
+  const OpKind d_op_real_lt0    = OP_EXT_OP_29;
+  const OpKind d_op_real_neq0   = OP_EXT_OP_30;
+  const OpKind d_op_real_poly   = OP_EXT_OP_31;
+  const OpKind d_op_real_rpoly  = OP_EXT_OP_32;
+  const OpKind d_op_real_power  = OP_EXT_OP_33;
+  const OpKind d_op_real_square = OP_EXT_OP_34;
 };
 
 }  // namespace yices

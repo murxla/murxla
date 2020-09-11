@@ -591,7 +591,7 @@ CVC4Solver::mk_term(const OpKind& kind,
   }
 
   /* use vector with 50% probability */
-  if (d_rng.flip_coin()) n_args = SMTMBT_MK_TERM_N_ARGS;
+  if (d_rng.flip_coin()) n_args = SMTMBT_MK_TERM_N_ARGS_BIN;
 
   /* create term */
   switch (n_args)
@@ -673,7 +673,7 @@ CVC4Solver::mk_term(const OpKind& kind,
       break;
 
     default:
-      assert(n_args == SMTMBT_MK_TERM_N_ARGS || n_args > 3);
+      assert(n_args == SMTMBT_MK_TERM_N_ARGS_BIN || n_args > 3);
       std::vector<CVC4::api::Term> cvc4_args;
       cvc4_args = terms_to_cvc4_terms(args);
       cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm, cvc4_args)
