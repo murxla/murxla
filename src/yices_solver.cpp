@@ -623,13 +623,6 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 
 //////
 ////
-//__YICES_DLLSPEC__ extern term_t yices_application(term_t fun, uint32_t n,
-// const term_t arg[]);
-//__YICES_DLLSPEC__ extern term_t yices_application1(term_t fun, term_t arg1);
-//__YICES_DLLSPEC__ extern term_t yices_application2(term_t fun, term_t arg1,
-// term_t arg2);
-//__YICES_DLLSPEC__ extern term_t yices_application3(term_t fun, term_t arg1,
-// term_t arg2, term_t arg3);
 //__YICES_DLLSPEC__ extern term_t yices_tuple(uint32_t n, const term_t arg[]);
 //__YICES_DLLSPEC__ extern term_t yices_pair(term_t arg1, term_t arg2);
 //__YICES_DLLSPEC__ extern term_t yices_triple(term_t arg1, term_t arg2, term_t
@@ -1239,8 +1232,26 @@ YicesSolver::mk_term(const OpKind& kind,
 
     /* UF */
     case OP_UF_APPLY:
-      yices_res =
-          yices_application(yices_args[0], n_args - 1, yices_args.data() + 1);
+      assert(n_args > 1);
+      if (n_args == 2 && d_rng.flip_coin())
+      {
+        yices_res = yices_application1(yices_args[0], yices_args[1]);
+      }
+      else if (n_args == 3 && d_rng.flip_coin())
+      {
+        yices_res =
+            yices_application2(yices_args[0], yices_args[1], yices_args[2]);
+      }
+      else if (n_args == 4 && d_rng.flip_coin())
+      {
+        yices_res = yices_application3(
+            yices_args[0], yices_args[1], yices_args[2], yices_args[3]);
+      }
+      else
+      {
+        yices_res =
+            yices_application(yices_args[0], n_args - 1, yices_args.data() + 1);
+      }
       break;
 
     /* Solver-specific operators */
