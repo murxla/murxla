@@ -55,6 +55,12 @@ BtorSort::equals(const Sort& other) const
 }
 
 bool
+BtorSort::is_array() const
+{
+  return boolector_is_array_sort(d_solver, d_sort);
+}
+
+bool
 BtorSort::is_bool() const
 {
   BoolectorSort s = boolector_bool_sort(d_solver);
@@ -73,6 +79,12 @@ bool
 BtorSort::is_fp() const
 {
   return false;
+}
+
+bool
+BtorSort::is_fun() const
+{
+  return boolector_is_fun_sort(d_solver, d_sort);
 }
 
 bool

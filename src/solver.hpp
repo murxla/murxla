@@ -34,9 +34,13 @@ class AbsSort
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
 
+  /** Return true if this sort is an Array sort. */
+  virtual bool is_array() const = 0;
   virtual bool is_bool() const = 0;
   virtual bool is_bv() const   = 0;
   virtual bool is_fp() const   = 0;
+  /** Return true if this sort is a function sort. */
+  virtual bool is_fun() const  = 0;
   virtual bool is_int() const  = 0;
   /**
    * Return true if this sort is a Real sort.

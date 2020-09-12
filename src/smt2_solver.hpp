@@ -24,10 +24,11 @@ class Smt2Sort : public AbsSort
   ~Smt2Sort(){};
   size_t hash() const override;
   bool equals(const Sort& other) const override;
-
+  bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;
   bool is_fp() const override;
+  bool is_fun() const override;
   bool is_int() const override;
   bool is_real() const override;
   bool is_rm() const override;

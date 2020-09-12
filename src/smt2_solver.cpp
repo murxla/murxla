@@ -25,6 +25,12 @@ Smt2Sort::equals(const Sort& other) const
 }
 
 bool
+Smt2Sort::is_array() const
+{
+  return d_kind == SORT_ARRAY;
+}
+
+bool
 Smt2Sort::is_bool() const
 {
   return d_kind == SORT_BOOL;
@@ -46,6 +52,12 @@ bool
 Smt2Sort::is_fp() const
 {
   return d_kind == SORT_FP;
+}
+
+bool
+Smt2Sort::is_fun() const
+{
+  return d_kind == SORT_FUN;
 }
 
 bool

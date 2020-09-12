@@ -38,6 +38,12 @@ CVC4Sort::equals(const Sort& other) const
 }
 
 bool
+CVC4Sort::is_array() const
+{
+  return d_sort.isArray();
+}
+
+bool
 CVC4Sort::is_bool() const
 {
   return d_sort.isBoolean();
@@ -53,6 +59,12 @@ bool
 CVC4Sort::is_fp() const
 {
   return d_sort.isFloatingPoint();
+}
+
+bool
+CVC4Sort::is_fun() const
+{
+  return d_sort.isFunction();
 }
 
 bool

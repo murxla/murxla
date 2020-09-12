@@ -32,6 +32,12 @@ YicesSort::equals(const Sort& other) const
 }
 
 bool
+YicesSort::is_array() const
+{
+  return yices_type_is_function(d_sort) && yices_type_num_children(d_sort) == 2;
+}
+
+bool
 YicesSort::is_bool() const
 {
   return yices_type_is_bool(d_sort);
@@ -47,6 +53,12 @@ bool
 YicesSort::is_fp() const
 {
   return false;
+}
+
+bool
+YicesSort::is_fun() const
+{
+  return yices_type_is_function(d_sort);
 }
 
 bool

@@ -788,6 +788,7 @@ class ActionMkTerm : public Action
     else if (kind == OpKind::OP_ARRAY_STORE)
     {
       Sort array_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      assert(array_sort->is_array());
       const std::vector<Sort>& sorts = array_sort->get_sorts();
       assert(sorts.size() == 2);
       Sort index_sort   = sorts[0];
@@ -862,6 +863,7 @@ class ActionMkTerm : public Action
       assert(d_smgr.has_term(SORT_FUN));
 
       Sort fun_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      assert(fun_sort->is_fun());
       if (!d_smgr.has_term(fun_sort)) return false;
 
       args.push_back(d_smgr.pick_term(fun_sort));
