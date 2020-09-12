@@ -11,7 +11,7 @@ namespace yices {
 #define SMTMBT_YICES_MAX_DEGREE 10
 
 /* -------------------------------------------------------------------------- */
-/* YicesSort */
+/* YicesSort                                                                  */
 /* -------------------------------------------------------------------------- */
 
 size_t
@@ -73,6 +73,7 @@ bool
 YicesSort::is_real() const
 {
   bool res = yices_type_is_arithmetic(d_sort);
+  assert(!res || yices_type_is_int(d_sort) || yices_type_is_real(d_sort));
   return res;
 }
 
@@ -104,7 +105,7 @@ YicesSort::get_bv_size() const
 }
 
 /* -------------------------------------------------------------------------- */
-/* YicesTerm */
+/* YicesTerm                                                                  */
 /* -------------------------------------------------------------------------- */
 
 size_t
@@ -124,8 +125,72 @@ YicesTerm::equals(const Term& other) const
   return false;
 }
 
+bool
+YicesTerm::is_array() const
+{
+  return yices_term_is_function(d_term) && get_sort()->is_array();
+}
+
+bool
+YicesTerm::is_bool() const
+{
+  return yices_term_is_bool(d_term);
+}
+
+bool
+YicesTerm::is_bv() const
+{
+  return yices_term_is_bitvector(d_term);
+}
+
+bool
+YicesTerm::is_fp() const
+{
+  return false;
+}
+
+bool
+YicesTerm::is_fun() const
+{
+  return yices_term_is_function(d_term);
+}
+
+bool
+YicesTerm::is_int() const
+{
+  bool res = yices_term_is_int(d_term);
+  assert(!res || yices_term_is_arithmetic(d_term));
+  return res;
+}
+
+bool
+YicesTerm::is_real() const
+{
+  bool res = yices_term_is_arithmetic(d_term);
+  assert(!res || yices_term_is_int(d_term) || yices_term_is_real(d_term));
+  return res;
+}
+
+bool
+YicesTerm::is_reglan() const
+{
+  return false;
+}
+
+bool
+YicesTerm::is_rm() const
+{
+  return false;
+}
+
+bool
+YicesTerm::is_string() const
+{
+  return false;
+}
+
 /* -------------------------------------------------------------------------- */
-/* YicesSolver */
+/* YicesSolver                                                                */
 /* -------------------------------------------------------------------------- */
 
 void

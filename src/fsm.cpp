@@ -46,6 +46,7 @@ const std::unordered_map<Action::Kind, std::string> Action::s_kind_to_str = {
     {Action::Kind::MK_CONST, "mk-const"},
     {Action::Kind::MK_VAR, "mk-var"},
     {Action::Kind::MK_TERM, "mk-term"},
+    {Action::Kind::TERM_CHECK_SORT, "term-check-sort"},
     {Action::Kind::ASSERT_FORMULA, "assert-formula"},
     {Action::Kind::GET_UNSAT_ASSUMPTIONS, "get-unsat-assumptions"},
     {Action::Kind::GET_VALUE, "get-value"},
@@ -1130,7 +1131,7 @@ class ActionMkTerm : public Action
     SMTMBT_TRACE << get_kind() << trace_str.str();
     reset_sat();
 
-    // Note: We remove the variable in _run instead of run so that we correclty
+    // Note: We remove the variable in _run instead of run so that we correctly
     // handle this case for untracing.
     if (kind == OP_FORALL || kind == OP_EXISTS)
     {
@@ -1723,6 +1724,95 @@ class ActionMkValue : public Action
   }
 };
 
+class ActionTermCheckSort : public Action
+{
+ public:
+  ActionTermCheckSort(SolverManager& smgr)
+      : Action(smgr, Action::Kind::TERM_CHECK_SORT)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term()) return false;
+    Term term = d_smgr.pick_term();
+    _run(term);
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    if (tokens.size() != 1)
+    {
+      std::stringstream ss;
+      ss << "expected 1 argument to '" << get_kind() << ", got "
+         << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
+    Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
+    if (t == nullptr)
+    {
+      std::stringstream ss;
+      ss << "unknown term id " << tokens[0];
+      throw SmtMbtFSMUntraceException(ss);
+    }
+    _run(t);
+    return 0;
+  }
+
+ private:
+  void _run(Term term)
+  {
+    SMTMBT_TRACE << get_kind() << " " << term;
+    Sort sort = term->get_sort();
+    if (sort->is_array())
+    {
+      assert(term->is_array());
+    }
+    else if (sort->is_bool())
+    {
+      assert(term->is_bool());
+    }
+    else if (sort->is_bv())
+    {
+      assert(term->is_bv());
+    }
+    else if (sort->is_fp())
+    {
+      assert(term->is_fp());
+    }
+    else if (sort->is_fun())
+    {
+      assert(term->is_fun());
+    }
+    else if (sort->is_int())
+    {
+      assert(term->is_int());
+    }
+    else if (sort->is_real())
+    {
+      assert(term->is_real());
+    }
+    else if (sort->is_rm())
+    {
+      assert(term->is_rm());
+    }
+    else if (sort->is_string())
+    {
+      assert(term->is_string());
+    }
+    else if (sort->is_reglan())
+    {
+      assert(term->is_reglan());
+    }
+    else
+    {
+      assert(false);
+    }
+  }
+};
+
 class ActionAssertFormula : public Action
 {
  public:
@@ -2160,6 +2250,8 @@ FSM::configure()
   auto a_mkvar   = new_action<ActionMkVar>();
   auto a_mkterm  = new_action<ActionMkTerm>();
 
+  auto a_termchksort = new_action<ActionTermCheckSort>();
+
   auto a_assert = new_action<ActionAssertFormula>();
 
   auto a_failed = new_action<ActionGetUnsatAssumptions>();
@@ -2234,12 +2326,16 @@ FSM::configure()
   {
     s_inputs->add_action(a_mkvar, 200);
   }
+  // TODO enable
+  // s_inputs->add_action(a_termchksort, 1);
   s_inputs->add_action(t_inputs, 50, s_terms);
   s_inputs->add_action(t_inputs, 1000, s_sat);
   s_inputs->add_action(t_inputs, 1000, s_push_pop);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 1);
+  // TODO enable
+  // s_terms->add_action(a_termchksort, 1);
   s_terms->add_action(t_default, 100, s_assert);
   s_terms->add_action(t_default, 500, s_sat);
   s_terms->add_action(t_inputs, 1000, s_push_pop);

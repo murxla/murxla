@@ -640,7 +640,7 @@ SolverManager::has_sort(Sort sort) const
 bool
 SolverManager::has_sort(const std::unordered_set<SortKind>& exclude_sorts) const
 {
-  for (const auto s : d_sorts)
+  for (const auto& s : d_sorts)
   {
     if (exclude_sorts.find(s->get_kind()) == exclude_sorts.end())
     {

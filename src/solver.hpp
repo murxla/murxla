@@ -36,11 +36,15 @@ class AbsSort
 
   /** Return true if this sort is an Array sort. */
   virtual bool is_array() const = 0;
+  /** Return true if this sort is a Boolean sort. */
   virtual bool is_bool() const = 0;
+  /** Return true if this sort is a bit-vector sort. */
   virtual bool is_bv() const   = 0;
+  /** Return true if this sort is a floating-point sort. */
   virtual bool is_fp() const   = 0;
   /** Return true if this sort is a function sort. */
   virtual bool is_fun() const  = 0;
+  /** Return true if this sort is an Int sort. */
   virtual bool is_int() const  = 0;
   /**
    * Return true if this sort is a Real sort.
@@ -48,9 +52,13 @@ class AbsSort
    *       return true for Int sorts.
    */
   virtual bool is_real() const = 0;
+  /** Return true if this sort is a RoundingMode sort. */
   virtual bool is_rm() const   = 0;
+  /** Return true if this sort is a String sort. */
   virtual bool is_string() const = 0;
+  /** Return true if this sort is a RegLan sort. */
   virtual bool is_reglan() const = 0;
+
   virtual uint32_t get_bv_size() const;
   virtual uint32_t get_fp_exp_size() const;
   virtual uint32_t get_fp_sig_size() const;
@@ -90,6 +98,31 @@ class AbsTerm
   virtual ~AbsTerm(){};
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
+
+  /** Return true if this term is an Array term. */
+  virtual bool is_array() const = 0;
+  /** Return true if this term is a Boolean term. */
+  virtual bool is_bool() const = 0;
+  /** Return true if this term is a bit-vector term. */
+  virtual bool is_bv() const = 0;
+  /** Return true if this term is a floating-point term. */
+  virtual bool is_fp() const = 0;
+  /** Return true if this term is a function term. */
+  virtual bool is_fun() const = 0;
+  /** Return true if this term is an Int term. */
+  virtual bool is_int() const = 0;
+  /**
+   * Return true if this term is a Real term.
+   * Note: We consider sort Int as a subtype of sort Real. Hence, this must
+   *       return true for Int terms.
+   */
+  virtual bool is_real() const = 0;
+  /** Return true if this term is a RoundingMode term. */
+  virtual bool is_rm() const = 0;
+  /** Return true if this term is a String term. */
+  virtual bool is_string() const = 0;
+  /** Return true if this term is a RegLan term. */
+  virtual bool is_reglan() const = 0;
 
   void set_id(uint64_t id);
   uint64_t get_id() const;

@@ -152,6 +152,66 @@ Smt2Term::equals(const Term& other) const
   return res;
 }
 
+bool
+Smt2Term::is_array() const
+{
+  return get_sort()->is_array();
+}
+
+bool
+Smt2Term::is_bool() const
+{
+  return get_sort()->is_bool();
+}
+
+bool
+Smt2Term::is_bv() const
+{
+  return get_sort()->is_bv();
+}
+
+bool
+Smt2Term::is_fp() const
+{
+  return get_sort()->is_fp();
+}
+
+bool
+Smt2Term::is_fun() const
+{
+  return get_sort()->is_fun();
+}
+
+bool
+Smt2Term::is_int() const
+{
+  return get_sort()->is_int();
+}
+
+bool
+Smt2Term::is_real() const
+{
+  return get_sort()->is_real();
+}
+
+bool
+Smt2Term::is_rm() const
+{
+  return get_sort()->is_rm();
+}
+
+bool
+Smt2Term::is_string() const
+{
+  return get_sort()->is_string();
+}
+
+bool
+Smt2Term::is_reglan() const
+{
+  return get_sort()->is_reglan();
+}
+
 const OpKind
 Smt2Term::get_kind() const
 {

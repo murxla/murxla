@@ -142,6 +142,66 @@ CVC4Term::equals(const Term& other) const
   return false;
 }
 
+bool
+CVC4Term::is_array() const
+{
+  return get_sort()->is_array();
+}
+
+bool
+CVC4Term::is_bool() const
+{
+  return get_sort()->is_bool();
+}
+
+bool
+CVC4Term::is_bv() const
+{
+  return get_sort()->is_bv();
+}
+
+bool
+CVC4Term::is_fp() const
+{
+  return get_sort()->is_fp();
+}
+
+bool
+CVC4Term::is_fun() const
+{
+  return get_sort()->is_fun();
+}
+
+bool
+CVC4Term::is_int() const
+{
+  return get_sort()->is_int();
+}
+
+bool
+CVC4Term::is_real() const
+{
+  return get_sort()->is_real();
+}
+
+bool
+CVC4Term::is_rm() const
+{
+  return get_sort()->is_rm();
+}
+
+bool
+CVC4Term::is_string() const
+{
+  return get_sort()->is_string();
+}
+
+bool
+CVC4Term::is_reglan() const
+{
+  return get_sort()->is_reglan();
+}
+
 /* -------------------------------------------------------------------------- */
 /* CVC4Solver                                                                 */
 /* -------------------------------------------------------------------------- */

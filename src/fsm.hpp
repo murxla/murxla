@@ -87,6 +87,7 @@ class Action
     MK_CONST,
     MK_VAR,
     MK_TERM,
+    TERM_CHECK_SORT,
     ASSERT_FORMULA,
     GET_UNSAT_ASSUMPTIONS,
     GET_VALUE,
