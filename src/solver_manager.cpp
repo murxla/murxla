@@ -163,12 +163,18 @@ SolverManager::add_var(Term& term, Sort& sort, SortKind sort_kind)
 
 void
 SolverManager::add_term(Term& term,
-                        Sort& sort,
                         SortKind sort_kind,
                         const std::vector<Term>& args)
 {
   d_stats.terms += 1;
-  d_term_db.add_term(term, sort, sort_kind, args);
+  /* Query solver for sort of newly created term. The returned sort is not
+   * in d_sorts. Hence, we need to do a lookup on d_sorts if we already have
+   * a matching sort. */
+  Sort sort = d_solver->get_sort(term, sort_kind);
+  sort->set_kind(sort_kind);
+  /* If no matching sort is found, we use the sort returned by the solver. */
+  Sort lookup = find_sort(sort);
+  d_term_db.add_term(term, lookup, sort_kind, args);
 }
 
 void

@@ -1140,14 +1140,7 @@ class ActionMkTerm : public Action
 
     Term res = d_solver.mk_term(kind, args, params);
 
-    /* Query solver for sort of newly created term. The returned sort is not
-     * in smgr.d_sorts. Hence, we need to query d_smgr and lookup d_sorts if
-     * we already have a matching sort. */
-    Sort sort = d_solver.get_sort(res, sort_kind);
-    sort->set_kind(sort_kind);
-    /* If no matching sort is found, we use the sort returned by the solver. */
-    Sort lookup = d_smgr.find_sort(sort);
-    d_smgr.add_term(res, lookup, sort_kind, args);
+    d_smgr.add_term(res, sort_kind, args);
 
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
@@ -2085,7 +2078,7 @@ class ActionGetValue : public Action
         assert(sort != nullptr);
         SortKind sort_kind = sort->get_kind();
         assert(sort_kind != SORT_ANY);
-        d_smgr.add_term(res[i], sort, sort_kind);
+        d_smgr.add_term(res[i], sort_kind);
       }
     }
   }

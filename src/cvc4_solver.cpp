@@ -1322,12 +1322,12 @@ class CVC4ActionSimplify : public Action
     assert (sort != nullptr);
     /* Note: The simplified term 'res' may or may not be already in the term
      * DB. However, we assume the same level for 'res' as the original term
-     * since can't always compute the exact level. */
+     * since we can't always compute the exact level. */
     if (res->get_levels().empty())
     {
       res->set_levels(term->get_levels());
     }
-    d_smgr.add_term(res, sort, sort->get_kind());
+    d_smgr.add_term(res, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
