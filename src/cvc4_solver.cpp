@@ -261,7 +261,7 @@ CVC4Solver::mk_sort(SortKind kind)
     case SORT_BOOL: cvc4_res = d_solver->getBooleanSort(); break;
     case SORT_INT: cvc4_res = d_solver->getIntegerSort(); break;
     case SORT_REAL: cvc4_res = d_solver->getRealSort(); break;
-    case SORT_RM: cvc4_res = d_solver->getRoundingmodeSort(); break;
+    case SORT_RM: cvc4_res = d_solver->getRoundingModeSort(); break;
     case SORT_STRING: cvc4_res = d_solver->getStringSort(); break;
     case SORT_REGLAN: cvc4_res = d_solver->getRegExpSort(); break;
 
