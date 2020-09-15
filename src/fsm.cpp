@@ -2608,9 +2608,10 @@ FSM::untrace(std::string& trace_file_name)
       // TODO: we also need a register_sort in case sorts get removed while
       // delta debugging
       /* Make sure that ids for terms/sorts are the same as in the trace. */
-      if (id == Action::Kind::MK_SORT || id == Action::Kind::MK_TERM
-          || id == Action::Kind::MK_CONST || id == Action::Kind::MK_VALUE
-          || id == Action::Kind::MK_VAR || id == Action::Kind::CVC4_SIMPLIFY)
+      if (id == Action::Kind::MK_SORT || id == Action::TERM_GET_SORT
+          || id == Action::Kind::MK_TERM || id == Action::Kind::MK_CONST
+          || id == Action::Kind::MK_VALUE || id == Action::Kind::MK_VAR
+          || id == Action::Kind::CVC4_SIMPLIFY)
       {
         assert(d_actions.find(id) != d_actions.end());
 
@@ -2644,7 +2645,7 @@ FSM::untrace(std::string& trace_file_name)
             }
 
             uint64_t rid = str_to_uint64(next_tokens[0]);
-            if (id == Action::Kind::MK_SORT)
+            if (id == Action::Kind::MK_SORT || id == Action::TERM_GET_SORT)
             {
               d_smgr.register_sort(rid, ret_val);
             }
