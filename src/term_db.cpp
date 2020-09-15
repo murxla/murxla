@@ -69,9 +69,11 @@ TermDb::add_term(Term& term,
   if (sort_kind == SORT_REAL && sort->is_int()) sort_kind = SORT_INT;
 
   SortMap& map  = d_term_db[level][sort_kind];
+  d_smgr.add_sort(sort, sort_kind);
+  assert(sort->get_id());
+  assert(sort->get_kind() != SORT_ANY);
   TermMap& tmap = map[sort];
 
-  d_smgr.add_sort(sort, sort_kind);
   /* Sort may not be set since term is a fresh term. */
   term->set_sort(sort);
 
@@ -93,6 +95,8 @@ TermDb::add_term(Term& term,
     assert(term->get_levels().empty() || term->get_levels().back() == level);
     assert(!term->get_levels().empty() || level == 0);
   }
+  assert(term->get_sort()->get_id());
+  assert(term->get_sort()->get_kind() != SORT_ANY);
   // TODO: increment reference count of args
   tmap.at(term) += 1;
 }
@@ -320,7 +324,8 @@ TermDb::pick_term(Sort sort) const
     size_t n_ints  = get_number_of_terms(SORT_INT);
     assert(n_reals || n_ints);
     std::vector<size_t> weights = {n_reals, n_ints};
-    if (d_rng.pick_weighted<size_t>(weights)) s = pick_sort(SORT_INT);
+    size_t p                    = d_rng.pick_weighted<size_t>(weights);
+    if (p) s = pick_sort(SORT_INT);
   }
 
   size_t level    = pick_level(s);
@@ -392,7 +397,10 @@ TermDb::pick_sort(SortKind sort_kind) const
   assert(has_term(sort_kind));
   size_t level = pick_level(sort_kind);
   assert(d_term_db[level].find(sort_kind) != d_term_db[level].end());
-  return d_rng.pick_from_map<SortMap, Sort>(d_term_db[level].at(sort_kind));
+  Sort res = d_rng.pick_from_map<SortMap, Sort>(d_term_db[level].at(sort_kind));
+  assert(res->get_id());
+  assert(res->get_kind() != SORT_ANY);
+  return res;
 }
 
 Term

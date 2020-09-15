@@ -82,6 +82,14 @@ SolverManager::get_rng() const
 
 /* -------------------------------------------------------------------------- */
 
+std::vector<Term>&
+SolverManager::get_pending_get_sorts()
+{
+  return d_pending_get_sorts;
+}
+
+/* -------------------------------------------------------------------------- */
+
 std::string
 SolverManager::trace_seed() const
 {
@@ -171,10 +179,18 @@ SolverManager::add_term(Term& term,
    * in d_sorts. Hence, we need to do a lookup on d_sorts if we already have
    * a matching sort. */
   Sort sort = d_solver->get_sort(term, sort_kind);
-  sort->set_kind(sort_kind);
+  assert(sort->get_kind() == SORT_ANY);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
+  bool unseen = lookup->get_kind() == SORT_ANY;
   d_term_db.add_term(term, lookup, sort_kind, args);
+  assert(lookup->get_id());
+  assert(lookup->get_kind() != SORT_ANY);
+  if (unseen)
+  {
+    /* yet unseen sort, record to be traced with term-get-sort */
+    d_pending_get_sorts.push_back(term);
+  }
 }
 
 void
@@ -183,24 +199,34 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
 
-  /* SORT_ANY is only set if we queried the sort directly from the solver.
-   * We need to set the sort kind in order to find an existing sort in d_sorts.
-   */
-  if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
+  if (sort->get_kind() == SORT_ANY)
+  {
+    assert(sort->get_id() == 0);
+    sort->set_kind(sort_kind);
+  }
+  assert((sort_kind != SORT_INT && sort->get_kind() != SORT_INT)
+         || sort->is_int());
+  assert((sort_kind == SORT_REAL && sort->get_kind() == SORT_INT)
+         || (sort_kind == SORT_INT && sort->get_kind() == SORT_REAL)
+         || sort->get_kind() == sort_kind);
 
   auto it = d_sorts.find(sort);
   if (it == d_sorts.end())
   {
-    sort->set_kind(sort_kind);
     sort->set_id(++d_n_sorts);
     d_sorts.insert(sort);
     ++d_stats.sorts;
   }
   else
   {
-    assert((*it)->get_kind() == sort_kind);
     sort = *it;
+    assert((sort_kind != SORT_INT && sort->get_kind() != SORT_INT)
+           || sort->is_int());
+    assert((sort_kind == SORT_REAL && sort->get_kind() == SORT_INT)
+           || (sort_kind == SORT_INT && sort->get_kind() == SORT_REAL)
+           || sort->get_kind() == sort_kind);
   }
+  assert(sort->get_id());
   assert(sort_kind != SORT_ARRAY || !sort->get_sorts().empty());
 
   auto& sorts = d_sort_kind_to_sorts[sort_kind];
@@ -551,7 +577,9 @@ SolverManager::pick_symbol()
 Sort
 SolverManager::pick_sort()
 {
-  return d_rng.pick_from_set<SortSet, Sort>(d_sorts);
+  Sort res = d_rng.pick_from_set<SortSet, Sort>(d_sorts);
+  assert(res->get_id());
+  return res;
 }
 
 Sort
@@ -560,19 +588,26 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
   assert(!with_terms || has_term(sort_kind));
   if (sort_kind == SORT_ANY) sort_kind = pick_sort_kind(with_terms);
 
+  Sort res;
   if (with_terms)
   {
-    return d_term_db.pick_sort(sort_kind);
+    res = d_term_db.pick_sort(sort_kind);
   }
-  assert(has_sort(sort_kind));
-  return d_rng.pick_from_set<SortSet, Sort>(d_sort_kind_to_sorts.at(sort_kind));
+  else
+  {
+    assert(has_sort(sort_kind));
+    res =
+        d_rng.pick_from_set<SortSet, Sort>(d_sort_kind_to_sorts.at(sort_kind));
+  }
+  assert(res->get_id());
+  return res;
 }
 
 Sort
 SolverManager::pick_sort(const SortKindSet& exclude_sorts, bool with_terms)
 {
   SortSet sorts;
-  for (const auto s : d_sorts)
+  for (const auto& s : d_sorts)
   {
     if (exclude_sorts.find(s->get_kind()) == exclude_sorts.end())
     {
@@ -586,7 +621,9 @@ SolverManager::pick_sort(const SortKindSet& exclude_sorts, bool with_terms)
   {
     return nullptr;
   }
-  return d_rng.pick_from_set<SortSet, Sort>(sorts);
+  Sort res = d_rng.pick_from_set<SortSet, Sort>(sorts);
+  assert(res->get_id());
+  return res;
 }
 
 Sort
@@ -598,6 +635,7 @@ SolverManager::pick_sort_bv(uint32_t bw, bool with_terms)
   {
     if (sort->is_bv() && sort->get_bv_size() == bw)
     {
+      assert(sort->get_id());
       return sort;
     }
   }
@@ -620,7 +658,9 @@ SolverManager::pick_sort_bv_max(uint32_t bw_max, bool with_terms)
     }
   }
   assert(bv_sorts.size() > 0);
-  return d_rng.pick_from_set<std::vector<Sort>, Sort>(bv_sorts);
+  Sort res = d_rng.pick_from_set<std::vector<Sort>, Sort>(bv_sorts);
+  assert(res->get_id());
+  return res;
 }
 
 bool

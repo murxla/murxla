@@ -46,6 +46,7 @@ const std::unordered_map<Action::Kind, std::string> Action::s_kind_to_str = {
     {Action::Kind::MK_CONST, "mk-const"},
     {Action::Kind::MK_VAR, "mk-var"},
     {Action::Kind::MK_TERM, "mk-term"},
+    {Action::Kind::TERM_GET_SORT, "term-get-sort"},
     {Action::Kind::TERM_CHECK_SORT, "term-check-sort"},
     {Action::Kind::ASSERT_FORMULA, "assert-formula"},
     {Action::Kind::GET_UNSAT_ASSUMPTIONS, "get-unsat-assumptions"},
@@ -92,6 +93,18 @@ Action::get_kind(const std::string& s)
     }
   }
   return Action::Kind::UNDEFINED;
+}
+
+void
+Action::trace_get_sorts() const
+{
+  std::vector<Term>& pending = d_smgr.get_pending_get_sorts();
+  for (const auto& term : pending)
+  {
+    SMTMBT_TRACE_GET_SORT << term;
+    SMTMBT_TRACE_RETURN << term->get_sort();
+  }
+  pending.clear();
 }
 
 void
@@ -146,6 +159,15 @@ State::run(RNGenerator& rng)
 
   /* record action statistics */
   ++d_mbt_stats->d_actions[atup.d_action->get_kind()];
+
+  /* When adding terms of parameterized sort, e.g., bit-vectors or
+   * floating-points, or when creating terms with a Real operator, that is
+   * actually of sort Int, it can happen that the resulting term has yet unknown
+   * sort, i.e., a sort that has not previously been created via ActionMksort.
+   * In order to ensure that the untracer can map such sorts back correctly,
+   * we have to trace a "phantom" action (= an action, that is only executed
+   * when untracing) for new sorts. */
+  atup.d_action->trace_get_sorts();
 
   if (atup.d_action->run()
       && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
@@ -343,6 +365,47 @@ class TransitionModel : public Transition
   {
   }
   bool run() override { return d_smgr.d_sat_result == Solver::Result::SAT; }
+};
+
+/* ========================================================================== */
+/* Phantom Actions (untracing only)                                           */
+/* ========================================================================== */
+
+class ActionTermGetSort : public UntraceAction
+{
+ public:
+  ActionTermGetSort(SolverManager& smgr)
+      : UntraceAction(smgr, Action::Kind::TERM_GET_SORT)
+  {
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    if (tokens.size() != 1)
+    {
+      std::stringstream ss;
+      ss << "expected 1 argument to '" << get_kind() << ", got "
+         << tokens.size();
+      throw SmtMbtFSMUntraceException(ss);
+    }
+    Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
+    if (t == nullptr)
+    {
+      std::stringstream ss;
+      ss << "unknown term id " << tokens[0];
+      throw SmtMbtFSMUntraceException(ss);
+    }
+    return _run(t);
+  }
+
+ private:
+  uint64_t _run(Term term)
+  {
+    SMTMBT_TRACE << get_kind() << " " << term;
+    Sort res = term->get_sort();
+    SMTMBT_TRACE_RETURN << res;
+    return res->get_id();
+  }
 };
 
 /* ========================================================================== */
@@ -711,6 +774,7 @@ class ActionMkSort : public Action
     Sort res = d_solver.mk_sort(kind, sorts);
     res->set_sorts(sorts);
     d_smgr.add_sort(res, kind);
+    assert(res->get_sorts().size() == sorts.size());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -790,6 +854,7 @@ class ActionMkTerm : public Action
     {
       Sort array_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
       assert(array_sort->is_array());
+      assert(array_sort->get_id());
       const std::vector<Sort>& sorts = array_sort->get_sorts();
       assert(sorts.size() == 2);
       Sort index_sort   = sorts[0];
@@ -1131,8 +1196,8 @@ class ActionMkTerm : public Action
     SMTMBT_TRACE << get_kind() << trace_str.str();
     reset_sat();
 
-    // Note: We remove the variable in _run instead of run so that we correctly
-    // handle this case for untracing.
+    /* Note: We remove the variable in _run instead of run so that we correctly
+     *       handle this case for untracing. */
     if (kind == OP_FORALL || kind == OP_EXISTS)
     {
       d_smgr.remove_var(args[0]);
@@ -1141,7 +1206,6 @@ class ActionMkTerm : public Action
     Term res = d_solver.mk_term(kind, args, params);
 
     d_smgr.add_term(res, sort_kind, args);
-
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
@@ -1156,7 +1220,7 @@ class ActionMkConst : public Action
   {
     assert(d_solver.is_initialized());
 
-    /* creating constants with SORT_REGLAN not supported by any solver right
+    /* Creating constants with SORT_REGLAN not supported by any solver right
      * now. */
     SortKindSet exclude = {SORT_REGLAN};
 
@@ -2079,6 +2143,8 @@ class ActionGetValue : public Action
         SortKind sort_kind = sort->get_kind();
         assert(sort_kind != SORT_ANY);
         d_smgr.add_term(res[i], sort_kind);
+        /* We don't trace resulting terms on purpose, would cause problems
+         * with traces across solvers. */
       }
     }
   }
@@ -2232,6 +2298,8 @@ FSM::configure()
   /* --------------------------------------------------------------------- */
   /* Actions                                                               */
   /* --------------------------------------------------------------------- */
+
+  (void) new_action<ActionTermGetSort>();  // not added to any state
 
   auto a_new    = new_action<ActionNew>();
   auto a_delete = new_action<ActionDelete>();

@@ -61,6 +61,9 @@ class SolverManager
   /** Get random number generator. */
   RNGenerator& get_rng() const;
 
+  /** Get the list of terms for which tracing with get-sort is pending. */
+  std::vector<Term>& get_pending_get_sorts();
+
   /** Get the trace line for the current seed ("set-seed <seed>"). */
   std::string trace_seed() const;
 
@@ -507,6 +510,23 @@ class SolverManager
 
   /** Set of currently created string values with length 1. */
   std::unordered_set<Term, HashTerm> d_string_char_values;
+
+  /**
+   * List of terms for which we have to trace a ("phantom") action
+   * 'term-get-sort'.
+   *
+   * When adding terms of parameterized sort, e.g., bit-vectors or
+   * floating-points, or when creating terms with a Real operator, that is
+   * actually of sort Int, it can happen that the resulting term has yet unknown
+   * sort, i.e., a sort that has not previously been created via ActionMksort.
+   * In order to ensure that the untracer can map such sorts back correctly,
+   * we have to trace a "phantom" action (= an action, that is only executed
+   * when untracing) for new sorts.
+   *
+   * This vector holds all terms that have been created while executing the
+   * previous action with yet unseen sort.
+   */
+  std::vector<Term> d_pending_get_sorts;
 };
 
 /* -------------------------------------------------------------------------- */

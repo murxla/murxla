@@ -84,7 +84,7 @@ add
     }
 ```
 
-solver-specific ops:
+## Solver-Specific Operators
 override op string
 solver manager: add op kind
 -> override `Solver::configure_smgr()`

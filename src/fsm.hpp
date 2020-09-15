@@ -23,6 +23,11 @@
 #define SMTMBT_TRACE_RETURN \
   OstreamVoider() & FSM::TraceStream(d_smgr).stream() << "return "
 
+#define SMTMBT_TRACE_GET_SORT             \
+  OstreamVoider()                         \
+      & FSM::TraceStream(d_smgr).stream() \
+            << s_kind_to_str.at(Action::Kind::TERM_GET_SORT) << " "
+
 /* -------------------------------------------------------------------------- */
 
 namespace smtmbt {
@@ -87,6 +92,7 @@ class Action
     MK_CONST,
     MK_VAR,
     MK_TERM,
+    TERM_GET_SORT,
     TERM_CHECK_SORT,
     ASSERT_FORMULA,
     GET_UNSAT_ASSUMPTIONS,
@@ -159,6 +165,19 @@ class Action
   const Kind get_kind() const { return d_kind; }
   bool empty() const { return d_is_empty; }
 
+  /**
+   * Trace a ("phantom") action 'get-sort' for given term.
+   *
+   * When adding terms of parameterized sort, e.g., bit-vectors or
+   * floating-points, or when creating terms with a Real operator, that is
+   * actually of sort Int, it can happen that the resulting term has yet unknown
+   * sort, i.e., a sort that has not previously been created via ActionMksort.
+   * In order to ensure that the untracer can map such sorts back correctly,
+   * we have to trace a "phantom" action (= an action, that is only executed
+   * when untracing) for new sorts.
+   */
+  void trace_get_sorts() const;
+
  protected:
   void reset_sat();
   /* The random number generator associated with this action. */
@@ -201,6 +220,15 @@ class TransitionDefault : public Transition
   TransitionDefault(SolverManager& smgr) : Transition(smgr, Action::Kind::TRANS)
   {
   }
+};
+
+/** "Phantom" action that is only used for untracing.  */
+class UntraceAction : public Action
+{
+ public:
+  UntraceAction(SolverManager& smgr, const Kind kind) : Action(smgr, kind) {}
+  bool run() override { assert(false); }  // not to be used
+  uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
 };
 
 struct ActionTuple
