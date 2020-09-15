@@ -1063,6 +1063,7 @@ CVC4Solver::init_op_kinds()
       {OP_INT_LTE, CVC4::api::Kind::LEQ},
       {OP_INT_GT, CVC4::api::Kind::GT},
       {OP_INT_GTE, CVC4::api::Kind::GEQ},
+      {OP_INT_IS_INT, CVC4::api::Kind::IS_INTEGER},
 
       /* Reals */
       {OP_REAL_NEG, CVC4::api::Kind::UMINUS},
@@ -1074,6 +1075,7 @@ CVC4Solver::init_op_kinds()
       {OP_REAL_LTE, CVC4::api::Kind::LEQ},
       {OP_REAL_GT, CVC4::api::Kind::GT},
       {OP_REAL_GTE, CVC4::api::Kind::GEQ},
+      {OP_REAL_IS_INT, CVC4::api::Kind::IS_INTEGER},
 
       /* Quantifiers */
       {OP_FORALL, CVC4::api::Kind::FORALL},
