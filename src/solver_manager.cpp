@@ -179,7 +179,6 @@ SolverManager::add_term(Term& term,
    * in d_sorts. Hence, we need to do a lookup on d_sorts if we already have
    * a matching sort. */
   Sort sort = d_solver->get_sort(term, sort_kind);
-  assert(sort->get_kind() == SORT_ANY);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
   bool unseen = lookup->get_kind() == SORT_ANY;

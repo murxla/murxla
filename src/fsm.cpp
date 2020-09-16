@@ -2605,6 +2605,13 @@ FSM::untrace(std::string& trace_file_name)
         throw SmtMbtFSMException(ss);
       }
 
+      if (d_actions.find(id) == d_actions.end())
+      {
+        std::stringstream ss;
+        ss << "untrace: unknown action '" << id << "'";
+        throw SmtMbtFSMException(ss);
+      }
+
       // TODO: we also need a register_sort in case sorts get removed while
       // delta debugging
       /* Make sure that ids for terms/sorts are the same as in the trace. */
@@ -2613,8 +2620,6 @@ FSM::untrace(std::string& trace_file_name)
           || id == Action::Kind::MK_VALUE || id == Action::Kind::MK_VAR
           || id == Action::Kind::CVC4_SIMPLIFY)
       {
-        assert(d_actions.find(id) != d_actions.end());
-
         try
         {
           ret_val = d_actions.at(id)->untrace(tokens);
@@ -2666,7 +2671,6 @@ FSM::untrace(std::string& trace_file_name)
         continue;
       }
 
-      assert(d_actions.find(id) != d_actions.end());
       ret_val = d_actions.at(id)->untrace(tokens);
     }
   }
