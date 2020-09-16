@@ -261,7 +261,7 @@ YicesSolver::set_opt(const std::string& opt, const std::string& value)
 bool
 YicesSolver::check_failed_assumption(const Term& t) const
 {
-  // TODO
+  assert(is_valid_term(get_yices_term(t)));
   return true;
 }
 
