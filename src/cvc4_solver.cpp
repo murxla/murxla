@@ -952,6 +952,126 @@ CVC4Solver::terms_to_cvc4_terms(std::vector<Term>& terms) const
 
 /* -------------------------------------------------------------------------- */
 
+// ##### TODO OPS
+
+//  ABSTRACT_VALUE,
+//  LAMBDA,
+//  WITNESS,
+//  CARDINALITY_CONSTRAINT,
+//  CARDINALITY_VALUE,
+//  HO_APPLY,
+
+//  ## Ints
+//  IAND,
+
+//  ## Arithmetic
+//  POW,
+//  EXPONENTIAL,
+//  TO_INTEGER,
+//  TO_REAL,
+
+// ## Arithmetic transcendental
+//  SINE,
+//  COSINE,
+//  TANGENT,
+//  COSECANT,
+//  SECANT,
+//  COTANGENT,
+//  ARCSINE,
+//  ARCCOSINE,
+//  ARCTANGENT,
+//  ARCCOSECANT,
+//  ARCSECANT,
+//  ARCCOTANGENT,
+//  SQRT,
+
+//  ## Reals
+//  PI,
+
+//  ## Bit-Vectors
+//  BITVECTOR_ULTBV,
+//  BITVECTOR_SLTBV,
+//  BITVECTOR_ITE,
+//  INT_TO_BITVECTOR,
+//  BITVECTOR_TO_NAT,
+
+//  ## Floating-Points
+//  FLOATINGPOINT_TO_FP_GENERIC,
+
+// ## Arrays
+//  EQ_RANGE,
+
+//  ## Datatypes
+//  APPLY_CONSTRUCTOR,
+//  APPLY_SELECTOR,
+//  APPLY_TESTER,
+//  TUPLE_UPDATE,
+//  RECORD_UPDATE,
+//  MATCH,
+//  MATCH_CASE,
+//  MATCH_BIND_CASE,
+//  DT_SIZE,
+
+//  ## Separation Logic
+//  SEP_NIL,
+//  SEP_EMP,
+//  SEP_PTO,
+//  SEP_STAR,
+//  SEP_WAND,
+
+//  ## Sets
+//  EMPTYSET,
+//  UNION,
+//  INTERSECTION,
+//  SETMINUS,
+//  SUBSET,
+//  MEMBER,
+//  SINGLETON,
+//  INSERT,
+//  CARD,
+//  COMPLEMENT,
+//  UNIVERSE_SET,
+//  JOIN,
+//  PRODUCT,
+//  TRANSPOSE,
+//  TCLOSURE,
+//  JOIN_IMAGE,
+//  IDEN,
+//  COMPREHENSION,
+//  CHOOSE,
+//  IS_SINGLETON,
+
+//  ## Strings
+//  STRING_UPDATE,
+//  STRING_TOLOWER,
+//  STRING_TOUPPER,
+//  STRING_REV,
+//  REGEXP_EMPTY,
+//  REGEXP_SIGMA,
+
+//  ## Sequences
+//  SEQ_CONCAT,
+//  SEQ_LENGTH,
+//  SEQ_EXTRACT,
+//  SEQ_UPDATE,
+//  SEQ_AT,
+//  SEQ_CONTAINS,
+//  SEQ_INDEXOF,
+//  SEQ_REPLACE,
+//  SEQ_REPLACE_ALL,
+//  SEQ_REV,
+//  SEQ_PREFIX,
+//  SEQ_SUFFIX,
+//  SEQ_UNIT,
+//  SEQ_NTH,
+
+//  ## Quantifiers
+//  INST_CLOSURE,
+//  INST_PATTERN,
+//  INST_NO_PATTERN,
+//  INST_ATTRIBUTE,
+//  INST_PATTERN_LIST,
+
 void
 CVC4Solver::init_op_kinds()
 {
