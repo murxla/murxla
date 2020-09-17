@@ -2568,6 +2568,7 @@ FSM::untrace(std::string& trace_file_name)
   while (std::getline(trace, line))
   {
     nline += 1;
+    if (line.empty()) continue;
     if (line[0] == '#') continue;
 
     std::string id_str;
