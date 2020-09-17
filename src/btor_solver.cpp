@@ -1458,7 +1458,7 @@ class BtorActionBvAssignment : public Action
 {
  public:
   BtorActionBvAssignment(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_BV_ASSIGNMENT)
+      : Action(smgr, Action::Kind::BTOR_BV_ASSIGNMENT, false)
   {
   }
 
@@ -1511,7 +1511,8 @@ class BtorActionBvAssignment : public Action
 class BtorActionClone : public Action
 {
  public:
-  BtorActionClone(SolverManager& smgr) : Action(smgr, Action::Kind::BTOR_CLONE)
+  BtorActionClone(SolverManager& smgr)
+      : Action(smgr, Action::Kind::BTOR_CLONE, false)
   {
   }
 
@@ -1629,7 +1630,7 @@ class BtorActionFailed : public Action
 {
  public:
   BtorActionFailed(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_FAILED)
+      : Action(smgr, Action::Kind::BTOR_FAILED, false)
   {
   }
 
@@ -1668,7 +1669,7 @@ class BtorActionFixateAssumptions : public Action
 {
  public:
   BtorActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_FIXATE_ASSUMPTIONS)
+      : Action(smgr, Action::Kind::BTOR_FIXATE_ASSUMPTIONS, false)
   {
   }
 
@@ -1701,7 +1702,7 @@ class BtorActionOptIterator : public Action
 {
  public:
   BtorActionOptIterator(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_OPT_ITERATOR)
+      : Action(smgr, Action::Kind::BTOR_OPT_ITERATOR, false)
   {
   }
 
@@ -1755,7 +1756,7 @@ class BtorActionReleaseAll : public Action
 {
  public:
   BtorActionReleaseAll(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_RELEASE_ALL)
+      : Action(smgr, Action::Kind::BTOR_RELEASE_ALL, false)
   {
   }
 
@@ -1787,7 +1788,7 @@ class BtorActionResetAssumptions : public Action
 {
  public:
   BtorActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_RESET_ASSUMPTIONS)
+      : Action(smgr, Action::Kind::BTOR_RESET_ASSUMPTIONS, false)
   {
   }
 
@@ -1820,7 +1821,7 @@ class BtorActionSetSatSolver : public Action
 {
  public:
   BtorActionSetSatSolver(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_SET_SAT_SOLVER)
+      : Action(smgr, Action::Kind::BTOR_SET_SAT_SOLVER, false)
   {
   }
 
@@ -1855,7 +1856,7 @@ class BtorActionSimplify : public Action
 {
  public:
   BtorActionSimplify(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_SIMPLIFY)
+      : Action(smgr, Action::Kind::BTOR_SIMPLIFY, false)
   {
   }
 
@@ -1888,7 +1889,7 @@ class BtorActionSetSymbol : public Action
 {
  public:
   BtorActionSetSymbol(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_SET_SYMBOL)
+      : Action(smgr, Action::Kind::BTOR_SET_SYMBOL, false)
   {
   }
 

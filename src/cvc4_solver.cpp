@@ -1279,7 +1279,7 @@ class CVC4ActionCheckEntailed : public Action
 {
  public:
   CVC4ActionCheckEntailed(SolverManager& smgr)
-      : Action(smgr, Action::Kind::CVC4_CHECK_ENTAILED)
+      : Action(smgr, Action::Kind::CVC4_CHECK_ENTAILED, false)
   {
   }
 
@@ -1407,7 +1407,7 @@ class CVC4ActionSimplify : public Action
 {
  public:
   CVC4ActionSimplify(SolverManager& smgr)
-      : Action(smgr, Action::Kind::CVC4_SIMPLIFY)
+      : Action(smgr, Action::Kind::CVC4_SIMPLIFY, true)
   {
   }
 

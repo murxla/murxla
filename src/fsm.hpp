@@ -137,10 +137,11 @@ class Action
   /** Disallow default constructor. */
   Action() = delete;
   /** Constructor. */
-  Action(SolverManager& smgr, const Kind kind, bool empty = false)
+  Action(SolverManager& smgr, const Kind kind, bool returns, bool empty = false)
       : d_rng(smgr.get_rng()),
         d_solver(smgr.get_solver()),
         d_smgr(smgr),
+        d_returns(returns),
         d_is_empty(empty),
         d_kind(kind)
 
@@ -163,6 +164,12 @@ class Action
   virtual uint64_t untrace(std::vector<std::string>& tokens) = 0;
 
   const Kind get_kind() const { return d_kind; }
+  /** Returns true if this action returns a Term or Sort. */
+  bool returns() const { return d_returns; }
+  /**
+   * Returns true if this action is empty, i.e., a transition without
+   * performing any API calls.
+   */
   bool empty() const { return d_is_empty; }
 
   /**
@@ -180,13 +187,15 @@ class Action
 
  protected:
   void reset_sat();
-  /* The random number generator associated with this action. */
+  /** The random number generator associated with this action. */
   RNGenerator& d_rng;
-  /* The solver associated with this action. */
+  /** The solver associated with this action. */
   Solver& d_solver;
-  /* The solver manager associated with this action. */
+  /** The solver manager associated with this action. */
   SolverManager& d_smgr;
-  /* True if this is an empty transition. */
+  /** True if this returns a Term or Sort. */
+  bool d_returns = false;
+  /** True if this is an empty transition. */
   bool d_is_empty = false;
 
  private:
@@ -203,7 +212,10 @@ std::ostream& operator<<(std::ostream& out, Action::Kind kind);
 class Transition : public Action
 {
  public:
-  Transition(SolverManager& smgr, const Kind kind) : Action(smgr, kind, true) {}
+  Transition(SolverManager& smgr, const Kind kind)
+      : Action(smgr, kind, false, true)
+  {
+  }
   bool run() override { return true; }
   uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
 };
@@ -226,7 +238,10 @@ class TransitionDefault : public Transition
 class UntraceAction : public Action
 {
  public:
-  UntraceAction(SolverManager& smgr, const Kind kind) : Action(smgr, kind) {}
+  UntraceAction(SolverManager& smgr, const Kind kind, bool returns)
+      : Action(smgr, kind, returns)
+  {
+  }
   bool run() override { assert(false); }  // not to be used
   uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
 };

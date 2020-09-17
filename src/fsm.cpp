@@ -375,7 +375,7 @@ class ActionTermGetSort : public UntraceAction
 {
  public:
   ActionTermGetSort(SolverManager& smgr)
-      : UntraceAction(smgr, Action::Kind::TERM_GET_SORT)
+      : UntraceAction(smgr, Action::Kind::TERM_GET_SORT, true)
   {
   }
 
@@ -415,7 +415,7 @@ class ActionTermGetSort : public UntraceAction
 class ActionNew : public Action
 {
  public:
-  ActionNew(SolverManager& smgr) : Action(smgr, Action::Kind::NEW) {}
+  ActionNew(SolverManager& smgr) : Action(smgr, Action::Kind::NEW, false) {}
 
   bool run() override
   {
@@ -447,7 +447,9 @@ class ActionNew : public Action
 class ActionDelete : public Action
 {
  public:
-  ActionDelete(SolverManager& smgr) : Action(smgr, Action::Kind::DELETE) {}
+  ActionDelete(SolverManager& smgr) : Action(smgr, Action::Kind::DELETE, false)
+  {
+  }
 
   bool run() override
   {
@@ -480,7 +482,8 @@ class ActionDelete : public Action
 class ActionSetOption : public Action
 {
  public:
-  ActionSetOption(SolverManager& smgr) : Action(smgr, Action::Kind::SET_OPTION)
+  ActionSetOption(SolverManager& smgr)
+      : Action(smgr, Action::Kind::SET_OPTION, false)
   {
   }
 
@@ -558,7 +561,9 @@ class ActionSetOption : public Action
 class ActionMkSort : public Action
 {
  public:
-  ActionMkSort(SolverManager& smgr) : Action(smgr, Action::Kind::MK_SORT) {}
+  ActionMkSort(SolverManager& smgr) : Action(smgr, Action::Kind::MK_SORT, true)
+  {
+  }
 
   bool run() override
   {
@@ -783,7 +788,9 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
-  ActionMkTerm(SolverManager& smgr) : Action(smgr, Action::Kind::MK_TERM) {}
+  ActionMkTerm(SolverManager& smgr) : Action(smgr, Action::Kind::MK_TERM, true)
+  {
+  }
 
   bool run() override
   {
@@ -1214,7 +1221,10 @@ class ActionMkTerm : public Action
 class ActionMkConst : public Action
 {
  public:
-  ActionMkConst(SolverManager& smgr) : Action(smgr, Action::Kind::MK_CONST) {}
+  ActionMkConst(SolverManager& smgr)
+      : Action(smgr, Action::Kind::MK_CONST, true)
+  {
+  }
 
   bool run() override
   {
@@ -1270,7 +1280,7 @@ class ActionMkConst : public Action
 class ActionMkVar : public Action
 {
  public:
-  ActionMkVar(SolverManager& smgr) : Action(smgr, Action::Kind::MK_VAR) {}
+  ActionMkVar(SolverManager& smgr) : Action(smgr, Action::Kind::MK_VAR, true) {}
 
   bool run() override
   {
@@ -1322,7 +1332,10 @@ class ActionMkVar : public Action
 class ActionMkValue : public Action
 {
  public:
-  ActionMkValue(SolverManager& smgr) : Action(smgr, Action::Kind::MK_VALUE) {}
+  ActionMkValue(SolverManager& smgr)
+      : Action(smgr, Action::Kind::MK_VALUE, true)
+  {
+  }
 
   bool run() override
   {
@@ -1785,7 +1798,7 @@ class ActionTermCheckSort : public Action
 {
  public:
   ActionTermCheckSort(SolverManager& smgr)
-      : Action(smgr, Action::Kind::TERM_CHECK_SORT)
+      : Action(smgr, Action::Kind::TERM_CHECK_SORT, false)
   {
   }
 
@@ -1874,7 +1887,7 @@ class ActionAssertFormula : public Action
 {
  public:
   ActionAssertFormula(SolverManager& smgr)
-      : Action(smgr, Action::Kind::ASSERT_FORMULA)
+      : Action(smgr, Action::Kind::ASSERT_FORMULA, false)
   {
   }
 
@@ -1920,7 +1933,10 @@ class ActionAssertFormula : public Action
 class ActionCheckSat : public Action
 {
  public:
-  ActionCheckSat(SolverManager& smgr) : Action(smgr, Action::Kind::CHECK_SAT) {}
+  ActionCheckSat(SolverManager& smgr)
+      : Action(smgr, Action::Kind::CHECK_SAT, false)
+  {
+  }
 
   bool run() override
   {
@@ -1960,7 +1976,7 @@ class ActionCheckSatAssuming : public Action
 {
  public:
   ActionCheckSatAssuming(SolverManager& smgr)
-      : Action(smgr, Action::Kind::CHECK_SAT_ASSUMING)
+      : Action(smgr, Action::Kind::CHECK_SAT_ASSUMING, false)
   {
   }
 
@@ -2022,7 +2038,7 @@ class ActionGetUnsatAssumptions : public Action
 {
  public:
   ActionGetUnsatAssumptions(SolverManager& smgr)
-      : Action(smgr, Action::Kind::GET_UNSAT_ASSUMPTIONS)
+      : Action(smgr, Action::Kind::GET_UNSAT_ASSUMPTIONS, false)
   {
   }
 
@@ -2072,7 +2088,10 @@ class ActionGetUnsatAssumptions : public Action
 class ActionGetValue : public Action
 {
  public:
-  ActionGetValue(SolverManager& smgr) : Action(smgr, Action::Kind::GET_VALUE) {}
+  ActionGetValue(SolverManager& smgr)
+      : Action(smgr, Action::Kind::GET_VALUE, true)
+  {
+  }
 
   bool run() override
   {
@@ -2153,7 +2172,7 @@ class ActionGetValue : public Action
 class ActionPush : public Action
 {
  public:
-  ActionPush(SolverManager& smgr) : Action(smgr, Action::Kind::PUSH) {}
+  ActionPush(SolverManager& smgr) : Action(smgr, Action::Kind::PUSH, false) {}
 
   bool run() override
   {
@@ -2184,7 +2203,7 @@ class ActionPush : public Action
 class ActionPop : public Action
 {
  public:
-  ActionPop(SolverManager& smgr) : Action(smgr, Action::Kind::POP) {}
+  ActionPop(SolverManager& smgr) : Action(smgr, Action::Kind::POP, false) {}
 
   bool run() override
   {
@@ -2217,7 +2236,7 @@ class ActionResetAssertions : public Action
 {
  public:
   ActionResetAssertions(SolverManager& smgr)
-      : Action(smgr, Action::Kind::RESET_ASSERTIONS)
+      : Action(smgr, Action::Kind::RESET_ASSERTIONS, false)
   {
   }
 
@@ -2254,7 +2273,7 @@ class ActionPrintModel : public Action
 {
  public:
   ActionPrintModel(SolverManager& smgr)
-      : Action(smgr, Action::Kind::PRINT_MODEL)
+      : Action(smgr, Action::Kind::PRINT_MODEL, false)
   {
   }
 
@@ -2613,17 +2632,13 @@ FSM::untrace(std::string& trace_file_name)
         throw SmtMbtFSMException(ss);
       }
 
-      // TODO: we also need a register_sort in case sorts get removed while
-      // delta debugging
-      /* Make sure that ids for terms/sorts are the same as in the trace. */
-      if (id == Action::Kind::MK_SORT || id == Action::TERM_GET_SORT
-          || id == Action::Kind::MK_TERM || id == Action::Kind::MK_CONST
-          || id == Action::Kind::MK_VALUE || id == Action::Kind::MK_VAR
-          || id == Action::Kind::CVC4_SIMPLIFY)
+      Action* action = d_actions.at(id).get();
+
+      if (action->returns())
       {
         try
         {
-          ret_val = d_actions.at(id)->untrace(tokens);
+          ret_val = action->untrace(tokens);
         }
         catch (SmtMbtFSMUntraceException& e)
         {
@@ -2672,7 +2687,7 @@ FSM::untrace(std::string& trace_file_name)
         continue;
       }
 
-      ret_val = d_actions.at(id)->untrace(tokens);
+      ret_val = action->untrace(tokens);
     }
   }
   if (trace.is_open()) trace.close();
