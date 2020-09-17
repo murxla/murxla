@@ -86,7 +86,13 @@ class CVC4Term : public AbsTerm
 class CVC4Solver : public Solver
 {
  public:
+  /** Solver-specific actions. */
+  static const std::string ACTION_CHECK_ENTAILED;
+  static const std::string ACTION_SIMPLIFY;
+
+  /** Constructor. */
   CVC4Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  /** Destructor. */
   ~CVC4Solver() override{};
 
   OpKindSet get_unsupported_op_kinds() const override;
@@ -182,7 +188,7 @@ class CVC4Solver : public Solver
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_kinds;
   std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_op_kinds;
 
-  /* solver-specific operators */
+  /** solver-specific operators */
   const OpKind d_op_redand = OP_EXT_OP_01;
   const OpKind d_op_redor  = OP_EXT_OP_02;
 };

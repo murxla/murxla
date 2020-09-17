@@ -335,6 +335,7 @@ initialize_statistics()
                                         MAP_ANONYMOUS | MAP_SHARED,
                                         fd,
                                         0));
+  memset(stats, 0, sizeof(Statistics));
 
   if (close(fd)) die("failed to close shared memory file for statistics");
   (void) unlink(shmfilename.c_str());
@@ -1168,21 +1169,21 @@ run_aux(Options& options,
           rng, smt2, smt2_online, to_external, from_external);
     }
 
-    FSM fsm(rng,
-            solver,
-            trace,
-            solver_options,
-            options.arith_linear,
-            options.trace_seeds,
-            !options.cross_check.empty(),
-            options.simple_symbols,
-            options.smt,
-            stats,
-            options.enabled_theories);
-    fsm.configure();
-
     try
     {
+      FSM fsm(rng,
+              solver,
+              trace,
+              solver_options,
+              options.arith_linear,
+              options.trace_seeds,
+              !options.cross_check.empty(),
+              options.simple_symbols,
+              options.smt,
+              stats,
+              options.enabled_theories);
+      fsm.configure();
+
       /* replay/untrace given API trace */
       if (untrace)
       {
@@ -1909,7 +1910,10 @@ main(int argc, char* argv[])
 
   print_error_summary();
 
-  if (g_options.print_stats) g_stats->print();
+  if (g_options.print_stats)
+  {
+    g_stats->print();
+  }
 
   if (munmap(g_stats, sizeof(Statistics)))
     die("failed to unmap shared memory for statistics");

@@ -1,5 +1,7 @@
 #include "statistics.hpp"
 
+#include "fsm.hpp"  // TODO temporary until refactor is done
+
 namespace smtmbt {
 namespace statistics {
 
@@ -22,11 +24,10 @@ Statistics::print() const
 
   sum = 0;
   std::cout << "Actions:" << std::endl;
-  for (uint32_t i = Action::Kind::UNDEFINED + 1; i < Action::Kind::NUM_ACTIONS;
-       ++i)
+  for (uint32_t i = 0; i < SMTMBT_MAX_N_ACTIONS && d_action_kinds[i][0]; ++i)
   {
-    std::cout << "  " << static_cast<Action::Kind>(i) << ": " << d_actions[i]
-              << " (" << d_actions_ok[i] << ")" << std::endl;
+    std::cout << "  " << d_action_kinds[i] << ": " << d_actions[i] << " ("
+              << d_actions_ok[i] << ")" << std::endl;
     sum += d_actions[i];
   }
   std::cout << "  Total: " << sum << std::endl;

@@ -6,29 +6,38 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "config.hpp"
 #include "solver_manager.hpp"
-#include "statistics.hpp"
-
-/* -------------------------------------------------------------------------- */
 
 namespace smtmbt {
 
-const std::unordered_map<State::Kind, std::string> State::s_kind_to_str = {
-    {State::Kind::NEW, "new"},
-    {State::Kind::OPT, "opt"},
-    {State::Kind::DELETE, "delete"},
-    {State::Kind::FINAL, "final"},
-    {State::Kind::CREATE_SORTS, "create_sorts"},
-    {State::Kind::CREATE_INPUTS, "create_inputs"},
-    {State::Kind::CREATE_TERMS, "create_terms"},
-    {State::Kind::ASSERT, "assert"},
-    {State::Kind::MODEL, "model"},
-    {State::Kind::CHECK_SAT, "check_sat"},
-    {State::Kind::PUSH_POP, "push_pop"},
+/* -------------------------------------------------------------------------- */
+/* Action                                                                     */
+/* -------------------------------------------------------------------------- */
 
-    {State::Kind::BTOR_FIX_RESET_ASSUMPTIONS, "btor-fix-reset-assumptions"},
-};
+const std::string Action::UNDEFINED             = "undefined";
+const std::string Action::NEW                   = "new";
+const std::string Action::DELETE                = "delete";
+const std::string Action::MK_SORT               = "mk-sort";
+const std::string Action::MK_VALUE              = "mk-value";
+const std::string Action::MK_CONST              = "mk-const";
+const std::string Action::MK_VAR                = "mk-var";
+const std::string Action::MK_TERM               = "mk-term";
+const std::string Action::TERM_GET_SORT         = "term-get-sort";
+const std::string Action::TERM_CHECK_SORT       = "term-check-sort";
+const std::string Action::ASSERT_FORMULA        = "assert-formula";
+const std::string Action::GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
+const std::string Action::GET_VALUE             = "get-value";
+const std::string Action::PRINT_MODEL           = "print-model";
+const std::string Action::CHECK_SAT             = "check-sat";
+const std::string Action::CHECK_SAT_ASSUMING    = "check-sat-assuming";
+const std::string Action::PUSH                  = "push";
+const std::string Action::POP                   = "pop";
+const std::string Action::RESET_ASSERTIONS      = "reset-assertions";
+const std::string Action::SET_OPTION            = "set-option";
+const std::string Action::TRANS                 = "t_default";
+const std::string Action::TRANS_CREATE_INPUTS   = "t_inputs";
+const std::string Action::TRANS_CREATE_SORTS    = "t_sorts";
+const std::string Action::TRANS_MODEL           = "t_model";
 
 std::ostream&
 operator<<(std::ostream& out, State::Kind kind)
@@ -36,63 +45,6 @@ operator<<(std::ostream& out, State::Kind kind)
   assert(State::s_kind_to_str.find(kind) != State::s_kind_to_str.end());
   out << State::s_kind_to_str.at(kind);
   return out;
-}
-
-const std::unordered_map<Action::Kind, std::string> Action::s_kind_to_str = {
-    {Action::Kind::NEW, "new"},
-    {Action::Kind::DELETE, "delete"},
-    {Action::Kind::MK_SORT, "mk-sort"},
-    {Action::Kind::MK_VALUE, "mk-value"},
-    {Action::Kind::MK_CONST, "mk-const"},
-    {Action::Kind::MK_VAR, "mk-var"},
-    {Action::Kind::MK_TERM, "mk-term"},
-    {Action::Kind::TERM_GET_SORT, "term-get-sort"},
-    {Action::Kind::TERM_CHECK_SORT, "term-check-sort"},
-    {Action::Kind::ASSERT_FORMULA, "assert-formula"},
-    {Action::Kind::GET_UNSAT_ASSUMPTIONS, "get-unsat-assumptions"},
-    {Action::Kind::GET_VALUE, "get-value"},
-    {Action::Kind::PRINT_MODEL, "print-model"},
-    {Action::Kind::CHECK_SAT, "check-sat"},
-    {Action::Kind::CHECK_SAT_ASSUMING, "check-sat-assuming"},
-    {Action::Kind::PUSH, "push"},
-    {Action::Kind::POP, "pop"},
-    {Action::Kind::RESET_ASSERTIONS, "reset-assertions"},
-    {Action::Kind::SET_OPTION, "set-option"},
-
-    /* default for all transitions */
-    {Action::Kind::TRANS, "t_default"},
-    {Action::Kind::TRANS_CREATE_INPUTS, "t_inputs"},
-    {Action::Kind::TRANS_CREATE_SORTS, "t_sorts"},
-    {Action::Kind::TRANS_MODEL, "t_model"},
-
-    /* Boolector specific actions */
-    {Action::Kind::BTOR_OPT_ITERATOR, "btor-opt-iterator"},
-    {Action::Kind::BTOR_BV_ASSIGNMENT, "btor-bv-assignment"},
-    {Action::Kind::BTOR_CLONE, "btor-clone"},
-    {Action::Kind::BTOR_FAILED, "btor-failed"},
-    {Action::Kind::BTOR_FIXATE_ASSUMPTIONS, "btor-fixate-assumptions"},
-    {Action::Kind::BTOR_RESET_ASSUMPTIONS, "btor-reset-assumptions"},
-    {Action::Kind::BTOR_RELEASE_ALL, "btor-release-all"},
-    {Action::Kind::BTOR_SIMPLIFY, "btor-simplify"},
-    {Action::Kind::BTOR_SET_SAT_SOLVER, "btor-set-sat-solver"},
-    {Action::Kind::BTOR_SET_SYMBOL, "btor-set-symbol"},
-
-    /* CVC4 specific actions */
-    {Action::Kind::CVC4_CHECK_ENTAILED, "cvc4-check-entailed"},
-    {Action::Kind::CVC4_SIMPLIFY, "cvc4-simplify"},
-};
-
-const Action::Kind
-Action::get_kind(const std::string& s)
-{
-  for (const auto& it : Action::s_kind_to_str)
-  {
-    if (it.second == s)
-    {
-      return it.first;
-    }
-  }
-  return Action::Kind::UNDEFINED;
 }
 
 void
@@ -114,15 +66,25 @@ Action::reset_sat()
   d_solver.reset_sat();
 }
 
-std::ostream&
-operator<<(std::ostream& out, Action::Kind kind)
-{
-  assert(Action::s_kind_to_str.find(kind) != Action::s_kind_to_str.end());
-  out << Action::s_kind_to_str.at(kind);
-  return out;
-}
-
 /* -------------------------------------------------------------------------- */
+/* State                                                                      */
+/* -------------------------------------------------------------------------- */
+
+const std::unordered_map<State::Kind, std::string> State::s_kind_to_str = {
+    {State::Kind::NEW, "new"},
+    {State::Kind::OPT, "opt"},
+    {State::Kind::DELETE, "delete"},
+    {State::Kind::FINAL, "final"},
+    {State::Kind::CREATE_SORTS, "create_sorts"},
+    {State::Kind::CREATE_INPUTS, "create_inputs"},
+    {State::Kind::CREATE_TERMS, "create_terms"},
+    {State::Kind::ASSERT, "assert"},
+    {State::Kind::MODEL, "model"},
+    {State::Kind::CHECK_SAT, "check_sat"},
+    {State::Kind::PUSH_POP, "push_pop"},
+
+    {State::Kind::BTOR_FIX_RESET_ASSUMPTIONS, "btor-fix-reset-assumptions"},
+};
 
 void
 State::add_action(Action* a, uint32_t priority, State* next)
@@ -130,8 +92,6 @@ State::add_action(Action* a, uint32_t priority, State* next)
   d_actions.emplace_back(ActionTuple(a, next == nullptr ? this : next));
   d_weights.push_back(priority);
 }
-
-/* -------------------------------------------------------------------------- */
 
 State*
 State::run(RNGenerator& rng)
@@ -158,7 +118,7 @@ State::run(RNGenerator& rng)
   }
 
   /* record action statistics */
-  ++d_mbt_stats->d_actions[atup.d_action->get_kind()];
+  ++d_mbt_stats->d_actions[atup.d_action->get_id()];
 
   /* When adding terms of parameterized sort, e.g., bit-vectors or
    * floating-points, or when creating terms with a Real operator, that is
@@ -173,7 +133,7 @@ State::run(RNGenerator& rng)
       && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
   {
     /* record action statistics */
-    ++d_mbt_stats->d_actions_ok[atup.d_action->get_kind()];
+    ++d_mbt_stats->d_actions_ok[atup.d_action->get_id()];
 
     return d_actions[idx].d_next;
   }
@@ -181,6 +141,8 @@ State::run(RNGenerator& rng)
   return this;
 }
 
+/* -------------------------------------------------------------------------- */
+/* FSM                                                                        */
 /* -------------------------------------------------------------------------- */
 
 FSM::FSM(RNGenerator& rng,
@@ -215,6 +177,20 @@ SolverManager&
 FSM::get_smgr()
 {
   return d_smgr;
+}
+
+std::unordered_map<uint64_t, std::string>
+FSM::get_action_id_mapping()
+{
+  std::unordered_map<uint64_t, std::string> res;
+  for (const auto& tuple : d_actions)
+  {
+    uint64_t id      = tuple.second->get_id();
+    std::string kind = tuple.second->get_kind();
+    assert(res.find(id) == res.end());
+    res.emplace(id, kind);
+  }
+  return res;
 }
 
 State*
@@ -341,7 +317,7 @@ class TransitionCreateInputs : public Transition
 {
  public:
   TransitionCreateInputs(SolverManager& smgr)
-      : Transition(smgr, Action::Kind::TRANS_CREATE_INPUTS)
+      : Transition(smgr, TRANS_CREATE_INPUTS)
   {
   }
   bool run() override { return d_smgr.d_stats.inputs > 0; }
@@ -351,7 +327,7 @@ class TransitionCreateSorts : public Transition
 {
  public:
   TransitionCreateSorts(SolverManager& smgr)
-      : Transition(smgr, Action::Kind::TRANS_CREATE_SORTS)
+      : Transition(smgr, TRANS_CREATE_SORTS)
   {
   }
   bool run() override { return d_smgr.d_stats.sorts > 0; }
@@ -360,10 +336,7 @@ class TransitionCreateSorts : public Transition
 class TransitionModel : public Transition
 {
  public:
-  TransitionModel(SolverManager& smgr)
-      : Transition(smgr, Action::Kind::TRANS_MODEL)
-  {
-  }
+  TransitionModel(SolverManager& smgr) : Transition(smgr, TRANS_MODEL) {}
   bool run() override { return d_smgr.d_sat_result == Solver::Result::SAT; }
 };
 
@@ -375,7 +348,7 @@ class ActionTermGetSort : public UntraceAction
 {
  public:
   ActionTermGetSort(SolverManager& smgr)
-      : UntraceAction(smgr, Action::Kind::TERM_GET_SORT, true)
+      : UntraceAction(smgr, TERM_GET_SORT, true)
   {
   }
 
@@ -415,7 +388,7 @@ class ActionTermGetSort : public UntraceAction
 class ActionNew : public Action
 {
  public:
-  ActionNew(SolverManager& smgr) : Action(smgr, Action::Kind::NEW, false) {}
+  ActionNew(SolverManager& smgr) : Action(smgr, NEW, false) {}
 
   bool run() override
   {
@@ -447,9 +420,7 @@ class ActionNew : public Action
 class ActionDelete : public Action
 {
  public:
-  ActionDelete(SolverManager& smgr) : Action(smgr, Action::Kind::DELETE, false)
-  {
-  }
+  ActionDelete(SolverManager& smgr) : Action(smgr, DELETE, false) {}
 
   bool run() override
   {
@@ -482,10 +453,7 @@ class ActionDelete : public Action
 class ActionSetOption : public Action
 {
  public:
-  ActionSetOption(SolverManager& smgr)
-      : Action(smgr, Action::Kind::SET_OPTION, false)
-  {
-  }
+  ActionSetOption(SolverManager& smgr) : Action(smgr, SET_OPTION, false) {}
 
   bool run() override
   {
@@ -561,9 +529,7 @@ class ActionSetOption : public Action
 class ActionMkSort : public Action
 {
  public:
-  ActionMkSort(SolverManager& smgr) : Action(smgr, Action::Kind::MK_SORT, true)
-  {
-  }
+  ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, true) {}
 
   bool run() override
   {
@@ -788,9 +754,7 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
-  ActionMkTerm(SolverManager& smgr) : Action(smgr, Action::Kind::MK_TERM, true)
-  {
-  }
+  ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, true) {}
 
   bool run() override
   {
@@ -1221,10 +1185,7 @@ class ActionMkTerm : public Action
 class ActionMkConst : public Action
 {
  public:
-  ActionMkConst(SolverManager& smgr)
-      : Action(smgr, Action::Kind::MK_CONST, true)
-  {
-  }
+  ActionMkConst(SolverManager& smgr) : Action(smgr, MK_CONST, true) {}
 
   bool run() override
   {
@@ -1280,7 +1241,7 @@ class ActionMkConst : public Action
 class ActionMkVar : public Action
 {
  public:
-  ActionMkVar(SolverManager& smgr) : Action(smgr, Action::Kind::MK_VAR, true) {}
+  ActionMkVar(SolverManager& smgr) : Action(smgr, MK_VAR, true) {}
 
   bool run() override
   {
@@ -1332,10 +1293,7 @@ class ActionMkVar : public Action
 class ActionMkValue : public Action
 {
  public:
-  ActionMkValue(SolverManager& smgr)
-      : Action(smgr, Action::Kind::MK_VALUE, true)
-  {
-  }
+  ActionMkValue(SolverManager& smgr) : Action(smgr, MK_VALUE, true) {}
 
   bool run() override
   {
@@ -1798,7 +1756,7 @@ class ActionTermCheckSort : public Action
 {
  public:
   ActionTermCheckSort(SolverManager& smgr)
-      : Action(smgr, Action::Kind::TERM_CHECK_SORT, false)
+      : Action(smgr, TERM_CHECK_SORT, false)
   {
   }
 
@@ -1886,8 +1844,7 @@ class ActionTermCheckSort : public Action
 class ActionAssertFormula : public Action
 {
  public:
-  ActionAssertFormula(SolverManager& smgr)
-      : Action(smgr, Action::Kind::ASSERT_FORMULA, false)
+  ActionAssertFormula(SolverManager& smgr) : Action(smgr, ASSERT_FORMULA, false)
   {
   }
 
@@ -1933,10 +1890,7 @@ class ActionAssertFormula : public Action
 class ActionCheckSat : public Action
 {
  public:
-  ActionCheckSat(SolverManager& smgr)
-      : Action(smgr, Action::Kind::CHECK_SAT, false)
-  {
-  }
+  ActionCheckSat(SolverManager& smgr) : Action(smgr, CHECK_SAT, false) {}
 
   bool run() override
   {
@@ -1976,7 +1930,7 @@ class ActionCheckSatAssuming : public Action
 {
  public:
   ActionCheckSatAssuming(SolverManager& smgr)
-      : Action(smgr, Action::Kind::CHECK_SAT_ASSUMING, false)
+      : Action(smgr, CHECK_SAT_ASSUMING, false)
   {
   }
 
@@ -2038,7 +1992,7 @@ class ActionGetUnsatAssumptions : public Action
 {
  public:
   ActionGetUnsatAssumptions(SolverManager& smgr)
-      : Action(smgr, Action::Kind::GET_UNSAT_ASSUMPTIONS, false)
+      : Action(smgr, GET_UNSAT_ASSUMPTIONS, false)
   {
   }
 
@@ -2088,10 +2042,7 @@ class ActionGetUnsatAssumptions : public Action
 class ActionGetValue : public Action
 {
  public:
-  ActionGetValue(SolverManager& smgr)
-      : Action(smgr, Action::Kind::GET_VALUE, true)
-  {
-  }
+  ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, true) {}
 
   bool run() override
   {
@@ -2172,7 +2123,7 @@ class ActionGetValue : public Action
 class ActionPush : public Action
 {
  public:
-  ActionPush(SolverManager& smgr) : Action(smgr, Action::Kind::PUSH, false) {}
+  ActionPush(SolverManager& smgr) : Action(smgr, PUSH, false) {}
 
   bool run() override
   {
@@ -2203,7 +2154,7 @@ class ActionPush : public Action
 class ActionPop : public Action
 {
  public:
-  ActionPop(SolverManager& smgr) : Action(smgr, Action::Kind::POP, false) {}
+  ActionPop(SolverManager& smgr) : Action(smgr, POP, false) {}
 
   bool run() override
   {
@@ -2236,7 +2187,7 @@ class ActionResetAssertions : public Action
 {
  public:
   ActionResetAssertions(SolverManager& smgr)
-      : Action(smgr, Action::Kind::RESET_ASSERTIONS, false)
+      : Action(smgr, RESET_ASSERTIONS, false)
   {
   }
 
@@ -2272,10 +2223,7 @@ class ActionResetAssertions : public Action
 class ActionPrintModel : public Action
 {
  public:
-  ActionPrintModel(SolverManager& smgr)
-      : Action(smgr, Action::Kind::PRINT_MODEL, false)
-  {
-  }
+  ActionPrintModel(SolverManager& smgr) : Action(smgr, PRINT_MODEL, false) {}
 
   bool run() override
   {
@@ -2590,12 +2538,12 @@ FSM::untrace(std::string& trace_file_name)
     if (line.empty()) continue;
     if (line[0] == '#') continue;
 
-    std::string id_str;
+    std::string id;
     std::vector<std::string> tokens;
 
-    tokenize(line, id_str, tokens);
+    tokenize(line, id, tokens);
 
-    if (id_str == "return")
+    if (id == "return")
     {
       if (tokens.size() != 1)
       {
@@ -2608,7 +2556,7 @@ FSM::untrace(std::string& trace_file_name)
       assert(rid == ret_val);
       ret_val = 0;
     }
-    else if (id_str == "set-seed")
+    else if (id == "set-seed")
     {
       std::stringstream sss;
       for (auto t : tokens) sss << " " << t;
@@ -2616,15 +2564,7 @@ FSM::untrace(std::string& trace_file_name)
     }
     else
     {
-      Action::Kind id = Action::get_kind(id_str);
-      if (id == Action::Kind::UNDEFINED)
-      {
-        std::stringstream ss;
-        ss << "untrace: " << trace_file_name << ":" << nline
-           << ": unrecognized keyword '" << id_str << "'";
-        throw SmtMbtFSMException(ss);
-      }
-
+      assert(d_actions.find(id) != d_actions.end());
       if (d_actions.find(id) == d_actions.end())
       {
         std::stringstream ss;
@@ -2666,7 +2606,7 @@ FSM::untrace(std::string& trace_file_name)
             }
 
             uint64_t rid = str_to_uint64(next_tokens[0]);
-            if (id == Action::Kind::MK_SORT || id == Action::TERM_GET_SORT)
+            if (id == Action::MK_SORT || id == Action::TERM_GET_SORT)
             {
               d_smgr.register_sort(rid, ret_val);
             }

@@ -2,6 +2,7 @@
 #define __SMTMBT__FSM_HPP_INCLUDED
 
 #include <cstdint>
+#include <cstring>
 #include <fstream>
 #include <functional>
 #include <memory>
@@ -9,8 +10,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "config.hpp"
 #include "solver_manager.hpp"
 #include "solver_option.hpp"
+#include "statistics.hpp"
 #include "util.hpp"
 
 /* -------------------------------------------------------------------------- */
@@ -23,10 +26,8 @@
 #define SMTMBT_TRACE_RETURN \
   OstreamVoider() & FSM::TraceStream(d_smgr).stream() << "return "
 
-#define SMTMBT_TRACE_GET_SORT             \
-  OstreamVoider()                         \
-      & FSM::TraceStream(d_smgr).stream() \
-            << s_kind_to_str.at(Action::Kind::TERM_GET_SORT) << " "
+#define SMTMBT_TRACE_GET_SORT \
+  OstreamVoider() & FSM::TraceStream(d_smgr).stream() << TERM_GET_SORT << " "
 
 /* -------------------------------------------------------------------------- */
 
@@ -82,62 +83,46 @@ class State;
 class Action
 {
  public:
-  enum Kind
-  {
-    UNDEFINED,
-    NEW,
-    DELETE,
-    MK_SORT,
-    MK_VALUE,
-    MK_CONST,
-    MK_VAR,
-    MK_TERM,
-    TERM_GET_SORT,
-    TERM_CHECK_SORT,
-    ASSERT_FORMULA,
-    GET_UNSAT_ASSUMPTIONS,
-    GET_VALUE,
-    PRINT_MODEL,
-    CHECK_SAT,
-    CHECK_SAT_ASSUMING,
-    PUSH,
-    POP,
-    RESET_ASSERTIONS,
-    SET_OPTION,
-    TRANS,
-    TRANS_CREATE_INPUTS,
-    TRANS_CREATE_SORTS,
-    TRANS_MODEL,
-
-    /* Boolector specific actions */
-    BTOR_OPT_ITERATOR,
-    BTOR_BV_ASSIGNMENT,
-    BTOR_CLONE,
-    BTOR_FAILED,
-    BTOR_FIXATE_ASSUMPTIONS,
-    BTOR_RESET_ASSUMPTIONS,
-    BTOR_RELEASE_ALL,
-    BTOR_SIMPLIFY,
-    BTOR_SET_SAT_SOLVER,
-    BTOR_SET_SYMBOL,
-
-    /* CVC4 specific actions */
-    CVC4_CHECK_ENTAILED,
-    CVC4_SIMPLIFY,
-
-    NUM_ACTIONS
-  };
-
-  /** Map Action kind to trace string. */
-  static const std::unordered_map<Kind, std::string> s_kind_to_str;
+  /**
+   * Default action kinds / trace strings.
+   * We use strings here to make FSM::d_actions easily extendible with
+   * solver-specific actions.
+   */
+  static const std::string UNDEFINED;
+  static const std::string NEW;
+  static const std::string DELETE;
+  static const std::string MK_SORT;
+  static const std::string MK_VALUE;
+  static const std::string MK_CONST;
+  static const std::string MK_VAR;
+  static const std::string MK_TERM;
+  static const std::string TERM_GET_SORT;
+  static const std::string TERM_CHECK_SORT;
+  static const std::string ASSERT_FORMULA;
+  static const std::string GET_UNSAT_ASSUMPTIONS;
+  static const std::string GET_VALUE;
+  static const std::string PRINT_MODEL;
+  static const std::string CHECK_SAT;
+  static const std::string CHECK_SAT_ASSUMING;
+  static const std::string PUSH;
+  static const std::string POP;
+  static const std::string RESET_ASSERTIONS;
+  static const std::string SET_OPTION;
+  static const std::string TRANS;
+  static const std::string TRANS_CREATE_INPUTS;
+  static const std::string TRANS_CREATE_SORTS;
+  static const std::string TRANS_MODEL;
 
   /** Get Action kind from string representation. */
-  static const Kind get_kind(const std::string& s);
+  const std::string& get_kind() { return d_kind; };
 
   /** Disallow default constructor. */
   Action() = delete;
   /** Constructor. */
-  Action(SolverManager& smgr, const Kind kind, bool returns, bool empty = false)
+  Action(SolverManager& smgr,
+         const std::string& kind,
+         bool returns,
+         bool empty = false)
       : d_rng(smgr.get_rng()),
         d_solver(smgr.get_solver()),
         d_smgr(smgr),
@@ -163,7 +148,12 @@ class Action
    */
   virtual uint64_t untrace(std::vector<std::string>& tokens) = 0;
 
-  const Kind get_kind() const { return d_kind; }
+  /** Return the string representing the kind of this action. */
+  const std::string& get_kind() const { return d_kind; }
+  /** Return the id of this action. */
+  const uint64_t get_id() const { return d_id; }
+  /** Set the id of this action. */
+  void set_id(uint64_t id) { d_id = id; }
   /** Returns true if this action returns a Term or Sort. */
   bool returns() const { return d_returns; }
   /**
@@ -200,11 +190,10 @@ class Action
 
  private:
   /* Action kind. */
-  Kind d_kind;
+  const std::string& d_kind = UNDEFINED;
+  /* Action id, assigned in the order they have been created. */
+  uint64_t d_id = 0u;
 };
-
-/* Overload for string representation of Action kind. */
-std::ostream& operator<<(std::ostream& out, Action::Kind kind);
 
 /**
  * (Empty) transition from current state to next state without pre-conditions.
@@ -212,7 +201,7 @@ std::ostream& operator<<(std::ostream& out, Action::Kind kind);
 class Transition : public Action
 {
  public:
-  Transition(SolverManager& smgr, const Kind kind)
+  Transition(SolverManager& smgr, const std::string& kind)
       : Action(smgr, kind, false, true)
   {
   }
@@ -229,16 +218,14 @@ class Transition : public Action
 class TransitionDefault : public Transition
 {
  public:
-  TransitionDefault(SolverManager& smgr) : Transition(smgr, Action::Kind::TRANS)
-  {
-  }
+  TransitionDefault(SolverManager& smgr) : Transition(smgr, TRANS) {}
 };
 
 /** "Phantom" action that is only used for untracing.  */
 class UntraceAction : public Action
 {
  public:
-  UntraceAction(SolverManager& smgr, const Kind kind, bool returns)
+  UntraceAction(SolverManager& smgr, const std::string& kind, bool returns)
       : Action(smgr, kind, returns)
   {
   }
@@ -368,6 +355,15 @@ class FSM
   SolverManager& get_smgr();
 
   /**
+   * Return a mapping from Action id to Action kind.
+   * Will be empty if not called after FSM::configure().
+   *
+   * We need this for printing statistics (shared memory) in the parent process
+   * (which are filled in by the child process), to be able to map the data
+   * in the statistics struct correctly to the actions. */
+  std::unordered_map<uint64_t, std::string> get_action_id_mapping();
+
+  /**
    * Create and add a new state.
    * id      : A unique string identifying the state.
    * fun     : The precondition for transitioning to the next state.
@@ -427,7 +423,7 @@ class FSM
   SolverManager d_smgr;
   RNGenerator& d_rng;
   std::vector<std::unique_ptr<State>> d_states;
-  std::unordered_map<Action::Kind, std::unique_ptr<Action>> d_actions;
+  std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
 
   /**
    * A temporary list with actions (incl. priorities, the next state and
@@ -467,17 +463,37 @@ FSM::new_action()
 {
   static_assert(std::is_base_of<Action, T>::value,
                 "expected class (derived from) Action");
-  T* action             = new T(d_smgr);
-  const auto id         = action->get_kind();
-  if (d_actions.find(id) == d_actions.end())
+  T* action               = new T(d_smgr);
+  const std::string& kind = action->get_kind();
+  if (d_actions.find(kind) == d_actions.end())
   {
-    d_actions[id].reset(action);
+    uint64_t id = d_actions.size();
+    if (id >= SMTMBT_MAX_N_ACTIONS)
+    {
+      delete action;
+      throw SmtMbtFSMException(
+          "maximum number of actions exceeded, increase limit by adjusting "
+          "value "
+          "of macro SMTMBT_MAX_N_ACTIONS in config.hpp");
+    }
+    action->set_id(id);
+    d_actions[kind].reset(action);
+    strncpy(d_mbt_stats->d_action_kinds[id], kind.c_str(), kind.size());
   }
   else
   {
+    assert(std::string(d_mbt_stats->d_action_kinds[action->get_id()]) == kind);
     delete action;
   }
-  return static_cast<T*>(d_actions[id].get());
+  if (kind.size() > SMTMBT_MAX_LEN_ACTION_KIND)
+  {
+    std::stringstream ss;
+    ss << "'" << kind
+       << "' exceeds maximum length for action kinds, increase limit by "
+          "adjusting value of macro SMTMBT_MAX_LEN_ACTION_KIND in config.hpp";
+    throw SmtMbtFSMException(ss);
+  }
+  return static_cast<T*>(d_actions[kind].get());
 }
 
 template <class T>

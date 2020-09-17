@@ -1454,11 +1454,24 @@ BtorSolver::configure_smgr(SolverManager* smgr) const
 /* Solver-specific actions, FSM configuration.                                */
 /* -------------------------------------------------------------------------- */
 
+const std::string BtorSolver::ACTION_OPT_ITERATOR  = "btor-opt-iterator";
+const std::string BtorSolver::ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
+const std::string BtorSolver::ACTION_CLONE         = "btor-clone";
+const std::string BtorSolver::ACTION_FAILED        = "btor-failed";
+const std::string BtorSolver::ACTION_FIXATE_ASSUMPTIONS =
+    "btor-fixate-assumptions";
+const std::string BtorSolver::ACTION_RESET_ASSUMPTIONS =
+    "btor-reset-assumptions";
+const std::string BtorSolver::ACTION_RELEASE_ALL    = "btor-release-all";
+const std::string BtorSolver::ACTION_SIMPLIFY       = "btor-simplify";
+const std::string BtorSolver::ACTION_SET_SAT_SOLVER = "btor-set-sat-solver";
+const std::string BtorSolver::ACTION_SET_SYMBOL     = "btor-set-symbol";
+
 class BtorActionBvAssignment : public Action
 {
  public:
   BtorActionBvAssignment(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_BV_ASSIGNMENT, false)
+      : Action(smgr, BtorSolver::ACTION_BV_ASSIGNMENT, false)
   {
   }
 
@@ -1512,7 +1525,7 @@ class BtorActionClone : public Action
 {
  public:
   BtorActionClone(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_CLONE, false)
+      : Action(smgr, BtorSolver::ACTION_CLONE, false)
   {
   }
 
@@ -1630,7 +1643,7 @@ class BtorActionFailed : public Action
 {
  public:
   BtorActionFailed(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_FAILED, false)
+      : Action(smgr, BtorSolver::ACTION_FAILED, false)
   {
   }
 
@@ -1669,7 +1682,7 @@ class BtorActionFixateAssumptions : public Action
 {
  public:
   BtorActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_FIXATE_ASSUMPTIONS, false)
+      : Action(smgr, BtorSolver::ACTION_FIXATE_ASSUMPTIONS, false)
   {
   }
 
@@ -1702,7 +1715,7 @@ class BtorActionOptIterator : public Action
 {
  public:
   BtorActionOptIterator(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_OPT_ITERATOR, false)
+      : Action(smgr, BtorSolver::ACTION_OPT_ITERATOR, false)
   {
   }
 
@@ -1756,7 +1769,7 @@ class BtorActionReleaseAll : public Action
 {
  public:
   BtorActionReleaseAll(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_RELEASE_ALL, false)
+      : Action(smgr, BtorSolver::ACTION_RELEASE_ALL, false)
   {
   }
 
@@ -1788,7 +1801,7 @@ class BtorActionResetAssumptions : public Action
 {
  public:
   BtorActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_RESET_ASSUMPTIONS, false)
+      : Action(smgr, BtorSolver::ACTION_RESET_ASSUMPTIONS, false)
   {
   }
 
@@ -1821,7 +1834,7 @@ class BtorActionSetSatSolver : public Action
 {
  public:
   BtorActionSetSatSolver(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_SET_SAT_SOLVER, false)
+      : Action(smgr, BtorSolver::ACTION_SET_SAT_SOLVER, false)
   {
   }
 
@@ -1856,7 +1869,7 @@ class BtorActionSimplify : public Action
 {
  public:
   BtorActionSimplify(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_SIMPLIFY, false)
+      : Action(smgr, BtorSolver::ACTION_SIMPLIFY, false)
   {
   }
 
@@ -1889,7 +1902,7 @@ class BtorActionSetSymbol : public Action
 {
  public:
   BtorActionSetSymbol(SolverManager& smgr)
-      : Action(smgr, Action::Kind::BTOR_SET_SYMBOL, false)
+      : Action(smgr, BtorSolver::ACTION_SET_SYMBOL, false)
   {
   }
 

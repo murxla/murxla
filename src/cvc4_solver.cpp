@@ -1275,11 +1275,14 @@ CVC4Solver::configure_smgr(SolverManager* smgr) const
 /* Solver-specific actions, FSM configuration. */
 /* -------------------------------------------------------------------------- */
 
+const std::string CVC4Solver::ACTION_CHECK_ENTAILED = "cvc4-check-entailed";
+const std::string CVC4Solver::ACTION_SIMPLIFY       = "cvc4-simplify";
+
 class CVC4ActionCheckEntailed : public Action
 {
  public:
   CVC4ActionCheckEntailed(SolverManager& smgr)
-      : Action(smgr, Action::Kind::CVC4_CHECK_ENTAILED, false)
+      : Action(smgr, CVC4Solver::ACTION_CHECK_ENTAILED, false)
   {
   }
 
@@ -1407,7 +1410,7 @@ class CVC4ActionSimplify : public Action
 {
  public:
   CVC4ActionSimplify(SolverManager& smgr)
-      : Action(smgr, Action::Kind::CVC4_SIMPLIFY, true)
+      : Action(smgr, CVC4Solver::ACTION_SIMPLIFY, true)
   {
   }
 

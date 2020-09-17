@@ -81,7 +81,21 @@ class BtorTerm : public AbsTerm
 class BtorSolver : public Solver
 {
  public:
+  /** Solver-specific actions. */
+  static const std::string ACTION_OPT_ITERATOR;
+  static const std::string ACTION_BV_ASSIGNMENT;
+  static const std::string ACTION_CLONE;
+  static const std::string ACTION_FAILED;
+  static const std::string ACTION_FIXATE_ASSUMPTIONS;
+  static const std::string ACTION_RESET_ASSUMPTIONS;
+  static const std::string ACTION_RELEASE_ALL;
+  static const std::string ACTION_SIMPLIFY;
+  static const std::string ACTION_SET_SAT_SOLVER;
+  static const std::string ACTION_SET_SYMBOL;
+
+  /** Constructor. */
   BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  /** Destructor. */
   ~BtorSolver() override{};
 
   void new_solver() override;
@@ -196,7 +210,7 @@ class BtorSolver : public Solver
 
   uint64_t d_num_symbols;
 
-  /* solver-specific operators */
+  /** solver-specific operators */
   const OpKind d_op_dec    = OP_EXT_OP_01;
   const OpKind d_op_inc    = OP_EXT_OP_02;
   const OpKind d_op_redand = OP_EXT_OP_03;
