@@ -92,6 +92,8 @@ class BtorSolver : public Solver
   static const std::string ACTION_SIMPLIFY;
   static const std::string ACTION_SET_SAT_SOLVER;
   static const std::string ACTION_SET_SYMBOL;
+  /* Solver-specific states */
+  static const std::string STATE_FIX_RESET_ASSUMPTIONS;
 
   /** Constructor. */
   BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}

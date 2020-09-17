@@ -39,14 +39,6 @@ const std::string Action::TRANS_CREATE_INPUTS   = "t_inputs";
 const std::string Action::TRANS_CREATE_SORTS    = "t_sorts";
 const std::string Action::TRANS_MODEL           = "t_model";
 
-std::ostream&
-operator<<(std::ostream& out, State::Kind kind)
-{
-  assert(State::s_kind_to_str.find(kind) != State::s_kind_to_str.end());
-  out << State::s_kind_to_str.at(kind);
-  return out;
-}
-
 void
 Action::trace_get_sorts() const
 {
@@ -70,21 +62,18 @@ Action::reset_sat()
 /* State                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const std::unordered_map<State::Kind, std::string> State::s_kind_to_str = {
-    {State::Kind::NEW, "new"},
-    {State::Kind::OPT, "opt"},
-    {State::Kind::DELETE, "delete"},
-    {State::Kind::FINAL, "final"},
-    {State::Kind::CREATE_SORTS, "create_sorts"},
-    {State::Kind::CREATE_INPUTS, "create_inputs"},
-    {State::Kind::CREATE_TERMS, "create_terms"},
-    {State::Kind::ASSERT, "assert"},
-    {State::Kind::MODEL, "model"},
-    {State::Kind::CHECK_SAT, "check_sat"},
-    {State::Kind::PUSH_POP, "push_pop"},
-
-    {State::Kind::BTOR_FIX_RESET_ASSUMPTIONS, "btor-fix-reset-assumptions"},
-};
+const std::string State::UNDEFINED     = "undefined";
+const std::string State::NEW           = "new";
+const std::string State::OPT           = "opt";
+const std::string State::DELETE        = "delete";
+const std::string State::FINAL         = "final";
+const std::string State::CREATE_SORTS  = "create_sorts";
+const std::string State::CREATE_INPUTS = "create_inputs";
+const std::string State::CREATE_TERMS  = "create_terms";
+const std::string State::ASSERT        = "assert";
+const std::string State::MODEL         = "model";
+const std::string State::CHECK_SAT     = "check_sat";
+const std::string State::PUSH_POP      = "push_pop";
 
 void
 State::add_action(Action* a, uint32_t priority, State* next)
@@ -105,7 +94,7 @@ State::run(RNGenerator& rng)
   ActionTuple& atup = d_actions[idx];
 
   /* record state statistics */
-  ++d_mbt_stats->d_states[get_kind()];
+  ++d_mbt_stats->d_states[get_id()];
 
   /* only pick empty transitions if precondition of this state is false */
   if (f_precond != nullptr && !f_precond())
@@ -194,14 +183,36 @@ FSM::get_action_id_mapping()
 }
 
 State*
-FSM::new_state(State::Kind kind, std::function<bool(void)> fun, bool is_final)
+FSM::new_state(const std::string& kind,
+               std::function<bool(void)> fun,
+               bool is_final)
 {
-  State* new_state;
+  uint64_t id = d_states.size();
+  if (id >= SMTMBT_MAX_N_STATES)
+  {
+    throw SmtMbtFSMException(
+        "maximum number of states exceeded, increase limit by adjusting "
+        "value of macro SMTMBT_MAX_N_STATES in config.hpp");
+  }
+
+  State* state;
   d_states.emplace_back(new State(kind, fun, is_final));
 
-  new_state              = d_states.back().get();
-  new_state->d_mbt_stats = d_mbt_stats;
-  return new_state;
+  state = d_states.back().get();
+  state->set_id(id);
+  state->d_mbt_stats = d_mbt_stats;
+
+  if (kind.size() > SMTMBT_MAX_LEN_STATE_KIND)
+  {
+    std::stringstream ss;
+    ss << "'" << kind
+       << "' exceeds maximum length for state kinds, increase limit by "
+          "adjusting value of macro SMTMBT_MAX_LEN_STATE_KIND in config.hpp";
+    throw SmtMbtFSMException(ss);
+  }
+  strncpy(d_mbt_stats->d_state_kinds[id], kind.c_str(), kind.size());
+
+  return state;
 }
 
 void
@@ -251,7 +262,7 @@ FSM::check_states()
 }
 
 State*
-FSM::get_state(const State::Kind kind) const
+FSM::get_state(const std::string& kind) const
 {
   State* res = nullptr;
   for (const auto& s : d_states)
@@ -2307,30 +2318,30 @@ FSM::configure()
   /* States                                                                */
   /* --------------------------------------------------------------------- */
 
-  auto s_new    = new_state(State::Kind::NEW);
-  auto s_opt    = new_state(State::Kind::OPT);
-  auto s_delete = new_state(State::Kind::DELETE);
-  auto s_final  = new_state(State::Kind::FINAL, nullptr, true);
+  auto s_new    = new_state(State::NEW);
+  auto s_opt    = new_state(State::OPT);
+  auto s_delete = new_state(State::DELETE);
+  auto s_final  = new_state(State::FINAL, nullptr, true);
 
-  auto s_sorts  = new_state(State::Kind::CREATE_SORTS);
-  auto s_inputs = new_state(State::Kind::CREATE_INPUTS);
-  auto s_terms  = new_state(State::Kind::CREATE_TERMS,
-                           [this]() { return d_smgr.has_term(); });
+  auto s_sorts  = new_state(State::CREATE_SORTS);
+  auto s_inputs = new_state(State::CREATE_INPUTS);
+  auto s_terms =
+      new_state(State::CREATE_TERMS, [this]() { return d_smgr.has_term(); });
 
-  auto s_assert = new_state(State::Kind::ASSERT,
-                            [this]() { return d_smgr.has_term(SORT_BOOL); });
+  auto s_assert =
+      new_state(State::ASSERT, [this]() { return d_smgr.has_term(SORT_BOOL); });
 
-  auto s_model = new_state(State::Kind::MODEL, [this]() {
+  auto s_model = new_state(State::MODEL, [this]() {
     return d_smgr.d_model_gen && d_smgr.d_sat_called
            && d_smgr.d_sat_result == Solver::Result::SAT;
   });
 
-  auto s_sat = new_state(State::Kind::CHECK_SAT, [this]() {
+  auto s_sat = new_state(State::CHECK_SAT, [this]() {
     return d_smgr.d_n_sat_calls == 0 || d_smgr.d_incremental;
   });
 
-  auto s_push_pop = new_state(State::Kind::PUSH_POP,
-                              [this]() { return d_smgr.d_incremental; });
+  auto s_push_pop =
+      new_state(State::PUSH_POP, [this]() { return d_smgr.d_incremental; });
 
   /* --------------------------------------------------------------------- */
   /* Add actions/transitions to states                                     */
@@ -2383,13 +2394,13 @@ FSM::configure()
   /* State: model ........................................................ */
   s_model->add_action(a_printmodel, 1);
   s_model->add_action(a_getvalue, 1);
-  add_action_to_all_states_next(t_default, 1, s_model, {State::Kind::OPT});
-  add_action_to_all_states(t_model, 10, {State::Kind::OPT}, s_model);
+  add_action_to_all_states_next(t_default, 1, s_model, {State::OPT});
+  add_action_to_all_states(t_model, 10, {State::OPT}, s_model);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
   s_push_pop->add_action(a_pop, 1);
-  add_action_to_all_states_next(t_default, 1, s_push_pop, {State::Kind::OPT});
+  add_action_to_all_states_next(t_default, 1, s_push_pop, {State::OPT});
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);
@@ -2418,13 +2429,12 @@ FSM::configure()
   {
     Action* action                                  = std::get<0>(t);
     uint32_t priority                               = std::get<1>(t);
-    std::unordered_set<State::Kind> excluded_states = std::get<2>(t);
+    std::unordered_set<std::string> excluded_states = std::get<2>(t);
     State* next                                     = std::get<3>(t);
     for (const auto& s : d_states)
     {
-      const auto id = s->get_kind();
-      if (id == State::Kind::NEW || id == State::Kind::DELETE
-          || id == State::Kind::FINAL
+      const auto kind = s->get_kind();
+      if (kind == State::NEW || kind == State::DELETE || kind == State::FINAL
           || excluded_states.find(s->get_kind()) != excluded_states.end())
       {
         continue;
@@ -2442,12 +2452,11 @@ FSM::configure()
     Action* action                                  = std::get<0>(t);
     uint32_t priority                               = std::get<1>(t);
     State* state                                    = std::get<2>(t);
-    std::unordered_set<State::Kind> excluded_states = std::get<3>(t);
+    std::unordered_set<std::string> excluded_states = std::get<3>(t);
     for (const auto& s : d_states)
     {
-      const auto id = s->get_kind();
-      if (id == State::Kind::NEW || id == State::Kind::DELETE
-          || id == State::Kind::FINAL
+      const auto kind = s->get_kind();
+      if (kind == State::NEW || kind == State::DELETE || kind == State::FINAL
           || excluded_states.find(s->get_kind()) != excluded_states.end())
       {
         continue;

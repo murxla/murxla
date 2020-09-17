@@ -1467,6 +1467,9 @@ const std::string BtorSolver::ACTION_SIMPLIFY       = "btor-simplify";
 const std::string BtorSolver::ACTION_SET_SAT_SOLVER = "btor-set-sat-solver";
 const std::string BtorSolver::ACTION_SET_SYMBOL     = "btor-set-symbol";
 
+const std::string BtorSolver::STATE_FIX_RESET_ASSUMPTIONS =
+    "btor-fix-reset-assumptions";
+
 class BtorActionBvAssignment : public Action
 {
  public:
@@ -1942,12 +1945,11 @@ class BtorActionSetSymbol : public Action
 void
 BtorSolver::configure_fsm(FSM* fsm) const
 {
-  State* s_assert = fsm->get_state(State::Kind::ASSERT);
-  State* s_delete = fsm->get_state(State::Kind::DELETE);
-  State* s_opt    = fsm->get_state(State::Kind::OPT);
+  State* s_assert = fsm->get_state(State::ASSERT);
+  State* s_delete = fsm->get_state(State::DELETE);
+  State* s_opt    = fsm->get_state(State::OPT);
 
-  State* s_fix_reset_assumptions =
-      fsm->new_state(State::Kind::BTOR_FIX_RESET_ASSUMPTIONS);
+  State* s_fix_reset_assumptions = fsm->new_state(STATE_FIX_RESET_ASSUMPTIONS);
 
   auto t_default = fsm->new_action<TransitionDefault>();
 
@@ -1975,7 +1977,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 5);
   s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
   fsm->add_action_to_all_states_next(
-      t_default, 2, s_fix_reset_assumptions, {State::Kind::OPT});
+      t_default, 2, s_fix_reset_assumptions, {State::OPT});
 
   // boolector_release_all
   auto a_release_all = fsm->new_action<BtorActionReleaseAll>();

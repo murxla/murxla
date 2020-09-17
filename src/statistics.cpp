@@ -1,6 +1,7 @@
 #include "statistics.hpp"
 
-#include "fsm.hpp"  // TODO temporary until refactor is done
+#include "op.hpp"
+#include "solver.hpp"
 
 namespace smtmbt {
 namespace statistics {
@@ -13,11 +14,9 @@ Statistics::print() const
   uint64_t sum = 0;
 
   std::cout << "States:" << std::endl;
-  for (uint32_t i = State::Kind::UNDEFINED + 1; i < State::Kind::NUM_STATES;
-       ++i)
+  for (uint32_t i = 0; i < SMTMBT_MAX_N_STATES && d_state_kinds[i][0]; ++i)
   {
-    std::cout << "  " << static_cast<State::Kind>(i) << ": " << d_states[i]
-              << std::endl;
+    std::cout << "  " << d_state_kinds[i] << ": " << d_states[i] << std::endl;
     sum += d_states[i];
   }
   std::cout << "  Total: " << sum << std::endl;

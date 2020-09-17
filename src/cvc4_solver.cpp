@@ -1461,12 +1461,11 @@ class CVC4ActionSimplify : public Action
 void
 CVC4Solver::configure_fsm(FSM* fsm) const
 {
-  State* s_sat = fsm->get_state(State::Kind::CHECK_SAT);
+  State* s_sat = fsm->get_state(State::CHECK_SAT);
 
   // Solver::simplify(const Term& term)
   auto a_simplify = fsm->new_action<CVC4ActionSimplify>();
-  fsm->add_action_to_all_states(
-      a_simplify, 100, {State::Kind::NEW, State::Kind::DELETE});
+  fsm->add_action_to_all_states(a_simplify, 100, {State::NEW, State::DELETE});
 
   // Solver::checkEntailed(Term term)
   // Solver::checkEntailed(std::vector<Term> terms)
