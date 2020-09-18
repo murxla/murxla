@@ -1768,76 +1768,58 @@ YicesSolver::terms_to_yices_terms(std::vector<Term>& terms) const
 void
 YicesSolver::configure_smgr(SolverManager* smgr) const
 {
-  OpKindSet ops = get_supported_op_kinds();
-
   /* BV */
   update_op_kinds_to_str(d_op_bvsquare, "yices-OP_BVSQUARE");
-  smgr->add_op_kind(ops, d_op_bvsquare, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_bvsquare, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_bvpower, "yices-OP_BVPOWER");
-  smgr->add_op_kind(ops, d_op_bvpower, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_bvpower, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
 
   update_op_kinds_to_str(d_op_redand, "yices-OP_REDAND");
-  smgr->add_op_kind(ops, d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_redor, "yices-OP_REDOR");
-  smgr->add_op_kind(ops, d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
   update_op_kinds_to_str(d_op_shift_left0, "yices-OP_SHIFT_LEFT0");
-  smgr->add_op_kind(ops, d_op_shift_left0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_shift_left0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_shift_left1, "yices-OP_SHIFT_LEFT1");
-  smgr->add_op_kind(ops, d_op_shift_left1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_shift_left1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_shift_right0, "yices-OP_SHIFT_RIGHT0");
-  smgr->add_op_kind(
-      ops, d_op_shift_right0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_shift_right0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_shift_right1, "yices-OP_SHIFT_RIGHT1");
-  smgr->add_op_kind(
-      ops, d_op_shift_right1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_shift_right1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_ashift_right, "yices-OP_ASHIFT_RIGHT");
-  smgr->add_op_kind(
-      ops, d_op_ashift_right, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_ashift_right, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
 
   update_op_kinds_to_str(d_op_bitextract, "yices-OP_BITEXTRACT");
-  smgr->add_op_kind(
-      ops, d_op_bitextract, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_bitextract, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
 
   update_op_kinds_to_str(d_op_bvarray, "yices-OP_BVARRAY");
-  smgr->add_op_kind(ops,
-                    d_op_bvarray,
-                    SMTMBT_MK_TERM_N_ARGS,
-                    0,
-                    SORT_BV,
-                    {SORT_BOOL},
-                    THEORY_BV);
+  smgr->add_op_kind(
+      d_op_bvarray, SMTMBT_MK_TERM_N_ARGS, 0, SORT_BV, {SORT_BOOL}, THEORY_BV);
 
   /* Ints */
   update_op_kinds_to_str(d_op_int_eq0, "yices-OP_INT_EQ0");
-  smgr->add_op_kind(ops, d_op_int_eq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_eq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_neq0, "yices-OP_INT_NEQ0");
-  smgr->add_op_kind(
-      ops, d_op_int_neq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_neq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_geq0, "yices-OP_INT_GEQ0");
-  smgr->add_op_kind(
-      ops, d_op_int_geq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_geq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_gt0, "yices-OP_INT_GT0");
-  smgr->add_op_kind(ops, d_op_int_gt0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_gt0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_leq0, "yices-OP_INT_LEQ0");
-  smgr->add_op_kind(
-      ops, d_op_int_leq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_leq0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_lt0, "yices-OP_INT_LT0");
-  smgr->add_op_kind(ops, d_op_int_lt0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_lt0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_power, "yices-OP_INT_POWER");
-  smgr->add_op_kind(
-      ops, d_op_int_power, 1, 1, SORT_INT, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_power, 1, 1, SORT_INT, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_square, "yices-OP_INT_SQUARE");
-  smgr->add_op_kind(
-      ops, d_op_int_square, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_square, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_ceil, "yices-OP_INT_CEIL");
-  smgr->add_op_kind(ops, d_op_int_ceil, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_ceil, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_floor, "yices-OP_INT_FLOOR");
-  smgr->add_op_kind(
-      ops, d_op_int_floor, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  smgr->add_op_kind(d_op_int_floor, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   update_op_kinds_to_str(d_op_int_poly, "yices-OP_INT_POLY");
-  smgr->add_op_kind(ops,
-                    d_op_int_poly,
+  smgr->add_op_kind(d_op_int_poly,
                     SMTMBT_MK_TERM_N_ARGS,
                     0,
                     SORT_INT,
@@ -1845,46 +1827,35 @@ YicesSolver::configure_smgr(SolverManager* smgr) const
                     THEORY_INT);
   /* Reals */
   update_op_kinds_to_str(d_op_real_eq0, "yices-OP_REAL_EQ0");
-  smgr->add_op_kind(
-      ops, d_op_real_eq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_eq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_neq0, "yices-OP_REAL_NEQ0");
-  smgr->add_op_kind(
-      ops, d_op_real_neq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_neq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_geq0, "yices-OP_REAL_GEQ0");
-  smgr->add_op_kind(
-      ops, d_op_real_geq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_geq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_gt0, "yices-OP_REAL_GT0");
-  smgr->add_op_kind(
-      ops, d_op_real_gt0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_gt0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_leq0, "yices-OP_REAL_LEQ0");
-  smgr->add_op_kind(
-      ops, d_op_real_leq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_leq0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_lt0, "yices-OP_REAL_LT0");
-  smgr->add_op_kind(
-      ops, d_op_real_lt0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_lt0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_power, "yices-OP_REAL_POWER");
-  smgr->add_op_kind(
-      ops, d_op_real_power, 1, 1, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_power, 1, 1, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_square, "yices-OP_REAL_SQUARE");
   smgr->add_op_kind(
-      ops, d_op_real_square, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+      d_op_real_square, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_ceil, "yices-OP_REAL_CEIL");
-  smgr->add_op_kind(
-      ops, d_op_real_ceil, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_ceil, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_floor, "yices-OP_REAL_FLOOR");
-  smgr->add_op_kind(
-      ops, d_op_real_floor, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  smgr->add_op_kind(d_op_real_floor, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   update_op_kinds_to_str(d_op_real_poly, "yices-OP_REAL_POLY");
-  smgr->add_op_kind(ops,
-                    d_op_real_poly,
+  smgr->add_op_kind(d_op_real_poly,
                     SMTMBT_MK_TERM_N_ARGS,
                     0,
                     SORT_REAL,
                     {SORT_REAL},
                     THEORY_REAL);
   update_op_kinds_to_str(d_op_real_rpoly, "yices-OP_REAL_RPOLY");
-  smgr->add_op_kind(ops,
-                    d_op_real_rpoly,
+  smgr->add_op_kind(d_op_real_rpoly,
                     SMTMBT_MK_TERM_N_ARGS,
                     0,
                     SORT_REAL,

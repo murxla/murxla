@@ -222,7 +222,6 @@ class Solver
 
   bool supports_theory(TheoryId theory) const;
   virtual TheoryIdVector get_supported_theories() const;
-  virtual OpKindSet get_supported_op_kinds() const;
   virtual OpKindSet get_unsupported_op_kinds() const;
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
   virtual void configure_fsm(FSM* fsm) const;

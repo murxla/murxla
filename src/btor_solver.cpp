@@ -1420,34 +1420,32 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
 void
 BtorSolver::configure_smgr(SolverManager* smgr) const
 {
-  OpKindSet ops = get_supported_op_kinds();
-
   update_op_kinds_to_str(d_op_dec, "btor-OP_DEC");
-  smgr->add_op_kind(ops, d_op_dec, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_dec, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_inc, "btor-OP_INC");
-  smgr->add_op_kind(ops, d_op_inc, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_inc, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
   update_op_kinds_to_str(d_op_redand, "btor-OP_REDAND");
-  smgr->add_op_kind(ops, d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_redor, "btor-OP_REDOR");
-  smgr->add_op_kind(ops, d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_redxor, "btor-OP_REDXOR");
-  smgr->add_op_kind(ops, d_op_redxor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_redxor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
   update_op_kinds_to_str(d_op_uaddo, "btor-OP_UADDO");
-  smgr->add_op_kind(ops, d_op_uaddo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_uaddo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_umulo, "btor-OP_UMULO");
-  smgr->add_op_kind(ops, d_op_umulo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_umulo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_usubo, "btor-OP_USUBO");
-  smgr->add_op_kind(ops, d_op_usubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_usubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_saddo, "btor-OP_SADDO");
-  smgr->add_op_kind(ops, d_op_saddo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_saddo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_sdivo, "btor-OP_SDIVO");
-  smgr->add_op_kind(ops, d_op_sdivo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_sdivo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_smulo, "btor-OP_SMULO");
-  smgr->add_op_kind(ops, d_op_smulo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_smulo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_ssubo, "btor-OP_SSUBO");
-  smgr->add_op_kind(ops, d_op_ssubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_ssubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 }
 
 /* -------------------------------------------------------------------------- */

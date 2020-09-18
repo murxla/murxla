@@ -1263,12 +1263,10 @@ CVC4Solver::get_cvc4_term(Term term) const
 void
 CVC4Solver::configure_smgr(SolverManager* smgr) const
 {
-  OpKindSet ops = get_supported_op_kinds();
-
   update_op_kinds_to_str(d_op_redand, "cvc4-OP_REDAND");
-  smgr->add_op_kind(ops, d_op_redand, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_redand, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
   update_op_kinds_to_str(d_op_redor, "btor-OP_REDOR");
-  smgr->add_op_kind(ops, d_op_redor, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(d_op_redor, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
 }
 
 /* -------------------------------------------------------------------------- */

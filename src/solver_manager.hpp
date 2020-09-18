@@ -82,7 +82,6 @@ class SolverManager
 
   /**
    * Add operator kind to operator kinds database.
-   * supported_kinds: the set of operator kinds supported by the solver
    * kind           : the operator kind
    * arity          : the arity of the operator
    * nparams        : the number of parameters of the operator
@@ -91,8 +90,7 @@ class SolverManager
    *                  the remaining kinds are the same, it's sufficient to only
    *                  list it once
    */
-  void add_op_kind(const OpKindSet& supported_kinds,
-                   OpKind kind,
+  void add_op_kind(OpKind kind,
                    int32_t arity,
                    uint32_t nparams,
                    SortKind sort_kind,
