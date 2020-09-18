@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "config.hpp"
+#include "except.hpp"
 #include "solver_manager.hpp"
 #include "solver_option.hpp"
 #include "statistics.hpp"
@@ -32,41 +33,6 @@
 /* -------------------------------------------------------------------------- */
 
 namespace smtmbt {
-
-
-/* -------------------------------------------------------------------------- */
-
-class SmtMbtFSMException : public std::exception
-{
- public:
-  SmtMbtFSMException(const std::string& str) : d_msg(str) {}
-  SmtMbtFSMException(const std::stringstream& stream) : d_msg(stream.str()) {}
-  std::string get_msg() const { return d_msg; }
-  const char* what() const noexcept override { return d_msg.c_str(); }
-
- private:
-  std::string d_msg;
-};
-
-class SmtMbtFSMUntraceException : public SmtMbtFSMException
-{
- public:
-  SmtMbtFSMUntraceException(const std::string& str) : SmtMbtFSMException(str) {}
-  SmtMbtFSMUntraceException(const std::stringstream& stream)
-      : SmtMbtFSMException(stream)
-  {
-  }
-};
-
-class SmtMbtFSMConfigException : public SmtMbtFSMException
-{
- public:
-  SmtMbtFSMConfigException(const std::string& str) : SmtMbtFSMException(str) {}
-  SmtMbtFSMConfigException(const std::stringstream& stream)
-      : SmtMbtFSMException(stream)
-  {
-  }
-};
 
 /* -------------------------------------------------------------------------- */
 
@@ -464,7 +430,7 @@ FSM::new_action()
     if (id >= SMTMBT_MAX_N_ACTIONS)
     {
       delete action;
-      throw SmtMbtFSMException(
+      throw SmtMbtConfigException(
           "maximum number of actions exceeded, increase limit by adjusting "
           "value of macro SMTMBT_MAX_N_ACTIONS in config.hpp");
     }
@@ -482,7 +448,7 @@ FSM::new_action()
     ss << "'" << kind
        << "' exceeds maximum length for action kinds, increase limit by "
           "adjusting value of macro SMTMBT_MAX_LEN_ACTION_KIND in config.hpp";
-    throw SmtMbtFSMException(ss);
+    throw SmtMbtConfigException(ss);
   }
   return static_cast<T*>(d_actions[kind].get());
 }

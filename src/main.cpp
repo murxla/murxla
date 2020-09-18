@@ -1195,11 +1195,11 @@ run_aux(Options& options,
         fsm.run();
       }
     }
-    catch (SmtMbtFSMConfigException& e)
+    catch (SmtMbtConfigException& e)
     {
       die(e.get_msg(), EXIT_ERROR_CONFIG);
     }
-    catch (SmtMbtFSMException& e)
+    catch (SmtMbtException& e)
     {
       die(e.get_msg());
     }
