@@ -26,30 +26,30 @@ class SmtMbtActionUntraceException : public SmtMbtException
 /* Action                                                                     */
 /* -------------------------------------------------------------------------- */
 
-const std::string Action::UNDEFINED             = "undefined";
-const std::string Action::NEW                   = "new";
-const std::string Action::DELETE                = "delete";
-const std::string Action::MK_SORT               = "mk-sort";
-const std::string Action::MK_VALUE              = "mk-value";
-const std::string Action::MK_CONST              = "mk-const";
-const std::string Action::MK_VAR                = "mk-var";
-const std::string Action::MK_TERM               = "mk-term";
-const std::string Action::TERM_GET_SORT         = "term-get-sort";
-const std::string Action::TERM_CHECK_SORT       = "term-check-sort";
-const std::string Action::ASSERT_FORMULA        = "assert-formula";
-const std::string Action::GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
-const std::string Action::GET_VALUE             = "get-value";
-const std::string Action::PRINT_MODEL           = "print-model";
-const std::string Action::CHECK_SAT             = "check-sat";
-const std::string Action::CHECK_SAT_ASSUMING    = "check-sat-assuming";
-const std::string Action::PUSH                  = "push";
-const std::string Action::POP                   = "pop";
-const std::string Action::RESET_ASSERTIONS      = "reset-assertions";
-const std::string Action::SET_OPTION            = "set-option";
-const std::string Action::TRANS                 = "t_default";
-const std::string Action::TRANS_CREATE_INPUTS   = "t_inputs";
-const std::string Action::TRANS_CREATE_SORTS    = "t_sorts";
-const std::string Action::TRANS_MODEL           = "t_model";
+const ActionKind Action::UNDEFINED             = "undefined";
+const ActionKind Action::NEW                   = "new";
+const ActionKind Action::DELETE                = "delete";
+const ActionKind Action::MK_SORT               = "mk-sort";
+const ActionKind Action::MK_VALUE              = "mk-value";
+const ActionKind Action::MK_CONST              = "mk-const";
+const ActionKind Action::MK_VAR                = "mk-var";
+const ActionKind Action::MK_TERM               = "mk-term";
+const ActionKind Action::TERM_GET_SORT         = "term-get-sort";
+const ActionKind Action::TERM_CHECK_SORT       = "term-check-sort";
+const ActionKind Action::ASSERT_FORMULA        = "assert-formula";
+const ActionKind Action::GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
+const ActionKind Action::GET_VALUE             = "get-value";
+const ActionKind Action::PRINT_MODEL           = "print-model";
+const ActionKind Action::CHECK_SAT             = "check-sat";
+const ActionKind Action::CHECK_SAT_ASSUMING    = "check-sat-assuming";
+const ActionKind Action::PUSH                  = "push";
+const ActionKind Action::POP                   = "pop";
+const ActionKind Action::RESET_ASSERTIONS      = "reset-assertions";
+const ActionKind Action::SET_OPTION            = "set-option";
+const ActionKind Action::TRANS                 = "t_default";
+const ActionKind Action::TRANS_CREATE_INPUTS   = "t_inputs";
+const ActionKind Action::TRANS_CREATE_SORTS    = "t_sorts";
+const ActionKind Action::TRANS_MODEL           = "t_model";
 
 void
 Action::trace_get_sorts() const
@@ -74,18 +74,18 @@ Action::reset_sat()
 /* State                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const std::string State::UNDEFINED     = "undefined";
-const std::string State::NEW           = "new";
-const std::string State::OPT           = "opt";
-const std::string State::DELETE        = "delete";
-const std::string State::FINAL         = "final";
-const std::string State::CREATE_SORTS  = "create_sorts";
-const std::string State::CREATE_INPUTS = "create_inputs";
-const std::string State::CREATE_TERMS  = "create_terms";
-const std::string State::ASSERT        = "assert";
-const std::string State::MODEL         = "model";
-const std::string State::CHECK_SAT     = "check_sat";
-const std::string State::PUSH_POP      = "push_pop";
+const StateKind State::UNDEFINED     = "undefined";
+const StateKind State::NEW           = "new";
+const StateKind State::OPT           = "opt";
+const StateKind State::DELETE        = "delete";
+const StateKind State::FINAL         = "final";
+const StateKind State::CREATE_SORTS  = "create_sorts";
+const StateKind State::CREATE_INPUTS = "create_inputs";
+const StateKind State::CREATE_TERMS  = "create_terms";
+const StateKind State::ASSERT        = "assert";
+const StateKind State::MODEL         = "model";
+const StateKind State::CHECK_SAT     = "check_sat";
+const StateKind State::PUSH_POP      = "push_pop";
 
 void
 State::add_action(Action* a, uint32_t priority, State* next)
@@ -180,22 +180,8 @@ FSM::get_smgr()
   return d_smgr;
 }
 
-std::unordered_map<uint64_t, std::string>
-FSM::get_action_id_mapping()
-{
-  std::unordered_map<uint64_t, std::string> res;
-  for (const auto& tuple : d_actions)
-  {
-    uint64_t id      = tuple.second->get_id();
-    std::string kind = tuple.second->get_kind();
-    assert(res.find(id) == res.end());
-    res.emplace(id, kind);
-  }
-  return res;
-}
-
 State*
-FSM::new_state(const std::string& kind,
+FSM::new_state(const StateKind& kind,
                std::function<bool(void)> fun,
                bool is_final)
 {
@@ -265,7 +251,7 @@ FSM::check_states()
 }
 
 State*
-FSM::get_state(const std::string& kind) const
+FSM::get_state(const StateKind& kind) const
 {
   State* res = nullptr;
   for (const auto& s : d_states)

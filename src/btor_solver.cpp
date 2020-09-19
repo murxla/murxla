@@ -1473,23 +1473,23 @@ BtorSolver::configure_smgr(SolverManager* smgr) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific actions, FSM configuration.                                */
+/* Solver-specific actions and states, FSM configuration.                     */
 /* -------------------------------------------------------------------------- */
 
-const std::string BtorSolver::ACTION_OPT_ITERATOR  = "btor-opt-iterator";
-const std::string BtorSolver::ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
-const std::string BtorSolver::ACTION_CLONE         = "btor-clone";
-const std::string BtorSolver::ACTION_FAILED        = "btor-failed";
-const std::string BtorSolver::ACTION_FIXATE_ASSUMPTIONS =
+const ActionKind BtorSolver::ACTION_OPT_ITERATOR  = "btor-opt-iterator";
+const ActionKind BtorSolver::ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
+const ActionKind BtorSolver::ACTION_CLONE         = "btor-clone";
+const ActionKind BtorSolver::ACTION_FAILED        = "btor-failed";
+const ActionKind BtorSolver::ACTION_FIXATE_ASSUMPTIONS =
     "btor-fixate-assumptions";
-const std::string BtorSolver::ACTION_RESET_ASSUMPTIONS =
+const ActionKind BtorSolver::ACTION_RESET_ASSUMPTIONS =
     "btor-reset-assumptions";
-const std::string BtorSolver::ACTION_RELEASE_ALL    = "btor-release-all";
-const std::string BtorSolver::ACTION_SIMPLIFY       = "btor-simplify";
-const std::string BtorSolver::ACTION_SET_SAT_SOLVER = "btor-set-sat-solver";
-const std::string BtorSolver::ACTION_SET_SYMBOL     = "btor-set-symbol";
+const ActionKind BtorSolver::ACTION_RELEASE_ALL    = "btor-release-all";
+const ActionKind BtorSolver::ACTION_SIMPLIFY       = "btor-simplify";
+const ActionKind BtorSolver::ACTION_SET_SAT_SOLVER = "btor-set-sat-solver";
+const ActionKind BtorSolver::ACTION_SET_SYMBOL     = "btor-set-symbol";
 
-const std::string BtorSolver::STATE_FIX_RESET_ASSUMPTIONS =
+const StateKind BtorSolver::STATE_FIX_RESET_ASSUMPTIONS =
     "btor-fix-reset-assumptions";
 
 class BtorActionBvAssignment : public Action

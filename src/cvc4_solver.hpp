@@ -87,8 +87,8 @@ class CVC4Solver : public Solver
 {
  public:
   /** Solver-specific actions. */
-  static const std::string ACTION_CHECK_ENTAILED;
-  static const std::string ACTION_SIMPLIFY;
+  static const ActionKind ACTION_CHECK_ENTAILED;
+  static const ActionKind ACTION_SIMPLIFY;
   /** Solver-specific operators */
   static const OpKind OP_REDAND;
   static const OpKind OP_REDOR;

@@ -40,6 +40,9 @@ namespace statistics {
 struct Statistics;
 }
 
+using ActionKind = std::string;
+using StateKind  = std::string;
+
 class State;
 
 /**
@@ -54,39 +57,39 @@ class Action
    * We use strings here to make FSM::d_actions easily extendible with
    * solver-specific actions.
    */
-  static const std::string UNDEFINED;
-  static const std::string NEW;
-  static const std::string DELETE;
-  static const std::string MK_SORT;
-  static const std::string MK_VALUE;
-  static const std::string MK_CONST;
-  static const std::string MK_VAR;
-  static const std::string MK_TERM;
-  static const std::string TERM_GET_SORT;
-  static const std::string TERM_CHECK_SORT;
-  static const std::string ASSERT_FORMULA;
-  static const std::string GET_UNSAT_ASSUMPTIONS;
-  static const std::string GET_VALUE;
-  static const std::string PRINT_MODEL;
-  static const std::string CHECK_SAT;
-  static const std::string CHECK_SAT_ASSUMING;
-  static const std::string PUSH;
-  static const std::string POP;
-  static const std::string RESET_ASSERTIONS;
-  static const std::string SET_OPTION;
-  static const std::string TRANS;
-  static const std::string TRANS_CREATE_INPUTS;
-  static const std::string TRANS_CREATE_SORTS;
-  static const std::string TRANS_MODEL;
+  static const ActionKind UNDEFINED;
+  static const ActionKind NEW;
+  static const ActionKind DELETE;
+  static const ActionKind MK_SORT;
+  static const ActionKind MK_VALUE;
+  static const ActionKind MK_CONST;
+  static const ActionKind MK_VAR;
+  static const ActionKind MK_TERM;
+  static const ActionKind TERM_GET_SORT;
+  static const ActionKind TERM_CHECK_SORT;
+  static const ActionKind ASSERT_FORMULA;
+  static const ActionKind GET_UNSAT_ASSUMPTIONS;
+  static const ActionKind GET_VALUE;
+  static const ActionKind PRINT_MODEL;
+  static const ActionKind CHECK_SAT;
+  static const ActionKind CHECK_SAT_ASSUMING;
+  static const ActionKind PUSH;
+  static const ActionKind POP;
+  static const ActionKind RESET_ASSERTIONS;
+  static const ActionKind SET_OPTION;
+  static const ActionKind TRANS;
+  static const ActionKind TRANS_CREATE_INPUTS;
+  static const ActionKind TRANS_CREATE_SORTS;
+  static const ActionKind TRANS_MODEL;
 
   /** Get Action kind from string representation. */
-  const std::string& get_kind() { return d_kind; };
+  const ActionKind& get_kind() { return d_kind; };
 
   /** Disallow default constructor. */
   Action() = delete;
   /** Constructor. */
   Action(SolverManager& smgr,
-         const std::string& kind,
+         const ActionKind& kind,
          bool returns,
          bool empty = false)
       : d_rng(smgr.get_rng()),
@@ -123,7 +126,7 @@ class Action
   virtual uint64_t untrace(std::vector<std::string>& tokens) = 0;
 
   /** Return the string representing the kind of this action. */
-  const std::string& get_kind() const { return d_kind; }
+  const ActionKind& get_kind() const { return d_kind; }
   /** Return the id of this action. */
   const uint64_t get_id() const { return d_id; }
   /** Set the id of this action. */
@@ -164,7 +167,7 @@ class Action
 
  private:
   /* Action kind. */
-  const std::string& d_kind = UNDEFINED;
+  const ActionKind& d_kind = UNDEFINED;
   /* Action id, assigned in the order they have been created. */
   uint64_t d_id = 0u;
 };
@@ -175,7 +178,7 @@ class Action
 class Transition : public Action
 {
  public:
-  Transition(SolverManager& smgr, const std::string& kind)
+  Transition(SolverManager& smgr, const ActionKind& kind)
       : Action(smgr, kind, false, true)
   {
   }
@@ -199,7 +202,7 @@ class TransitionDefault : public Transition
 class UntraceAction : public Action
 {
  public:
-  UntraceAction(SolverManager& smgr, const std::string& kind, bool returns)
+  UntraceAction(SolverManager& smgr, const ActionKind& kind, bool returns)
       : Action(smgr, kind, returns)
   {
   }
@@ -221,23 +224,23 @@ class State
 
  public:
   /** Solver-specific states. */
-  static const std::string UNDEFINED;
-  static const std::string NEW;
-  static const std::string OPT;
-  static const std::string DELETE;
-  static const std::string FINAL;
-  static const std::string CREATE_SORTS;
-  static const std::string CREATE_INPUTS;
-  static const std::string CREATE_TERMS;
-  static const std::string ASSERT;
-  static const std::string MODEL;
-  static const std::string CHECK_SAT;
-  static const std::string PUSH_POP;
+  static const StateKind UNDEFINED;
+  static const StateKind NEW;
+  static const StateKind OPT;
+  static const StateKind DELETE;
+  static const StateKind FINAL;
+  static const StateKind CREATE_SORTS;
+  static const StateKind CREATE_INPUTS;
+  static const StateKind CREATE_TERMS;
+  static const StateKind ASSERT;
+  static const StateKind MODEL;
+  static const StateKind CHECK_SAT;
+  static const StateKind PUSH_POP;
 
   /** Default constructor. */
   State() : d_kind(UNDEFINED), d_is_final(false) {}
   /** Constructor. */
-  State(const std::string& kind, std::function<bool(void)> fun, bool is_final)
+  State(const StateKind& kind, std::function<bool(void)> fun, bool is_final)
       : d_kind(kind), d_is_final(is_final), f_precond(fun)
   {
     if (kind.size() > SMTMBT_MAX_KIND_LEN)
@@ -251,7 +254,7 @@ class State
   }
 
   /** Returns the identifier of this state. */
-  const std::string& get_kind() { return d_kind; }
+  const StateKind& get_kind() { return d_kind; }
   /** Return the id of this state. */
   const uint64_t get_id() const { return d_id; }
   /** Set the id of this state. */
@@ -276,7 +279,7 @@ class State
 
  private:
   /* State kind. */
-  const std::string& d_kind;
+  const StateKind& d_kind;
   /* True if state is a final state. */
   bool d_is_final = false;
   /* True if state represents the place holder for all states. */
@@ -398,7 +401,7 @@ class FSM
   SolverManager d_smgr;
   RNGenerator& d_rng;
   std::vector<std::unique_ptr<State>> d_states;
-  std::unordered_map<std::string, std::unique_ptr<Action>> d_actions;
+  std::unordered_map<ActionKind, std::unique_ptr<Action>> d_actions;
 
   /**
    * A temporary list with actions (incl. priorities, the next state and
@@ -407,7 +410,7 @@ class FSM
    * states and actions is finalized.
    */
   std::vector<
-      std::tuple<Action*, uint32_t, std::unordered_set<std::string>, State*>>
+      std::tuple<Action*, uint32_t, std::unordered_set<StateKind>, State*>>
       d_actions_all_states;
   /**
    * A temporary list with actions (incl. priorities) that will be added to
@@ -416,7 +419,7 @@ class FSM
    * and actions is finalized.
    */
   std::vector<
-      std::tuple<Action*, uint32_t, State*, std::unordered_set<std::string>>>
+      std::tuple<Action*, uint32_t, State*, std::unordered_set<StateKind>>>
       d_actions_all_states_next;
 
   /** The initial state. */
@@ -439,7 +442,7 @@ FSM::new_action()
   static_assert(std::is_base_of<Action, T>::value,
                 "expected class (derived from) Action");
   T* action               = new T(d_smgr);
-  const std::string& kind = action->get_kind();
+  const ActionKind& kind  = action->get_kind();
   assert(kind.size() <= SMTMBT_MAX_KIND_LEN);
   if (d_actions.find(kind) == d_actions.end())
   {
@@ -467,11 +470,11 @@ void
 FSM::add_action_to_all_states(
     T* action,
     uint32_t priority,
-    const std::unordered_set<std::string>& excluded_states,
+    const std::unordered_set<StateKind>& excluded_states,
     State* next)
 {
   d_actions_all_states.push_back(
-      std::tuple<Action*, uint32_t, std::unordered_set<std::string>, State*>(
+      std::tuple<Action*, uint32_t, std::unordered_set<StateKind>, State*>(
           action, priority, excluded_states, next));
 }
 
@@ -481,10 +484,10 @@ FSM::add_action_to_all_states_next(
     T* action,
     uint32_t priority,
     State* state,
-    const std::unordered_set<std::string>& excluded_states)
+    const std::unordered_set<StateKind>& excluded_states)
 {
   d_actions_all_states_next.push_back(
-      std::tuple<Action*, uint32_t, State*, std::unordered_set<std::string>>(
+      std::tuple<Action*, uint32_t, State*, std::unordered_set<StateKind>>(
           action, priority, state, excluded_states));
 }
 
