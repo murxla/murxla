@@ -245,7 +245,7 @@ Smt2Term::get_repr() const
   if (d_params.size() == 0)
   {
     res << "(" << d_op_kind_to_str.at(d_kind);
-    if (d_kind == OP_FORALL || d_kind == OP_EXISTS)
+    if (d_kind == Op::FORALL || d_kind == Op::EXISTS)
     {
       assert(d_args.size() > 1);
       /* print bound variables, body is last argument term in d_args */
@@ -413,8 +413,8 @@ Smt2Solver::mk_var(Sort sort, const std::string& name)
     ss << "_v" << d_n_unnamed_vars++;
     symbol = ss.str();
   }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VAR, symbol));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VAR, symbol));
 }
 
 Term
@@ -445,8 +445,8 @@ Smt2Solver::mk_const(Sort sort, const std::string& name)
     smt2 << "(declare-const " << symbol << " " << smt2_sort->get_repr() << ")";
   }
   dump_smt2(smt2.str());
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::CONST, symbol));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::CONST, symbol));
 }
 
 Term
@@ -461,8 +461,8 @@ Smt2Solver::mk_value(Sort sort, bool value)
 {
   assert(sort->is_bool());
   std::string val = value ? "true" : "false";
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
 }
 
 Term
@@ -491,7 +491,7 @@ Smt2Solver::mk_value(Sort sort, std::string value)
     default: assert(false);
   }
   return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+      Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
 }
 
 Term
@@ -501,7 +501,7 @@ Smt2Solver::mk_value(Sort sort, std::string num, std::string den)
   std::stringstream val;
   val << num << "/" << den;
   return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+      Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
 }
 
 Term
@@ -528,7 +528,7 @@ Smt2Solver::mk_value(Sort sort, std::string value, Base base)
       break;
   }
   return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+      Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
 }
 
 Term
@@ -549,7 +549,7 @@ Smt2Solver::mk_value(Sort sort, SpecialValueFP value)
   }
   val << sort->get_fp_exp_size() << " " << sort->get_fp_sig_size() << ")";
   return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+      Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
 }
 
 Term
@@ -576,8 +576,8 @@ Smt2Solver::mk_value(Sort sort, SpecialValueRM value)
       assert(value == Solver::SpecialValueRM::SMTMBT_FP_RTZ);
       val = d_rng.flip_coin() ? "RTZ" : "roundTowardZero";
   }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
 }
 
 Term
@@ -596,8 +596,8 @@ Smt2Solver::mk_value(Sort sort, SpecialValueString value)
       assert(value == Solver::SpecialValueString::SMTMBT_RE_NONE);
       val = "re.none";
   }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      OpKind::OP_UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
 }
 
 static std::string
@@ -765,13 +765,13 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
   uint32_t sig_size                   = 0;
   std::string sort;
 
-  if (kind == OP_ITE)
+  if (kind == Op::ITE)
   {
     assert(args.size() == 3);
     return args[2]->get_sort();
   }
 
-  if (kind == OP_ARRAY_SELECT)
+  if (kind == Op::ARRAY_SELECT)
   {
     assert(args.size() == 2);
     assert(args[0]->get_sort()->get_kind() == SORT_ARRAY);
@@ -779,7 +779,7 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     return args[0]->get_sort()->get_sorts()[1];
   }
 
-  if (kind == OP_UF_APPLY)
+  if (kind == Op::UF_APPLY)
   {
     assert(args[0]->get_sort()->get_kind() == SORT_FUN);
     return args[0]->get_sort()->get_sorts().back();
@@ -816,58 +816,51 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     break;
 
     case SORT_BV:
-      switch (kind)
+      if (kind == Op::BV_CONCAT)
       {
-        case OP_BV_CONCAT:
-          for (const Term& a : args)
-          {
-            assert(a->get_sort()->is_bv());
-            bv_size += a->get_sort()->get_bv_size();
-            sort = get_bv_sort_string(bv_size);
-          }
-          break;
-
-        case OP_BV_EXTRACT:
-          assert(params.size() == 2);
-          assert(params[0] >= params[1]);
-          bv_size = params[0] - params[1] + 1;
-          sort    = get_bv_sort_string(bv_size);
-          break;
-
-        case OP_FP_TO_SBV:
-        case OP_FP_TO_UBV:
-          assert(params.size() == 1);
-          bv_size = params[0];
-          sort    = get_bv_sort_string(bv_size);
-          break;
-
-        default:
-          assert(args[0]->get_sort()->is_bv());
-          return args[0]->get_sort();
+        for (const Term& a : args)
+        {
+          assert(a->get_sort()->is_bv());
+          bv_size += a->get_sort()->get_bv_size();
+          sort = get_bv_sort_string(bv_size);
+        }
+      }
+      else if (kind == Op::BV_EXTRACT)
+      {
+        assert(params.size() == 2);
+        assert(params[0] >= params[1]);
+        bv_size = params[0] - params[1] + 1;
+        sort    = get_bv_sort_string(bv_size);
+      }
+      else if (kind == Op::FP_TO_SBV || kind == Op::FP_TO_UBV)
+      {
+        assert(params.size() == 1);
+        bv_size = params[0];
+        sort    = get_bv_sort_string(bv_size);
+      }
+      else
+      {
+        assert(args[0]->get_sort()->is_bv());
+        return args[0]->get_sort();
       }
       break;
 
     case SORT_FP:
-      switch (kind)
+      if (kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_INT_BV
+          || kind == Op::FP_TO_FP_FROM_FP || kind == Op::FP_TO_FP_FROM_UINT_BV
+          || kind == Op::FP_TO_FP_FROM_REAL)
       {
-        case OP_FP_TO_FP_FROM_BV:
-        case OP_FP_TO_FP_FROM_INT_BV:
-        case OP_FP_TO_FP_FROM_FP:
-        case OP_FP_TO_FP_FROM_UINT_BV:
-        case OP_FP_TO_FP_FROM_REAL:
-          assert(params.size() == 2);
-          bv_size  = params[0];
-          sig_size = params[1];
-          sort     = get_fp_sort_string(bv_size, sig_size);
-          break;
-
-        default:
-        {
-          assert(args.size() > 0);
-          size_t idx = args.size() - 1;
-          assert(args[idx]->get_sort()->is_fp());
-          return args[idx]->get_sort();
-        }
+        assert(params.size() == 2);
+        bv_size  = params[0];
+        sig_size = params[1];
+        sort     = get_fp_sort_string(bv_size, sig_size);
+      }
+      else
+      {
+        assert(args.size() > 0);
+        size_t idx = args.size() - 1;
+        assert(args[idx]->get_sort()->is_fp());
+        return args[idx]->get_sort();
       }
       break;
 

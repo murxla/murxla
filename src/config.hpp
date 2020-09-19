@@ -2,25 +2,6 @@
 #define __SMTMBT__CONFIG_H
 
 /**
- * Maximum number of states.
- *
- * There is no real upper limit, but we have to define this statically, because
- * statistics are created in shared memory (and thus no dynamic data structure
- * can be used). If an exception is raised to indicate that the maximum number
- * of actions has been exceeded, increase this value.
- */
-#define SMTMBT_MAX_N_STATES 100
-/**
- * Maximum length of state kinds.
- *
- * There is no real upper limit, but we have to define this statically, because
- * statistics are created in shared memory (and thus no dynamic data structure
- * can be used). If an exception is raised to indicate that the maximum length
- * of an action kind has been exceeded, increase this value.
- */
-#define SMTMBT_MAX_LEN_STATE_KIND 100
-
-/**
  * Maximum number of actions.
  *
  * There is no real upper limit, but we have to define this statically, because
@@ -30,14 +11,32 @@
  */
 #define SMTMBT_MAX_N_ACTIONS 100
 /**
- * Maximum length of action kinds.
+ * Maximum number of operators.
+ *
+ * There is no real upper limit, but we have to define this statically, because
+ * statistics are created in shared memory (and thus no dynamic data structure
+ * can be used). If an exception is raised to indicate that the maximum number
+ * of operators has been exceeded, increase this value.
+ */
+#define SMTMBT_MAX_N_OPS 200
+/**
+ * Maximum number of states.
+ *
+ * There is no real upper limit, but we have to define this statically, because
+ * statistics are created in shared memory (and thus no dynamic data structure
+ * can be used). If an exception is raised to indicate that the maximum number
+ * of states has been exceeded, increase this value.
+ */
+#define SMTMBT_MAX_N_STATES 100
+/**
+ * Maximum length of action, operator and state kinds.
  *
  * There is no real upper limit, but we have to define this statically, because
  * statistics are created in shared memory (and thus no dynamic data structure
  * can be used). If an exception is raised to indicate that the maximum length
- * of an action kind has been exceeded, increase this value.
+ * of a kind has been exceeded, increase this value.
  */
-#define SMTMBT_MAX_LEN_ACTION_KIND 100
+#define SMTMBT_MAX_KIND_LEN 100
 
 #define SMTMBT_BW_MIN 1
 #define SMTMBT_BW_MAX 128

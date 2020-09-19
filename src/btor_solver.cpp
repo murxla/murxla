@@ -645,315 +645,341 @@ BtorSolver::mk_term(const OpKind& kind,
   std::vector<BoolectorNode*> vars;
   std::vector<BoolectorNode*> btor_args = terms_to_btor_terms(args);
 
-  switch (kind)
+  if (kind == Op::DISTINCT)
   {
-    case OP_DISTINCT:
-      assert(n_args > 1);
-      btor_res = mk_term_pairwise(btor_args, boolector_ne);
-      break;
-    case OP_EQUAL:
-      assert(n_args > 1);
-      btor_res = mk_term_chained(btor_args, boolector_eq);
-      break;
-    case OP_BV_COMP:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_eq);
-      break;
-    case OP_IFF:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_iff);
-      break;
-    case OP_ITE:
-      assert(n_args == 3);
-      btor_res =
-          boolector_cond(d_solver, btor_args[0], btor_args[1], btor_args[2]);
-      break;
-    case OP_IMPLIES:
-      assert(n_args > 1);
-      btor_res = mk_term_left_assoc(btor_args, boolector_implies);
-      break;
+    assert(n_args > 1);
+    btor_res = mk_term_pairwise(btor_args, boolector_ne);
+  }
+  else if (kind == Op::EQUAL)
+  {
+    assert(n_args > 1);
+    btor_res = mk_term_chained(btor_args, boolector_eq);
+  }
+  else if (kind == Op::BV_COMP)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_eq);
+  }
+  else if (kind == Op::IFF)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_iff);
+  }
+  else if (kind == Op::ITE)
+  {
+    assert(n_args == 3);
+    btor_res =
+        boolector_cond(d_solver, btor_args[0], btor_args[1], btor_args[2]);
+  }
+  else if (kind == Op::IMPLIES)
+  {
+    assert(n_args > 1);
+    btor_res = mk_term_left_assoc(btor_args, boolector_implies);
+  }
+  else if (kind == Op::BV_EXTRACT)
+  {
+    assert(n_args == 1);
+    assert(n_params == 2);
+    btor_res = boolector_slice(d_solver, btor_args[0], params[0], params[1]);
+  }
+  else if (kind == Op::BV_REPEAT)
+  {
+    assert(n_args == 1);
+    assert(n_params == 1);
+    btor_res = boolector_repeat(d_solver, btor_args[0], params[0]);
+  }
+  else if (kind == Op::BV_ROTATE_LEFT || kind == Op::BV_ROTATE_RIGHT)
+  {
+    assert(n_args == 1);
+    assert(n_params == 1);
+    BoolectorNode* arg = btor_args[0];
+    BoolectorSort s    = boolector_get_sort(d_solver, arg);
+    uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
 
-    case OP_BV_EXTRACT:
-      assert(n_args == 1);
-      assert(n_params == 2);
-      btor_res = boolector_slice(d_solver, btor_args[0], params[0], params[1]);
-      break;
-    case OP_BV_REPEAT:
-      assert(n_args == 1);
-      assert(n_params == 1);
-      btor_res = boolector_repeat(d_solver, btor_args[0], params[0]);
-      break;
-
-    case OP_BV_ROTATE_LEFT:
-    case OP_BV_ROTATE_RIGHT:
+    /* use boolector_rori vs boolector_ror with 50% probability */
+    if (d_rng.flip_coin())
+    {
+      btor_res = (kind == Op::BV_ROTATE_LEFT)
+                     ? boolector_roli(d_solver, arg, params[0])
+                     : boolector_rori(d_solver, arg, params[0]);
+    }
+    else
+    {
+      BoolectorNode* tmp;
+      /* use same bit-width vs log2 bit-width (if possible) with 50% prob
+       */
+      if (bw > 1 && is_power_of_2(bw) && d_rng.flip_coin())
+      {
+        /* arg has bw that is power of 2, nbits argument with log2 bw */
+        uint32_t bw2     = static_cast<uint32_t>(log2(bw));
+        BoolectorSort s2 = boolector_bitvec_sort(d_solver, bw2);
+        uint32_t nbits   = params[0] % bw;
+        tmp              = boolector_unsigned_int(d_solver, nbits, s2);
+        boolector_release_sort(d_solver, s2);
+      }
+      else
+      {
+        /* arg and nbits argument with same bw */
+        tmp = boolector_unsigned_int(d_solver, params[0], s);
+      }
+      btor_res = (kind == Op::BV_ROTATE_LEFT)
+                     ? boolector_rol(d_solver, arg, tmp)
+                     : boolector_ror(d_solver, arg, tmp);
+      boolector_release(d_solver, tmp);
+    }
+  }
+  else if (kind == Op::BV_SIGN_EXTEND)
+  {
+    assert(n_args == 1);
+    assert(n_params == 1);
+    btor_res = boolector_sext(d_solver, btor_args[0], params[0]);
+  }
+  else if (kind == Op::BV_ZERO_EXTEND)
+  {
+    assert(n_args == 1);
+    assert(n_params == 1);
+    btor_res = boolector_uext(d_solver, btor_args[0], params[0]);
+  }
+  else if (kind == Op::BV_CONCAT)
+  {
+    assert(n_args > 1);
+    btor_res = mk_term_left_assoc(btor_args, boolector_concat);
+  }
+  else if (kind == Op::AND || kind == Op::BV_AND)
+  {
+    assert(n_args > 1);
+    btor_res = mk_term_left_assoc(btor_args, boolector_and);
+  }
+  else if (kind == Op::OR || kind == Op::BV_OR)
+  {
+    assert(n_args > 1);
+    btor_res = mk_term_left_assoc(btor_args, boolector_or);
+  }
+  else if (kind == Op::XOR || kind == Op::BV_XOR)
+  {
+    assert(n_args > 1);
+    btor_res = mk_term_left_assoc(btor_args, boolector_xor);
+  }
+  else if (kind == Op::BV_MULT)
+  {
+    assert(n_args > 1);
+    btor_res = mk_term_left_assoc(btor_args, boolector_mul);
+  }
+  else if (kind == Op::BV_ADD)
+  {
+    assert(n_args > 1);
+    btor_res = mk_term_left_assoc(btor_args, boolector_add);
+  }
+  else if (kind == Op::NOT || kind == Op::BV_NOT)
+  {
+    assert(n_args == 1);
+    btor_res = boolector_not(d_solver, btor_args[0]);
+  }
+  else if (kind == Op::BV_NEG)
+  {
+    assert(n_args == 1);
+    btor_res = boolector_neg(d_solver, btor_args[0]);
+  }
+  else if (kind == Op::BV_NAND)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_nand);
+  }
+  else if (kind == Op::BV_NOR)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_nor);
+  }
+  else if (kind == Op::BV_XNOR)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_xnor);
+  }
+  else if (kind == Op::BV_SUB)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_sub);
+  }
+  else if (kind == Op::BV_UDIV)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_udiv);
+  }
+  else if (kind == Op::BV_UREM)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_urem);
+  }
+  else if (kind == Op::BV_SDIV)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_sdiv);
+  }
+  else if (kind == Op::BV_SREM)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_srem);
+  }
+  else if (kind == Op::BV_SMOD)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_smod);
+  }
+  else if (kind == Op::BV_SHL)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_sll);
+  }
+  else if (kind == Op::BV_LSHR)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_srl);
+  }
+  else if (kind == Op::BV_ASHR)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_sra);
+  }
+  else if (kind == Op::BV_UGT)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_ugt);
+  }
+  else if (kind == Op::BV_UGE)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_ugte);
+  }
+  else if (kind == Op::BV_ULT)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_ult);
+  }
+  else if (kind == Op::BV_ULE)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_ulte);
+  }
+  else if (kind == Op::BV_SGT)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_sgt);
+  }
+  else if (kind == Op::BV_SGE)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_sgte);
+  }
+  else if (kind == Op::BV_SLT)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_slt);
+  }
+  else if (kind == Op::BV_SLE)
+  {
+    assert(n_args == 2);
+    btor_res = mk_term_left_assoc(btor_args, boolector_slte);
+  }
+  else if (kind == Op::ARRAY_SELECT)
+  {
+    assert(n_args == 2);
+    btor_res = boolector_read(d_solver, btor_args[0], btor_args[1]);
+  }
+  else if (kind == Op::ARRAY_STORE)
+  {
+    assert(n_args == 3);
+    btor_res =
+        boolector_write(d_solver, btor_args[0], btor_args[1], btor_args[2]);
+  }
+  else if (kind == Op::EXISTS || kind == Op::FORALL)
+  {
+    for (size_t i = 0, n = btor_args.size() - 1; i < n; ++i)
+    {
+      vars.push_back(btor_args[i]);
+    }
+    if (kind == Op::EXISTS)
+    {
+      btor_res = boolector_exists(
+          d_solver, vars.data(), vars.size(), btor_args.back());
+    }
+    else
+    {
+      btor_res = boolector_forall(
+          d_solver, vars.data(), vars.size(), btor_args.back());
+    }
+  }
+  else if (kind == Op::UF_APPLY)
+  {
+    btor_res = boolector_apply(
+        d_solver, btor_args.data() + 1, n_args - 1, btor_args[0]);
+  }
+  else
+  {
+    /* solver-specific operators */
+    if (kind == BtorSolver::OP_REDAND)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
-      BoolectorNode* arg = btor_args[0];
-      BoolectorSort s    = boolector_get_sort(d_solver, arg);
-      uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
-
-      /* use boolector_rori vs boolector_ror with 50% probability */
-      if (d_rng.flip_coin())
-      {
-        btor_res = (kind == OP_BV_ROTATE_LEFT)
-                       ? boolector_roli(d_solver, arg, params[0])
-                       : boolector_rori(d_solver, arg, params[0]);
-      }
-      else
-      {
-        BoolectorNode* tmp;
-        /* use same bit-width vs log2 bit-width (if possible) with 50% prob */
-        if (bw > 1 && is_power_of_2(bw) && d_rng.flip_coin())
-        {
-          /* arg has bw that is power of 2, nbits argument with log2 bw */
-          uint32_t bw2     = static_cast<uint32_t>(log2(bw));
-          BoolectorSort s2 = boolector_bitvec_sort(d_solver, bw2);
-          uint32_t nbits   = params[0] % bw;
-          tmp              = boolector_unsigned_int(d_solver, nbits, s2);
-          boolector_release_sort(d_solver, s2);
-        }
-        else
-        {
-          /* arg and nbits argument with same bw */
-          tmp = boolector_unsigned_int(d_solver, params[0], s);
-        }
-        btor_res = (kind == OP_BV_ROTATE_LEFT)
-                       ? boolector_rol(d_solver, arg, tmp)
-                       : boolector_ror(d_solver, arg, tmp);
-        boolector_release(d_solver, tmp);
-      }
-      break;
+      btor_res = boolector_redand(d_solver, btor_args[0]);
     }
-
-    case OP_BV_SIGN_EXTEND:
+    else if (kind == BtorSolver::OP_REDOR)
+    {
       assert(n_args == 1);
-      assert(n_params == 1);
-      btor_res = boolector_sext(d_solver, btor_args[0], params[0]);
-      break;
-    case OP_BV_ZERO_EXTEND:
+      btor_res = boolector_redor(d_solver, btor_args[0]);
+    }
+    else if (kind == BtorSolver::OP_REDXOR)
+    {
       assert(n_args == 1);
-      assert(n_params == 1);
-      btor_res = boolector_uext(d_solver, btor_args[0], params[0]);
-      break;
-    case OP_BV_CONCAT:
-      assert(n_args > 1);
-      btor_res = mk_term_left_assoc(btor_args, boolector_concat);
-      break;
-    case OP_AND:
-    case OP_BV_AND:
-      assert(n_args > 1);
-      btor_res = mk_term_left_assoc(btor_args, boolector_and);
-      break;
-    case OP_OR:
-    case OP_BV_OR:
-      assert(n_args > 1);
-      btor_res = mk_term_left_assoc(btor_args, boolector_or);
-      break;
-    case OP_XOR:
-    case OP_BV_XOR:
-      assert(n_args > 1);
-      btor_res = mk_term_left_assoc(btor_args, boolector_xor);
-      break;
-    case OP_BV_MULT:
-      assert(n_args > 1);
-      btor_res = mk_term_left_assoc(btor_args, boolector_mul);
-      break;
-    case OP_BV_ADD:
-      assert(n_args > 1);
-      btor_res = mk_term_left_assoc(btor_args, boolector_add);
-      break;
-
-    case OP_NOT:
-    case OP_BV_NOT:
+      btor_res = boolector_redxor(d_solver, btor_args[0]);
+    }
+    else if (kind == BtorSolver::OP_INC)
+    {
       assert(n_args == 1);
-      btor_res = boolector_not(d_solver, btor_args[0]);
-      break;
-    case OP_BV_NEG:
+      btor_res = boolector_inc(d_solver, btor_args[0]);
+    }
+    else if (kind == BtorSolver::OP_DEC)
+    {
       assert(n_args == 1);
-      btor_res = boolector_neg(d_solver, btor_args[0]);
-      break;
-
-    case OP_BV_NAND:
+      btor_res = boolector_dec(d_solver, btor_args[0]);
+    }
+    else if (kind == BtorSolver::OP_UADDO)
+    {
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_nand);
-      break;
-    case OP_BV_NOR:
+      btor_res = mk_term_left_assoc(btor_args, boolector_uaddo);
+    }
+    else if (kind == BtorSolver::OP_UMULO)
+    {
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_nor);
-      break;
-    case OP_BV_XNOR:
+      btor_res = mk_term_left_assoc(btor_args, boolector_umulo);
+    }
+    else if (kind == BtorSolver::OP_USUBO)
+    {
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_xnor);
-      break;
-    case OP_BV_SUB:
+      btor_res = mk_term_left_assoc(btor_args, boolector_usubo);
+    }
+    else if (kind == BtorSolver::OP_SADDO)
+    {
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_sub);
-      break;
-    case OP_BV_UDIV:
+      btor_res = mk_term_left_assoc(btor_args, boolector_saddo);
+    }
+    else if (kind == BtorSolver::OP_SDIVO)
+    {
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_udiv);
-      break;
-    case OP_BV_UREM:
+      btor_res = mk_term_left_assoc(btor_args, boolector_sdivo);
+    }
+    else if (kind == BtorSolver::OP_SMULO)
+    {
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_urem);
-      break;
-    case OP_BV_SDIV:
+      btor_res = mk_term_left_assoc(btor_args, boolector_smulo);
+    }
+    else if (kind == BtorSolver::OP_SSUBO)
+    {
       assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_sdiv);
-      break;
-    case OP_BV_SREM:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_srem);
-      break;
-    case OP_BV_SMOD:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_smod);
-      break;
-    case OP_BV_SHL:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_sll);
-      break;
-    case OP_BV_LSHR:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_srl);
-      break;
-    case OP_BV_ASHR:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_sra);
-      break;
-    case OP_BV_UGT:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_ugt);
-      break;
-    case OP_BV_UGE:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_ugte);
-      break;
-    case OP_BV_ULT:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_ult);
-      break;
-    case OP_BV_ULE:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_ulte);
-      break;
-    case OP_BV_SGT:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_sgt);
-      break;
-    case OP_BV_SGE:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_sgte);
-      break;
-    case OP_BV_SLT:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_slt);
-      break;
-    case OP_BV_SLE:
-      assert(n_args == 2);
-      btor_res = mk_term_left_assoc(btor_args, boolector_slte);
-      break;
-
-    case OP_ARRAY_SELECT:
-      assert(n_args == 2);
-      btor_res = boolector_read(d_solver, btor_args[0], btor_args[1]);
-      break;
-    case OP_ARRAY_STORE:
-      assert(n_args == 3);
-      btor_res =
-          boolector_write(d_solver, btor_args[0], btor_args[1], btor_args[2]);
-      break;
-
-    case OP_EXISTS:
-    case OP_FORALL:
-      for (size_t i = 0, n = btor_args.size() - 1; i < n; ++i)
-      {
-        vars.push_back(btor_args[i]);
-      }
-      if (kind == OP_EXISTS)
-      {
-        btor_res = boolector_exists(
-            d_solver, vars.data(), vars.size(), btor_args.back());
-      }
-      else
-      {
-        btor_res = boolector_forall(
-            d_solver, vars.data(), vars.size(), btor_args.back());
-      }
-      break;
-
-    case OP_UF_APPLY:
-      btor_res = boolector_apply(
-          d_solver, btor_args.data() + 1, n_args - 1, btor_args[0]);
-      break;
-
-    default:
-      /* solver-specific operators */
-      if (kind == d_op_redand)
-      {
-        assert(n_args == 1);
-        btor_res = boolector_redand(d_solver, btor_args[0]);
-      }
-      else if (kind == d_op_redor)
-      {
-        assert(n_args == 1);
-        btor_res = boolector_redor(d_solver, btor_args[0]);
-      }
-      else if (kind == d_op_redxor)
-      {
-        assert(n_args == 1);
-        btor_res = boolector_redxor(d_solver, btor_args[0]);
-      }
-      else if (kind == d_op_inc)
-      {
-        assert(n_args == 1);
-        btor_res = boolector_inc(d_solver, btor_args[0]);
-      }
-      else if (kind == d_op_dec)
-      {
-        assert(n_args == 1);
-        btor_res = boolector_dec(d_solver, btor_args[0]);
-      }
-      else if (kind == d_op_uaddo)
-      {
-        assert(n_args == 2);
-        btor_res = mk_term_left_assoc(btor_args, boolector_uaddo);
-      }
-      else if (kind == d_op_umulo)
-      {
-        assert(n_args == 2);
-        btor_res = mk_term_left_assoc(btor_args, boolector_umulo);
-      }
-      else if (kind == d_op_usubo)
-      {
-        assert(n_args == 2);
-        btor_res = mk_term_left_assoc(btor_args, boolector_usubo);
-      }
-      else if (kind == d_op_saddo)
-      {
-        assert(n_args == 2);
-        btor_res = mk_term_left_assoc(btor_args, boolector_saddo);
-      }
-      else if (kind == d_op_sdivo)
-      {
-        assert(n_args == 2);
-        btor_res = mk_term_left_assoc(btor_args, boolector_sdivo);
-      }
-      else if (kind == d_op_smulo)
-      {
-        assert(n_args == 2);
-        btor_res = mk_term_left_assoc(btor_args, boolector_smulo);
-      }
-      else if (kind == d_op_ssubo)
-      {
-        assert(n_args == 2);
-        btor_res = mk_term_left_assoc(btor_args, boolector_ssubo);
-      }
-      else
-      {
-        assert(false);
-      }
+      btor_res = mk_term_left_assoc(btor_args, boolector_ssubo);
+    }
+    else
+    {
+      assert(false);
+    }
   }
   assert(btor_res);
   assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
@@ -962,9 +988,6 @@ BtorSolver::mk_term(const OpKind& kind,
   boolector_release(d_solver, btor_res);
   return res;
 }
-
-// BoolectorNode *boolector_uf (Btor *btor, BoolectorSort sort, const char *symbol);
-// BoolectorNode *boolector_fun (Btor *btor, BoolectorNode **param_nodes, uint32_t paramc, BoolectorNode *node);
 
 Sort
 BtorSolver::get_sort(Term term, SortKind sort_kind) const
@@ -1417,35 +1440,36 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
 /* Solver-specific operators, SolverManager configuration.                    */
 /* -------------------------------------------------------------------------- */
 
+const OpKind BtorSolver::OP_DEC    = "btor-OP_DEC";
+const OpKind BtorSolver::OP_INC    = "btor-OP_INC";
+const OpKind BtorSolver::OP_REDAND = "btor-OP_REDAND";
+const OpKind BtorSolver::OP_REDOR  = "btor-OP_REDOR";
+const OpKind BtorSolver::OP_REDXOR = "btor-OP_REDXOR";
+const OpKind BtorSolver::OP_UADDO  = "btor-OP_UADDO";
+const OpKind BtorSolver::OP_UMULO  = "btor-OP_UMULO";
+const OpKind BtorSolver::OP_USUBO  = "btor-OP_USUBO";
+const OpKind BtorSolver::OP_SADDO  = "btor-OP_SADDO";
+const OpKind BtorSolver::OP_SDIVO  = "btor-OP_SDIVO";
+const OpKind BtorSolver::OP_SMULO  = "btor-OP_SMULO";
+const OpKind BtorSolver::OP_SSUBO  = "btor-OP_SSUBO";
+
 void
 BtorSolver::configure_smgr(SolverManager* smgr) const
 {
-  update_op_kinds_to_str(d_op_dec, "btor-OP_DEC");
-  smgr->add_op_kind(d_op_dec, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_inc, "btor-OP_INC");
-  smgr->add_op_kind(d_op_inc, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_DEC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_INC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  update_op_kinds_to_str(d_op_redand, "btor-OP_REDAND");
-  smgr->add_op_kind(d_op_redand, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_redor, "btor-OP_REDOR");
-  smgr->add_op_kind(d_op_redor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_redxor, "btor-OP_REDXOR");
-  smgr->add_op_kind(d_op_redxor, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_REDXOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  update_op_kinds_to_str(d_op_uaddo, "btor-OP_UADDO");
-  smgr->add_op_kind(d_op_uaddo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_umulo, "btor-OP_UMULO");
-  smgr->add_op_kind(d_op_umulo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_usubo, "btor-OP_USUBO");
-  smgr->add_op_kind(d_op_usubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_saddo, "btor-OP_SADDO");
-  smgr->add_op_kind(d_op_saddo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_sdivo, "btor-OP_SDIVO");
-  smgr->add_op_kind(d_op_sdivo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_smulo, "btor-OP_SMULO");
-  smgr->add_op_kind(d_op_smulo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_ssubo, "btor-OP_SSUBO");
-  smgr->add_op_kind(d_op_ssubo, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_UADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_UMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_USUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_SADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_SSUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 }
 
 /* -------------------------------------------------------------------------- */

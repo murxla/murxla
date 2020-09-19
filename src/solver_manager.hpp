@@ -90,7 +90,7 @@ class SolverManager
    *                  the remaining kinds are the same, it's sufficient to only
    *                  list it once
    */
-  void add_op_kind(OpKind kind,
+  void add_op_kind(const OpKind& kind,
                    int32_t arity,
                    uint32_t nparams,
                    SortKind sort_kind,
@@ -133,7 +133,7 @@ class SolverManager
    */
   OpKind pick_op_kind(bool with_terms = true);
 
-  Op& get_op(OpKind kind);
+  Op& get_op(const OpKind& kind);
 
   /**
    * Return true if

@@ -1,237 +1,185 @@
 #include "op.hpp"
+
 #include <iostream>
+#include <sstream>
+
+#include "config.hpp"
+#include "except.hpp"
 
 namespace smtmbt {
 
-#define SMTMBT_OP_TO_STR(kind) \
-  {                            \
-    kind, #kind                \
+const OpKind Op::UNDEFINED = "OP_UNDEFINED";
+/* Special cases */
+const OpKind Op::DISTINCT = "OP_DISTINCT";
+const OpKind Op::EQUAL    = "OP_EQUAL";
+const OpKind Op::ITE      = "OP_ITE";
+/* Arrays */
+const OpKind Op::ARRAY_SELECT = "OP_ARRAY_SELECT";
+const OpKind Op::ARRAY_STORE  = "OP_ARRAY_STORE";
+/* Boolean */
+const OpKind Op::AND     = "OP_AND";
+const OpKind Op::IFF     = "OP_IFF";
+const OpKind Op::IMPLIES = "OP_IMPLIES";
+const OpKind Op::NOT     = "OP_NOT";
+const OpKind Op::OR      = "OP_OR";
+const OpKind Op::XOR     = "OP_XOR";
+/* BV */
+const OpKind Op::BV_EXTRACT      = "OP_BV_EXTRACT";
+const OpKind Op::BV_REPEAT       = "OP_BV_REPEAT";
+const OpKind Op::BV_ROTATE_LEFT  = "OP_BV_ROTATE_LEFT";
+const OpKind Op::BV_ROTATE_RIGHT = "OP_BV_ROTATE_RIGHT";
+const OpKind Op::BV_SIGN_EXTEND  = "OP_BV_SIGN_EXTEND";
+const OpKind Op::BV_ZERO_EXTEND  = "OP_BV_ZERO_EXTEND";
+const OpKind Op::BV_ADD          = "OP_BV_ADD";
+const OpKind Op::BV_AND          = "OP_BV_AND";
+const OpKind Op::BV_ASHR         = "OP_BV_ASHR";
+const OpKind Op::BV_COMP         = "OP_BV_COMP";
+const OpKind Op::BV_CONCAT       = "OP_BV_CONCAT";
+const OpKind Op::BV_LSHR         = "OP_BV_LSHR";
+const OpKind Op::BV_MULT         = "OP_BV_MULT";
+const OpKind Op::BV_NAND         = "OP_BV_NAND";
+const OpKind Op::BV_NEG          = "OP_BV_NEG";
+const OpKind Op::BV_NOR          = "OP_BV_NOR";
+const OpKind Op::BV_NOT          = "OP_BV_NOT";
+const OpKind Op::BV_OR           = "OP_BV_OR";
+const OpKind Op::BV_SDIV         = "OP_BV_SDIV";
+const OpKind Op::BV_SGE          = "OP_BV_SGE";
+const OpKind Op::BV_SGT          = "OP_BV_SGT";
+const OpKind Op::BV_SHL          = "OP_BV_SHL";
+const OpKind Op::BV_SLE          = "OP_BV_SLE";
+const OpKind Op::BV_SLT          = "OP_BV_SLT";
+const OpKind Op::BV_SMOD         = "OP_BV_SMOD";
+const OpKind Op::BV_SREM         = "OP_BV_SREM";
+const OpKind Op::BV_SUB          = "OP_BV_SUB";
+const OpKind Op::BV_UDIV         = "OP_BV_UDIV";
+const OpKind Op::BV_UGE          = "OP_BV_UGE";
+const OpKind Op::BV_UGT          = "OP_BV_UGT";
+const OpKind Op::BV_ULE          = "OP_BV_ULE";
+const OpKind Op::BV_ULT          = "OP_BV_ULT";
+const OpKind Op::BV_UREM         = "OP_BV_UREM";
+const OpKind Op::BV_XNOR         = "OP_BV_XNOR";
+const OpKind Op::BV_XOR          = "OP_BV_XOR";
+/* FP */
+const OpKind Op::FP_TO_FP_FROM_BV      = "OP_FP_TO_FP_FROM_BV";
+const OpKind Op::FP_TO_FP_FROM_INT_BV  = "OP_FP_TO_FP_FROM_INT_BV";
+const OpKind Op::FP_TO_FP_FROM_FP      = "OP_FP_TO_FP_FROM_FP";
+const OpKind Op::FP_TO_FP_FROM_UINT_BV = "OP_FP_TO_FP_FROM_UINT_BV";
+const OpKind Op::FP_TO_FP_FROM_REAL    = "OP_FP_TO_FP_FROM_REAL";
+const OpKind Op::FP_TO_SBV             = "OP_FP_TO_SBV";
+const OpKind Op::FP_TO_UBV             = "OP_FP_TO_UBV";
+const OpKind Op::FP_ABS                = "OP_FP_ABS";
+const OpKind Op::FP_ADD                = "OP_FP_ADD";
+const OpKind Op::FP_DIV                = "OP_FP_DIV";
+const OpKind Op::FP_EQ                 = "OP_FP_EQ";
+const OpKind Op::FP_FMA                = "OP_FP_FMA";
+const OpKind Op::FP_FP                 = "OP_FP_FP";
+const OpKind Op::FP_IS_NORMAL          = "OP_FP_IS_NORMAL";
+const OpKind Op::FP_IS_SUBNORMAL       = "OP_FP_IS_SUBNORMAL";
+const OpKind Op::FP_IS_INF             = "OP_FP_IS_INF";
+const OpKind Op::FP_IS_NAN             = "OP_FP_IS_NAN";
+const OpKind Op::FP_IS_NEG             = "OP_FP_IS_NEG";
+const OpKind Op::FP_IS_POS             = "OP_FP_IS_POS";
+const OpKind Op::FP_IS_ZERO            = "OP_FP_IS_ZERO";
+const OpKind Op::FP_LT                 = "OP_FP_LT";
+const OpKind Op::FP_LTE                = "OP_FP_LTE";
+const OpKind Op::FP_GT                 = "OP_FP_GT";
+const OpKind Op::FP_GTE                = "OP_FP_GTE";
+const OpKind Op::FP_MAX                = "OP_FP_MAX";
+const OpKind Op::FP_MIN                = "OP_FP_MIN";
+const OpKind Op::FP_MUL                = "OP_FP_MUL";
+const OpKind Op::FP_NEG                = "OP_FP_NEG";
+const OpKind Op::FP_REM                = "OP_FP_REM";
+const OpKind Op::FP_RTI                = "OP_FP_RTI";
+const OpKind Op::FP_SQRT               = "OP_FP_SQRT";
+const OpKind Op::FP_SUB                = "OP_FP_SUB";
+const OpKind Op::FP_TO_REAL            = "OP_FP_TO_REAL";
+/* Ints */
+const OpKind Op::INT_IS_DIV = "OP_INT_IS_DIV";
+const OpKind Op::INT_IS_INT = "OP_INT_IS_INT";
+const OpKind Op::INT_NEG    = "OP_INT_NEG";
+const OpKind Op::INT_SUB    = "OP_INT_SUB";
+const OpKind Op::INT_ADD    = "OP_INT_ADD";
+const OpKind Op::INT_MUL    = "OP_INT_MUL";
+const OpKind Op::INT_DIV    = "OP_INT_DIV";
+const OpKind Op::INT_MOD    = "OP_INT_MOD";
+const OpKind Op::INT_ABS    = "OP_INT_ABS";
+const OpKind Op::INT_LT     = "OP_INT_LT";
+const OpKind Op::INT_LTE    = "OP_INT_LTE";
+const OpKind Op::INT_GT     = "OP_INT_GT";
+const OpKind Op::INT_GTE    = "OP_INT_GTE";
+/* Reals */
+const OpKind Op::REAL_IS_INT = "OP_REAL_IS_INT";
+const OpKind Op::REAL_NEG    = "OP_REAL_NEG";
+const OpKind Op::REAL_SUB    = "OP_REAL_SUB";
+const OpKind Op::REAL_ADD    = "OP_REAL_ADD";
+const OpKind Op::REAL_MUL    = "OP_REAL_MUL";
+const OpKind Op::REAL_DIV    = "OP_REAL_DIV";
+const OpKind Op::REAL_LT     = "OP_REAL_LT";
+const OpKind Op::REAL_LTE    = "OP_REAL_LTE";
+const OpKind Op::REAL_GT     = "OP_REAL_GT";
+const OpKind Op::REAL_GTE    = "OP_REAL_GTE";
+/* Quantifiers */
+const OpKind Op::FORALL = "OP_FORALL";
+const OpKind Op::EXISTS = "OP_EXISTS";
+/* Strings */
+const OpKind Op::RE_COMP            = "OP_RE_COMP";
+const OpKind Op::RE_CONCAT          = "OP_RE_CONCAT";
+const OpKind Op::RE_DIFF            = "OP_RE_DIFF";
+const OpKind Op::RE_INTER           = "OP_RE_INTER";
+const OpKind Op::RE_LOOP            = "OP_RE_LOOP";
+const OpKind Op::RE_OPT             = "OP_RE_OPT";
+const OpKind Op::RE_PLUS            = "OP_RE_PLUS";
+const OpKind Op::RE_POW             = "OP_RE_POW";
+const OpKind Op::RE_RANGE           = "OP_RE_RANGE";
+const OpKind Op::RE_STAR            = "OP_RE_STAR";
+const OpKind Op::RE_UNION           = "OP_RE_UNION";
+const OpKind Op::STR_AT             = "OP_STR_";
+const OpKind Op::STR_CONCAT         = "OP_STR_CONCAT";
+const OpKind Op::STR_CONTAINS       = "OP_STR_CONTAINS";
+const OpKind Op::STR_FROM_CODE      = "OP_STR_FROM_CODE";
+const OpKind Op::STR_FROM_INT       = "OP_STR_FROM_INT";
+const OpKind Op::STR_INDEXOF        = "OP_STR_INDEXOF";
+const OpKind Op::STR_IN_RE          = "OP_STR_IN_RE";
+const OpKind Op::STR_IS_DIGIT       = "OP_STR_IS_DIGIT";
+const OpKind Op::STR_LE             = "OP_STR_";
+const OpKind Op::STR_LEN            = "OP_STR_LEN";
+const OpKind Op::STR_LT             = "OP_STR_LT";
+const OpKind Op::STR_PREFIXOF       = "OP_STR_PREFIXOF";
+const OpKind Op::STR_REPLACE        = "OP_STR_REPLACE";
+const OpKind Op::STR_REPLACE_ALL    = "OP_STR_REPLACE_ALL";
+const OpKind Op::STR_REPLACE_RE     = "OP_STR_REPLACE_RE";
+const OpKind Op::STR_REPLACE_RE_ALL = "OP_STR_REPLACE_RE_ALL";
+const OpKind Op::STR_SUBSTR         = "OP_STR_SUBSTR";
+const OpKind Op::STR_SUFFIXOF       = "OP_STR_SUFFIXOF";
+const OpKind Op::STR_TO_CODE        = "OP_STR_TO_CODE";
+const OpKind Op::STR_TO_INT         = "OP_STR_TO_INT";
+const OpKind Op::STR_TO_RE          = "OP_STR_TO_RE";
+/* UF */
+const OpKind Op::UF_APPLY = "OP_UF_APPLY";
+
+Op::Op(uint64_t id,
+       const OpKind& kind,
+       int32_t arity,
+       uint32_t nparams,
+       SortKind sort_kind,
+       const std::vector<SortKind>& sort_kind_args,
+       TheoryId theory)
+    : d_id(id),
+      d_kind(kind),
+      d_arity(arity),
+      d_nparams(nparams),
+      d_sort_kind(sort_kind),
+      d_theory(theory),
+      d_sort_kind_args(sort_kind_args)
+{
+  if (kind.size() > SMTMBT_MAX_KIND_LEN)
+  {
+    std::stringstream ss;
+    ss << "'" << kind
+       << "' exceeds maximum length for operator kinds, increase limit by "
+          "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
+    throw SmtMbtConfigException(ss);
   }
-
-std::unordered_map<OpKind, std::string, OpKindHashFunction> op_kinds_to_str = {
-    SMTMBT_OP_TO_STR(OP_UNDEFINED),
-
-    /* Special Cases */
-    SMTMBT_OP_TO_STR(OP_DISTINCT),
-    SMTMBT_OP_TO_STR(OP_EQUAL),
-    SMTMBT_OP_TO_STR(OP_ITE),
-
-    /* Arrays */
-    SMTMBT_OP_TO_STR(OP_ARRAY_SELECT),
-    SMTMBT_OP_TO_STR(OP_ARRAY_STORE),
-
-    /* Boolean */
-    SMTMBT_OP_TO_STR(OP_AND),
-    SMTMBT_OP_TO_STR(OP_IFF),
-    SMTMBT_OP_TO_STR(OP_IMPLIES),
-    SMTMBT_OP_TO_STR(OP_NOT),
-    SMTMBT_OP_TO_STR(OP_OR),
-    SMTMBT_OP_TO_STR(OP_XOR),
-
-    /* BV */
-    SMTMBT_OP_TO_STR(OP_BV_EXTRACT),
-    SMTMBT_OP_TO_STR(OP_BV_REPEAT),
-    SMTMBT_OP_TO_STR(OP_BV_ROTATE_LEFT),
-    SMTMBT_OP_TO_STR(OP_BV_ROTATE_RIGHT),
-    SMTMBT_OP_TO_STR(OP_BV_SIGN_EXTEND),
-    SMTMBT_OP_TO_STR(OP_BV_ZERO_EXTEND),
-
-    SMTMBT_OP_TO_STR(OP_BV_ADD),
-    SMTMBT_OP_TO_STR(OP_BV_AND),
-    SMTMBT_OP_TO_STR(OP_BV_ASHR),
-    SMTMBT_OP_TO_STR(OP_BV_COMP),
-    SMTMBT_OP_TO_STR(OP_BV_CONCAT),
-    SMTMBT_OP_TO_STR(OP_BV_LSHR),
-    SMTMBT_OP_TO_STR(OP_BV_MULT),
-    SMTMBT_OP_TO_STR(OP_BV_NAND),
-    SMTMBT_OP_TO_STR(OP_BV_NEG),
-    SMTMBT_OP_TO_STR(OP_BV_NOR),
-    SMTMBT_OP_TO_STR(OP_BV_NOT),
-    SMTMBT_OP_TO_STR(OP_BV_OR),
-    SMTMBT_OP_TO_STR(OP_BV_SDIV),
-    SMTMBT_OP_TO_STR(OP_BV_SGE),
-    SMTMBT_OP_TO_STR(OP_BV_SGT),
-    SMTMBT_OP_TO_STR(OP_BV_SHL),
-    SMTMBT_OP_TO_STR(OP_BV_SLE),
-    SMTMBT_OP_TO_STR(OP_BV_SLT),
-    SMTMBT_OP_TO_STR(OP_BV_SMOD),
-    SMTMBT_OP_TO_STR(OP_BV_SREM),
-    SMTMBT_OP_TO_STR(OP_BV_SUB),
-    SMTMBT_OP_TO_STR(OP_BV_UDIV),
-    SMTMBT_OP_TO_STR(OP_BV_UGE),
-    SMTMBT_OP_TO_STR(OP_BV_UGT),
-    SMTMBT_OP_TO_STR(OP_BV_ULE),
-    SMTMBT_OP_TO_STR(OP_BV_ULT),
-    SMTMBT_OP_TO_STR(OP_BV_UREM),
-    SMTMBT_OP_TO_STR(OP_BV_XNOR),
-    SMTMBT_OP_TO_STR(OP_BV_XOR),
-
-    /* FP */
-    SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_BV),
-    SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_INT_BV),
-    SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_FP),
-    SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_UINT_BV),
-    SMTMBT_OP_TO_STR(OP_FP_TO_FP_FROM_REAL),
-    SMTMBT_OP_TO_STR(OP_FP_TO_SBV),
-    SMTMBT_OP_TO_STR(OP_FP_TO_UBV),
-
-    SMTMBT_OP_TO_STR(OP_FP_ABS),
-    SMTMBT_OP_TO_STR(OP_FP_ADD),
-    SMTMBT_OP_TO_STR(OP_FP_DIV),
-    SMTMBT_OP_TO_STR(OP_FP_EQ),
-    SMTMBT_OP_TO_STR(OP_FP_FMA),
-    SMTMBT_OP_TO_STR(OP_FP_FP),
-    SMTMBT_OP_TO_STR(OP_FP_IS_NORMAL),
-    SMTMBT_OP_TO_STR(OP_FP_IS_SUBNORMAL),
-    SMTMBT_OP_TO_STR(OP_FP_IS_INF),
-    SMTMBT_OP_TO_STR(OP_FP_IS_NAN),
-    SMTMBT_OP_TO_STR(OP_FP_IS_NEG),
-    SMTMBT_OP_TO_STR(OP_FP_IS_POS),
-    SMTMBT_OP_TO_STR(OP_FP_IS_ZERO),
-    SMTMBT_OP_TO_STR(OP_FP_LT),
-    SMTMBT_OP_TO_STR(OP_FP_LTE),
-    SMTMBT_OP_TO_STR(OP_FP_GT),
-    SMTMBT_OP_TO_STR(OP_FP_GTE),
-    SMTMBT_OP_TO_STR(OP_FP_MAX),
-    SMTMBT_OP_TO_STR(OP_FP_MIN),
-    SMTMBT_OP_TO_STR(OP_FP_MUL),
-    SMTMBT_OP_TO_STR(OP_FP_NEG),
-    SMTMBT_OP_TO_STR(OP_FP_REM),
-    SMTMBT_OP_TO_STR(OP_FP_RTI),
-    SMTMBT_OP_TO_STR(OP_FP_SQRT),
-    SMTMBT_OP_TO_STR(OP_FP_SUB),
-    SMTMBT_OP_TO_STR(OP_FP_TO_REAL),
-
-    /* Ints */
-    SMTMBT_OP_TO_STR(OP_INT_IS_DIV),
-    SMTMBT_OP_TO_STR(OP_INT_IS_INT),
-    SMTMBT_OP_TO_STR(OP_INT_NEG),
-    SMTMBT_OP_TO_STR(OP_INT_SUB),
-    SMTMBT_OP_TO_STR(OP_INT_ADD),
-    SMTMBT_OP_TO_STR(OP_INT_MUL),
-    SMTMBT_OP_TO_STR(OP_INT_DIV),
-    SMTMBT_OP_TO_STR(OP_INT_MOD),
-    SMTMBT_OP_TO_STR(OP_INT_ABS),
-    SMTMBT_OP_TO_STR(OP_INT_LT),
-    SMTMBT_OP_TO_STR(OP_INT_LTE),
-    SMTMBT_OP_TO_STR(OP_INT_GT),
-    SMTMBT_OP_TO_STR(OP_INT_GTE),
-
-    /* Reals */
-    SMTMBT_OP_TO_STR(OP_REAL_IS_INT),
-    SMTMBT_OP_TO_STR(OP_REAL_NEG),
-    SMTMBT_OP_TO_STR(OP_REAL_SUB),
-    SMTMBT_OP_TO_STR(OP_REAL_ADD),
-    SMTMBT_OP_TO_STR(OP_REAL_MUL),
-    SMTMBT_OP_TO_STR(OP_REAL_DIV),
-    SMTMBT_OP_TO_STR(OP_REAL_LT),
-    SMTMBT_OP_TO_STR(OP_REAL_LTE),
-    SMTMBT_OP_TO_STR(OP_REAL_GT),
-    SMTMBT_OP_TO_STR(OP_REAL_GTE),
-
-    /* Quantifiers */
-    SMTMBT_OP_TO_STR(OP_FORALL),
-    SMTMBT_OP_TO_STR(OP_EXISTS),
-
-    /* Strings */
-    SMTMBT_OP_TO_STR(OP_STR_CONCAT),
-    SMTMBT_OP_TO_STR(OP_STR_LEN),
-    SMTMBT_OP_TO_STR(OP_STR_LT),
-    SMTMBT_OP_TO_STR(OP_STR_TO_RE),
-    SMTMBT_OP_TO_STR(OP_STR_IN_RE),
-    SMTMBT_OP_TO_STR(OP_RE_CONCAT),
-    SMTMBT_OP_TO_STR(OP_RE_UNION),
-    SMTMBT_OP_TO_STR(OP_RE_INTER),
-    SMTMBT_OP_TO_STR(OP_RE_STAR),
-    SMTMBT_OP_TO_STR(OP_STR_LE),
-    SMTMBT_OP_TO_STR(OP_STR_AT),
-    SMTMBT_OP_TO_STR(OP_STR_SUBSTR),
-    SMTMBT_OP_TO_STR(OP_STR_PREFIXOF),
-    SMTMBT_OP_TO_STR(OP_STR_SUFFIXOF),
-    SMTMBT_OP_TO_STR(OP_STR_CONTAINS),
-    SMTMBT_OP_TO_STR(OP_STR_INDEXOF),
-    SMTMBT_OP_TO_STR(OP_STR_REPLACE),
-    SMTMBT_OP_TO_STR(OP_STR_REPLACE_ALL),
-    SMTMBT_OP_TO_STR(OP_STR_REPLACE_RE),
-    SMTMBT_OP_TO_STR(OP_STR_REPLACE_RE_ALL),
-    SMTMBT_OP_TO_STR(OP_RE_COMP),
-    SMTMBT_OP_TO_STR(OP_RE_DIFF),
-    SMTMBT_OP_TO_STR(OP_RE_PLUS),
-    SMTMBT_OP_TO_STR(OP_RE_OPT),
-    SMTMBT_OP_TO_STR(OP_RE_RANGE),
-    SMTMBT_OP_TO_STR(OP_RE_POW),
-    SMTMBT_OP_TO_STR(OP_RE_LOOP),
-    SMTMBT_OP_TO_STR(OP_STR_IS_DIGIT),
-    SMTMBT_OP_TO_STR(OP_STR_TO_CODE),
-    SMTMBT_OP_TO_STR(OP_STR_FROM_CODE),
-    SMTMBT_OP_TO_STR(OP_STR_TO_INT),
-    SMTMBT_OP_TO_STR(OP_STR_FROM_INT),
-
-    /* UF */
-    SMTMBT_OP_TO_STR(OP_UF_APPLY),
-
-    /* Placeholders */
-    SMTMBT_OP_TO_STR(OP_EXT_OP_01),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_02),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_03),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_04),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_05),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_06),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_07),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_08),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_09),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_10),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_11),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_12),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_13),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_14),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_15),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_16),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_17),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_18),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_19),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_20),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_21),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_22),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_23),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_24),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_25),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_26),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_27),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_28),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_29),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_30),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_31),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_32),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_33),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_34),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_35),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_36),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_37),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_38),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_39),
-    SMTMBT_OP_TO_STR(OP_EXT_OP_40),
-};
-
-void
-update_op_kinds_to_str(OpKind kind, std::string string)
-{
-  assert(op_kinds_to_str.find(kind) != op_kinds_to_str.end());
-  op_kinds_to_str.at(kind) = string;
-}
-
-std::ostream&
-operator<<(std::ostream& out, OpKind kind)
-{
-  assert(op_kinds_to_str.find(kind) != op_kinds_to_str.end());
-  out << op_kinds_to_str.at(kind);
-  return out;
-}
-
-size_t
-OpKindHashFunction::operator()(OpKind kind) const
-{
-  return kind;
 }
 
 bool
@@ -266,18 +214,4 @@ Op::get_arg_sort_kind(size_t i) const
   return d_sort_kind_args[i];
 }
 
-OpKind
-op_kind_from_str(std::string& s)
-{
-  for (const auto& p : op_kinds_to_str)
-  {
-    if (p.second == s)
-    {
-      return p.first;
-    }
-  }
-  return OP_UNDEFINED;
-}
-
 }  // namespace smtmbt
-

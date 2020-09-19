@@ -77,6 +77,44 @@ class YicesTerm : public AbsTerm
 class YicesSolver : public Solver
 {
  public:
+  /* Solver-specific operators. */
+  // BV
+  static const OpKind OP_ASHIFT_RIGHT;
+  static const OpKind OP_BITEXTRACT;
+  static const OpKind OP_BVARRAY;
+  static const OpKind OP_BVPOWER;
+  static const OpKind OP_BVSQUARE;
+  static const OpKind OP_REDAND;
+  static const OpKind OP_REDOR;
+  static const OpKind OP_SHIFT_LEFT0;
+  static const OpKind OP_SHIFT_LEFT1;
+  static const OpKind OP_SHIFT_RIGHT0;
+  static const OpKind OP_SHIFT_RIGHT1;
+  // Arithmetic
+  static const OpKind OP_INT_CEIL;
+  static const OpKind OP_INT_FLOOR;
+  static const OpKind OP_INT_EQ0;
+  static const OpKind OP_INT_GEQ0;
+  static const OpKind OP_INT_GT0;
+  static const OpKind OP_INT_LEQ0;
+  static const OpKind OP_INT_LT0;
+  static const OpKind OP_INT_NEQ0;
+  static const OpKind OP_INT_POLY;
+  static const OpKind OP_INT_POWER;
+  static const OpKind OP_INT_SQUARE;
+  static const OpKind OP_REAL_CEIL;
+  static const OpKind OP_REAL_FLOOR;
+  static const OpKind OP_REAL_EQ0;
+  static const OpKind OP_REAL_GEQ0;
+  static const OpKind OP_REAL_GT0;
+  static const OpKind OP_REAL_LEQ0;
+  static const OpKind OP_REAL_LT0;
+  static const OpKind OP_REAL_NEQ0;
+  static const OpKind OP_REAL_POLY;
+  static const OpKind OP_REAL_RPOLY;
+  static const OpKind OP_REAL_POWER;
+  static const OpKind OP_REAL_SQUARE;
+
   YicesSolver(RNGenerator& rng) : Solver(rng) {}
   ~YicesSolver() override{};
 
@@ -184,44 +222,6 @@ class YicesSolver : public Solver
   ctx_config_t* d_config = nullptr;
   context_t* d_context   = nullptr;
   model_t* d_model       = nullptr;
-
-  /* solver-specific operators */
-  // BV
-  const OpKind d_op_ashift_right = OP_EXT_OP_01;
-  const OpKind d_op_bitextract   = OP_EXT_OP_02;
-  const OpKind d_op_bvarray      = OP_EXT_OP_03;
-  const OpKind d_op_bvpower      = OP_EXT_OP_04;
-  const OpKind d_op_bvsquare     = OP_EXT_OP_05;
-  const OpKind d_op_redand       = OP_EXT_OP_06;
-  const OpKind d_op_redor        = OP_EXT_OP_07;
-  const OpKind d_op_shift_left0  = OP_EXT_OP_08;
-  const OpKind d_op_shift_left1  = OP_EXT_OP_09;
-  const OpKind d_op_shift_right0 = OP_EXT_OP_10;
-  const OpKind d_op_shift_right1 = OP_EXT_OP_11;
-  // Arithmetic
-  const OpKind d_op_int_ceil    = OP_EXT_OP_12;
-  const OpKind d_op_int_floor   = OP_EXT_OP_13;
-  const OpKind d_op_int_eq0     = OP_EXT_OP_14;
-  const OpKind d_op_int_geq0    = OP_EXT_OP_15;
-  const OpKind d_op_int_gt0     = OP_EXT_OP_16;
-  const OpKind d_op_int_leq0    = OP_EXT_OP_17;
-  const OpKind d_op_int_lt0     = OP_EXT_OP_18;
-  const OpKind d_op_int_neq0    = OP_EXT_OP_19;
-  const OpKind d_op_int_poly    = OP_EXT_OP_20;
-  const OpKind d_op_int_power   = OP_EXT_OP_21;
-  const OpKind d_op_int_square  = OP_EXT_OP_22;
-  const OpKind d_op_real_ceil   = OP_EXT_OP_23;
-  const OpKind d_op_real_floor  = OP_EXT_OP_24;
-  const OpKind d_op_real_eq0    = OP_EXT_OP_25;
-  const OpKind d_op_real_geq0   = OP_EXT_OP_26;
-  const OpKind d_op_real_gt0    = OP_EXT_OP_27;
-  const OpKind d_op_real_leq0   = OP_EXT_OP_28;
-  const OpKind d_op_real_lt0    = OP_EXT_OP_29;
-  const OpKind d_op_real_neq0   = OP_EXT_OP_30;
-  const OpKind d_op_real_poly   = OP_EXT_OP_31;
-  const OpKind d_op_real_rpoly  = OP_EXT_OP_32;
-  const OpKind d_op_real_power  = OP_EXT_OP_33;
-  const OpKind d_op_real_square = OP_EXT_OP_34;
 };
 
 }  // namespace yices

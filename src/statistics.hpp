@@ -11,11 +11,12 @@ namespace statistics {
 struct Statistics
 {
   uint64_t d_results[3];
-  uint64_t d_ops[OpKind::OP_ALL];
-  uint64_t d_ops_ok[OpKind::OP_ALL];
-  char d_state_kinds[SMTMBT_MAX_N_STATES][SMTMBT_MAX_LEN_STATE_KIND];
+  char d_op_kinds[SMTMBT_MAX_N_OPS][SMTMBT_MAX_KIND_LEN];
+  uint64_t d_ops[SMTMBT_MAX_N_OPS];
+  uint64_t d_ops_ok[SMTMBT_MAX_N_OPS];
+  char d_state_kinds[SMTMBT_MAX_N_STATES][SMTMBT_MAX_KIND_LEN];
   uint64_t d_states[SMTMBT_MAX_N_STATES];
-  char d_action_kinds[SMTMBT_MAX_N_ACTIONS][SMTMBT_MAX_LEN_ACTION_KIND];
+  char d_action_kinds[SMTMBT_MAX_N_ACTIONS][SMTMBT_MAX_KIND_LEN];
   uint64_t d_actions[SMTMBT_MAX_N_ACTIONS];
   uint64_t d_actions_ok[SMTMBT_MAX_N_ACTIONS];
 

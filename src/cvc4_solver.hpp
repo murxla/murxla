@@ -89,6 +89,9 @@ class CVC4Solver : public Solver
   /** Solver-specific actions. */
   static const std::string ACTION_CHECK_ENTAILED;
   static const std::string ACTION_SIMPLIFY;
+  /** Solver-specific operators */
+  static const OpKind OP_REDAND;
+  static const OpKind OP_REDOR;
 
   /** Constructor. */
   CVC4Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
@@ -185,12 +188,8 @@ class CVC4Solver : public Solver
       std::vector<CVC4::api::Term>& terms) const;
 
   CVC4::api::Solver* d_solver;
-  std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_kinds;
-  std::unordered_map<OpKind, CVC4::api::Kind, OpKindHashFunction> d_op_kinds;
-
-  /** solver-specific operators */
-  const OpKind d_op_redand = OP_EXT_OP_01;
-  const OpKind d_op_redor  = OP_EXT_OP_02;
+  std::unordered_map<std::string, CVC4::api::Kind> d_kinds;
+  std::unordered_map<std::string, CVC4::api::Kind> d_op_kinds;
 };
 
 }  // namespace btor

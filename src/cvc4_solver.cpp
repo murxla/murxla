@@ -210,7 +210,7 @@ OpKindSet
 CVC4Solver::get_unsupported_op_kinds() const
 {
   return {
-      OP_IFF,
+      Op::IFF,
   };
 }
 
@@ -619,7 +619,7 @@ CVC4Solver::mk_term(const OpKind& kind,
   int32_t n_args    = args.size();
   uint32_t n_params = params.size();
 
-  if (kind == OP_FORALL || kind == OP_EXISTS)
+  if (kind == Op::FORALL || kind == Op::EXISTS)
   {
     assert(args.size() >= 2);
     std::vector<api::Term> vars;
@@ -645,7 +645,7 @@ CVC4Solver::mk_term(const OpKind& kind,
       assert(cvc4_opterm.isIndexed());
       assert(cvc4_opterm.getKind() == cvc4_kind);
       uint32_t idx;
-      if (kind == OP_INT_IS_DIV)
+      if (kind == Op::INT_IS_DIV)
       {
         std::string sidx = cvc4_opterm.getIndices<std::string>();
         /* we only generate 32 bit indices, so this shouldn't throw */
@@ -687,7 +687,7 @@ CVC4Solver::mk_term(const OpKind& kind,
       break;
 
     case 1:
-      if (kind == OP_NOT && d_rng.flip_coin())
+      if (kind == Op::NOT && d_rng.flip_coin())
       {
         assert(!n_params);
         cvc4_res = get_cvc4_term(args[0]).notTerm();
@@ -701,27 +701,27 @@ CVC4Solver::mk_term(const OpKind& kind,
       break;
 
     case 2:
-      if (kind == OP_AND && d_rng.flip_coin())
+      if (kind == Op::AND && d_rng.flip_coin())
       {
         assert(!n_params);
         cvc4_res = get_cvc4_term(args[0]).andTerm(get_cvc4_term(args[1]));
       }
-      else if (kind == OP_OR && d_rng.flip_coin())
+      else if (kind == Op::OR && d_rng.flip_coin())
       {
         assert(!n_params);
         cvc4_res = get_cvc4_term(args[0]).orTerm(get_cvc4_term(args[1]));
       }
-      else if (kind == OP_XOR && d_rng.flip_coin())
+      else if (kind == Op::XOR && d_rng.flip_coin())
       {
         assert(!n_params);
         cvc4_res = get_cvc4_term(args[0]).xorTerm(get_cvc4_term(args[1]));
       }
-      else if (kind == OP_EQUAL && d_rng.flip_coin())
+      else if (kind == Op::EQUAL && d_rng.flip_coin())
       {
         assert(!n_params);
         cvc4_res = get_cvc4_term(args[0]).eqTerm(get_cvc4_term(args[1]));
       }
-      else if (kind == OP_IMPLIES && d_rng.flip_coin())
+      else if (kind == Op::IMPLIES && d_rng.flip_coin())
       {
         assert(!n_params);
         cvc4_res = get_cvc4_term(args[0]).impTerm(get_cvc4_term(args[1]));
@@ -738,7 +738,7 @@ CVC4Solver::mk_term(const OpKind& kind,
       break;
 
     case 3:
-      if (kind == OP_ITE && d_rng.flip_coin())
+      if (kind == Op::ITE && d_rng.flip_coin())
       {
         assert(!n_params);
         cvc4_res = get_cvc4_term(args[0]).iteTerm(get_cvc4_term(args[1]),
@@ -1077,170 +1077,171 @@ CVC4Solver::init_op_kinds()
 {
   d_kinds = {
       /* Special Cases */
-      {OP_UNDEFINED, CVC4::api::Kind::UNDEFINED_KIND},
-      {OP_DISTINCT, CVC4::api::Kind::DISTINCT},
-      {OP_EQUAL, CVC4::api::Kind::EQUAL},
-      {OP_ITE, CVC4::api::Kind::ITE},
+      {Op::UNDEFINED, CVC4::api::Kind::UNDEFINED_KIND},
+      {Op::DISTINCT, CVC4::api::Kind::DISTINCT},
+      {Op::EQUAL, CVC4::api::Kind::EQUAL},
+      {Op::ITE, CVC4::api::Kind::ITE},
 
       /* Bool */
-      {OP_AND, CVC4::api::Kind::AND},
-      {OP_OR, CVC4::api::Kind::OR},
-      {OP_NOT, CVC4::api::Kind::NOT},
-      {OP_XOR, CVC4::api::Kind::XOR},
-      {OP_IMPLIES, CVC4::api::Kind::IMPLIES},
+      {Op::AND, CVC4::api::Kind::AND},
+      {Op::OR, CVC4::api::Kind::OR},
+      {Op::NOT, CVC4::api::Kind::NOT},
+      {Op::XOR, CVC4::api::Kind::XOR},
+      {Op::IMPLIES, CVC4::api::Kind::IMPLIES},
 
       /* Arrays */
-      {OP_ARRAY_SELECT, CVC4::api::Kind::SELECT},
-      {OP_ARRAY_STORE, CVC4::api::Kind::STORE},
+      {Op::ARRAY_SELECT, CVC4::api::Kind::SELECT},
+      {Op::ARRAY_STORE, CVC4::api::Kind::STORE},
 
       /* BV */
-      {OP_BV_EXTRACT, CVC4::api::Kind::BITVECTOR_EXTRACT},
-      {OP_BV_REPEAT, CVC4::api::Kind::BITVECTOR_REPEAT},
-      {OP_BV_ROTATE_LEFT, CVC4::api::Kind::BITVECTOR_ROTATE_LEFT},
-      {OP_BV_ROTATE_RIGHT, CVC4::api::Kind::BITVECTOR_ROTATE_RIGHT},
-      {OP_BV_SIGN_EXTEND, CVC4::api::Kind::BITVECTOR_SIGN_EXTEND},
-      {OP_BV_ZERO_EXTEND, CVC4::api::Kind::BITVECTOR_ZERO_EXTEND},
+      {Op::BV_EXTRACT, CVC4::api::Kind::BITVECTOR_EXTRACT},
+      {Op::BV_REPEAT, CVC4::api::Kind::BITVECTOR_REPEAT},
+      {Op::BV_ROTATE_LEFT, CVC4::api::Kind::BITVECTOR_ROTATE_LEFT},
+      {Op::BV_ROTATE_RIGHT, CVC4::api::Kind::BITVECTOR_ROTATE_RIGHT},
+      {Op::BV_SIGN_EXTEND, CVC4::api::Kind::BITVECTOR_SIGN_EXTEND},
+      {Op::BV_ZERO_EXTEND, CVC4::api::Kind::BITVECTOR_ZERO_EXTEND},
 
-      {OP_BV_CONCAT, CVC4::api::Kind::BITVECTOR_CONCAT},
-      {OP_BV_AND, CVC4::api::Kind::BITVECTOR_AND},
-      {OP_BV_OR, CVC4::api::Kind::BITVECTOR_OR},
-      {OP_BV_XOR, CVC4::api::Kind::BITVECTOR_XOR},
-      {OP_BV_MULT, CVC4::api::Kind::BITVECTOR_MULT},
-      {OP_BV_ADD, CVC4::api::Kind::BITVECTOR_PLUS},
-      {OP_BV_NOT, CVC4::api::Kind::BITVECTOR_NOT},
-      {OP_BV_NEG, CVC4::api::Kind::BITVECTOR_NEG},
-      {OP_BV_NAND, CVC4::api::Kind::BITVECTOR_NAND},
-      {OP_BV_NOR, CVC4::api::Kind::BITVECTOR_NOR},
-      {OP_BV_XNOR, CVC4::api::Kind::BITVECTOR_XNOR},
-      {OP_BV_COMP, CVC4::api::Kind::BITVECTOR_COMP},
-      {OP_BV_SUB, CVC4::api::Kind::BITVECTOR_SUB},
-      {OP_BV_UDIV, CVC4::api::Kind::BITVECTOR_UDIV},
-      {OP_BV_UREM, CVC4::api::Kind::BITVECTOR_UREM},
-      {OP_BV_UREM, CVC4::api::Kind::BITVECTOR_UREM},
-      {OP_BV_SDIV, CVC4::api::Kind::BITVECTOR_SDIV},
-      {OP_BV_SREM, CVC4::api::Kind::BITVECTOR_SREM},
-      {OP_BV_SMOD, CVC4::api::Kind::BITVECTOR_SMOD},
-      {OP_BV_SHL, CVC4::api::Kind::BITVECTOR_SHL},
-      {OP_BV_LSHR, CVC4::api::Kind::BITVECTOR_LSHR},
-      {OP_BV_ASHR, CVC4::api::Kind::BITVECTOR_ASHR},
-      {OP_BV_ULT, CVC4::api::Kind::BITVECTOR_ULT},
-      {OP_BV_ULE, CVC4::api::Kind::BITVECTOR_ULE},
-      {OP_BV_UGT, CVC4::api::Kind::BITVECTOR_UGT},
-      {OP_BV_UGE, CVC4::api::Kind::BITVECTOR_UGE},
-      {OP_BV_SLT, CVC4::api::Kind::BITVECTOR_SLT},
-      {OP_BV_SLE, CVC4::api::Kind::BITVECTOR_SLE},
-      {OP_BV_SGT, CVC4::api::Kind::BITVECTOR_SGT},
-      {OP_BV_SGE, CVC4::api::Kind::BITVECTOR_SGE},
+      {Op::BV_CONCAT, CVC4::api::Kind::BITVECTOR_CONCAT},
+      {Op::BV_AND, CVC4::api::Kind::BITVECTOR_AND},
+      {Op::BV_OR, CVC4::api::Kind::BITVECTOR_OR},
+      {Op::BV_XOR, CVC4::api::Kind::BITVECTOR_XOR},
+      {Op::BV_MULT, CVC4::api::Kind::BITVECTOR_MULT},
+      {Op::BV_ADD, CVC4::api::Kind::BITVECTOR_PLUS},
+      {Op::BV_NOT, CVC4::api::Kind::BITVECTOR_NOT},
+      {Op::BV_NEG, CVC4::api::Kind::BITVECTOR_NEG},
+      {Op::BV_NAND, CVC4::api::Kind::BITVECTOR_NAND},
+      {Op::BV_NOR, CVC4::api::Kind::BITVECTOR_NOR},
+      {Op::BV_XNOR, CVC4::api::Kind::BITVECTOR_XNOR},
+      {Op::BV_COMP, CVC4::api::Kind::BITVECTOR_COMP},
+      {Op::BV_SUB, CVC4::api::Kind::BITVECTOR_SUB},
+      {Op::BV_UDIV, CVC4::api::Kind::BITVECTOR_UDIV},
+      {Op::BV_UREM, CVC4::api::Kind::BITVECTOR_UREM},
+      {Op::BV_UREM, CVC4::api::Kind::BITVECTOR_UREM},
+      {Op::BV_SDIV, CVC4::api::Kind::BITVECTOR_SDIV},
+      {Op::BV_SREM, CVC4::api::Kind::BITVECTOR_SREM},
+      {Op::BV_SMOD, CVC4::api::Kind::BITVECTOR_SMOD},
+      {Op::BV_SHL, CVC4::api::Kind::BITVECTOR_SHL},
+      {Op::BV_LSHR, CVC4::api::Kind::BITVECTOR_LSHR},
+      {Op::BV_ASHR, CVC4::api::Kind::BITVECTOR_ASHR},
+      {Op::BV_ULT, CVC4::api::Kind::BITVECTOR_ULT},
+      {Op::BV_ULE, CVC4::api::Kind::BITVECTOR_ULE},
+      {Op::BV_UGT, CVC4::api::Kind::BITVECTOR_UGT},
+      {Op::BV_UGE, CVC4::api::Kind::BITVECTOR_UGE},
+      {Op::BV_SLT, CVC4::api::Kind::BITVECTOR_SLT},
+      {Op::BV_SLE, CVC4::api::Kind::BITVECTOR_SLE},
+      {Op::BV_SGT, CVC4::api::Kind::BITVECTOR_SGT},
+      {Op::BV_SGE, CVC4::api::Kind::BITVECTOR_SGE},
 
       /* FP */
-      {OP_FP_ABS, CVC4::api::Kind::FLOATINGPOINT_ABS},
-      {OP_FP_ADD, CVC4::api::Kind::FLOATINGPOINT_PLUS},
-      {OP_FP_DIV, CVC4::api::Kind::FLOATINGPOINT_DIV},
-      {OP_FP_EQ, CVC4::api::Kind::FLOATINGPOINT_EQ},
-      {OP_FP_FMA, CVC4::api::Kind::FLOATINGPOINT_FMA},
-      {OP_FP_FP, CVC4::api::Kind::FLOATINGPOINT_FP},
-      {OP_FP_IS_NORMAL, CVC4::api::Kind::FLOATINGPOINT_ISN},
-      {OP_FP_IS_SUBNORMAL, CVC4::api::Kind::FLOATINGPOINT_ISSN},
-      {OP_FP_IS_INF, CVC4::api::Kind::FLOATINGPOINT_ISINF},
-      {OP_FP_IS_NAN, CVC4::api::Kind::FLOATINGPOINT_ISNAN},
-      {OP_FP_IS_NEG, CVC4::api::Kind::FLOATINGPOINT_ISNEG},
-      {OP_FP_IS_POS, CVC4::api::Kind::FLOATINGPOINT_ISPOS},
-      {OP_FP_IS_ZERO, CVC4::api::Kind::FLOATINGPOINT_ISZ},
-      {OP_FP_LT, CVC4::api::Kind::FLOATINGPOINT_LT},
-      {OP_FP_LTE, CVC4::api::Kind::FLOATINGPOINT_LEQ},
-      {OP_FP_GT, CVC4::api::Kind::FLOATINGPOINT_GT},
-      {OP_FP_GTE, CVC4::api::Kind::FLOATINGPOINT_GEQ},
-      {OP_FP_MAX, CVC4::api::Kind::FLOATINGPOINT_MAX},
-      {OP_FP_MIN, CVC4::api::Kind::FLOATINGPOINT_MIN},
-      {OP_FP_MUL, CVC4::api::Kind::FLOATINGPOINT_MULT},
-      {OP_FP_NEG, CVC4::api::Kind::FLOATINGPOINT_NEG},
-      {OP_FP_REM, CVC4::api::Kind::FLOATINGPOINT_REM},
-      {OP_FP_RTI, CVC4::api::Kind::FLOATINGPOINT_RTI},
-      {OP_FP_SQRT, CVC4::api::Kind::FLOATINGPOINT_SQRT},
-      {OP_FP_SUB, CVC4::api::Kind::FLOATINGPOINT_SUB},
-      {OP_FP_TO_FP_FROM_BV,
+      {Op::FP_ABS, CVC4::api::Kind::FLOATINGPOINT_ABS},
+      {Op::FP_ADD, CVC4::api::Kind::FLOATINGPOINT_PLUS},
+      {Op::FP_DIV, CVC4::api::Kind::FLOATINGPOINT_DIV},
+      {Op::FP_EQ, CVC4::api::Kind::FLOATINGPOINT_EQ},
+      {Op::FP_FMA, CVC4::api::Kind::FLOATINGPOINT_FMA},
+      {Op::FP_FP, CVC4::api::Kind::FLOATINGPOINT_FP},
+      {Op::FP_IS_NORMAL, CVC4::api::Kind::FLOATINGPOINT_ISN},
+      {Op::FP_IS_SUBNORMAL, CVC4::api::Kind::FLOATINGPOINT_ISSN},
+      {Op::FP_IS_INF, CVC4::api::Kind::FLOATINGPOINT_ISINF},
+      {Op::FP_IS_NAN, CVC4::api::Kind::FLOATINGPOINT_ISNAN},
+      {Op::FP_IS_NEG, CVC4::api::Kind::FLOATINGPOINT_ISNEG},
+      {Op::FP_IS_POS, CVC4::api::Kind::FLOATINGPOINT_ISPOS},
+      {Op::FP_IS_ZERO, CVC4::api::Kind::FLOATINGPOINT_ISZ},
+      {Op::FP_LT, CVC4::api::Kind::FLOATINGPOINT_LT},
+      {Op::FP_LTE, CVC4::api::Kind::FLOATINGPOINT_LEQ},
+      {Op::FP_GT, CVC4::api::Kind::FLOATINGPOINT_GT},
+      {Op::FP_GTE, CVC4::api::Kind::FLOATINGPOINT_GEQ},
+      {Op::FP_MAX, CVC4::api::Kind::FLOATINGPOINT_MAX},
+      {Op::FP_MIN, CVC4::api::Kind::FLOATINGPOINT_MIN},
+      {Op::FP_MUL, CVC4::api::Kind::FLOATINGPOINT_MULT},
+      {Op::FP_NEG, CVC4::api::Kind::FLOATINGPOINT_NEG},
+      {Op::FP_REM, CVC4::api::Kind::FLOATINGPOINT_REM},
+      {Op::FP_RTI, CVC4::api::Kind::FLOATINGPOINT_RTI},
+      {Op::FP_SQRT, CVC4::api::Kind::FLOATINGPOINT_SQRT},
+      {Op::FP_SUB, CVC4::api::Kind::FLOATINGPOINT_SUB},
+      {Op::FP_TO_FP_FROM_BV,
        CVC4::api::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
-      {OP_FP_TO_FP_FROM_INT_BV,
+      {Op::FP_TO_FP_FROM_INT_BV,
        CVC4::api::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
-      {OP_FP_TO_FP_FROM_FP, CVC4::api::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
-      {OP_FP_TO_FP_FROM_UINT_BV,
+      {Op::FP_TO_FP_FROM_FP,
+       CVC4::api::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
+      {Op::FP_TO_FP_FROM_UINT_BV,
        CVC4::api::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
-      {OP_FP_TO_FP_FROM_REAL, CVC4::api::Kind::FLOATINGPOINT_TO_FP_REAL},
-      {OP_FP_TO_REAL, CVC4::api::Kind::FLOATINGPOINT_TO_REAL},
-      {OP_FP_TO_SBV, CVC4::api::Kind::FLOATINGPOINT_TO_SBV},
-      {OP_FP_TO_UBV, CVC4::api::Kind::FLOATINGPOINT_TO_UBV},
+      {Op::FP_TO_FP_FROM_REAL, CVC4::api::Kind::FLOATINGPOINT_TO_FP_REAL},
+      {Op::FP_TO_REAL, CVC4::api::Kind::FLOATINGPOINT_TO_REAL},
+      {Op::FP_TO_SBV, CVC4::api::Kind::FLOATINGPOINT_TO_SBV},
+      {Op::FP_TO_UBV, CVC4::api::Kind::FLOATINGPOINT_TO_UBV},
 
       /* Ints */
-      {OP_INT_IS_DIV, CVC4::api::Kind::DIVISIBLE},
-      {OP_INT_NEG, CVC4::api::Kind::UMINUS},
-      {OP_INT_SUB, CVC4::api::Kind::MINUS},
-      {OP_INT_ADD, CVC4::api::Kind::PLUS},
-      {OP_INT_MUL, CVC4::api::Kind::MULT},
-      {OP_INT_DIV, CVC4::api::Kind::INTS_DIVISION},
-      {OP_INT_MOD, CVC4::api::Kind::INTS_MODULUS},
-      {OP_INT_ABS, CVC4::api::Kind::ABS},
-      {OP_INT_LT, CVC4::api::Kind::LT},
-      {OP_INT_LTE, CVC4::api::Kind::LEQ},
-      {OP_INT_GT, CVC4::api::Kind::GT},
-      {OP_INT_GTE, CVC4::api::Kind::GEQ},
-      {OP_INT_IS_INT, CVC4::api::Kind::IS_INTEGER},
+      {Op::INT_IS_DIV, CVC4::api::Kind::DIVISIBLE},
+      {Op::INT_NEG, CVC4::api::Kind::UMINUS},
+      {Op::INT_SUB, CVC4::api::Kind::MINUS},
+      {Op::INT_ADD, CVC4::api::Kind::PLUS},
+      {Op::INT_MUL, CVC4::api::Kind::MULT},
+      {Op::INT_DIV, CVC4::api::Kind::INTS_DIVISION},
+      {Op::INT_MOD, CVC4::api::Kind::INTS_MODULUS},
+      {Op::INT_ABS, CVC4::api::Kind::ABS},
+      {Op::INT_LT, CVC4::api::Kind::LT},
+      {Op::INT_LTE, CVC4::api::Kind::LEQ},
+      {Op::INT_GT, CVC4::api::Kind::GT},
+      {Op::INT_GTE, CVC4::api::Kind::GEQ},
+      {Op::INT_IS_INT, CVC4::api::Kind::IS_INTEGER},
 
       /* Reals */
-      {OP_REAL_NEG, CVC4::api::Kind::UMINUS},
-      {OP_REAL_SUB, CVC4::api::Kind::MINUS},
-      {OP_REAL_ADD, CVC4::api::Kind::PLUS},
-      {OP_REAL_MUL, CVC4::api::Kind::MULT},
-      {OP_REAL_DIV, CVC4::api::Kind::DIVISION},
-      {OP_REAL_LT, CVC4::api::Kind::LT},
-      {OP_REAL_LTE, CVC4::api::Kind::LEQ},
-      {OP_REAL_GT, CVC4::api::Kind::GT},
-      {OP_REAL_GTE, CVC4::api::Kind::GEQ},
-      {OP_REAL_IS_INT, CVC4::api::Kind::IS_INTEGER},
+      {Op::REAL_NEG, CVC4::api::Kind::UMINUS},
+      {Op::REAL_SUB, CVC4::api::Kind::MINUS},
+      {Op::REAL_ADD, CVC4::api::Kind::PLUS},
+      {Op::REAL_MUL, CVC4::api::Kind::MULT},
+      {Op::REAL_DIV, CVC4::api::Kind::DIVISION},
+      {Op::REAL_LT, CVC4::api::Kind::LT},
+      {Op::REAL_LTE, CVC4::api::Kind::LEQ},
+      {Op::REAL_GT, CVC4::api::Kind::GT},
+      {Op::REAL_GTE, CVC4::api::Kind::GEQ},
+      {Op::REAL_IS_INT, CVC4::api::Kind::IS_INTEGER},
 
       /* Quantifiers */
-      {OP_FORALL, CVC4::api::Kind::FORALL},
-      {OP_EXISTS, CVC4::api::Kind::EXISTS},
+      {Op::FORALL, CVC4::api::Kind::FORALL},
+      {Op::EXISTS, CVC4::api::Kind::EXISTS},
 
       /* Strings */
-      {OP_STR_CONCAT, CVC4::api::Kind::STRING_CONCAT},
-      {OP_STR_LEN, CVC4::api::Kind::STRING_LENGTH},
-      {OP_STR_LT, CVC4::api::Kind::STRING_LT},
-      {OP_STR_TO_RE, CVC4::api::Kind::STRING_TO_REGEXP},
-      {OP_STR_IN_RE, CVC4::api::Kind::STRING_IN_REGEXP},
-      {OP_RE_CONCAT, CVC4::api::Kind::REGEXP_CONCAT},
-      {OP_RE_UNION, CVC4::api::Kind::REGEXP_UNION},
-      {OP_RE_INTER, CVC4::api::Kind::REGEXP_INTER},
-      {OP_RE_STAR, CVC4::api::Kind::REGEXP_STAR},
-      {OP_STR_LE, CVC4::api::Kind::STRING_LEQ},
-      {OP_STR_AT, CVC4::api::Kind::STRING_CHARAT},
-      {OP_STR_SUBSTR, CVC4::api::Kind::STRING_SUBSTR},
-      {OP_STR_PREFIXOF, CVC4::api::Kind::STRING_PREFIX},
-      {OP_STR_SUFFIXOF, CVC4::api::Kind::STRING_SUFFIX},
-      {OP_STR_CONTAINS, CVC4::api::Kind::STRING_CONTAINS},
-      {OP_STR_INDEXOF, CVC4::api::Kind::STRING_INDEXOF},
-      {OP_STR_REPLACE, CVC4::api::Kind::STRING_REPLACE},
-      {OP_STR_REPLACE_ALL, CVC4::api::Kind::STRING_REPLACE_ALL},
-      {OP_STR_REPLACE_RE, CVC4::api::Kind::STRING_REPLACE_RE},
-      {OP_STR_REPLACE_RE_ALL, CVC4::api::Kind::STRING_REPLACE_RE_ALL},
-      {OP_RE_COMP, CVC4::api::Kind::REGEXP_COMPLEMENT},
-      {OP_RE_DIFF, CVC4::api::Kind::REGEXP_DIFF},
-      {OP_RE_PLUS, CVC4::api::Kind::REGEXP_PLUS},
-      {OP_RE_OPT, CVC4::api::Kind::REGEXP_OPT},
-      {OP_RE_RANGE, CVC4::api::Kind::REGEXP_RANGE},
-      {OP_RE_POW, CVC4::api::Kind::REGEXP_REPEAT},
-      {OP_RE_LOOP, CVC4::api::Kind::REGEXP_LOOP},
-      {OP_STR_IS_DIGIT, CVC4::api::Kind::STRING_IS_DIGIT},
-      {OP_STR_TO_CODE, CVC4::api::Kind::STRING_TO_CODE},
-      {OP_STR_FROM_CODE, CVC4::api::Kind::STRING_FROM_CODE},
-      {OP_STR_TO_INT, CVC4::api::Kind::STRING_TO_INT},
-      {OP_STR_FROM_INT, CVC4::api::Kind::STRING_FROM_INT},
+      {Op::STR_CONCAT, CVC4::api::Kind::STRING_CONCAT},
+      {Op::STR_LEN, CVC4::api::Kind::STRING_LENGTH},
+      {Op::STR_LT, CVC4::api::Kind::STRING_LT},
+      {Op::STR_TO_RE, CVC4::api::Kind::STRING_TO_REGEXP},
+      {Op::STR_IN_RE, CVC4::api::Kind::STRING_IN_REGEXP},
+      {Op::RE_CONCAT, CVC4::api::Kind::REGEXP_CONCAT},
+      {Op::RE_UNION, CVC4::api::Kind::REGEXP_UNION},
+      {Op::RE_INTER, CVC4::api::Kind::REGEXP_INTER},
+      {Op::RE_STAR, CVC4::api::Kind::REGEXP_STAR},
+      {Op::STR_LE, CVC4::api::Kind::STRING_LEQ},
+      {Op::STR_AT, CVC4::api::Kind::STRING_CHARAT},
+      {Op::STR_SUBSTR, CVC4::api::Kind::STRING_SUBSTR},
+      {Op::STR_PREFIXOF, CVC4::api::Kind::STRING_PREFIX},
+      {Op::STR_SUFFIXOF, CVC4::api::Kind::STRING_SUFFIX},
+      {Op::STR_CONTAINS, CVC4::api::Kind::STRING_CONTAINS},
+      {Op::STR_INDEXOF, CVC4::api::Kind::STRING_INDEXOF},
+      {Op::STR_REPLACE, CVC4::api::Kind::STRING_REPLACE},
+      {Op::STR_REPLACE_ALL, CVC4::api::Kind::STRING_REPLACE_ALL},
+      {Op::STR_REPLACE_RE, CVC4::api::Kind::STRING_REPLACE_RE},
+      {Op::STR_REPLACE_RE_ALL, CVC4::api::Kind::STRING_REPLACE_RE_ALL},
+      {Op::RE_COMP, CVC4::api::Kind::REGEXP_COMPLEMENT},
+      {Op::RE_DIFF, CVC4::api::Kind::REGEXP_DIFF},
+      {Op::RE_PLUS, CVC4::api::Kind::REGEXP_PLUS},
+      {Op::RE_OPT, CVC4::api::Kind::REGEXP_OPT},
+      {Op::RE_RANGE, CVC4::api::Kind::REGEXP_RANGE},
+      {Op::RE_POW, CVC4::api::Kind::REGEXP_REPEAT},
+      {Op::RE_LOOP, CVC4::api::Kind::REGEXP_LOOP},
+      {Op::STR_IS_DIGIT, CVC4::api::Kind::STRING_IS_DIGIT},
+      {Op::STR_TO_CODE, CVC4::api::Kind::STRING_TO_CODE},
+      {Op::STR_FROM_CODE, CVC4::api::Kind::STRING_FROM_CODE},
+      {Op::STR_TO_INT, CVC4::api::Kind::STRING_TO_INT},
+      {Op::STR_FROM_INT, CVC4::api::Kind::STRING_FROM_INT},
 
       /* UF */
-      {OP_UF_APPLY, CVC4::api::Kind::APPLY_UF},
+      {Op::UF_APPLY, CVC4::api::Kind::APPLY_UF},
 
       /* Solver-specific operators */
-      {d_op_redor, CVC4::api::Kind::BITVECTOR_REDOR},
-      {d_op_redand, CVC4::api::Kind::BITVECTOR_REDAND},
+      {OP_REDOR, CVC4::api::Kind::BITVECTOR_REDOR},
+      {OP_REDAND, CVC4::api::Kind::BITVECTOR_REDAND},
   };
 }
 
@@ -1260,13 +1261,14 @@ CVC4Solver::get_cvc4_term(Term term) const
 /* Solver-specific operators, SolverManager configuration.                    */
 /* -------------------------------------------------------------------------- */
 
+const OpKind CVC4Solver::OP_REDAND = "cvc4-OP_REDAND";
+const OpKind CVC4Solver::OP_REDOR  = "cvc4-OP_REDOR";
+
 void
 CVC4Solver::configure_smgr(SolverManager* smgr) const
 {
-  update_op_kinds_to_str(d_op_redand, "cvc4-OP_REDAND");
-  smgr->add_op_kind(d_op_redand, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-  update_op_kinds_to_str(d_op_redor, "btor-OP_REDOR");
-  smgr->add_op_kind(d_op_redor, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -43,9 +43,9 @@ Statistics::print() const
 
   sum = 0;
   std::cout << "Ops:" << std::endl;
-  for (uint32_t i = 0; i < OpKind::OP_ALL; ++i)
+  for (uint32_t i = 0; i < SMTMBT_MAX_N_OPS && d_op_kinds[i][0]; ++i)
   {
-    std::cout << "  " << static_cast<OpKind>(i) << ": " << d_ops[i] << " ("
+    std::cout << "  " << d_op_kinds[i] << ": " << d_ops[i] << " ("
               << d_ops_ok[i] << ")" << std::endl;
     sum += d_ops[i];
   }

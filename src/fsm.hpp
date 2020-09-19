@@ -97,6 +97,14 @@ class Action
         d_kind(kind)
 
   {
+    if (kind.size() > SMTMBT_MAX_KIND_LEN)
+    {
+      std::stringstream ss;
+      ss << "'" << kind
+         << "' exceeds maximum length for action kinds, increase limit by "
+            "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
+      throw SmtMbtConfigException(ss);
+    }
   }
 
   /** Destructor. */
@@ -232,6 +240,14 @@ class State
   State(const std::string& kind, std::function<bool(void)> fun, bool is_final)
       : d_kind(kind), d_is_final(is_final), f_precond(fun)
   {
+    if (kind.size() > SMTMBT_MAX_KIND_LEN)
+    {
+      std::stringstream ss;
+      ss << "'" << kind
+         << "' exceeds maximum length for state kinds, increase limit by "
+            "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
+      throw SmtMbtConfigException(ss);
+    }
   }
 
   /** Returns the identifier of this state. */
@@ -424,6 +440,7 @@ FSM::new_action()
                 "expected class (derived from) Action");
   T* action               = new T(d_smgr);
   const std::string& kind = action->get_kind();
+  assert(kind.size() <= SMTMBT_MAX_KIND_LEN);
   if (d_actions.find(kind) == d_actions.end())
   {
     uint64_t id = d_actions.size();
@@ -441,14 +458,6 @@ FSM::new_action()
   else
   {
     delete action;
-  }
-  if (kind.size() > SMTMBT_MAX_LEN_ACTION_KIND)
-  {
-    std::stringstream ss;
-    ss << "'" << kind
-       << "' exceeds maximum length for action kinds, increase limit by "
-          "adjusting value of macro SMTMBT_MAX_LEN_ACTION_KIND in config.hpp";
-    throw SmtMbtConfigException(ss);
   }
   return static_cast<T*>(d_actions[kind].get());
 }

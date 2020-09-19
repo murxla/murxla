@@ -82,18 +82,31 @@ class BtorSolver : public Solver
 {
  public:
   /** Solver-specific actions. */
-  static const std::string ACTION_OPT_ITERATOR;
-  static const std::string ACTION_BV_ASSIGNMENT;
-  static const std::string ACTION_CLONE;
-  static const std::string ACTION_FAILED;
-  static const std::string ACTION_FIXATE_ASSUMPTIONS;
-  static const std::string ACTION_RESET_ASSUMPTIONS;
-  static const std::string ACTION_RELEASE_ALL;
-  static const std::string ACTION_SIMPLIFY;
-  static const std::string ACTION_SET_SAT_SOLVER;
-  static const std::string ACTION_SET_SYMBOL;
-  /* Solver-specific states */
-  static const std::string STATE_FIX_RESET_ASSUMPTIONS;
+  static const OpKind ACTION_OPT_ITERATOR;
+  static const OpKind ACTION_BV_ASSIGNMENT;
+  static const OpKind ACTION_CLONE;
+  static const OpKind ACTION_FAILED;
+  static const OpKind ACTION_FIXATE_ASSUMPTIONS;
+  static const OpKind ACTION_RESET_ASSUMPTIONS;
+  static const OpKind ACTION_RELEASE_ALL;
+  static const OpKind ACTION_SIMPLIFY;
+  static const OpKind ACTION_SET_SAT_SOLVER;
+  static const OpKind ACTION_SET_SYMBOL;
+  /** Solver-specific operators. */
+  static const OpKind OP_DEC;
+  static const OpKind OP_INC;
+  static const OpKind OP_REDAND;
+  static const OpKind OP_REDOR;
+  static const OpKind OP_REDXOR;
+  static const OpKind OP_UADDO;
+  static const OpKind OP_UMULO;
+  static const OpKind OP_USUBO;
+  static const OpKind OP_SADDO;
+  static const OpKind OP_SDIVO;
+  static const OpKind OP_SMULO;
+  static const OpKind OP_SSUBO;
+  /* Solver-specific states. */
+  static const OpKind STATE_FIX_RESET_ASSUMPTIONS;
 
   /** Constructor. */
   BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
@@ -211,20 +224,6 @@ class BtorSolver : public Solver
   std::unordered_map<std::string, BtorOption> d_option_name_to_enum;
 
   uint64_t d_num_symbols;
-
-  /** solver-specific operators */
-  const OpKind d_op_dec    = OP_EXT_OP_01;
-  const OpKind d_op_inc    = OP_EXT_OP_02;
-  const OpKind d_op_redand = OP_EXT_OP_03;
-  const OpKind d_op_redor  = OP_EXT_OP_04;
-  const OpKind d_op_redxor = OP_EXT_OP_05;
-  const OpKind d_op_uaddo  = OP_EXT_OP_06;
-  const OpKind d_op_umulo  = OP_EXT_OP_07;
-  const OpKind d_op_usubo  = OP_EXT_OP_08;
-  const OpKind d_op_saddo  = OP_EXT_OP_09;
-  const OpKind d_op_sdivo  = OP_EXT_OP_10;
-  const OpKind d_op_smulo  = OP_EXT_OP_11;
-  const OpKind d_op_ssubo  = OP_EXT_OP_12;
 };
 
 }  // namespace btor
