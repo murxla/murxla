@@ -1090,15 +1090,27 @@ run_aux(Options& options,
 
     if (options.solver == SMTMBT_SOLVER_BTOR)
     {
+#if SMTMBT_USE_BOOLECTOR
       solver = new btor::BtorSolver(rng);
+#else
+      die("Boolector not configured");
+#endif
     }
     else if (options.solver == SMTMBT_SOLVER_CVC4)
     {
+#if SMTMBT_USE_CVC4
       solver = new cvc4::CVC4Solver(rng);
+#else
+      die("CVC4 not configured");
+#endif
     }
     else if (options.solver == SMTMBT_SOLVER_YICES)
     {
+#if SMTMBT_USE_YICES
       solver = new yices::YicesSolver(rng);
+#else
+      die("Yices not configured");
+#endif
     }
     else if (options.solver == SMTMBT_SOLVER_SMT2)
     {
