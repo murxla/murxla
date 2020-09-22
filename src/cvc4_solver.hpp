@@ -90,8 +90,14 @@ class CVC4Solver : public Solver
   static const ActionKind ACTION_CHECK_ENTAILED;
   static const ActionKind ACTION_SIMPLIFY;
   /** Solver-specific operators */
+  // BV
   static const OpKind OP_REDAND;
   static const OpKind OP_REDOR;
+  //  Strings
+  static const OpKind OP_STRING_UPDATE;
+  static const OpKind OP_STRING_TOLOWER;
+  static const OpKind OP_STRING_TOUPPER;
+  static const OpKind OP_STRING_REV;
 
   /** Constructor. */
   CVC4Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}

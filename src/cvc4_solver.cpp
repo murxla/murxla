@@ -1041,14 +1041,6 @@ CVC4Solver::terms_to_cvc4_terms(std::vector<Term>& terms) const
 //  CHOOSE,
 //  IS_SINGLETON,
 
-//  ## Strings
-//  STRING_UPDATE,
-//  STRING_TOLOWER,
-//  STRING_TOUPPER,
-//  STRING_REV,
-//  REGEXP_EMPTY,
-//  REGEXP_SIGMA,
-
 //  ## Sequences
 //  SEQ_CONCAT,
 //  SEQ_LENGTH,
@@ -1242,6 +1234,10 @@ CVC4Solver::init_op_kinds()
       /* Solver-specific operators */
       {OP_REDOR, CVC4::api::Kind::BITVECTOR_REDOR},
       {OP_REDAND, CVC4::api::Kind::BITVECTOR_REDAND},
+      {OP_STRING_UPDATE, CVC4::api::Kind::STRING_UPDATE},
+      {OP_STRING_TOLOWER, CVC4::api::Kind::STRING_TOLOWER},
+      {OP_STRING_TOUPPER, CVC4::api::Kind::STRING_TOUPPER},
+      {OP_STRING_REV, CVC4::api::Kind::STRING_REV},
   };
 }
 
@@ -1263,12 +1259,29 @@ CVC4Solver::get_cvc4_term(Term term) const
 
 const OpKind CVC4Solver::OP_REDAND = "cvc4-OP_REDAND";
 const OpKind CVC4Solver::OP_REDOR  = "cvc4-OP_REDOR";
+const OpKind CVC4Solver::OP_STRING_UPDATE  = "cvc4-OP_STRING_UPDATE";
+const OpKind CVC4Solver::OP_STRING_TOLOWER = "cvc4-OP_STRING_TOLOWER";
+const OpKind CVC4Solver::OP_STRING_TOUPPER = "cvc4-OP_STRING_TOUPPER";
+const OpKind CVC4Solver::OP_STRING_REV     = "cvc4-OP_STRING_REV";
 
 void
 CVC4Solver::configure_smgr(SolverManager* smgr) const
 {
   smgr->add_op_kind(OP_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
   smgr->add_op_kind(OP_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+
+  smgr->add_op_kind(OP_STRING_UPDATE,
+                    3,
+                    0,
+                    SORT_STRING,
+                    {SORT_STRING, SORT_INT, SORT_STRING},
+                    THEORY_STRING);
+  smgr->add_op_kind(
+      OP_STRING_TOLOWER, 1, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
+  smgr->add_op_kind(
+      OP_STRING_TOUPPER, 1, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
+  smgr->add_op_kind(
+      OP_STRING_REV, 1, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
 }
 
 /* -------------------------------------------------------------------------- */
