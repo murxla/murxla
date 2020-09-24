@@ -208,6 +208,9 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
          || sort->is_int());
   assert((sort_kind == SORT_REAL && sort->get_kind() == SORT_INT)
          || (sort_kind == SORT_INT && sort->get_kind() == SORT_REAL)
+         || (sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
+             && sort->get_bv_size() == 1)
+         || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)
          || sort->get_kind() == sort_kind);
 
   auto it = d_sorts.find(sort);
@@ -224,6 +227,9 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
            || sort->is_int());
     assert((sort_kind == SORT_REAL && sort->get_kind() == SORT_INT)
            || (sort_kind == SORT_INT && sort->get_kind() == SORT_REAL)
+           || (sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
+               && sort->get_bv_size() == 1)
+           || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)
            || sort->get_kind() == sort_kind);
   }
   assert(sort->get_id());
