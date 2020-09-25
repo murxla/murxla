@@ -247,8 +247,6 @@ RNGenerator::pick_dec_rational_string(uint32_t nlen, uint32_t dlen)
   }
   std::stringstream ss;
   ss << num << "/" << den;
-  std::cout << "n " << nlen << " '" << num << "' d " << dlen << " '" << den
-            << "'" << std::endl;
   return ss.str();
 }
 

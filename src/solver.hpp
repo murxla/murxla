@@ -215,8 +215,11 @@ class Solver
   virtual TheoryIdVector get_supported_theories() const;
   virtual OpKindSet get_unsupported_op_kinds() const;
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
+
   virtual void configure_fsm(FSM* fsm) const;
   virtual void configure_smgr(SolverManager* smgr) const;
+  void add_special_value(SortKind sort_kind, const SpecialValueKind& kind);
+
   virtual void reset_sat();
 
   virtual Term mk_var(Sort sort, const std::string& name)   = 0;

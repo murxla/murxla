@@ -206,6 +206,8 @@ CVC4Term::is_reglan() const
 /* CVC4Solver                                                                 */
 /* -------------------------------------------------------------------------- */
 
+const Solver::SpecialValueKind CVC4Solver::SPECIAL_VALUE_PI = "cvc4-pi";
+
 OpKindSet
 CVC4Solver::get_unsupported_op_kinds() const
 {
@@ -222,6 +224,8 @@ CVC4Solver::new_solver()
   init_op_kinds();
   d_solver->setOption("fp-exp", "true");
   d_solver->setOption("strings-exp", "true");
+
+  add_special_value(SORT_REAL, SPECIAL_VALUE_PI);
 }
 
 void
@@ -621,6 +625,11 @@ CVC4Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
         cvc4_res = d_solver->mkRoundingMode(
             CVC4::api::RoundingMode::ROUND_TOWARD_ZERO);
       }
+      break;
+
+    case SORT_REAL:
+      assert(value == SPECIAL_VALUE_PI);
+      cvc4_res = d_solver->mkPi();
       break;
 
     case SORT_REGLAN:
@@ -1026,9 +1035,6 @@ CVC4Solver::terms_to_cvc4_terms(std::vector<Term>& terms) const
 //  ARCSECANT,
 //  ARCCOTANGENT,
 //  SQRT,
-
-//  ## Reals
-//  PI,
 
 //  ## Bit-Vectors
 //  BITVECTOR_ULTBV,

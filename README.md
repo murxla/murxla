@@ -88,3 +88,14 @@ add
 override op string
 solver manager: add op kind
 -> override `Solver::configure_smgr()`
+
+## Solver-specific Special Values
+Special BV values (0, 1, ones, min and max signed) are defined for all solvers
+but don't have an SMT-LIB equivalent. Solvers that support theory of BV must
+override `Solver::mk_special_value` to handle these special values.
+If the solver doesn't provide a dedicated API function for these values,
+convert them to binary, decimal or hexadecimal strings or integer values
+with the utility functions for provided in `src/util.hpp`.
+
+Add in `Solver::new_solver()` via `Solver::add_special_value`
+Add handling in `Solver::mk_special_value`.

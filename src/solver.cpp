@@ -237,6 +237,18 @@ Solver::configure_smgr(SolverManager* smgr) const
 }
 
 void
+Solver::add_special_value(SortKind sort_kind, const SpecialValueKind& kind)
+{
+  if (d_special_values.find(sort_kind) == d_special_values.end())
+  {
+    d_special_values[sort_kind] = {};
+  }
+  assert(d_special_values.at(sort_kind).find(kind)
+         == d_special_values.at(sort_kind).end());
+  d_special_values.at(sort_kind).insert(kind);
+}
+
+void
 Solver::reset_sat()
 {
   // default: do nothing
