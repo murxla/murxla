@@ -83,6 +83,19 @@ rm -rf "$toml_dir"
       ./contrib/setup-btor2tools.sh
       ./contrib/setup-lingeling.sh
       ./contrib/setup-cadical.sh
+    else
+      if [[ ! -d solvers/btor/deps/btor2tools ]]
+      then
+        ./contrib/setup-btor2tools.sh
+      fi
+      if [[ ! -d solvers/btor/deps/lingeling ]]
+      then
+        ./contrib/setup-lingeling.sh
+      fi
+      if [[ ! -d solvers/btor/deps/cadical ]]
+      then
+        ./contrib/setup-cadical.sh
+      fi
     fi
 
     cov=
@@ -108,6 +121,15 @@ rm -rf "$toml_dir"
     then
       ./contrib/get-antlr-3.4
       ./contrib/get-symfpu
+    else
+      if [[ ! -d solvers/cvc4/deps/antlr-3.4 ]]
+      then
+        ./contrib/get-antlr-3.4
+      fi
+      if [[ ! -d solvers/cvc4/deps/symfpu-CVC4 ]]
+      then
+        ./contrib/get-symfpu
+      fi
     fi
 
     cov=
