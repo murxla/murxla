@@ -156,6 +156,8 @@ class YicesSolver : public Solver
   Term mk_value(Sort sort, std::string num, std::string den) override;
   Term mk_value(Sort sort, std::string value, Base base) override;
 
+  Term mk_special_value(Sort sort, const SpecialValueKind& value) override;
+
   Sort mk_sort(const std::string name, uint32_t arity) override
   {  // TODO:
     return nullptr;
@@ -198,10 +200,11 @@ class YicesSolver : public Solver
   type_t get_yices_sort(Sort sort) const;
   bool is_valid_sort(type_t sort) const;
   bool is_valid_term(term_t term) const;
+  bool check_bits(uint32_t bw, term_t term, std::string& expected) const;
 
-  std::vector<int32_t> bin_str_to_int_array(std::string s);
+  std::vector<int32_t> bin_str_to_int_array(std::string s) const;
 
-  term_t mk_value_bv_int_or_special(Sort sort, std::string value, Base base);
+  term_t mk_value_bv_int(Sort sort, std::string value, Base base);
 
   term_t mk_term_left_assoc(std::vector<term_t>& args,
                             term_t (*fun)(term_t, term_t)) const;

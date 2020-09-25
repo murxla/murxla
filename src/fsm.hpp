@@ -62,6 +62,7 @@ class Action
   static const ActionKind DELETE;
   static const ActionKind MK_SORT;
   static const ActionKind MK_VALUE;
+  static const ActionKind MK_SPECIAL_VALUE;
   static const ActionKind MK_CONST;
   static const ActionKind MK_VAR;
   static const ActionKind MK_TERM;

@@ -178,41 +178,32 @@ class Solver
     HEX = 16,
   };
 
-  enum SpecialValueBV
-  {
-    SMTMBT_BV_ZERO,
-    SMTMBT_BV_ONE,
-    SMTMBT_BV_ONES,
-    SMTMBT_BV_MIN_SIGNED,
-    SMTMBT_BV_MAX_SIGNED,
-  };
+  using SpecialValueKind = std::string;
 
-  enum SpecialValueFP
-  {
-    SMTMBT_FP_NAN,
-    SMTMBT_FP_POS_INF,
-    SMTMBT_FP_NEG_INF,
-    SMTMBT_FP_POS_ZERO,
-    SMTMBT_FP_NEG_ZERO,
-  };
+  /** Special BV values. */
+  static const SpecialValueKind SPECIAL_VALUE_BV_ZERO;
+  static const SpecialValueKind SPECIAL_VALUE_BV_ONE;
+  static const SpecialValueKind SPECIAL_VALUE_BV_ONES;
+  static const SpecialValueKind SPECIAL_VALUE_BV_MIN_SIGNED;
+  static const SpecialValueKind SPECIAL_VALUE_BV_MAX_SIGNED;
+  /** Special FP values. */
+  static const SpecialValueKind SPECIAL_VALUE_FP_NAN;
+  static const SpecialValueKind SPECIAL_VALUE_FP_POS_INF;
+  static const SpecialValueKind SPECIAL_VALUE_FP_NEG_INF;
+  static const SpecialValueKind SPECIAL_VALUE_FP_POS_ZERO;
+  static const SpecialValueKind SPECIAL_VALUE_FP_NEG_ZERO;
+  /** Special RM values. */
+  static const SpecialValueKind SPECIAL_VALUE_RM_RNE;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RNA;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RTN;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RTP;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RTZ;
+  /** Special String values. */
+  static const SpecialValueKind SPECIAL_VALUE_RE_NONE;
+  static const SpecialValueKind SPECIAL_VALUE_RE_ALL;
+  static const SpecialValueKind SPECIAL_VALUE_RE_ALLCHAR;
 
-  enum SpecialValueRM
-  {
-    SMTMBT_FP_RNE,
-    SMTMBT_FP_RNA,
-    SMTMBT_FP_RTN,
-    SMTMBT_FP_RTP,
-    SMTMBT_FP_RTZ,
-  };
-
-  enum SpecialValueString
-  {
-    SMTMBT_RE_NONE,
-    SMTMBT_RE_ALL,
-    SMTMBT_RE_ALLCHAR,
-  };
-
-  Solver(RNGenerator& rng);
+  Solver(RNGenerator& rng) : d_rng(rng) {}
   Solver() = delete;
   virtual ~Solver() = default;
 
@@ -236,9 +227,12 @@ class Solver
   virtual Term mk_value(Sort sort, std::string value);
   virtual Term mk_value(Sort sort, std::string num, std::string den);
   virtual Term mk_value(Sort sort, std::string value, Base base);
-  virtual Term mk_value(Sort sort, SpecialValueFP value);
-  virtual Term mk_value(Sort sort, SpecialValueRM value);
-  virtual Term mk_value(Sort sort, SpecialValueString value);
+
+  /**
+   * Make special value (as defined in SMT-LIB, or as added as solver-specific
+   * special values).
+   */
+  virtual Term mk_special_value(Sort sort, const SpecialValueKind& value);
 
   virtual Sort mk_sort(const std::string name, uint32_t arity) = 0;
   virtual Sort mk_sort(SortKind kind)                          = 0;
@@ -262,7 +256,13 @@ class Solver
   virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
 
   const std::vector<Base>& get_bases() const;
-  const std::vector<SpecialValueBV>& get_special_values_bv() const;
+
+  /**
+   * Return special values for given sort kind.
+   * If not special values are defined, return empty set.
+   */
+  const std::unordered_set<SpecialValueKind>& get_special_values(
+      SortKind sort_kind) const;
 
   virtual std::string get_option_name_incremental() const       = 0;
   virtual std::string get_option_name_model_gen() const         = 0;
@@ -299,35 +299,56 @@ class Solver
   //
   //
 
-  static const std::unordered_map<std::string, SpecialValueFP>
-      s_special_values_fp;
-  static const std::unordered_map<std::string, SpecialValueRM>
-      s_special_values_rm;
-  static const std::unordered_map<std::string, SpecialValueString>
-      s_special_values_string;
-
  protected:
   RNGenerator& d_rng;
 
   std::vector<Base> d_bases = {Base::BIN, Base::DEC, Base::HEX};
 
-  std::vector<SpecialValueBV> d_special_values_bv = {
-      SpecialValueBV::SMTMBT_BV_ZERO,
-      SpecialValueBV::SMTMBT_BV_ONE,
-      SpecialValueBV::SMTMBT_BV_ONES,
-      SpecialValueBV::SMTMBT_BV_MIN_SIGNED,
-      SpecialValueBV::SMTMBT_BV_MAX_SIGNED};
+  /**
+   * Map sort kind to special values.
+   *
+   * By default, this includes special values defined in SMT-LIB, and common
+   * special values for BV (which don't have an SMT-LIB equivalent). The entry
+   * for SORT_ANY is a dummy entry for sort kinds with no special values.
+   *
+   * Note that special values for BV must be converted to binary, decimal or
+   * hexadecimal strings or integer values if the solver does not provide
+   * dedicated API functions to generate these values. Utility functions for
+   * these conversions are provided in src/util.hpp.
+   *
+   * This map can be extended with solver-specific special values.
+   */
+  std::unordered_map<SortKind,
+                     std::unordered_set<SpecialValueKind>,
+                     SortKindHashFunction>
+      d_special_values = {
+          {SORT_BV,
+           {SPECIAL_VALUE_BV_ZERO,
+            SPECIAL_VALUE_BV_ONE,
+            SPECIAL_VALUE_BV_ONES,
+            SPECIAL_VALUE_BV_MIN_SIGNED,
+            SPECIAL_VALUE_BV_MAX_SIGNED}},
+          {SORT_FP,
+           {
+               SPECIAL_VALUE_FP_NAN,
+               SPECIAL_VALUE_FP_POS_INF,
+               SPECIAL_VALUE_FP_NEG_INF,
+               SPECIAL_VALUE_FP_POS_ZERO,
+               SPECIAL_VALUE_FP_NEG_ZERO,
+           }},
+          {SORT_RM,
+           {SPECIAL_VALUE_RM_RNE,
+            SPECIAL_VALUE_RM_RNA,
+            SPECIAL_VALUE_RM_RTN,
+            SPECIAL_VALUE_RM_RTP,
+            SPECIAL_VALUE_RM_RTZ}},
+          {SORT_REGLAN,
+           {SPECIAL_VALUE_RE_NONE,
+            SPECIAL_VALUE_RE_ALL,
+            SPECIAL_VALUE_RE_ALLCHAR}},
+          {SORT_ANY, {}},
+  };
 };
-
-/** Serialize a special BV value to given stream.  */
-std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueBV val);
-/** Serialize a special FP value to given stream.  */
-std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueFP val);
-/** Serialize a special RM value to given stream.  */
-std::ostream& operator<<(std::ostream& out, const Solver::SpecialValueRM val);
-/** Serialize a special String value to given stream.  */
-std::ostream& operator<<(std::ostream& out,
-                         const Solver::SpecialValueString val);
 
 /** Serialize a solver result to given stream.  */
 std::ostream& operator<<(std::ostream& out, const Solver::Result& r);

@@ -315,6 +315,23 @@ YicesSolver::is_valid_term(term_t term) const
   return term >= 0;
 }
 
+bool
+YicesSolver::check_bits(uint32_t bw, term_t term, std::string& expected) const
+{
+  assert(!expected.empty());
+  assert(expected.size() == bw);
+  std::vector<int32_t> exp = bin_str_to_int_array(expected);
+  std::vector<int32_t> bits(bw);
+  // LSB is at index 0
+  int32_t r = yices_bv_const_value(term, &bits[0]);
+  if (r < 0) return false;
+  for (size_t i = 0; i < bw; ++i)
+  {
+    if (exp[i] != bits[bw - 1 - i]) return false;
+  }
+  return true;
+}
+
 type_t
 YicesSolver::get_yices_sort(Sort sort) const
 {
@@ -451,7 +468,7 @@ YicesSolver::mk_value(Sort sort, std::string num, std::string den)
 }
 
 std::vector<int32_t>
-YicesSolver::bin_str_to_int_array(std::string s)
+YicesSolver::bin_str_to_int_array(std::string s) const
 {
   std::vector<int32_t> res;
   for (char c : s)
@@ -463,15 +480,14 @@ YicesSolver::bin_str_to_int_array(std::string s)
 }
 
 term_t
-YicesSolver::mk_value_bv_int_or_special(Sort sort, std::string value, Base base)
+YicesSolver::mk_value_bv_int(Sort sort, std::string value, Base base)
 {
   assert(sort->is_bv());
 
   term_t yices_res;
   uint64_t val;
-  uint32_t bw          = sort->get_bv_size();
-  bool use_special_fun = d_rng.flip_coin();
-  bool check_bits      = bw <= 64 && d_rng.pick_with_prob(10);
+  uint32_t bw  = sort->get_bv_size();
+  bool chkbits = bw <= 64 && d_rng.pick_with_prob(10);
   std::string str;
 
   if (base == DEC)
@@ -491,41 +507,12 @@ YicesSolver::mk_value_bv_int_or_special(Sort sort, std::string value, Base base)
     val = static_cast<uint64_t>(strtoul(value.c_str(), nullptr, 2));
   }
 
-  if (use_special_fun && val == 0)
-  {
-    yices_res = yices_bvconst_zero(bw);
-    if (check_bits)
-    {
-      str = std::string(bw, '0');
-    }
-  }
-  else if (use_special_fun && val == 1)
-  {
-    yices_res = yices_bvconst_one(bw);
-    if (check_bits)
-    {
-      std::stringstream ss;
-      if (bw > 1)
-      {
-        ss << std::string(bw - 1, '0');
-      }
-      ss << "1";
-      str = ss.str();
-    }
-  }
-  else if (use_special_fun && is_bv_special_value_ones_uint64(bw, val))
-  {
-    yices_res = yices_bvconst_minus_one(bw);
-    if (check_bits) str = std::string(bw, '1');
-  }
-  else
-  {
     RNGenerator::Choice pick = d_rng.pick_one_of_four();
     switch (pick)
     {
       case RNGenerator::Choice::FIRST:
         yices_res = yices_bvconst_uint32(bw, static_cast<uint32_t>(val));
-        if (check_bits)
+        if (chkbits)
         {
           str = std::bitset<64>(static_cast<uint32_t>(val))
                     .to_string()
@@ -534,7 +521,7 @@ YicesSolver::mk_value_bv_int_or_special(Sort sort, std::string value, Base base)
         break;
       case RNGenerator::Choice::SECOND:
         yices_res = yices_bvconst_uint64(bw, static_cast<uint64_t>(val));
-        if (check_bits)
+        if (chkbits)
         {
           str = std::bitset<64>(static_cast<uint64_t>(val))
                     .to_string()
@@ -543,7 +530,7 @@ YicesSolver::mk_value_bv_int_or_special(Sort sort, std::string value, Base base)
         break;
       case RNGenerator::Choice::THIRD:
         yices_res = yices_bvconst_int32(bw, static_cast<int32_t>(val));
-        if (check_bits)
+        if (chkbits)
         {
           str = std::bitset<64>(static_cast<int32_t>(val))
                     .to_string()
@@ -553,29 +540,16 @@ YicesSolver::mk_value_bv_int_or_special(Sort sort, std::string value, Base base)
       default:
         assert(pick == RNGenerator::Choice::FOURTH);
         yices_res = yices_bvconst_int64(bw, static_cast<int64_t>(val));
-        if (check_bits)
+        if (chkbits)
         {
           str = std::bitset<64>(static_cast<int64_t>(val))
                     .to_string()
                     .substr(64 - bw, bw);
         }
     }
-  }
+
   assert(is_valid_term(yices_res));
-  if (check_bits)
-  {
-    assert(!str.empty());
-    assert(str.size() == bw);
-    std::vector<int32_t> expected = bin_str_to_int_array(str);
-    std::vector<int32_t> bits(bw);
-    // LSB is at index 0
-    int32_t r = yices_bv_const_value(yices_res, &bits[0]);
-    assert(r >= 0);
-    for (size_t i = 0; i < bw; ++i)
-    {
-      assert(expected[i] == bits[bw - 1 - i]);
-    }
-  }
+  assert(!chkbits || check_bits(bw, yices_res, str));
   return yices_res;
 }
 
@@ -589,13 +563,13 @@ YicesSolver::mk_value(Sort sort, std::string value, Base base)
 
   switch (base)
   {
-    case DEC: yices_res = mk_value_bv_int_or_special(sort, value, base); break;
+    case DEC: yices_res = mk_value_bv_int(sort, value, base); break;
 
     case HEX:
     {
       if (d_rng.flip_coin())
       {
-        yices_res = mk_value_bv_int_or_special(sort, value, base);
+        yices_res = mk_value_bv_int(sort, value, base);
       }
       else
       {
@@ -611,7 +585,7 @@ YicesSolver::mk_value(Sort sort, std::string value, Base base)
       switch (pick)
       {
         case RNGenerator::Choice::FIRST:
-          yices_res = mk_value_bv_int_or_special(sort, value, base);
+          yices_res = mk_value_bv_int(sort, value, base);
           break;
         case RNGenerator::Choice::SECOND:
           {
@@ -626,6 +600,55 @@ YicesSolver::mk_value(Sort sort, std::string value, Base base)
     }
   }
   assert(is_valid_term(yices_res));
+  std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
+  assert(res);
+  return res;
+}
+
+Term
+YicesSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
+{
+  assert(sort->is_bv());
+
+  term_t yices_res;
+  uint32_t bw  = sort->get_bv_size();
+  bool chkbits = bw <= 64 && d_rng.pick_with_prob(10);
+  std::string str;
+
+  if (value == SPECIAL_VALUE_BV_ZERO)
+  {
+    yices_res = yices_bvconst_zero(bw);
+    if (chkbits)
+    {
+      str = bv_special_value_zero_str(bw);
+    }
+  }
+  else if (value == SPECIAL_VALUE_BV_ONE)
+  {
+    yices_res = yices_bvconst_one(bw);
+    if (chkbits)
+    {
+      str = bv_special_value_one_str(bw);
+    }
+  }
+  else if (value == SPECIAL_VALUE_BV_ONES)
+  {
+    yices_res = yices_bvconst_minus_one(bw);
+    if (chkbits) str = bv_special_value_ones_str(bw);
+  }
+  else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+  {
+    yices_res = yices_parse_bvbin(bv_special_value_min_signed_str(bw).c_str());
+    if (chkbits) str = bv_special_value_min_signed_str(bw);
+  }
+  else
+  {
+    assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+    yices_res = yices_parse_bvbin(bv_special_value_max_signed_str(bw).c_str());
+    if (chkbits) str = bv_special_value_max_signed_str(bw);
+  }
+  assert(is_valid_term(yices_res));
+  assert(!chkbits || check_bits(bw, yices_res, str));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
   assert(res);
   return res;

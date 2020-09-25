@@ -532,72 +532,110 @@ Smt2Solver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-Smt2Solver::mk_value(Sort sort, SpecialValueFP value)
+Smt2Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
-  assert(sort->is_fp());
   std::stringstream val;
 
-  switch (value)
+  switch (sort->get_kind())
   {
-    case Solver::SpecialValueFP::SMTMBT_FP_POS_INF: val << "(_ +oo "; break;
-    case Solver::SpecialValueFP::SMTMBT_FP_NEG_INF: val << "(_ -oo "; break;
-    case Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO: val << "(_ +zero "; break;
-    case Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO: val << "(_ -zero "; break;
-    default:
-      assert(value == Solver::SpecialValueFP::SMTMBT_FP_NAN);
-      val << "(NaN ";
+    case SORT_BV:
+    {
+      uint32_t bw = sort->get_bv_size();
+      if (value == SPECIAL_VALUE_BV_ZERO)
+      {
+        val << "#b" << bv_special_value_zero_str(bw);
+      }
+      else if (value == SPECIAL_VALUE_BV_ONE)
+      {
+        val << "#b" << bv_special_value_one_str(bw);
+      }
+      else if (value == SPECIAL_VALUE_BV_ONES)
+      {
+        val << "#b" << bv_special_value_ones_str(bw);
+      }
+      else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+      {
+        val << "#b" << bv_special_value_min_signed_str(bw);
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+        val << "#b" << bv_special_value_zero_str(bw);
+      }
+    }
+    break;
+
+    case SORT_FP:
+    {
+      if (value == SPECIAL_VALUE_FP_POS_INF)
+      {
+        val << "(_ +oo ";
+      }
+      else if (value == SPECIAL_VALUE_FP_NEG_INF)
+      {
+        val << "(_ -oo ";
+      }
+      else if (value == SPECIAL_VALUE_FP_POS_ZERO)
+      {
+        val << "(_ +zero ";
+      }
+      else if (value == SPECIAL_VALUE_FP_NEG_ZERO)
+      {
+        val << "(_ -zero ";
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_FP_NAN);
+        val << "(NaN ";
+      }
+      val << sort->get_fp_exp_size() << " " << sort->get_fp_sig_size() << ")";
+    }
+    break;
+
+    case SORT_RM:
+      if (value == SPECIAL_VALUE_RM_RNE)
+      {
+        val << (d_rng.flip_coin() ? "RNE" : "roundNearestTiesToEven");
+      }
+      else if (value == SPECIAL_VALUE_RM_RNA)
+      {
+        val << (d_rng.flip_coin() ? "RNA" : "roundNearestTiesToAway");
+      }
+      else if (value == SPECIAL_VALUE_RM_RTN)
+      {
+        val << (d_rng.flip_coin() ? "RTN" : "roundTowardNegative");
+      }
+      else if (value == SPECIAL_VALUE_RM_RTP)
+      {
+        val << (d_rng.flip_coin() ? "RTP" : "roundTowardPositive");
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_RM_RTZ);
+        val << (d_rng.flip_coin() ? "RTZ" : "roundTowardZero");
+      }
+      break;
+
+    case SORT_REGLAN:
+      if (value == SPECIAL_VALUE_RE_NONE)
+      {
+        val << "re.none";
+      }
+      else if (value == SPECIAL_VALUE_RE_ALL)
+      {
+        val << "re.all";
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_RE_ALLCHAR);
+        val << "re.allchar";
+      }
+      break;
+
+    default: assert(false);
   }
-  val << sort->get_fp_exp_size() << " " << sort->get_fp_sig_size() << ")";
   return std::shared_ptr<Smt2Term>(new Smt2Term(
       Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
-}
-
-Term
-Smt2Solver::mk_value(Sort sort, SpecialValueRM value)
-{
-  assert(sort->is_rm());
-  std::string val;
-
-  switch (value)
-  {
-    case Solver::SpecialValueRM::SMTMBT_FP_RNE:
-      val = d_rng.flip_coin() ? "RNE" : "roundNearestTiesToEven";
-      break;
-    case Solver::SpecialValueRM::SMTMBT_FP_RNA:
-      val = d_rng.flip_coin() ? "RNA" : "roundNearestTiesToAway";
-      break;
-    case Solver::SpecialValueRM::SMTMBT_FP_RTN:
-      val = d_rng.flip_coin() ? "RTN" : "roundTowardNegative";
-      break;
-    case Solver::SpecialValueRM::SMTMBT_FP_RTP:
-      val = d_rng.flip_coin() ? "RTP" : "roundTowardPositive";
-      break;
-    default:
-      assert(value == Solver::SpecialValueRM::SMTMBT_FP_RTZ);
-      val = d_rng.flip_coin() ? "RTZ" : "roundTowardZero";
-  }
-  return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
-}
-
-Term
-Smt2Solver::mk_value(Sort sort, SpecialValueString value)
-{
-  assert(sort->is_reglan());
-  std::string val;
-
-  switch (value)
-  {
-    case Solver::SpecialValueString::SMTMBT_RE_ALL: val = "re.all"; break;
-    case Solver::SpecialValueString::SMTMBT_RE_ALLCHAR:
-      val = "re.allchar";
-      break;
-    default:
-      assert(value == Solver::SpecialValueString::SMTMBT_RE_NONE);
-      val = "re.none";
-  }
-  return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
 }
 
 static std::string

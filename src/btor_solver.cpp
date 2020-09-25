@@ -444,11 +444,11 @@ BtorSolver::mk_value(Sort sort, bool value)
   {
     if (value)
     {
-      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ONE, btor_res);
+      check_is_bv_const(Solver::SPECIAL_VALUE_BV_ONE, btor_res);
     }
     else
     {
-      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ZERO, btor_res);
+      check_is_bv_const(Solver::SPECIAL_VALUE_BV_ZERO, btor_res);
     }
   }
   if (d_rng.pick_with_prob(10))
@@ -471,83 +471,30 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
   BoolectorNode* btor_res = 0;
   BoolectorSort btor_sort = get_btor_sort(sort);
   uint32_t bw             = sort->get_bv_size();
-  bool use_special_fun    = d_rng.flip_coin();
-  bool check              = d_rng.pick_with_prob(10);
   bool check_bits         = bw <= 64 && d_rng.pick_with_prob(10);
   std::string str;
 
-  if (use_special_fun && value == 0)
+  if (d_rng.flip_coin())
   {
-    btor_res = boolector_zero(d_solver, btor_sort);
-    if (check)
-      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ZERO, btor_res);
+    btor_res = boolector_unsigned_int(
+        d_solver, static_cast<uint32_t>(value), btor_sort);
     if (check_bits)
     {
-      str = std::string(bw, '0');
+      str = std::bitset<SMTMBT_BW_MAX>(static_cast<uint32_t>(value))
+                .to_string()
+                .substr(SMTMBT_BW_MAX - bw, bw);
+      assert(str.size() == bw);
     }
-  }
-  else if (use_special_fun && value == 1)
-  {
-    btor_res = boolector_one(d_solver, btor_sort);
-    if (check)
-      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ONE, btor_res);
-    if (check_bits)
-    {
-      std::stringstream ss;
-      if (bw > 1)
-      {
-        ss << std::string(bw - 1, '0');
-      }
-      ss << "1";
-      str = ss.str();
-    }
-  }
-  else if (use_special_fun && is_bv_special_value_ones_uint64(bw, value))
-  {
-    btor_res = boolector_ones(d_solver, btor_sort);
-    if (check)
-      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_ONES, btor_res);
-    if (check_bits) str = std::string(bw, '1');
-  }
-  else if (use_special_fun && is_bv_special_value_min_signed_uint64(bw, value))
-  {
-    btor_res = boolector_min_signed(d_solver, btor_sort);
-    if (check)
-      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED, btor_res);
-    if (check_bits) str = bv_special_value_min_signed_str(bw);
-  }
-  else if (use_special_fun && is_bv_special_value_max_signed_uint64(bw, value))
-  {
-    btor_res = boolector_max_signed(d_solver, btor_sort);
-    if (check)
-      check_is_bv_const(Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED, btor_res);
-    if (check_bits) str = bv_special_value_max_signed_str(bw);
   }
   else
   {
-    if (d_rng.flip_coin())
+    btor_res = boolector_int(d_solver, static_cast<int32_t>(value), btor_sort);
+    if (check_bits)
     {
-      btor_res = boolector_unsigned_int(
-          d_solver, static_cast<uint32_t>(value), btor_sort);
-      if (check_bits)
-      {
-        str = std::bitset<SMTMBT_BW_MAX>(static_cast<uint32_t>(value))
-                  .to_string()
-                  .substr(SMTMBT_BW_MAX - bw, bw);
-        assert(str.size() == bw);
-      }
-    }
-    else
-    {
-      btor_res =
-          boolector_int(d_solver, static_cast<int32_t>(value), btor_sort);
-      if (check_bits)
-      {
-        str = std::bitset<SMTMBT_BW_MAX>(static_cast<int32_t>(value))
-                  .to_string()
-                  .substr(SMTMBT_BW_MAX - bw, bw);
-        assert(str.size() == bw);
-      }
+      str = std::bitset<SMTMBT_BW_MAX>(static_cast<int32_t>(value))
+                .to_string()
+                .substr(SMTMBT_BW_MAX - bw, bw);
+      assert(str.size() == bw);
     }
   }
   if (check_bits)
@@ -625,6 +572,68 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
           boolector_free_bits(d_solver, bits);
         }
       }
+  }
+  assert(btor_res);
+  assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
+  assert(res);
+  boolector_release(d_solver, btor_res);
+  return res;
+}
+
+Term
+BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
+{
+  assert(sort->is_bv());
+  BoolectorNode* btor_res = 0;
+  BoolectorSort btor_sort = get_btor_sort(sort);
+  uint32_t bw             = sort->get_bv_size();
+  bool check              = d_rng.pick_with_prob(10);
+  bool check_bits         = bw <= 64 && d_rng.pick_with_prob(10);
+  std::string str;
+
+  if (value == SPECIAL_VALUE_BV_ZERO)
+  {
+    btor_res = boolector_zero(d_solver, btor_sort);
+    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_ZERO, btor_res);
+    if (check_bits)
+    {
+      str = std::string(bw, '0');
+    }
+  }
+  else if (value == SPECIAL_VALUE_BV_ONE)
+  {
+    btor_res = boolector_one(d_solver, btor_sort);
+    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_ONE, btor_res);
+    if (check_bits)
+    {
+      std::stringstream ss;
+      if (bw > 1)
+      {
+        ss << std::string(bw - 1, '0');
+      }
+      ss << "1";
+      str = ss.str();
+    }
+  }
+  else if (value == SPECIAL_VALUE_BV_ONES)
+  {
+    btor_res = boolector_ones(d_solver, btor_sort);
+    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_ONES, btor_res);
+    if (check_bits) str = std::string(bw, '1');
+  }
+  else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+  {
+    btor_res = boolector_min_signed(d_solver, btor_sort);
+    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_MIN_SIGNED, btor_res);
+    if (check_bits) str = bv_special_value_min_signed_str(bw);
+  }
+  else
+  {
+    assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+    btor_res = boolector_max_signed(d_solver, btor_sort);
+    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_MAX_SIGNED, btor_res);
+    if (check_bits) str = bv_special_value_max_signed_str(bw);
   }
   assert(btor_res);
   assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
@@ -1310,7 +1319,7 @@ BtorSolver::pick_fun_is_bv_const() const
 }
 
 void
-BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
+BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
                               BoolectorNode* node) const
 {
   uint32_t bw              = boolector_get_width(d_solver, node);
@@ -1320,7 +1329,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
   {
     BtorFunBoolUnaryVector is_funs;
     BtorFunBoolUnaryVector is_not_funs;
-    if (kind == Solver::SpecialValueBV::SMTMBT_BV_ONE)
+    if (kind == Solver::SPECIAL_VALUE_BV_ONE)
     {
       is_funs.push_back(boolector_is_bv_const_one);
       if (bw > 1)
@@ -1339,7 +1348,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
         is_not_funs.push_back(boolector_is_bv_const_max_signed);
       }
     }
-    else if (kind == Solver::SpecialValueBV::SMTMBT_BV_ONES)
+    else if (kind == Solver::SPECIAL_VALUE_BV_ONES)
     {
       is_funs.push_back(boolector_is_bv_const_ones);
       if (bw > 1)
@@ -1358,7 +1367,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
         is_not_funs.push_back(boolector_is_bv_const_max_signed);
       }
     }
-    else if (kind == Solver::SpecialValueBV::SMTMBT_BV_ZERO)
+    else if (kind == Solver::SPECIAL_VALUE_BV_ZERO)
     {
       is_funs.push_back(boolector_is_bv_const_zero);
       if (bw > 1)
@@ -1377,7 +1386,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
         is_not_funs.push_back(boolector_is_bv_const_min_signed);
       }
     }
-    else if (kind == Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED)
+    else if (kind == Solver::SPECIAL_VALUE_BV_MIN_SIGNED)
     {
       is_funs.push_back(boolector_is_bv_const_min_signed);
       if (bw > 1)
@@ -1398,7 +1407,7 @@ BtorSolver::check_is_bv_const(Solver::SpecialValueBV kind,
     }
     else
     {
-      assert(kind == Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED);
+      assert(kind == Solver::SPECIAL_VALUE_BV_MAX_SIGNED);
       is_funs.push_back(boolector_is_bv_const_max_signed);
       if (bw > 1)
       {

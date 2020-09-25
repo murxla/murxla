@@ -31,6 +31,7 @@ const ActionKind Action::NEW                   = "new";
 const ActionKind Action::DELETE                = "delete";
 const ActionKind Action::MK_SORT               = "mk-sort";
 const ActionKind Action::MK_VALUE              = "mk-value";
+const ActionKind Action::MK_SPECIAL_VALUE      = "mk-special-value";
 const ActionKind Action::MK_CONST              = "mk-const";
 const ActionKind Action::MK_VAR                = "mk-var";
 const ActionKind Action::MK_TERM               = "mk-term";
@@ -1300,7 +1301,6 @@ class ActionMkValue : public Action
     RNGenerator::Choice pick;
 
     /* Pick value. */
-    Term res;
     switch (sort_kind)
     {
       case SORT_ARRAY:
@@ -1321,36 +1321,23 @@ class ActionMkValue : public Action
         }
         Solver::Base base =
             d_rng.pick_from_set<std::vector<Solver::Base>, Solver::Base>(bases);
-        _run(sort, mk_value_bv_str(bw, base), base);
+        std::string val;
+        /* use random value */
+        switch (base)
+        {
+          case Solver::Base::DEC: val = d_rng.pick_dec_bin_string(bw); break;
+          case Solver::Base::HEX: val = d_rng.pick_hex_bin_string(bw); break;
+          default:
+            assert(base == Solver::Base::BIN);
+            val = d_rng.pick_bin_string(bw);
+        }
+        _run(sort, val, base);
       }
       break;
 
       case SORT_FP:
-        pick = d_rng.pick_one_of_five();
-        switch (pick)
-        {
-          case RNGenerator::Choice::FIRST:
-            _run<Solver::SpecialValueFP>(sort,
-                                         Solver::SpecialValueFP::SMTMBT_FP_NAN);
-            break;
-          case RNGenerator::Choice::SECOND:
-            _run<Solver::SpecialValueFP>(
-                sort, Solver::SpecialValueFP::SMTMBT_FP_POS_INF);
-            break;
-          case RNGenerator::Choice::THIRD:
-            _run<Solver::SpecialValueFP>(
-                sort, Solver::SpecialValueFP::SMTMBT_FP_NEG_INF);
-            break;
-          case RNGenerator::Choice::FOURTH:
-            _run<Solver::SpecialValueFP>(
-                sort, Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO);
-            break;
-          default:
-            assert(pick == RNGenerator::Choice::FIFTH);
-            _run<Solver::SpecialValueFP>(
-                sort, Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO);
-        }
-        break;
+        return false;
+        // TODO arbitrary values
 
       case SORT_INT:
         _run(sort,
@@ -1388,28 +1375,7 @@ class ActionMkValue : public Action
         }
         break;
 
-      case SORT_RM:
-        pick = d_rng.pick_one_of_five();
-        switch (pick)
-        {
-          case RNGenerator::Choice::FIRST:
-            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RNE);
-            break;
-          case RNGenerator::Choice::SECOND:
-            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RNA);
-            break;
-          case RNGenerator::Choice::THIRD:
-            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RTN);
-            break;
-          case RNGenerator::Choice::FOURTH:
-            _run(sort, Solver::SpecialValueRM::SMTMBT_FP_RTP);
-            break;
-          default:
-            assert(pick == RNGenerator::Choice::FIFTH);
-            _run<Solver::SpecialValueRM>(sort,
-                                         Solver::SpecialValueRM::SMTMBT_FP_RTZ);
-        }
-        break;
+      case SORT_RM: return false;
 
       case SORT_STRING:
       {
@@ -1423,21 +1389,7 @@ class ActionMkValue : public Action
       }
       break;
 
-      case SORT_REGLAN:
-        pick = d_rng.pick_one_of_three();
-        switch (pick)
-        {
-          case RNGenerator::Choice::FIRST:
-            _run(sort, Solver::SpecialValueString::SMTMBT_RE_ALL);
-            break;
-          case RNGenerator::Choice::SECOND:
-            _run(sort, Solver::SpecialValueString::SMTMBT_RE_ALLCHAR);
-            break;
-          default:
-            assert(pick == RNGenerator::Choice::THIRD);
-            _run(sort, Solver::SpecialValueString::SMTMBT_RE_NONE);
-        }
-        break;
+      case SORT_REGLAN: return false;
 
       default: assert(false);
     }
@@ -1479,11 +1431,16 @@ class ActionMkValue : public Action
         }
         break;
 
+      case 4:
+      {
+        assert(sort->is_bv());
+      }
+      break;
       default:
         if (tokens.size() != 2)
         {
           std::stringstream ss;
-          ss << "expected 2 arguments to '" << get_kind() << ", got "
+          ss << "expected 2 arguments to '" << get_kind() << "', got "
              << tokens.size();
           throw SmtMbtActionUntraceException(ss);
         }
@@ -1494,39 +1451,6 @@ class ActionMkValue : public Action
         else if (tokens[1] == "false")
         {
           res = _run(sort, false);
-        }
-        else if (sort->is_fp())
-        {
-          if (Solver::s_special_values_fp.find(tokens[1])
-              == Solver::s_special_values_fp.end())
-          {
-            std::stringstream ss;
-            ss << "unexpected special FP const value " << tokens[1];
-            throw SmtMbtActionUntraceException(ss);
-          }
-          res = _run(sort, Solver::s_special_values_fp.at(tokens[1]));
-        }
-        else if (sort->is_rm())
-        {
-          if (Solver::s_special_values_rm.find(tokens[1])
-              == Solver::s_special_values_rm.end())
-          {
-            std::stringstream ss;
-            ss << "unexpected special RM const value " << tokens[1];
-            throw SmtMbtActionUntraceException(ss);
-          }
-          res = _run(sort, Solver::s_special_values_rm.at(tokens[1]));
-        }
-        else if (sort->is_reglan())
-        {
-          if (Solver::s_special_values_string.find(tokens[1])
-              == Solver::s_special_values_string.end())
-          {
-            std::stringstream ss;
-            ss << "unexpected special String const value " << tokens[1];
-            throw SmtMbtActionUntraceException(ss);
-          }
-          res = _run(sort, Solver::s_special_values_string.at(tokens[1]));
         }
         else if (sort->is_string())
         {
@@ -1557,7 +1481,8 @@ class ActionMkValue : public Action
   {
     SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
     reset_sat();
-    Term res = d_solver.mk_value(sort, val);
+    Term res;
+    res = d_solver.mk_value(sort, val);
     d_smgr.add_value(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
@@ -1599,151 +1524,77 @@ class ActionMkValue : public Action
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
   }
+};
 
-  template <typename T>
-  uint64_t _run(Sort sort, T val)
+class ActionMkSpecialValue : public Action
+{
+ public:
+  ActionMkSpecialValue(SolverManager& smgr)
+      : Action(smgr, MK_SPECIAL_VALUE, true)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " " << val;
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    /* Pick sort of value. */
+    if (!d_smgr.has_sort()) return false;
+    Sort sort                  = d_smgr.pick_sort();
+    SortKind sort_kind         = sort->get_kind();
+    const auto& special_values = d_solver.get_special_values(sort_kind);
+    if (special_values.empty()) return false;
+    _run(sort,
+         d_rng.pick_from_set<std::unordered_set<Solver::SpecialValueKind>,
+                             Solver::SpecialValueKind>(
+             d_solver.get_special_values(sort_kind)));
+
+    return true;
+  }
+
+  uint64_t untrace(std::vector<std::string>& tokens) override
+  {
+    if (tokens.size() != 2)
+    {
+      std::stringstream ss;
+      ss << "expected 2 arguments to '" << get_kind() << "', got "
+         << tokens.size();
+      throw SmtMbtActionUntraceException(ss);
+    }
+
+    uint64_t res = 0;
+    Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
+    if (sort == nullptr)
+    {
+      std::stringstream ss;
+      ss << "unknown sort id " << tokens[0];
+      throw SmtMbtActionUntraceException(ss);
+    }
+    const auto& special_vals = d_solver.get_special_values(sort->get_kind());
+
+    std::string value = str_to_str(tokens[1]);
+    if (special_vals.empty() || special_vals.find(value) == special_vals.end())
+    {
+      std::stringstream ss;
+      ss << "unknown special value " << value << " of sort kind "
+         << sort->get_kind();
+      throw SmtMbtActionUntraceException(ss);
+    }
+
+    res = _run(sort, value);
+
+    return res;
+  }
+
+ private:
+  uint64_t _run(Sort sort, const Solver::SpecialValueKind& val)
+  {
+    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
     reset_sat();
-    Term res = d_solver.mk_value(sort, val);
+    Term res;
+    res = d_solver.mk_special_value(sort, val);
     d_smgr.add_value(res, sort, sort->get_kind());
     SMTMBT_TRACE_RETURN << res;
     return res->get_id();
-  }
-
-  uint64_t mk_value_bv_uint64(uint32_t bw)
-  {
-    uint64_t val = 0u;
-    if (d_rng.flip_coin())
-    {
-      /* use special value */
-      Solver::SpecialValueBV sval =
-          d_rng.pick_from_set<std::vector<Solver::SpecialValueBV>,
-                              Solver::SpecialValueBV>(
-              d_solver.get_special_values_bv());
-      switch (sval)
-      {
-        case Solver::SpecialValueBV::SMTMBT_BV_ONE: val = 1u; break;
-        case Solver::SpecialValueBV::SMTMBT_BV_ONES:
-          val = bv_special_value_ones_uint64(bw);
-          break;
-        case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED:
-          val = bv_special_value_min_signed_uint64(bw);
-          break;
-        case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED:
-          val = bv_special_value_max_signed_uint64(bw);
-          break;
-        default:
-          assert(sval == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
-          val = 0u;
-      }
-    }
-    else
-    {
-      /* use random value */
-      val = d_rng.pick<uint64_t>(0, (1 << bw) - 1);
-    }
-    return val;
-  }
-
-  std::string mk_value_bv_str(uint32_t bw, Solver::Base base)
-  {
-    std::string val;
-
-    if (d_rng.flip_coin())
-    {
-      /* use special value */
-      Solver::SpecialValueBV sval =
-          d_rng.pick_from_set<std::vector<Solver::SpecialValueBV>,
-                              Solver::SpecialValueBV>(
-              d_solver.get_special_values_bv());
-      switch (sval)
-      {
-        case Solver::SpecialValueBV::SMTMBT_BV_ONE:
-          switch (base)
-          {
-            case Solver::Base::DEC:
-              val = str_bin_to_dec(bv_special_value_one_str(bw));
-              break;
-            case Solver::Base::HEX:
-              val = str_bin_to_hex(bv_special_value_one_str(bw));
-              break;
-            default:
-              assert(base == Solver::Base::BIN);
-              val = bv_special_value_one_str(bw);
-          }
-          break;
-        case Solver::SpecialValueBV::SMTMBT_BV_ONES:
-          switch (base)
-          {
-            case Solver::Base::DEC:
-              val = str_bin_to_dec(bv_special_value_ones_str(bw));
-              break;
-            case Solver::Base::HEX:
-              val = str_bin_to_hex(bv_special_value_ones_str(bw));
-              break;
-            default:
-              assert(base == Solver::Base::BIN);
-              val = bv_special_value_ones_str(bw);
-          }
-          break;
-        case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED:
-          switch (base)
-          {
-            case Solver::Base::DEC:
-              val = str_bin_to_dec(bv_special_value_min_signed_str(bw));
-              break;
-            case Solver::Base::HEX:
-              val = str_bin_to_hex(bv_special_value_min_signed_str(bw));
-              break;
-            default:
-              assert(base == Solver::Base::BIN);
-              val = bv_special_value_min_signed_str(bw);
-          }
-          break;
-        case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED:
-          switch (base)
-          {
-            case Solver::Base::DEC:
-              val = str_bin_to_dec(bv_special_value_max_signed_str(bw));
-              break;
-            case Solver::Base::HEX:
-              val = str_bin_to_hex(bv_special_value_max_signed_str(bw));
-              break;
-            default:
-              assert(base == Solver::Base::BIN);
-              val = bv_special_value_max_signed_str(bw);
-          }
-          break;
-        default:
-          assert(sval == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
-          switch (base)
-          {
-            case Solver::Base::DEC:
-              val = str_bin_to_dec(bv_special_value_zero_str(bw));
-              break;
-            case Solver::Base::HEX:
-              val = str_bin_to_hex(bv_special_value_zero_str(bw));
-              break;
-            default:
-              assert(base == Solver::Base::BIN);
-              val = bv_special_value_zero_str(bw);
-          }
-      }
-    }
-    else
-    {
-      /* use random value */
-      switch (base)
-      {
-        case Solver::Base::DEC: val = d_rng.pick_dec_bin_string(bw); break;
-        case Solver::Base::HEX: val = d_rng.pick_hex_bin_string(bw); break;
-        default:
-          assert(base == Solver::Base::BIN);
-          val = d_rng.pick_bin_string(bw);
-      }
-    }
-    return val;
   }
 };
 
@@ -2269,6 +2120,7 @@ FSM::configure()
   auto a_mksort = new_action<ActionMkSort>();
 
   auto a_mkval   = new_action<ActionMkValue>();
+  auto a_mksval  = new_action<ActionMkSpecialValue>();
   auto a_mkconst = new_action<ActionMkConst>();
   auto a_mkvar   = new_action<ActionMkVar>();
   auto a_mkterm  = new_action<ActionMkTerm>();
@@ -2344,6 +2196,7 @@ FSM::configure()
   /* State: create inputs ................................................ */
   s_inputs->add_action(a_mksort, 100, s_sorts);
   s_inputs->add_action(a_mkval, 10);
+  s_inputs->add_action(a_mksval, 5);
   s_inputs->add_action(a_mkconst, 5);
   if (d_smgr.get_solver().supports_theory(THEORY_QUANT))
   {

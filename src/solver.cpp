@@ -172,30 +172,29 @@ HashTerm::operator()(const Term t) const
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-const std::unordered_map<std::string, Solver::SpecialValueFP>
-    Solver::s_special_values_fp = {
-        {"nan", Solver::SpecialValueFP::SMTMBT_FP_NAN},
-        {"+oo", Solver::SpecialValueFP::SMTMBT_FP_POS_INF},
-        {"-oo", Solver::SpecialValueFP::SMTMBT_FP_NEG_INF},
-        {"+zero", Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO},
-        {"-zero", Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO}};
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_ZERO = "bv-zero";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_ONE  = "bv-one";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_ONES = "bv-ones";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_MIN_SIGNED =
+    "bv-min-signed";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_MAX_SIGNED =
+    "bv-max-signed";
 
-const std::unordered_map<std::string, Solver::SpecialValueRM>
-    Solver::s_special_values_rm = {
-        {"rne", Solver::SpecialValueRM::SMTMBT_FP_RNE},
-        {"rna", Solver::SpecialValueRM::SMTMBT_FP_RNA},
-        {"rtn", Solver::SpecialValueRM::SMTMBT_FP_RTN},
-        {"rtp", Solver::SpecialValueRM::SMTMBT_FP_RTP},
-        {"rtz", Solver::SpecialValueRM::SMTMBT_FP_RTZ}};
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_NAN      = "nan";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_POS_INF  = "+oo";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_NEG_INF  = "-oo";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_POS_ZERO = "+zero";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_NEG_ZERO = "-zero";
 
-const std::unordered_map<std::string, Solver::SpecialValueString>
-    Solver::s_special_values_string = {
-        {"re.all", Solver::SpecialValueString::SMTMBT_RE_ALL},
-        {"re.allchar", Solver::SpecialValueString::SMTMBT_RE_ALLCHAR},
-        {"renone", Solver::SpecialValueString::SMTMBT_RE_NONE},
-};
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RNE = "rne";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RNA = "rna";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RTN = "rtn";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RTP = "rtp";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RTZ = "rtz";
 
-Solver::Solver(RNGenerator& rng) : d_rng(rng) {}
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RE_NONE    = "re.none";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RE_ALL     = "re.all";
+const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RE_ALLCHAR = "re.allchar";
 
 bool
 Solver::supports_theory(TheoryId theory) const
@@ -249,10 +248,14 @@ Solver::get_bases() const
   return d_bases;
 }
 
-const std::vector<Solver::SpecialValueBV>&
-Solver::get_special_values_bv() const
+const std::unordered_set<Solver::SpecialValueKind>&
+Solver::get_special_values(SortKind sort_kind) const
 {
-  return d_special_values_bv;
+  if (d_special_values.find(sort_kind) == d_special_values.end())
+  {
+    return d_special_values.at(SORT_ANY);
+  }
+  return d_special_values.at(sort_kind);
 }
 
 Term
@@ -274,19 +277,7 @@ Solver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-Solver::mk_value(Sort sort, SpecialValueFP value)
-{
-  return Term();
-}
-
-Term
-Solver::mk_value(Sort sort, SpecialValueRM value)
-{
-  return Term();
-}
-
-Term
-Solver::mk_value(Sort sort, SpecialValueString value)
+Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
   return Term();
 }
@@ -301,67 +292,6 @@ Sort
 Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 {
   return Sort();
-}
-
-std::ostream&
-operator<<(std::ostream& out, const Solver::SpecialValueBV val)
-{
-  switch (val)
-  {
-    case Solver::SpecialValueBV::SMTMBT_BV_ONE: out << "bv-one";
-    case Solver::SpecialValueBV::SMTMBT_BV_ONES: out << "bv-ones";
-    case Solver::SpecialValueBV::SMTMBT_BV_MIN_SIGNED: out << "bv-min-signed";
-    case Solver::SpecialValueBV::SMTMBT_BV_MAX_SIGNED: out << "bv-max-signed";
-    default:
-      assert(val == Solver::SpecialValueBV::SMTMBT_BV_ZERO);
-      out << "bv-zero";
-  }
-  return out;
-}
-
-std::ostream&
-operator<<(std::ostream& out, const Solver::SpecialValueFP val)
-{
-  for (const auto& p : Solver::s_special_values_fp)
-  {
-    if (p.second == val)
-    {
-      out << p.first;
-      return out;
-    }
-  }
-  out << "unknown";
-  return out;
-}
-
-std::ostream&
-operator<<(std::ostream& out, const Solver::SpecialValueRM val)
-{
-  for (const auto& p : Solver::s_special_values_rm)
-  {
-    if (p.second == val)
-    {
-      out << p.first;
-      return out;
-    }
-  }
-  out << "unknown";
-  return out;
-}
-
-std::ostream&
-operator<<(std::ostream& out, const Solver::SpecialValueString val)
-{
-  for (const auto& p : Solver::s_special_values_string)
-  {
-    if (p.second == val)
-    {
-      out << p.first;
-      return out;
-    }
-  }
-  out << "unknown";
-  return out;
 }
 
 std::ostream&

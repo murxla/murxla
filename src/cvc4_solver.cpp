@@ -516,89 +516,131 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-CVC4Solver::mk_value(Sort sort, SpecialValueFP value)
-{
-  assert(sort->is_fp());
-  CVC4::api::Term cvc4_res;
-
-  switch (value)
-  {
-    case Solver::SpecialValueFP::SMTMBT_FP_POS_INF:
-      cvc4_res =
-          d_solver->mkPosInf(sort->get_fp_exp_size(), sort->get_fp_sig_size());
-      break;
-    case Solver::SpecialValueFP::SMTMBT_FP_NEG_INF:
-      cvc4_res =
-          d_solver->mkNegInf(sort->get_fp_exp_size(), sort->get_fp_sig_size());
-      break;
-    case Solver::SpecialValueFP::SMTMBT_FP_POS_ZERO:
-      cvc4_res =
-          d_solver->mkPosZero(sort->get_fp_exp_size(), sort->get_fp_sig_size());
-      break;
-    case Solver::SpecialValueFP::SMTMBT_FP_NEG_ZERO:
-      cvc4_res =
-          d_solver->mkNegZero(sort->get_fp_exp_size(), sort->get_fp_sig_size());
-      break;
-    default:
-      assert(value == Solver::SpecialValueFP::SMTMBT_FP_NAN);
-      cvc4_res =
-          d_solver->mkNaN(sort->get_fp_exp_size(), sort->get_fp_sig_size());
-  }
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
-  assert(res);
-  return res;
-}
-
-Term
-CVC4Solver::mk_value(Sort sort, SpecialValueRM value)
-{
-  assert(sort->is_rm());
-  CVC4::api::Term cvc4_res;
-
-  switch (value)
-  {
-    case Solver::SpecialValueRM::SMTMBT_FP_RNE:
-      cvc4_res = d_solver->mkRoundingMode(
-          CVC4::api::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
-      break;
-    case Solver::SpecialValueRM::SMTMBT_FP_RNA:
-      cvc4_res = d_solver->mkRoundingMode(
-          CVC4::api::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
-      break;
-    case Solver::SpecialValueRM::SMTMBT_FP_RTN:
-      cvc4_res = d_solver->mkRoundingMode(
-          CVC4::api::RoundingMode::ROUND_TOWARD_NEGATIVE);
-      break;
-    case Solver::SpecialValueRM::SMTMBT_FP_RTP:
-      cvc4_res = d_solver->mkRoundingMode(
-          CVC4::api::RoundingMode::ROUND_TOWARD_POSITIVE);
-      break;
-    default:
-      assert(value == Solver::SpecialValueRM::SMTMBT_FP_RTZ);
-      cvc4_res =
-          d_solver->mkRoundingMode(CVC4::api::RoundingMode::ROUND_TOWARD_ZERO);
-  }
-  std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
-  assert(res);
-  return res;
-}
-
-Term
-CVC4Solver::mk_value(Sort sort, SpecialValueString value)
+CVC4Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
   CVC4::api::Term cvc4_res;
 
-  switch (value)
+  switch (sort->get_kind())
   {
-    case Solver::SpecialValueString::SMTMBT_RE_ALL:
-      cvc4_res = d_solver->mkTerm(api::REGEXP_STAR, d_solver->mkRegexpSigma());
+    case SORT_BV:
+    {
+      uint32_t bw = sort->get_bv_size();
+      if (value == SPECIAL_VALUE_BV_ZERO)
+      {
+        cvc4_res = d_rng.flip_coin()
+                       ? d_solver->mkBitVector(bv_special_value_zero_str(bw), 2)
+                       : d_solver->mkBitVector(
+                           bv_special_value_zero_str(bw).c_str(), 2);
+      }
+      else if (value == SPECIAL_VALUE_BV_ONE)
+      {
+        cvc4_res = d_rng.flip_coin()
+                       ? d_solver->mkBitVector(bv_special_value_one_str(bw), 2)
+                       : d_solver->mkBitVector(
+                           bv_special_value_one_str(bw).c_str(), 2);
+      }
+      else if (value == SPECIAL_VALUE_BV_ONES)
+      {
+        cvc4_res = d_rng.flip_coin()
+                       ? d_solver->mkBitVector(bv_special_value_ones_str(bw), 2)
+                       : d_solver->mkBitVector(
+                           bv_special_value_ones_str(bw).c_str(), 2);
+      }
+      else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+      {
+        cvc4_res =
+            d_rng.flip_coin()
+                ? d_solver->mkBitVector(bv_special_value_min_signed_str(bw), 2)
+                : d_solver->mkBitVector(
+                    bv_special_value_min_signed_str(bw).c_str(), 2);
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+        cvc4_res =
+            d_rng.flip_coin()
+                ? d_solver->mkBitVector(bv_special_value_max_signed_str(bw), 2)
+                : d_solver->mkBitVector(
+                    bv_special_value_max_signed_str(bw).c_str(), 2);
+      }
+    }
+    break;
+
+    case SORT_FP:
+    {
+      uint32_t ew = sort->get_fp_exp_size();
+      uint32_t sw = sort->get_fp_sig_size();
+      if (value == SPECIAL_VALUE_FP_POS_INF)
+      {
+        cvc4_res = d_solver->mkPosInf(ew, sw);
+      }
+      else if (value == SPECIAL_VALUE_FP_NEG_INF)
+      {
+        cvc4_res = d_solver->mkNegInf(ew, sw);
+      }
+      else if (value == SPECIAL_VALUE_FP_POS_ZERO)
+      {
+        cvc4_res = d_solver->mkPosZero(ew, sw);
+      }
+      else if (value == SPECIAL_VALUE_FP_NEG_ZERO)
+      {
+        cvc4_res = d_solver->mkNegZero(ew, sw);
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_FP_NAN);
+        cvc4_res = d_solver->mkNaN(ew, sw);
+      }
+    }
+    break;
+
+    case SORT_RM:
+      if (value == SPECIAL_VALUE_RM_RNE)
+      {
+        cvc4_res = d_solver->mkRoundingMode(
+            CVC4::api::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
+      }
+      else if (value == SPECIAL_VALUE_RM_RNA)
+      {
+        cvc4_res = d_solver->mkRoundingMode(
+            CVC4::api::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
+      }
+      else if (value == SPECIAL_VALUE_RM_RTN)
+      {
+        cvc4_res = d_solver->mkRoundingMode(
+            CVC4::api::RoundingMode::ROUND_TOWARD_NEGATIVE);
+      }
+      else if (value == SPECIAL_VALUE_RM_RTP)
+      {
+        cvc4_res = d_solver->mkRoundingMode(
+            CVC4::api::RoundingMode::ROUND_TOWARD_POSITIVE);
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_RM_RTZ);
+        cvc4_res = d_solver->mkRoundingMode(
+            CVC4::api::RoundingMode::ROUND_TOWARD_ZERO);
+      }
       break;
-    case Solver::SpecialValueString::SMTMBT_RE_ALLCHAR:
-      cvc4_res = d_solver->mkRegexpSigma();
+
+    case SORT_REGLAN:
+      if (value == SPECIAL_VALUE_RE_NONE)
+      {
+        cvc4_res = d_solver->mkRegexpEmpty();
+      }
+      else if (value == SPECIAL_VALUE_RE_ALL)
+      {
+        cvc4_res =
+            d_solver->mkTerm(api::REGEXP_STAR, d_solver->mkRegexpSigma());
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_RE_ALLCHAR);
+        cvc4_res = d_solver->mkRegexpSigma();
+      }
       break;
-    default:
-      assert(value == Solver::SpecialValueString::SMTMBT_RE_NONE);
-      cvc4_res = d_solver->mkRegexpEmpty();
+
+    default: assert(false);
   }
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
