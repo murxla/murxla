@@ -58,11 +58,14 @@ RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
 
   /* generate set of printable characters */
   uint32_t i = 32;
-  std::generate_n(
-      std::back_inserter(d_printable_chars), 95, [&i]() { return i++; });
-  i = 128;
-  std::generate_n(
-      std::back_inserter(d_printable_chars), 128, [&i]() { return i++; });
+  for (uint32_t i = 32; i < 256; ++i)
+  {
+    // Skip characters not allowed in SMT2 symbols
+    if (i == '|' || i == '\\' || i == 127)
+      continue;
+    d_printable_chars.push_back(i);
+  }
+
   /* A-F */
   i = 65;
   std::generate_n(std::back_inserter(d_hex_chars), 6, [&i]() { return i++; });
