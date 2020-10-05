@@ -306,6 +306,7 @@ Smt2Solver::push_to_external(std::string s) const
   assert(d_file_to);
   assert(d_file_from);
   fputs(s.c_str(), d_file_to);
+  fputc('\n', d_file_to);
   fflush(d_file_to);
   std::string res = get_from_external();
   trim_str(res);
@@ -360,6 +361,7 @@ Smt2Solver::get_from_external() const
       break;
     }
   }
+  d_out << "; " << ss.str() << std::endl;
   return ss.str();
 }
 
