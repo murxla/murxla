@@ -316,8 +316,8 @@ Smt2Solver::push_to_external(std::string s) const
       if (res != "success")
       {
         std::cerr << "[smtmbt] SMT2: Error: expected 'success' response from "
-                     "online solver"
-                  << std::endl;
+                     "online solver but got '"
+                  << res << "'" << std::endl;
         exit(EXIT_ERROR);
       }
       break;
