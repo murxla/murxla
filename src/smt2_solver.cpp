@@ -481,9 +481,23 @@ Smt2Solver::mk_value(Sort sort, std::string value)
       break;
 
     case SORT_REAL:
+    {
       assert(sort->is_real());
-      val << value;
-      break;
+      size_t pos = value.find('/');
+      if (pos != std::string::npos)
+      {
+        assert(pos > 0);
+        std::string num = value.substr(0, pos - 1);
+        std::string den = value.substr(pos + 1);
+        val << "(/ " << num << " " << den << ")";
+        abort();
+      }
+      else
+      {
+        val << value;
+      }
+    }
+    break;
 
     case SORT_STRING:
       assert(sort->is_string());
@@ -501,7 +515,7 @@ Smt2Solver::mk_value(Sort sort, std::string num, std::string den)
 {
   assert(sort->is_real());
   std::stringstream val;
-  val << num << "/" << den;
+  val << "(/ " << num << " " << den << ")";
   return std::shared_ptr<Smt2Term>(new Smt2Term(
       Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
 }
