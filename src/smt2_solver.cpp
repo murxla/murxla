@@ -936,6 +936,7 @@ Smt2Solver::assert_formula(const Term& t)
 Solver::Result
 Smt2Solver::check_sat()
 {
+  d_response = ResponseKind::SMT2_SAT;
   dump_smt2("(check-sat)");
   return Solver::Result::UNKNOWN;
 }
