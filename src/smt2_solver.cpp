@@ -301,7 +301,7 @@ trim_str(std::string& s)
 }
 
 void
-Smt2Solver::push_to_external(std::string s) const
+Smt2Solver::push_to_external(std::string s, ResponseKind expected) const
 {
   assert(d_file_to);
   assert(d_file_from);
@@ -310,7 +310,7 @@ Smt2Solver::push_to_external(std::string s) const
   fflush(d_file_to);
   std::string res = get_from_external();
   trim_str(res);
-  switch (d_response)
+  switch (expected)
   {
     case ResponseKind::SMT2_SUCCESS:
       if (res != "success")
@@ -331,7 +331,7 @@ Smt2Solver::push_to_external(std::string s) const
       }
       break;
     default:
-      assert(d_response == ResponseKind::SMT2_SEXPR);
+      assert(expected == ResponseKind::SMT2_SEXPR);
       if (res[0] != '(' || res.find("error") != std::string::npos
           || res.find("Error") != std::string::npos
           || res.find("ERROR") != std::string::npos)
@@ -366,10 +366,10 @@ Smt2Solver::get_from_external() const
 }
 
 void
-Smt2Solver::dump_smt2(std::string s) const
+Smt2Solver::dump_smt2(std::string s, ResponseKind expected) const
 {
   d_out << s << std::endl << std::flush;
-  if (d_online) push_to_external(s);
+  if (d_online) push_to_external(s, expected);
 }
 
 Smt2Solver::Smt2Solver(
@@ -936,8 +936,7 @@ Smt2Solver::assert_formula(const Term& t)
 Solver::Result
 Smt2Solver::check_sat()
 {
-  d_response = ResponseKind::SMT2_SAT;
-  dump_smt2("(check-sat)");
+  dump_smt2("(check-sat)", ResponseKind::SMT2_SAT);
   return Solver::Result::UNKNOWN;
 }
 
@@ -953,14 +952,14 @@ Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions)
     smt2 << smt2_term->get_repr();
   }
   smt2 << "))";
-  dump_smt2(smt2.str());
+  dump_smt2(smt2.str(), ResponseKind::SMT2_SAT);
   return Solver::Result::UNKNOWN;
 }
 
 std::vector<Term>
 Smt2Solver::get_unsat_assumptions()
 {
-  dump_smt2("(get-unsat-assumptions)");
+  dump_smt2("(get-unsat-assumptions)", ResponseKind::SMT2_SEXPR);
   return std::vector<Term>();
 }
 
@@ -983,7 +982,7 @@ Smt2Solver::pop(uint32_t n_levels)
 void
 Smt2Solver::print_model()
 {
-  dump_smt2("(get-model)");
+  dump_smt2("(get-model)", ResponseKind::SMT2_SEXPR);
 }
 
 void
@@ -1066,7 +1065,7 @@ Smt2Solver::get_value(std::vector<Term>& terms)
     smt2 << smt2_term->get_repr();
   }
   smt2 << "))";
-  dump_smt2(smt2.str());
+  dump_smt2(smt2.str(), ResponseKind::SMT2_SEXPR);
   return terms;
 }
 
