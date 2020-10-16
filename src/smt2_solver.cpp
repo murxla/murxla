@@ -994,13 +994,12 @@ Smt2Solver::reset_assertions()
 void
 Smt2Solver::set_opt(const std::string& opt, const std::string& value)
 {
+  // :incremental option is not in the SMT-LIB standard
+  if (opt == get_option_name_incremental()) return;
+
   std::stringstream smt2;
   smt2 << "(set-option :" << opt << " " << value << ")";
   dump_smt2(smt2.str());
-  if (opt == get_option_name_incremental())
-  {
-    d_incremental = value == "true" ? true : false;
-  }
   if (opt == get_option_name_model_gen())
   {
     d_model_gen = value == "true" ? true : false;
@@ -1032,7 +1031,8 @@ Smt2Solver::get_option_name_unsat_assumptions() const
 bool
 Smt2Solver::option_incremental_enabled() const
 {
-  return d_incremental;
+  // SMT-LIB is by default incremental
+  return true;
 }
 
 bool
