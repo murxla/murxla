@@ -1443,6 +1443,11 @@ dd(Options& options, SolverOptions& solver_options)
           SMTMBT_DD_PREFIX, options.untrace_file_name);
     }
   }
+  if (!options.out_dir.empty())
+  {
+    opts.dd_trace_file_name =
+        prepend_path(options.out_dir, opts.dd_trace_file_name);
+  }
   message("dd", "start minimizing file '%s'", opts.untrace_file_name.c_str());
 
   /* golden run */
