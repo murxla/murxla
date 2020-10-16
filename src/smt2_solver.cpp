@@ -356,25 +356,54 @@ Smt2Solver::push_to_external(std::string s, ResponseKind expected)
   }
 }
 
+/**
+ * Either parses one line or an s-expression if the first character of the
+ * stream is '('.
+ */
 std::string
 Smt2Solver::get_from_external() const
 {
+  std::vector<std::string> lines;
   std::stringstream ss;
+  size_t in_sexpr = 0;
+  size_t nchars   = 0;
   while (true)
   {
     int32_t c = fgetc(d_file_from);
+    ++nchars;
     if (c == EOF)
     {
       return "[EOF]";
     }
+    else if (c == '(' && (in_sexpr || nchars == 1))
+    {
+      ++in_sexpr;
+    }
+    else if (c == ')' && in_sexpr)
+    {
+      --in_sexpr;
+    }
+
     ss << ((char) c);
     if (c == '\n')
+    {
+      lines.push_back(ss.str());
+      ss.str("");
+      ss.clear();
+    }
+    if (c == '\n' && !in_sexpr)
     {
       break;
     }
   }
-  d_out << "; " << ss.str() << std::endl;
-  return ss.str();
+  std::string res;
+  for (auto& line : lines)
+  {
+    d_out << "; " << line;
+    res += line;
+  }
+  d_out << std::flush;
+  return res;
 }
 
 void
