@@ -163,20 +163,31 @@ normalize_asan_error(const std::string& s)
   return res;
 }
 
+std::vector<std::string>
+str_tokenize(const std::string& s)
+{
+  std::istringstream buf(s);
+  std::vector<std::string> ret{std::istream_iterator<std::string>(buf),
+                               std::istream_iterator<std::string>()};
+  return ret;
+}
+
 static size_t
 str_diff(const std::string& s1, const std::string& s2)
 {
   size_t diff;
+  auto t1 = str_tokenize(s1);
+  auto t2 = str_tokenize(s2);
 
-  if (s1.size() > s2.size())
+  if (t1.size() > t2.size())
   {
-    return str_diff(s2, s1);
+    std::swap(t1, t2);
   }
 
-  diff = s2.size() - s1.size();
-  for (size_t i = 0; i < s1.size(); ++i)
+  diff = t2.size() - t1.size();
+  for (size_t i = 0; i < t1.size(); ++i)
   {
-    if (s1.at(i) != s2.at(i))
+    if (t1[i] != t2[i])
     {
       ++diff;
     }
