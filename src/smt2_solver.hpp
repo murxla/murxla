@@ -333,10 +333,10 @@ class Smt2Solver : public Solver
     SMT2_SEXPR,
   };
 
-  void push_to_external(std::string s, ResponseKind expected) const;
+  void push_to_external(std::string s, ResponseKind expected);
   std::string get_from_external() const;
   void dump_smt2(std::string s,
-                 ResponseKind expected = ResponseKind::SMT2_SUCCESS) const;
+                 ResponseKind expected = ResponseKind::SMT2_SUCCESS);
   std::ostream& d_out = std::cout;
   bool d_online       = false;
   FILE* d_file_to     = nullptr;
@@ -349,6 +349,7 @@ class Smt2Solver : public Solver
   uint32_t d_n_unnamed_consts = 0;
   uint32_t d_n_unnamed_ufs    = 0;
   uint32_t d_n_unnamed_vars   = 0;
+  Solver::Result d_last_result = Solver::Result::UNKNOWN;
 };
 
 /* -------------------------------------------------------------------------- */

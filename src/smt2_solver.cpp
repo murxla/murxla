@@ -301,7 +301,7 @@ trim_str(std::string& s)
 }
 
 void
-Smt2Solver::push_to_external(std::string s, ResponseKind expected) const
+Smt2Solver::push_to_external(std::string s, ResponseKind expected)
 {
   assert(d_file_to);
   assert(d_file_from);
@@ -328,6 +328,18 @@ Smt2Solver::push_to_external(std::string s, ResponseKind expected) const
                      "'unknown' response from online solver but got '"
                   << res << "'" << std::endl;
         exit(EXIT_ERROR);
+      }
+      if (res == "sat")
+      {
+        d_last_result = Solver::Result::SAT;
+      }
+      else if (res == "unsat")
+      {
+        d_last_result = Solver::Result::UNSAT;
+      }
+      else if (res == "unknown")
+      {
+        d_last_result = Solver::Result::UNKNOWN;
       }
       break;
     default:
@@ -366,7 +378,7 @@ Smt2Solver::get_from_external() const
 }
 
 void
-Smt2Solver::dump_smt2(std::string s, ResponseKind expected) const
+Smt2Solver::dump_smt2(std::string s, ResponseKind expected)
 {
   d_out << s << std::endl << std::flush;
   if (d_online) push_to_external(s, expected);
@@ -954,7 +966,7 @@ Solver::Result
 Smt2Solver::check_sat()
 {
   dump_smt2("(check-sat)", ResponseKind::SMT2_SAT);
-  return Solver::Result::UNKNOWN;
+  return d_last_result;
 }
 
 Solver::Result
@@ -970,7 +982,7 @@ Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions)
   }
   smt2 << "))";
   dump_smt2(smt2.str(), ResponseKind::SMT2_SAT);
-  return Solver::Result::UNKNOWN;
+  return d_last_result;
 }
 
 std::vector<Term>
