@@ -602,7 +602,7 @@ Smt2Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
       else
       {
         assert(value == SPECIAL_VALUE_FP_NAN);
-        val << "(NaN ";
+        val << "(_ NaN ";
       }
       val << sort->get_fp_exp_size() << " " << sort->get_fp_sig_size() << ")";
     }
