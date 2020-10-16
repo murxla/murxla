@@ -221,7 +221,7 @@ Solver::get_unsupported_op_kinds() const
 SortKindSet
 Solver::get_unsupported_var_sort_kinds() const
 {
-  return {};
+  return {SORT_FUN};
 }
 
 void
