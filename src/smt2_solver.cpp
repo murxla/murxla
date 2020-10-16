@@ -901,7 +901,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       else if (kind == Op::BV_COMP)
       {
         assert(args[0]->get_sort()->is_bv());
-        sort    = get_bv_sort_string(1);
+        bv_size = 1;
+        sort    = get_bv_sort_string(bv_size);
       }
       else if (kind == Op::FP_TO_SBV || kind == Op::FP_TO_UBV)
       {
