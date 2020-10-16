@@ -325,8 +325,8 @@ Smt2Solver::push_to_external(std::string s, ResponseKind expected) const
       if (res != "sat" && res != "unsat" && res != "unknown")
       {
         std::cerr << "[smtmbt] SMT2: Error: expected 'sat', 'unsat' or "
-                     "'unknown' response from online solver"
-                  << std::endl;
+                     "'unknown' response from online solver but got '"
+                  << res << "'" << std::endl;
         exit(EXIT_ERROR);
       }
       break;
@@ -337,8 +337,8 @@ Smt2Solver::push_to_external(std::string s, ResponseKind expected) const
           || res.find("ERROR") != std::string::npos)
       {
         std::cerr << "[smtmbt] SMT2: Error: expected S-expression response "
-                     "from online solver"
-                  << std::endl;
+                     "from online solver but got '"
+                  << res << "'" << std::endl;
         exit(EXIT_ERROR);
       }
   }
