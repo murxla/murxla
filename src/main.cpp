@@ -64,7 +64,7 @@ struct Options
   /** True to include state of RNG in every step of the API trace. */
   bool trace_seeds = false;
   /** True to use simple instead of completely random symbols for inputs. */
-  bool simple_symbols = false;
+  bool simple_symbols = true;
   /** True to only generate SMT-LIB compliant API traces. */
   bool smt = false;
   /** True to print statistics. */
@@ -529,7 +529,7 @@ set_sigint_handler_stats(void)
   "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
   "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
-  "  -y, --simple-symbols       use symbols of the form '_sX'\n"               \
+  "  -y, --random-symbols       use random symbol names\n"                     \
   "  -T, --tmp-dir <dir>        write tmp files to given directory\n"          \
   "  -O, --out-dir <dir>        write output files to given directory\n"       \
   "  --btor                     test Boolector\n"                              \
@@ -655,9 +655,9 @@ parse_options(Options& options, int argc, char* argv[])
       }
       options.cross_check = solver;
     }
-    else if (arg == "-y" || arg == "--simple-symbols")
+    else if (arg == "-y" || arg == "--random-symbols")
     {
-      options.simple_symbols = true;
+      options.simple_symbols = false;
     }
     else if (arg == "-T" || arg == "--tmp-dir")
     {
