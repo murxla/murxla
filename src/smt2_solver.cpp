@@ -490,7 +490,6 @@ Smt2Solver::mk_value(Sort sort, std::string value)
         std::string num = value.substr(0, pos - 1);
         std::string den = value.substr(pos + 1);
         val << "(/ " << num << " " << den << ")";
-        abort();
       }
       else
       {
