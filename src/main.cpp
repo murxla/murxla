@@ -190,7 +190,12 @@ str_diff(const std::string& s1, const std::string& s2)
   {
     if (t1[i] != t2[i])
     {
-      ++diff;
+      // Ignore numbers for diff.
+      for (size_t j = 0; j < t1[i].size(); ++j)
+      {
+        if (std::isdigit(t1[i][j])) continue;
+        ++diff;
+      }
     }
   }
   return diff;
