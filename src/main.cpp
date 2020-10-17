@@ -9,6 +9,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -1621,14 +1622,14 @@ static std::string
 get_smt2_file_name(uint32_t seed, std::string& untrace_file_name)
 {
   std::stringstream ss;
-  ss << "smtmbt-";
   if (untrace_file_name.empty())
   {
-    ss << seed << ".smt2";
+    ss << "smtmbt-" << seed << ".smt2";
   }
   else
   {
-    ss << untrace_file_name << ".smt2";
+    auto path = std::filesystem::path(untrace_file_name);
+    ss << path.replace_extension(".smt2").c_str();
   }
   return ss.str();
 }
