@@ -10,6 +10,7 @@ freshinstall=no
 coverage=no
 
 btor=yes
+bzla=yes
 cvc4=yes
 yices=yes
 
@@ -30,6 +31,7 @@ where <option> is one of the following:
   -f, --fresh-install   install solvers from a fresh checkout
   -c, --coverage        compile solvers with support for coverage testing
   --only-btor           only set up Boolector
+  --only-bzla           only set up Bitwuzla
   --only-cvc4           only set up CVC4
   --only-yices          only set up Yices
 EOF
@@ -84,15 +86,15 @@ rm -rf "$toml_dir"
       ./contrib/setup-lingeling.sh
       ./contrib/setup-cadical.sh
     else
-      if [[ ! -d solvers/btor/deps/btor2tools ]]
+      if [[ ! -d solvers/boolector/deps/btor2tools ]]
       then
         ./contrib/setup-btor2tools.sh
       fi
-      if [[ ! -d solvers/btor/deps/lingeling ]]
+      if [[ ! -d solvers/boolector/deps/lingeling ]]
       then
         ./contrib/setup-lingeling.sh
       fi
-      if [[ ! -d solvers/btor/deps/cadical ]]
+      if [[ ! -d solvers/boolector/deps/cadical ]]
       then
         ./contrib/setup-cadical.sh
       fi
@@ -106,6 +108,45 @@ rm -rf "$toml_dir"
 
     rm build -rf
     ./configure.sh -g --asan --prefix "$deps_dir" "$cov"
+    cd build
+    make install -j $(nproc)
+  fi
+)
+
+# Setup Bitwuzla
+(
+  if [ "$bzla" == "yes" ]
+  then
+    cd solvers/cbitwuzla || exit 1
+
+    if [ "$reinstall" == "no" ]
+    then
+      ./contrib/setup-btor2tools.sh
+      ./contrib/setup-lingeling.sh
+      ./contrib/setup-cadical.sh
+    else
+      if [[ ! -d solvers/cbitwuzla/deps/btor2tools ]]
+      then
+        ./contrib/setup-btor2tools.sh
+      fi
+      if [[ ! -d solvers/cbitwuzla/deps/lingeling ]]
+      then
+        ./contrib/setup-lingeling.sh
+      fi
+      if [[ ! -d solvers/cbitwuzla/deps/cadical ]]
+      then
+        ./contrib/setup-cadical.sh
+      fi
+    fi
+
+    cov=
+    if [ "$coverage" == "yes" ]
+    then
+      cov="-gcov"
+    fi
+
+    rm build -rf
+    ./configure.sh -g --asan --symfpu --prefix "$deps_dir" "$cov"
     cd build
     make install -j $(nproc)
   fi

@@ -215,6 +215,9 @@ class BtorSolver : public Solver
   BoolectorNode* mk_term_left_assoc(
       std::vector<BoolectorNode*>& args,
       BoolectorNode* (*fun)(Btor*, BoolectorNode*, BoolectorNode*) ) const;
+  BoolectorNode* mk_term_right_assoc(
+      std::vector<BoolectorNode*>& args,
+      BoolectorNode* (*fun)(Btor*, BoolectorNode*, BoolectorNode*) ) const;
   BoolectorNode* mk_term_pairwise(std::vector<BoolectorNode*>& args,
                                   BoolectorNode* (*fun)(Btor*,
                                                         BoolectorNode*,

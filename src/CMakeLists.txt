@@ -26,6 +26,12 @@ if(Boolector_FOUND)
   target_link_libraries(genbtoropt Boolector::boolector)
 endif()
 
+if(Bitwuzla_FOUND)
+  target_link_libraries(smtmbt Bitwuzla::bitwuzla)
+  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_BITWUZLA)
+  # TODO: Bitwuzla options
+endif()
+
 if(CVC4_FOUND)
   target_link_libraries(smtmbt CVC4::cvc4)
   target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_CVC4)

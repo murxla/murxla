@@ -208,6 +208,8 @@ class YicesSolver : public Solver
 
   term_t mk_term_left_assoc(std::vector<term_t>& args,
                             term_t (*fun)(term_t, term_t)) const;
+  term_t mk_term_right_assoc(std::vector<term_t>& args,
+                             term_t (*fun)(term_t, term_t)) const;
   term_t mk_term_pairwise(std::vector<term_t>& args,
                           term_t (*fun)(term_t, term_t)) const;
   term_t mk_term_chained(std::vector<term_t>& args,

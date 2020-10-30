@@ -855,8 +855,8 @@ YicesSolver::mk_term(const std::string& kind,
   }
   else if (kind == Op::IMPLIES)
   {
-    assert(n_args == 2);
-    yices_res = yices_implies(yices_args[0], yices_args[1]);
+    assert(n_args > 1);
+    yices_res = mk_term_right_assoc(yices_args, yices_implies);
   }
   else if (kind == Op::NOT)
   {
@@ -1700,6 +1700,24 @@ YicesSolver::mk_term_left_assoc(std::vector<term_t>& args,
     res = tmp;
   }
   assert(is_valid_term(res));
+  return res;
+}
+
+term_t
+YicesSolver::mk_term_right_assoc(std::vector<term_t>& args,
+                                 term_t (*fun)(term_t, term_t)) const
+{
+  uint32_t n_args = args.size();
+  assert(n_args >= 2);
+  term_t res, tmp;
+  res = args[n_args - 1];
+  for (uint32_t i = 1; i < n_args; ++i)
+  {
+    tmp = fun(args[n_args - i - 1], res);
+    assert(is_valid_term(tmp));
+    res = tmp;
+  }
+  assert(res);
   return res;
 }
 

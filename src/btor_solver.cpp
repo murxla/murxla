@@ -683,7 +683,7 @@ BtorSolver::mk_term(const OpKind& kind,
   else if (kind == Op::IMPLIES)
   {
     assert(n_args > 1);
-    btor_res = mk_term_left_assoc(btor_args, boolector_implies);
+    btor_res = mk_term_right_assoc(btor_args, boolector_implies);
   }
   else if (kind == Op::BV_EXTRACT)
   {
@@ -1139,6 +1139,26 @@ BtorSolver::mk_term_left_assoc(std::vector<BoolectorNode*>& args,
   for (uint32_t i = 2, n_args = args.size(); i < n_args; ++i)
   {
     tmp = fun(d_solver, res, args[i]);
+    boolector_release(d_solver, res);
+    res = tmp;
+  }
+  assert(res);
+  return res;
+}
+
+BoolectorNode*
+BtorSolver::mk_term_right_assoc(std::vector<BoolectorNode*>& args,
+                                BoolectorNode* (*fun)(Btor*,
+                                                      BoolectorNode*,
+                                                      BoolectorNode*) ) const
+{
+  uint32_t n_args = args.size();
+  assert(n_args >= 2);
+  BoolectorNode *res, *tmp;
+  res = boolector_copy(d_solver, args[n_args - 1]);
+  for (uint32_t i = 1; i < n_args; ++i)
+  {
+    tmp = fun(d_solver, args[n_args - i - 1], res);
     boolector_release(d_solver, res);
     res = tmp;
   }

@@ -10,3 +10,6 @@
 [submodule "solvers/yices"]
 	path = solvers/yices
 	url = git@github.com:SRI-CSL/yices2.git
+[submodule "solvers/cbitwuzla"]
+	path = solvers/cbitwuzla
+	url = git@github.com:bitwuzla/cbitwuzla.git
