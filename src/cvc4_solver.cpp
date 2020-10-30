@@ -249,7 +249,7 @@ CVC4Solver::is_initialized() const
 }
 
 bool
-CVC4Solver::check_failed_assumption(const Term& t) const
+CVC4Solver::check_unsat_assumption(const Term& t) const
 {
   return !get_cvc4_term(t).isNull();
 }

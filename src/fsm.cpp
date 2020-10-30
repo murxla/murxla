@@ -1879,7 +1879,7 @@ class ActionGetUnsatAssumptions : public Action
           d_smgr.find_term(fa, d_solver.get_sort(fa, SORT_BOOL), SORT_BOOL);
       assert(t != nullptr);
       assert(d_smgr.is_assumed(t));
-      assert(d_solver.check_failed_assumption(t));
+      assert(d_solver.check_unsat_assumption(t));
     }
     d_smgr.d_sat_called = true;
   }

@@ -120,7 +120,7 @@ class CVC4Solver : public Solver
   void configure_fsm(FSM* fsm) const override;
   void configure_smgr(SolverManager* smgr) const override;
 
-  bool check_failed_assumption(const Term& t) const override;
+  bool check_unsat_assumption(const Term& t) const override;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;

@@ -130,7 +130,7 @@ class YicesSolver : public Solver
 
   void set_opt(const std::string& opt, const std::string& value) override;
 
-  bool check_failed_assumption(const Term& t) const override;
+  bool check_unsat_assumption(const Term& t) const override;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
