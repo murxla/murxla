@@ -87,9 +87,9 @@ struct Op
   static const OpKind FP_IS_POS;
   static const OpKind FP_IS_ZERO;
   static const OpKind FP_LT;
-  static const OpKind FP_LTE;
+  static const OpKind FP_LEQ;
   static const OpKind FP_GT;
-  static const OpKind FP_GTE;
+  static const OpKind FP_GEQ;
   static const OpKind FP_MAX;
   static const OpKind FP_MIN;
   static const OpKind FP_MUL;

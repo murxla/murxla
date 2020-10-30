@@ -979,9 +979,9 @@ SolverManager::add_op_kinds()
   add_op_kind(Op::FP_IS_POS, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_IS_ZERO, 1, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_LT, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
-  add_op_kind(Op::FP_LTE, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+  add_op_kind(Op::FP_LEQ, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_GT, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
-  add_op_kind(Op::FP_GTE, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
+  add_op_kind(Op::FP_GEQ, 2, 0, SORT_BOOL, {SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_MAX, 2, 0, SORT_FP, {SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_MIN, 2, 0, SORT_FP, {SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_MUL, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
