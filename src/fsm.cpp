@@ -2202,16 +2202,14 @@ FSM::configure()
   {
     s_inputs->add_action(a_mkvar, 200);
   }
-  // TODO enable
-  // s_inputs->add_action(a_termchksort, 1);
+  s_inputs->add_action(a_termchksort, 1);
   s_inputs->add_action(t_inputs, 50, s_terms);
   s_inputs->add_action(t_inputs, 1000, s_sat);
   s_inputs->add_action(t_inputs, 1000, s_push_pop);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 1);
-  // TODO enable
-  // s_terms->add_action(a_termchksort, 1);
+  s_terms->add_action(a_termchksort, 1);
   s_terms->add_action(t_default, 100, s_assert);
   s_terms->add_action(t_default, 500, s_sat);
   s_terms->add_action(t_inputs, 1000, s_push_pop);
