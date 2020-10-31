@@ -401,24 +401,51 @@ CVC4Solver::mk_value(Sort sort, std::string value)
   switch (sort_kind)
   {
     case SORT_INT:
+    {
       assert(sort->is_int());
-      if (d_rng.flip_coin())
+      int64_t val64 = 0;
+      bool fits64   = true;
+      try
       {
-        cvc4_res = d_solver->mkReal(
-            static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10)));
+        val64 = std::stoll(value);
+      }
+      catch (std::out_of_range& e)
+      {
+        fits64 = false;
+      }
+      if (fits64 && d_rng.flip_coin())
+      {
+        cvc4_res = d_solver->mkReal(val64);
       }
       else
       {
         cvc4_res = d_solver->mkReal(value);
       }
-      break;
+    }
+    break;
 
     case SORT_REAL:
       assert(sort->is_real());
-      if (value.find('.') != std::string::npos && d_rng.flip_coin())
+      if (value.find('.') != std::string::npos)
       {
-        cvc4_res = d_solver->mkReal(
-            static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10)));
+        int64_t val64 = 0;
+        bool fits64   = true;
+        try
+        {
+          val64 = std::stoll(value);
+        }
+        catch (std::out_of_range& e)
+        {
+          fits64 = false;
+        }
+        if (fits64 && d_rng.flip_coin())
+        {
+          cvc4_res = d_solver->mkReal(val64);
+        }
+        else
+        {
+          cvc4_res = d_solver->mkReal(value);
+        }
       }
       else
       {
@@ -471,7 +498,7 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base)
   switch (base)
   {
     case DEC:
-      if (d_rng.flip_coin())
+      if (bw <= 64 && d_rng.flip_coin())
       {
         cvc4_res =
             d_solver->mkBitVector(bw, strtoull(value.c_str(), nullptr, 10));
@@ -485,7 +512,7 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base)
       break;
 
     case HEX:
-      if (d_rng.flip_coin())
+      if (bw <= 64 && d_rng.flip_coin())
       {
         cvc4_res =
             d_solver->mkBitVector(bw, strtoull(value.c_str(), nullptr, 16));
@@ -500,7 +527,7 @@ CVC4Solver::mk_value(Sort sort, std::string value, Base base)
 
     default:
       assert(base == BIN);
-      if (d_rng.flip_coin())
+      if (bw <= 64 && d_rng.flip_coin())
       {
         cvc4_res =
             d_solver->mkBitVector(bw, strtoull(value.c_str(), nullptr, 2));

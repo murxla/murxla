@@ -392,40 +392,55 @@ YicesSolver::mk_value(Sort sort, std::string value)
       assert(sort->is_real());
       if (value.find('.') == std::string::npos && d_rng.flip_coin())
       {
-        RNGenerator::Choice pick = d_rng.pick_one_of_three();
-        switch (pick)
+        int32_t val32 = 0;
+        int64_t val64 = 0;
+        bool fits32 = true, fits64 = true;
+        try
         {
-          case RNGenerator::Choice::FIRST:
+          val32 = std::stoi(value);
+        }
+        catch (std::out_of_range& e)
+        {
+          fits32 = false;
+        }
+        try
+        {
+          val64 = std::stoll(value);
+        }
+        catch (std::out_of_range& e)
+        {
+          fits64 = false;
+        }
+
+        if (fits32 && val32 == 0 && d_rng.flip_coin())
+        {
+          yices_res = yices_zero();
+        }
+        else
+        {
+          if (fits32 && d_rng.flip_coin())
           {
-            int32_t val =
-                static_cast<int32_t>(strtoul(value.c_str(), nullptr, 10));
-            if (val == 0 && d_rng.flip_coin())
+            assert(fits64);
+            if (d_rng.flip_coin())
             {
-              yices_res = yices_zero();
+              yices_res = yices_int32(val32);
             }
             else
             {
-              yices_res = yices_int32(val);
+              yices_res = yices_int64(val64);
             }
           }
-          break;
-          case RNGenerator::Choice::SECOND:
+          else
           {
-            int64_t val =
-                static_cast<int64_t>(strtoull(value.c_str(), nullptr, 10));
-            if (val == 0 && d_rng.flip_coin())
+            if (fits64 && d_rng.flip_coin())
             {
-              yices_res = yices_zero();
+              yices_res = yices_int64(val64);
             }
             else
             {
-              yices_res = yices_int64(val);
+              yices_res = yices_parse_rational(value.c_str());
             }
           }
-          break;
-          default:
-            assert(pick == RNGenerator::Choice::THIRD);
-            yices_res = yices_parse_rational(value.c_str());
         }
       }
       else
@@ -449,17 +464,50 @@ YicesSolver::mk_value(Sort sort, std::string num, std::string den)
   assert(sort->is_real());
   term_t yices_res;
 
-  if (d_rng.flip_coin())
+  int32_t num32 = 0, den32 = 0;
+  int64_t num64 = 0, den64 = 0;
+  bool nfits32 = true, dfits32 = true, nfits64 = true, dfits64 = true;
+  try
   {
-    yices_res = yices_rational32(
-        static_cast<int32_t>(strtoul(num.c_str(), nullptr, 10)),
-        static_cast<uint32_t>(strtoul(den.c_str(), nullptr, 10)));
+    num32 = std::stoi(num);
+  }
+  catch (std::out_of_range& e)
+  {
+    nfits32 = false;
+  }
+  try
+  {
+    num64 = std::stoll(num);
+  }
+  catch (std::out_of_range& e)
+  {
+    nfits64 = false;
+  }
+  try
+  {
+    den32 = std::stoi(den);
+  }
+  catch (std::out_of_range& e)
+  {
+    dfits32 = false;
+  }
+  try
+  {
+    den64 = std::stoll(den);
+  }
+  catch (std::out_of_range& e)
+  {
+    dfits64 = false;
+  }
+  assert(nfits64 && dfits64);
+
+  if (nfits32 && dfits32 && d_rng.flip_coin())
+  {
+    yices_res = yices_rational32(num32, den32);
   }
   else
   {
-    yices_res = yices_rational64(
-        static_cast<int64_t>(strtoull(num.c_str(), nullptr, 10)),
-        static_cast<uint64_t>(strtoull(den.c_str(), nullptr, 10)));
+    yices_res = yices_rational64(num64, den64);
   }
   assert(is_valid_term(yices_res));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
@@ -479,127 +527,138 @@ YicesSolver::bin_str_to_int_array(std::string s) const
   return res;
 }
 
-term_t
-YicesSolver::mk_value_bv_int(Sort sort, std::string value, Base base)
-{
-  assert(sort->is_bv());
-
-  term_t yices_res;
-  uint64_t val;
-  uint32_t bw  = sort->get_bv_size();
-  bool chkbits = bw <= 64 && d_rng.pick_with_prob(10);
-  std::string str;
-
-  if (base == DEC)
-  {
-    std::stringstream ss;
-    ss << (d_rng.flip_coin() ? "-" : "") << value;
-    value = ss.str();
-    val   = static_cast<uint64_t>(strtoul(value.c_str(), nullptr, 10));
-  }
-  else if (base == HEX)
-  {
-    val = static_cast<uint64_t>(strtoul(value.c_str(), nullptr, 16));
-  }
-  else
-  {
-    assert(base == BIN);
-    val = static_cast<uint64_t>(strtoul(value.c_str(), nullptr, 2));
-  }
-
-    RNGenerator::Choice pick = d_rng.pick_one_of_four();
-    switch (pick)
-    {
-      case RNGenerator::Choice::FIRST:
-        yices_res = yices_bvconst_uint32(bw, static_cast<uint32_t>(val));
-        if (chkbits)
-        {
-          str = std::bitset<64>(static_cast<uint32_t>(val))
-                    .to_string()
-                    .substr(64 - bw, bw);
-        }
-        break;
-      case RNGenerator::Choice::SECOND:
-        yices_res = yices_bvconst_uint64(bw, static_cast<uint64_t>(val));
-        if (chkbits)
-        {
-          str = std::bitset<64>(static_cast<uint64_t>(val))
-                    .to_string()
-                    .substr(64 - bw, bw);
-        }
-        break;
-      case RNGenerator::Choice::THIRD:
-        yices_res = yices_bvconst_int32(bw, static_cast<int32_t>(val));
-        if (chkbits)
-        {
-          str = std::bitset<64>(static_cast<int32_t>(val))
-                    .to_string()
-                    .substr(64 - bw, bw);
-        }
-        break;
-      default:
-        assert(pick == RNGenerator::Choice::FOURTH);
-        yices_res = yices_bvconst_int64(bw, static_cast<int64_t>(val));
-        if (chkbits)
-        {
-          str = std::bitset<64>(static_cast<int64_t>(val))
-                    .to_string()
-                    .substr(64 - bw, bw);
-        }
-    }
-
-  assert(is_valid_term(yices_res));
-  assert(!chkbits || check_bits(bw, yices_res, str));
-  return yices_res;
-}
-
 Term
 YicesSolver::mk_value(Sort sort, std::string value, Base base)
 {
   assert(sort->is_bv());
 
   term_t yices_res;
-  uint32_t bw = sort->get_bv_size();
+  int32_t ibase;
+  uint32_t val32 = 0;
+  uint64_t val64 = 0;
+  uint32_t bw    = sort->get_bv_size();
+  bool fits32 = true, fits64 = true;
+  bool chkbits = bw <= 64 && d_rng.pick_with_prob(10);
+  std::string str;
 
-  switch (base)
+  if (base == DEC)
   {
-    case DEC: yices_res = mk_value_bv_int(sort, value, base); break;
+    ibase = 10;
+  }
+  else if (base == HEX)
+  {
+    ibase = 16;
+  }
+  else
+  {
+    assert(base == BIN);
+    ibase = 2;
+  }
 
-    case HEX:
+  try
+  {
+    uint64_t tmp = std::stoul(value, nullptr, ibase);
+    if (tmp > UINT64_MAX)
+    {
+      fits32 = false;
+    }
+    else
+    {
+      val32 = tmp;
+    }
+  }
+  catch (std::out_of_range& e)
+  {
+    fits32 = false;
+  }
+
+  try
+  {
+    val64 = std::stoull(value, nullptr, ibase);
+  }
+  catch (std::out_of_range& e)
+  {
+    fits64 = false;
+  }
+  bool use_int = d_rng.flip_coin();
+  if (fits32 && d_rng.flip_coin())
+  {
+    if (use_int)
+    {
+      yices_res = yices_bvconst_int32(bw, static_cast<int32_t>(val32));
+      if (chkbits)
+      {
+        str = std::bitset<64>(static_cast<int32_t>(val32))
+                  .to_string()
+                  .substr(64 - bw, bw);
+      }
+    }
+    else
+    {
+      yices_res = yices_bvconst_uint32(bw, val32);
+      if (chkbits)
+      {
+        str = std::bitset<64>(val32).to_string().substr(64 - bw, bw);
+      }
+    }
+    assert(is_valid_term(yices_res));
+    assert(!chkbits || check_bits(bw, yices_res, str));
+  }
+  else if (fits64 && d_rng.flip_coin())
+  {
+    if (use_int)
+    {
+      yices_res = yices_bvconst_int64(bw, static_cast<int64_t>(val64));
+      if (chkbits)
+      {
+        str = std::bitset<64>(static_cast<int64_t>(val64))
+                  .to_string()
+                  .substr(64 - bw, bw);
+      }
+    }
+    else
+    {
+      yices_res = yices_bvconst_uint64(bw, val64);
+      if (chkbits)
+      {
+        str = std::bitset<64>(val64).to_string().substr(64 - bw, bw);
+      }
+    }
+    assert(is_valid_term(yices_res));
+    assert(!chkbits || check_bits(bw, yices_res, str));
+  }
+  else
+  {
+    if (base == DEC)
+    {
+      std::string value_bin = str_dec_to_bin(value);
+      if (value_bin.size() < bw)
+      {
+        std::stringstream ss;
+        ss << std::string(bw - value_bin.size(), '0') << value_bin;
+        assert(ss.str().size() == bw);
+        value_bin = ss.str();
+      }
+      yices_res = yices_parse_bvbin(value_bin.c_str());
+    }
+    else if (base == HEX)
+    {
+      yices_res = yices_parse_bvhex(value.c_str());
+    }
+    else
     {
       if (d_rng.flip_coin())
       {
-        yices_res = mk_value_bv_int(sort, value, base);
+        yices_res = yices_parse_bvbin(value.c_str());
       }
       else
       {
-        yices_res = yices_parse_bvhex(value.c_str());
+        std::vector<int32_t> a = bin_str_to_int_array(value);
+        yices_res              = yices_bvconst_from_array(bw, &a[0]);
       }
     }
-    break;
-
-    default:
-    {
-      assert(base == BIN);
-      RNGenerator::Choice pick = d_rng.pick_one_of_three();
-      switch (pick)
-      {
-        case RNGenerator::Choice::FIRST:
-          yices_res = mk_value_bv_int(sort, value, base);
-          break;
-        case RNGenerator::Choice::SECOND:
-          {
-            std::vector<int32_t> a = bin_str_to_int_array(value);
-            yices_res              = yices_bvconst_from_array(bw, &a[0]);
-          }
-          break;
-        default:
-          assert(pick == RNGenerator::Choice::THIRD);
-          yices_res = yices_parse_bvbin(value.c_str());
-      }
-    }
+    assert(is_valid_term(yices_res));
   }
-  assert(is_valid_term(yices_res));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
   assert(res);
   return res;

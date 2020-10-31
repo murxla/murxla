@@ -6,12 +6,12 @@
 #include <algorithm>
 #include <bitset>
 #include <cassert>
+#include <cstring>
 #include <ctime>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <vector>
-
 /* -------------------------------------------------------------------------- */
 
 #define SMTMBT_PROB_MAX 1000 /* Maximum probability 100% = 1000. */
@@ -425,6 +425,127 @@ str_bin_to_dec(const std::string& str_bin)
     ss << ((char) (digits[n - i] + '0'));
   }
   return ss.str();
+}
+
+namespace {
+std::string
+strip_zeros(std::string s)
+{
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) {
+            return ch != '0';
+          }));
+  return s;
+}
+
+std::string
+add_unbounded_bin_str(std::string a, std::string b)
+{
+  a = strip_zeros(a);
+  b = strip_zeros(b);
+
+  if (a.empty()) return b;
+  if (b.empty()) return a;
+
+  size_t asize = a.size();
+  size_t bsize = b.size();
+  size_t rsize = (asize < bsize) ? bsize + 1 : asize + 1;
+  std::string res(rsize, '0');
+
+  char c = '0';
+  for (uint32_t i = 0; i < rsize; ++i)
+  {
+    char x             = i < asize ? a[asize - i - 1] : '0';
+    char y             = i < bsize ? b[bsize - i - 1] : '0';
+    char s             = x ^ y ^ c;
+    c                  = (x & y) | (x & c) | (y & c);
+    res[rsize - i - 1] = s;
+  }
+  return strip_zeros(res);
+}
+
+std::string
+mult_unbounded_bin_str(std::string a, std::string b)
+{
+  a = strip_zeros(a);
+
+  if (a.empty()) return a;
+
+  if (a[0] == '1' && !a[1]) return b;
+
+  b = strip_zeros(b);
+
+  if (b.empty()) return b;
+
+  if (b[0] == '1' && !b[1]) return a;
+
+  size_t asize = a.size();
+  size_t bsize = b.size();
+  size_t rsize = asize + bsize;
+
+  std::string res(rsize, '0');
+  for (uint32_t i = 0, n = a.size(); i < n; ++i) res[bsize + i] = a[i];
+
+  for (size_t i = 0; i < asize; ++i)
+  {
+    char m = res[rsize - 1];
+    char c = '0';
+
+    if (m == '1')
+    {
+      for (size_t j = bsize; j > 0; --j)
+      {
+        char x     = b[j - 1];
+        char y     = res[j - 1];
+        char s     = x ^ y ^ c;
+        c          = (x & y) | (x & c) | (y & c);
+        res[j - 1] = s;
+      }
+    }
+    std::string subres = res.substr(0, rsize - 1);
+    res.replace(res.begin() + 1, res.end(), subres.begin(), subres.end());
+    res[0] = c;
+  }
+
+  return res;
+}
+
+const char*
+digit2bin(char ch)
+{
+  assert('0' <= ch);
+  assert(ch <= '9');
+
+  const char* table[10] = {
+      "",
+      "1",
+      "10",
+      "11",
+      "100",
+      "101",
+      "110",
+      "111",
+      "1000",
+      "1001",
+  };
+
+  return table[ch - '0'];
+}
+}  // namespace
+
+std::string
+str_dec_to_bin(const std::string& str_dec)
+{
+  std::string res;
+
+  for (size_t i = 0, n = str_dec.size(); i < n; ++i)
+  {
+    res = mult_unbounded_bin_str(res, "1010");                // * 10
+    res = add_unbounded_bin_str(res, digit2bin(str_dec[i]));  // + digit
+  }
+  assert(strip_zeros(res) == res);
+  assert(str_bin_to_dec(res) == str_dec);
+  if (res.size()) return res;
+  return "0";
 }
 
 uint64_t

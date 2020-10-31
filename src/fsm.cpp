@@ -1362,16 +1362,16 @@ class ActionMkValue : public Action
           case RNGenerator::Choice::THIRD:
             _run(sort,
                  d_rng.pick_dec_rational_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX),
-                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX)));
+                     d_rng.pick<uint32_t>(1, SMTMBT_RATIONAL_LEN_MAX),
+                     d_rng.pick<uint32_t>(1, SMTMBT_RATIONAL_LEN_MAX)));
             break;
           default:
             assert(pick == RNGenerator::Choice::FOURTH);
             _run(sort,
                  d_rng.pick_dec_int_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX)),
+                     d_rng.pick<uint32_t>(1, SMTMBT_RATIONAL_LEN_MAX)),
                  d_rng.pick_dec_int_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX)));
+                     d_rng.pick<uint32_t>(1, SMTMBT_RATIONAL_LEN_MAX)));
         }
         break;
 

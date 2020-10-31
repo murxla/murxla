@@ -192,6 +192,7 @@ uint32_t uint32_to_value_in_range(uint32_t val, uint32_t from, uint32_t to);
 
 std::string str_bin_to_hex(const std::string& str_bin);
 std::string str_bin_to_dec(const std::string& str_bin);
+std::string str_dec_to_bin(const std::string& str_dec);
 
 uint64_t bv_special_value_ones_uint64(uint32_t bw);
 uint64_t bv_special_value_min_signed_uint64(uint32_t bw);

@@ -204,8 +204,6 @@ class YicesSolver : public Solver
 
   std::vector<int32_t> bin_str_to_int_array(std::string s) const;
 
-  term_t mk_value_bv_int(Sort sort, std::string value, Base base);
-
   term_t mk_term_left_assoc(std::vector<term_t>& args,
                             term_t (*fun)(term_t, term_t)) const;
   term_t mk_term_right_assoc(std::vector<term_t>& args,

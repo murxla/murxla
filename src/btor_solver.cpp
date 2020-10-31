@@ -516,11 +516,12 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
 
   BoolectorNode* btor_res;
   BoolectorSort btor_sort = get_btor_sort(sort);
+  uint32_t bw             = sort->get_bv_size();
 
   switch (base)
   {
     case HEX:
-      if (d_rng.flip_coin())
+      if (bw <= 64 && d_rng.flip_coin())
       {
         btor_res =
             mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 16));
@@ -538,7 +539,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
       break;
 
     case DEC:
-      if (d_rng.flip_coin())
+      if (bw <= 64 && d_rng.flip_coin())
       {
         btor_res =
             mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 10));
@@ -557,7 +558,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
 
     default:
       assert(base == BIN);
-      if (d_rng.flip_coin())
+      if (bw <= 64 && d_rng.flip_coin())
       {
         btor_res =
             mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 2));
