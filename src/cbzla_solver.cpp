@@ -7,6 +7,7 @@
 #include <cstdlib>
 
 #include "config.hpp"
+#include "except.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
@@ -256,7 +257,7 @@ CBzlaSolver::get_supported_theories() const
 OpKindSet
 CBzlaSolver::get_unsupported_op_kinds() const
 {
-  return {};
+  return {Op::FP_TO_REAL};
 }
 
 SortKindSet
@@ -587,6 +588,9 @@ CBzlaSolver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
+  SMTMBT_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
+      << "CBitwuzla: operator kind '" << kind << "' not configured";
+
   BitwuzlaTerm* cbzla_res = nullptr;
   size_t n_args           = args.size();
   size_t n_params         = params.size();

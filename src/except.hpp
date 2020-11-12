@@ -3,6 +3,10 @@
 
 #include <sstream>
 
+namespace smtmbt {
+
+/* -------------------------------------------------------------------------- */
+
 class SmtMbtException : public std::exception
 {
  public:
@@ -24,5 +28,66 @@ class SmtMbtConfigException : public SmtMbtException
   {
   }
 };
+
+/* -------------------------------------------------------------------------- */
+
+class WarnStream
+{
+ public:
+  WarnStream();
+  ~WarnStream();
+  WarnStream(const WarnStream& astream) = default;
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+};
+
+class AbortStream
+{
+ public:
+  AbortStream();
+  ~AbortStream();
+  AbortStream(const AbortStream& astream) = default;
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+};
+
+class ConfigExceptionStream
+{
+ public:
+  ConfigExceptionStream() {}
+  ~ConfigExceptionStream() noexcept(false);
+  ConfigExceptionStream(const ConfigExceptionStream& cstream);
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+  std::stringstream d_ss;
+};
+
+class OstreamVoider
+{
+ public:
+  OstreamVoider() = default;
+  void operator&(std::ostream& ostream) {}
+};
+
+#define SMTMBT_WARN(cond) \
+  !(cond) ? (void) 0 : OstreamVoider() & WarnStream().stream()
+
+#define SMTMBT_ABORT(cond) \
+  !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()
+
+#define SMTMBT_CHECK_CONFIG(cond) \
+  (cond) ? (void) 0 : OstreamVoider() & ConfigExceptionStream().stream()
+
+/* -------------------------------------------------------------------------- */
+}  // namespace smtmbt
 
 #endif

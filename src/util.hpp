@@ -240,47 +240,6 @@ std::ostream& operator<<(std::ostream& out,
                          const std::vector<uint32_t>& vector);
 
 /* -------------------------------------------------------------------------- */
-
-class WarnStream
-{
- public:
-  WarnStream();
-  ~WarnStream();
-  WarnStream(const WarnStream& astream) = default;
-
-  std::ostream& stream();
-
- private:
-  void flush();
-};
-
-class AbortStream
-{
- public:
-  AbortStream();
-  ~AbortStream();
-  AbortStream(const AbortStream& astream) = default;
-
-  std::ostream& stream();
-
- private:
-  void flush();
-};
-
-class OstreamVoider
-{
- public:
-  OstreamVoider() = default;
-  void operator&(std::ostream& ostream) {}
-};
-
-#define SMTMBT_WARN(cond) \
-  !(cond) ? (void) 0 : OstreamVoider() & WarnStream().stream()
-
-#define SMTMBT_ABORT(cond) \
-  !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()
-
-/* -------------------------------------------------------------------------- */
 }  // namespace smtmbt
 
 #endif

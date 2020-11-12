@@ -8,7 +8,6 @@
 #include <cassert>
 #include <cstring>
 #include <ctime>
-#include <iostream>
 #include <limits>
 #include <sstream>
 #include <vector>
@@ -716,46 +715,6 @@ operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
 {
   for (const uint32_t v : vector) out << " " << v;
   return out;
-}
-
-/* -------------------------------------------------------------------------- */
-
-WarnStream::WarnStream() { stream() << "smtmbt: WARNING: "; }
-
-WarnStream::~WarnStream() { flush(); }
-
-std::ostream&
-WarnStream::stream()
-{
-  return std::cout;
-}
-
-void
-WarnStream::flush()
-{
-  stream() << std::endl;
-  stream().flush();
-}
-
-AbortStream::AbortStream() { stream() << "smtmbt: ERROR: "; }
-
-AbortStream::~AbortStream()
-{
-  flush();
-  std::abort();
-}
-
-std::ostream&
-AbortStream::stream()
-{
-  return std::cerr;
-}
-
-void
-AbortStream::flush()
-{
-  stream() << std::endl;
-  stream().flush();
 }
 
 /* -------------------------------------------------------------------------- */

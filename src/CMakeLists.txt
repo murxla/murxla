@@ -2,6 +2,7 @@ set(smtmbt_src_files
   btor_solver.cpp
   cbzla_solver.cpp
   cvc4_solver.cpp
+  except.cpp
   fsm.cpp
   main.cpp
   op.cpp
