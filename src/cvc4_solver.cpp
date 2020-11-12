@@ -688,10 +688,10 @@ CVC4Solver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
-  assert(d_kinds.find(kind) != d_kinds.end());
+  assert(d_op_kinds.find(kind) != d_op_kinds.end());
 
   CVC4::api::Term cvc4_res;
-  CVC4::api::Kind cvc4_kind = d_kinds.at(kind);
+  CVC4::api::Kind cvc4_kind = d_op_kinds.at(kind);
   CVC4::api::Op cvc4_opterm;
 
   int32_t n_args    = args.size();
@@ -1142,7 +1142,7 @@ CVC4Solver::terms_to_cvc4_terms(std::vector<Term>& terms) const
 void
 CVC4Solver::init_op_kinds()
 {
-  d_kinds = {
+  d_op_kinds = {
       /* Special Cases */
       {Op::UNDEFINED, CVC4::api::Kind::UNDEFINED_KIND},
       {Op::DISTINCT, CVC4::api::Kind::DISTINCT},
@@ -1307,8 +1307,8 @@ CVC4Solver::init_op_kinds()
       {Op::UF_APPLY, CVC4::api::Kind::APPLY_UF},
 
       /* Solver-specific operators */
-      {OP_REDOR, CVC4::api::Kind::BITVECTOR_REDOR},
-      {OP_REDAND, CVC4::api::Kind::BITVECTOR_REDAND},
+      {OP_BV_REDOR, CVC4::api::Kind::BITVECTOR_REDOR},
+      {OP_BV_REDAND, CVC4::api::Kind::BITVECTOR_REDAND},
       {OP_STRING_UPDATE, CVC4::api::Kind::STRING_UPDATE},
       {OP_STRING_TOLOWER, CVC4::api::Kind::STRING_TOLOWER},
       {OP_STRING_TOUPPER, CVC4::api::Kind::STRING_TOUPPER},
@@ -1332,8 +1332,8 @@ CVC4Solver::get_cvc4_term(Term term) const
 /* Solver-specific operators, SolverManager configuration.                    */
 /* -------------------------------------------------------------------------- */
 
-const OpKind CVC4Solver::OP_REDAND = "cvc4-OP_REDAND";
-const OpKind CVC4Solver::OP_REDOR  = "cvc4-OP_REDOR";
+const OpKind CVC4Solver::OP_BV_REDAND      = "cvc4-OP_BV_REDAND";
+const OpKind CVC4Solver::OP_BV_REDOR       = "cvc4-OP_BV_REDOR";
 const OpKind CVC4Solver::OP_STRING_UPDATE  = "cvc4-OP_STRING_UPDATE";
 const OpKind CVC4Solver::OP_STRING_TOLOWER = "cvc4-OP_STRING_TOLOWER";
 const OpKind CVC4Solver::OP_STRING_TOUPPER = "cvc4-OP_STRING_TOUPPER";
@@ -1342,8 +1342,8 @@ const OpKind CVC4Solver::OP_STRING_REV     = "cvc4-OP_STRING_REV";
 void
 CVC4Solver::configure_smgr(SolverManager* smgr) const
 {
-  smgr->add_op_kind(OP_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_BV_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  smgr->add_op_kind(OP_BV_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
 
   smgr->add_op_kind(OP_STRING_UPDATE,
                     3,

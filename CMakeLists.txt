@@ -61,8 +61,8 @@ endif()
 #-----------------------------------------------------------------------------#
 
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
-find_package(Bitwuzla)
 find_package(Boolector)
+find_package(CBitwuzla)
 find_package(CVC4)
 find_package(toml11)
 find_package(Yices)

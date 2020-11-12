@@ -18,6 +18,7 @@
 #include <toml.hpp>
 
 #include "btor_solver.hpp"
+#include "cbzla_solver.hpp"
 #include "cvc4_solver.hpp"
 #include "exit.hpp"
 #include "fsm.hpp"
@@ -31,6 +32,7 @@ using namespace smtmbt;
 using namespace statistics;
 
 #define SMTMBT_SOLVER_BTOR "btor"
+#define SMTMBT_SOLVER_CBZLA "cbzla"
 #define SMTMBT_SOLVER_CVC4 "cvc4"
 #define SMTMBT_SOLVER_SMT2 "smt2"
 #define SMTMBT_SOLVER_YICES "yices"
@@ -550,6 +552,7 @@ set_sigint_handler_stats(void)
   "  -T, --tmp-dir <dir>        write tmp files to given directory\n"          \
   "  -O, --out-dir <dir>        write output files to given directory\n"       \
   "  --btor                     test Boolector\n"                              \
+  "  --cbzla                    test CBitwuzla\n"                              \
   "  --cvc4                     test CVC4\n"                                   \
   "  --yices                    test Yices\n"                                  \
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
@@ -664,7 +667,8 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, argc);
       std::string solver = argv[i];
-      if (solver != "btor" && solver != "cvc4")
+      if (solver != SMTMBT_SOLVER_BTOR && solver != SMTMBT_SOLVER_CBZLA
+          && solver != SMTMBT_SOLVER_CVC4 && solver != SMTMBT_SOLVER_YICES)
       {
         std::stringstream es;
         es << "invalid argument " << solver << " to option '" << arg << "'";
@@ -707,6 +711,14 @@ parse_options(Options& options, int argc, char* argv[])
         die("multiple solvers defined");
       }
       options.solver = SMTMBT_SOLVER_BTOR;
+    }
+    else if (arg == "--cbzla")
+    {
+      if (!options.solver.empty())
+      {
+        die("multiple solvers defined");
+      }
+      options.solver = SMTMBT_SOLVER_CBZLA;
     }
     else if (arg == "--cvc4")
     {
@@ -1111,6 +1123,14 @@ run_aux(Options& options,
       solver = new btor::BtorSolver(rng);
 #else
       die("Boolector not configured");
+#endif
+    }
+    else if (options.solver == SMTMBT_SOLVER_CBZLA)
+    {
+#if SMTMBT_USE_CBITWUZLA
+      solver = new cbzla::CBzlaSolver(rng);
+#else
+      die("CBitwuzla not configured");
 #endif
     }
     else if (options.solver == SMTMBT_SOLVER_CVC4)

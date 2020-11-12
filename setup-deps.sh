@@ -10,7 +10,7 @@ freshinstall=no
 coverage=no
 
 btor=yes
-bzla=yes
+cbzla=yes
 cvc4=yes
 yices=yes
 
@@ -31,7 +31,7 @@ where <option> is one of the following:
   -f, --fresh-install   install solvers from a fresh checkout
   -c, --coverage        compile solvers with support for coverage testing
   --only-btor           only set up Boolector
-  --only-bzla           only set up Bitwuzla
+  --only-cbzla          only set up CBitwuzla
   --only-cvc4           only set up CVC4
   --only-yices          only set up Yices
 EOF
@@ -45,9 +45,10 @@ do
     -h|--help) usage;;
     -f|--fresh-install) freshinstall=yes;;
     -c|--coverage) coverage=yes;;
-    --only-btor) cvc4=no; yices=no;;
-    --only-cvc4) btor=no; yices=no;;
-    --only-yices) btor=no; cvc4=no;;
+    --only-btor) cbzla=no; cvc4=no; yices=no;;
+    --only-cvc4) cbzla=no; btor=no; yices=no;;
+    --only-yices) cbzla=no; btor=no; cvc4=no;;
+    --only-cbzla) btor=no; cvc4=no; yices=no;;
 
     -*) die "invalid option '$opt' (try '-h')";;
   esac
@@ -113,9 +114,9 @@ rm -rf "$toml_dir"
   fi
 )
 
-# Setup Bitwuzla
+# Setup CBitwuzla
 (
-  if [ "$bzla" == "yes" ]
+  if [ "$cbzla" == "yes" ]
   then
     cd solvers/cbitwuzla || exit 1
 
@@ -136,6 +137,10 @@ rm -rf "$toml_dir"
       if [[ ! -d solvers/cbitwuzla/deps/cadical ]]
       then
         ./contrib/setup-cadical.sh
+      fi
+      if [[ ! -d solvers/cbitwuzla/deps/symfpu ]]
+      then
+        ./contrib/setup-symfpu.sh
       fi
     fi
 

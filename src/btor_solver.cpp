@@ -638,6 +638,13 @@ BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
   }
   assert(btor_res);
   assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
+  if (check_bits)
+  {
+    const char* bits = boolector_get_bits(d_solver, btor_res);
+    assert(!str.empty());
+    assert(std::string(bits) == str);
+    boolector_free_bits(d_solver, bits);
+  }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
@@ -1236,8 +1243,6 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value)
     /* always enabled in Boolector, can not be configured via set_opt */
     return;
   }
-
-  assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
 
   /* Boolector options are all integer values */
   uint32_t val = 0;

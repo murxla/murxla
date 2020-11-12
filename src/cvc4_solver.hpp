@@ -91,8 +91,8 @@ class CVC4Solver : public Solver
   static const ActionKind ACTION_SIMPLIFY;
   /** Solver-specific operators. */
   // BV
-  static const OpKind OP_REDAND;
-  static const OpKind OP_REDOR;
+  static const OpKind OP_BV_REDAND;
+  static const OpKind OP_BV_REDOR;
   //  Strings
   static const OpKind OP_STRING_UPDATE;
   static const OpKind OP_STRING_TOLOWER;
@@ -195,7 +195,6 @@ class CVC4Solver : public Solver
       std::vector<CVC4::api::Term>& terms) const;
 
   CVC4::api::Solver* d_solver;
-  std::unordered_map<std::string, CVC4::api::Kind> d_kinds;
   std::unordered_map<std::string, CVC4::api::Kind> d_op_kinds;
 };
 

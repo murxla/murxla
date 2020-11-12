@@ -1,4 +1,4 @@
-# Find Yices 
+# Find Yices
 # Yices_FOUND - found Yices lib
 # Yices_INCLUDE_DIR - the Yices include directory
 # Yices_LIBRARIES - Libraries needed to use Yices

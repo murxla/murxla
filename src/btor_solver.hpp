@@ -8,10 +8,6 @@
 #include "solver.hpp"
 #include "theory.hpp"
 
-extern "C" {
-struct Btor;
-}
-
 namespace smtmbt {
 namespace btor {
 

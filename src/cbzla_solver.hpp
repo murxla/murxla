@@ -3,17 +3,13 @@
 #ifndef __SMTMBT__CBITWUZLA_SOLVER_H
 #define __SMTMBT__CBITWUZLA_SOLVER_H
 
-#include "cbitwuzla/api/c/bitwuzla.h"
+#include "cbitwuzla/bitwuzla.h"
 #include "fsm.hpp"
 #include "solver.hpp"
 #include "theory.hpp"
 
-extern "C" {
-struct Bitwuzla;
-}
-
 namespace smtmbt {
-namespace bzla {
+namespace cbzla {
 
 /* -------------------------------------------------------------------------- */
 /* CBlzaSort                                                                  */
@@ -24,7 +20,7 @@ class CBzlaSort : public AbsSort
   friend class CBzlaSolver;
 
  public:
-  CBzlaSort(Bitwuzla* bzla, BitwuzlaSort sort);
+  CBzlaSort(Bitwuzla* cbzla, BitwuzlaSort* sort);
   ~CBzlaSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
@@ -43,8 +39,8 @@ class CBzlaSort : public AbsSort
   uint32_t get_fp_sig_size() const override;
 
  private:
-  Bzla* d_solver;
-  BitwuzlaSort d_sort;
+  Bitwuzla* d_solver   = nullptr;
+  BitwuzlaSort* d_sort = nullptr;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -56,7 +52,7 @@ class CBzlaTerm : public AbsTerm
   friend class CBzlaSolver;
 
  public:
-  CBzlaTerm(Bzla* bzla, BitwuzlaTerm* term);
+  CBzlaTerm(BitwuzlaTerm* term);
   ~CBzlaTerm() override;
   size_t hash() const override;
   bool equals(const Term& other) const override;
@@ -72,7 +68,6 @@ class CBzlaTerm : public AbsTerm
   bool is_reglan() const override;
 
  private:
-  Bzla* d_solver        = nullptr;
   BitwuzlaTerm* d_term = nullptr;
 };
 
@@ -83,43 +78,40 @@ class CBzlaTerm : public AbsTerm
 class CBzlaSolver : public Solver
 {
  public:
-  ///** Solver-specific actions. */
-  //static const OpKind ACTION_OPT_ITERATOR;
-  //static const OpKind ACTION_BV_ASSIGNMENT;
-  //static const OpKind ACTION_CLONE;
-  //static const OpKind ACTION_FAILED;
-  //static const OpKind ACTION_FIXATE_ASSUMPTIONS;
-  //static const OpKind ACTION_RESET_ASSUMPTIONS;
-  //static const OpKind ACTION_RELEASE_ALL;
-  //static const OpKind ACTION_SIMPLIFY;
-  //static const OpKind ACTION_SET_SAT_SOLVER;
-  //static const OpKind ACTION_SET_SYMBOL;
-  ///** Solver-specific operators. */
-  //static const OpKind OP_DEC;
-  //static const OpKind OP_INC;
-  //static const OpKind OP_REDAND;
-  //static const OpKind OP_REDOR;
-  //static const OpKind OP_REDXOR;
-  //static const OpKind OP_UADDO;
-  //static const OpKind OP_UMULO;
-  //static const OpKind OP_USUBO;
-  //static const OpKind OP_SADDO;
-  //static const OpKind OP_SDIVO;
-  //static const OpKind OP_SMULO;
-  //static const OpKind OP_SSUBO;
-  ///* Solver-specific states. */
-  //static const OpKind STATE_FIX_RESET_ASSUMPTIONS;
+  /** Solver-specific actions. */
+  static const OpKind ACTION_IS_UNSAT_ASSUMPTION;
+  static const OpKind ACTION_FIXATE_ASSUMPTIONS;
+  static const OpKind ACTION_RESET_ASSUMPTIONS;
+  static const OpKind ACTION_SIMPLIFY;
+  static const OpKind ACTION_TERM_SET_SYMBOL;
+  /** Solver-specific operators. */
+  static const OpKind OP_BV_DEC;
+  static const OpKind OP_BV_INC;
+  static const OpKind OP_BV_REDAND;
+  static const OpKind OP_BV_REDOR;
+  static const OpKind OP_BV_REDXOR;
+  static const OpKind OP_BV_ROL;
+  static const OpKind OP_BV_ROR;
+  static const OpKind OP_BV_UADDO;
+  static const OpKind OP_BV_UMULO;
+  static const OpKind OP_BV_USUBO;
+  static const OpKind OP_BV_SADDO;
+  static const OpKind OP_BV_SDIVO;
+  static const OpKind OP_BV_SMULO;
+  static const OpKind OP_BV_SSUBO;
+  /* Solver-specific states. */
+  static const OpKind STATE_FIX_RESET_ASSUMPTIONS;
 
   /** Constructor. */
   CBzlaSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
   /** Destructor. */
-  ~CBzlaSolver() override{};
+  ~CBzlaSolver() override;
 
   void new_solver() override;
 
   void delete_solver() override;
 
-  Bzla* get_solver();
+  Bitwuzla* get_solver();
 
   bool is_initialized() const override;
 
@@ -131,8 +123,6 @@ class CBzlaSolver : public Solver
   void configure_smgr(SolverManager* smgr) const override;
 
   void set_opt(const std::string& opt, const std::string& value) override;
-
-  std::vector<std::string> get_supported_sat_solvers();
 
   bool check_unsat_assumption(const Term& t) const override;
 
@@ -199,32 +189,35 @@ class CBzlaSolver : public Solver
   //
   //
  private:
-  using BzlaFunBoolUnary       = std::function<bool(Bzla*, BitwuzlaTerm*)>;
-  using BzlaFunBoolUnaryVector = std::vector<BzlaFunBoolUnary>;
+  using CbzlaTermFunBoolUnary       = std::function<bool(BitwuzlaTerm*)>;
+  using CbzlaTermFunBoolUnaryVector = std::vector<CbzlaTermFunBoolUnary>;
 
   void init_op_kinds();
 
-  std::vector<Term> bzla_terms_to_terms(
+  std::vector<Term> cbzla_terms_to_terms(
       std::vector<BitwuzlaTerm*>& terms) const;
   std::vector<BitwuzlaTerm*> terms_to_bzla_terms(
       std::vector<Term>& terms) const;
+  std::vector<const BitwuzlaTerm*> terms_to_const_bzla_terms(
+      std::vector<Term>& terms) const;
 
-  BzlaFunBoolUnary pick_fun_bool_unary(BzlaFunBoolUnaryVector& funs) const;
-  BzlaFunBoolUnary pick_fun_is_bv_const() const;
-  void check_is_bv_const(const SpecialValueKind& kind,
+  CbzlaTermFunBoolUnary pick_fun_bool_unary(
+      CbzlaTermFunBoolUnaryVector& funs) const;
+  CbzlaTermFunBoolUnary pick_fun_is_bv_const() const;
+  void check_is_bv_value(const SpecialValueKind& kind,
                          BitwuzlaTerm* node) const;
 
-  BitwuzlaSort get_bzla_sort(Sort sort) const;
+  BitwuzlaSort* get_bzla_sort(Sort sort) const;
   BitwuzlaTerm* mk_value_bv_uint64 (Sort sort, uint64_t value);
 
-  Bzla* d_solver;
-  std::unordered_map<std::string, BzlaOption> d_option_name_to_enum;
+  Bitwuzla* d_solver;
+  std::unordered_map<std::string, BitwuzlaOption> d_option_name_to_enum;
   std::unordered_map<std::string, BitwuzlaKind> d_op_kinds;
 
   uint64_t d_num_symbols;
 };
 
-}  // namespace bzla
+}  // namespace cbzla
 }  // namespace smtmbt
 
 #endif

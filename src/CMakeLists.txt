@@ -1,5 +1,6 @@
 set(smtmbt_src_files
   btor_solver.cpp
+  cbzla_solver.cpp
   cvc4_solver.cpp
   fsm.cpp
   main.cpp
@@ -26,9 +27,9 @@ if(Boolector_FOUND)
   target_link_libraries(genbtoropt Boolector::boolector)
 endif()
 
-if(Bitwuzla_FOUND)
-  target_link_libraries(smtmbt Bitwuzla::bitwuzla)
-  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_BITWUZLA)
+if(CBitwuzla_FOUND)
+  target_link_libraries(smtmbt CBitwuzla::cbitwuzla)
+  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_CBITWUZLA)
   # TODO: Bitwuzla options
 endif()
 
