@@ -230,6 +230,10 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
            || (sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
                && sort->get_bv_size() == 1)
            || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)
+           || (sort_kind == SORT_ARRAY && sort->get_kind() == SORT_FUN
+               && sort->get_sorts().size() == 2)
+           || (sort_kind == SORT_FUN && sort->get_kind() == SORT_ARRAY
+               && sort->get_sorts().size() == 2)
            || sort->get_kind() == sort_kind);
   }
   assert(sort->get_id());
