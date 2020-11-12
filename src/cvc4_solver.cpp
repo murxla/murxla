@@ -233,6 +233,15 @@ CVC4Solver::get_unsupported_fun_domain_sort_kinds() const
   return {SORT_REGLAN};
 }
 
+CVC4Solver::~CVC4Solver()
+{
+  if (d_solver)
+  {
+    delete d_solver;
+    d_solver = nullptr;
+  }
+}
+
 void
 CVC4Solver::new_solver()
 {

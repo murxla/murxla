@@ -107,7 +107,7 @@ class BtorSolver : public Solver
   /** Constructor. */
   BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
   /** Destructor. */
-  ~BtorSolver() override{};
+  ~BtorSolver() override;
 
   void new_solver() override;
 

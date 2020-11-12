@@ -104,7 +104,7 @@ class CVC4Solver : public Solver
   /** Constructor. */
   CVC4Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
   /** Destructor. */
-  ~CVC4Solver() override{};
+  ~CVC4Solver() override;
 
   OpKindSet get_unsupported_op_kinds() const override;
   SortKindSet get_unsupported_array_index_sort_kinds() const override;

@@ -193,6 +193,26 @@ YicesTerm::is_string() const
 /* YicesSolver                                                                */
 /* -------------------------------------------------------------------------- */
 
+YicesSolver::~YicesSolver()
+{
+  if (d_context)
+  {
+    yices_free_context(d_context);
+    d_context = nullptr;
+  }
+  if (d_model)
+  {
+    yices_free_model(d_model);
+    d_model = nullptr;
+  }
+  if (d_config)
+  {
+    yices_free_config(d_config);
+    d_config = nullptr;
+    yices_exit();
+  }
+}
+
 void
 YicesSolver::new_solver()
 {
@@ -206,8 +226,18 @@ void
 YicesSolver::delete_solver()
 {
   assert(d_config);
-  if (d_context) yices_free_context(d_context);
+  if (d_context)
+  {
+    yices_free_context(d_context);
+    d_context = nullptr;
+  }
+  if (d_model)
+  {
+    yices_free_model(d_model);
+    d_model = nullptr;
+  }
   yices_free_config(d_config);
+  d_config = nullptr;
   yices_exit();
 }
 

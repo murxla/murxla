@@ -231,6 +231,15 @@ BtorTerm::is_reglan() const
 /* BtorSolver                                                                 */
 /* -------------------------------------------------------------------------- */
 
+BtorSolver::~BtorSolver()
+{
+  if (d_solver)
+  {
+    boolector_delete(d_solver);
+    d_solver = nullptr;
+  }
+}
+
 void
 BtorSolver::new_solver()
 {

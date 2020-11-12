@@ -216,7 +216,14 @@ CBzlaTerm::is_reglan() const
 /* CBzlaSolver                                                                 */
 /* -------------------------------------------------------------------------- */
 
-CBzlaSolver::~CBzlaSolver() {}
+CBzlaSolver::~CBzlaSolver()
+{
+  if (d_solver)
+  {
+    bitwuzla_delete(d_solver);
+    d_solver = nullptr;
+  }
+}
 
 void
 CBzlaSolver::new_solver()

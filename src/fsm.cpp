@@ -648,7 +648,15 @@ class ActionMkSort : public Action
         std::vector<Sort> sorts;
         for (auto it = tokens.begin() + 1; it < tokens.end(); ++it)
         {
-          sorts.push_back(d_smgr.get_sort(str_to_uint32(*it)));
+          Sort s = d_smgr.get_sort(str_to_uint32(*it));
+          if (s == nullptr)
+          {
+            std::stringstream ss;
+            ss << "unknown sort id '" << *it << "' as argument to "
+               << get_kind();
+            throw SmtMbtActionUntraceException(ss);
+          }
+          sorts.push_back(s);
         }
         res = _run(kind, sorts);
         break;

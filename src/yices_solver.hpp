@@ -116,7 +116,7 @@ class YicesSolver : public Solver
   static const OpKind OP_REAL_SQUARE;
 
   YicesSolver(RNGenerator& rng) : Solver(rng) {}
-  ~YicesSolver() override{};
+  ~YicesSolver() override;
 
   void new_solver() override;
   void delete_solver() override;
