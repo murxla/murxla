@@ -88,7 +88,7 @@ CBzlaSort::is_real() const
 bool
 CBzlaSort::is_rm() const
 {
-  return bitwuzla_sort_is_fun(d_sort);
+  return bitwuzla_sort_is_rm(d_sort);
 }
 
 bool
@@ -485,40 +485,97 @@ CBzlaSolver::mk_value(Sort sort, std::string value, Base base)
 Term
 CBzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
-  assert(sort->is_bv());
   BitwuzlaTerm* cbzla_res  = 0;
   BitwuzlaSort* cbzla_sort = get_bzla_sort(sort);
-  bool check              = d_rng.pick_with_prob(10);
+  bool check               = d_rng.pick_with_prob(10);
   std::string str;
 
-  if (value == SPECIAL_VALUE_BV_ZERO)
+  switch (sort->get_kind())
   {
-    cbzla_res = bitwuzla_mk_bv_zero(d_solver, cbzla_sort);
-    if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ZERO, cbzla_res);
+    case SORT_BV:
+      if (value == SPECIAL_VALUE_BV_ZERO)
+      {
+        cbzla_res = bitwuzla_mk_bv_zero(d_solver, cbzla_sort);
+        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ZERO, cbzla_res);
+      }
+      else if (value == SPECIAL_VALUE_BV_ONE)
+      {
+        cbzla_res = bitwuzla_mk_bv_one(d_solver, cbzla_sort);
+        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONE, cbzla_res);
+      }
+      else if (value == SPECIAL_VALUE_BV_ONES)
+      {
+        cbzla_res = bitwuzla_mk_bv_ones(d_solver, cbzla_sort);
+        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONES, cbzla_res);
+      }
+      else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+      {
+        cbzla_res = bitwuzla_mk_bv_min_signed(d_solver, cbzla_sort);
+        if (check)
+          check_is_bv_value(Solver::SPECIAL_VALUE_BV_MIN_SIGNED, cbzla_res);
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+        cbzla_res = bitwuzla_mk_bv_max_signed(d_solver, cbzla_sort);
+        if (check)
+          check_is_bv_value(Solver::SPECIAL_VALUE_BV_MAX_SIGNED, cbzla_res);
+      }
+      break;
+
+    case SORT_FP:
+    {
+      if (value == SPECIAL_VALUE_FP_POS_INF)
+      {
+        cbzla_res = bitwuzla_mk_fp_pos_inf(d_solver, cbzla_sort);
+      }
+      else if (value == SPECIAL_VALUE_FP_NEG_INF)
+      {
+        cbzla_res = bitwuzla_mk_fp_neg_inf(d_solver, cbzla_sort);
+      }
+      else if (value == SPECIAL_VALUE_FP_POS_ZERO)
+      {
+        cbzla_res = bitwuzla_mk_fp_pos_zero(d_solver, cbzla_sort);
+      }
+      else if (value == SPECIAL_VALUE_FP_NEG_ZERO)
+      {
+        cbzla_res = bitwuzla_mk_fp_neg_zero(d_solver, cbzla_sort);
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_FP_NAN);
+        cbzla_res = bitwuzla_mk_fp_nan(d_solver, cbzla_sort);
+      }
+    }
+    break;
+
+    case SORT_RM:
+      if (value == SPECIAL_VALUE_RM_RNA)
+      {
+        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RNA);
+      }
+      else if (value == SPECIAL_VALUE_RM_RNE)
+      {
+        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RNE);
+      }
+      else if (value == SPECIAL_VALUE_RM_RTN)
+      {
+        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTN);
+      }
+      else if (value == SPECIAL_VALUE_RM_RTP)
+      {
+        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTP);
+      }
+      else
+      {
+        assert(value == SPECIAL_VALUE_RM_RTZ);
+        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTZ);
+      }
+      break;
+
+    default: assert(false);
   }
-  else if (value == SPECIAL_VALUE_BV_ONE)
-  {
-    cbzla_res = bitwuzla_mk_bv_one(d_solver, cbzla_sort);
-    if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONE, cbzla_res);
-  }
-  else if (value == SPECIAL_VALUE_BV_ONES)
-  {
-    cbzla_res = bitwuzla_mk_bv_ones(d_solver, cbzla_sort);
-    if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONES, cbzla_res);
-  }
-  else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
-  {
-    cbzla_res = bitwuzla_mk_bv_min_signed(d_solver, cbzla_sort);
-    if (check)
-      check_is_bv_value(Solver::SPECIAL_VALUE_BV_MIN_SIGNED, cbzla_res);
-  }
-  else
-  {
-    assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
-    cbzla_res = bitwuzla_mk_bv_max_signed(d_solver, cbzla_sort);
-    if (check)
-      check_is_bv_value(Solver::SPECIAL_VALUE_BV_MAX_SIGNED, cbzla_res);
-  }
+
   assert(cbzla_res);
   std::shared_ptr<CBzlaTerm> res(new CBzlaTerm(cbzla_res));
   assert(res);
