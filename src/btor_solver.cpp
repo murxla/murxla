@@ -295,7 +295,7 @@ BtorSolver::get_unsupported_op_kinds() const
 SortKindSet
 BtorSolver::get_unsupported_var_sort_kinds() const
 {
-  return {SORT_ARRAY};
+  return {SORT_ARRAY, SORT_FUN};
 }
 
 SortKindSet

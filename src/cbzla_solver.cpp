@@ -270,7 +270,7 @@ CBzlaSolver::get_unsupported_op_kinds() const
 SortKindSet
 CBzlaSolver::get_unsupported_var_sort_kinds() const
 {
-  return {SORT_ARRAY, SORT_FP};
+  return {SORT_ARRAY, SORT_FUN, SORT_FP};
 }
 
 SortKindSet
