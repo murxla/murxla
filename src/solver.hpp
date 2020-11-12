@@ -215,6 +215,9 @@ class Solver
   virtual TheoryIdVector get_supported_theories() const;
   virtual OpKindSet get_unsupported_op_kinds() const;
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
+  virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;
+  virtual SortKindSet get_unsupported_array_index_sort_kinds() const;
+  virtual SortKindSet get_unsupported_array_element_sort_kinds() const;
 
   virtual void configure_fsm(FSM* fsm) const;
   virtual void configure_smgr(SolverManager* smgr) const;

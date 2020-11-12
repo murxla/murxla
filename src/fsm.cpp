@@ -542,11 +542,11 @@ class ActionMkSort : public Action
     {
       case SORT_ARRAY:
       {
-        // TODO: Disable nested arrays for now.
-        //       Make this configurable via the solver: Solver tells FSM what
-        //       sort kinds are allowed for array elements
-        SortKindSet exclude_index_sorts   = {SORT_ARRAY, SORT_FUN, SORT_REGLAN};
-        SortKindSet exclude_element_sorts = {SORT_ARRAY, SORT_FUN, SORT_REGLAN};
+        SortKindSet exclude_index_sorts =
+            d_solver.get_unsupported_array_index_sort_kinds();
+        SortKindSet exclude_element_sorts =
+            d_solver.get_unsupported_array_element_sort_kinds();
+
         if (!d_smgr.has_sort(exclude_index_sorts))
         {
           return false;
@@ -582,8 +582,8 @@ class ActionMkSort : public Action
       case SORT_FUN:
       {
         std::vector<Sort> sorts;
-        // TODO: check why SORT_REGLAN is not allowed in CVC4
-        SortKindSet exclude_sorts = {SORT_FUN, SORT_REGLAN};
+        SortKindSet exclude_sorts =
+            d_solver.get_unsupported_fun_domain_sort_kinds();
         if (!d_smgr.has_sort(exclude_sorts))
         {
           return false;

@@ -107,6 +107,9 @@ class CVC4Solver : public Solver
   ~CVC4Solver() override{};
 
   OpKindSet get_unsupported_op_kinds() const override;
+  SortKindSet get_unsupported_array_index_sort_kinds() const override;
+  SortKindSet get_unsupported_array_element_sort_kinds() const override;
+  SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
 
   void new_solver() override;
 

@@ -224,6 +224,24 @@ Solver::get_unsupported_var_sort_kinds() const
   return {SORT_FUN};
 }
 
+SortKindSet
+Solver::get_unsupported_fun_domain_sort_kinds() const
+{
+  return {};
+}
+
+SortKindSet
+Solver::get_unsupported_array_index_sort_kinds() const
+{
+  return {};
+}
+
+SortKindSet
+Solver::get_unsupported_array_element_sort_kinds() const
+{
+  return {};
+}
+
 void
 Solver::configure_fsm(FSM* fsm) const
 {

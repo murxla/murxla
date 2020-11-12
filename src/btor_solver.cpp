@@ -289,6 +289,24 @@ BtorSolver::get_unsupported_var_sort_kinds() const
   return {SORT_ARRAY};
 }
 
+SortKindSet
+BtorSolver::get_unsupported_array_index_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
+BtorSolver::get_unsupported_array_element_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
+BtorSolver::get_unsupported_fun_domain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
 Sort
 BtorSolver::mk_sort(SortKind kind)
 {

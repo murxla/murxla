@@ -265,6 +265,24 @@ CBzlaSolver::get_unsupported_var_sort_kinds() const
   return {SORT_ARRAY, SORT_FP};
 }
 
+SortKindSet
+CBzlaSolver::get_unsupported_array_index_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
+CBzlaSolver::get_unsupported_array_element_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
+CBzlaSolver::get_unsupported_fun_domain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
 Sort
 CBzlaSolver::mk_sort(SortKind kind)
 {

@@ -211,9 +211,26 @@ const Solver::SpecialValueKind CVC4Solver::SPECIAL_VALUE_PI = "cvc4-pi";
 OpKindSet
 CVC4Solver::get_unsupported_op_kinds() const
 {
-  return {
-      Op::IFF,
-  };
+  return {Op::IFF};
+}
+
+SortKindSet
+CVC4Solver::get_unsupported_array_index_sort_kinds() const
+{
+  return {SORT_REGLAN};
+}
+
+SortKindSet
+CVC4Solver::get_unsupported_array_element_sort_kinds() const
+{
+  return {SORT_REGLAN};
+}
+
+// TODO: check why SORT_REGLAN is not allowed in CVC4
+SortKindSet
+CVC4Solver::get_unsupported_fun_domain_sort_kinds() const
+{
+  return {SORT_REGLAN};
 }
 
 void
