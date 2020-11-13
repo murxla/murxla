@@ -257,8 +257,9 @@ CBzlaSolver::is_initialized() const
 TheoryIdVector
 CBzlaSolver::get_supported_theories() const
 {
+  // TODO enable when Mathias' cbitwuzla quantifiers branch is merged back
   return {
-      THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_FP, THEORY_QUANT, THEORY_UF};
+      THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_FP, /*THEORY_QUANT,*/ THEORY_UF};
 }
 
 OpKindSet
@@ -753,7 +754,8 @@ CBzlaSolver::set_opt(const std::string& opt, const std::string& value)
     return;
   }
 
-  assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
+  // TODO reenable after option fuzzing for cbitwuzla is configured
+  //assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
 
   /* CBitwuzla options are all integer values */
   uint32_t val = 0;
