@@ -240,7 +240,7 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
   assert(sort_kind != SORT_ARRAY || !sort->get_sorts().empty());
 
   auto& sorts = d_sort_kind_to_sorts[sort_kind];
-  if (sorts.find(sort) != sorts.end())
+  if (sorts.find(sort) == sorts.end())
   {
     sorts.insert(sort);
   }
@@ -682,6 +682,7 @@ SolverManager::has_sort() const
 bool
 SolverManager::has_sort(SortKind sort_kind) const
 {
+  if (sort_kind == SORT_ANY) return has_sort();
   if (d_sort_kinds.find(sort_kind) == d_sort_kinds.end()) return false;
   return d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end()
          && !d_sort_kind_to_sorts.at(sort_kind).empty();

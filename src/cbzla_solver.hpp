@@ -201,8 +201,6 @@ class CBzlaSolver : public Solver
       std::vector<BitwuzlaTerm*>& terms) const;
   std::vector<BitwuzlaTerm*> terms_to_bzla_terms(
       std::vector<Term>& terms) const;
-  std::vector<const BitwuzlaTerm*> terms_to_const_bzla_terms(
-      std::vector<Term>& terms) const;
 
   CbzlaTermFunBoolUnary pick_fun_bool_unary(
       CbzlaTermFunBoolUnaryVector& funs) const;

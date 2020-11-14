@@ -343,7 +343,7 @@ CBzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     case SORT_FUN:
     {
       BitwuzlaSort* codomain = get_bzla_sort(sorts.back());
-      std::vector<const BitwuzlaSort*> domain;
+      std::vector<BitwuzlaSort*> domain;
       for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
       {
         domain.push_back(get_bzla_sort(*it));
@@ -604,7 +604,7 @@ CBzlaSolver::mk_term(const OpKind& kind,
   size_t n_params         = params.size();
   BitwuzlaKind cbzla_kind = d_op_kinds.at(kind);
   std::vector<BitwuzlaTerm*> vars;
-  std::vector<const BitwuzlaTerm*> cbzla_args = terms_to_const_bzla_terms(args);
+  std::vector<BitwuzlaTerm*> cbzla_args = terms_to_bzla_terms(args);
 
   if (n_params)
   {
@@ -947,17 +947,6 @@ std::vector<BitwuzlaTerm*>
 CBzlaSolver::terms_to_bzla_terms(std::vector<Term>& terms) const
 {
   std::vector<BitwuzlaTerm*> res;
-  for (Term& t : terms)
-  {
-    res.push_back(get_bzla_term(t));
-  }
-  return res;
-}
-
-std::vector<const BitwuzlaTerm*>
-CBzlaSolver::terms_to_const_bzla_terms(std::vector<Term>& terms) const
-{
-  std::vector<const BitwuzlaTerm*> res;
   for (Term& t : terms)
   {
     res.push_back(get_bzla_term(t));

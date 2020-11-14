@@ -68,7 +68,7 @@ AbsSort::get_fp_sig_size() const
 bool
 operator==(const Sort& a, const Sort& b)
 {
-  return a->equals(b);
+  return a->equals(b) && a->get_kind() == b->get_kind();
 }
 
 std::ostream&

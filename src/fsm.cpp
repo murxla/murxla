@@ -566,7 +566,8 @@ class ActionMkSort : public Action
         break;
 
       case SORT_FP:
-        /* For now we only support Float16, Float32, Float64, Float128 */
+        // TODO: support arbitrary formats (for now we only support Float16,
+        //       Float32, Float64, Float128
         pick = d_rng.pick_one_of_four();
         switch (pick)
         {
@@ -807,8 +808,8 @@ class ActionMkTerm : public Action
     }
     else if (kind == Op::ITE)
     {
-      if (!d_smgr.has_sort(SORT_BOOL)) return false;
-      if (!d_smgr.has_sort(op.get_arg_sort_kind(1))) return false;
+      assert(d_smgr.has_sort(SORT_BOOL));
+      assert(d_smgr.has_sort(op.get_arg_sort_kind(1)));
       sort = d_smgr.pick_sort(op.get_arg_sort_kind(1));
       args.push_back(d_smgr.pick_term(SORT_BOOL));
       args.push_back(d_smgr.pick_term(sort));
@@ -823,7 +824,7 @@ class ActionMkTerm : public Action
       Sort index_sort = sorts[0];
       Sort element_sort = sorts[1];
 
-      if (!d_smgr.has_term(array_sort)) return false;
+      assert(d_smgr.has_term(array_sort));
       if (!d_smgr.has_term(index_sort)) return false;
 
       args.push_back(d_smgr.pick_term(array_sort));
@@ -840,7 +841,7 @@ class ActionMkTerm : public Action
       Sort index_sort   = sorts[0];
       Sort element_sort = sorts[1];
 
-      if (!d_smgr.has_term(array_sort)) return false;
+      assert(d_smgr.has_term(array_sort));
       if (!d_smgr.has_term(index_sort)) return false;
       if (!d_smgr.has_term(element_sort)) return false;
 
@@ -850,9 +851,9 @@ class ActionMkTerm : public Action
     }
     else if (kind == Op::FP_FP)
     {
-      if (!d_smgr.has_sort(SORT_FP)) return false;
       /* we have to pick an FP sort first here, since we don't support
        * arbitrary FP formats yet */
+      if (!d_smgr.has_sort(SORT_FP)) return false;
       sort        = d_smgr.pick_sort(SORT_FP);
       uint32_t ew = sort->get_fp_exp_size();
       uint32_t sw = sort->get_fp_sig_size();
@@ -863,9 +864,21 @@ class ActionMkTerm : public Action
       args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(ew)));
       args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(sw - 1)));
     }
+    else if (kind == Op::FP_TO_FP_FROM_BV)
+    {
+      /* we have to pick an FP sort first here, since we don't support
+       * arbitrary FP formats yet */
+      if (!d_smgr.has_sort(SORT_FP)) return false;
+      sort        = d_smgr.pick_sort(SORT_FP);
+      uint32_t ew = sort->get_fp_exp_size();
+      uint32_t sw = sort->get_fp_sig_size();
+      if (!d_smgr.has_sort_bv(ew + sw)) return false;
+      args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(ew + sw)));
+    }
     else if (kind == Op::FORALL || kind == Op::EXISTS)
     {
-      if (!d_smgr.has_var() || !d_smgr.has_quant_body()) return false;
+      assert(d_smgr.has_var());
+      assert(d_smgr.has_quant_body());
       Term var  = d_smgr.pick_var();
       Term body = d_smgr.pick_quant_body();
       args.push_back(var);
@@ -874,7 +887,7 @@ class ActionMkTerm : public Action
     else if (d_smgr.d_arith_linear
              && (kind == Op::INT_MUL || kind == Op::REAL_MUL))
     {
-      if (!d_smgr.has_sort(sort_kind)) return false;
+      assert(d_smgr.has_sort(sort_kind));
       sort = d_smgr.pick_sort(sort_kind);
       if (!d_smgr.has_value(sort)) return false;
       assert(arity == SMTMBT_MK_TERM_N_ARGS);
@@ -910,7 +923,7 @@ class ActionMkTerm : public Action
 
       Sort fun_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
       assert(fun_sort->is_fun());
-      if (!d_smgr.has_term(fun_sort)) return false;
+      assert(d_smgr.has_term(fun_sort));
 
       args.push_back(d_smgr.pick_term(fun_sort));
 
@@ -955,6 +968,7 @@ class ActionMkTerm : public Action
         for (int32_t i = 0; i < arity; ++i)
         {
           skind   = op.get_arg_sort_kind(i);
+          assert(d_smgr.has_term(skind));
           auto it = sorts.find(skind);
           if (it == sorts.end())
           {
@@ -1006,7 +1020,18 @@ class ActionMkTerm : public Action
         assert(n_params == 1);
         params.push_back(d_rng.pick<uint32_t>(0, SMTMBT_BW_MAX - bw));
       }
-      else if (kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_INT_BV
+      else if (kind == Op::FP_TO_FP_FROM_BV)
+      {
+        assert(sort->is_bv());
+        assert(bw);
+        assert(sort_kind == SORT_FP);
+        assert(n_params == 2);
+        assert(args.size() == 1);
+        assert(args[0]->get_sort()->is_fp());
+        params.push_back(args[0]->get_sort()->get_fp_exp_size());
+        params.push_back(args[0]->get_sort()->get_fp_sig_size());
+      }
+      else if (kind == Op::FP_TO_FP_FROM_INT_BV
                || kind == Op::FP_TO_FP_FROM_UINT_BV)
       {
         assert(sort->is_bv());
