@@ -172,14 +172,10 @@ Op::Op(uint64_t id,
       d_theory(theory),
       d_sort_kind_args(sort_kind_args)
 {
-  if (kind.size() > SMTMBT_MAX_KIND_LEN)
-  {
-    std::stringstream ss;
-    ss << "'" << kind
-       << "' exceeds maximum length for operator kinds, increase limit by "
-          "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
-    throw SmtMbtConfigException(ss);
-  }
+  SMTMBT_CHECK_CONFIG(kind.size() <= SMTMBT_MAX_KIND_LEN)
+      << "'" << kind
+      << "' exceeds maximum length for operator kinds, increase limit by "
+         "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
 }
 
 bool

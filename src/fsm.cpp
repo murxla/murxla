@@ -98,10 +98,7 @@ State::add_action(Action* a, uint32_t priority, State* next)
 State*
 State::run(RNGenerator& rng)
 {
-  if (d_actions.empty())
-  {
-    throw SmtMbtConfigException("no actions configured");
-  }
+  SMTMBT_CHECK_CONFIG(!d_actions.empty()) << "no actions configured";
 
   uint32_t idx      = rng.pick_weighted<uint32_t>(d_weights);
   ActionTuple& atup = d_actions[idx];
@@ -187,12 +184,10 @@ FSM::new_state(const StateKind& kind,
                bool is_final)
 {
   uint64_t id = d_states.size();
-  if (id >= SMTMBT_MAX_N_STATES)
-  {
-    throw SmtMbtConfigException(
-        "maximum number of states exceeded, increase limit by adjusting "
-        "value of macro SMTMBT_MAX_N_STATES in config.hpp");
-  }
+
+  SMTMBT_CHECK_CONFIG(id < SMTMBT_MAX_N_STATES)
+      << "maximum number of states exceeded, increase limit by adjusting "
+         "value of macro SMTMBT_MAX_N_STATES in config.hpp";
 
   State* state;
   d_states.emplace_back(new State(kind, fun, is_final));
@@ -236,19 +231,16 @@ FSM::check_states()
   for (const auto& s : d_states)
   {
     SMTMBT_WARN(s.get() != d_state_init
-                && all_next_states.find(s.get()) == all_next_states.end())
+                && all_next_states.find(s.get()) != all_next_states.end())
         << "unreachable state '" << s->get_kind() << "'";
   }
 
   /* check for infinite loop */
-  if (no_next_state
-      && (no_next_state == d_state_init
-          || all_next_states.find(no_next_state) != all_next_states.end()))
-  {
-    std::stringstream ss;
-    ss << "infinite loop in state '" << no_next_state->get_kind() << "'";
-    throw SmtMbtConfigException(ss);
-  }
+  SMTMBT_CHECK_CONFIG(
+      !no_next_state
+      || (no_next_state != d_state_init
+          && all_next_states.find(no_next_state) == all_next_states.end()))
+      << "infinite loop in state '" << no_next_state->get_kind() << "'";
 }
 
 State*
@@ -262,12 +254,7 @@ FSM::get_state(const StateKind& kind) const
       res = s.get();
     }
   }
-  if (res == nullptr)
-  {
-    std::stringstream ss;
-    ss << "undefined state '" << kind << "'";
-    throw SmtMbtConfigException(ss);
-  }
+  SMTMBT_CHECK_CONFIG(res != nullptr) << "undefined state '" << kind << "'";
   return res;
 }
 
@@ -2410,12 +2397,8 @@ FSM::untrace(std::string& trace_file_name)
   std::ifstream trace;
 
   trace.open(trace_file_name);
-  if (!trace.is_open())
-  {
-    std::stringstream ss;
-    ss << "untrace: unable to open file '" << trace_file_name << "'";
-    throw SmtMbtConfigException(ss);
-  }
+  SMTMBT_CHECK_CONFIG(trace.is_open())
+      << "untrace: unable to open file '" << trace_file_name << "'";
 
   while (std::getline(trace, line))
   {

@@ -101,14 +101,10 @@ class Action
         d_kind(kind)
 
   {
-    if (kind.size() > SMTMBT_MAX_KIND_LEN)
-    {
-      std::stringstream ss;
-      ss << "'" << kind
-         << "' exceeds maximum length for action kinds, increase limit by "
-            "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
-      throw SmtMbtConfigException(ss);
-    }
+    SMTMBT_CHECK_CONFIG(kind.size() <= SMTMBT_MAX_KIND_LEN)
+        << "'" << kind
+        << "' exceeds maximum length for action kinds, increase limit by "
+           "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
   }
 
   /** Destructor. */
@@ -244,14 +240,10 @@ class State
   State(const StateKind& kind, std::function<bool(void)> fun, bool is_final)
       : d_kind(kind), d_is_final(is_final), f_precond(fun)
   {
-    if (kind.size() > SMTMBT_MAX_KIND_LEN)
-    {
-      std::stringstream ss;
-      ss << "'" << kind
-         << "' exceeds maximum length for state kinds, increase limit by "
-            "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
-      throw SmtMbtConfigException(ss);
-    }
+    SMTMBT_CHECK_CONFIG(kind.size() <= SMTMBT_MAX_KIND_LEN)
+        << "'" << kind
+        << "' exceeds maximum length for state kinds, increase limit by "
+           "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
   }
 
   /** Returns the identifier of this state. */
