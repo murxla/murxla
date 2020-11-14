@@ -1026,8 +1026,7 @@ class ActionMkTerm : public Action
         params.push_back(args[0]->get_sort()->get_fp_exp_size());
         params.push_back(args[0]->get_sort()->get_fp_sig_size());
       }
-      else if (kind == Op::FP_TO_FP_FROM_INT_BV
-               || kind == Op::FP_TO_FP_FROM_UINT_BV)
+      else if (kind == Op::FP_TO_FP_FROM_SBV || kind == Op::FP_TO_FP_FROM_UBV)
       {
         assert(sort->is_bv());
         assert(bw);

@@ -61,9 +61,9 @@ const OpKind Op::BV_XNOR         = "OP_BV_XNOR";
 const OpKind Op::BV_XOR          = "OP_BV_XOR";
 /* FP */
 const OpKind Op::FP_TO_FP_FROM_BV      = "OP_FP_TO_FP_FROM_BV";
-const OpKind Op::FP_TO_FP_FROM_INT_BV  = "OP_FP_TO_FP_FROM_INT_BV";
+const OpKind Op::FP_TO_FP_FROM_SBV     = "OP_FP_TO_FP_FROM_SBV";
 const OpKind Op::FP_TO_FP_FROM_FP      = "OP_FP_TO_FP_FROM_FP";
-const OpKind Op::FP_TO_FP_FROM_UINT_BV = "OP_FP_TO_FP_FROM_UINT_BV";
+const OpKind Op::FP_TO_FP_FROM_UBV     = "OP_FP_TO_FP_FROM_UBV";
 const OpKind Op::FP_TO_FP_FROM_REAL    = "OP_FP_TO_FP_FROM_REAL";
 const OpKind Op::FP_TO_SBV             = "OP_FP_TO_SBV";
 const OpKind Op::FP_TO_UBV             = "OP_FP_TO_UBV";

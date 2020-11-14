@@ -67,9 +67,9 @@ struct Op
   static const OpKind BV_XOR;
   /* FP */
   static const OpKind FP_TO_FP_FROM_BV;
-  static const OpKind FP_TO_FP_FROM_INT_BV;
+  static const OpKind FP_TO_FP_FROM_SBV;
   static const OpKind FP_TO_FP_FROM_FP;
-  static const OpKind FP_TO_FP_FROM_UINT_BV;
+  static const OpKind FP_TO_FP_FROM_UBV;
   static const OpKind FP_TO_FP_FROM_REAL;
   static const OpKind FP_TO_SBV;
   static const OpKind FP_TO_UBV;

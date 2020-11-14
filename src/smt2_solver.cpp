@@ -958,8 +958,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       break;
 
     case SORT_FP:
-      if (kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_INT_BV
-          || kind == Op::FP_TO_FP_FROM_FP || kind == Op::FP_TO_FP_FROM_UINT_BV
+      if (kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_SBV
+          || kind == Op::FP_TO_FP_FROM_FP || kind == Op::FP_TO_FP_FROM_UBV
           || kind == Op::FP_TO_FP_FROM_REAL)
       {
         assert(params.size() == 2);

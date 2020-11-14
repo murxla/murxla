@@ -156,9 +156,9 @@ class Smt2Term : public AbsTerm
 
       /* FP */
       {Op::FP_TO_FP_FROM_BV, "to_fp"},
-      {Op::FP_TO_FP_FROM_INT_BV, "to_fp"},
+      {Op::FP_TO_FP_FROM_SBV, "to_fp"},
       {Op::FP_TO_FP_FROM_FP, "to_fp"},
-      {Op::FP_TO_FP_FROM_UINT_BV, "to_fp_unsigned"},
+      {Op::FP_TO_FP_FROM_UBV, "to_fp_unsigned"},
       {Op::FP_TO_FP_FROM_REAL, "to_fp"},
       {Op::FP_TO_SBV, "fp.to_sbv"},
       {Op::FP_TO_UBV, "fp.to_ubv"},

@@ -999,11 +999,11 @@ SolverManager::add_op_kinds()
   // indexed
   add_op_kind(Op::FP_TO_FP_FROM_BV, 1, 2, SORT_FP, {SORT_BV}, THEORY_FP);
   add_op_kind(
-      Op::FP_TO_FP_FROM_INT_BV, 2, 2, SORT_FP, {SORT_RM, SORT_BV}, THEORY_FP);
+      Op::FP_TO_FP_FROM_SBV, 2, 2, SORT_FP, {SORT_RM, SORT_BV}, THEORY_FP);
   add_op_kind(
       Op::FP_TO_FP_FROM_FP, 2, 2, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
   add_op_kind(
-      Op::FP_TO_FP_FROM_UINT_BV, 2, 2, SORT_FP, {SORT_RM, SORT_BV}, THEORY_FP);
+      Op::FP_TO_FP_FROM_UBV, 2, 2, SORT_FP, {SORT_RM, SORT_BV}, THEORY_FP);
   add_op_kind(Op::FP_TO_FP_FROM_REAL, 1, 2, SORT_FP, {SORT_REAL}, THEORY_FP);
   add_op_kind(Op::FP_TO_SBV, 2, 1, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_TO_UBV, 2, 1, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
