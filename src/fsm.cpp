@@ -271,6 +271,14 @@ FSM::get_state(const StateKind& kind) const
   return res;
 }
 
+SortKind
+get_sort_kind_from_str(std::string& s)
+{
+  SortKind res = sort_kind_from_str(s);
+  SMTMBT_CHECK_CONFIG(res != SORT_ANY) << "unknown sort kind '" << s << "'";
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -624,7 +632,7 @@ class ActionMkSort : public Action
     }
 
     uint64_t res    = 0;
-    SortKind kind   = sort_kind_from_str(tokens[0]);
+    SortKind kind   = get_sort_kind_from_str(tokens[0]);
 
     switch (kind)
     {
@@ -854,7 +862,7 @@ class ActionMkTerm : public Action
       /* we have to pick an FP sort first here, since we don't support
        * arbitrary FP formats yet */
       if (!d_smgr.has_sort(SORT_FP)) return false;
-      sort        = d_smgr.pick_sort(SORT_FP);
+      sort        = d_smgr.pick_sort(SORT_FP, false);
       uint32_t ew = sort->get_fp_exp_size();
       uint32_t sw = sort->get_fp_sig_size();
       if (!d_smgr.has_sort_bv(1)) return false;
@@ -869,7 +877,7 @@ class ActionMkTerm : public Action
       /* we have to pick an FP sort first here, since we don't support
        * arbitrary FP formats yet */
       if (!d_smgr.has_sort(SORT_FP)) return false;
-      sort        = d_smgr.pick_sort(SORT_FP);
+      sort        = d_smgr.pick_sort(SORT_FP, false);
       uint32_t ew = sort->get_fp_exp_size();
       uint32_t sw = sort->get_fp_sig_size();
       if (!d_smgr.has_sort_bv(ew + sw)) return false;
@@ -1135,7 +1143,7 @@ class ActionMkTerm : public Action
     std::vector<uint32_t> params;
     uint32_t n_tokens  = tokens.size();
     OpKind op_kind     = tokens[0];
-    SortKind sort_kind = sort_kind_from_str(tokens[1]);
+    SortKind sort_kind = get_sort_kind_from_str(tokens[1]);
     uint32_t n_args    = str_to_uint32(tokens[2]);
     uint32_t idx       = 3;
 
