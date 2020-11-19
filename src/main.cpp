@@ -565,9 +565,9 @@ set_sigint_handler_stats(void)
   "  --ints                     theory of integers\n"                          \
   "  --quant                    quantifiers\n"                                 \
   "  --reals                    theory of reals\n"                             \
+  "  --strings                  theory of strings\n"                           \
   " constraining/extending features based for enabled theories:\n"             \
   "  --linear                   restrict arithmetic to linear fragment\n"      \
-  "  --strings                  theory of strings\n"                           \
   "  --uf                       uninterpreted functions"
 
 /* -------------------------------------------------------------------------- */
