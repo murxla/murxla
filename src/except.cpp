@@ -67,4 +67,29 @@ ConfigExceptionStream::flush()
   stream().flush();
 }
 
+UntraceExceptionStream::UntraceExceptionStream(
+    const UntraceExceptionStream& cstream)
+{
+  d_ss << cstream.d_ss.rdbuf();
+}
+
+UntraceExceptionStream::~UntraceExceptionStream() noexcept(false)
+{
+  flush();
+  throw SmtMbtActionUntraceException(d_ss);
+}
+
+std::ostream&
+UntraceExceptionStream::stream()
+{
+  return d_ss;
+}
+
+void
+UntraceExceptionStream::flush()
+{
+  stream() << std::endl;
+  stream().flush();
+}
+
 }  // namespace smtmbt

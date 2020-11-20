@@ -11,18 +11,6 @@
 namespace smtmbt {
 
 /* -------------------------------------------------------------------------- */
-
-class SmtMbtActionUntraceException : public SmtMbtException
-{
- public:
-  SmtMbtActionUntraceException(const std::string& str) : SmtMbtException(str) {}
-  SmtMbtActionUntraceException(const std::stringstream& stream)
-      : SmtMbtException(stream)
-  {
-  }
-};
-
-/* -------------------------------------------------------------------------- */
 /* Action                                                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -350,20 +338,9 @@ class ActionTermGetSort : public UntraceAction
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() != 1)
-    {
-      std::stringstream ss;
-      ss << "expected 1 argument to '" << get_kind() << ", got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
-    if (t == nullptr)
-    {
-      std::stringstream ss;
-      ss << "unknown term id " << tokens[0];
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_TERM(t, tokens[0]);
     return _run(t);
   }
 
@@ -395,12 +372,7 @@ class ActionNew : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (!tokens.empty())
-    {
-      std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_kind() << "'";
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -427,12 +399,7 @@ class ActionDelete : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (!tokens.empty())
-    {
-      std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_kind() << "'";
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -500,13 +467,7 @@ class ActionSetOption : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() != 2)
-    {
-      std::stringstream ss;
-      ss << "expected 2 arguments to '" << get_kind() << "', got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
     _run(tokens[0], tokens[1]);
     return 0;
   }
@@ -610,13 +571,7 @@ class ActionMkSort : public Action
   {
     size_t n_tokens = tokens.size();
 
-    if (n_tokens == 0)
-    {
-      std::stringstream ss;
-      ss << "expected at least 1 argument to '" << get_kind() << "', got "
-         << n_tokens;
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NOT_EMPTY(tokens);
 
     uint64_t res    = 0;
     SortKind kind   = get_sort_kind_from_str(tokens[0]);
@@ -625,13 +580,7 @@ class ActionMkSort : public Action
     {
       case SORT_ARRAY:
       {
-        if (n_tokens != 3)
-        {
-          std::stringstream ss;
-          ss << "expected 3 arguments to '" << get_kind() << "' of sort '"
-             << kind << "', got " << n_tokens;
-          throw SmtMbtActionUntraceException(ss);
-        }
+        SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
         std::vector<Sort> sorts;
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[1])));
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[2])));
@@ -645,13 +594,8 @@ class ActionMkSort : public Action
         for (auto it = tokens.begin() + 1; it < tokens.end(); ++it)
         {
           Sort s = d_smgr.get_sort(str_to_uint32(*it));
-          if (s == nullptr)
-          {
-            std::stringstream ss;
-            ss << "unknown sort id '" << *it << "' as argument to "
-               << get_kind();
-            throw SmtMbtActionUntraceException(ss);
-          }
+          SMTMBT_CHECK_TRACE(s != nullptr) << "unknown sort id '" << *it
+                                           << "' as argument to " << get_kind();
           sorts.push_back(s);
         }
         res = _run(kind, sorts);
@@ -664,44 +608,21 @@ class ActionMkSort : public Action
       case SORT_REGLAN:
       case SORT_RM:
       case SORT_STRING:
-        if (n_tokens != 1)
-        {
-          std::stringstream ss;
-          ss << "unexpected argument(s) to '" << get_kind() << "' of sort '"
-             << kind;
-          throw SmtMbtActionUntraceException(ss);
-        }
+        SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
         res = _run(kind);
         break;
 
       case SORT_BV:
-        if (n_tokens != 2)
-        {
-          std::stringstream ss;
-          ss << "expected 1 arguments to '" << get_kind() << "' of sort '"
-             << kind << "', got " << n_tokens - 1;
-          throw SmtMbtActionUntraceException(ss);
-        }
+        SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
         res = _run(kind, str_to_uint32(tokens[1]));
         break;
 
       case SORT_FP:
-        if (n_tokens != 3)
-        {
-          std::stringstream ss;
-          ss << "expected 2 arguments to '" << get_kind() << "' of sort '"
-             << kind << "', got " << n_tokens - 1;
-          throw SmtMbtActionUntraceException(ss);
-        }
+        SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
         res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
         break;
 
-      default:
-      {
-        std::stringstream ss;
-        ss << "unknown sort kind " << tokens[0];
-        throw SmtMbtActionUntraceException(ss);
-      }
+      default: SMTMBT_CHECK_TRACE(false) << "unknown sort kind " << tokens[0];
     }
     return res;
   }
@@ -1116,14 +1037,8 @@ class ActionMkTerm : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() < 3)
-    {
-      std::stringstream ss;
-      ss << "expected at least 3 arguments (operator kind, sort id, number of "
-            "arguments) to '"
-         << get_kind() << ", got " << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NTOKENS_MIN(
+        3, " (operator kind, sort id, number of arguments) ", tokens.size());
 
     std::vector<Term> args;
     std::vector<uint32_t> params;
@@ -1133,38 +1048,23 @@ class ActionMkTerm : public Action
     uint32_t n_args    = str_to_uint32(tokens[2]);
     uint32_t idx       = 3;
 
-    if (idx + n_args > n_tokens)
-    {
-      std::stringstream ss;
-      ss << "expected " << n_args << " term arguments, got " << n_tokens - 3;
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE(idx + n_args <= n_tokens)
+        << "expected " << n_args << " term arguments, got " << n_tokens - 3;
 
     for (uint32_t i = 0; i < n_args; ++i, ++idx)
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-
-      if (t == nullptr)
-      {
-        std::stringstream ss;
-        ss << "unknown term id " << id;
-        throw SmtMbtActionUntraceException(ss);
-      }
+      SMTMBT_CHECK_TRACE_TERM(t, id);
       args.push_back(t);
     }
 
     if (idx < tokens.size())
     {
       uint32_t n_params = str_to_uint32(tokens[idx++]);
-      if (idx + n_params != n_tokens)
-      {
-        std::stringstream ss;
-        ss << "expected " << n_args
-           << " parameters to create indexed term, got "
-           << n_tokens - 3 - n_args;
-        throw SmtMbtActionUntraceException(ss);
-      }
+      SMTMBT_CHECK_TRACE(idx + n_params == n_tokens)
+          << "expected " << n_args << " parameters to create indexed term, got "
+          << n_tokens - 3 - n_args;
       for (uint32_t i = 0; i < n_params; ++i, ++idx)
       {
         uint32_t param = str_to_uint32(tokens[idx]);
@@ -1230,21 +1130,9 @@ class ActionMkConst : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() != 2)
-    {
-      std::stringstream ss;
-      ss << "expected 2 arguments to '" << get_kind() << ", got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
-
+    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
     Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    if (sort == nullptr)
-    {
-      std::stringstream ss;
-      ss << "unknown sort id " << tokens[0];
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_SORT(sort, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     return _run(sort, symbol);
   }
@@ -1282,21 +1170,9 @@ class ActionMkVar : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() != 2)
-    {
-      std::stringstream ss;
-      ss << "expected 2 arguments to '" << get_kind() << ", got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
-
+    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
     Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    if (sort == nullptr)
-    {
-      std::stringstream ss;
-      ss << "unknown sort id " << tokens[0];
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_SORT(sort, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     return _run(sort, symbol);
   }
@@ -1426,22 +1302,11 @@ class ActionMkValue : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.empty())
-    {
-      std::stringstream ss;
-      ss << "expected at least 1 argument to '" << get_kind() << ", got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NOT_EMPTY(tokens);
 
     uint64_t res = 0;
     Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    if (sort == nullptr)
-    {
-      std::stringstream ss;
-      ss << "unknown sort id " << tokens[0];
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_SORT(sort, tokens[0]);
     switch (tokens.size())
     {
       case 3:
@@ -1464,13 +1329,7 @@ class ActionMkValue : public Action
       }
       break;
       default:
-        if (tokens.size() != 2)
-        {
-          std::stringstream ss;
-          ss << "expected 2 arguments to '" << get_kind() << "', got "
-             << tokens.size();
-          throw SmtMbtActionUntraceException(ss);
-        }
+        SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
         if (tokens[1] == "true")
         {
           res = _run(sort, true);
@@ -1580,32 +1439,18 @@ class ActionMkSpecialValue : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() != 2)
-    {
-      std::stringstream ss;
-      ss << "expected 2 arguments to '" << get_kind() << "', got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
 
     uint64_t res = 0;
     Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    if (sort == nullptr)
-    {
-      std::stringstream ss;
-      ss << "unknown sort id " << tokens[0];
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_SORT(sort, tokens[0]);
     const auto& special_vals = d_solver.get_special_values(sort->get_kind());
 
     std::string value = str_to_str(tokens[1]);
-    if (special_vals.empty() || special_vals.find(value) == special_vals.end())
-    {
-      std::stringstream ss;
-      ss << "unknown special value " << value << " of sort kind "
-         << sort->get_kind();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE(!special_vals.empty()
+                       && special_vals.find(value) != special_vals.end())
+        << "unknown special value " << value << " of sort kind "
+        << sort->get_kind();
 
     res = _run(sort, value);
 
@@ -1644,20 +1489,9 @@ class ActionTermCheckSort : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() != 1)
-    {
-      std::stringstream ss;
-      ss << "expected 1 argument to '" << get_kind() << ", got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
-    if (t == nullptr)
-    {
-      std::stringstream ss;
-      ss << "unknown term id " << tokens[0];
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_TERM(t, tokens[0]);
     _run(t);
     return 0;
   }
@@ -1733,20 +1567,9 @@ class ActionAssertFormula : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.size() != 1)
-    {
-      std::stringstream ss;
-      ss << "expected 1 argument to '" << get_kind() << ", got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
-    if (t == nullptr)
-    {
-      std::stringstream ss;
-      ss << "unknown term id " << tokens[0];
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_TERM(t, tokens[0]);
     _run(t);
     return 0;
   }
@@ -1775,12 +1598,7 @@ class ActionCheckSat : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.empty());
-    if (!tokens.empty())
-    {
-      std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_kind();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1825,25 +1643,14 @@ class ActionCheckSatAssuming : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (tokens.empty())
-    {
-      std::stringstream ss;
-      ss << "expected at least 1 argument to '" << get_kind() << ", got "
-         << tokens.size();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_NOT_EMPTY(tokens);
     std::vector<Term> assumptions;
     uint32_t n_args = str_to_uint32(tokens[0]);
     for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-      if (t == nullptr)
-      {
-        std::stringstream ss;
-        ss << "unknown term id " << id;
-        throw SmtMbtActionUntraceException(ss);
-      }
+      SMTMBT_CHECK_TRACE_TERM(t, id);
       assumptions.push_back(t);
     }
     _run(assumptions);
@@ -1883,12 +1690,7 @@ class ActionGetUnsatAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (!tokens.empty())
-    {
-      std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_kind();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1944,12 +1746,7 @@ class ActionGetValue : public Action
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-      if (t == nullptr)
-      {
-        std::stringstream ss;
-        ss << "unknown term id " << id;
-        throw SmtMbtActionUntraceException(ss);
-      }
+      SMTMBT_CHECK_TRACE_TERM(t, id);
       terms.push_back(t);
     }
     _run(terms);
@@ -2073,12 +1870,7 @@ class ActionResetAssertions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (!tokens.empty())
-    {
-      std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_kind();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -2110,12 +1902,7 @@ class ActionPrintModel : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    if (!tokens.empty())
-    {
-      std::stringstream ss;
-      ss << "unexpected argument(s) to '" << get_kind();
-      throw SmtMbtActionUntraceException(ss);
-    }
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -2414,10 +2201,8 @@ FSM::untrace(std::string& trace_file_name)
     {
       if (tokens.size() != 1)
       {
-        std::stringstream ss;
-        ss << "untrace: " << trace_file_name << ":" << nline << " "
-           << "expected single argument to 'return'";
-        throw SmtMbtException(ss);
+        throw SmtMbtUntraceException(
+            trace_file_name, nline, "expected single argument to 'return'");
       }
       uint64_t rid = str_to_uint64(tokens[0]);
       assert(rid == ret_val);
@@ -2431,12 +2216,11 @@ FSM::untrace(std::string& trace_file_name)
     }
     else
     {
-      assert(d_actions.find(id) != d_actions.end());
       if (d_actions.find(id) == d_actions.end())
       {
         std::stringstream ss;
-        ss << "untrace: unknown action '" << id << "'";
-        throw SmtMbtException(ss);
+        ss << "unknown action '" << id << "'";
+        throw SmtMbtUntraceException(trace_file_name, nline, ss);
       }
 
       Action* action = d_actions.at(id).get();
@@ -2449,10 +2233,7 @@ FSM::untrace(std::string& trace_file_name)
         }
         catch (SmtMbtActionUntraceException& e)
         {
-          std::stringstream ss;
-          ss << "untrace: " << trace_file_name << ":" << nline << ": "
-             << e.get_msg();
-          throw SmtMbtException(ss);
+          throw SmtMbtUntraceException(trace_file_name, nline, e.get_msg());
         }
 
         if (std::getline(trace, line))
@@ -2466,10 +2247,10 @@ FSM::untrace(std::string& trace_file_name)
           {
             if (next_tokens.size() != 1)
             {
-              std::stringstream ss;
-              ss << "untrace: " << trace_file_name << ":" << nline << " "
-                 << "expected single argument to 'return'";
-              throw SmtMbtException(ss);
+              throw SmtMbtUntraceException(
+                  trace_file_name,
+                  nline,
+                  "expected single argument to 'return'");
             }
 
             uint64_t rid = str_to_uint64(next_tokens[0]);
@@ -2484,10 +2265,11 @@ FSM::untrace(std::string& trace_file_name)
           }
           else
           {
-            std::stringstream ss;
-            ss << "untrace: " << trace_file_name << ":" << nline << " "
-               << "expected 'return' statement";
-            throw SmtMbtException(ss);
+            if (next_tokens.size() != 1)
+            {
+              throw SmtMbtUntraceException(
+                  trace_file_name, nline, "expected 'return' statement");
+            }
           }
         }
         ret_val = 0;
