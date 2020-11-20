@@ -473,6 +473,7 @@ BtorSolver::mk_value(Sort sort, bool value)
   SMTMBT_CHECK_CONFIG(sort->is_bool())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to BtorSolver::mk_value, expected Boolean sort";
+
   BoolectorNode* btor_res =
       value ? boolector_true(d_solver) : boolector_false(d_solver);
   assert(btor_res);
@@ -628,7 +629,8 @@ BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
   SMTMBT_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
-      << "' as argument to BtorSolver::mk_value, expected bit-vector sort";
+      << "' as argument to BtorSolver::mk_special_value, expected bit-vector "
+         "sort";
 
   BoolectorNode* btor_res = 0;
   BoolectorSort btor_sort = get_btor_sort(sort);

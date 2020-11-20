@@ -724,7 +724,8 @@ CVC4Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
       SMTMBT_CHECK_CONFIG(sort->is_bv())
           << "unexpected sort of kind '" << sort->get_kind()
           << "' as argument to "
-             "CVC4Solver::mk_value, expected bit-vector, floating-point, "
+             "CVC4Solver::mk_special_value, expected bit-vector, "
+             "floating-point, "
              "RoundingMode, Real or Reglan sort";
   }
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));

@@ -295,7 +295,11 @@ CBzlaSolver::get_unsupported_fun_domain_sort_kinds() const
 Sort
 CBzlaSolver::mk_sort(SortKind kind)
 {
-  assert(kind == SORT_BOOL || kind == SORT_RM);
+  SMTMBT_CHECK_CONFIG(kind == SORT_BOOL || kind == SORT_RM)
+      << "unsupported sort kind '" << kind
+      << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_BOOL
+      << "' or '" << SORT_RM << "'";
+
   BitwuzlaSort* cbzla_res;
 
   cbzla_res = kind == SORT_BOOL ? bitwuzla_mk_bool_sort(d_solver)
@@ -309,7 +313,10 @@ CBzlaSolver::mk_sort(SortKind kind)
 Sort
 CBzlaSolver::mk_sort(SortKind kind, uint32_t size)
 {
-  assert(kind == SORT_BV);
+  SMTMBT_CHECK_CONFIG(kind == SORT_BV)
+      << "unsupported sort kind '" << kind
+      << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_BV << "'";
+
   BitwuzlaSort* cbzla_res = bitwuzla_mk_bv_sort(d_solver, size);
   assert(cbzla_res);
   std::shared_ptr<CBzlaSort> res(new CBzlaSort(d_solver, cbzla_res));
@@ -320,7 +327,10 @@ CBzlaSolver::mk_sort(SortKind kind, uint32_t size)
 Sort
 CBzlaSolver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 {
-  assert(kind == SORT_FP);
+  SMTMBT_CHECK_CONFIG(kind == SORT_FP)
+      << "unsupported sort kind '" << kind
+      << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_FP << "'";
+
   BitwuzlaSort* cbzla_res = bitwuzla_mk_fp_sort(d_solver, esize, ssize);
   assert(cbzla_res);
   std::shared_ptr<CBzlaSort> res(new CBzlaSort(d_solver, cbzla_res));
@@ -353,7 +363,11 @@ CBzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       break;
     }
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(false)
+          << "unsupported sort kind '" << kind
+          << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_ARRAY
+          << "' or '" << SORT_FUN << "'";
   }
   std::shared_ptr<CBzlaSort> res(new CBzlaSort(d_solver, cbzla_res));
   assert(cbzla_res);
@@ -416,7 +430,10 @@ CBzlaSolver::mk_const(Sort sort, const std::string& name)
 Term
 CBzlaSolver::mk_value(Sort sort, bool value)
 {
-  assert(sort->is_bool());
+  SMTMBT_CHECK_CONFIG(sort->is_bool())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to CBzlaSolver::mk_value, expected Boolean sort";
+
   BitwuzlaTerm* cbzla_res =
       value ? bitwuzla_mk_true(d_solver) : bitwuzla_mk_false(d_solver);
   assert(cbzla_res);
@@ -439,7 +456,10 @@ CBzlaSolver::mk_value(Sort sort, bool value)
 BitwuzlaTerm*
 CBzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 {
-  assert(sort->is_bv());
+  SMTMBT_CHECK_CONFIG(sort->is_bv())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to CBzlaSolver::mk_value, expected bit-vector sort";
+
   BitwuzlaSort* cbzla_sort = get_bzla_sort(sort);
   BitwuzlaTerm* cbzla_res =
       bitwuzla_mk_bv_value_uint64(d_solver, cbzla_sort, value);
@@ -450,7 +470,9 @@ CBzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 Term
 CBzlaSolver::mk_value(Sort sort, std::string value, Base base)
 {
-  assert(sort->is_bv());
+  SMTMBT_CHECK_CONFIG(sort->is_bv())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to CBzlaSolver::mk_value, expected bit-vector sort";
 
   BitwuzlaTerm* cbzla_res;
   BitwuzlaSort* cbzla_sort = get_bzla_sort(sort);
@@ -582,7 +604,11 @@ CBzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
       }
       break;
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(sort->is_bv())
+          << "unexpected sort of kind '" << sort->get_kind()
+          << "' as argument to CBzlaSolver::mk_special_value, expected "
+             "bit-vector, floating-point or RoundingMode sort";
   }
 
   assert(cbzla_res);
