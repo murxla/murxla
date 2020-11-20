@@ -347,7 +347,7 @@ BtorSolver::mk_sort(SortKind kind, uint32_t size)
 Sort
 BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
-  BoolectorSort btor_res;
+  BoolectorSort btor_res = 0;
 
   switch (kind)
   {

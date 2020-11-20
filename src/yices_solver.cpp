@@ -402,6 +402,10 @@ YicesSolver::mk_const(Sort sort, const std::string& name)
 Term
 YicesSolver::mk_value(Sort sort, bool value)
 {
+  SMTMBT_CHECK_CONFIG(sort->is_bool())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to YicesSolver::mk_value, expected Boolean sort";
+
   term_t yices_term = value ? yices_true() : yices_false();
   assert(is_valid_term(yices_term));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_term));
@@ -412,7 +416,7 @@ YicesSolver::mk_value(Sort sort, bool value)
 Term
 YicesSolver::mk_value(Sort sort, std::string value)
 {
-  term_t yices_res;
+  term_t yices_res = -1;
 
   switch (sort->get_kind())
   {
@@ -481,7 +485,11 @@ YicesSolver::mk_value(Sort sort, std::string value)
     }
     break;
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(false)
+          << "unexpected sort of kind '" << sort->get_kind()
+          << "' as argument to YicesSolver::mk_value, expected Integer or Real "
+             "sort";
   }
   assert(is_valid_term(yices_res));
   std::shared_ptr<YicesTerm> res(new YicesTerm(yices_res));
@@ -492,7 +500,11 @@ YicesSolver::mk_value(Sort sort, std::string value)
 Term
 YicesSolver::mk_value(Sort sort, std::string num, std::string den)
 {
-  assert(sort->is_real());
+  SMTMBT_CHECK_CONFIG(sort->is_real())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to YicesSolver::mk_value, expected Real "
+         "sort";
+
   term_t yices_res;
 
   int32_t num32 = 0, den32 = 0;
@@ -698,7 +710,10 @@ YicesSolver::mk_value(Sort sort, std::string value, Base base)
 Term
 YicesSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
-  assert(sort->is_bv());
+  SMTMBT_CHECK_CONFIG(sort->is_bv())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to YicesSolver::mk_special_value, expected bit-vector "
+         "sort";
 
   term_t yices_res;
   uint32_t bw  = sort->get_bv_size();
@@ -747,14 +762,18 @@ YicesSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 Sort
 YicesSolver::mk_sort(SortKind kind)
 {
-  type_t yices_res;
+  type_t yices_res = -1;
   switch (kind)
   {
     case SORT_BOOL: yices_res = yices_bool_type(); break;
     case SORT_INT: yices_res = yices_int_type(); break;
     case SORT_REAL: yices_res = yices_real_type(); break;
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(false)
+          << "unsupported sort kind '" << kind
+          << "' as argument to YicesSolver::mk_sort, expected '" << SORT_BOOL
+          << "', '" << SORT_INT << "', '" << SORT_REAL << "'";
   }
   assert(is_valid_sort(yices_res));
   std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
@@ -765,12 +784,11 @@ YicesSolver::mk_sort(SortKind kind)
 Sort
 YicesSolver::mk_sort(SortKind kind, uint32_t size)
 {
-  type_t yices_res;
-  switch (kind)
-  {
-    case SORT_BV: yices_res = yices_bv_type(size); break;
-    default: assert(false);
-  }
+  SMTMBT_CHECK_CONFIG(kind == SORT_BV)
+      << "unsupported sort kind '" << kind
+      << "' as argument to YicesSolver::mk_sort, expected '" << SORT_BV << "'";
+
+  type_t yices_res = yices_bv_type(size);
   assert(is_valid_sort(yices_res));
   std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
   assert(res);
@@ -780,7 +798,7 @@ YicesSolver::mk_sort(SortKind kind, uint32_t size)
 Sort
 YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
-  type_t yices_res;
+  type_t yices_res                = -1;
   std::vector<type_t> yices_sorts = sorts_to_yices_sorts(sorts);
 
   switch (kind)
@@ -803,7 +821,11 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     }
     break;
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(false)
+          << "unsupported sort kind '" << kind
+          << "' as argument to YicesSolver::mk_sort, expected '" << SORT_ARRAY
+          << "' or '" << SORT_FUN << "'";
   }
   assert(is_valid_sort(yices_res));
   std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
@@ -1650,10 +1672,10 @@ YicesSolver::mk_term(const std::string& kind,
             n_args, num.data(), den.data(), yices_args.data());
       }
     }
-    // catch all
     else
     {
-      assert(false);
+      SMTMBT_CHECK_CONFIG(false)
+          << "YicesSolver: operator kind '" << kind << "' not configured";
     }
   }
   assert(is_valid_term(yices_res));
