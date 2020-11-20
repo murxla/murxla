@@ -1428,11 +1428,11 @@ class CVC4ActionCheckEntailed : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() >= 1);
+    SMTMBT_CHECK_TRACE_NTOKENS_MIN(1, "", tokens.size());
     if (tokens.size() == 1)
     {
       Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-      assert(term != nullptr);
+      SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
       _run(term);
     }
     else
@@ -1442,9 +1442,9 @@ class CVC4ActionCheckEntailed : public Action
       for (uint32_t i = 0, idx = 1; i < n_terms; ++i, ++idx)
       {
         uint32_t id = str_to_uint32(tokens[idx]);
-        Term t      = d_smgr.get_term(id);
-        assert(t != nullptr);
-        terms.push_back(t);
+        Term term   = d_smgr.get_term(id);
+        SMTMBT_CHECK_TRACE_TERM(term, id);
+        terms.push_back(term);
       }
       _run(terms);
     }
@@ -1539,9 +1539,9 @@ class CVC4ActionSimplify : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 1);
+    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    assert(term != nullptr);
+    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
     return _run(term);
   }
 
