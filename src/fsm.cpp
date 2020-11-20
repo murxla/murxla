@@ -583,7 +583,13 @@ class ActionMkSort : public Action
         SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
         std::vector<Sort> sorts;
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[1])));
+        SMTMBT_CHECK_TRACE(sorts[0] != nullptr)
+            << "unknown sort id '" << tokens[1] << "' as argument to "
+            << get_kind();
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[2])));
+        SMTMBT_CHECK_TRACE(sorts[1] != nullptr)
+            << "unknown sort id '" << tokens[2] << "' as argument to "
+            << get_kind();
         res = _run(kind, sorts);
         break;
       }
