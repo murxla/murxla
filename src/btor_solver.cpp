@@ -1575,7 +1575,7 @@ class BtorActionBvAssignment : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 0);
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1625,7 +1625,7 @@ class BtorActionClone : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1748,9 +1748,9 @@ class BtorActionFailed : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 1);
+    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    assert(term != nullptr);
+    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return 0;
   }
@@ -1783,7 +1783,7 @@ class BtorActionFixateAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1815,7 +1815,7 @@ class BtorActionOptIterator : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1869,7 +1869,7 @@ class BtorActionReleaseAll : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1902,7 +1902,7 @@ class BtorActionResetAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1939,6 +1939,7 @@ class BtorActionSetSatSolver : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.size() == 1);
+    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
     _run(tokens[0]);
     return 0;
   }
@@ -1971,7 +1972,7 @@ class BtorActionSimplify : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -2005,9 +2006,9 @@ class BtorActionSetSymbol : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 2);
+    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    assert(term != nullptr);
+    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     _run(term, symbol);
     return 0;
