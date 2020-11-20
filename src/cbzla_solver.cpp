@@ -1176,9 +1176,9 @@ class CBzlaActionIsUnsatAssumption : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 1);
+    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    assert(term != nullptr);
+    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return 0;
   }
@@ -1211,7 +1211,7 @@ class CBzlaActionFixateAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1244,7 +1244,7 @@ class CBzlaActionResetAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1278,7 +1278,7 @@ class CBzlaActionSimplify : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.empty());
+    SMTMBT_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1312,9 +1312,9 @@ class CBzlaActionTermSetSymbol : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    assert(tokens.size() == 2);
+    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    assert(term != nullptr);
+    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     _run(term, symbol);
     return 0;
