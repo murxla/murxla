@@ -292,10 +292,15 @@ CVC4Solver::mk_sort(SortKind kind)
     case SORT_INT: cvc4_res = d_solver->getIntegerSort(); break;
     case SORT_REAL: cvc4_res = d_solver->getRealSort(); break;
     case SORT_RM: cvc4_res = d_solver->getRoundingModeSort(); break;
-    case SORT_STRING: cvc4_res = d_solver->getStringSort(); break;
     case SORT_REGLAN: cvc4_res = d_solver->getRegExpSort(); break;
+    case SORT_STRING: cvc4_res = d_solver->getStringSort(); break;
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(false)
+          << "unsupported sort kind '" << kind
+          << "' as argument to CVC4Solver::mk_sort, expected '" << SORT_BOOL
+          << "', '" << SORT_INT << "', '" << SORT_REAL << "', '" << SORT_RM
+          << "', '" << SORT_REGLAN << "' or '" << SORT_STRING << "'";
   }
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
@@ -306,13 +311,10 @@ CVC4Solver::mk_sort(SortKind kind)
 Sort
 CVC4Solver::mk_sort(SortKind kind, uint32_t size)
 {
-  CVC4::api::Sort cvc4_res;
-  switch (kind)
-  {
-    case SORT_BV: cvc4_res = d_solver->mkBitVectorSort(size); break;
-
-    default: assert(false);
-  }
+  SMTMBT_CHECK_CONFIG(kind == SORT_BV)
+      << "unsupported sort kind '" << kind
+      << "' as argument to CVC4Solver::mk_sort, expected '" << SORT_BV << "'";
+  CVC4::api::Sort cvc4_res = d_solver->mkBitVectorSort(size);
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
@@ -324,13 +326,10 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size)
 Sort
 CVC4Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 {
-  CVC4::api::Sort cvc4_res;
-  switch (kind)
-  {
-    case SORT_FP: cvc4_res = d_solver->mkFloatingPointSort(esize, ssize); break;
-
-    default: assert(false);
-  }
+  SMTMBT_CHECK_CONFIG(kind == SORT_FP)
+      << "unsupported sort kind '" << kind
+      << "' as argument to CVC4Solver::mk_sort, expected '" << SORT_FP << "'";
+  CVC4::api::Sort cvc4_res = d_solver->mkFloatingPointSort(esize, ssize);
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc4_res != cvc4_res));
@@ -364,7 +363,11 @@ CVC4Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       break;
     }
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(false) << "unsupported sort kind '" << kind
+                                 << "' as argument to CVC4Solver::mk_sort, "
+                                    "expected '"
+                                 << SORT_ARRAY << "' or '" << SORT_FUN << "'";
   }
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
@@ -398,6 +401,9 @@ Term
 CVC4Solver::mk_value(Sort sort, bool value)
 {
   assert(sort->is_bool());
+  SMTMBT_CHECK_CONFIG(false) << "unexpected sort of kind '" << sort->get_kind()
+                             << "' as argument to "
+                                "CVC4Solver::mk_value, expected Boolean sort ";
 
   CVC4::api::Term cvc4_res;
 
@@ -485,7 +491,12 @@ CVC4Solver::mk_value(Sort sort, std::string value)
       cvc4_res = d_solver->mkString(value);
       break;
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(false)
+          << "unexpected sort of kind '" << sort->get_kind()
+          << "' as argument to "
+             "CVC4Solver::mk_value, expected Integer, Real, Reglan or String "
+             "sort ";
   }
   assert(!cvc4_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc4_res == cvc4_res);
@@ -499,6 +510,10 @@ Term
 CVC4Solver::mk_value(Sort sort, std::string num, std::string den)
 {
   assert(sort->is_real());
+  SMTMBT_CHECK_CONFIG(sort->is_real())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to "
+         "CVC4Solver::mk_value, expected Real sort";
   CVC4::api::Term cvc4_res;
 
   cvc4_res = d_solver->mkReal(
@@ -515,7 +530,10 @@ CVC4Solver::mk_value(Sort sort, std::string num, std::string den)
 Term
 CVC4Solver::mk_value(Sort sort, std::string value, Base base)
 {
-  assert(sort->is_bv());
+  SMTMBT_CHECK_CONFIG(sort->is_bv())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to "
+         "CVC4Solver::mk_value, expected bit-vector sort";
 
   CVC4::api::Term cvc4_res;
   CVC4::api::Sort cvc4_sort = get_cvc4_sort(sort);
@@ -702,7 +720,12 @@ CVC4Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
       }
       break;
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(sort->is_bv())
+          << "unexpected sort of kind '" << sort->get_kind()
+          << "' as argument to "
+             "CVC4Solver::mk_value, expected bit-vector, floating-point, "
+             "RoundingMode, Real or Reglan sort";
   }
   std::shared_ptr<CVC4Term> res(new CVC4Term(d_solver, cvc4_res));
   assert(res);
@@ -714,7 +737,8 @@ CVC4Solver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
-  assert(d_op_kinds.find(kind) != d_op_kinds.end());
+  SMTMBT_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
+      << "CVC4: operator kind '" << kind << "' not configured";
 
   CVC4::api::Term cvc4_res;
   CVC4::api::Kind cvc4_kind = d_op_kinds.at(kind);
