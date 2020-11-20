@@ -738,7 +738,7 @@ CVC4Solver::mk_term(const OpKind& kind,
                     std::vector<uint32_t>& params)
 {
   SMTMBT_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
-      << "CVC4: operator kind '" << kind << "' not configured";
+      << "CVC4Solver: operator kind '" << kind << "' not configured";
 
   CVC4::api::Term cvc4_res;
   CVC4::api::Kind cvc4_kind = d_op_kinds.at(kind);

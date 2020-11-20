@@ -319,7 +319,9 @@ BtorSolver::get_unsupported_fun_domain_sort_kinds() const
 Sort
 BtorSolver::mk_sort(SortKind kind)
 {
-  assert(kind == SORT_BOOL);
+  SMTMBT_CHECK_CONFIG(kind == SORT_BOOL)
+      << "unsupported sort kind '" << kind
+      << "' as argument to BtorSolver::mk_sort, expected '" << SORT_BOOL << "'";
   BoolectorSort btor_res = boolector_bool_sort(d_solver);
   assert(btor_res);
   std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
@@ -331,7 +333,9 @@ BtorSolver::mk_sort(SortKind kind)
 Sort
 BtorSolver::mk_sort(SortKind kind, uint32_t size)
 {
-  assert(kind == SORT_BV);
+  SMTMBT_CHECK_CONFIG(kind == SORT_BV)
+      << "unsupported sort kind '" << kind
+      << "' as argument to BtorSolver::mk_sort, expected '" << SORT_BV << "'";
   BoolectorSort btor_res = boolector_bitvec_sort(d_solver, size);
   assert(btor_res);
   std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
@@ -365,7 +369,11 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       break;
     }
 
-    default: assert(false);
+    default:
+      SMTMBT_CHECK_CONFIG(false)
+          << "unsupported sort kind '" << kind
+          << "' as argument to BtorSolver::mk_sort, expected '" << SORT_ARRAY
+          << "' or '" << SORT_FUN << "'";
   }
   std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
   assert(btor_res);
@@ -462,7 +470,9 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
 Term
 BtorSolver::mk_value(Sort sort, bool value)
 {
-  assert(sort->is_bool());
+  SMTMBT_CHECK_CONFIG(sort->is_bool())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to BtorSolver::mk_value, expected Boolean sort";
   BoolectorNode* btor_res =
       value ? boolector_true(d_solver) : boolector_false(d_solver);
   assert(btor_res);
@@ -493,7 +503,9 @@ BtorSolver::mk_value(Sort sort, bool value)
 BoolectorNode*
 BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 {
-  assert(sort->is_bv());
+  SMTMBT_CHECK_CONFIG(sort->is_bv())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to BtorSolver::mk_value, expected bit-vector sort";
 
   BoolectorNode* btor_res = 0;
   BoolectorSort btor_sort = get_btor_sort(sort);
@@ -539,7 +551,9 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 Term
 BtorSolver::mk_value(Sort sort, std::string value, Base base)
 {
-  assert(sort->is_bv());
+  SMTMBT_CHECK_CONFIG(sort->is_bv())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to BtorSolver::mk_value, expected bit-vector sort";
 
   BoolectorNode* btor_res;
   BoolectorSort btor_sort = get_btor_sort(sort);
@@ -612,7 +626,10 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
 Term
 BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
-  assert(sort->is_bv());
+  SMTMBT_CHECK_CONFIG(sort->is_bv())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to BtorSolver::mk_value, expected bit-vector sort";
+
   BoolectorNode* btor_res = 0;
   BoolectorSort btor_sort = get_btor_sort(sort);
   uint32_t bw             = sort->get_bv_size();
@@ -1022,7 +1039,8 @@ BtorSolver::mk_term(const OpKind& kind,
     }
     else
     {
-      assert(false);
+      SMTMBT_CHECK_CONFIG(false)
+          << "BtorSolver: operator kind '" << kind << "' not configured";
     }
   }
   assert(btor_res);

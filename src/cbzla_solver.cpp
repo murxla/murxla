@@ -597,7 +597,7 @@ CBzlaSolver::mk_term(const OpKind& kind,
                     std::vector<uint32_t>& params)
 {
   SMTMBT_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
-      << "CBitwuzla: operator kind '" << kind << "' not configured";
+      << "CBzlaSolver: operator kind '" << kind << "' not configured";
 
   BitwuzlaTerm* cbzla_res = nullptr;
   size_t n_args           = args.size();
