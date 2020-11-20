@@ -254,6 +254,24 @@ YicesSolver::get_supported_theories() const
       THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_INT, THEORY_REAL, THEORY_UF};
 }
 
+SortKindSet
+YicesSolver::get_unsupported_array_index_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
+YicesSolver::get_unsupported_array_element_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
+YicesSolver::get_unsupported_fun_domain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
 void
 YicesSolver::reset_sat()
 {

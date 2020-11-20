@@ -123,6 +123,9 @@ class YicesSolver : public Solver
   bool is_initialized() const override;
 
   TheoryIdVector get_supported_theories() const override;
+  SortKindSet get_unsupported_array_index_sort_kinds() const override;
+  SortKindSet get_unsupported_array_element_sort_kinds() const override;
+  SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
 
   void configure_fsm(FSM* fsm) const override;
   void configure_smgr(SolverManager* smgr) const override;
