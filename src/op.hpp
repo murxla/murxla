@@ -1,5 +1,5 @@
-#ifndef __SMTMBT__OP_H
-#define __SMTMBT__OP_H
+#ifndef __MURXLA__OP_H
+#define __MURXLA__OP_H
 
 #include <cassert>
 #include <cstdint>
@@ -8,7 +8,7 @@
 
 #include "sort.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 using OpKind = std::string;
 
@@ -198,6 +198,6 @@ using OpKindSet    = std::unordered_set<OpKind>;
 using OpKindMap    = std::unordered_map<OpKind, Op>;
 using OpKinds = std::unordered_map<SortKind, OpKindVector>;
 
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

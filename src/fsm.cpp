@@ -8,7 +8,7 @@
 
 #include "solver_manager.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 /* Action                                                                     */
@@ -46,8 +46,8 @@ Action::trace_get_sorts() const
   std::vector<Term>& pending = d_smgr.get_pending_get_sorts();
   for (const auto& term : pending)
   {
-    SMTMBT_TRACE_GET_SORT << term;
-    SMTMBT_TRACE_RETURN << term->get_sort();
+    MURXLA_TRACE_GET_SORT << term;
+    MURXLA_TRACE_RETURN << term->get_sort();
   }
   pending.clear();
 }
@@ -86,7 +86,7 @@ State::add_action(Action* a, uint32_t priority, State* next)
 State*
 State::run(RNGenerator& rng)
 {
-  SMTMBT_CHECK_CONFIG(!d_actions.empty()) << "no actions configured";
+  MURXLA_CHECK_CONFIG(!d_actions.empty()) << "no actions configured";
 
   uint32_t idx      = rng.pick_weighted<uint32_t>(d_weights);
   ActionTuple& atup = d_actions[idx];
@@ -173,9 +173,9 @@ FSM::new_state(const StateKind& kind,
 {
   uint64_t id = d_states.size();
 
-  SMTMBT_CHECK_CONFIG(id < SMTMBT_MAX_N_STATES)
+  MURXLA_CHECK_CONFIG(id < MURXLA_MAX_N_STATES)
       << "maximum number of states exceeded, increase limit by adjusting "
-         "value of macro SMTMBT_MAX_N_STATES in config.hpp";
+         "value of macro MURXLA_MAX_N_STATES in config.hpp";
 
   State* state;
   d_states.emplace_back(new State(kind, fun, is_final));
@@ -218,13 +218,13 @@ FSM::check_states()
   /* check for unreachable state */
   for (const auto& s : d_states)
   {
-    SMTMBT_WARN(s.get() != d_state_init
+    MURXLA_WARN(s.get() != d_state_init
                 && all_next_states.find(s.get()) != all_next_states.end())
         << "unreachable state '" << s->get_kind() << "'";
   }
 
   /* check for infinite loop */
-  SMTMBT_CHECK_CONFIG(
+  MURXLA_CHECK_CONFIG(
       !no_next_state
       || (no_next_state != d_state_init
           && all_next_states.find(no_next_state) == all_next_states.end()))
@@ -242,7 +242,7 @@ FSM::get_state(const StateKind& kind) const
       res = s.get();
     }
   }
-  SMTMBT_CHECK_CONFIG(res != nullptr) << "undefined state '" << kind << "'";
+  MURXLA_CHECK_CONFIG(res != nullptr) << "undefined state '" << kind << "'";
   return res;
 }
 
@@ -250,7 +250,7 @@ SortKind
 get_sort_kind_from_str(std::string& s)
 {
   SortKind res = sort_kind_from_str(s);
-  SMTMBT_CHECK_CONFIG(res != SORT_ANY) << "unknown sort kind '" << s << "'";
+  MURXLA_CHECK_CONFIG(res != SORT_ANY) << "unknown sort kind '" << s << "'";
   return res;
 }
 
@@ -338,18 +338,18 @@ class ActionTermGetSort : public UntraceAction
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_TERM(t, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
     return _run(t);
   }
 
  private:
   uint64_t _run(Term term)
   {
-    SMTMBT_TRACE << get_kind() << " " << term;
+    MURXLA_TRACE << get_kind() << " " << term;
     Sort res = term->get_sort();
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 };
@@ -372,7 +372,7 @@ class ActionNew : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -380,7 +380,7 @@ class ActionNew : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     d_solver.new_solver();
   }
 };
@@ -399,7 +399,7 @@ class ActionDelete : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -407,7 +407,7 @@ class ActionDelete : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     d_smgr.clear();
     d_solver.delete_solver();
   }
@@ -467,7 +467,7 @@ class ActionSetOption : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     _run(tokens[0], tokens[1]);
     return 0;
   }
@@ -475,7 +475,7 @@ class ActionSetOption : public Action
  private:
   void _run(const std::string& opt, const std::string& value)
   {
-    SMTMBT_TRACE << get_kind() << " " << opt << " " << value;
+    MURXLA_TRACE << get_kind() << " " << opt << " " << value;
     d_solver.set_opt(opt, value);
     d_smgr.d_incremental       = d_solver.option_incremental_enabled();
     d_smgr.d_model_gen         = d_solver.option_model_gen_enabled();
@@ -518,7 +518,7 @@ class ActionMkSort : public Action
       }
 
       case SORT_BV:
-        _run(kind, d_rng.pick<uint32_t>(SMTMBT_BW_MIN, SMTMBT_BW_MAX));
+        _run(kind, d_rng.pick<uint32_t>(MURXLA_BW_MIN, MURXLA_BW_MAX));
         break;
 
       case SORT_FP:
@@ -545,7 +545,7 @@ class ActionMkSort : public Action
         {
           return false;
         }
-        uint32_t nsorts = d_rng.pick<uint32_t>(1, SMTMBT_MK_TERM_N_ARGS_MAX);
+        uint32_t nsorts = d_rng.pick<uint32_t>(1, MURXLA_MK_TERM_N_ARGS_MAX);
         for (uint32_t i = 0; i < nsorts; ++i)
         {
           sorts.push_back(d_smgr.pick_sort(exclude_sorts, false));
@@ -571,7 +571,7 @@ class ActionMkSort : public Action
   {
     size_t n_tokens = tokens.size();
 
-    SMTMBT_CHECK_TRACE_NOT_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
 
     uint64_t res    = 0;
     SortKind kind   = get_sort_kind_from_str(tokens[0]);
@@ -580,14 +580,14 @@ class ActionMkSort : public Action
     {
       case SORT_ARRAY:
       {
-        SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
+        MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
         std::vector<Sort> sorts;
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[1])));
-        SMTMBT_CHECK_TRACE(sorts[0] != nullptr)
+        MURXLA_CHECK_TRACE(sorts[0] != nullptr)
             << "unknown sort id '" << tokens[1] << "' as argument to "
             << get_kind();
         sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[2])));
-        SMTMBT_CHECK_TRACE(sorts[1] != nullptr)
+        MURXLA_CHECK_TRACE(sorts[1] != nullptr)
             << "unknown sort id '" << tokens[2] << "' as argument to "
             << get_kind();
         res = _run(kind, sorts);
@@ -600,7 +600,7 @@ class ActionMkSort : public Action
         for (auto it = tokens.begin() + 1; it < tokens.end(); ++it)
         {
           Sort s = d_smgr.get_sort(str_to_uint32(*it));
-          SMTMBT_CHECK_TRACE(s != nullptr) << "unknown sort id '" << *it
+          MURXLA_CHECK_TRACE(s != nullptr) << "unknown sort id '" << *it
                                            << "' as argument to " << get_kind();
           sorts.push_back(s);
         }
@@ -614,21 +614,21 @@ class ActionMkSort : public Action
       case SORT_REGLAN:
       case SORT_RM:
       case SORT_STRING:
-        SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
+        MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
         res = _run(kind);
         break;
 
       case SORT_BV:
-        SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
+        MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
         res = _run(kind, str_to_uint32(tokens[1]));
         break;
 
       case SORT_FP:
-        SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
+        MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
         res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
         break;
 
-      default: SMTMBT_CHECK_TRACE(false) << "unknown sort kind " << tokens[0];
+      default: MURXLA_CHECK_TRACE(false) << "unknown sort kind " << tokens[0];
     }
     return res;
   }
@@ -636,33 +636,33 @@ class ActionMkSort : public Action
  private:
   uint64_t _run(SortKind kind)
   {
-    SMTMBT_TRACE << get_kind() << " " << kind;
+    MURXLA_TRACE << get_kind() << " " << kind;
     Sort res = d_solver.mk_sort(kind);
     d_smgr.add_sort(res, kind);
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 
   uint64_t _run(SortKind kind, uint32_t bw)
   {
-    SMTMBT_TRACE << get_kind() << " " << kind << " " << bw;
+    MURXLA_TRACE << get_kind() << " " << kind << " " << bw;
     assert(kind == SORT_BV);
     Sort res = d_solver.mk_sort(kind, bw);
     assert(res->get_bv_size() == bw);
     d_smgr.add_sort(res, kind);
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 
   uint64_t _run(SortKind kind, uint32_t ew, uint32_t sw)
   {
-    SMTMBT_TRACE << get_kind() << " " << kind << " " << ew << " " << sw;
+    MURXLA_TRACE << get_kind() << " " << kind << " " << ew << " " << sw;
     assert(kind == SORT_FP);
     Sort res = d_solver.mk_sort(kind, ew, sw);
     assert(res->get_fp_exp_size() == ew);
     assert(res->get_fp_sig_size() == sw);
     d_smgr.add_sort(res, kind);
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 
@@ -673,12 +673,12 @@ class ActionMkSort : public Action
     {
       ss << " " << sort;
     }
-    SMTMBT_TRACE << get_kind() << " " << kind << ss.str();
+    MURXLA_TRACE << get_kind() << " " << kind << ss.str();
     Sort res = d_solver.mk_sort(kind, sorts);
     res->set_sorts(sorts);
     d_smgr.add_sort(res, kind);
     assert(res->get_sorts().size() == sorts.size());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 };
@@ -717,9 +717,9 @@ class ActionMkTerm : public Action
     if (kind == Op::BV_CONCAT)
     {
       assert(!n_params);
-      if (!d_smgr.has_sort_bv_max(SMTMBT_BW_MAX - 1)) return false;
-      Sort sort   = d_smgr.pick_sort_bv_max(SMTMBT_BW_MAX - 1);
-      uint32_t bw = SMTMBT_BW_MAX - sort->get_bv_size();
+      if (!d_smgr.has_sort_bv_max(MURXLA_BW_MAX - 1)) return false;
+      Sort sort   = d_smgr.pick_sort_bv_max(MURXLA_BW_MAX - 1);
+      uint32_t bw = MURXLA_BW_MAX - sort->get_bv_size();
       if (!d_smgr.has_sort_bv_max(bw)) return false;
       args.push_back(d_smgr.pick_term(sort));
       do
@@ -825,9 +825,9 @@ class ActionMkTerm : public Action
       assert(d_smgr.has_sort(sort_kind));
       Sort sort = d_smgr.pick_sort(sort_kind);
       if (!d_smgr.has_value(sort)) return false;
-      assert(arity == SMTMBT_MK_TERM_N_ARGS);
-      arity = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN(arity),
-                                   SMTMBT_MK_TERM_N_ARGS_MAX);
+      assert(arity == MURXLA_MK_TERM_N_ARGS);
+      arity = d_rng.pick<uint32_t>(MURXLA_MK_TERM_N_ARGS_MIN(arity),
+                                   MURXLA_MK_TERM_N_ARGS_MAX);
 
       bool picked_non_const = false;
       /* pick arguments */
@@ -875,10 +875,10 @@ class ActionMkTerm : public Action
     }
     else
     {
-      if (arity == SMTMBT_MK_TERM_N_ARGS || arity == SMTMBT_MK_TERM_N_ARGS_BIN)
+      if (arity == MURXLA_MK_TERM_N_ARGS || arity == MURXLA_MK_TERM_N_ARGS_BIN)
       {
-        arity = d_rng.pick<uint32_t>(SMTMBT_MK_TERM_N_ARGS_MIN(arity),
-                                     SMTMBT_MK_TERM_N_ARGS_MAX);
+        arity = d_rng.pick<uint32_t>(MURXLA_MK_TERM_N_ARGS_MIN(arity),
+                                     MURXLA_MK_TERM_N_ARGS_MAX);
       }
 
       if (kind == Op::EQUAL || kind == Op::DISTINCT)
@@ -943,7 +943,7 @@ class ActionMkTerm : public Action
           assert(sort_kind == SORT_BV);
           uint32_t bw = args[0]->get_sort()->get_bv_size();
           params.push_back(d_rng.pick<uint32_t>(
-              1, std::max<uint32_t>(1, SMTMBT_BW_MAX / bw)));
+              1, std::max<uint32_t>(1, MURXLA_BW_MAX / bw)));
         }
         else if (kind == Op::BV_ROTATE_LEFT || kind == Op::BV_ROTATE_RIGHT)
         {
@@ -961,7 +961,7 @@ class ActionMkTerm : public Action
           assert(args[0]->get_sort()->is_bv());
           assert(sort_kind == SORT_BV);
           uint32_t bw = args[0]->get_sort()->get_bv_size();
-          params.push_back(d_rng.pick<uint32_t>(0, SMTMBT_BW_MAX - bw));
+          params.push_back(d_rng.pick<uint32_t>(0, MURXLA_BW_MAX - bw));
         }
         else if (kind == Op::FP_TO_FP_FROM_SBV || kind == Op::FP_TO_FP_FROM_UBV)
         {
@@ -998,7 +998,7 @@ class ActionMkTerm : public Action
           assert(sort_kind == SORT_BV);
           /* term has BV sort, pick bit-width */
           params.push_back(
-              d_rng.pick<uint32_t>(1, std::max<uint32_t>(1, SMTMBT_BW_MAX)));
+              d_rng.pick<uint32_t>(1, std::max<uint32_t>(1, MURXLA_BW_MAX)));
         }
         else if (kind == Op::FP_TO_FP_FROM_REAL)
         {
@@ -1064,7 +1064,7 @@ class ActionMkTerm : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS_MIN(
+    MURXLA_CHECK_TRACE_NTOKENS_MIN(
         3, " (operator kind, sort id, number of arguments) ", tokens.size());
 
     std::vector<Term> args;
@@ -1075,21 +1075,21 @@ class ActionMkTerm : public Action
     uint32_t n_args    = str_to_uint32(tokens[2]);
     uint32_t idx       = 3;
 
-    SMTMBT_CHECK_TRACE(idx + n_args <= n_tokens)
+    MURXLA_CHECK_TRACE(idx + n_args <= n_tokens)
         << "expected " << n_args << " term arguments, got " << n_tokens - 3;
 
     for (uint32_t i = 0; i < n_args; ++i, ++idx)
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-      SMTMBT_CHECK_TRACE_TERM(t, id);
+      MURXLA_CHECK_TRACE_TERM(t, id);
       args.push_back(t);
     }
 
     if (idx < tokens.size())
     {
       uint32_t n_params = str_to_uint32(tokens[idx++]);
-      SMTMBT_CHECK_TRACE(idx + n_params == n_tokens)
+      MURXLA_CHECK_TRACE(idx + n_params == n_tokens)
           << "expected " << n_args << " parameters to create indexed term, got "
           << n_tokens - 3 - n_args;
       for (uint32_t i = 0; i < n_params; ++i, ++idx)
@@ -1114,7 +1114,7 @@ class ActionMkTerm : public Action
     {
       trace_str << " " << params.size() << params;
     }
-    SMTMBT_TRACE << get_kind() << trace_str.str();
+    MURXLA_TRACE << get_kind() << trace_str.str();
     reset_sat();
 
     /* Note: We remove the variable in _run instead of run so that we correctly
@@ -1127,7 +1127,7 @@ class ActionMkTerm : public Action
     Term res = d_solver.mk_term(kind, args, params);
 
     d_smgr.add_term(res, sort_kind, args);
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 };
@@ -1157,9 +1157,9 @@ class ActionMkConst : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_SORT(sort, tokens[0]);
+    MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     return _run(sort, symbol);
   }
@@ -1167,11 +1167,11 @@ class ActionMkConst : public Action
  private:
   uint64_t _run(Sort sort, std::string& symbol)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
+    MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
     reset_sat();
     Term res = d_solver.mk_const(sort, symbol);
     d_smgr.add_input(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 };
@@ -1197,9 +1197,9 @@ class ActionMkVar : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_SORT(sort, tokens[0]);
+    MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     return _run(sort, symbol);
   }
@@ -1207,11 +1207,11 @@ class ActionMkVar : public Action
  private:
   uint64_t _run(Sort sort, std::string& symbol)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
+    MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
     reset_sat();
     Term res = d_solver.mk_var(sort, symbol);
     d_smgr.add_var(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 };
@@ -1272,7 +1272,7 @@ class ActionMkValue : public Action
       case SORT_INT:
         _run(sort,
              d_rng.pick_dec_int_string(
-                 d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
+                 d_rng.pick<uint32_t>(1, MURXLA_INT_LEN_MAX)));
         break;
 
       case SORT_REAL:
@@ -1282,26 +1282,26 @@ class ActionMkValue : public Action
           case RNGenerator::Choice::FIRST:
             _run(sort,
                  d_rng.pick_dec_int_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_INT_LEN_MAX)));
+                     d_rng.pick<uint32_t>(1, MURXLA_INT_LEN_MAX)));
             break;
           case RNGenerator::Choice::SECOND:
             _run(sort,
                  d_rng.pick_dec_real_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_REAL_LEN_MAX)));
+                     d_rng.pick<uint32_t>(1, MURXLA_REAL_LEN_MAX)));
             break;
           case RNGenerator::Choice::THIRD:
             _run(sort,
                  d_rng.pick_dec_rational_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_RATIONAL_LEN_MAX),
-                     d_rng.pick<uint32_t>(1, SMTMBT_RATIONAL_LEN_MAX)));
+                     d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX),
+                     d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
             break;
           default:
             assert(pick == RNGenerator::Choice::FOURTH);
             _run(sort,
                  d_rng.pick_dec_int_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_RATIONAL_LEN_MAX)),
+                     d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)),
                  d_rng.pick_dec_int_string(
-                     d_rng.pick<uint32_t>(1, SMTMBT_RATIONAL_LEN_MAX)));
+                     d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
         }
         break;
 
@@ -1309,7 +1309,7 @@ class ActionMkValue : public Action
 
       case SORT_STRING:
       {
-        uint32_t len = d_rng.pick<uint32_t>(0, SMTMBT_STR_LEN_MAX);
+        uint32_t len = d_rng.pick<uint32_t>(0, MURXLA_STR_LEN_MAX);
         std::string value;
         if (len)
         {
@@ -1329,11 +1329,11 @@ class ActionMkValue : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NOT_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
 
     uint64_t res = 0;
     Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_SORT(sort, tokens[0]);
+    MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
     switch (tokens.size())
     {
       case 3:
@@ -1356,7 +1356,7 @@ class ActionMkValue : public Action
       }
       break;
       default:
-        SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
+        MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
         if (tokens[1] == "true")
         {
           res = _run(sort, true);
@@ -1381,29 +1381,29 @@ class ActionMkValue : public Action
  private:
   uint64_t _run(Sort sort, bool val)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " "
+    MURXLA_TRACE << get_kind() << " " << sort << " "
                  << (val ? "true" : "false");
     reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_value(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 
   uint64_t _run(Sort sort, std::string val)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
+    MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
     reset_sat();
     Term res;
     res = d_solver.mk_value(sort, val);
     d_smgr.add_value(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 
   uint64_t _run(Sort sort, std::string val, size_t len)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
+    MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
     reset_sat();
     Term res = d_solver.mk_value(sort, val);
     d_smgr.add_value(res, sort, sort->get_kind());
@@ -1412,29 +1412,29 @@ class ActionMkValue : public Action
       assert(sort->is_string());
       d_smgr.add_string_char_value(res);
     }
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 
   uint64_t _run(Sort sort, std::string v0, std::string v1)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << v0 << "\""
+    MURXLA_TRACE << get_kind() << " " << sort << " \"" << v0 << "\""
                  << " \"" << v1 << "\"";
     reset_sat();
     Term res = d_solver.mk_value(sort, v0, v1);
     d_smgr.add_value(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 
   uint64_t _run(Sort sort, std::string val, Solver::Base base)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\""
+    MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\""
                  << " " << base;
     reset_sat();
     Term res = d_solver.mk_value(sort, val, base);
     d_smgr.add_value(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 };
@@ -1466,15 +1466,15 @@ class ActionMkSpecialValue : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
 
     uint64_t res = 0;
     Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_SORT(sort, tokens[0]);
+    MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
     const auto& special_vals = d_solver.get_special_values(sort->get_kind());
 
     std::string value = str_to_str(tokens[1]);
-    SMTMBT_CHECK_TRACE(!special_vals.empty()
+    MURXLA_CHECK_TRACE(!special_vals.empty()
                        && special_vals.find(value) != special_vals.end())
         << "unknown special value " << value << " of sort kind "
         << sort->get_kind();
@@ -1487,12 +1487,12 @@ class ActionMkSpecialValue : public Action
  private:
   uint64_t _run(Sort sort, const Solver::SpecialValueKind& val)
   {
-    SMTMBT_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
+    MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
     reset_sat();
     Term res;
     res = d_solver.mk_special_value(sort, val);
     d_smgr.add_value(res, sort, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 };
@@ -1516,9 +1516,9 @@ class ActionTermCheckSort : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_TERM(t, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
     _run(t);
     return 0;
   }
@@ -1526,7 +1526,7 @@ class ActionTermCheckSort : public Action
  private:
   void _run(Term term)
   {
-    SMTMBT_TRACE << get_kind() << " " << term;
+    MURXLA_TRACE << get_kind() << " " << term;
     Sort sort = term->get_sort();
     if (sort->is_array())
     {
@@ -1594,9 +1594,9 @@ class ActionAssertFormula : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_TERM(t, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
     _run(t);
     return 0;
   }
@@ -1604,7 +1604,7 @@ class ActionAssertFormula : public Action
  private:
   void _run(Term assertion)
   {
-    SMTMBT_TRACE << get_kind() << " " << assertion;
+    MURXLA_TRACE << get_kind() << " " << assertion;
     reset_sat();
     d_solver.assert_formula(assertion);
   }
@@ -1625,7 +1625,7 @@ class ActionCheckSat : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.empty());
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1633,7 +1633,7 @@ class ActionCheckSat : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     reset_sat();
     d_smgr.d_sat_result = d_solver.check_sat();
     d_smgr.d_sat_called = true;
@@ -1658,7 +1658,7 @@ class ActionCheckSatAssuming : public Action
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     uint32_t n_assumptions =
-        d_rng.pick<uint32_t>(1, SMTMBT_MAX_N_ASSUMPTIONS_CHECK_SAT);
+        d_rng.pick<uint32_t>(1, MURXLA_MAX_N_ASSUMPTIONS_CHECK_SAT);
     std::vector<Term> assumptions;
     for (uint32_t i = 0; i < n_assumptions; ++i)
     {
@@ -1670,14 +1670,14 @@ class ActionCheckSatAssuming : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NOT_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
     std::vector<Term> assumptions;
     uint32_t n_args = str_to_uint32(tokens[0]);
     for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-      SMTMBT_CHECK_TRACE_TERM(t, id);
+      MURXLA_CHECK_TRACE_TERM(t, id);
       assumptions.push_back(t);
     }
     _run(assumptions);
@@ -1687,7 +1687,7 @@ class ActionCheckSatAssuming : public Action
  private:
   void _run(std::vector<Term> assumptions)
   {
-    SMTMBT_TRACE << get_kind() << " " << assumptions.size() << assumptions;
+    MURXLA_TRACE << get_kind() << " " << assumptions.size() << assumptions;
     reset_sat();
     d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
     d_smgr.d_sat_called = true;
@@ -1717,7 +1717,7 @@ class ActionGetUnsatAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1725,7 +1725,7 @@ class ActionGetUnsatAssumptions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     /* Note: The Terms in this vector are solver terms wrapped into Term,
      *       without sort information! */
     std::vector<Term> res = d_solver.get_unsat_assumptions();
@@ -1754,7 +1754,7 @@ class ActionGetValue : public Action
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
 
-    uint32_t n_terms = d_rng.pick<uint32_t>(1, SMTMBT_MAX_N_TERMS_GET_VALUE);
+    uint32_t n_terms = d_rng.pick<uint32_t>(1, MURXLA_MAX_N_TERMS_GET_VALUE);
     std::vector<Term> terms;
     for (uint32_t i = 0; i < n_terms; ++i)
     {
@@ -1773,7 +1773,7 @@ class ActionGetValue : public Action
     {
       uint32_t id = str_to_uint32(tokens[idx]);
       Term t      = d_smgr.get_term(id);
-      SMTMBT_CHECK_TRACE_TERM(t, id);
+      MURXLA_CHECK_TRACE_TERM(t, id);
       terms.push_back(t);
     }
     _run(terms);
@@ -1783,7 +1783,7 @@ class ActionGetValue : public Action
  private:
   void _run(std::vector<Term> terms)
   {
-    SMTMBT_TRACE << get_kind() << " " << terms.size() << terms;
+    MURXLA_TRACE << get_kind() << " " << terms.size() << terms;
     /* Note: The Terms in this vector are solver terms wrapped into Term,
      *       without sort information! */
     std::vector<Term> res = d_solver.get_value(terms);
@@ -1825,7 +1825,7 @@ class ActionPush : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
-    uint32_t n_levels = d_rng.pick<uint32_t>(1, SMTMBT_MAX_N_PUSH_LEVELS);
+    uint32_t n_levels = d_rng.pick<uint32_t>(1, MURXLA_MAX_N_PUSH_LEVELS);
     _run(n_levels);
     return true;
   }
@@ -1841,7 +1841,7 @@ class ActionPush : public Action
  private:
   void _run(uint32_t n_levels)
   {
-    SMTMBT_TRACE << get_kind() << " " << n_levels;
+    MURXLA_TRACE << get_kind() << " " << n_levels;
     reset_sat();
     d_solver.push(n_levels);
     d_smgr.d_n_push_levels += n_levels;
@@ -1873,7 +1873,7 @@ class ActionPop : public Action
  private:
   void _run(uint32_t n_levels)
   {
-    SMTMBT_TRACE << get_kind() << " " << n_levels;
+    MURXLA_TRACE << get_kind() << " " << n_levels;
     reset_sat();
     d_solver.pop(n_levels);
     d_smgr.d_n_push_levels -= n_levels;
@@ -1897,7 +1897,7 @@ class ActionResetAssertions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1905,7 +1905,7 @@ class ActionResetAssertions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     reset_sat();
     d_solver.reset_assertions();
     d_smgr.d_n_push_levels = 0;
@@ -1929,7 +1929,7 @@ class ActionPrintModel : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1937,7 +1937,7 @@ class ActionPrintModel : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     d_solver.print_model();
   }
 };
@@ -2210,7 +2210,7 @@ FSM::untrace(std::string& trace_file_name)
   std::ifstream trace;
 
   trace.open(trace_file_name);
-  SMTMBT_CHECK_CONFIG(trace.is_open())
+  MURXLA_CHECK_CONFIG(trace.is_open())
       << "untrace: unable to open file '" << trace_file_name << "'";
 
   while (std::getline(trace, line))
@@ -2310,4 +2310,4 @@ FSM::untrace(std::string& trace_file_name)
 }
 
 /* ========================================================================== */
-}  // namespace smtmbt
+}  // namespace murxla

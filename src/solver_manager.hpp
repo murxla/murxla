@@ -1,5 +1,5 @@
-#ifndef __SMTMBT__SOLVER_MANAGER_H
-#define __SMTMBT__SOLVER_MANAGER_H
+#ifndef __MURXLA__SOLVER_MANAGER_H
+#define __MURXLA__SOLVER_MANAGER_H
 
 #include <cassert>
 #include <iostream>
@@ -14,7 +14,7 @@
 #include "theory.hpp"
 #include "util.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 namespace statistics {
 struct Statistics;
@@ -454,7 +454,7 @@ class SolverManager
   /**
    * The activated solver.
    * No calls to the API of the underlying solver are issued from the solver
-   * manager, only calls to the API of the smtmbt::Solver object.
+   * manager, only calls to the API of the murxla::Solver object.
    */
   std::unique_ptr<Solver> d_solver;
 
@@ -529,5 +529,5 @@ class SolverManager
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace smtmbt
+}  // namespace murxla
 #endif

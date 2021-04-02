@@ -13,11 +13,11 @@
 #include <vector>
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_PROB_MAX 1000 /* Maximum probability 100% = 1000. */
+#define MURXLA_PROB_MAX 1000 /* Maximum probability 100% = 1000. */
 
 /* -------------------------------------------------------------------------- */
 
-namespace smtmbt {
+namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
@@ -85,8 +85,8 @@ RNGenerator::get_engine()
 bool
 RNGenerator::pick_with_prob(uint32_t prob)
 {
-  assert(prob <= SMTMBT_PROB_MAX);
-  uint32_t r = pick<uint32_t>(0, SMTMBT_PROB_MAX - 1);
+  assert(prob <= MURXLA_PROB_MAX);
+  uint32_t r = pick<uint32_t>(0, MURXLA_PROB_MAX - 1);
   return r < prob;
 }
 
@@ -719,4 +719,4 @@ operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace smtmbt
+}  // namespace murxla

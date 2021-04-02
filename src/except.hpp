@@ -1,9 +1,9 @@
-#ifndef __SMTMBT__EXCEPT_HPP_INCLUDED
-#define __SMTMBT__EXCEPT_HPP_INCLUDED
+#ifndef __MURXLA__EXCEPT_HPP_INCLUDED
+#define __MURXLA__EXCEPT_HPP_INCLUDED
 
 #include <sstream>
 
-namespace smtmbt {
+namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
@@ -129,48 +129,48 @@ class OstreamVoider
   void operator&(std::ostream& ostream) {}
 };
 
-#define SMTMBT_WARN(cond) \
+#define MURXLA_WARN(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & WarnStream().stream()
 
-#define SMTMBT_ABORT(cond) \
+#define MURXLA_ABORT(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()
 
-#define SMTMBT_CHECK_CONFIG(cond) \
+#define MURXLA_CHECK_CONFIG(cond) \
   (cond) ? (void) 0 : OstreamVoider() & ConfigExceptionStream().stream()
 
-#define SMTMBT_CHECK_TRACE(cond) \
+#define MURXLA_CHECK_TRACE(cond) \
   (cond) ? (void) 0 : OstreamVoider() & UntraceExceptionStream().stream()
 
-#define SMTMBT_CHECK_TRACE_EMPTY(tokens) \
-  SMTMBT_CHECK_TRACE((tokens).empty())   \
+#define MURXLA_CHECK_TRACE_EMPTY(tokens) \
+  MURXLA_CHECK_TRACE((tokens).empty())   \
       << "unexpected argument(s) to '" << get_kind() << "'";
 
-#define SMTMBT_CHECK_TRACE_NOT_EMPTY(tokens) \
-  SMTMBT_CHECK_TRACE(!(tokens).empty())      \
+#define MURXLA_CHECK_TRACE_NOT_EMPTY(tokens) \
+  MURXLA_CHECK_TRACE(!(tokens).empty())      \
       << "expected at least 1 argument to '" << get_kind() << "'";
 
-#define SMTMBT_CHECK_TRACE_NTOKENS(expected, ntokens)                   \
-  SMTMBT_CHECK_TRACE((ntokens) == (expected))                           \
+#define MURXLA_CHECK_TRACE_NTOKENS(expected, ntokens)                   \
+  MURXLA_CHECK_TRACE((ntokens) == (expected))                           \
       << "expected " << (expected) << " argument(s) to '" << get_kind() \
       << "', got " << (ntokens);
 
-#define SMTMBT_CHECK_TRACE_NTOKENS_MIN(expected, what, ntokens)              \
-  SMTMBT_CHECK_TRACE((ntokens) >= (expected))                                \
+#define MURXLA_CHECK_TRACE_NTOKENS_MIN(expected, what, ntokens)              \
+  MURXLA_CHECK_TRACE((ntokens) >= (expected))                                \
       << "expected at least " << (expected) << " argument(s)" << what "to '" \
       << get_kind() << "', got " << (ntokens);
 
-#define SMTMBT_CHECK_TRACE_NTOKENS_OF_SORT(expected, ntokens, sort)          \
-  SMTMBT_CHECK_TRACE((ntokens) == (expected))                                \
+#define MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(expected, ntokens, sort)          \
+  MURXLA_CHECK_TRACE((ntokens) == (expected))                                \
       << "expected " << ((expected) -1) << " argument(s) to '" << get_kind() \
       << "' of sort '" << (sort) << "', got " << ((ntokens) -1);
 
-#define SMTMBT_CHECK_TRACE_SORT(sort, id) \
-  SMTMBT_CHECK_TRACE((sort) != nullptr) << "unknown sort id '" << (id) << "'";
+#define MURXLA_CHECK_TRACE_SORT(sort, id) \
+  MURXLA_CHECK_TRACE((sort) != nullptr) << "unknown sort id '" << (id) << "'";
 
-#define SMTMBT_CHECK_TRACE_TERM(term, id) \
-  SMTMBT_CHECK_TRACE((term) != nullptr) << "unknown term id '" << (id) << "'";
+#define MURXLA_CHECK_TRACE_TERM(term, id) \
+  MURXLA_CHECK_TRACE((term) != nullptr) << "unknown term id '" << (id) << "'";
 
 /* -------------------------------------------------------------------------- */
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

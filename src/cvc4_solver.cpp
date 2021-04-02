@@ -1,4 +1,4 @@
-#ifdef SMTMBT_USE_CVC4
+#ifdef MURXLA_USE_CVC4
 
 #include "cvc4_solver.hpp"
 
@@ -11,10 +11,10 @@
 
 using namespace CVC4;
 
-namespace smtmbt {
+namespace murxla {
 namespace cvc4 {
 
-#define SMTMBT_CVC4_MAX_N_TERMS_CHECK_ENTAILED 5
+#define MURXLA_CVC4_MAX_N_TERMS_CHECK_ENTAILED 5
 
 /* -------------------------------------------------------------------------- */
 /* CVC4Sort                                                                   */
@@ -296,7 +296,7 @@ CVC4Solver::mk_sort(SortKind kind)
     case SORT_STRING: cvc4_res = d_solver->getStringSort(); break;
 
     default:
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "unsupported sort kind '" << kind
           << "' as argument to CVC4Solver::mk_sort, expected '" << SORT_BOOL
           << "', '" << SORT_INT << "', '" << SORT_REAL << "', '" << SORT_RM
@@ -311,7 +311,7 @@ CVC4Solver::mk_sort(SortKind kind)
 Sort
 CVC4Solver::mk_sort(SortKind kind, uint32_t size)
 {
-  SMTMBT_CHECK_CONFIG(kind == SORT_BV)
+  MURXLA_CHECK_CONFIG(kind == SORT_BV)
       << "unsupported sort kind '" << kind
       << "' as argument to CVC4Solver::mk_sort, expected '" << SORT_BV << "'";
   CVC4::api::Sort cvc4_res = d_solver->mkBitVectorSort(size);
@@ -326,7 +326,7 @@ CVC4Solver::mk_sort(SortKind kind, uint32_t size)
 Sort
 CVC4Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 {
-  SMTMBT_CHECK_CONFIG(kind == SORT_FP)
+  MURXLA_CHECK_CONFIG(kind == SORT_FP)
       << "unsupported sort kind '" << kind
       << "' as argument to CVC4Solver::mk_sort, expected '" << SORT_FP << "'";
   CVC4::api::Sort cvc4_res = d_solver->mkFloatingPointSort(esize, ssize);
@@ -364,7 +364,7 @@ CVC4Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     }
 
     default:
-      SMTMBT_CHECK_CONFIG(false) << "unsupported sort kind '" << kind
+      MURXLA_CHECK_CONFIG(false) << "unsupported sort kind '" << kind
                                  << "' as argument to CVC4Solver::mk_sort, "
                                     "expected '"
                                  << SORT_ARRAY << "' or '" << SORT_FUN << "'";
@@ -401,7 +401,7 @@ Term
 CVC4Solver::mk_value(Sort sort, bool value)
 {
   assert(sort->is_bool());
-  SMTMBT_CHECK_CONFIG(false) << "unexpected sort of kind '" << sort->get_kind()
+  MURXLA_CHECK_CONFIG(false) << "unexpected sort of kind '" << sort->get_kind()
                              << "' as argument to "
                                 "CVC4Solver::mk_value, expected Boolean sort ";
 
@@ -492,7 +492,7 @@ CVC4Solver::mk_value(Sort sort, std::string value)
       break;
 
     default:
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "unexpected sort of kind '" << sort->get_kind()
           << "' as argument to "
              "CVC4Solver::mk_value, expected Integer, Real, Reglan or String "
@@ -510,7 +510,7 @@ Term
 CVC4Solver::mk_value(Sort sort, std::string num, std::string den)
 {
   assert(sort->is_real());
-  SMTMBT_CHECK_CONFIG(sort->is_real())
+  MURXLA_CHECK_CONFIG(sort->is_real())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to "
          "CVC4Solver::mk_value, expected Real sort";
@@ -530,7 +530,7 @@ CVC4Solver::mk_value(Sort sort, std::string num, std::string den)
 Term
 CVC4Solver::mk_value(Sort sort, std::string value, Base base)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bv())
+  MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to "
          "CVC4Solver::mk_value, expected bit-vector sort";
@@ -721,7 +721,7 @@ CVC4Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
       break;
 
     default:
-      SMTMBT_CHECK_CONFIG(sort->is_bv())
+      MURXLA_CHECK_CONFIG(sort->is_bv())
           << "unexpected sort of kind '" << sort->get_kind()
           << "' as argument to "
              "CVC4Solver::mk_special_value, expected bit-vector, "
@@ -738,7 +738,7 @@ CVC4Solver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
-  SMTMBT_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
+  MURXLA_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
       << "CVC4Solver: operator kind '" << kind << "' not configured";
 
   CVC4::api::Term cvc4_res;
@@ -805,7 +805,7 @@ CVC4Solver::mk_term(const OpKind& kind,
   }
 
   /* use vector with 50% probability */
-  if (d_rng.flip_coin()) n_args = SMTMBT_MK_TERM_N_ARGS_BIN;
+  if (d_rng.flip_coin()) n_args = MURXLA_MK_TERM_N_ARGS_BIN;
 
   /* create term */
   switch (n_args)
@@ -887,7 +887,7 @@ CVC4Solver::mk_term(const OpKind& kind,
       break;
 
     default:
-      assert(n_args == SMTMBT_MK_TERM_N_ARGS_BIN || n_args > 3);
+      assert(n_args == MURXLA_MK_TERM_N_ARGS_BIN || n_args > 3);
       std::vector<CVC4::api::Term> cvc4_args;
       cvc4_args = terms_to_cvc4_terms(args);
       cvc4_res = n_params ? d_solver->mkTerm(cvc4_opterm, cvc4_args)
@@ -1438,7 +1438,7 @@ class CVC4ActionCheckEntailed : public Action
     else
     {
       uint32_t n_terms =
-          d_rng.pick<uint32_t>(1, SMTMBT_CVC4_MAX_N_TERMS_CHECK_ENTAILED);
+          d_rng.pick<uint32_t>(1, MURXLA_CVC4_MAX_N_TERMS_CHECK_ENTAILED);
       std::vector<Term> terms;
       for (uint32_t i = 0; i < n_terms; ++i)
       {
@@ -1453,11 +1453,11 @@ class CVC4ActionCheckEntailed : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS_MIN(1, "", tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS_MIN(1, "", tokens.size());
     if (tokens.size() == 1)
     {
       Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-      SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
+      MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
       _run(term);
     }
     else
@@ -1468,7 +1468,7 @@ class CVC4ActionCheckEntailed : public Action
       {
         uint32_t id = str_to_uint32(tokens[idx]);
         Term term   = d_smgr.get_term(id);
-        SMTMBT_CHECK_TRACE_TERM(term, id);
+        MURXLA_CHECK_TRACE_TERM(term, id);
         terms.push_back(term);
       }
       _run(terms);
@@ -1479,7 +1479,7 @@ class CVC4ActionCheckEntailed : public Action
  private:
   void _run(Term term)
   {
-    SMTMBT_TRACE << get_kind() << " " << term;
+    MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
     CVC4Solver& solver        = static_cast<CVC4Solver&>(d_smgr.get_solver());
     CVC4::api::Solver* cvc4   = solver.get_solver();
@@ -1513,7 +1513,7 @@ class CVC4ActionCheckEntailed : public Action
 
   void _run(std::vector<Term> terms)
   {
-    SMTMBT_TRACE << get_kind() << " " << terms.size() << terms;
+    MURXLA_TRACE << get_kind() << " " << terms.size() << terms;
     d_smgr.reset_sat();
     CVC4Solver& solver      = static_cast<CVC4Solver&>(d_smgr.get_solver());
     CVC4::api::Solver* cvc4 = solver.get_solver();
@@ -1564,16 +1564,16 @@ class CVC4ActionSimplify : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     return _run(term);
   }
 
  private:
   uint64_t _run(Term term)
   {
-    SMTMBT_TRACE << get_kind() << " " << term;
+    MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
     CVC4Solver& solver       = static_cast<CVC4Solver&>(d_smgr.get_solver());
     CVC4::api::Solver* cvc4  = solver.get_solver();
@@ -1590,7 +1590,7 @@ class CVC4ActionSimplify : public Action
       res->set_levels(term->get_levels());
     }
     d_smgr.add_term(res, sort->get_kind());
-    SMTMBT_TRACE_RETURN << res;
+    MURXLA_TRACE_RETURN << res;
     return res->get_id();
   }
 };
@@ -1612,6 +1612,6 @@ CVC4Solver::configure_fsm(FSM* fsm) const
   s_sat->add_action(a_check_entailed, 1);
 }
 }  // namespace btor
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

@@ -1,7 +1,7 @@
 #include "sort.hpp"
 #include <iostream>
 
-namespace smtmbt {
+namespace murxla {
 
 std::ostream&
 operator<<(std::ostream& out, SortKind kind)
@@ -36,4 +36,4 @@ sort_kind_from_str(std::string& s)
   return SORT_ANY;
 }
 
-}  // namespace smtmbt
+}  // namespace murxla

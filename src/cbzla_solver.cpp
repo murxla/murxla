@@ -1,4 +1,4 @@
-#ifdef SMTMBT_USE_CBITWUZLA
+#ifdef MURXLA_USE_CBITWUZLA
 
 #include "cbzla_solver.hpp"
 
@@ -11,7 +11,7 @@
 #include "theory.hpp"
 #include "util.hpp"
 
-namespace smtmbt {
+namespace murxla {
 namespace cbzla {
 
 /* -------------------------------------------------------------------------- */
@@ -295,7 +295,7 @@ CBzlaSolver::get_unsupported_fun_domain_sort_kinds() const
 Sort
 CBzlaSolver::mk_sort(SortKind kind)
 {
-  SMTMBT_CHECK_CONFIG(kind == SORT_BOOL || kind == SORT_RM)
+  MURXLA_CHECK_CONFIG(kind == SORT_BOOL || kind == SORT_RM)
       << "unsupported sort kind '" << kind
       << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_BOOL
       << "' or '" << SORT_RM << "'";
@@ -313,7 +313,7 @@ CBzlaSolver::mk_sort(SortKind kind)
 Sort
 CBzlaSolver::mk_sort(SortKind kind, uint32_t size)
 {
-  SMTMBT_CHECK_CONFIG(kind == SORT_BV)
+  MURXLA_CHECK_CONFIG(kind == SORT_BV)
       << "unsupported sort kind '" << kind
       << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_BV << "'";
 
@@ -327,7 +327,7 @@ CBzlaSolver::mk_sort(SortKind kind, uint32_t size)
 Sort
 CBzlaSolver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 {
-  SMTMBT_CHECK_CONFIG(kind == SORT_FP)
+  MURXLA_CHECK_CONFIG(kind == SORT_FP)
       << "unsupported sort kind '" << kind
       << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_FP << "'";
 
@@ -364,7 +364,7 @@ CBzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     }
 
     default:
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "unsupported sort kind '" << kind
           << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_ARRAY
           << "' or '" << SORT_FUN << "'";
@@ -430,7 +430,7 @@ CBzlaSolver::mk_const(Sort sort, const std::string& name)
 Term
 CBzlaSolver::mk_value(Sort sort, bool value)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bool())
+  MURXLA_CHECK_CONFIG(sort->is_bool())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to CBzlaSolver::mk_value, expected Boolean sort";
 
@@ -456,7 +456,7 @@ CBzlaSolver::mk_value(Sort sort, bool value)
 BitwuzlaTerm*
 CBzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bv())
+  MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to CBzlaSolver::mk_value, expected bit-vector sort";
 
@@ -470,7 +470,7 @@ CBzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 Term
 CBzlaSolver::mk_value(Sort sort, std::string value, Base base)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bv())
+  MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to CBzlaSolver::mk_value, expected bit-vector sort";
 
@@ -605,7 +605,7 @@ CBzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
       break;
 
     default:
-      SMTMBT_CHECK_CONFIG(sort->is_bv())
+      MURXLA_CHECK_CONFIG(sort->is_bv())
           << "unexpected sort of kind '" << sort->get_kind()
           << "' as argument to CBzlaSolver::mk_special_value, expected "
              "bit-vector, floating-point or RoundingMode sort";
@@ -622,7 +622,7 @@ CBzlaSolver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
-  SMTMBT_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
+  MURXLA_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
       << "CBzlaSolver: operator kind '" << kind << "' not configured";
 
   BitwuzlaTerm* cbzla_res = nullptr;
@@ -1202,9 +1202,9 @@ class CBzlaActionIsUnsatAssumption : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return 0;
   }
@@ -1212,7 +1212,7 @@ class CBzlaActionIsUnsatAssumption : public Action
  private:
   void _run(Term term)
   {
-    SMTMBT_TRACE << get_kind() << " " << term;
+    MURXLA_TRACE << get_kind() << " " << term;
     CBzlaSolver& cbzla_solver = static_cast<CBzlaSolver&>(d_smgr.get_solver());
     (void) bitwuzla_is_unsat_assumption(cbzla_solver.get_solver(),
                                         cbzla_solver.get_bzla_term(term));
@@ -1237,7 +1237,7 @@ class CBzlaActionFixateAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1245,7 +1245,7 @@ class CBzlaActionFixateAssumptions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     d_smgr.clear();
     bitwuzla_fixate_assumptions(
         static_cast<CBzlaSolver&>(d_smgr.get_solver()).get_solver());
@@ -1270,7 +1270,7 @@ class CBzlaActionResetAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1278,7 +1278,7 @@ class CBzlaActionResetAssumptions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     d_smgr.clear();
     bitwuzla_reset_assumptions(
         static_cast<CBzlaSolver&>(d_smgr.get_solver()).get_solver());
@@ -1304,7 +1304,7 @@ class CBzlaActionSimplify : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1312,7 +1312,7 @@ class CBzlaActionSimplify : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     bitwuzla_simplify(
         static_cast<CBzlaSolver&>(d_smgr.get_solver()).get_solver());
   }
@@ -1338,9 +1338,9 @@ class CBzlaActionTermSetSymbol : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     _run(term, symbol);
     return 0;
@@ -1349,7 +1349,7 @@ class CBzlaActionTermSetSymbol : public Action
  private:
   void _run(Term term, std::string symbol)
   {
-    SMTMBT_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
+    MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
     CBzlaSolver& cbzla_solver = static_cast<CBzlaSolver&>(d_smgr.get_solver());
     (void) bitwuzla_term_set_symbol(cbzla_solver.get_bzla_term(term),
                                     symbol.c_str());
@@ -1390,6 +1390,6 @@ CBzlaSolver::configure_fsm(FSM* fsm) const
 }
 
 }  // namespace cbzla
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

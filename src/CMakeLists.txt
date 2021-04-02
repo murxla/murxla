@@ -1,4 +1,4 @@
-set(smtmbt_src_files
+set(murxla_src_files
   btor_solver.cpp
   cbzla_solver.cpp
   cvc4_solver.cpp
@@ -18,25 +18,25 @@ set(smtmbt_src_files
   yices_solver.cpp
 )
 
-add_executable(smtmbt ${smtmbt_src_files})
+add_executable(murxla ${murxla_src_files})
 
 if(Boolector_FOUND)
-  target_link_libraries(smtmbt Boolector::boolector)
-  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_BOOLECTOR)
+  target_link_libraries(murxla Boolector::boolector)
+  target_compile_definitions(murxla PUBLIC MURXLA_USE_BOOLECTOR)
 
   add_executable(genbtoropt btor/gen_btor_options.cpp)
   target_link_libraries(genbtoropt Boolector::boolector)
 endif()
 
 if(CBitwuzla_FOUND)
-  target_link_libraries(smtmbt CBitwuzla::cbitwuzla)
-  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_CBITWUZLA)
+  target_link_libraries(murxla CBitwuzla::cbitwuzla)
+  target_compile_definitions(murxla PUBLIC MURXLA_USE_CBITWUZLA)
   # TODO: Bitwuzla options
 endif()
 
 if(CVC4_FOUND)
-  target_link_libraries(smtmbt CVC4::cvc4)
-  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_CVC4)
+  target_link_libraries(murxla CVC4::cvc4)
+  target_compile_definitions(murxla PUBLIC MURXLA_USE_CVC4)
 
   if(toml11_FOUND)
     add_executable(gencvc4options cvc4/gen_cvc4_options.cpp)
@@ -45,13 +45,13 @@ if(CVC4_FOUND)
 endif()
 
 if(toml11_FOUND)
-  target_link_libraries(smtmbt toml11::toml11)
-  target_compile_definitions(smtmbt PUBLIC HAVE_TOML11)
+  target_link_libraries(murxla toml11::toml11)
+  target_compile_definitions(murxla PUBLIC HAVE_TOML11)
 endif()
 
 if (Yices_FOUND)
-  target_include_directories(smtmbt PRIVATE ${Yices_INCLUDE_DIR})
-  target_link_libraries(smtmbt ${Yices_LIBRARIES})
-  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_YICES)
+  target_include_directories(murxla PRIVATE ${Yices_INCLUDE_DIR})
+  target_link_libraries(murxla ${Yices_LIBRARIES})
+  target_compile_definitions(murxla PUBLIC MURXLA_USE_YICES)
   # TODO: Yices options
 endif()

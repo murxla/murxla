@@ -1,14 +1,14 @@
-#ifdef SMTMBT_USE_BOOLECTOR
+#ifdef MURXLA_USE_BOOLECTOR
 
-#ifndef __SMTMBT__BTOR_SOLVER_H
-#define __SMTMBT__BTOR_SOLVER_H
+#ifndef __MURXLA__BTOR_SOLVER_H
+#define __MURXLA__BTOR_SOLVER_H
 
 #include "boolector/boolector.h"
 #include "fsm.hpp"
 #include "solver.hpp"
 #include "theory.hpp"
 
-namespace smtmbt {
+namespace murxla {
 namespace btor {
 
 /* -------------------------------------------------------------------------- */
@@ -232,7 +232,7 @@ class BtorSolver : public Solver
 };
 
 }  // namespace btor
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif
 

@@ -3,7 +3,7 @@
 #include <iterator>
 #include <sstream>
 
-namespace smtmbt {
+namespace murxla {
 
 SolverOption::SolverOption(const std::string& name,
                            std::vector<std::string>& depends,
@@ -66,4 +66,4 @@ SolverOptionList::pick_value(RNGenerator& rng) const
   return d_values[rng.pick<uint32_t>() % d_values.size()];
 }
 
-}  // namespace smtmbt
+}  // namespace murxla

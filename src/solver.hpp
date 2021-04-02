@@ -1,5 +1,5 @@
-#ifndef __SMTMBT__SOLVER_H
-#define __SMTMBT__SOLVER_H
+#ifndef __MURXLA__SOLVER_H
+#define __MURXLA__SOLVER_H
 
 #include <cassert>
 #include <cstddef>
@@ -15,7 +15,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace smtmbt {
+namespace murxla {
 class FSM;
 class SolverManager;
 
@@ -361,6 +361,6 @@ std::ostream& operator<<(std::ostream& out, const Solver::Result& r);
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

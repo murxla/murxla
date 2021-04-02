@@ -1,7 +1,7 @@
-#ifdef SMTMBT_USE_YICES
+#ifdef MURXLA_USE_YICES
 
-#ifndef __SMTMBT__YICES_SOLVER_H
-#define __SMTMBT__YICES_SOLVER_H
+#ifndef __MURXLA__YICES_SOLVER_H
+#define __MURXLA__YICES_SOLVER_H
 
 #include <bitset>
 
@@ -10,7 +10,7 @@
 #include "theory.hpp"
 #include "yices.h"
 
-namespace smtmbt {
+namespace murxla {
 namespace yices {
 
 /* -------------------------------------------------------------------------- */
@@ -231,7 +231,7 @@ class YicesSolver : public Solver
 };
 
 }  // namespace yices
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif
 

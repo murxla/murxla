@@ -1,5 +1,5 @@
-#ifndef __SMTMBT__FSM_HPP_INCLUDED
-#define __SMTMBT__FSM_HPP_INCLUDED
+#ifndef __MURXLA__FSM_HPP_INCLUDED
+#define __MURXLA__FSM_HPP_INCLUDED
 
 #include <cstdint>
 #include <cstring>
@@ -19,20 +19,20 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_TRACE                      \
+#define MURXLA_TRACE                      \
   OstreamVoider()                         \
       & FSM::TraceStream(d_smgr).stream() \
             << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "")
 
-#define SMTMBT_TRACE_RETURN \
+#define MURXLA_TRACE_RETURN \
   OstreamVoider() & FSM::TraceStream(d_smgr).stream() << "return "
 
-#define SMTMBT_TRACE_GET_SORT \
+#define MURXLA_TRACE_GET_SORT \
   OstreamVoider() & FSM::TraceStream(d_smgr).stream() << TERM_GET_SORT << " "
 
 /* -------------------------------------------------------------------------- */
 
-namespace smtmbt {
+namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
@@ -101,10 +101,10 @@ class Action
         d_kind(kind)
 
   {
-    SMTMBT_CHECK_CONFIG(kind.size() <= SMTMBT_MAX_KIND_LEN)
+    MURXLA_CHECK_CONFIG(kind.size() <= MURXLA_MAX_KIND_LEN)
         << "'" << kind
         << "' exceeds maximum length for action kinds, increase limit by "
-           "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
+           "adjusting value of macro MURXLA_MAX_KIND_LEN in config.hpp";
   }
 
   /** Destructor. */
@@ -240,10 +240,10 @@ class State
   State(const StateKind& kind, std::function<bool(void)> fun, bool is_final)
       : d_kind(kind), d_is_final(is_final), f_precond(fun)
   {
-    SMTMBT_CHECK_CONFIG(kind.size() <= SMTMBT_MAX_KIND_LEN)
+    MURXLA_CHECK_CONFIG(kind.size() <= MURXLA_MAX_KIND_LEN)
         << "'" << kind
         << "' exceeds maximum length for state kinds, increase limit by "
-           "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
+           "adjusting value of macro MURXLA_MAX_KIND_LEN in config.hpp";
   }
 
   /** Returns the identifier of this state. */
@@ -436,16 +436,16 @@ FSM::new_action()
                 "expected class (derived from) Action");
   T* action               = new T(d_smgr);
   const ActionKind& kind  = action->get_kind();
-  assert(kind.size() <= SMTMBT_MAX_KIND_LEN);
+  assert(kind.size() <= MURXLA_MAX_KIND_LEN);
   if (d_actions.find(kind) == d_actions.end())
   {
     uint64_t id = d_actions.size();
-    if (id >= SMTMBT_MAX_N_ACTIONS)
+    if (id >= MURXLA_MAX_N_ACTIONS)
     {
       delete action;
       throw SmtMbtConfigException(
           "maximum number of actions exceeded, increase limit by adjusting "
-          "value of macro SMTMBT_MAX_N_ACTIONS in config.hpp");
+          "value of macro MURXLA_MAX_N_ACTIONS in config.hpp");
     }
     action->set_id(id);
     d_actions[kind].reset(action);
@@ -484,5 +484,5 @@ FSM::add_action_to_all_states_next(
           action, priority, state, excluded_states));
 }
 
-}  // namespace smtmbt
+}  // namespace murxla
 #endif

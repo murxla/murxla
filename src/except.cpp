@@ -2,9 +2,9 @@
 
 #include <iostream>
 
-namespace smtmbt {
+namespace murxla {
 
-WarnStream::WarnStream() { stream() << "smtmbt: WARNING: "; }
+WarnStream::WarnStream() { stream() << "murxla: WARNING: "; }
 
 WarnStream::~WarnStream() { flush(); }
 
@@ -21,7 +21,7 @@ WarnStream::flush()
   stream().flush();
 }
 
-AbortStream::AbortStream() { stream() << "smtmbt: ERROR: "; }
+AbortStream::AbortStream() { stream() << "murxla: ERROR: "; }
 
 AbortStream::~AbortStream()
 {
@@ -92,4 +92,4 @@ UntraceExceptionStream::flush()
   stream().flush();
 }
 
-}  // namespace smtmbt
+}  // namespace murxla

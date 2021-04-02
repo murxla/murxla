@@ -1,14 +1,14 @@
-#ifdef SMTMBT_USE_CBITWUZLA
+#ifdef MURXLA_USE_CBITWUZLA
 
-#ifndef __SMTMBT__CBITWUZLA_SOLVER_H
-#define __SMTMBT__CBITWUZLA_SOLVER_H
+#ifndef __MURXLA__CBITWUZLA_SOLVER_H
+#define __MURXLA__CBITWUZLA_SOLVER_H
 
 #include "cbitwuzla/bitwuzla.h"
 #include "fsm.hpp"
 #include "solver.hpp"
 #include "theory.hpp"
 
-namespace smtmbt {
+namespace murxla {
 namespace cbzla {
 
 /* -------------------------------------------------------------------------- */
@@ -219,7 +219,7 @@ class CBzlaSolver : public Solver
 };
 
 }  // namespace cbzla
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif
 

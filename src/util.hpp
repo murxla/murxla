@@ -1,5 +1,5 @@
-#ifndef __SMTMBT__UTIL_H
-#define __SMTMBT__UTIL_H
+#ifndef __MURXLA__UTIL_H
+#define __MURXLA__UTIL_H
 
 #include <cassert>
 #include <cstdint>
@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace smtmbt {
+namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
@@ -240,6 +240,6 @@ std::ostream& operator<<(std::ostream& out,
                          const std::vector<uint32_t>& vector);
 
 /* -------------------------------------------------------------------------- */
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

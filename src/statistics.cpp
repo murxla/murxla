@@ -3,7 +3,7 @@
 #include "op.hpp"
 #include "solver.hpp"
 
-namespace smtmbt {
+namespace murxla {
 namespace statistics {
 
 void
@@ -14,7 +14,7 @@ Statistics::print() const
   uint64_t sum = 0;
 
   std::cout << "States:" << std::endl;
-  for (uint32_t i = 0; i < SMTMBT_MAX_N_STATES && d_state_kinds[i][0]; ++i)
+  for (uint32_t i = 0; i < MURXLA_MAX_N_STATES && d_state_kinds[i][0]; ++i)
   {
     std::cout << "  " << d_state_kinds[i] << ": " << d_states[i] << std::endl;
     sum += d_states[i];
@@ -23,7 +23,7 @@ Statistics::print() const
 
   sum = 0;
   std::cout << "Actions:" << std::endl;
-  for (uint32_t i = 0; i < SMTMBT_MAX_N_ACTIONS && d_action_kinds[i][0]; ++i)
+  for (uint32_t i = 0; i < MURXLA_MAX_N_ACTIONS && d_action_kinds[i][0]; ++i)
   {
     std::cout << "  " << d_action_kinds[i] << ": " << d_actions[i] << " ("
               << d_actions_ok[i] << ")" << std::endl;
@@ -43,7 +43,7 @@ Statistics::print() const
 
   sum = 0;
   std::cout << "Ops:" << std::endl;
-  for (uint32_t i = 0; i < SMTMBT_MAX_N_OPS && d_op_kinds[i][0]; ++i)
+  for (uint32_t i = 0; i < MURXLA_MAX_N_OPS && d_op_kinds[i][0]; ++i)
   {
     std::cout << "  " << d_op_kinds[i] << ": " << d_ops[i] << " ("
               << d_ops_ok[i] << ")" << std::endl;
@@ -53,4 +53,4 @@ Statistics::print() const
 }
 
 }  // namespace statistics
-}  // namespace smtmbt
+}  // namespace murxla

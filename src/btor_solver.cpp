@@ -1,4 +1,4 @@
-#ifdef SMTMBT_USE_BOOLECTOR
+#ifdef MURXLA_USE_BOOLECTOR
 
 #include "btor_solver.hpp"
 
@@ -10,7 +10,7 @@
 #include "theory.hpp"
 #include "util.hpp"
 
-namespace smtmbt {
+namespace murxla {
 namespace btor {
 
 /* -------------------------------------------------------------------------- */
@@ -319,7 +319,7 @@ BtorSolver::get_unsupported_fun_domain_sort_kinds() const
 Sort
 BtorSolver::mk_sort(SortKind kind)
 {
-  SMTMBT_CHECK_CONFIG(kind == SORT_BOOL)
+  MURXLA_CHECK_CONFIG(kind == SORT_BOOL)
       << "unsupported sort kind '" << kind
       << "' as argument to BtorSolver::mk_sort, expected '" << SORT_BOOL << "'";
   BoolectorSort btor_res = boolector_bool_sort(d_solver);
@@ -333,7 +333,7 @@ BtorSolver::mk_sort(SortKind kind)
 Sort
 BtorSolver::mk_sort(SortKind kind, uint32_t size)
 {
-  SMTMBT_CHECK_CONFIG(kind == SORT_BV)
+  MURXLA_CHECK_CONFIG(kind == SORT_BV)
       << "unsupported sort kind '" << kind
       << "' as argument to BtorSolver::mk_sort, expected '" << SORT_BV << "'";
   BoolectorSort btor_res = boolector_bitvec_sort(d_solver, size);
@@ -370,7 +370,7 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     }
 
     default:
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "unsupported sort kind '" << kind
           << "' as argument to BtorSolver::mk_sort, expected '" << SORT_ARRAY
           << "' or '" << SORT_FUN << "'";
@@ -470,7 +470,7 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
 Term
 BtorSolver::mk_value(Sort sort, bool value)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bool())
+  MURXLA_CHECK_CONFIG(sort->is_bool())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to BtorSolver::mk_value, expected Boolean sort";
 
@@ -504,7 +504,7 @@ BtorSolver::mk_value(Sort sort, bool value)
 BoolectorNode*
 BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bv())
+  MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to BtorSolver::mk_value, expected bit-vector sort";
 
@@ -520,9 +520,9 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
         d_solver, static_cast<uint32_t>(value), btor_sort);
     if (check_bits)
     {
-      str = std::bitset<SMTMBT_BW_MAX>(static_cast<uint32_t>(value))
+      str = std::bitset<MURXLA_BW_MAX>(static_cast<uint32_t>(value))
                 .to_string()
-                .substr(SMTMBT_BW_MAX - bw, bw);
+                .substr(MURXLA_BW_MAX - bw, bw);
       assert(str.size() == bw);
     }
   }
@@ -531,9 +531,9 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
     btor_res = boolector_int(d_solver, static_cast<int32_t>(value), btor_sort);
     if (check_bits)
     {
-      str = std::bitset<SMTMBT_BW_MAX>(static_cast<int32_t>(value))
+      str = std::bitset<MURXLA_BW_MAX>(static_cast<int32_t>(value))
                 .to_string()
-                .substr(SMTMBT_BW_MAX - bw, bw);
+                .substr(MURXLA_BW_MAX - bw, bw);
       assert(str.size() == bw);
     }
   }
@@ -552,7 +552,7 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 Term
 BtorSolver::mk_value(Sort sort, std::string value, Base base)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bv())
+  MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to BtorSolver::mk_value, expected bit-vector sort";
 
@@ -627,7 +627,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
 Term
 BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bv())
+  MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to BtorSolver::mk_special_value, expected bit-vector "
          "sort";
@@ -1041,7 +1041,7 @@ BtorSolver::mk_term(const OpKind& kind,
     }
     else
     {
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "BtorSolver: operator kind '" << kind << "' not configured";
     }
   }
@@ -1595,7 +1595,7 @@ class BtorActionBvAssignment : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1610,7 +1610,7 @@ class BtorActionBvAssignment : public Action
      *       as it is implemented now, and since its API will not change / be
      *       extended anymore (Boolector is succeeded by Bitwuzla), we consider
      *       it not worth the effort. */
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     uint64_t n = d_rng.pick<uint64_t>(1, d_smgr.get_n_terms(SORT_BV));
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     std::vector<const char*> assignments;
@@ -1645,7 +1645,7 @@ class BtorActionClone : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1653,7 +1653,7 @@ class BtorActionClone : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     Btor* btor         = solver.get_solver();
     Btor* clone        = boolector_clone(btor);
@@ -1768,9 +1768,9 @@ class BtorActionFailed : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return 0;
   }
@@ -1778,7 +1778,7 @@ class BtorActionFailed : public Action
  private:
   void _run(Term term)
   {
-    SMTMBT_TRACE << get_kind() << " " << term;
+    MURXLA_TRACE << get_kind() << " " << term;
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     (void) boolector_failed(btor_solver.get_solver(),
                             btor_solver.get_btor_term(term));
@@ -1803,7 +1803,7 @@ class BtorActionFixateAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1811,7 +1811,7 @@ class BtorActionFixateAssumptions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     d_smgr.clear();
     boolector_fixate_assumptions(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
@@ -1835,7 +1835,7 @@ class BtorActionOptIterator : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1843,7 +1843,7 @@ class BtorActionOptIterator : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     Btor* btor = static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver();
     for (BtorOption opt = boolector_first_opt(btor); opt < BTOR_OPT_NUM_OPTS;
          opt            = boolector_next_opt(btor, opt))
@@ -1889,7 +1889,7 @@ class BtorActionReleaseAll : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1897,7 +1897,7 @@ class BtorActionReleaseAll : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     d_smgr.clear();
     boolector_release_all(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
@@ -1922,7 +1922,7 @@ class BtorActionResetAssumptions : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -1930,7 +1930,7 @@ class BtorActionResetAssumptions : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     d_smgr.clear();
     boolector_reset_assumptions(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
@@ -1959,7 +1959,7 @@ class BtorActionSetSatSolver : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.size() == 1);
-    SMTMBT_CHECK_TRACE_NTOKENS(1, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     _run(tokens[0]);
     return 0;
   }
@@ -1967,7 +1967,7 @@ class BtorActionSetSatSolver : public Action
  private:
   void _run(std::string sat_solver)
   {
-    SMTMBT_TRACE << get_kind() << " " << sat_solver;
+    MURXLA_TRACE << get_kind() << " " << sat_solver;
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     boolector_set_sat_solver(solver.get_solver(), sat_solver.c_str());
   }
@@ -1992,7 +1992,7 @@ class BtorActionSimplify : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_EMPTY(tokens);
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
     return 0;
   }
@@ -2000,7 +2000,7 @@ class BtorActionSimplify : public Action
  private:
   void _run()
   {
-    SMTMBT_TRACE << get_kind();
+    MURXLA_TRACE << get_kind();
     boolector_simplify(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
   }
@@ -2026,9 +2026,9 @@ class BtorActionSetSymbol : public Action
 
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
-    SMTMBT_CHECK_TRACE_NTOKENS(2, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     Term term = d_smgr.get_term(str_to_uint32(tokens[0]));
-    SMTMBT_CHECK_TRACE_TERM(term, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     _run(term, symbol);
     return 0;
@@ -2037,7 +2037,7 @@ class BtorActionSetSymbol : public Action
  private:
   void _run(Term term, std::string symbol)
   {
-    SMTMBT_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
+    MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     (void) boolector_set_symbol(btor_solver.get_solver(),
                                 btor_solver.get_btor_term(term),
@@ -2102,6 +2102,6 @@ BtorSolver::configure_fsm(FSM* fsm) const
 }
 
 }  // namespace btor
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

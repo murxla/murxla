@@ -1,14 +1,14 @@
-#ifdef SMTMBT_USE_YICES
+#ifdef MURXLA_USE_YICES
 
 #include "yices_solver.hpp"
 
 #include "config.hpp"
 #include "util.hpp"
 
-namespace smtmbt {
+namespace murxla {
 namespace yices {
 
-#define SMTMBT_YICES_MAX_DEGREE 10
+#define MURXLA_YICES_MAX_DEGREE 10
 
 /* -------------------------------------------------------------------------- */
 /* YicesSort                                                                  */
@@ -420,7 +420,7 @@ YicesSolver::mk_const(Sort sort, const std::string& name)
 Term
 YicesSolver::mk_value(Sort sort, bool value)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bool())
+  MURXLA_CHECK_CONFIG(sort->is_bool())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to YicesSolver::mk_value, expected Boolean sort";
 
@@ -504,7 +504,7 @@ YicesSolver::mk_value(Sort sort, std::string value)
     break;
 
     default:
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "unexpected sort of kind '" << sort->get_kind()
           << "' as argument to YicesSolver::mk_value, expected Integer or Real "
              "sort";
@@ -518,7 +518,7 @@ YicesSolver::mk_value(Sort sort, std::string value)
 Term
 YicesSolver::mk_value(Sort sort, std::string num, std::string den)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_real())
+  MURXLA_CHECK_CONFIG(sort->is_real())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to YicesSolver::mk_value, expected Real "
          "sort";
@@ -728,7 +728,7 @@ YicesSolver::mk_value(Sort sort, std::string value, Base base)
 Term
 YicesSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
-  SMTMBT_CHECK_CONFIG(sort->is_bv())
+  MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to YicesSolver::mk_special_value, expected bit-vector "
          "sort";
@@ -788,7 +788,7 @@ YicesSolver::mk_sort(SortKind kind)
     case SORT_REAL: yices_res = yices_real_type(); break;
 
     default:
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "unsupported sort kind '" << kind
           << "' as argument to YicesSolver::mk_sort, expected '" << SORT_BOOL
           << "', '" << SORT_INT << "', '" << SORT_REAL << "'";
@@ -802,7 +802,7 @@ YicesSolver::mk_sort(SortKind kind)
 Sort
 YicesSolver::mk_sort(SortKind kind, uint32_t size)
 {
-  SMTMBT_CHECK_CONFIG(kind == SORT_BV)
+  MURXLA_CHECK_CONFIG(kind == SORT_BV)
       << "unsupported sort kind '" << kind
       << "' as argument to YicesSolver::mk_sort, expected '" << SORT_BV << "'";
 
@@ -840,7 +840,7 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     break;
 
     default:
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "unsupported sort kind '" << kind
           << "' as argument to YicesSolver::mk_sort, expected '" << SORT_ARRAY
           << "' or '" << SORT_FUN << "'";
@@ -1623,7 +1623,7 @@ YicesSolver::mk_term(const std::string& kind,
       assert(n_params == 1);
       yices_res = yices_power(
           yices_args[0],
-          uint32_to_value_in_range(params[0], 0, SMTMBT_YICES_MAX_DEGREE));
+          uint32_to_value_in_range(params[0], 0, MURXLA_YICES_MAX_DEGREE));
     }
     else if (kind == OP_INT_SQUARE || kind == OP_REAL_SQUARE)
     {
@@ -1692,7 +1692,7 @@ YicesSolver::mk_term(const std::string& kind,
     }
     else
     {
-      SMTMBT_CHECK_CONFIG(false)
+      MURXLA_CHECK_CONFIG(false)
           << "YicesSolver: operator kind '" << kind << "' not configured";
     }
   }
@@ -2008,7 +2008,7 @@ YicesSolver::configure_smgr(SolverManager* smgr) const
   smgr->add_op_kind(OP_BITEXTRACT, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
 
   smgr->add_op_kind(
-      OP_BVARRAY, SMTMBT_MK_TERM_N_ARGS, 0, SORT_BV, {SORT_BOOL}, THEORY_BV);
+      OP_BVARRAY, MURXLA_MK_TERM_N_ARGS, 0, SORT_BV, {SORT_BOOL}, THEORY_BV);
 
   /* Ints */
   smgr->add_op_kind(OP_INT_EQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
@@ -2022,7 +2022,7 @@ YicesSolver::configure_smgr(SolverManager* smgr) const
   smgr->add_op_kind(OP_INT_CEIL, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   smgr->add_op_kind(OP_INT_FLOOR, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   smgr->add_op_kind(
-      OP_INT_POLY, SMTMBT_MK_TERM_N_ARGS, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+      OP_INT_POLY, MURXLA_MK_TERM_N_ARGS, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   /* Reals */
   smgr->add_op_kind(OP_REAL_EQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   smgr->add_op_kind(OP_REAL_NEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
@@ -2035,13 +2035,13 @@ YicesSolver::configure_smgr(SolverManager* smgr) const
   smgr->add_op_kind(OP_REAL_CEIL, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   smgr->add_op_kind(OP_REAL_FLOOR, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   smgr->add_op_kind(OP_REAL_POLY,
-                    SMTMBT_MK_TERM_N_ARGS,
+                    MURXLA_MK_TERM_N_ARGS,
                     0,
                     SORT_REAL,
                     {SORT_REAL},
                     THEORY_REAL);
   smgr->add_op_kind(OP_REAL_RPOLY,
-                    SMTMBT_MK_TERM_N_ARGS,
+                    MURXLA_MK_TERM_N_ARGS,
                     0,
                     SORT_REAL,
                     {SORT_REAL},
@@ -2061,6 +2061,6 @@ YicesSolver::configure_fsm(FSM* fsm) const
 /* -------------------------------------------------------------------------- */
 
 }  // namespace yices
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

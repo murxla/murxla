@@ -5,7 +5,7 @@
 
 #include "exit.hpp"
 
-namespace smtmbt {
+namespace murxla {
 namespace smt2 {
 
 /* -------------------------------------------------------------------------- */
@@ -315,7 +315,7 @@ Smt2Solver::push_to_external(std::string s, ResponseKind expected)
     case ResponseKind::SMT2_SUCCESS:
       if (res != "success")
       {
-        std::cerr << "[smtmbt] SMT2: Error: expected 'success' response from "
+        std::cerr << "[murxla] SMT2: Error: expected 'success' response from "
                      "online solver but got '"
                   << res << "'" << std::endl;
         exit(EXIT_ERROR);
@@ -324,7 +324,7 @@ Smt2Solver::push_to_external(std::string s, ResponseKind expected)
     case ResponseKind::SMT2_SAT:
       if (res != "sat" && res != "unsat" && res != "unknown")
       {
-        std::cerr << "[smtmbt] SMT2: Error: expected 'sat', 'unsat' or "
+        std::cerr << "[murxla] SMT2: Error: expected 'sat', 'unsat' or "
                      "'unknown' response from online solver but got '"
                   << res << "'" << std::endl;
         exit(EXIT_ERROR);
@@ -348,7 +348,7 @@ Smt2Solver::push_to_external(std::string s, ResponseKind expected)
           || res.find("Error") != std::string::npos
           || res.find("ERROR") != std::string::npos)
       {
-        std::cerr << "[smtmbt] SMT2: Error: expected S-expression response "
+        std::cerr << "[murxla] SMT2: Error: expected S-expression response "
                      "from online solver but got '"
                   << res << "'" << std::endl;
         exit(EXIT_ERROR);
@@ -1128,4 +1128,4 @@ Smt2Solver::get_value(std::vector<Term>& terms)
 }
 
 }  // namespace smt2
-}  // namespace smtmbt
+}  // namespace murxla

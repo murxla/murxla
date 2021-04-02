@@ -1,13 +1,13 @@
-#ifdef SMTMBT_USE_CVC4
+#ifdef MURXLA_USE_CVC4
 
-#ifndef __SMTMBT__CVC4_SOLVER_H
-#define __SMTMBT__CVC4_SOLVER_H
+#ifndef __MURXLA__CVC4_SOLVER_H
+#define __MURXLA__CVC4_SOLVER_H
 
 #include "cvc4/api/cvc4cpp.h"
 #include "fsm.hpp"
 #include "solver.hpp"
 
-namespace smtmbt {
+namespace murxla {
 namespace cvc4 {
 
 /* -------------------------------------------------------------------------- */
@@ -202,7 +202,7 @@ class CVC4Solver : public Solver
 };
 
 }  // namespace btor
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif
 

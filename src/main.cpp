@@ -28,19 +28,19 @@
 #include "util.hpp"
 #include "yices_solver.hpp"
 
-using namespace smtmbt;
+using namespace murxla;
 using namespace statistics;
 
-#define SMTMBT_SOLVER_BTOR "btor"
-#define SMTMBT_SOLVER_CBZLA "cbzla"
-#define SMTMBT_SOLVER_CVC4 "cvc4"
-#define SMTMBT_SOLVER_SMT2 "smt2"
-#define SMTMBT_SOLVER_YICES "yices"
+#define MURXLA_SOLVER_BTOR "btor"
+#define MURXLA_SOLVER_CBZLA "cbzla"
+#define MURXLA_SOLVER_CVC4 "cvc4"
+#define MURXLA_SOLVER_SMT2 "smt2"
+#define MURXLA_SOLVER_YICES "yices"
 
-#define SMTMBT_SMT2_READ_END 0
-#define SMTMBT_SMT2_WRITE_END 1
+#define MURXLA_SMT2_READ_END 0
+#define MURXLA_SMT2_WRITE_END 1
 
-#define SMTMBT_DD_PREFIX "smtmbt-dd-"
+#define MURXLA_DD_PREFIX "murxla-dd-"
 
 const std::string COLOR_BLUE    = "\33[94m";
 const std::string COLOR_DEFAULT = "\33[39m";
@@ -270,7 +270,7 @@ message(const char* prefix, const char* msg, ...)
   assert(msg);
   va_list list;
   va_start(list, msg);
-  fprintf(stdout, "[smtmbt] ");
+  fprintf(stdout, "[murxla] ");
   if (prefix)
   {
     fprintf(stdout, "%s: ", prefix);
@@ -342,7 +342,7 @@ initialize_statistics()
   std::string shmfilename;
   Statistics* stats;
 
-  ss << "/tmp/smtmbt-shm-" << getpid();
+  ss << "/tmp/murxla-shm-" << getpid();
   shmfilename = ss.str();
 
   if ((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0)
@@ -527,9 +527,9 @@ set_sigint_handler_stats(void)
 /* Help message                                                               */
 /* -------------------------------------------------------------------------- */
 
-#define SMTMBT_USAGE                                                           \
+#define MURXLA_USAGE                                                           \
   "usage:\n"                                                                   \
-  "  smtmbt [options]\n\n"                                                     \
+  "  murxla [options]\n\n"                                                     \
   "  -h, --help                 print this message and exit\n"                 \
   "  -s, --seed <int>           seed for random number generator\n"            \
   "  -S, --trace-seeds          trace seed for each API call\n"                \
@@ -593,7 +593,7 @@ parse_options(Options& options, int argc, char* argv[])
     std::string arg = argv[i];
     if (arg == "-h" || arg == "--help")
     {
-      message(SMTMBT_USAGE);
+      message(MURXLA_USAGE);
       exit(0);
     }
     else if (arg == "-s" || arg == "--seed")
@@ -658,7 +658,7 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "-c" || arg == "--cross-check")
     {
-      if (options.solver == SMTMBT_SOLVER_SMT2)
+      if (options.solver == MURXLA_SOLVER_SMT2)
       {
         std::stringstream es;
         es << "option " << arg << " is incompatible with option --smt2";
@@ -667,8 +667,8 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, argc);
       std::string solver = argv[i];
-      if (solver != SMTMBT_SOLVER_BTOR && solver != SMTMBT_SOLVER_CBZLA
-          && solver != SMTMBT_SOLVER_CVC4 && solver != SMTMBT_SOLVER_YICES)
+      if (solver != MURXLA_SOLVER_BTOR && solver != MURXLA_SOLVER_CBZLA
+          && solver != MURXLA_SOLVER_CVC4 && solver != MURXLA_SOLVER_YICES)
       {
         std::stringstream es;
         es << "invalid argument " << solver << " to option '" << arg << "'";
@@ -710,7 +710,7 @@ parse_options(Options& options, int argc, char* argv[])
       {
         die("multiple solvers defined");
       }
-      options.solver = SMTMBT_SOLVER_BTOR;
+      options.solver = MURXLA_SOLVER_BTOR;
     }
     else if (arg == "--cbzla")
     {
@@ -718,7 +718,7 @@ parse_options(Options& options, int argc, char* argv[])
       {
         die("multiple solvers defined");
       }
-      options.solver = SMTMBT_SOLVER_CBZLA;
+      options.solver = MURXLA_SOLVER_CBZLA;
     }
     else if (arg == "--cvc4")
     {
@@ -726,7 +726,7 @@ parse_options(Options& options, int argc, char* argv[])
       {
         die("multiple solvers defined");
       }
-      options.solver = SMTMBT_SOLVER_CVC4;
+      options.solver = MURXLA_SOLVER_CVC4;
     }
     else if (arg == "--yices")
     {
@@ -734,7 +734,7 @@ parse_options(Options& options, int argc, char* argv[])
       {
         die("multiple solvers defined");
       }
-      options.solver = SMTMBT_SOLVER_YICES;
+      options.solver = MURXLA_SOLVER_YICES;
     }
     else if (arg == "--smt2")
     {
@@ -754,7 +754,7 @@ parse_options(Options& options, int argc, char* argv[])
         i += 1;
         options.solver_binary = argv[i];
       }
-      options.solver = SMTMBT_SOLVER_SMT2;
+      options.solver = MURXLA_SOLVER_SMT2;
     }
     else if (arg == "-f" || arg == "--smt2-file")
     {
@@ -1117,39 +1117,39 @@ run_aux(Options& options,
 
     Solver *solver= nullptr;
 
-    if (options.solver == SMTMBT_SOLVER_BTOR)
+    if (options.solver == MURXLA_SOLVER_BTOR)
     {
-#if SMTMBT_USE_BOOLECTOR
+#if MURXLA_USE_BOOLECTOR
       solver = new btor::BtorSolver(rng);
 #else
       die("Boolector not configured");
 #endif
     }
-    else if (options.solver == SMTMBT_SOLVER_CBZLA)
+    else if (options.solver == MURXLA_SOLVER_CBZLA)
     {
-#if SMTMBT_USE_CBITWUZLA
+#if MURXLA_USE_CBITWUZLA
       solver = new cbzla::CBzlaSolver(rng);
 #else
       die("CBitwuzla not configured");
 #endif
     }
-    else if (options.solver == SMTMBT_SOLVER_CVC4)
+    else if (options.solver == MURXLA_SOLVER_CVC4)
     {
-#if SMTMBT_USE_CVC4
+#if MURXLA_USE_CVC4
       solver = new cvc4::CVC4Solver(rng);
 #else
       die("CVC4 not configured");
 #endif
     }
-    else if (options.solver == SMTMBT_SOLVER_YICES)
+    else if (options.solver == MURXLA_SOLVER_YICES)
     {
-#if SMTMBT_USE_YICES
+#if MURXLA_USE_YICES
       solver = new yices::YicesSolver(rng);
 #else
       die("Yices not configured");
 #endif
     }
-    else if (options.solver == SMTMBT_SOLVER_SMT2)
+    else if (options.solver == MURXLA_SOLVER_SMT2)
     {
       if (smt2_online)
       {
@@ -1167,14 +1167,14 @@ run_aux(Options& options,
 
         if (smt2_pid == 0)  // child
         {
-          close(fd_to[SMTMBT_SMT2_WRITE_END]);
-          dup2(fd_to[SMTMBT_SMT2_READ_END], STDIN_FILENO);
+          close(fd_to[MURXLA_SMT2_WRITE_END]);
+          dup2(fd_to[MURXLA_SMT2_READ_END], STDIN_FILENO);
 
-          close(fd_from[SMTMBT_SMT2_READ_END]);
+          close(fd_from[MURXLA_SMT2_READ_END]);
           /* Redirect stdout of external solver to write end. */
-          dup2(fd_from[SMTMBT_SMT2_WRITE_END], STDOUT_FILENO);
+          dup2(fd_from[MURXLA_SMT2_WRITE_END], STDOUT_FILENO);
           /* Redirect stderr of external solver to write end. */
-          dup2(fd_from[SMTMBT_SMT2_WRITE_END], STDERR_FILENO);
+          dup2(fd_from[MURXLA_SMT2_WRITE_END], STDERR_FILENO);
 
           std::vector<std::string> args;
           std::string arg;
@@ -1204,10 +1204,10 @@ run_aux(Options& options,
           die(es.str());
         }
 
-        close(fd_to[SMTMBT_SMT2_READ_END]);
-        to_external = fdopen(fd_to[SMTMBT_SMT2_WRITE_END], "w");
-        close(fd_from[SMTMBT_SMT2_WRITE_END]);
-        from_external = fdopen(fd_from[SMTMBT_SMT2_READ_END], "r");
+        close(fd_to[MURXLA_SMT2_READ_END]);
+        to_external = fdopen(fd_to[MURXLA_SMT2_WRITE_END], "w");
+        close(fd_from[MURXLA_SMT2_WRITE_END]);
+        from_external = fdopen(fd_from[MURXLA_SMT2_READ_END], "r");
 
         if (to_external == nullptr || from_external == nullptr)
         {
@@ -1282,8 +1282,8 @@ run(Options& options,
   bool cross  = !options.cross_check.empty();
   bool forked = run_forked || cross;
 
-  std::string tmp_file_out = "smtmbt-run-tmp1.out";
-  std::string tmp_file_err = "smtmbt-run-tmp1.err";
+  std::string tmp_file_out = "murxla-run-tmp1.out";
+  std::string tmp_file_err = "murxla-run-tmp1.err";
   if (!options.tmp_dir.empty())
   {
     tmp_file_out = prepend_path(options.tmp_dir, tmp_file_out);
@@ -1313,8 +1313,8 @@ run(Options& options,
     std::ostream out(obuf), err(ebuf);
 
     SolverOptions csolver_options;  // not used for now
-    std::string tmp_file_cross_out = "smtmbt-run-tmp2.out";
-    std::string tmp_file_cross_err = "smtmbt-run-tmp2.err";
+    std::string tmp_file_cross_out = "murxla-run-tmp2.out";
+    std::string tmp_file_cross_err = "murxla-run-tmp2.err";
     if (!options.tmp_dir.empty())
     {
       tmp_file_out = prepend_path(options.tmp_dir, tmp_file_out);
@@ -1435,11 +1435,11 @@ dd(Options& options, SolverOptions& solver_options)
   Result gold_exit, exit;
   statistics::Statistics stats;
 
-  std::string gold_out_file_name  = "smtmbt-dd-gold-tmp.out";
-  std::string gold_err_file_name  = "smtmbt-dd-gold-tmp.err";
-  std::string tmp_trace_file_name = "smtmbt-dd-tmp.trace";
-  std::string tmp_out_file_name   = "smtmbt-dd-tmp.out";
-  std::string tmp_err_file_name   = "smtmbt-dd-tmp.err";
+  std::string gold_out_file_name  = "murxla-dd-gold-tmp.out";
+  std::string gold_err_file_name  = "murxla-dd-gold-tmp.err";
+  std::string tmp_trace_file_name = "murxla-dd-tmp.trace";
+  std::string tmp_out_file_name   = "murxla-dd-tmp.out";
+  std::string tmp_err_file_name   = "murxla-dd-tmp.err";
   if (!options.tmp_dir.empty())
   {
     gold_out_file_name  = prepend_path(options.tmp_dir, gold_out_file_name);
@@ -1461,12 +1461,12 @@ dd(Options& options, SolverOptions& solver_options)
     if (options.untrace_file_name.empty())
     {
       opts.dd_trace_file_name = prepend_prefix_to_file_name(
-          SMTMBT_DD_PREFIX, options.api_trace_file_name);
+          MURXLA_DD_PREFIX, options.api_trace_file_name);
     }
     else
     {
       opts.dd_trace_file_name = prepend_prefix_to_file_name(
-          SMTMBT_DD_PREFIX, options.untrace_file_name);
+          MURXLA_DD_PREFIX, options.untrace_file_name);
     }
   }
   if (!options.out_dir.empty())
@@ -1631,13 +1631,13 @@ get_api_trace_file_name(uint32_t seed,
   if (untrace_file_name.empty())
   {
     std::stringstream ss;
-    ss << "smtmbt-" << seed << ".trace";
+    ss << "murxla-" << seed << ".trace";
     return ss.str();
   }
   if (is_dd)
   {
     std::stringstream ss;
-    ss << "smtmbt-dd-tmp-" << untrace_file_name;
+    ss << "murxla-dd-tmp-" << untrace_file_name;
     return ss.str();
   }
   return DEVNULL;
@@ -1649,7 +1649,7 @@ get_smt2_file_name(uint32_t seed, std::string& untrace_file_name)
   std::stringstream ss;
   if (untrace_file_name.empty())
   {
-    ss << "smtmbt-" << seed << ".smt2";
+    ss << "murxla-" << seed << ".smt2";
   }
   else
   {
@@ -1680,7 +1680,7 @@ replay(Options& options,
           prepend_path(opts.out_dir, opts.api_trace_file_name);
     }
   }
-  if (opts.smt2_file_name.empty() && opts.solver == SMTMBT_SOLVER_SMT2)
+  if (opts.smt2_file_name.empty() && opts.solver == MURXLA_SOLVER_SMT2)
   {
     opts.smt2_file_name = get_smt2_file_name(opts.seed, opts.untrace_file_name);
     if (!opts.out_dir.empty())
@@ -1710,15 +1710,15 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
   double start_time         = get_cur_wall_time();
   bool is_cross             = !options.cross_check.empty();
   std::string out_file_name = DEVNULL;
-  std::string err_file_name = "smtmbt-tmp.err";
+  std::string err_file_name = "murxla-tmp.err";
   SeedGenerator sg(options.seed);
   Options opts(options);
 
   if (is_cross)
   {
     opts.api_trace_file_name = DEVNULL;
-    out_file_name            = "smtmbt-tmp.out";
-    err_file_name            = "smtmbt-tmp.err";
+    out_file_name            = "murxla-tmp.out";
+    err_file_name            = "murxla-tmp.err";
     if (!opts.tmp_dir.empty())
     {
       out_file_name = prepend_path(opts.tmp_dir, out_file_name);
@@ -1750,7 +1750,7 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
     std::cout << g_errors.size() << " errors";
     std::cout << std::flush;
 
-    if (!is_cross && opts.solver == SMTMBT_SOLVER_SMT2)
+    if (!is_cross && opts.solver == MURXLA_SOLVER_SMT2)
     {
       if (!opts.solver_binary.empty())
       {
@@ -1881,7 +1881,7 @@ main(int argc, char* argv[])
     if (g_options.dd && g_options.api_trace_file_name.empty())
     {
       /* When delta-debugging, we need to trace into file instead of stdout. */
-      tmp_api_trace_file_name = "smtmbt-tmp.trace";
+      tmp_api_trace_file_name = "murxla-tmp.trace";
       if (!g_options.tmp_dir.empty())
       {
         tmp_api_trace_file_name =
@@ -1892,7 +1892,7 @@ main(int argc, char* argv[])
       if (is_untrace)
       {
         g_options.dd_trace_file_name = prepend_prefix_to_file_name(
-            SMTMBT_DD_PREFIX, g_options.untrace_file_name);
+            MURXLA_DD_PREFIX, g_options.untrace_file_name);
         message("dd",
                 "minimizing untraced file '%s'",
                 g_options.untrace_file_name.c_str());
@@ -1900,7 +1900,7 @@ main(int argc, char* argv[])
       else
       {
         std::stringstream ss;
-        ss << SMTMBT_DD_PREFIX << g_options.seed << ".trace";
+        ss << MURXLA_DD_PREFIX << g_options.seed << ".trace";
         g_options.dd_trace_file_name = ss.str();
         message("dd", "minimizing run with seed %u", g_options.seed);
       }
@@ -1916,15 +1916,15 @@ main(int argc, char* argv[])
       }
       /* When cross checking, check-sat answers and the error output of
        * solver must be recorded for the actual cross check. */
-      out_file_name = "smtmbt-tmp.out";
-      err_file_name = "smtmbt-tmp.err";
+      out_file_name = "murxla-tmp.out";
+      err_file_name = "murxla-tmp.err";
       if (!g_options.tmp_dir.empty())
       {
         out_file_name = prepend_path(g_options.tmp_dir, out_file_name);
         err_file_name = prepend_path(g_options.tmp_dir, err_file_name);
       }
     }
-    else if (g_options.solver == SMTMBT_SOLVER_SMT2
+    else if (g_options.solver == MURXLA_SOLVER_SMT2
              && g_options.smt2_file_name.empty())
     {
       /* We always dump .smt2 if the SMT2 solver is enabled. If no file name

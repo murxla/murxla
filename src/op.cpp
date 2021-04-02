@@ -6,7 +6,7 @@
 #include "config.hpp"
 #include "except.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 const OpKind Op::UNDEFINED = "OP_UNDEFINED";
 /* Special cases */
@@ -172,10 +172,10 @@ Op::Op(uint64_t id,
       d_theory(theory),
       d_sort_kind_args(sort_kind_args)
 {
-  SMTMBT_CHECK_CONFIG(kind.size() <= SMTMBT_MAX_KIND_LEN)
+  MURXLA_CHECK_CONFIG(kind.size() <= MURXLA_MAX_KIND_LEN)
       << "'" << kind
       << "' exceeds maximum length for operator kinds, increase limit by "
-         "adjusting value of macro SMTMBT_MAX_KIND_LEN in config.hpp";
+         "adjusting value of macro MURXLA_MAX_KIND_LEN in config.hpp";
 }
 
 bool
@@ -210,4 +210,4 @@ Op::get_arg_sort_kind(size_t i) const
   return d_sort_kind_args[i];
 }
 
-}  // namespace smtmbt
+}  // namespace murxla

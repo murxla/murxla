@@ -1,6 +1,6 @@
 #include "theory.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 std::ostream&
 operator<<(std::ostream& out, TheoryId theory)
@@ -19,4 +19,4 @@ operator<<(std::ostream& out, TheoryId theory)
   }
   return out;
 }
-}  // namespace smtmbt
+}  // namespace murxla

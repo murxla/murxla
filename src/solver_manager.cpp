@@ -10,7 +10,7 @@
 #include "statistics.hpp"
 #include "util.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
@@ -578,7 +578,7 @@ SolverManager::pick_symbol()
     ss << "_s" << d_n_symbols++;
     return ss.str();
   }
-  uint32_t len = d_rng.pick<uint32_t>(0, SMTMBT_SYMBOL_LEN_MAX);
+  uint32_t len = d_rng.pick<uint32_t>(0, MURXLA_SYMBOL_LEN_MAX);
   /* Pick piped vs simple symbol with 50% probability. */
   return len && d_rng.flip_coin() ? d_rng.pick_piped_symbol(len)
                                   : d_rng.pick_simple_symbol(len);
@@ -891,7 +891,7 @@ SolverManager::add_sort_kinds()
 
       case THEORY_UF:
         d_sort_kinds.emplace(
-            SORT_FUN, SortKindData(SORT_FUN, SMTMBT_MK_TERM_N_ARGS, THEORY_UF));
+            SORT_FUN, SortKindData(SORT_FUN, MURXLA_MK_TERM_N_ARGS, THEORY_UF));
         break;
 
       default: assert(false);
@@ -904,7 +904,7 @@ SolverManager::add_op_kinds()
 {
   assert(d_sort_kinds.size());
 
-  uint32_t n = SMTMBT_MK_TERM_N_ARGS_BIN;
+  uint32_t n = MURXLA_MK_TERM_N_ARGS_BIN;
 
   /* Special Cases */
   add_op_kind(Op::DISTINCT, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_BOOL);
@@ -1127,11 +1127,11 @@ SolverManager::add_op_kind(const OpKind& kind,
           || d_enabled_theories.find(theory) != d_enabled_theories.end()))
   {
     uint64_t id = d_op_kinds.size();
-    if (id >= SMTMBT_MAX_N_OPS)
+    if (id >= MURXLA_MAX_N_OPS)
     {
       throw SmtMbtException(
           "maximum number of operators exceeded, increase limit by adjusting "
-          "value of macro SMTMBT_MAX_N_OPS in config.hpp");
+          "value of macro MURXLA_MAX_N_OPS in config.hpp");
     }
     d_op_kinds.emplace(
         kind, Op(id, kind, arity, nparams, sort_kind, sort_kind_args, theory));
@@ -1186,4 +1186,4 @@ SolverManager::pick_kind(TKindMap& map,
 
 /* -------------------------------------------------------------------------- */
 
-}  // namespace smtmbt
+}  // namespace murxla

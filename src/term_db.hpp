@@ -1,9 +1,9 @@
-#ifndef __SMTMBT__TERM_DB_H
-#define __SMTMBT__TERM_DB_H
+#ifndef __MURXLA__TERM_DB_H
+#define __MURXLA__TERM_DB_H
 
 #include "solver.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 class SolverManager;
 class RNGenerator;
@@ -221,6 +221,6 @@ class TermDb
   SortSet d_term_sorts;
 };
 
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

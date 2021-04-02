@@ -1,12 +1,12 @@
-#ifndef __SMTMBT__SORT_H
-#define __SMTMBT__SORT_H
+#ifndef __MURXLA__SORT_H
+#define __MURXLA__SORT_H
 
 #include <unordered_map>
 #include <vector>
 
 #include "theory.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 enum SortKind
 {
@@ -70,6 +70,6 @@ using SortKindMap =
 using SortKinds   = std::unordered_map<TheoryId, SortKindVector>;
 using SortKindSet = std::unordered_set<SortKind>;
 
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

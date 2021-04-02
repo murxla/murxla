@@ -2,7 +2,7 @@
 #include "gtest/gtest.h"
 #include "util.hpp"
 
-using namespace smtmbt;
+using namespace murxla;
 
 TEST(util, str_bin_to_hex)
 {

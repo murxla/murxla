@@ -1,5 +1,5 @@
-#ifndef __SMTMBT__SOLVER_OPTION_H
-#define __SMTMBT__SOLVER_OPTION_H
+#ifndef __MURXLA__SOLVER_OPTION_H
+#define __MURXLA__SOLVER_OPTION_H
 
 #include <memory>
 #include <sstream>
@@ -9,7 +9,7 @@
 
 #include "util.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 // TODO: depends and conflicts handling in SolverOption
 
@@ -86,6 +86,6 @@ class SolverOptionList : public SolverOption
 
 using SolverOptions = std::vector<std::unique_ptr<SolverOption>>;
 
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

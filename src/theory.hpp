@@ -1,11 +1,11 @@
-#ifndef __SMTMBT__THEORY_H
-#define __SMTMBT__THEORY_H
+#ifndef __MURXLA__THEORY_H
+#define __MURXLA__THEORY_H
 
 #include <iostream>
 #include <unordered_set>
 #include <vector>
 
-namespace smtmbt {
+namespace murxla {
 
 enum TheoryId
 {
@@ -26,5 +26,5 @@ using TheoryIdSet    = std::unordered_set<TheoryId>;
 
 std::ostream& operator<<(std::ostream& out, TheoryId theory);
 
-}  // namespace smtmbt
+}  // namespace murxla
 #endif

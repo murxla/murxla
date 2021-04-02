@@ -5,7 +5,7 @@
 #include "config.hpp"
 #include "solver_manager.hpp"
 
-namespace smtmbt {
+namespace murxla {
 
 TermDb::TermDb(SolverManager& smgr, RNGenerator& rng) : d_smgr(smgr), d_rng(rng)
 {
@@ -33,7 +33,7 @@ TermDb::add_term(Term& term,
   assert(term->get_sort() == nullptr);
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
-  assert(sort_kind != SORT_BV || sort->get_bv_size() <= SMTMBT_BW_MAX);
+  assert(sort_kind != SORT_BV || sort->get_bv_size() <= MURXLA_BW_MAX);
 
   /* Determine scope level of term. */
   std::vector<uint64_t> levels = term->get_levels();
@@ -127,7 +127,7 @@ TermDb::find(Term term, Sort sort, SortKind sort_kind) const
   assert(term->get_sort() == nullptr);
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
-  assert(sort_kind != SORT_BV || sort->get_bv_size() <= SMTMBT_BW_MAX);
+  assert(sort_kind != SORT_BV || sort->get_bv_size() <= MURXLA_BW_MAX);
 
   if (sort->get_kind() == SORT_ANY) sort->set_kind(sort_kind);
   assert(sort->get_kind() == sort_kind);
@@ -523,4 +523,4 @@ TermDb::pop(Term& var)
   }
 }
 
-}  // namespace smtmbt
+}  // namespace murxla

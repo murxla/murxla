@@ -1,5 +1,5 @@
-#ifndef __SMTMBT__SMT2_SOLVER_H
-#define __SMTMBT__SMT2_SOLVER_H
+#ifndef __MURXLA__SMT2_SOLVER_H
+#define __MURXLA__SMT2_SOLVER_H
 
 #include "fsm.hpp"
 #include "solver.hpp"
@@ -7,7 +7,7 @@
 
 /* -------------------------------------------------------------------------- */
 
-namespace smtmbt {
+namespace murxla {
 namespace smt2 {
 
 /* -------------------------------------------------------------------------- */
@@ -355,6 +355,6 @@ class Smt2Solver : public Solver
 /* -------------------------------------------------------------------------- */
 
 }  // namespace smt2
-}  // namespace smtmbt
+}  // namespace murxla
 
 #endif

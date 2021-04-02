@@ -1,4 +1,4 @@
-# smtmbt
+# murxla
 
 ## How to plug in a yet unsupported SMT solver
 
@@ -17,37 +17,37 @@ in `CMakeLists.txt` add
 in `src/CMakeLists.txt` add (example)
 ```
 if(Boolector_FOUND)
-  target_link_libraries(smtmbt Boolector::boolector)
-  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_BOOLECTOR)
+  target_link_libraries(murxla Boolector::boolector)
+  target_compile_definitions(murxla PUBLIC MURXLA_USE_BOOLECTOR)
 
   add_executable(genbtoropt btor/gen_btor_options.cpp)
   target_link_libraries(genbtoropt Boolector::boolector)
 endif()
 
 if (Yices_FOUND)
-  target_link_libraries(smtmbt ${YICES_LIBRARIES})
-  target_compile_definitions(smtmbt PUBLIC SMTMBT_USE_YICES)
+  target_link_libraries(murxla ${YICES_LIBRARIES})
+  target_compile_definitions(murxla PUBLIC MURXLA_USE_YICES)
   # TODO: Yices options
 endif()
 ```
 
-add `<solver>_solver.cpp` to `smtmbt_src_files` in `src/CMakeLists.txt`
+add `<solver>_solver.cpp` to `murxla_src_files` in `src/CMakeLists.txt`
 
 derive `<Solver>Solver` from `Solver`
 derive `<Solver>Sort` from `AbsSort`
 derive `<Solver>Term` from `AbsTerm`
 
 in file `<solver>_solver.(h|cpp)`
-wrap in namespace `smtmbt::<solver>`
+wrap in namespace `murxla::<solver>`
 override all pure virtual functions
 override all virtual functions that correspond to theories supported by solver
 -> we need to document this
 
 header wrapped in
 ```
-#ifdef SMTMBT_USE_<SOLVER>
-#ifndef __SMTMBT__<SOLVER>_SOLVER_H
-#define __SMTMBT__<SOLVER>_SOLVER_H
+#ifdef MURXLA_USE_<SOLVER>
+#ifndef __MURXLA__<SOLVER>_SOLVER_H
+#define __MURXLA__<SOLVER>_SOLVER_H
 ...
 #endif
 #endif
@@ -74,11 +74,11 @@ if solver caches a model, unsat core, or similar, make sure to override
 `Solver::reset_sat()` (called by `Action`)
 
 main.cpp:
-`#define SMTMBT_SOLVER_<SOLVER> "<solver>"`
+`#define MURXLA_SOLVER_<SOLVER> "<solver>"`
 add option `--<solver>`
 add
 ```
-    if (options.solver == SMTMBT_SOLVER_<SOLVER>)
+    if (options.solver == MURXLA_SOLVER_<SOLVER>)
     {
       solver = new <solver>::<Solver>Solver(rng);
     }
