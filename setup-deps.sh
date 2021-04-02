@@ -10,7 +10,7 @@ freshinstall=no
 coverage=no
 
 btor=yes
-cbzla=yes
+bzla=yes
 cvc4=yes
 yices=yes
 
@@ -31,7 +31,7 @@ where <option> is one of the following:
   -f, --fresh-install   install solvers from a fresh checkout
   -c, --coverage        compile solvers with support for coverage testing
   --only-btor           only set up Boolector
-  --only-cbzla          only set up CBitwuzla
+  --only-bzla           only set up Bitwuzla
   --only-cvc4           only set up CVC4
   --only-yices          only set up Yices
 EOF
@@ -45,10 +45,10 @@ do
     -h|--help) usage;;
     -f|--fresh-install) freshinstall=yes;;
     -c|--coverage) coverage=yes;;
-    --only-btor) cbzla=no; cvc4=no; yices=no;;
-    --only-cvc4) cbzla=no; btor=no; yices=no;;
-    --only-yices) cbzla=no; btor=no; cvc4=no;;
-    --only-cbzla) btor=no; cvc4=no; yices=no;;
+    --only-btor) bzla=no; cvc4=no; yices=no;;
+    --only-cvc4) bzla=no; btor=no; yices=no;;
+    --only-yices) bzla=no; btor=no; cvc4=no;;
+    --only-bzla) btor=no; cvc4=no; yices=no;;
 
     -*) die "invalid option '$opt' (try '-h')";;
   esac
@@ -114,11 +114,11 @@ rm -rf "$toml_dir"
   fi
 )
 
-# Setup CBitwuzla
+# Setup Bitwuzla
 (
-  if [ "$cbzla" == "yes" ]
+  if [ "$bzla" == "yes" ]
   then
-    cd solvers/cbitwuzla || exit 1
+    cd solvers/bitwuzla || exit 1
 
     if [ "$reinstall" == "no" ]
     then
@@ -126,19 +126,19 @@ rm -rf "$toml_dir"
       ./contrib/setup-lingeling.sh
       ./contrib/setup-cadical.sh
     else
-      if [[ ! -d solvers/cbitwuzla/deps/btor2tools ]]
+      if [[ ! -d solvers/bitwuzla/deps/btor2tools ]]
       then
         ./contrib/setup-btor2tools.sh
       fi
-      if [[ ! -d solvers/cbitwuzla/deps/lingeling ]]
+      if [[ ! -d solvers/bitwuzla/deps/lingeling ]]
       then
         ./contrib/setup-lingeling.sh
       fi
-      if [[ ! -d solvers/cbitwuzla/deps/cadical ]]
+      if [[ ! -d solvers/bitwuzla/deps/cadical ]]
       then
         ./contrib/setup-cadical.sh
       fi
-      if [[ ! -d solvers/cbitwuzla/deps/symfpu ]]
+      if [[ ! -d solvers/bitwuzla/deps/symfpu ]]
       then
         ./contrib/setup-symfpu.sh
       fi

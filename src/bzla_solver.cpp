@@ -1,6 +1,6 @@
-#ifdef MURXLA_USE_CBITWUZLA
+#ifdef MURXLA_USE_BITWUZLA
 
-#include "cbzla_solver.hpp"
+#include "bzla_solver.hpp"
 
 #include <bitset>
 #include <cassert>
@@ -12,100 +12,100 @@
 #include "util.hpp"
 
 namespace murxla {
-namespace cbzla {
+namespace bzla {
 
 /* -------------------------------------------------------------------------- */
-/* CBzlaSort                                                                   */
+/* BzlaSort                                                                   */
 /* -------------------------------------------------------------------------- */
 
-CBzlaSort::CBzlaSort(Bitwuzla* cbzla, BitwuzlaSort* sort)
-    : d_solver(cbzla), d_sort(sort)
+BzlaSort::BzlaSort(Bitwuzla* bzla, BitwuzlaSort* sort)
+    : d_solver(bzla), d_sort(sort)
 {
 }
 
-CBzlaSort::~CBzlaSort() {}
+BzlaSort::~BzlaSort() {}
 
 size_t
-CBzlaSort::hash() const
+BzlaSort::hash() const
 {
   return bitwuzla_sort_hash(d_sort);
 }
 
 bool
-CBzlaSort::equals(const Sort& other) const
+BzlaSort::equals(const Sort& other) const
 {
-  CBzlaSort* cbzla_sort = dynamic_cast<CBzlaSort*>(other.get());
-  if (cbzla_sort)
+  BzlaSort* bzla_sort = dynamic_cast<BzlaSort*>(other.get());
+  if (bzla_sort)
   {
-    return d_sort == cbzla_sort->d_sort;
+    return d_sort == bzla_sort->d_sort;
   }
   return false;
 }
 
 bool
-CBzlaSort::is_array() const
+BzlaSort::is_array() const
 {
   return bitwuzla_sort_is_array(d_sort);
 }
 
 bool
-CBzlaSort::is_bool() const
+BzlaSort::is_bool() const
 {
   BitwuzlaSort* s = bitwuzla_mk_bool_sort(d_solver);
-  bool res       = s == d_sort;
+  bool res        = s == d_sort;
   return res && d_kind == SORT_BOOL;
 }
 
 bool
-CBzlaSort::is_bv() const
+BzlaSort::is_bv() const
 {
   return bitwuzla_sort_is_bv(d_sort);
 }
 
 bool
-CBzlaSort::is_fp() const
+BzlaSort::is_fp() const
 {
   return bitwuzla_sort_is_fp(d_sort);
 }
 
 bool
-CBzlaSort::is_fun() const
+BzlaSort::is_fun() const
 {
   return bitwuzla_sort_is_fun(d_sort);
 }
 
 bool
-CBzlaSort::is_int() const
+BzlaSort::is_int() const
 {
   return false;
 }
 
 bool
-CBzlaSort::is_real() const
+BzlaSort::is_real() const
 {
   return false;
 }
 
 bool
-CBzlaSort::is_rm() const
+BzlaSort::is_rm() const
 {
   return bitwuzla_sort_is_rm(d_sort);
 }
 
 bool
-CBzlaSort::is_string() const
+BzlaSort::is_string() const
 {
   return false;
 }
 
 bool
-CBzlaSort::is_reglan() const
+BzlaSort::is_reglan() const
 {
   return false;
 }
 
 uint32_t
-CBzlaSort::get_bv_size() const
+BzlaSort::get_bv_size() const
 {
   assert(is_bv());
   uint32_t res = bitwuzla_sort_bv_get_size(d_sort);
@@ -114,7 +114,7 @@ CBzlaSort::get_bv_size() const
 }
 
 uint32_t
-CBzlaSort::get_fp_exp_size() const
+BzlaSort::get_fp_exp_size() const
 {
   assert(is_fp());
   uint32_t res = bitwuzla_sort_fp_get_exp_size(d_sort);
@@ -123,7 +123,7 @@ CBzlaSort::get_fp_exp_size() const
 }
 
 uint32_t
-CBzlaSort::get_fp_sig_size() const
+BzlaSort::get_fp_sig_size() const
 {
   assert(is_fp());
   uint32_t res = bitwuzla_sort_fp_get_sig_size(d_sort);
@@ -132,91 +132,91 @@ CBzlaSort::get_fp_sig_size() const
 }
 
 /* -------------------------------------------------------------------------- */
-/* CBzlaTerm                                                                   */
+/* BzlaTerm                                                                   */
 /* -------------------------------------------------------------------------- */
 
-CBzlaTerm::CBzlaTerm(BitwuzlaTerm* term) : d_term(term) {}
+BzlaTerm::BzlaTerm(BitwuzlaTerm* term) : d_term(term) {}
 
-CBzlaTerm::~CBzlaTerm() {}
+BzlaTerm::~BzlaTerm() {}
 
 size_t
-CBzlaTerm::hash() const
+BzlaTerm::hash() const
 {
   return bitwuzla_term_hash(d_term);
 }
 
 bool
-CBzlaTerm::equals(const Term& other) const
+BzlaTerm::equals(const Term& other) const
 {
-  CBzlaTerm* cbzla_term = dynamic_cast<CBzlaTerm*>(other.get());
-  return bitwuzla_term_is_equal_sort(d_term, cbzla_term->d_term);
+  BzlaTerm* bzla_term = dynamic_cast<BzlaTerm*>(other.get());
+  return bitwuzla_term_is_equal_sort(d_term, bzla_term->d_term);
 }
 
 bool
-CBzlaTerm::is_array() const
+BzlaTerm::is_array() const
 {
   return bitwuzla_term_is_array(d_term);
 }
 
 bool
-CBzlaTerm::is_bool() const
+BzlaTerm::is_bool() const
 {
   return get_sort()->is_bool();
 }
 
 bool
-CBzlaTerm::is_bv() const
+BzlaTerm::is_bv() const
 {
   return bitwuzla_term_is_bv(d_term);
 }
 
 bool
-CBzlaTerm::is_fp() const
+BzlaTerm::is_fp() const
 {
   return bitwuzla_term_is_fp(d_term);
 }
 
 bool
-CBzlaTerm::is_fun() const
+BzlaTerm::is_fun() const
 {
   return bitwuzla_term_is_fun(d_term);
 }
 
 bool
-CBzlaTerm::is_int() const
+BzlaTerm::is_int() const
 {
   return get_sort()->is_int();
 }
 
 bool
-CBzlaTerm::is_real() const
+BzlaTerm::is_real() const
 {
   return get_sort()->is_real();
 }
 
 bool
-CBzlaTerm::is_rm() const
+BzlaTerm::is_rm() const
 {
   return bitwuzla_term_is_rm(d_term);
 }
 
 bool
-CBzlaTerm::is_string() const
+BzlaTerm::is_string() const
 {
   return get_sort()->is_string();
 }
 
 bool
-CBzlaTerm::is_reglan() const
+BzlaTerm::is_reglan() const
 {
   return get_sort()->is_reglan();
 }
 
 /* -------------------------------------------------------------------------- */
-/* CBzlaSolver                                                                 */
+/* BzlaSolver                                                                 */
 /* -------------------------------------------------------------------------- */
 
-CBzlaSolver::~CBzlaSolver()
+BzlaSolver::~BzlaSolver()
 {
   if (d_solver)
   {
@@ -226,7 +226,7 @@ CBzlaSolver::~CBzlaSolver()
 }
 
 void
-CBzlaSolver::new_solver()
+BzlaSolver::new_solver()
 {
   assert(d_solver == nullptr);
   d_solver = bitwuzla_new();
@@ -235,7 +235,7 @@ CBzlaSolver::new_solver()
 }
 
 void
-CBzlaSolver::delete_solver()
+BzlaSolver::delete_solver()
 {
   assert(d_solver != nullptr);
   bitwuzla_delete(d_solver);
@@ -243,110 +243,113 @@ CBzlaSolver::delete_solver()
 }
 
 Bitwuzla*
-CBzlaSolver::get_solver()
+BzlaSolver::get_solver()
 {
   return d_solver;
 }
 
 bool
-CBzlaSolver::is_initialized() const
+BzlaSolver::is_initialized() const
 {
   return d_solver != nullptr;
 }
 
 TheoryIdVector
-CBzlaSolver::get_supported_theories() const
+BzlaSolver::get_supported_theories() const
 {
-  // TODO enable when Mathias' cbitwuzla quantifiers branch is merged back
-  return {
-      THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_FP, /*THEORY_QUANT,*/ THEORY_UF};
+  // TODO enable when Mathias' bitwuzla quantifiers branch is merged back
+  return {THEORY_ARRAY,
+          THEORY_BV,
+          THEORY_BOOL,
+          THEORY_FP,
+          /*THEORY_QUANT,*/ THEORY_UF};
 }
 
 OpKindSet
-CBzlaSolver::get_unsupported_op_kinds() const
+BzlaSolver::get_unsupported_op_kinds() const
 {
   return {Op::FP_TO_REAL};
 }
 
 SortKindSet
-CBzlaSolver::get_unsupported_var_sort_kinds() const
+BzlaSolver::get_unsupported_var_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN, SORT_FP};
 }
 
 SortKindSet
-CBzlaSolver::get_unsupported_array_index_sort_kinds() const
+BzlaSolver::get_unsupported_array_index_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN};
 }
 
 SortKindSet
-CBzlaSolver::get_unsupported_array_element_sort_kinds() const
+BzlaSolver::get_unsupported_array_element_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN};
 }
 
 SortKindSet
-CBzlaSolver::get_unsupported_fun_domain_sort_kinds() const
+BzlaSolver::get_unsupported_fun_domain_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN};
 }
 
 Sort
-CBzlaSolver::mk_sort(SortKind kind)
+BzlaSolver::mk_sort(SortKind kind)
 {
   MURXLA_CHECK_CONFIG(kind == SORT_BOOL || kind == SORT_RM)
       << "unsupported sort kind '" << kind
-      << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_BOOL
+      << "' as argument to BzlaSolver::mk_sort, expected '" << SORT_BOOL
       << "' or '" << SORT_RM << "'";
 
-  BitwuzlaSort* cbzla_res;
+  BitwuzlaSort* bzla_res;
 
-  cbzla_res = kind == SORT_BOOL ? bitwuzla_mk_bool_sort(d_solver)
-                                : bitwuzla_mk_rm_sort(d_solver);
-  assert(cbzla_res);
-  std::shared_ptr<CBzlaSort> res(new CBzlaSort(d_solver, cbzla_res));
+  bzla_res = kind == SORT_BOOL ? bitwuzla_mk_bool_sort(d_solver)
+                               : bitwuzla_mk_rm_sort(d_solver);
+  assert(bzla_res);
+  std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
   assert(res);
   return res;
 }
 
 Sort
-CBzlaSolver::mk_sort(SortKind kind, uint32_t size)
+BzlaSolver::mk_sort(SortKind kind, uint32_t size)
 {
   MURXLA_CHECK_CONFIG(kind == SORT_BV)
       << "unsupported sort kind '" << kind
-      << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_BV << "'";
+      << "' as argument to BzlaSolver::mk_sort, expected '" << SORT_BV << "'";
 
-  BitwuzlaSort* cbzla_res = bitwuzla_mk_bv_sort(d_solver, size);
-  assert(cbzla_res);
-  std::shared_ptr<CBzlaSort> res(new CBzlaSort(d_solver, cbzla_res));
+  BitwuzlaSort* bzla_res = bitwuzla_mk_bv_sort(d_solver, size);
+  assert(bzla_res);
+  std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
   assert(res);
   return res;
 }
 
 Sort
-CBzlaSolver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
+BzlaSolver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 {
   MURXLA_CHECK_CONFIG(kind == SORT_FP)
       << "unsupported sort kind '" << kind
-      << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_FP << "'";
+      << "' as argument to BzlaSolver::mk_sort, expected '" << SORT_FP << "'";
 
-  BitwuzlaSort* cbzla_res = bitwuzla_mk_fp_sort(d_solver, esize, ssize);
-  assert(cbzla_res);
-  std::shared_ptr<CBzlaSort> res(new CBzlaSort(d_solver, cbzla_res));
+  BitwuzlaSort* bzla_res = bitwuzla_mk_fp_sort(d_solver, esize, ssize);
+  assert(bzla_res);
+  std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
   assert(res);
   return res;
 }
 
 Sort
-CBzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
+BzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
-  BitwuzlaSort* cbzla_res;
+  BitwuzlaSort* bzla_res;
 
   switch (kind)
   {
     case SORT_ARRAY:
-      cbzla_res = bitwuzla_mk_array_sort(
+      bzla_res = bitwuzla_mk_array_sort(
           d_solver, get_bzla_sort(sorts[0]), get_bzla_sort(sorts[1]));
       break;
 
@@ -358,7 +361,7 @@ CBzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       {
         domain.push_back(get_bzla_sort(*it));
       }
-      cbzla_res = bitwuzla_mk_fun_sort(
+      bzla_res = bitwuzla_mk_fun_sort(
           d_solver, domain.size(), domain.data(), codomain);
       break;
     }
@@ -366,19 +369,19 @@ CBzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     default:
       MURXLA_CHECK_CONFIG(false)
           << "unsupported sort kind '" << kind
-          << "' as argument to CBzlaSolver::mk_sort, expected '" << SORT_ARRAY
+          << "' as argument to BzlaSolver::mk_sort, expected '" << SORT_ARRAY
           << "' or '" << SORT_FUN << "'";
   }
-  std::shared_ptr<CBzlaSort> res(new CBzlaSort(d_solver, cbzla_res));
-  assert(cbzla_res);
+  std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
+  assert(bzla_res);
   assert(res);
   return res;
 }
 
 Term
-CBzlaSolver::mk_var(Sort sort, const std::string& name)
+BzlaSolver::mk_var(Sort sort, const std::string& name)
 {
-  BitwuzlaTerm* cbzla_res;
+  BitwuzlaTerm* bzla_res;
   std::stringstream ss;
   std::string symbol;
   const char* cname = nullptr;
@@ -392,17 +395,17 @@ CBzlaSolver::mk_var(Sort sort, const std::string& name)
     cname  = symbol.c_str();
   }
 
-  cbzla_res = bitwuzla_mk_var(d_solver, get_bzla_sort(sort), cname);
-  assert(cbzla_res);
-  std::shared_ptr<CBzlaTerm> res(new CBzlaTerm(cbzla_res));
+  bzla_res = bitwuzla_mk_var(d_solver, get_bzla_sort(sort), cname);
+  assert(bzla_res);
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
 }
 
 Term
-CBzlaSolver::mk_const(Sort sort, const std::string& name)
+BzlaSolver::mk_const(Sort sort, const std::string& name)
 {
-  BitwuzlaTerm* cbzla_res;
+  BitwuzlaTerm* bzla_res;
   std::stringstream ss;
   std::string symbol;
   const char* cname = nullptr;
@@ -416,67 +419,67 @@ CBzlaSolver::mk_const(Sort sort, const std::string& name)
     cname  = symbol.c_str();
   }
 
-  cbzla_res = bitwuzla_mk_const(d_solver, get_bzla_sort(sort), cname);
-  assert(cbzla_res);
+  bzla_res = bitwuzla_mk_const(d_solver, get_bzla_sort(sort), cname);
+  assert(bzla_res);
   if (d_rng.pick_with_prob(1))
   {
-    assert(bitwuzla_term_is_equal_sort(cbzla_res, cbzla_res));
+    assert(bitwuzla_term_is_equal_sort(bzla_res, bzla_res));
   }
-  std::shared_ptr<CBzlaTerm> res(new CBzlaTerm(cbzla_res));
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
 }
 
 Term
-CBzlaSolver::mk_value(Sort sort, bool value)
+BzlaSolver::mk_value(Sort sort, bool value)
 {
   MURXLA_CHECK_CONFIG(sort->is_bool())
       << "unexpected sort of kind '" << sort->get_kind()
-      << "' as argument to CBzlaSolver::mk_value, expected Boolean sort";
+      << "' as argument to BzlaSolver::mk_value, expected Boolean sort";
 
-  BitwuzlaTerm* cbzla_res =
+  BitwuzlaTerm* bzla_res =
       value ? bitwuzla_mk_true(d_solver) : bitwuzla_mk_false(d_solver);
-  assert(cbzla_res);
+  assert(bzla_res);
   if (d_rng.pick_with_prob(10))
   {
     if (value)
     {
-      check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONE, cbzla_res);
+      check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONE, bzla_res);
     }
     else
     {
-      check_is_bv_value(Solver::SPECIAL_VALUE_BV_ZERO, cbzla_res);
+      check_is_bv_value(Solver::SPECIAL_VALUE_BV_ZERO, bzla_res);
     }
   }
-  std::shared_ptr<CBzlaTerm> res(new CBzlaTerm(cbzla_res));
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
 }
 
 BitwuzlaTerm*
-CBzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
+BzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 {
   MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
-      << "' as argument to CBzlaSolver::mk_value, expected bit-vector sort";
+      << "' as argument to BzlaSolver::mk_value, expected bit-vector sort";
 
-  BitwuzlaSort* cbzla_sort = get_bzla_sort(sort);
-  BitwuzlaTerm* cbzla_res =
-      bitwuzla_mk_bv_value_uint64(d_solver, cbzla_sort, value);
-  assert(cbzla_res);
-  return cbzla_res;
+  BitwuzlaSort* bzla_sort = get_bzla_sort(sort);
+  BitwuzlaTerm* bzla_res =
+      bitwuzla_mk_bv_value_uint64(d_solver, bzla_sort, value);
+  assert(bzla_res);
+  return bzla_res;
 }
 
 Term
-CBzlaSolver::mk_value(Sort sort, std::string value, Base base)
+BzlaSolver::mk_value(Sort sort, std::string value, Base base)
 {
   MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
-      << "' as argument to CBzlaSolver::mk_value, expected bit-vector sort";
+      << "' as argument to BzlaSolver::mk_value, expected bit-vector sort";
 
-  BitwuzlaTerm* cbzla_res;
-  BitwuzlaSort* cbzla_sort = get_bzla_sort(sort);
-  uint32_t bw            = sort->get_bv_size();
+  BitwuzlaTerm* bzla_res;
+  BitwuzlaSort* bzla_sort = get_bzla_sort(sort);
+  uint32_t bw             = sort->get_bv_size();
   int32_t ibase;
   BitwuzlaBVBase cbase;
 
@@ -499,26 +502,25 @@ CBzlaSolver::mk_value(Sort sort, std::string value, Base base)
 
   if (bw <= 64 && d_rng.flip_coin())
   {
-    cbzla_res =
+    bzla_res =
         mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, ibase));
   }
   else
   {
-    cbzla_res =
-        bitwuzla_mk_bv_value(d_solver, cbzla_sort, value.c_str(), cbase);
+    bzla_res = bitwuzla_mk_bv_value(d_solver, bzla_sort, value.c_str(), cbase);
   }
-  assert(cbzla_res);
-  std::shared_ptr<CBzlaTerm> res(new CBzlaTerm(cbzla_res));
+  assert(bzla_res);
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
 }
 
 Term
-CBzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
+BzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
-  BitwuzlaTerm* cbzla_res  = 0;
-  BitwuzlaSort* cbzla_sort = get_bzla_sort(sort);
-  bool check               = d_rng.pick_with_prob(10);
+  BitwuzlaTerm* bzla_res  = 0;
+  BitwuzlaSort* bzla_sort = get_bzla_sort(sort);
+  bool check              = d_rng.pick_with_prob(10);
   std::string str;
 
   switch (sort->get_kind())
@@ -526,31 +528,31 @@ CBzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
     case SORT_BV:
       if (value == SPECIAL_VALUE_BV_ZERO)
       {
-        cbzla_res = bitwuzla_mk_bv_zero(d_solver, cbzla_sort);
-        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ZERO, cbzla_res);
+        bzla_res = bitwuzla_mk_bv_zero(d_solver, bzla_sort);
+        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ZERO, bzla_res);
       }
       else if (value == SPECIAL_VALUE_BV_ONE)
       {
-        cbzla_res = bitwuzla_mk_bv_one(d_solver, cbzla_sort);
-        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONE, cbzla_res);
+        bzla_res = bitwuzla_mk_bv_one(d_solver, bzla_sort);
+        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONE, bzla_res);
       }
       else if (value == SPECIAL_VALUE_BV_ONES)
       {
-        cbzla_res = bitwuzla_mk_bv_ones(d_solver, cbzla_sort);
-        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONES, cbzla_res);
+        bzla_res = bitwuzla_mk_bv_ones(d_solver, bzla_sort);
+        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONES, bzla_res);
       }
       else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
       {
-        cbzla_res = bitwuzla_mk_bv_min_signed(d_solver, cbzla_sort);
+        bzla_res = bitwuzla_mk_bv_min_signed(d_solver, bzla_sort);
         if (check)
-          check_is_bv_value(Solver::SPECIAL_VALUE_BV_MIN_SIGNED, cbzla_res);
+          check_is_bv_value(Solver::SPECIAL_VALUE_BV_MIN_SIGNED, bzla_res);
       }
       else
       {
         assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
-        cbzla_res = bitwuzla_mk_bv_max_signed(d_solver, cbzla_sort);
+        bzla_res = bitwuzla_mk_bv_max_signed(d_solver, bzla_sort);
         if (check)
-          check_is_bv_value(Solver::SPECIAL_VALUE_BV_MAX_SIGNED, cbzla_res);
+          check_is_bv_value(Solver::SPECIAL_VALUE_BV_MAX_SIGNED, bzla_res);
       }
       break;
 
@@ -558,24 +560,24 @@ CBzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
     {
       if (value == SPECIAL_VALUE_FP_POS_INF)
       {
-        cbzla_res = bitwuzla_mk_fp_pos_inf(d_solver, cbzla_sort);
+        bzla_res = bitwuzla_mk_fp_pos_inf(d_solver, bzla_sort);
       }
       else if (value == SPECIAL_VALUE_FP_NEG_INF)
       {
-        cbzla_res = bitwuzla_mk_fp_neg_inf(d_solver, cbzla_sort);
+        bzla_res = bitwuzla_mk_fp_neg_inf(d_solver, bzla_sort);
       }
       else if (value == SPECIAL_VALUE_FP_POS_ZERO)
       {
-        cbzla_res = bitwuzla_mk_fp_pos_zero(d_solver, cbzla_sort);
+        bzla_res = bitwuzla_mk_fp_pos_zero(d_solver, bzla_sort);
       }
       else if (value == SPECIAL_VALUE_FP_NEG_ZERO)
       {
-        cbzla_res = bitwuzla_mk_fp_neg_zero(d_solver, cbzla_sort);
+        bzla_res = bitwuzla_mk_fp_neg_zero(d_solver, bzla_sort);
       }
       else
       {
         assert(value == SPECIAL_VALUE_FP_NAN);
-        cbzla_res = bitwuzla_mk_fp_nan(d_solver, cbzla_sort);
+        bzla_res = bitwuzla_mk_fp_nan(d_solver, bzla_sort);
       }
     }
     break;
@@ -583,91 +585,86 @@ CBzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
     case SORT_RM:
       if (value == SPECIAL_VALUE_RM_RNA)
       {
-        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RNA);
+        bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RNA);
       }
       else if (value == SPECIAL_VALUE_RM_RNE)
       {
-        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RNE);
+        bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RNE);
       }
       else if (value == SPECIAL_VALUE_RM_RTN)
       {
-        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTN);
+        bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTN);
       }
       else if (value == SPECIAL_VALUE_RM_RTP)
       {
-        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTP);
+        bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTP);
       }
       else
       {
         assert(value == SPECIAL_VALUE_RM_RTZ);
-        cbzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTZ);
+        bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTZ);
       }
       break;
 
     default:
       MURXLA_CHECK_CONFIG(sort->is_bv())
           << "unexpected sort of kind '" << sort->get_kind()
-          << "' as argument to CBzlaSolver::mk_special_value, expected "
+          << "' as argument to BzlaSolver::mk_special_value, expected "
              "bit-vector, floating-point or RoundingMode sort";
   }
 
-  assert(cbzla_res);
-  std::shared_ptr<CBzlaTerm> res(new CBzlaTerm(cbzla_res));
+  assert(bzla_res);
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
 }
 
 Term
-CBzlaSolver::mk_term(const OpKind& kind,
+BzlaSolver::mk_term(const OpKind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
   MURXLA_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
-      << "CBzlaSolver: operator kind '" << kind << "' not configured";
+      << "BzlaSolver: operator kind '" << kind << "' not configured";
 
-  BitwuzlaTerm* cbzla_res = nullptr;
-  size_t n_args           = args.size();
-  size_t n_params         = params.size();
-  BitwuzlaKind cbzla_kind = d_op_kinds.at(kind);
+  BitwuzlaTerm* bzla_res = nullptr;
+  size_t n_args          = args.size();
+  size_t n_params        = params.size();
+  BitwuzlaKind bzla_kind = d_op_kinds.at(kind);
   std::vector<BitwuzlaTerm*> vars;
-  std::vector<BitwuzlaTerm*> cbzla_args = terms_to_bzla_terms(args);
+  std::vector<BitwuzlaTerm*> bzla_args = terms_to_bzla_terms(args);
 
   if (n_params)
   {
-    cbzla_res = bitwuzla_mk_term_indexed(d_solver,
-                                         cbzla_kind,
-                                         n_args,
-                                         cbzla_args.data(),
-                                         n_params,
-                                         params.data());
+    bzla_res = bitwuzla_mk_term_indexed(
+        d_solver, bzla_kind, n_args, bzla_args.data(), n_params, params.data());
   }
   else
   {
-    cbzla_res =
-        bitwuzla_mk_term(d_solver, cbzla_kind, n_args, cbzla_args.data());
+    bzla_res = bitwuzla_mk_term(d_solver, bzla_kind, n_args, bzla_args.data());
   }
-  assert(cbzla_res);
-  std::shared_ptr<CBzlaTerm> res(new CBzlaTerm(cbzla_res));
+  assert(bzla_res);
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
 }
 
 Sort
-CBzlaSolver::get_sort(Term term, SortKind sort_kind) const
+BzlaSolver::get_sort(Term term, SortKind sort_kind) const
 {
   (void) sort_kind;
-  return std::shared_ptr<CBzlaSort>(
-      new CBzlaSort(d_solver, bitwuzla_term_get_sort(get_bzla_term(term))));
+  return std::shared_ptr<BzlaSort>(
+      new BzlaSort(d_solver, bitwuzla_term_get_sort(get_bzla_term(term))));
 }
 
 void
-CBzlaSolver::assert_formula(const Term& t)
+BzlaSolver::assert_formula(const Term& t)
 {
   bitwuzla_assert(d_solver, get_bzla_term(t));
 }
 
 Solver::Result
-CBzlaSolver::check_sat()
+BzlaSolver::check_sat()
 {
   BitwuzlaResult res = bitwuzla_check_sat(d_solver);
   if (res == BITWUZLA_SAT) return Result::SAT;
@@ -677,7 +674,7 @@ CBzlaSolver::check_sat()
 }
 
 Solver::Result
-CBzlaSolver::check_sat_assuming(std::vector<Term>& assumptions)
+BzlaSolver::check_sat_assuming(std::vector<Term>& assumptions)
 {
   int32_t res;
   for (const Term& t : assumptions)
@@ -692,63 +689,63 @@ CBzlaSolver::check_sat_assuming(std::vector<Term>& assumptions)
 }
 
 std::vector<Term>
-CBzlaSolver::get_unsat_assumptions()
+BzlaSolver::get_unsat_assumptions()
 {
   size_t n_assumptions;
   std::vector<Term> res;
-  BitwuzlaTerm** cbzla_res =
+  BitwuzlaTerm** bzla_res =
       bitwuzla_get_unsat_assumptions(d_solver, &n_assumptions);
   for (uint32_t i = 0; i < n_assumptions; ++i)
   {
-    res.push_back(std::shared_ptr<CBzlaTerm>(
-        new CBzlaTerm((BitwuzlaTerm*) cbzla_res[i])));
+    res.push_back(
+        std::shared_ptr<BzlaTerm>(new BzlaTerm((BitwuzlaTerm*) bzla_res[i])));
   }
   return res;
 }
 
 std::vector<Term>
-CBzlaSolver::get_value(std::vector<Term>& terms)
+BzlaSolver::get_value(std::vector<Term>& terms)
 {
   std::vector<Term> res;
-  std::vector<BitwuzlaTerm*> cbzla_res;
+  std::vector<BitwuzlaTerm*> bzla_res;
   std::vector<BitwuzlaTerm*> bzla_terms = terms_to_bzla_terms(terms);
 
   for (BitwuzlaTerm* t : bzla_terms)
   {
-    cbzla_res.push_back(bitwuzla_get_value(d_solver, t));
+    bzla_res.push_back(bitwuzla_get_value(d_solver, t));
   }
-  return cbzla_terms_to_terms(cbzla_res);
+  return bzla_terms_to_terms(bzla_res);
 }
 
 void
-CBzlaSolver::push(uint32_t n_levels)
+BzlaSolver::push(uint32_t n_levels)
 {
   bitwuzla_push(d_solver, n_levels);
 }
 
 void
-CBzlaSolver::pop(uint32_t n_levels)
+BzlaSolver::pop(uint32_t n_levels)
 {
   bitwuzla_pop(d_solver, n_levels);
 }
 
 void
-CBzlaSolver::print_model()
+BzlaSolver::print_model()
 {
   const char* fmt = d_rng.flip_coin() ? "btor" : "smt2";
   bitwuzla_print_model(d_solver, (char*) fmt, stdout);
 }
 
 void
-CBzlaSolver::reset_assertions()
+BzlaSolver::reset_assertions()
 {
-  /* CBitwuzla does not support this yet */
+  /* Bitwuzla does not support this yet */
 }
 
 /* -------------------------------------------------------------------------- */
 
 bool
-CBzlaSolver::check_unsat_assumption(const Term& t) const
+BzlaSolver::check_unsat_assumption(const Term& t) const
 {
   return bitwuzla_is_unsat_assumption(d_solver, get_bzla_term(t));
 }
@@ -756,93 +753,93 @@ CBzlaSolver::check_unsat_assumption(const Term& t) const
 /* -------------------------------------------------------------------------- */
 
 BitwuzlaSort*
-CBzlaSolver::get_bzla_sort(Sort sort) const
+BzlaSolver::get_bzla_sort(Sort sort) const
 {
-  CBzlaSort* cbzla_sort = dynamic_cast<CBzlaSort*>(sort.get());
-  assert(cbzla_sort);
-  return cbzla_sort->d_sort;
+  BzlaSort* bzla_sort = dynamic_cast<BzlaSort*>(sort.get());
+  assert(bzla_sort);
+  return bzla_sort->d_sort;
 }
 
 BitwuzlaTerm*
-CBzlaSolver::get_bzla_term(Term term) const
+BzlaSolver::get_bzla_term(Term term) const
 {
-  CBzlaTerm* bzla_term = dynamic_cast<CBzlaTerm*>(term.get());
+  BzlaTerm* bzla_term = dynamic_cast<BzlaTerm*>(term.get());
   assert(bzla_term);
   return bzla_term->d_term;
 }
 
 void
-CBzlaSolver::set_opt(const std::string& opt, const std::string& value)
+BzlaSolver::set_opt(const std::string& opt, const std::string& value)
 {
   if (opt == "produce-unsat-assumptions")
   {
-    /* always enabled in CBitwuzla, can not be configured via set_opt */
+    /* always enabled in Bitwuzla, can not be configured via set_opt */
     return;
   }
 
-  // TODO reenable after option fuzzing for cbitwuzla is configured
-  //assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
+  // TODO reenable after option fuzzing for bitwuzla is configured
+  // assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
 
-  /* CBitwuzla options are all integer values */
+  /* Bitwuzla options are all integer values */
   uint32_t val = 0;
-  BitwuzlaOption cbzla_opt;
+  BitwuzlaOption bzla_opt;
 
   value == "true" ? 1 : std::stoul(value);
   // TODO support all options
   if (opt == "produce-models")
   {
-    cbzla_opt = BITWUZLA_OPT_PRODUCE_MODELS;
+    bzla_opt = BITWUZLA_OPT_PRODUCE_MODELS;
   }
   else if (opt == "incremental")
   {
-    cbzla_opt = BITWUZLA_OPT_INCREMENTAL;
+    bzla_opt = BITWUZLA_OPT_INCREMENTAL;
   }
-  bitwuzla_set_option(d_solver, cbzla_opt, val);
-  assert(val == bitwuzla_get_option(d_solver, cbzla_opt));
+  bitwuzla_set_option(d_solver, bzla_opt, val);
+  assert(val == bitwuzla_get_option(d_solver, bzla_opt));
 }
 
 std::string
-CBzlaSolver::get_option_name_incremental() const
+BzlaSolver::get_option_name_incremental() const
 {
   return "incremental";
 }
 
 std::string
-CBzlaSolver::get_option_name_model_gen() const
+BzlaSolver::get_option_name_model_gen() const
 {
   return "produce-models";
 }
 
 std::string
-CBzlaSolver::get_option_name_unsat_assumptions() const
+BzlaSolver::get_option_name_unsat_assumptions() const
 {
-  /* always enabled in CBitwuzla, can not be configured via set_opt */
+  /* always enabled in Bitwuzla, can not be configured via set_opt */
   return "produce-unsat-assumptions";
 }
 
 bool
-CBzlaSolver::option_incremental_enabled() const
+BzlaSolver::option_incremental_enabled() const
 {
   return bitwuzla_get_option(d_solver, BITWUZLA_OPT_INCREMENTAL) > 0;
 }
 
 bool
-CBzlaSolver::option_model_gen_enabled() const
+BzlaSolver::option_model_gen_enabled() const
 {
   return bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_MODELS) > 0;
 }
 
 bool
-CBzlaSolver::option_unsat_assumptions_enabled() const
+BzlaSolver::option_unsat_assumptions_enabled() const
 {
-  /* always enabled in CBitwuzla, can not be configured via set_opt */
+  /* always enabled in Bitwuzla, can not be configured via set_opt */
   return true;
 }
 
 /* -------------------------------------------------------------------------- */
 
 void
-CBzlaSolver::init_op_kinds()
+BzlaSolver::init_op_kinds()
 {
   d_op_kinds = {
       /* Special Cases */
@@ -959,18 +956,18 @@ CBzlaSolver::init_op_kinds()
 }
 
 std::vector<Term>
-CBzlaSolver::cbzla_terms_to_terms(std::vector<BitwuzlaTerm*>& terms) const
+BzlaSolver::bzla_terms_to_terms(std::vector<BitwuzlaTerm*>& terms) const
 {
   std::vector<Term> res;
   for (BitwuzlaTerm* t : terms)
   {
-    res.push_back(std::shared_ptr<CBzlaTerm>(new CBzlaTerm(t)));
+    res.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(t)));
   }
   return res;
 }
 
 std::vector<BitwuzlaTerm*>
-CBzlaSolver::terms_to_bzla_terms(std::vector<Term>& terms) const
+BzlaSolver::terms_to_bzla_terms(std::vector<Term>& terms) const
 {
   std::vector<BitwuzlaTerm*> res;
   for (Term& t : terms)
@@ -980,35 +977,35 @@ CBzlaSolver::terms_to_bzla_terms(std::vector<Term>& terms) const
   return res;
 }
 
-CBzlaSolver::CbzlaTermFunBoolUnary
-CBzlaSolver::pick_fun_bool_unary(CbzlaTermFunBoolUnaryVector& funs) const
+BzlaSolver::BzlaTermFunBoolUnary
+BzlaSolver::pick_fun_bool_unary(BzlaTermFunBoolUnaryVector& funs) const
 {
-  return d_rng
-      .pick_from_set<CbzlaTermFunBoolUnaryVector, CbzlaTermFunBoolUnary>(funs);
+  return d_rng.pick_from_set<BzlaTermFunBoolUnaryVector, BzlaTermFunBoolUnary>(
+      funs);
 }
 
-CBzlaSolver::CbzlaTermFunBoolUnary
-CBzlaSolver::pick_fun_is_bv_const() const
+BzlaSolver::BzlaTermFunBoolUnary
+BzlaSolver::pick_fun_is_bv_const() const
 {
-  CbzlaTermFunBoolUnaryVector funs = {bitwuzla_term_is_bv_value_zero,
-                                      bitwuzla_term_is_bv_value_one,
-                                      bitwuzla_term_is_bv_value_ones,
-                                      bitwuzla_term_is_bv_value_max_signed,
-                                      bitwuzla_term_is_bv_value_min_signed};
+  BzlaTermFunBoolUnaryVector funs = {bitwuzla_term_is_bv_value_zero,
+                                     bitwuzla_term_is_bv_value_one,
+                                     bitwuzla_term_is_bv_value_ones,
+                                     bitwuzla_term_is_bv_value_max_signed,
+                                     bitwuzla_term_is_bv_value_min_signed};
   return pick_fun_bool_unary(funs);
 }
 
 void
-CBzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
-                               BitwuzlaTerm* node) const
+BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
+                              BitwuzlaTerm* node) const
 {
   uint32_t bw              = bitwuzla_term_bv_get_size(node);
   RNGenerator::Choice pick = d_rng.pick_one_of_three();
 
   if (pick == RNGenerator::Choice::FIRST)
   {
-    CbzlaTermFunBoolUnaryVector is_funs;
-    CbzlaTermFunBoolUnaryVector is_not_funs;
+    BzlaTermFunBoolUnaryVector is_funs;
+    BzlaTermFunBoolUnaryVector is_not_funs;
     if (kind == Solver::SPECIAL_VALUE_BV_ONE)
     {
       is_funs.push_back(bitwuzla_term_is_bv_value_one);
@@ -1129,23 +1126,23 @@ CBzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
 /* Solver-specific operators, SolverManager configuration.                    */
 /* -------------------------------------------------------------------------- */
 
-const OpKind CBzlaSolver::OP_BV_DEC    = "cbzla-OP_BV_DEC";
-const OpKind CBzlaSolver::OP_BV_INC    = "cbzla-OP_BV_INC";
-const OpKind CBzlaSolver::OP_BV_REDAND = "cbzla-OP_BV_REDAND";
-const OpKind CBzlaSolver::OP_BV_REDOR  = "cbzla-OP_BV_REDOR";
-const OpKind CBzlaSolver::OP_BV_REDXOR = "cbzla-OP_BV_REDXOR";
-const OpKind CBzlaSolver::OP_BV_ROL    = "cbzla-OP_BV_ROL";
-const OpKind CBzlaSolver::OP_BV_ROR    = "cbzla-OP_BV_ROR";
-const OpKind CBzlaSolver::OP_BV_SADDO  = "cbzla-OP_BV_SADDO";
-const OpKind CBzlaSolver::OP_BV_SDIVO  = "cbzla-OP_BV_SDIVO";
-const OpKind CBzlaSolver::OP_BV_SMULO  = "cbzla-OP_BV_SMULO";
-const OpKind CBzlaSolver::OP_BV_SSUBO  = "cbzla-OP_BV_SSUBO";
-const OpKind CBzlaSolver::OP_BV_UADDO  = "cbzla-OP_BV_UADDO";
-const OpKind CBzlaSolver::OP_BV_UMULO  = "cbzla-OP_BV_UMULO";
-const OpKind CBzlaSolver::OP_BV_USUBO  = "cbzla-OP_BV_USUBO";
+const OpKind BzlaSolver::OP_BV_DEC    = "bzla-OP_BV_DEC";
+const OpKind BzlaSolver::OP_BV_INC    = "bzla-OP_BV_INC";
+const OpKind BzlaSolver::OP_BV_REDAND = "bzla-OP_BV_REDAND";
+const OpKind BzlaSolver::OP_BV_REDOR  = "bzla-OP_BV_REDOR";
+const OpKind BzlaSolver::OP_BV_REDXOR = "bzla-OP_BV_REDXOR";
+const OpKind BzlaSolver::OP_BV_ROL    = "bzla-OP_BV_ROL";
+const OpKind BzlaSolver::OP_BV_ROR    = "bzla-OP_BV_ROR";
+const OpKind BzlaSolver::OP_BV_SADDO  = "bzla-OP_BV_SADDO";
+const OpKind BzlaSolver::OP_BV_SDIVO  = "bzla-OP_BV_SDIVO";
+const OpKind BzlaSolver::OP_BV_SMULO  = "bzla-OP_BV_SMULO";
+const OpKind BzlaSolver::OP_BV_SSUBO  = "bzla-OP_BV_SSUBO";
+const OpKind BzlaSolver::OP_BV_UADDO  = "bzla-OP_BV_UADDO";
+const OpKind BzlaSolver::OP_BV_UMULO  = "bzla-OP_BV_UMULO";
+const OpKind BzlaSolver::OP_BV_USUBO  = "bzla-OP_BV_USUBO";
 
 void
-CBzlaSolver::configure_smgr(SolverManager* smgr) const
+BzlaSolver::configure_smgr(SolverManager* smgr) const
 {
   smgr->add_op_kind(OP_BV_DEC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   smgr->add_op_kind(OP_BV_INC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
@@ -1168,23 +1165,23 @@ CBzlaSolver::configure_smgr(SolverManager* smgr) const
 /* -------------------------------------------------------------------------- */
 
 /* solver-specific actions */
-const ActionKind CBzlaSolver::ACTION_IS_UNSAT_ASSUMPTION =
-    "cbzla-is-unsat-assumption";
-const ActionKind CBzlaSolver::ACTION_FIXATE_ASSUMPTIONS =
-    "cbzla-fixate-assumptions";
-const ActionKind CBzlaSolver::ACTION_RESET_ASSUMPTIONS =
-    "cbzla-reset-assumptions";
-const ActionKind CBzlaSolver::ACTION_SIMPLIFY        = "cbzla-simplify";
-const ActionKind CBzlaSolver::ACTION_TERM_SET_SYMBOL = "cbzla-term-set-symbol";
+const ActionKind BzlaSolver::ACTION_IS_UNSAT_ASSUMPTION =
+    "bzla-is-unsat-assumption";
+const ActionKind BzlaSolver::ACTION_FIXATE_ASSUMPTIONS =
+    "bzla-fixate-assumptions";
+const ActionKind BzlaSolver::ACTION_RESET_ASSUMPTIONS =
+    "bzla-reset-assumptions";
+const ActionKind BzlaSolver::ACTION_SIMPLIFY        = "bzla-simplify";
+const ActionKind BzlaSolver::ACTION_TERM_SET_SYMBOL = "bzla-term-set-symbol";
 /* solver-specific states */
-const StateKind CBzlaSolver::STATE_FIX_RESET_ASSUMPTIONS =
-    "cbzla-fix-reset-assumptions";
+const StateKind BzlaSolver::STATE_FIX_RESET_ASSUMPTIONS =
+    "bzla-fix-reset-assumptions";
 
-class CBzlaActionIsUnsatAssumption : public Action
+class BzlaActionIsUnsatAssumption : public Action
 {
  public:
-  CBzlaActionIsUnsatAssumption(SolverManager& smgr)
-      : Action(smgr, CBzlaSolver::ACTION_IS_UNSAT_ASSUMPTION, false)
+  BzlaActionIsUnsatAssumption(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_IS_UNSAT_ASSUMPTION, false)
   {
   }
 
@@ -1213,17 +1210,17 @@ class CBzlaActionIsUnsatAssumption : public Action
   void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    CBzlaSolver& cbzla_solver = static_cast<CBzlaSolver&>(d_smgr.get_solver());
-    (void) bitwuzla_is_unsat_assumption(cbzla_solver.get_solver(),
-                                        cbzla_solver.get_bzla_term(term));
+    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_smgr.get_solver());
+    (void) bitwuzla_is_unsat_assumption(bzla_solver.get_solver(),
+                                        bzla_solver.get_bzla_term(term));
   }
 };
 
-class CBzlaActionFixateAssumptions : public Action
+class BzlaActionFixateAssumptions : public Action
 {
  public:
-  CBzlaActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, CBzlaSolver::ACTION_FIXATE_ASSUMPTIONS, false)
+  BzlaActionFixateAssumptions(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_FIXATE_ASSUMPTIONS, false)
   {
   }
 
@@ -1248,15 +1245,15 @@ class CBzlaActionFixateAssumptions : public Action
     MURXLA_TRACE << get_kind();
     d_smgr.clear();
     bitwuzla_fixate_assumptions(
-        static_cast<CBzlaSolver&>(d_smgr.get_solver()).get_solver());
+        static_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver());
   }
 };
 
-class CBzlaActionResetAssumptions : public Action
+class BzlaActionResetAssumptions : public Action
 {
  public:
-  CBzlaActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, CBzlaSolver::ACTION_RESET_ASSUMPTIONS, false)
+  BzlaActionResetAssumptions(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_RESET_ASSUMPTIONS, false)
   {
   }
 
@@ -1281,22 +1278,22 @@ class CBzlaActionResetAssumptions : public Action
     MURXLA_TRACE << get_kind();
     d_smgr.clear();
     bitwuzla_reset_assumptions(
-        static_cast<CBzlaSolver&>(d_smgr.get_solver()).get_solver());
+        static_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver());
   }
 };
 
-class CBzlaActionSimplify : public Action
+class BzlaActionSimplify : public Action
 {
  public:
-  CBzlaActionSimplify(SolverManager& smgr)
-      : Action(smgr, CBzlaSolver::ACTION_SIMPLIFY, false)
+  BzlaActionSimplify(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_SIMPLIFY, false)
   {
   }
 
   bool run() override
   {
     assert(d_solver.is_initialized());
-    CBzlaSolver& solver = static_cast<CBzlaSolver&>(d_smgr.get_solver());
+    BzlaSolver& solver = static_cast<BzlaSolver&>(d_smgr.get_solver());
     if (solver.get_solver() == nullptr) return false;
     _run();
     return true;
@@ -1314,15 +1311,15 @@ class CBzlaActionSimplify : public Action
   {
     MURXLA_TRACE << get_kind();
     bitwuzla_simplify(
-        static_cast<CBzlaSolver&>(d_smgr.get_solver()).get_solver());
+        static_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver());
   }
 };
 
-class CBzlaActionTermSetSymbol : public Action
+class BzlaActionTermSetSymbol : public Action
 {
  public:
-  CBzlaActionTermSetSymbol(SolverManager& smgr)
-      : Action(smgr, CBzlaSolver::ACTION_TERM_SET_SYMBOL, false)
+  BzlaActionTermSetSymbol(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_TERM_SET_SYMBOL, false)
   {
   }
 
@@ -1350,8 +1347,8 @@ class CBzlaActionTermSetSymbol : public Action
   void _run(Term term, std::string symbol)
   {
     MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
-    CBzlaSolver& cbzla_solver = static_cast<CBzlaSolver&>(d_smgr.get_solver());
-    (void) bitwuzla_term_set_symbol(cbzla_solver.get_bzla_term(term),
+    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_smgr.get_solver());
+    (void) bitwuzla_term_set_symbol(bzla_solver.get_bzla_term(term),
                                     symbol.c_str());
   }
 };
@@ -1359,21 +1356,21 @@ class CBzlaActionTermSetSymbol : public Action
 /* -------------------------------------------------------------------------- */
 
 void
-CBzlaSolver::configure_fsm(FSM* fsm) const
+BzlaSolver::configure_fsm(FSM* fsm) const
 {
-  State* s_assert = fsm->get_state(State::ASSERT);
+  State* s_assert                = fsm->get_state(State::ASSERT);
   State* s_fix_reset_assumptions = fsm->new_state(STATE_FIX_RESET_ASSUMPTIONS);
 
   auto t_default = fsm->new_action<TransitionDefault>();
 
   // bitwuzla_is_unsat_assumption
-  auto a_failed = fsm->new_action<CBzlaActionIsUnsatAssumption>();
+  auto a_failed = fsm->new_action<BzlaActionIsUnsatAssumption>();
   fsm->add_action_to_all_states(a_failed, 100);
 
   // bitwuzla_fixate_assumptions
   // bitwuzla_reset_assumptions
-  auto a_fix_assumptions   = fsm->new_action<CBzlaActionFixateAssumptions>();
-  auto a_reset_assumptions = fsm->new_action<CBzlaActionResetAssumptions>();
+  auto a_fix_assumptions   = fsm->new_action<BzlaActionFixateAssumptions>();
+  auto a_reset_assumptions = fsm->new_action<BzlaActionResetAssumptions>();
   s_fix_reset_assumptions->add_action(a_fix_assumptions, 5);
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 5);
   s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
@@ -1381,15 +1378,15 @@ CBzlaSolver::configure_fsm(FSM* fsm) const
       t_default, 2, s_fix_reset_assumptions, {State::OPT});
 
   // bitwuzla_simplify
-  auto a_simplify = fsm->new_action<CBzlaActionSimplify>();
+  auto a_simplify = fsm->new_action<BzlaActionSimplify>();
   fsm->add_action_to_all_states(a_simplify, 100);
 
   // bitwuzla_term_set_symbol
-  auto a_set_symbol = fsm->new_action<CBzlaActionTermSetSymbol>();
+  auto a_set_symbol = fsm->new_action<BzlaActionTermSetSymbol>();
   fsm->add_action_to_all_states(a_set_symbol, 100);
 }
 
-}  // namespace cbzla
+}  // namespace bzla
 }  // namespace murxla
 
 #endif

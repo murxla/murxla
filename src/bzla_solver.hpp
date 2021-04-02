@@ -1,27 +1,27 @@
-#ifdef MURXLA_USE_CBITWUZLA
+#ifdef MURXLA_USE_BITWUZLA
 
-#ifndef __MURXLA__CBITWUZLA_SOLVER_H
-#define __MURXLA__CBITWUZLA_SOLVER_H
+#ifndef __MURXLA__BITWUZLA_SOLVER_H
+#define __MURXLA__BITWUZLA_SOLVER_H
 
-#include "cbitwuzla/bitwuzla.h"
+#include "bitwuzla/bitwuzla.h"
 #include "fsm.hpp"
 #include "solver.hpp"
 #include "theory.hpp"
 
 namespace murxla {
-namespace cbzla {
+namespace bzla {
 
 /* -------------------------------------------------------------------------- */
-/* CBlzaSort                                                                  */
+/* BzlaSort                                                                  */
 /* -------------------------------------------------------------------------- */
 
-class CBzlaSort : public AbsSort
+class BzlaSort : public AbsSort
 {
-  friend class CBzlaSolver;
+  friend class BzlaSolver;
 
  public:
-  CBzlaSort(Bitwuzla* cbzla, BitwuzlaSort* sort);
-  ~CBzlaSort() override;
+  BzlaSort(Bitwuzla* bzla, BitwuzlaSort* sort);
+  ~BzlaSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
   bool is_array() const override;
@@ -44,16 +44,16 @@ class CBzlaSort : public AbsSort
 };
 
 /* -------------------------------------------------------------------------- */
-/* CBzlaTerm                                                                  */
+/* BzlaTerm                                                                  */
 /* -------------------------------------------------------------------------- */
 
-class CBzlaTerm : public AbsTerm
+class BzlaTerm : public AbsTerm
 {
-  friend class CBzlaSolver;
+  friend class BzlaSolver;
 
  public:
-  CBzlaTerm(BitwuzlaTerm* term);
-  ~CBzlaTerm() override;
+  BzlaTerm(BitwuzlaTerm* term);
+  ~BzlaTerm() override;
   size_t hash() const override;
   bool equals(const Term& other) const override;
   bool is_array() const override;
@@ -72,10 +72,10 @@ class CBzlaTerm : public AbsTerm
 };
 
 /* -------------------------------------------------------------------------- */
-/* CBzlaSolver                                                                */
+/* BzlaSolver                                                                */
 /* -------------------------------------------------------------------------- */
 
-class CBzlaSolver : public Solver
+class BzlaSolver : public Solver
 {
  public:
   /** Solver-specific actions. */
@@ -103,9 +103,9 @@ class CBzlaSolver : public Solver
   static const OpKind STATE_FIX_RESET_ASSUMPTIONS;
 
   /** Constructor. */
-  CBzlaSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  BzlaSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
   /** Destructor. */
-  ~CBzlaSolver() override;
+  ~BzlaSolver() override;
 
   void new_solver() override;
 
@@ -192,24 +192,24 @@ class CBzlaSolver : public Solver
   //
   //
  private:
-  using CbzlaTermFunBoolUnary       = std::function<bool(BitwuzlaTerm*)>;
-  using CbzlaTermFunBoolUnaryVector = std::vector<CbzlaTermFunBoolUnary>;
+  using BzlaTermFunBoolUnary       = std::function<bool(BitwuzlaTerm*)>;
+  using BzlaTermFunBoolUnaryVector = std::vector<BzlaTermFunBoolUnary>;
 
   void init_op_kinds();
 
-  std::vector<Term> cbzla_terms_to_terms(
+  std::vector<Term> bzla_terms_to_terms(
       std::vector<BitwuzlaTerm*>& terms) const;
   std::vector<BitwuzlaTerm*> terms_to_bzla_terms(
       std::vector<Term>& terms) const;
 
-  CbzlaTermFunBoolUnary pick_fun_bool_unary(
-      CbzlaTermFunBoolUnaryVector& funs) const;
-  CbzlaTermFunBoolUnary pick_fun_is_bv_const() const;
+  BzlaTermFunBoolUnary pick_fun_bool_unary(
+      BzlaTermFunBoolUnaryVector& funs) const;
+  BzlaTermFunBoolUnary pick_fun_is_bv_const() const;
   void check_is_bv_value(const SpecialValueKind& kind,
                          BitwuzlaTerm* node) const;
 
   BitwuzlaSort* get_bzla_sort(Sort sort) const;
-  BitwuzlaTerm* mk_value_bv_uint64 (Sort sort, uint64_t value);
+  BitwuzlaTerm* mk_value_bv_uint64(Sort sort, uint64_t value);
 
   Bitwuzla* d_solver;
   std::unordered_map<std::string, BitwuzlaOption> d_option_name_to_enum;
@@ -218,7 +218,7 @@ class CBzlaSolver : public Solver
   uint64_t d_num_symbols;
 };
 
-}  // namespace cbzla
+}  // namespace bzla
 }  // namespace murxla
 
 #endif

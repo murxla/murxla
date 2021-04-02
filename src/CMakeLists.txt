@@ -1,6 +1,6 @@
 set(murxla_src_files
   btor_solver.cpp
-  cbzla_solver.cpp
+  bzla_solver.cpp
   cvc4_solver.cpp
   except.cpp
   fsm.cpp
@@ -28,9 +28,9 @@ if(Boolector_FOUND)
   target_link_libraries(genbtoropt Boolector::boolector)
 endif()
 
-if(CBitwuzla_FOUND)
-  target_link_libraries(murxla CBitwuzla::cbitwuzla)
-  target_compile_definitions(murxla PUBLIC MURXLA_USE_CBITWUZLA)
+if(Bitwuzla_FOUND)
+  target_link_libraries(murxla Bitwuzla::bitwuzla)
+  target_compile_definitions(murxla PUBLIC MURXLA_USE_BITWUZLA)
   # TODO: Bitwuzla options
 endif()
 
