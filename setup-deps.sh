@@ -125,6 +125,7 @@ rm -rf "$toml_dir"
       ./contrib/setup-btor2tools.sh
       ./contrib/setup-lingeling.sh
       ./contrib/setup-cadical.sh
+      ./contrib/setup-symfpu.sh
     else
       if [[ ! -d solvers/bitwuzla/deps/btor2tools ]]
       then
