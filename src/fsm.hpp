@@ -443,7 +443,7 @@ FSM::new_action()
     if (id >= MURXLA_MAX_N_ACTIONS)
     {
       delete action;
-      throw SmtMbtConfigException(
+      throw MurxlaConfigException(
           "maximum number of actions exceeded, increase limit by adjusting "
           "value of macro MURXLA_MAX_N_ACTIONS in config.hpp");
     }

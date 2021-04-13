@@ -2228,7 +2228,7 @@ FSM::untrace(std::string& trace_file_name)
     {
       if (tokens.size() != 1)
       {
-        throw SmtMbtUntraceException(
+        throw MurxlaUntraceException(
             trace_file_name, nline, "expected single argument to 'return'");
       }
       uint64_t rid = str_to_uint64(tokens[0]);
@@ -2247,7 +2247,7 @@ FSM::untrace(std::string& trace_file_name)
       {
         std::stringstream ss;
         ss << "unknown action '" << id << "'";
-        throw SmtMbtUntraceException(trace_file_name, nline, ss);
+        throw MurxlaUntraceException(trace_file_name, nline, ss);
       }
 
       Action* action = d_actions.at(id).get();
@@ -2258,9 +2258,9 @@ FSM::untrace(std::string& trace_file_name)
         {
           ret_val = action->untrace(tokens);
         }
-        catch (SmtMbtActionUntraceException& e)
+        catch (MurxlaActionUntraceException& e)
         {
-          throw SmtMbtUntraceException(trace_file_name, nline, e.get_msg());
+          throw MurxlaUntraceException(trace_file_name, nline, e.get_msg());
         }
 
         if (std::getline(trace, line))
@@ -2274,7 +2274,7 @@ FSM::untrace(std::string& trace_file_name)
           {
             if (next_tokens.size() != 1)
             {
-              throw SmtMbtUntraceException(
+              throw MurxlaUntraceException(
                   trace_file_name,
                   nline,
                   "expected single argument to 'return'");
@@ -2294,7 +2294,7 @@ FSM::untrace(std::string& trace_file_name)
           {
             if (next_tokens.size() != 1)
             {
-              throw SmtMbtUntraceException(
+              throw MurxlaUntraceException(
                   trace_file_name, nline, "expected 'return' statement");
             }
           }

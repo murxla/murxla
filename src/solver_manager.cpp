@@ -1129,7 +1129,7 @@ SolverManager::add_op_kind(const OpKind& kind,
     uint64_t id = d_op_kinds.size();
     if (id >= MURXLA_MAX_N_OPS)
     {
-      throw SmtMbtException(
+      throw MurxlaException(
           "maximum number of operators exceeded, increase limit by adjusting "
           "value of macro MURXLA_MAX_N_OPS in config.hpp");
     }

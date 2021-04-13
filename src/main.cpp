@@ -1244,11 +1244,11 @@ run_aux(Options& options,
         fsm.run();
       }
     }
-    catch (SmtMbtConfigException& e)
+    catch (MurxlaConfigException& e)
     {
       die(e.get_msg(), EXIT_ERROR_CONFIG);
     }
-    catch (SmtMbtException& e)
+    catch (MurxlaException& e)
     {
       die(e.get_msg());
     }

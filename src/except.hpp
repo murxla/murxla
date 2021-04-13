@@ -7,11 +7,11 @@ namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
-class SmtMbtException : public std::exception
+class MurxlaException : public std::exception
 {
  public:
-  SmtMbtException(const std::string& msg) : d_msg(msg) {}
-  SmtMbtException(const std::stringstream& stream) : d_msg(stream.str()) {}
+  MurxlaException(const std::string& msg) : d_msg(msg) {}
+  MurxlaException(const std::stringstream& stream) : d_msg(stream.str()) {}
   std::string get_msg() const { return d_msg; }
   const char* what() const noexcept override { return d_msg.c_str(); }
 
@@ -19,33 +19,33 @@ class SmtMbtException : public std::exception
   std::string d_msg;
 };
 
-class SmtMbtConfigException : public SmtMbtException
+class MurxlaConfigException : public MurxlaException
 {
  public:
-  SmtMbtConfigException(const std::string& msg) : SmtMbtException(msg) {}
-  SmtMbtConfigException(const std::stringstream& stream)
-      : SmtMbtException(stream)
+  MurxlaConfigException(const std::string& msg) : MurxlaException(msg) {}
+  MurxlaConfigException(const std::stringstream& stream)
+      : MurxlaException(stream)
   {
   }
 };
 
-class SmtMbtUntraceException : public SmtMbtException
+class MurxlaUntraceException : public MurxlaException
 {
  public:
-  SmtMbtUntraceException(const std::string& trace_file_name,
+  MurxlaUntraceException(const std::string& trace_file_name,
                          uint32_t nline,
                          const std::string& msg)
-      : SmtMbtException("")
+      : MurxlaException("")
   {
     std::stringstream ss;
     ss << "untrace: " << trace_file_name << ":" << nline << ": " << msg;
     d_msg = ss.str();
   }
 
-  SmtMbtUntraceException(const std::string& trace_file_name,
+  MurxlaUntraceException(const std::string& trace_file_name,
                          uint32_t nline,
                          const std::stringstream& msg_stream)
-      : SmtMbtException("")
+      : MurxlaException("")
   {
     std::stringstream ss;
     ss << "untrace: " << trace_file_name << ":" << nline << ": "
@@ -56,12 +56,12 @@ class SmtMbtUntraceException : public SmtMbtException
   const char* what() const noexcept override { return d_msg.c_str(); }
 };
 
-class SmtMbtActionUntraceException : public SmtMbtException
+class MurxlaActionUntraceException : public MurxlaException
 {
  public:
-  SmtMbtActionUntraceException(const std::string& msg) : SmtMbtException(msg) {}
-  SmtMbtActionUntraceException(const std::stringstream& stream)
-      : SmtMbtException(stream)
+  MurxlaActionUntraceException(const std::string& msg) : MurxlaException(msg) {}
+  MurxlaActionUntraceException(const std::stringstream& stream)
+      : MurxlaException(stream)
   {
   }
 };

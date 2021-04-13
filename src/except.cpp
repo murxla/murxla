@@ -51,7 +51,7 @@ ConfigExceptionStream::ConfigExceptionStream(
 ConfigExceptionStream::~ConfigExceptionStream() noexcept(false)
 {
   flush();
-  throw SmtMbtConfigException(d_ss);
+  throw MurxlaConfigException(d_ss);
 }
 
 std::ostream&
@@ -76,7 +76,7 @@ UntraceExceptionStream::UntraceExceptionStream(
 UntraceExceptionStream::~UntraceExceptionStream() noexcept(false)
 {
   flush();
-  throw SmtMbtActionUntraceException(d_ss);
+  throw MurxlaActionUntraceException(d_ss);
 }
 
 std::ostream&
