@@ -1076,7 +1076,7 @@ class ActionMkTerm : public Action
     uint32_t idx       = 3;
 
     MURXLA_CHECK_TRACE(idx + n_args <= n_tokens)
-        << "expected " << n_args << " term arguments, got " << n_tokens - 3;
+        << "expected " << n_args << " term argument(s), got " << n_tokens - 3;
 
     for (uint32_t i = 0; i < n_args; ++i, ++idx)
     {
@@ -1090,7 +1090,8 @@ class ActionMkTerm : public Action
     {
       uint32_t n_params = str_to_uint32(tokens[idx++]);
       MURXLA_CHECK_TRACE(idx + n_params == n_tokens)
-          << "expected " << n_args << " parameters to create indexed term, got "
+          << "expected " << n_args
+          << " parameter(s) to create indexed term, got "
           << n_tokens - 3 - n_args;
       for (uint32_t i = 0; i < n_params; ++i, ++idx)
       {
@@ -2265,6 +2266,8 @@ FSM::untrace(std::string& trace_file_name)
 
         if (std::getline(trace, line))
         {
+          nline += 1;
+
           std::string next_id;
           std::vector<std::string> next_tokens;
 
