@@ -784,7 +784,7 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   uint32_t val = 0;
   BitwuzlaOption bzla_opt;
 
-  value == "true" ? 1 : std::stoul(value);
+  val = value == "true" ? 1 : std::stoul(value);
   // TODO support all options
   if (opt == "produce-models")
   {
@@ -793,6 +793,10 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   else if (opt == "incremental")
   {
     bzla_opt = BITWUZLA_OPT_INCREMENTAL;
+  }
+  else
+  {
+    return;
   }
   bitwuzla_set_option(d_solver, bzla_opt, val);
   assert(val == bitwuzla_get_option(d_solver, bzla_opt));
