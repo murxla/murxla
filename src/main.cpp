@@ -33,7 +33,7 @@ using namespace statistics;
 
 #define MURXLA_SOLVER_BTOR "btor"
 #define MURXLA_SOLVER_BZLA "czla"
-#define MURXLA_SOLVER_CVC4 "cvc4"
+#define MURXLA_SOLVER_CVC5 "cvc5"
 #define MURXLA_SOLVER_SMT2 "smt2"
 #define MURXLA_SOLVER_YICES "yices"
 
@@ -579,7 +579,7 @@ set_sigint_handler_stats(void)
   "  -O, --out-dir <dir>        write output files to given directory\n"       \
   "  --btor                     test Boolector\n"                              \
   "  --bzla                     test Bitwuzla\n"                               \
-  "  --cvc4                     test CVC4\n"                                   \
+  "  --cvc5                     test cvc5\n"                                   \
   "  --yices                    test Yices\n"                                  \
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
   "                             via stdout)\n"                                 \
@@ -694,7 +694,7 @@ parse_options(Options& options, int argc, char* argv[])
       check_next_arg(arg, i, argc);
       std::string solver = argv[i];
       if (solver != MURXLA_SOLVER_BTOR && solver != MURXLA_SOLVER_BZLA
-          && solver != MURXLA_SOLVER_CVC4 && solver != MURXLA_SOLVER_YICES)
+          && solver != MURXLA_SOLVER_CVC5 && solver != MURXLA_SOLVER_YICES)
       {
         std::stringstream es;
         es << "invalid argument " << solver << " to option '" << arg << "'";
@@ -746,13 +746,13 @@ parse_options(Options& options, int argc, char* argv[])
       }
       options.solver = MURXLA_SOLVER_BZLA;
     }
-    else if (arg == "--cvc4")
+    else if (arg == "--cvc5")
     {
       if (!options.solver.empty())
       {
         die("multiple solvers defined");
       }
-      options.solver = MURXLA_SOLVER_CVC4;
+      options.solver = MURXLA_SOLVER_CVC5;
     }
     else if (arg == "--yices")
     {
@@ -1146,7 +1146,7 @@ run_aux(Options& options,
     if (options.solver == MURXLA_SOLVER_BTOR)
     {
 #if MURXLA_USE_BOOLECTOR
-      solver = new btor::BtorSolver(rng);
+      solver = new murxla::btor::BtorSolver(rng);
 #else
       die("Boolector not configured");
 #endif
@@ -1154,23 +1154,23 @@ run_aux(Options& options,
     else if (options.solver == MURXLA_SOLVER_BZLA)
     {
 #if MURXLA_USE_BITWUZLA
-      solver = new bzla::BzlaSolver(rng);
+      solver = new murxla::bzla::BzlaSolver(rng);
 #else
       die("Bitwuzla not configured");
 #endif
     }
-    else if (options.solver == MURXLA_SOLVER_CVC4)
+    else if (options.solver == MURXLA_SOLVER_CVC5)
     {
-#if MURXLA_USE_CVC4
-      solver = new cvc4::CVC4Solver(rng);
+#if MURXLA_USE_CVC5
+      solver = new murxla::cvc5::Cvc5Solver(rng);
 #else
-      die("CVC4 not configured");
+      die("cvc5 not configured");
 #endif
     }
     else if (options.solver == MURXLA_SOLVER_YICES)
     {
 #if MURXLA_USE_YICES
-      solver = new yices::YicesSolver(rng);
+      solver = new murxla::yices::YicesSolver(rng);
 #else
       die("Yices not configured");
 #endif

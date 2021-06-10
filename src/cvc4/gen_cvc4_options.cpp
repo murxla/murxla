@@ -109,7 +109,7 @@ main(int argc, char* argv[])
 {
   if (argc <= 1)
   {
-    std::cerr << "error: no CVC4 *_options.toml files specified." << std::endl;
+    std::cerr << "error: no cvc5 *_options.toml files specified." << std::endl;
     return 1;
   }
 

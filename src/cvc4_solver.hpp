@@ -1,30 +1,30 @@
-#ifdef MURXLA_USE_CVC4
+#ifdef MURXLA_USE_CVC5
 
-#ifndef __MURXLA__CVC4_SOLVER_H
-#define __MURXLA__CVC4_SOLVER_H
+#ifndef __MURXLA__CVC5_SOLVER_H
+#define __MURXLA__CVC5_SOLVER_H
 
-#include "cvc4/api/cvc4cpp.h"
+#include "cvc5/cvc5.h"
 #include "fsm.hpp"
 #include "solver.hpp"
 
 namespace murxla {
-namespace cvc4 {
+namespace cvc5 {
 
 /* -------------------------------------------------------------------------- */
-/* CVC4Sort                                                                   */
+/* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
 
-class CVC4Sort : public AbsSort
+class Cvc5Sort : public AbsSort
 {
-  friend class CVC4Solver;
+  friend class Cvc5Solver;
 
  public:
-  CVC4Sort(CVC4::api::Solver* cvc4, CVC4::api::Sort sort)
-      : d_solver(cvc4), d_sort(sort)
+  Cvc5Sort(::cvc5::api::Solver* cvc5, ::cvc5::api::Sort sort)
+      : d_solver(cvc5), d_sort(sort)
   {
   }
 
-  ~CVC4Sort() override {}
+  ~Cvc5Sort() override {}
   size_t hash() const override;
   bool equals(const Sort& other) const override;
   bool is_array() const override;
@@ -42,25 +42,25 @@ class CVC4Sort : public AbsSort
   uint32_t get_fp_sig_size() const override;
 
  private:
-  CVC4::api::Solver* d_solver;
-  CVC4::api::Sort d_sort;
+  ::cvc5::api::Solver* d_solver;
+  ::cvc5::api::Sort d_sort;
 };
 
 /* -------------------------------------------------------------------------- */
-/* CVC4Term                                                                   */
+/* Cvc5Term                                                                   */
 /* -------------------------------------------------------------------------- */
 
-class CVC4Term : public AbsTerm
+class Cvc5Term : public AbsTerm
 {
-  friend class CVC4Solver;
+  friend class Cvc5Solver;
 
  public:
-  CVC4Term(CVC4::api::Solver* cvc4, CVC4::api::Term term)
-      : d_solver(cvc4), d_term(term)
+  Cvc5Term(::cvc5::api::Solver* cvc5, ::cvc5::api::Term term)
+      : d_solver(cvc5), d_term(term)
   {
   }
 
-  ~CVC4Term() override {}
+  ~Cvc5Term() override {}
   size_t hash() const override;
   bool equals(const Term& other) const override;
   bool is_array() const override;
@@ -75,15 +75,15 @@ class CVC4Term : public AbsTerm
   bool is_reglan() const override;
 
  private:
-  CVC4::api::Solver* d_solver = nullptr;
-  CVC4::api::Term d_term;
+  ::cvc5::api::Solver* d_solver = nullptr;
+  ::cvc5::api::Term d_term;
 };
 
 /* -------------------------------------------------------------------------- */
-/* CVC4Solver                                                                 */
+/* Cvc5Solver                                                                 */
 /* -------------------------------------------------------------------------- */
 
-class CVC4Solver : public Solver
+class Cvc5Solver : public Solver
 {
  public:
   /** Solver-specific actions. */
@@ -102,9 +102,9 @@ class CVC4Solver : public Solver
   static const SpecialValueKind SPECIAL_VALUE_PI;
 
   /** Constructor. */
-  CVC4Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  Cvc5Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
   /** Destructor. */
-  ~CVC4Solver() override;
+  ~Cvc5Solver() override;
 
   OpKindSet get_unsupported_op_kinds() const override;
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
@@ -115,8 +115,8 @@ class CVC4Solver : public Solver
 
   void delete_solver() override;
 
-  CVC4::api::Solver* get_solver();
-  CVC4::api::Term& get_cvc4_term(Term term) const;
+  ::cvc5::api::Solver* get_solver();
+  ::cvc5::api::Term& get_cvc5_term(Term term) const;
 
   bool is_initialized() const override;
 
@@ -133,7 +133,7 @@ class CVC4Solver : public Solver
   bool option_model_gen_enabled() const override;
   bool option_unsat_assumptions_enabled() const override;
 
-  std::vector<CVC4::api::Term> terms_to_cvc4_terms(
+  std::vector<::cvc5::api::Term> terms_to_cvc5_terms(
       std::vector<Term>& terms) const;
 
   Term mk_var(Sort sort, const std::string& name) override;
@@ -193,15 +193,15 @@ class CVC4Solver : public Solver
   //
  private:
   void init_op_kinds();
-  CVC4::api::Sort& get_cvc4_sort(Sort sort) const;
-  std::vector<Term> cvc4_terms_to_terms(
-      std::vector<CVC4::api::Term>& terms) const;
+  ::cvc5::api::Sort& get_cvc5_sort(Sort sort) const;
+  std::vector<Term> cvc5_terms_to_terms(
+      std::vector<::cvc5::api::Term>& terms) const;
 
-  CVC4::api::Solver* d_solver;
-  std::unordered_map<std::string, CVC4::api::Kind> d_op_kinds;
+  ::cvc5::api::Solver* d_solver;
+  std::unordered_map<std::string, ::cvc5::api::Kind> d_op_kinds;
 };
 
-}  // namespace btor
+}  // namespace cvc5
 }  // namespace murxla
 
 #endif

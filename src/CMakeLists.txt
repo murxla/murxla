@@ -34,9 +34,9 @@ if(Bitwuzla_FOUND)
   # TODO: Bitwuzla options
 endif()
 
-if(CVC4_FOUND)
-  target_link_libraries(murxla CVC4::cvc4)
-  target_compile_definitions(murxla PUBLIC MURXLA_USE_CVC4)
+if(cvc5_FOUND)
+  target_link_libraries(murxla cvc5::cvc5)
+  target_compile_definitions(murxla PUBLIC MURXLA_USE_CVC5)
 
   if(toml11_FOUND)
     add_executable(gencvc4options cvc4/gen_cvc4_options.cpp)
