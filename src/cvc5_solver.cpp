@@ -1,6 +1,6 @@
 #ifdef MURXLA_USE_CVC5
 
-#include "cvc4_solver.hpp"
+#include "cvc5_solver.hpp"
 
 #include <cassert>
 

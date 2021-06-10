@@ -19,7 +19,7 @@
 
 #include "btor_solver.hpp"
 #include "bzla_solver.hpp"
-#include "cvc4_solver.hpp"
+#include "cvc5_solver.hpp"
 #include "exit.hpp"
 #include "fsm.hpp"
 #include "smt2_solver.hpp"

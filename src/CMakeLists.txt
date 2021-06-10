@@ -1,7 +1,7 @@
 set(murxla_src_files
   btor_solver.cpp
   bzla_solver.cpp
-  cvc4_solver.cpp
+  cvc5_solver.cpp
   except.cpp
   fsm.cpp
   main.cpp
@@ -39,8 +39,8 @@ if(cvc5_FOUND)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_CVC5)
 
   if(toml11_FOUND)
-    add_executable(gencvc4options cvc4/gen_cvc4_options.cpp)
-    target_link_libraries(gencvc4options toml11::toml11)
+    add_executable(gencvc5options cvc5/gen_cvc5_options.cpp)
+    target_link_libraries(gencvc5options toml11::toml11)
   endif()
 endif()
 
