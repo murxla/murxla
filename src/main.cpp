@@ -1040,7 +1040,7 @@ run_aux(Options& options,
       {
         signal(SIGINT, SIG_DFL);  // reset stats signal handler
         usleep(options.time * 1000000);
-        _exit(EXIT_OK);
+        exit(EXIT_OK);
       }
     }
 
@@ -1260,7 +1260,7 @@ run_aux(Options& options,
 
     if (run_forked)
     {
-      _exit(EXIT_OK);
+      exit(EXIT_OK);
     }
     else
     {
