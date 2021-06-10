@@ -20,6 +20,10 @@ include(Helpers)
 
 #-----------------------------------------------------------------------------#
 
+option(GCOV "enable code coverage" OFF)
+
+#-----------------------------------------------------------------------------#
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -67,5 +71,24 @@ find_package(CVC4)
 find_package(toml11)
 find_package(Yices)
 
-add_subdirectory(src)
+if(GCOV)
+  include(CodeCoverage)
+  APPEND_COVERAGE_COMPILER_FLAGS()
+  set(COVERAGE_LCOV_EXCLUDES '/usr/include/*')
+  set(COVERAGE_LCOV_PATHS "")
+  if(Boolector_FOUND)
+    list(APPEND COVERAGE_LCOV_PATHS
+         "${PROJECT_SOURCE_DIR}/solvers/boolector/build/src")
+  endif()
+  if(Bitwuzla_FOUND)
+    list(APPEND COVERAGE_LCOV_PATHS
+         "${PROJECT_SOURCE_DIR}/solvers/bitwuzla/build/src")
+  endif()
+  if(CVC4_FOUND)
+    list(APPEND COVERAGE_LCOV_PATHS
+         "${PROJECT_SOURCE_DIR}/solvers/cvc4/build/src")
+  endif()
+  setup_target_for_coverage_lcov_no_executable(NAME coverage DEPENDENCIES murxla)
+endif()
 
+add_subdirectory(src)

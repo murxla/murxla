@@ -104,7 +104,7 @@ rm -rf "$toml_dir"
     cov=
     if [ "$coverage" == "yes" ]
     then
-      cov="-gcov"
+      cov="--gcov"
     fi
 
     rm build -rf
@@ -148,7 +148,7 @@ rm -rf "$toml_dir"
     cov=
     if [ "$coverage" == "yes" ]
     then
-      cov="-gcov"
+      cov="--gcov"
     fi
 
     rm build -rf

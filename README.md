@@ -99,3 +99,11 @@ with the utility functions for provided in `src/util.hpp`.
 
 Add in `Solver::new_solver()` via `Solver::add_special_value`
 Add handling in `Solver::mk_special_value`.
+
+
+# Coverage Reports
+
+1. Configure with `cmake .. -DGCOV=ON` and setup solvers with `--coverage`
+2. Prior to running `murxla` reset the coverage data via `make coverage-reset`
+3. Run `murxla` for some time
+4. Generate the coverage report via `make coverage`
