@@ -1800,6 +1800,9 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
             info << COLOR_RED << "error";
           }
           break;
+        case RESULT_ERROR_CONFIG:
+          info << COLOR_RED << "config error";
+          break;
         case RESULT_TIMEOUT: info << COLOR_BLUE << "timeout"; break;
         default: assert(res == RESULT_UNKNOWN); info << "unknown";
       }
