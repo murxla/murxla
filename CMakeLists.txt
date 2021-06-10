@@ -21,6 +21,10 @@ include(Helpers)
 #-----------------------------------------------------------------------------#
 
 option(GCOV "enable code coverage" OFF)
+option(ENABLE_BOOLECTOR "enable Boolector" ON)
+option(ENABLE_BITWUZLA "enable Bitwuzla" ON)
+option(ENABLE_CVC4 "enable CVC4" ON)
+option(ENABLE_YICES "enable Yices" ON)
 
 #-----------------------------------------------------------------------------#
 
@@ -65,11 +69,19 @@ endif()
 #-----------------------------------------------------------------------------#
 
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
-find_package(Boolector)
-find_package(Bitwuzla)
-find_package(CVC4)
+if(ENABLE_BOOLECTOR)
+  find_package(Boolector)
+endif()
+if(ENABLE_BITWUZLA)
+  find_package(Bitwuzla)
+endif()
+if(ENABLE_CVC4)
+  find_package(CVC4)
+endif()
+if(ENABLE_YICES)
+  find_package(Yices)
+endif()
 find_package(toml11)
-find_package(Yices)
 
 if(GCOV)
   include(CodeCoverage)
