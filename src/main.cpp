@@ -47,7 +47,8 @@ const std::string COLOR_DEFAULT = "\33[39m";
 const std::string COLOR_GREEN   = "\33[92m";
 const std::string COLOR_RED     = "\33[91m";
 
-const std::string DEVNULL = "/dev/null";
+const std::string DEVNULL  = "/dev/null";
+static std::string TMP_DIR = "";
 
 /* -------------------------------------------------------------------------- */
 
@@ -463,11 +464,11 @@ find_in_file(std::string file_name, std::string& s)
 }
 
 static std::string
-prepend_path(std::string& prefix, std::string& file_name)
+prepend_path(std::string& prefix, const std::string& file_name)
 {
-  std::stringstream ss;
-  ss << prefix << "/" << file_name;
-  return ss.str();
+  std::filesystem::path p(prefix);
+  p /= file_name;
+  return p.string();
 }
 
 static std::string
@@ -496,6 +497,26 @@ path_is_dir(const std::string& path)
   return (buffer.st_mode & S_IFMT) == S_IFDIR;         // is a directory?
 }
 
+std::string
+get_tmp_file_path(const std::string& filename)
+{
+  std::filesystem::path p(TMP_DIR);
+  p /= filename;
+  return p.string();
+}
+
+void
+create_tmp_directory(const std::string& tmp_dir)
+{
+  std::filesystem::path p(tmp_dir);
+  p /= "murxla-" + std::to_string(getpid());
+  if (!std::filesystem::exists(p))
+  {
+    std::filesystem::create_directory(p);
+  }
+  TMP_DIR = p.string();
+}
+
 /* -------------------------------------------------------------------------- */
 /* Signal handling                                                            */
 /* -------------------------------------------------------------------------- */
@@ -512,6 +533,11 @@ catch_signal_esummary(int32_t sig)
     print_error_summary();
     caught_signal = sig;
   }
+  if (std::filesystem::exists(TMP_DIR))
+  {
+    std::filesystem::remove_all(TMP_DIR);
+  }
+
   (void) signal(SIGINT, sig_int_handler_esummary);
   raise(sig);
   exit(EXIT_ERROR);
@@ -1282,13 +1308,8 @@ run(Options& options,
   bool cross  = !options.cross_check.empty();
   bool forked = run_forked || cross;
 
-  std::string tmp_file_out = "murxla-run-tmp1.out";
-  std::string tmp_file_err = "murxla-run-tmp1.err";
-  if (!options.tmp_dir.empty())
-  {
-    tmp_file_out = prepend_path(options.tmp_dir, tmp_file_out);
-    tmp_file_err = prepend_path(options.tmp_dir, tmp_file_err);
-  }
+  std::string tmp_file_out = get_tmp_file_path("run-tmp1.out");
+  std::string tmp_file_err = get_tmp_file_path("run-tmp1.err");
 
   Result res = run_aux(
       options, solver_options, forked, tmp_file_out, tmp_file_err, stats);
@@ -1313,13 +1334,8 @@ run(Options& options,
     std::ostream out(obuf), err(ebuf);
 
     SolverOptions csolver_options;  // not used for now
-    std::string tmp_file_cross_out = "murxla-run-tmp2.out";
-    std::string tmp_file_cross_err = "murxla-run-tmp2.err";
-    if (!options.tmp_dir.empty())
-    {
-      tmp_file_out = prepend_path(options.tmp_dir, tmp_file_out);
-      tmp_file_err = prepend_path(options.tmp_dir, tmp_file_err);
-    }
+    std::string tmp_file_cross_out = get_tmp_file_path("run-tmp2.out");
+    std::string tmp_file_cross_err = get_tmp_file_path("run-tmp2.err");
 
     Options coptions(options);
     coptions.solver = options.cross_check;
@@ -1368,8 +1384,6 @@ run(Options& options,
       }
       res = RESULT_ERROR;
     }
-    std::remove(tmp_file_cross_out.c_str());
-    std::remove(tmp_file_cross_err.c_str());
   }
   else if (forked)
   {
@@ -1387,8 +1401,6 @@ run(Options& options,
     out.close();
     err.close();
   }
-  std::remove(tmp_file_out.c_str());
-  std::remove(tmp_file_err.c_str());
   return res;
 }
 
@@ -1435,19 +1447,11 @@ dd(Options& options, SolverOptions& solver_options)
   Result gold_exit, exit;
   statistics::Statistics stats;
 
-  std::string gold_out_file_name  = "murxla-dd-gold-tmp.out";
-  std::string gold_err_file_name  = "murxla-dd-gold-tmp.err";
-  std::string tmp_trace_file_name = "murxla-dd-tmp.trace";
-  std::string tmp_out_file_name   = "murxla-dd-tmp.out";
-  std::string tmp_err_file_name   = "murxla-dd-tmp.err";
-  if (!options.tmp_dir.empty())
-  {
-    gold_out_file_name  = prepend_path(options.tmp_dir, gold_out_file_name);
-    gold_err_file_name  = prepend_path(options.tmp_dir, gold_err_file_name);
-    tmp_trace_file_name = prepend_path(options.tmp_dir, tmp_trace_file_name);
-    tmp_out_file_name   = prepend_path(options.tmp_dir, tmp_out_file_name);
-    tmp_err_file_name   = prepend_path(options.tmp_dir, tmp_err_file_name);
-  }
+  std::string gold_out_file_name  = get_tmp_file_path("dd-gold-tmp.out");
+  std::string gold_err_file_name  = get_tmp_file_path("dd-gold-tmp.err");
+  std::string tmp_trace_file_name = get_tmp_file_path("dd-tmp.trace");
+  std::string tmp_out_file_name   = get_tmp_file_path("dd-tmp.out");
+  std::string tmp_err_file_name   = get_tmp_file_path("dd-tmp.err");
 
   /* init options object for golden (replay of original) run */
   Options opts(options);
@@ -1614,11 +1618,6 @@ dd(Options& options, SolverOptions& solver_options)
   message("dd", "");
   message("dd", "%u of %u successful (reducing) tests", n_failed, n_tests);
   message("dd", "written to: %s", opts.dd_trace_file_name.c_str());
-  std::remove(gold_out_file_name.c_str());
-  std::remove(gold_err_file_name.c_str());
-  std::remove(tmp_trace_file_name.c_str());
-  std::remove(tmp_out_file_name.c_str());
-  std::remove(tmp_err_file_name.c_str());
 }
 
 /* ========================================================================== */
@@ -1710,24 +1709,14 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
   double start_time         = get_cur_wall_time();
   bool is_cross             = !options.cross_check.empty();
   std::string out_file_name = DEVNULL;
-  std::string err_file_name = "murxla-tmp.err";
   SeedGenerator sg(options.seed);
   Options opts(options);
 
+  std::string err_file_name = get_tmp_file_path("tmp.err");
   if (is_cross)
   {
     opts.api_trace_file_name = DEVNULL;
-    out_file_name            = "murxla-tmp.out";
-    err_file_name            = "murxla-tmp.err";
-    if (!opts.tmp_dir.empty())
-    {
-      out_file_name = prepend_path(opts.tmp_dir, out_file_name);
-    }
-  }
-
-  if (!opts.tmp_dir.empty())
-  {
-    err_file_name = prepend_path(opts.tmp_dir, err_file_name);
+    out_file_name            = get_tmp_file_path("tmp.out");
   }
 
   do
@@ -1838,12 +1827,6 @@ test(Options& options, SolverOptions& solver_options, Statistics* stats)
     std::cout << "\r" << std::flush;
     opts.smt2_file_name = smt2_file_name;
   } while (opts.max_runs == 0 || num_runs < opts.max_runs);
-
-  if (is_cross)
-  {
-    std::remove(out_file_name.c_str());
-    std::remove(err_file_name.c_str());
-  }
 }
 
 int
@@ -1856,6 +1839,8 @@ main(int argc, char* argv[])
   bool is_continuous = !g_options.is_seeded && !is_untrace;
   bool is_cross      = !g_options.cross_check.empty();
   bool is_forked     = g_options.dd || is_continuous;
+
+  create_tmp_directory(g_options.tmp_dir);
 
   if (!g_options.solver_options_file.empty())
   {
@@ -1881,12 +1866,7 @@ main(int argc, char* argv[])
     if (g_options.dd && g_options.api_trace_file_name.empty())
     {
       /* When delta-debugging, we need to trace into file instead of stdout. */
-      tmp_api_trace_file_name = "murxla-tmp.trace";
-      if (!g_options.tmp_dir.empty())
-      {
-        tmp_api_trace_file_name =
-            prepend_path(g_options.tmp_dir, tmp_api_trace_file_name);
-      }
+      tmp_api_trace_file_name       = get_tmp_file_path("tmp.trace");
       g_options.api_trace_file_name = tmp_api_trace_file_name;
       /* Minimized trace file name. */
       if (is_untrace)
@@ -1916,13 +1896,8 @@ main(int argc, char* argv[])
       }
       /* When cross checking, check-sat answers and the error output of
        * solver must be recorded for the actual cross check. */
-      out_file_name = "murxla-tmp.out";
-      err_file_name = "murxla-tmp.err";
-      if (!g_options.tmp_dir.empty())
-      {
-        out_file_name = prepend_path(g_options.tmp_dir, out_file_name);
-        err_file_name = prepend_path(g_options.tmp_dir, err_file_name);
-      }
+      out_file_name = get_tmp_file_path("tmp.out");
+      err_file_name = get_tmp_file_path("tmp.err");
     }
     else if (g_options.solver == MURXLA_SOLVER_SMT2
              && g_options.smt2_file_name.empty())
@@ -1949,17 +1924,6 @@ main(int argc, char* argv[])
     {
       dd(g_options, solver_options);
     }
-
-    if (is_cross)
-    {
-      std::remove(out_file_name.c_str());
-      std::remove(err_file_name.c_str());
-    }
-
-    if (!tmp_api_trace_file_name.empty())
-    {
-      std::remove(tmp_api_trace_file_name.c_str());
-    }
   }
 
   print_error_summary();
@@ -1970,7 +1934,14 @@ main(int argc, char* argv[])
   }
 
   if (munmap(g_stats, sizeof(Statistics)))
+  {
     die("failed to unmap shared memory for statistics");
+  }
+
+  if (std::filesystem::exists(TMP_DIR))
+  {
+    std::filesystem::remove_all(TMP_DIR);
+  }
 
   return 0;
 }
