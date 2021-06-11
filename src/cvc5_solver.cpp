@@ -444,11 +444,11 @@ Cvc5Solver::mk_value(Sort sort, std::string value)
       }
       if (fits64 && d_rng.flip_coin())
       {
-        cvc5_res = d_solver->mkReal(val64);
+        cvc5_res = d_solver->mkInteger(val64);
       }
       else
       {
-        cvc5_res = d_solver->mkReal(value);
+        cvc5_res = d_solver->mkInteger(value);
       }
     }
     break;
