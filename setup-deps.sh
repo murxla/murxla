@@ -11,7 +11,7 @@ coverage=no
 
 btor=yes
 bzla=yes
-cvc4=yes
+cvc5=yes
 yices=yes
 
 #--------------------------------------------------------------------------#
@@ -32,7 +32,7 @@ where <option> is one of the following:
   -c, --coverage        compile solvers with support for coverage testing
   --only-btor           only set up Boolector
   --only-bzla           only set up Bitwuzla
-  --only-cvc4           only set up CVC4
+  --only-cvc5           only set up cvc5
   --only-yices          only set up Yices
 EOF
   exit 0
@@ -45,10 +45,10 @@ do
     -h|--help) usage;;
     -f|--fresh-install) freshinstall=yes;;
     -c|--coverage) coverage=yes;;
-    --only-btor) bzla=no; cvc4=no; yices=no;;
-    --only-cvc4) bzla=no; btor=no; yices=no;;
-    --only-yices) bzla=no; btor=no; cvc4=no;;
-    --only-bzla) btor=no; cvc4=no; yices=no;;
+    --only-btor) bzla=no; cvc5=no; yices=no;;
+    --only-cvc5) bzla=no; btor=no; yices=no;;
+    --only-yices) bzla=no; btor=no; cvc5=no;;
+    --only-bzla) btor=no; cvc5=no; yices=no;;
 
     -*) die "invalid option '$opt' (try '-h')";;
   esac
@@ -158,26 +158,11 @@ rm -rf "$toml_dir"
   fi
 )
 
-# Setup CVC4
+# Setup cvc5
 (
-  if [ "$cvc4" == "yes" ]
+  if [ "$cvc5" == "yes" ]
   then
-    cd solvers/cvc4 || exit 1
-
-    if [ "$reinstall" == "no" ]
-    then
-      ./contrib/get-antlr-3.4
-      ./contrib/get-symfpu
-    else
-      if [[ ! -d solvers/cvc4/deps/antlr-3.4 ]]
-      then
-        ./contrib/get-antlr-3.4
-      fi
-      if [[ ! -d solvers/cvc4/deps/symfpu-CVC4 ]]
-      then
-        ./contrib/get-symfpu
-      fi
-    fi
+    cd solvers/cvc5 || exit 1
 
     cov=
     if [ "$coverage" == "yes" ]
@@ -186,7 +171,7 @@ rm -rf "$toml_dir"
     fi
 
     rm build -rf
-    ./configure.sh debug --asan --prefix="$deps_dir" --symfpu $cov
+    ./configure.sh debug --asan --prefix="$deps_dir" $cov --auto-download
     cd build
     make install -j $(nproc)
   fi
