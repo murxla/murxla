@@ -8,6 +8,7 @@ toml_dir=$(pwd)/libs/toml11
 reinstall=no
 freshinstall=no
 coverage=no
+asan=no
 
 btor=yes
 bzla=yes
@@ -30,6 +31,7 @@ where <option> is one of the following:
   -h, --help            print this message and exit
   -f, --fresh-install   install solvers from a fresh checkout
   -c, --coverage        compile solvers with support for coverage testing
+  -a, --asan            build solvers with ASan instrumentation
   --only-btor           only set up Boolector
   --only-bzla           only set up Bitwuzla
   --only-cvc5           only set up cvc5
@@ -45,6 +47,7 @@ do
     -h|--help) usage;;
     -f|--fresh-install) freshinstall=yes;;
     -c|--coverage) coverage=yes;;
+    -a|--asan) asan=yes;;
     --only-btor) bzla=no; cvc5=no; yices=no;;
     --only-cvc5) bzla=no; btor=no; yices=no;;
     --only-yices) bzla=no; btor=no; cvc5=no;;
@@ -107,8 +110,14 @@ rm -rf "$toml_dir"
       cov="--gcov"
     fi
 
+    as=
+    if [ "$asan" == "yes" ]
+    then
+      as="--asan"
+    fi
+
     rm build -rf
-    ./configure.sh -g --asan --prefix "$deps_dir" "$cov"
+    ./configure.sh -g --prefix "$deps_dir" "$cov" "$as"
     cd build
     make install -j $(nproc)
   fi
@@ -151,8 +160,14 @@ rm -rf "$toml_dir"
       cov="--gcov"
     fi
 
+    as=
+    if [ "$asan" == "yes" ]
+    then
+      as="--asan"
+    fi
+
     rm build -rf
-    ./configure.sh -g --asan --symfpu --prefix "$deps_dir" "$cov"
+    ./configure.sh -g --symfpu --prefix "$deps_dir" "$cov" "$as"
     cd build
     make install -j $(nproc)
   fi
@@ -170,8 +185,14 @@ rm -rf "$toml_dir"
       cov="--coverage"
     fi
 
+    as=
+    if [ "$asan" == "yes" ]
+    then
+      as="--asan"
+    fi
+
     rm build -rf
-    ./configure.sh debug --asan --prefix="$deps_dir" $cov --auto-download
+    ./configure.sh debug --prefix="$deps_dir" --auto-download "$cov" "$as"
     cd build
     make install -j $(nproc)
   fi
@@ -185,11 +206,19 @@ rm -rf "$toml_dir"
 
     rm build -rf
     autoconf
+
+    cov=
     if [ "$coverage" == "yes" ]
     then
       cov="-fprofile-arcs -ftest-coverage"
     fi
-    CCFLAGS="-g -g3 -ggdb $cov" ./configure --prefix="$deps_dir"
+
+    as=
+    if [ "$asan" == "yes" ]
+    then
+      as="-fsanitize=address -fno-omit-frame-pointer -fsanitize-recover=address"
+    fi
+    CCFLAGS="-g -g3 -ggdb $cov $as" ./configure --prefix="$deps_dir"
     make -j $(nproc)
     make install -j $(nproc)
   fi
