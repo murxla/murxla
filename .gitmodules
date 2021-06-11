@@ -1,9 +1,9 @@
 [submodule "solvers/boolector"]
 	path = solvers/boolector
 	url = https://github.com/Boolector/boolector.git
-[submodule "solvers/cvc4"]
-	path = solvers/cvc4
-	url = https://github.com/CVC4/CVC4.git
+[submodule "solvers/cvc5"]
+	path = solvers/cvc5
+	url = https://github.com/cvc5/cvc5.git
 [submodule "traces"]
 	path = traces
 	url = git@gitlab.com:monkeyzoo/smtmbt-bugs.git
