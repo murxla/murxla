@@ -1658,6 +1658,7 @@ class ActionCheckSatAssuming : public Action
     assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
+    reset_sat();
     uint32_t n_assumptions =
         d_rng.pick<uint32_t>(1, MURXLA_MAX_N_ASSUMPTIONS_CHECK_SAT);
     std::vector<Term> assumptions;
@@ -1689,7 +1690,6 @@ class ActionCheckSatAssuming : public Action
   void _run(std::vector<Term> assumptions)
   {
     MURXLA_TRACE << get_kind() << " " << assumptions.size() << assumptions;
-    reset_sat();
     d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
     d_smgr.d_sat_called = true;
     if (d_smgr.is_cross_check()) std::cout << d_smgr.d_sat_result << std::endl;
@@ -2033,7 +2033,7 @@ FSM::configure()
   s_opt->add_action(t_default, 2, s_sorts);
 
   s_sorts->add_action(a_mksort, 1);
-  s_sorts->add_action(t_sorts, 10, s_inputs);
+  s_sorts->add_action(t_sorts, 5, s_inputs);
 
   /* State: create inputs ................................................ */
   s_inputs->add_action(a_mksort, 100, s_sorts);
@@ -2058,15 +2058,16 @@ FSM::configure()
 
   /* State: assert/assume formula ........................................ */
   s_assert->add_action(a_assert, 1);
-  s_assert->add_action(t_default, 50, s_delete);
+  s_assert->add_action(t_default, 100, s_delete);
   s_assert->add_action(t_default, 20, s_sat);
   s_assert->add_action(t_inputs, 50, s_push_pop);
 
   /* State: check sat .................................................... */
   s_sat->add_action(a_sat, 1);
-  s_sat->add_action(a_sat_ass, 1);
+  s_sat->add_action(a_sat_ass, 2);
+  s_sat->add_action(a_failed, 5);
   s_sat->add_action(t_inputs, 5, s_push_pop);
-  s_sat->add_action(t_inputs, 10, s_delete);
+  s_sat->add_action(t_inputs, 20, s_delete);
 
   /* State: model ........................................................ */
   s_model->add_action(a_printmodel, 1);
@@ -2083,8 +2084,7 @@ FSM::configure()
   s_delete->add_action(a_delete, 1, s_final);
 
   /* All States (with exceptions) ........................................ */
-  add_action_to_all_states(a_failed, 100);
-  add_action_to_all_states(a_reset_ass, 100);
+  add_action_to_all_states(a_reset_ass, 1000);
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */
