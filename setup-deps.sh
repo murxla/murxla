@@ -117,7 +117,7 @@ rm -rf "$toml_dir"
     fi
 
     rm build -rf
-    ./configure.sh -g --prefix "$deps_dir" "$cov" "$as"
+    ./configure.sh -g --prefix "$deps_dir" $cov $as
     cd build
     make install -j $(nproc)
   fi
@@ -167,7 +167,7 @@ rm -rf "$toml_dir"
     fi
 
     rm build -rf
-    ./configure.sh -g --symfpu --prefix "$deps_dir" "$cov" "$as"
+    ./configure.sh debug --prefix "$deps_dir" $cov $as
     cd build
     make install -j $(nproc)
   fi
@@ -192,7 +192,7 @@ rm -rf "$toml_dir"
     fi
 
     rm build -rf
-    ./configure.sh debug --prefix="$deps_dir" --auto-download "$cov" "$as"
+    ./configure.sh debug --prefix="$deps_dir" --auto-download $cov $as
     cd build
     make install -j $(nproc)
   fi
