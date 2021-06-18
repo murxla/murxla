@@ -198,37 +198,48 @@ FSM::set_init_state(State* init_state)
 void
 FSM::check_states()
 {
-  State* no_next_state = nullptr;
-  std::unordered_set<State*> all_next_states;
-
   for (const auto& s : d_states)
   {
-    if (s->is_final()) continue;
-    assert(s->d_actions.size());
-    std::unordered_set<State*> next_states;
-    for (const auto& a : s->d_actions)
+    if (s.get() == d_state_init) continue;
+
+    // check for reachability
+    bool reachable = false;
+    std::vector<State*> visit{d_state_init};
+    std::unordered_set<State*> visited;
+    while (!visit.empty())
     {
-      State* next = a.d_next;
-      if (next != s.get()) next_states.insert(next);
+      State* cur = visit.back();
+      visit.pop_back();
+      if (visited.find(cur) != visited.end()) continue;
+      visited.insert(cur);
+      if (cur == s.get())
+      {
+        reachable = true;
+        break;
+      }
+      for (const auto& a : cur->d_actions)
+      {
+        visit.push_back(a.d_next);
+      }
     }
-    if (!no_next_state && next_states.empty()) no_next_state = s.get();
-    all_next_states.insert(next_states.begin(), next_states.end());
-  }
+    MURXLA_WARN(!reachable) << "unreachable state '" << s->get_kind() << "'";
 
-  /* check for unreachable state */
-  for (const auto& s : d_states)
-  {
-    MURXLA_WARN(s.get() != d_state_init
-                && all_next_states.find(s.get()) != all_next_states.end())
-        << "unreachable state '" << s->get_kind() << "'";
+    // check if it's possible to transition into another state
+    if (!s->is_final())
+    {
+      bool has_next_state = false;
+      for (const auto& a : s->d_actions)
+      {
+        if (a.d_next != s.get())
+        {
+          has_next_state = true;
+          break;
+        }
+      }
+      MURXLA_WARN(!has_next_state)
+          << "stuck at state '" << s->get_kind() << "'";
+    }
   }
-
-  /* check for infinite loop */
-  MURXLA_CHECK_CONFIG(
-      !no_next_state
-      || (no_next_state != d_state_init
-          && all_next_states.find(no_next_state) == all_next_states.end()))
-      << "infinite loop in state '" << no_next_state->get_kind() << "'";
 }
 
 State*
