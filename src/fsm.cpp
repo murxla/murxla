@@ -592,8 +592,8 @@ class ActionMkSort : public Action
     {
       case SORT_ARRAY:
       {
-        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) == theories.end()
-                           && theories.find(THEORY_ARRAY) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                           || theories.find(THEORY_ARRAY) != theories.end())
             << "solver does not support theory of arrays";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
         std::vector<Sort> sorts;
@@ -611,8 +611,8 @@ class ActionMkSort : public Action
 
       case SORT_FUN:
       {
-        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) == theories.end()
-                           && theories.find(THEORY_ARRAY) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                           || theories.find(THEORY_UF) != theories.end())
             << "solver does not support theory of UF";
         std::vector<Sort> sorts;
         for (auto it = tokens.begin() + 1; it < tokens.end(); ++it)
@@ -632,56 +632,56 @@ class ActionMkSort : public Action
         break;
 
       case SORT_INT:
-        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) == theories.end()
-                           && theories.find(THEORY_INT) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                           || theories.find(THEORY_INT) != theories.end())
             << "solver does not support theory of integers";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
         res = _run(kind);
         break;
 
       case SORT_REAL:
-        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) == theories.end()
-                           && theories.find(THEORY_REAL) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                           || theories.find(THEORY_REAL) != theories.end())
             << "solver does not support theory of reals";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
         res = _run(kind);
         break;
 
       case SORT_REGLAN:
-        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) == theories.end()
-                           && theories.find(THEORY_STRING) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                           || theories.find(THEORY_STRING) != theories.end())
             << "solver does not support theory of strings";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
         res = _run(kind);
         break;
 
       case SORT_RM:
-        MURXLA_CHECK_TRACE(theories.find(THEORY_FP) == theories.end()
-                           && theories.find(THEORY_ARRAY) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_FP) != theories.end()
+                           || theories.find(THEORY_FP) != theories.end())
             << "solver does not support theory of floating-point arithmetic";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
         res = _run(kind);
         break;
 
       case SORT_STRING:
-        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) == theories.end()
-                           && theories.find(THEORY_STRING) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                           || theories.find(THEORY_STRING) != theories.end())
             << "solver does not support theory of strings";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
         res = _run(kind);
         break;
 
       case SORT_BV:
-        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) == theories.end()
-                           && theories.find(THEORY_BV) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                           || theories.find(THEORY_BV) != theories.end())
             << "solver does not support theory of bit-vectors";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
         res = _run(kind, str_to_uint32(tokens[1]));
         break;
 
       case SORT_FP:
-        MURXLA_CHECK_TRACE(theories.find(THEORY_FP) == theories.end()
-                           && theories.find(THEORY_ARRAY) == theories.end())
+        MURXLA_CHECK_TRACE(theories.find(THEORY_FP) != theories.end()
+                           || theories.find(THEORY_FP) != theories.end())
             << "solver does not support theory of floating-point arithmetic";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
         res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
