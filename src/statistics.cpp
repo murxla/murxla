@@ -50,6 +50,16 @@ Statistics::print() const
     sum += d_ops[i];
   }
   std::cout << "  Total: " << sum << std::endl;
+
+  sum = 0;
+  std::cout << "Sorts:" << std::endl;
+  for (uint32_t i = 0; i < SORT_ANY; ++i)
+  {
+    std::cout << "  " << static_cast<SortKind>(i) << ": " << d_sorts[i] << " ("
+              << d_sorts_ok[i] << ")" << std::endl;
+    sum += d_ops[i];
+  }
+  std::cout << "  Total: " << sum << std::endl;
 }
 
 }  // namespace statistics

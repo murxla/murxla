@@ -14,6 +14,8 @@ struct Statistics
   char d_op_kinds[MURXLA_MAX_N_OPS][MURXLA_MAX_KIND_LEN];
   uint64_t d_ops[MURXLA_MAX_N_OPS];
   uint64_t d_ops_ok[MURXLA_MAX_N_OPS];
+  uint64_t d_sorts[SORT_ANY];
+  uint64_t d_sorts_ok[SORT_ANY];
   char d_state_kinds[MURXLA_MAX_N_STATES][MURXLA_MAX_KIND_LEN];
   uint64_t d_states[MURXLA_MAX_N_STATES];
   char d_action_kinds[MURXLA_MAX_N_ACTIONS][MURXLA_MAX_KIND_LEN];

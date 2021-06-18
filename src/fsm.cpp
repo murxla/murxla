@@ -532,6 +532,8 @@ class ActionMkSort : public Action
     SortKind kind = d_smgr.pick_sort_kind_data().d_kind;
     RNGenerator::Choice pick;
 
+    ++d_smgr.d_mbt_stats->d_sorts[kind];
+
     switch (kind)
     {
       case SORT_ARRAY:
@@ -602,6 +604,9 @@ class ActionMkSort : public Action
 
       default: assert(false);
     }
+
+    ++d_smgr.d_mbt_stats->d_sorts_ok[kind];
+
     return true;
   }
 
