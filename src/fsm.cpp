@@ -158,6 +158,33 @@ FSM::FSM(RNGenerator& rng,
       d_smt(smt),
       d_mbt_stats(stats)
 {
+  auto smgr_enabled_theories = d_smgr.get_enabled_theories();
+  if (smgr_enabled_theories.find(THEORY_QUANT) != smgr_enabled_theories.end())
+  {
+    bool force_quant_enabled =
+        std::find(
+            enabled_theories.begin(), enabled_theories.end(), THEORY_QUANT)
+        != enabled_theories.end();
+    auto disabled_quant_theories = solver->get_unsupported_quant_theories();
+    if (!disabled_quant_theories.empty())
+    {
+      /* In case that quantifiers were not explicitly enabled via command line
+       * and are not allowed in combination with a specific set of otherwise
+       * supported theories, we decide to enable THEORY_QUANT with a probability
+       * of 10%. */
+      if (force_quant_enabled || d_rng.pick_with_prob(100))
+      {
+        for (TheoryId t : disabled_quant_theories)
+        {
+          d_smgr.disable_theory(t);
+        }
+      }
+      else
+      {
+        d_smgr.disable_theory(THEORY_QUANT);
+      }
+    }
+  }
 }
 
 SolverManager&

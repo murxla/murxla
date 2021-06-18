@@ -212,6 +212,12 @@ Solver::get_supported_theories() const
   return res;
 }
 
+TheoryIdVector
+Solver::get_unsupported_quant_theories() const
+{
+  return {};
+}
+
 OpKindSet
 Solver::get_unsupported_op_kinds() const
 {

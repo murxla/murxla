@@ -73,6 +73,9 @@ class SolverManager
   /** Get set of enabled theories. */
   const TheoryIdSet& get_enabled_theories() const;
 
+  /** Remove theory from set of enabled theories. */
+  void disable_theory(TheoryId theory);
+
   std::ostream& get_trace();
 
   /** Get the number of created terms. */

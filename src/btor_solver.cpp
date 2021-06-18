@@ -286,6 +286,12 @@ BtorSolver::get_supported_theories() const
   return {THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_QUANT, THEORY_UF};
 }
 
+TheoryIdVector
+BtorSolver::get_unsupported_quant_theories() const
+{
+  return {THEORY_ARRAY, THEORY_UF};
+}
+
 OpKindSet
 BtorSolver::get_unsupported_op_kinds() const
 {

@@ -213,7 +213,19 @@ class Solver
 
   bool supports_theory(TheoryId theory) const;
   virtual TheoryIdVector get_supported_theories() const;
+  /**
+   * Get the set of theories that are unsupported when THEORY_QUANT is selected.
+   * This allows to restrict quantified formulas to a specific subset of the
+   * enabled theories.
+   */
+  virtual TheoryIdVector get_unsupported_quant_theories() const;
   virtual OpKindSet get_unsupported_op_kinds() const;
+  /**
+   * Get the set of sorts that are unsupported for quantified variables.
+   * Note: This is different from get_unsupported_quant_sort_kinds in that it
+   *       only disallows quantified variables of that sort. Other terms of
+   *       that sort may occur in quantified formulas.
+   */
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
   virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;
   virtual SortKindSet get_unsupported_array_index_sort_kinds() const;

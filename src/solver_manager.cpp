@@ -119,6 +119,14 @@ SolverManager::get_enabled_theories() const
   return d_enabled_theories;
 }
 
+void
+SolverManager::disable_theory(TheoryId theory)
+{
+  auto it = d_enabled_theories.find(theory);
+  if (it == d_enabled_theories.end()) return;
+  d_enabled_theories.erase(it);
+}
+
 /* -------------------------------------------------------------------------- */
 
 uint64_t
