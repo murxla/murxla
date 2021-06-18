@@ -52,13 +52,13 @@ TermDb::add_term(Term& term,
   uint64_t level = levels.empty() ? 0 : levels.back();
 
   /* This should only occur when a new quantifier was created. */
-  if (level >= d_vars.size())
+  if (level > 0 && level >= d_vars.size())
   {
     assert(level == levels.back());
     levels.pop_back();
     level = levels.empty() ? 0 : levels.back();
+    assert(levels.size() < d_vars.size());
   }
-  assert(levels.size() < d_vars.size());
 
   /* If sort_kind is SORT_REAL, given sort can only be an Int sort when the
    * solver identifies it as an Int sort (since Int is a subtype of Real).
