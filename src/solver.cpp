@@ -79,12 +79,6 @@ operator<<(std::ostream& out, const Sort s)
   return out;
 }
 
-size_t
-HashSort::operator()(const Sort s) const
-{
-  return s->hash();
-}
-
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -160,12 +154,6 @@ operator<<(std::ostream& out, const std::vector<Term>& vector)
 {
   for (const Term& term : vector) out << " " << term;
   return out;
-}
-
-size_t
-HashTerm::operator()(const Term t) const
-{
-  return t->hash();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -345,3 +333,19 @@ operator<<(std::ostream& out, const Solver::Result& r)
 /* -------------------------------------------------------------------------- */
 
 }  // namespace murxla
+
+namespace std {
+
+size_t
+hash<murxla::Sort>::operator()(const murxla::Sort& s) const
+{
+  return s->hash();
+};
+
+size_t
+hash<murxla::Term>::operator()(const murxla::Term& t) const
+{
+  return t->hash();
+};
+
+}  // namespace std

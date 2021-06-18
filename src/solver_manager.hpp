@@ -25,7 +25,7 @@ struct Statistics;
 class SolverManager
 {
  public:
-  using SortSet = std::unordered_set<Sort, HashSort>;
+  using SortSet = std::unordered_set<Sort>;
 
   /* Statistics. */
   struct Stats
@@ -490,7 +490,7 @@ class SolverManager
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
 
   /** The set of already assumed formulas. */
-  std::unordered_set<Term, HashTerm> d_assumptions;
+  std::unordered_set<Term> d_assumptions;
 
   /** Vector of available solver options */
   SolverOptions& d_solver_options;
@@ -510,7 +510,7 @@ class SolverManager
   std::unordered_map<uint64_t, Sort> d_untraced_sorts;
 
   /** Set of currently created string values with length 1. */
-  std::unordered_set<Term, HashTerm> d_string_char_values;
+  std::unordered_set<Term> d_string_char_values;
 
   /**
    * List of terms for which we have to trace a ("phantom") action

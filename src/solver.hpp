@@ -82,11 +82,6 @@ bool operator==(const Sort& a, const Sort& b);
 
 std::ostream& operator<<(std::ostream& out, const Sort s);
 
-struct HashSort
-{
-  std::size_t operator()(const Sort s) const;
-};
-
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
@@ -151,11 +146,6 @@ bool operator==(const Term& a, const Term& b);
 
 std::ostream& operator<<(std::ostream& out, const Term t);
 std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
-
-struct HashTerm
-{
-  size_t operator()(const Term t) const;
-};
 
 /* -------------------------------------------------------------------------- */
 /* Solver                                                                     */
@@ -336,9 +326,7 @@ class Solver
    *
    * This map can be extended with solver-specific special values.
    */
-  std::unordered_map<SortKind,
-                     std::unordered_set<SpecialValueKind>,
-                     SortKindHashFunction>
+  std::unordered_map<SortKind, std::unordered_set<SpecialValueKind>>
       d_special_values = {
           {SORT_BV,
            {SPECIAL_VALUE_BV_ZERO,
@@ -374,5 +362,21 @@ std::ostream& operator<<(std::ostream& out, const Solver::Result& r);
 /* -------------------------------------------------------------------------- */
 
 }  // namespace murxla
+
+namespace std {
+
+template <>
+struct hash<murxla::Sort>
+{
+  size_t operator()(const murxla::Sort& s) const;
+};
+
+template <>
+struct hash<murxla::Term>
+{
+  size_t operator()(const murxla::Term& t) const;
+};
+
+}  // namespace std
 
 #endif

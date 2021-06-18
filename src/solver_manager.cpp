@@ -386,7 +386,7 @@ Term
 SolverManager::pick_string_char_value()
 {
   assert(has_string_char_value());
-  return d_rng.pick_from_set<std::unordered_set<Term, HashTerm>, Term>(
+  return d_rng.pick_from_set<std::unordered_set<Term>, Term>(
       d_string_char_values);
 }
 
@@ -445,8 +445,7 @@ Term
 SolverManager::pick_assumed_assumption()
 {
   assert(has_assumed());
-  return d_rng.pick_from_set<std::unordered_set<Term, HashTerm>, Term>(
-      d_assumptions);
+  return d_rng.pick_from_set<std::unordered_set<Term>, Term>(d_assumptions);
 }
 
 void

@@ -10,12 +10,6 @@ operator<<(std::ostream& out, SortKind kind)
   return out;
 }
 
-size_t
-SortKindHashFunction::operator()(SortKind kind) const
-{
-  return kind;
-}
-
 bool
 operator==(const SortKindData& a, const SortKindData& b)
 {
@@ -37,3 +31,13 @@ sort_kind_from_str(std::string& s)
 }
 
 }  // namespace murxla
+
+namespace std {
+
+size_t
+hash<murxla::SortKind>::operator()(const murxla::SortKind& k) const
+{
+  return k;
+};
+
+}  // namespace std

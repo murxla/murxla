@@ -23,23 +23,32 @@ enum SortKind
   SORT_ANY,
 };
 
-struct SortKindHashFunction
+}
+
+namespace std {
+
+template <>
+struct hash<murxla::SortKind>
 {
-  size_t operator()(SortKind kind) const;
+  size_t operator()(const murxla::SortKind& k) const;
 };
 
-static std::unordered_map<SortKind, std::string, SortKindHashFunction>
-    sort_kinds_to_str{{SORT_ARRAY, "SORT_ARRAY"},
-                      {SORT_BV, "SORT_BV"},
-                      {SORT_BOOL, "SORT_BOOL"},
-                      {SORT_FP, "SORT_FP"},
-                      {SORT_FUN, "SORT_FUN"},
-                      {SORT_INT, "SORT_INT"},
-                      {SORT_REAL, "SORT_REAL"},
-                      {SORT_RM, "SORT_RM"},
-                      {SORT_STRING, "SORT_STRING"},
-                      {SORT_REGLAN, "SORT_REGLAN"},
-                      {SORT_ANY, "SORT_ANY"}};
+}  // namespace std
+
+namespace murxla {
+
+static std::unordered_map<SortKind, std::string> sort_kinds_to_str{
+    {SORT_ARRAY, "SORT_ARRAY"},
+    {SORT_BV, "SORT_BV"},
+    {SORT_BOOL, "SORT_BOOL"},
+    {SORT_FP, "SORT_FP"},
+    {SORT_FUN, "SORT_FUN"},
+    {SORT_INT, "SORT_INT"},
+    {SORT_REAL, "SORT_REAL"},
+    {SORT_RM, "SORT_RM"},
+    {SORT_STRING, "SORT_STRING"},
+    {SORT_REGLAN, "SORT_REGLAN"},
+    {SORT_ANY, "SORT_ANY"}};
 
 struct SortKindData
 {
@@ -65,8 +74,7 @@ SortKind sort_kind_from_str(std::string& s);
 bool operator==(const SortKindData& a, const SortKindData& b);
 
 using SortKindVector = std::vector<SortKind>;
-using SortKindMap =
-    std::unordered_map<SortKind, SortKindData, SortKindHashFunction>;
+using SortKindMap    = std::unordered_map<SortKind, SortKindData>;
 using SortKinds   = std::unordered_map<TheoryId, SortKindVector>;
 using SortKindSet = std::unordered_set<SortKind>;
 

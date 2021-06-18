@@ -11,9 +11,9 @@ class RNGenerator;
 class TermDb
 {
  public:
-  using TermMap     = std::unordered_map<Term, size_t, HashTerm>;
-  using SortMap     = std::unordered_map<Sort, TermMap, HashSort>;
-  using SortSet     = std::unordered_set<Sort, HashSort>;
+  using TermMap     = std::unordered_map<Term, size_t>;
+  using SortMap     = std::unordered_map<Sort, TermMap>;
+  using SortSet     = std::unordered_set<Sort>;
   using SortKindSet = std::unordered_set<SortKind>;
   using SortTermMap = std::unordered_map<SortKind, SortMap>;
 
