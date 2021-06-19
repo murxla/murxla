@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <unordered_map>
 
 #include "exit.hpp"
 
@@ -230,55 +231,101 @@ Smt2Term::get_params() const
   return d_params;
 }
 
+const Smt2Term*
+to_smt2_term(const Term& t)
+{
+  return static_cast<const Smt2Term*>(t.get());
+}
+
 const std::string
 Smt2Term::get_repr() const
 {
-  if (d_leaf_kind != LeafKind::NONE)
+  std::vector<const Smt2Term*> visit;
+  std::unordered_map<const Smt2Term*, std::string> cache;
+
+  visit.push_back(this);
+
+  while (!visit.empty())
   {
-    assert(!d_repr.empty());
-    return d_repr;
+    const Smt2Term* cur = visit.back();
+
+    const auto& it = cache.find(cur);
+    if (it == cache.end())
+    {
+      cache.emplace(cur, "");
+      for (const auto& arg : cur->d_args)
+      {
+        visit.push_back(to_smt2_term(arg));
+      }
+      continue;
+    }
+    else
+    {
+      std::stringstream res;
+      size_t i = 0;
+      if (cur->d_leaf_kind != LeafKind::NONE)
+      {
+        assert(!cur->d_repr.empty());
+        res << cur->d_repr;
+      }
+      else
+      {
+        if (cur->d_params.empty())
+        {
+          res << "(" << d_op_kind_to_str.at(cur->d_kind);
+          if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS)
+          {
+            assert(cur->d_args.size() > 1);
+            /* print bound variables, body is last argument term in d_args */
+            res << " (";
+            for (size_t size = cur->d_args.size() - 1; i < size; ++i)
+            {
+              if (i > 0) res << " ";
+              const Smt2Term* smt2_term = to_smt2_term(cur->d_args[i]);
+              assert(smt2_term->d_leaf_kind == LeafKind::VAR);
+              Smt2Sort* smt2_sort =
+                  static_cast<Smt2Sort*>(cur->d_args[i]->get_sort().get());
+
+              const auto itt = cache.find(smt2_term);
+              assert(itt != cache.end());
+              assert(!itt->second.empty());
+
+              res << "(" << itt->second << " " << smt2_sort->get_repr() << ")";
+            }
+            res << ")";
+          }
+        }
+        else
+        {
+          res << "((_ " << d_op_kind_to_str.at(cur->d_kind);
+          for (uint32_t p : cur->d_params)
+          {
+            res << " " << p;
+          }
+          res << ")";
+        }
+        for (size_t size = cur->d_args.size(); i < size; ++i)
+        {
+          const auto itt = cache.find(to_smt2_term(cur->d_args[i]));
+          assert(itt != cache.end());
+          assert(!itt->second.empty());
+          res << " " << itt->second;
+        }
+        res << ")";
+      }
+
+      if (it->second.empty())
+      {
+        it->second = res.str();
+      }
+    }
+    visit.pop_back();
   }
 
-  size_t i = 0;
-  assert(d_op_kind_to_str.find(d_kind) != d_op_kind_to_str.end());
-  std::stringstream res;
-  if (d_params.size() == 0)
-  {
-    res << "(" << d_op_kind_to_str.at(d_kind);
-    if (d_kind == Op::FORALL || d_kind == Op::EXISTS)
-    {
-      assert(d_args.size() > 1);
-      /* print bound variables, body is last argument term in d_args */
-      res << " (";
-      for (size_t size = d_args.size() - 1; i < size; ++i)
-      {
-        if (i > 0) res << " ";
-        Smt2Term* smt2_term = static_cast<Smt2Term*>(d_args[i].get());
-        assert(smt2_term->d_leaf_kind == LeafKind::VAR);
-        Smt2Sort* smt2_sort =
-            static_cast<Smt2Sort*>(d_args[i]->get_sort().get());
-        res << "(" << smt2_term->get_repr() << " " << smt2_sort->get_repr()
-            << ")";
-      }
-      res << ")";
-    }
-  }
-  else
-  {
-    res << "((_ " << d_op_kind_to_str.at(d_kind);
-    for (uint32_t p : d_params)
-    {
-      res << " " << p;
-    }
-    res << ")";
-  }
-  for (size_t size = d_args.size(); i < size; ++i)
-  {
-    Smt2Term* smt2_term = static_cast<Smt2Term*>(d_args[i].get());
-    res << " " << smt2_term->get_repr();
-  }
-  res << ")";
-  return res.str();
+  auto itt = cache.find(this);
+  assert(itt != cache.end());
+  assert(!itt->second.empty());
+  return itt->second;
 }
 
 /* -------------------------------------------------------------------------- */
