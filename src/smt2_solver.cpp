@@ -242,9 +242,31 @@ Smt2Term::get_repr() const
 {
   std::vector<const Smt2Term*> visit;
   std::unordered_map<const Smt2Term*, std::string> cache;
+  std::unordered_map<const Smt2Term*, uint64_t> refs;
+  std::vector<std::string> lets;
 
+  // Compute references
   visit.push_back(this);
+  while (!visit.empty())
+  {
+    const Smt2Term* cur = visit.back();
+    visit.pop_back();
 
+    const auto& it = cache.find(cur);
+    if (it == cache.end())
+    {
+      cache.emplace(cur, "");
+      for (const auto& arg : cur->d_args)
+      {
+        visit.push_back(to_smt2_term(arg));
+        refs[visit.back()] += 1;
+      }
+      continue;
+    }
+  }
+
+  cache.clear();
+  visit.push_back(this);
   while (!visit.empty())
   {
     const Smt2Term* cur = visit.back();
@@ -262,6 +284,7 @@ Smt2Term::get_repr() const
     else
     {
       std::stringstream res;
+
       size_t i = 0;
       if (cur->d_leaf_kind != LeafKind::NONE)
       {
@@ -316,7 +339,20 @@ Smt2Term::get_repr() const
 
       if (it->second.empty())
       {
-        it->second = res.str();
+        uint64_t nrefs = refs[cur];
+
+        if (nrefs > 1 && cur->d_leaf_kind == LeafKind::NONE)
+        {
+          std::stringstream let;
+          let << "_let" << lets.size() / 2;
+          lets.push_back(let.str());
+          lets.push_back(res.str());
+          it->second = let.str();
+        }
+        else
+        {
+          it->second = res.str();
+        }
       }
     }
     visit.pop_back();
@@ -325,7 +361,27 @@ Smt2Term::get_repr() const
   auto itt = cache.find(this);
   assert(itt != cache.end());
   assert(!itt->second.empty());
-  return itt->second;
+  std::string t = itt->second;
+
+  std::stringstream res;
+  if (!lets.empty())
+  {
+    res << "(let (";
+
+    for (size_t i = 0; i < lets.size(); i += 2)
+    {
+      if (i > 0) res << " ";
+      res << "(" << lets[i] << " " << lets[i + 1] << ")";
+    }
+    res << ") ";
+    res << itt->second << ")";
+  }
+  else
+  {
+    res << itt->second;
+  }
+
+  return res.str();
 }
 
 /* -------------------------------------------------------------------------- */
