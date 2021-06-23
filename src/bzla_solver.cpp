@@ -784,7 +784,7 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   uint32_t val = 0;
   BitwuzlaOption bzla_opt;
 
-  val = value == "true" ? 1 : std::stoul(value);
+  val = value == "true" ? 1 : (value == "false" ? 0 : std::stoul(value));
   // TODO support all options
   if (opt == "produce-models")
   {
