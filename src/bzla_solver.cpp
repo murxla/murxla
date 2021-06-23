@@ -1314,6 +1314,7 @@ class BzlaActionSimplify : public Action
   void _run()
   {
     MURXLA_TRACE << get_kind();
+    reset_sat();
     bitwuzla_simplify(
         static_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver());
   }

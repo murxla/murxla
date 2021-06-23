@@ -457,7 +457,10 @@ SolverManager::clear_assumptions()
 void
 SolverManager::reset_sat()
 {
-  clear_assumptions();
+  if (d_sat_called)
+  {
+    clear_assumptions();
+  }
   d_sat_called = false;
 }
 
