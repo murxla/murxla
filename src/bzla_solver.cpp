@@ -1280,7 +1280,7 @@ class BzlaActionResetAssumptions : public Action
   void _run()
   {
     MURXLA_TRACE << get_kind();
-    d_smgr.clear();
+    d_smgr.clear_assumptions();
     bitwuzla_reset_assumptions(
         static_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver());
   }

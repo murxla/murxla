@@ -359,6 +359,9 @@ class SolverManager
    */
   std::pair<std::string, std::string> pick_option();
 
+  /** Clear set of assumptions. */
+  void clear_assumptions();
+
   /**
    * True if incremental solving is enabled.
    * (SMT-LIB: option :incremental).
@@ -434,9 +437,6 @@ class SolverManager
    * Operator kinds are enabled based on the set of enabled theories.
    */
   void add_op_kinds();
-
-  /** Clear set of assumptions. */
-  void clear_assumptions();
 
 #if 0
   template <typename TKind,
