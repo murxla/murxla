@@ -29,11 +29,17 @@ TermDb::add_term(Term& term,
                  const std::vector<Term>& args)
 {
   assert(term.get());
-  assert(term->get_id() == 0);
-  assert(term->get_sort() == nullptr);
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
   assert(sort_kind != SORT_BV || sort->get_bv_size() <= MURXLA_BW_MAX);
+
+  if (term->get_id() != 0)
+  {
+    assert(get_term(term->get_id()) != nullptr);
+    return;
+  }
+
+  assert(term->get_sort() == nullptr);
 
   /* Determine scope level of term. */
   std::vector<uint64_t> levels = term->get_levels();
