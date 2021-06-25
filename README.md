@@ -103,6 +103,8 @@ Add handling in `Solver::mk_special_value`.
 
 # Coverage Reports
 
+Requires `lcov` and `fastcov`. Make sure to install `fastcov` via `pip`.
+
 1. Configure with `cmake .. -DGCOV=ON` and setup solvers with `--coverage`
 2. Prior to running `murxla` reset the coverage data via `make coverage-reset`
 3. Run `murxla` for some time

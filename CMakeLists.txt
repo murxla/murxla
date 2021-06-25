@@ -85,22 +85,12 @@ find_package(toml11)
 
 if(GCOV)
   include(CodeCoverage)
-  APPEND_COVERAGE_COMPILER_FLAGS()
-  set(COVERAGE_LCOV_EXCLUDES '/usr/include/*')
-  set(COVERAGE_LCOV_PATHS "")
-  if(Boolector_FOUND)
-    list(APPEND COVERAGE_LCOV_PATHS
-         "${PROJECT_SOURCE_DIR}/solvers/boolector/build/src")
-  endif()
-  if(Bitwuzla_FOUND)
-    list(APPEND COVERAGE_LCOV_PATHS
-         "${PROJECT_SOURCE_DIR}/solvers/bitwuzla/build/src")
-  endif()
-  if(CVC4_FOUND)
-    list(APPEND COVERAGE_LCOV_PATHS
-         "${PROJECT_SOURCE_DIR}/solvers/cvc4/build/src")
-  endif()
-  setup_target_for_coverage_lcov_no_executable(NAME coverage DEPENDENCIES murxla)
+  append_coverage_compiler_flags()
+  setup_code_coverage_fastcov(
+    NAME coverage
+    PATH "${PROJECT_SOURCE_DIR}"
+    EXCLUDE "${PROJECT_SOURCE_DIR}/deps"
+    DEPENDENCIES murxla)
 endif()
 
 add_subdirectory(src)
