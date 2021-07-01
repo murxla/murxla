@@ -4,6 +4,28 @@
 
 namespace murxla {
 
+MessageStream::MessageStream() { stream() << "[murxla] "; }
+
+MessageStream::MessageStream(const std::string& prefix)
+{
+  stream() << "[murxla] " << prefix << " ";
+}
+
+MessageStream::~MessageStream() { flush(); }
+
+std::ostream&
+MessageStream::stream()
+{
+  return std::cout;
+}
+
+void
+MessageStream::flush()
+{
+  stream() << std::endl;
+  stream().flush();
+}
+
 WarnStream::WarnStream() { stream() << "murxla: WARNING: "; }
 
 WarnStream::~WarnStream() { flush(); }
@@ -37,6 +59,30 @@ AbortStream::stream()
 
 void
 AbortStream::flush()
+{
+  stream() << std::endl;
+  stream().flush();
+}
+
+ExitStream::ExitStream(ExitCode exit_code) : d_exit(exit_code)
+{
+  stream() << "murxla: ERROR: ";
+}
+
+ExitStream::~ExitStream()
+{
+  flush();
+  std::exit(d_exit);
+}
+
+std::ostream&
+ExitStream::stream()
+{
+  return std::cerr;
+}
+
+void
+ExitStream::flush()
 {
   stream() << std::endl;
   stream().flush();

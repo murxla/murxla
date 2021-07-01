@@ -11,6 +11,7 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <numeric>
 #include <regex>
@@ -20,6 +21,7 @@
 #include "btor_solver.hpp"
 #include "bzla_solver.hpp"
 #include "cvc5_solver.hpp"
+#include "except.hpp"
 #include "exit.hpp"
 #include "fsm.hpp"
 #include "smt2_solver.hpp"
@@ -265,50 +267,6 @@ print_error_summary()
 
 /* -------------------------------------------------------------------------- */
 
-static void
-message(const char* prefix, const char* msg, ...)
-{
-  assert(msg);
-  va_list list;
-  va_start(list, msg);
-  fprintf(stdout, "[murxla] ");
-  if (prefix)
-  {
-    fprintf(stdout, "%s: ", prefix);
-  }
-  vfprintf(stdout, msg, list);
-  fprintf(stdout, "\n");
-  va_end(list);
-  fflush(stdout);
-}
-
-static void
-message(const std::string& prefix, const std::string& msg)
-{
-  std::stringstream ss;
-  ss << prefix << ": " << msg;
-  message(nullptr, ss.str().c_str());
-}
-
-static void
-message(const std::string& msg)
-{
-  message("", msg);
-}
-
-static void
-message(const std::string& prefix, const std::stringstream& msg)
-{
-  message(prefix, msg.str());
-}
-
-static void
-die(const std::string& msg, ExitCode exit_code = EXIT_ERROR)
-{
-  message("error", msg);
-  exit(exit_code);
-}
-
 static std::string
 get_info(Result res)
 {
@@ -328,10 +286,7 @@ static double
 get_cur_wall_time()
 {
   struct timeval time;
-  if (gettimeofday(&time, nullptr))
-  {
-    die("failed to get time");
-  }
+  MURXLA_EXIT_ERROR(gettimeofday(&time, nullptr)) << "failed to get time";
   return (double) time.tv_sec + (double) time.tv_usec / 1000000;
 }
 
@@ -346,8 +301,9 @@ initialize_statistics()
   ss << "/tmp/murxla-shm-" << getpid();
   shmfilename = ss.str();
 
-  if ((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT, S_IRWXU)) < 0)
-    die("failed to create shared memory file for statistics");
+  MURXLA_EXIT_ERROR((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT, S_IRWXU))
+                    < 0)
+      << "failed to create shared memory file for statistics";
 
   stats = static_cast<Statistics*>(mmap(0,
                                         sizeof(Statistics),
@@ -357,7 +313,8 @@ initialize_statistics()
                                         0));
   memset(stats, 0, sizeof(Statistics));
 
-  if (close(fd)) die("failed to close shared memory file for statistics");
+  MURXLA_EXIT_ERROR(close(fd))
+      << "failed to close shared memory file for statistics";
   (void) unlink(shmfilename.c_str());
   return stats;
 }
@@ -366,12 +323,8 @@ static std::ifstream
 open_ifile(std::string& file_name)
 {
   std::ifstream res(file_name);
-  if (!res.is_open())
-  {
-    std::stringstream ss;
-    ss << "unable to open input file '" << file_name << "'";
-    die(ss.str());
-  }
+  MURXLA_EXIT_ERROR(!res.is_open())
+      << "unable to open input file '" << file_name << "'";
   return res;
 }
 
@@ -379,12 +332,8 @@ static std::ofstream
 open_ofile(std::string& file_name)
 {
   std::ofstream res(file_name, std::ofstream::out | std::ofstream::trunc);
-  if (!res.is_open())
-  {
-    std::stringstream ss;
-    ss << "unable to open output file '" << file_name << "'";
-    die(ss.str());
-  }
+  MURXLA_EXIT_ERROR(!res.is_open())
+      << "unable to open output file '" << file_name << "'";
   return res;
 }
 
@@ -603,12 +552,8 @@ set_sigint_handler_stats(void)
 void
 check_next_arg(std::string& option, int i, int argc)
 {
-  if (i >= argc)
-  {
-    std::stringstream es;
-    es << "missing argument to option '" << option << "'";
-    die(es.str());
-  }
+  MURXLA_EXIT_ERROR(i >= argc)
+      << "missing argument to option '" << option << "'";
 }
 
 void
@@ -619,7 +564,7 @@ parse_options(Options& options, int argc, char* argv[])
     std::string arg = argv[i];
     if (arg == "-h" || arg == "--help")
     {
-      message(MURXLA_USAGE);
+      MURXLA_MESSAGE << MURXLA_USAGE;
       exit(0);
     }
     else if (arg == "-s" || arg == "--seed")
@@ -628,13 +573,8 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, argc);
       ss << argv[i];
-      if (ss.str().find('-') != std::string::npos)
-      {
-        std::stringstream es;
-        es << "invalid argument to option '" << argv[i - 1]
-           << "': " << ss.str();
-        die(es.str());
-      }
+      MURXLA_EXIT_ERROR(ss.str().find('-') != std::string::npos)
+          << "invalid argument to option '" << argv[i - 1] << "': " << ss.str();
       ss >> options.seed;
       options.is_seeded = true;
     }
@@ -684,22 +624,15 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "-c" || arg == "--cross-check")
     {
-      if (options.solver == MURXLA_SOLVER_SMT2)
-      {
-        std::stringstream es;
-        es << "option " << arg << " is incompatible with option --smt2";
-        die(es.str());
-      }
+      MURXLA_EXIT_ERROR(options.solver == MURXLA_SOLVER_SMT2)
+          << "option " << arg << " is incompatible with option --smt2";
       i += 1;
       check_next_arg(arg, i, argc);
       std::string solver = argv[i];
-      if (solver != MURXLA_SOLVER_BTOR && solver != MURXLA_SOLVER_BZLA
+      MURXLA_EXIT_ERROR(
+          solver != MURXLA_SOLVER_BTOR && solver != MURXLA_SOLVER_BZLA
           && solver != MURXLA_SOLVER_CVC5 && solver != MURXLA_SOLVER_YICES)
-      {
-        std::stringstream es;
-        es << "invalid argument " << solver << " to option '" << arg << "'";
-        die(es.str());
-      }
+          << "invalid argument " << solver << " to option '" << arg << "'";
       options.cross_check = solver;
     }
     else if (arg == "-y" || arg == "--random-symbols")
@@ -710,73 +643,47 @@ parse_options(Options& options, int argc, char* argv[])
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      if (!path_is_dir(argv[i]))
-      {
-        std::stringstream ss;
-        ss << "given path is not a directory '" << argv[i] << "'";
-        die(ss.str());
-      }
+      MURXLA_EXIT_ERROR(!path_is_dir(argv[i]))
+          << "given path is not a directory '" << argv[i] << "'";
       options.tmp_dir = argv[i];
     }
     else if (arg == "-O" || arg == "--out-dir")
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      if (!path_is_dir(argv[i]))
-      {
-        std::stringstream ss;
-        ss << "given path is not a directory '" << argv[i] << "'";
-        die(ss.str());
-      }
+      MURXLA_EXIT_ERROR(!path_is_dir(argv[i]))
+          << "given path is not a directory '" << argv[i] << "'";
       options.out_dir = argv[i];
     }
     else if (arg == "--btor")
     {
-      if (!options.solver.empty())
-      {
-        die("multiple solvers defined");
-      }
+      MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = MURXLA_SOLVER_BTOR;
     }
     else if (arg == "--bzla")
     {
-      if (!options.solver.empty())
-      {
-        die("multiple solvers defined");
-      }
+      MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = MURXLA_SOLVER_BZLA;
     }
     else if (arg == "--cvc5")
     {
-      if (!options.solver.empty())
-      {
-        die("multiple solvers defined");
-      }
+      MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = MURXLA_SOLVER_CVC5;
     }
     else if (arg == "--yices")
     {
-      if (!options.solver.empty())
-      {
-        die("multiple solvers defined");
-      }
+      MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = MURXLA_SOLVER_YICES;
     }
     else if (arg == "--smt2")
     {
-      if (!options.cross_check.empty())
-      {
-        std::stringstream es;
-        es << "option " << arg
-           << " is incompatible with option -c, --cross-check";
-        die(es.str());
-      }
+      MURXLA_EXIT_ERROR(!options.cross_check.empty())
+          << "option " << arg
+          << " is incompatible with option -c, --cross-check";
       if (i + 1 < argc && argv[i + 1][0] != '-')
       {
-        if (!options.solver.empty())
-        {
-          die("multiple solvers defined");
-        }
+        MURXLA_EXIT_ERROR(!options.solver.empty())
+            << "multiple solvers defined";
         i += 1;
         options.solver_binary = argv[i];
       }
@@ -850,16 +757,11 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else
     {
-      std::stringstream ss;
-      ss << "unknown option '" << arg << "'";
-      die(ss.str());
+      MURXLA_EXIT_ERROR(true) << "unknown option '" << arg << "'";
     }
   }
 
-  if (options.solver.empty())
-  {
-    die("No solver selected");
-  }
+  MURXLA_EXIT_ERROR(options.solver.empty()) << "No solver selected";
 }
 
 /* -------------------------------------------------------------------------- */
@@ -950,9 +852,7 @@ parse_solver_options_file(Options& options, SolverOptions& solver_options)
     }
     else
     {
-      std::stringstream es;
-      es << "Unknown option type " << type;
-      die(es.str());
+      MURXLA_EXIT_ERROR(true) << "Unknown option type " << type;
     }
 
     solver_options.push_back(std::unique_ptr<SolverOption>(opt));
@@ -967,25 +867,17 @@ parse_solver_options_file(Options& options, SolverOptions& solver_options)
 
     for (const auto& o : confl)
     {
-      if (options_map.find(o) == options_map.end())
-      {
-        std::stringstream es;
-        es << "Unknown conflicting option name '" << o << "' for option "
-           << uptr->get_name();
-        die(es.str());
-      }
+      MURXLA_EXIT_ERROR(options_map.find(o) == options_map.end())
+          << "Unknown conflicting option name '" << o << "' for option "
+          << uptr->get_name();
       options_map.at(o)->add_conflict(uptr->get_name());
     }
 
     for (const auto& o : deps)
     {
-      if (options_map.find(o) == options_map.end())
-      {
-        std::stringstream es;
-        es << "Unknown dependency option name '" << o << "' for option "
-           << uptr->get_name();
-        die(es.str());
-      }
+      MURXLA_EXIT_ERROR(options_map.find(o) == options_map.end())
+          << "Unknown dependency option name '" << o << "' for option "
+          << uptr->get_name();
       options_map.at(o)->add_depends(uptr->get_name());
     }
   }
@@ -1044,10 +936,7 @@ run_aux(Options& options,
   if (run_forked)
   {
     solver_pid = fork();
-    if (solver_pid == -1)
-    {
-      die("forking solver process failed.");
-    }
+    MURXLA_EXIT_ERROR(solver_pid == -1) << "forking solver process failed.";
   }
 
   /* parent */
@@ -1058,10 +947,7 @@ run_aux(Options& options,
     if (options.time)
     {
       timeout_pid = fork();
-      if (timeout_pid == -1)
-      {
-        die("forking timeout process failed");
-      }
+      MURXLA_EXIT_ERROR(timeout_pid == -1) << "forking timeout process failed";
       if (timeout_pid == 0)
       {
         signal(SIGINT, SIG_DFL);  // reset stats signal handler
@@ -1120,12 +1006,7 @@ run_aux(Options& options,
       /* Redirect stdout and stderr of child process into given files. */
       fd = open(
           file_out.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
-      if (fd < 0)
-      {
-        std::stringstream ss;
-        ss << "unable to open file " << file_out;
-        die(ss.str());
-      }
+      MURXLA_EXIT_ERROR(fd < 0) << "unable to open file " << file_out;
       dup2(fd, STDOUT_FILENO);
       close(fd);
       fd = open(
@@ -1133,9 +1014,7 @@ run_aux(Options& options,
       if (fd < 0)
       {
         perror(0);
-        std::stringstream ss;
-        ss << "unable to open file " << file_err;
-        die(ss.str());
+        MURXLA_EXIT_ERROR(true) << "unable to open file " << file_err;
       }
       dup2(fd, STDERR_FILENO);
       close(fd);
@@ -1148,7 +1027,7 @@ run_aux(Options& options,
 #if MURXLA_USE_BOOLECTOR
       solver = new murxla::btor::BtorSolver(rng);
 #else
-      die("Boolector not configured");
+      MURXLA_EXIT_ERROR(true) << "Boolector not configured";
 #endif
     }
     else if (options.solver == MURXLA_SOLVER_BZLA)
@@ -1156,7 +1035,7 @@ run_aux(Options& options,
 #if MURXLA_USE_BITWUZLA
       solver = new murxla::bzla::BzlaSolver(rng);
 #else
-      die("Bitwuzla not configured");
+      MURXLA_EXIT_ERROR(true) << "Bitwuzla not configured";
 #endif
     }
     else if (options.solver == MURXLA_SOLVER_CVC5)
@@ -1164,7 +1043,7 @@ run_aux(Options& options,
 #if MURXLA_USE_CVC5
       solver = new murxla::cvc5::Cvc5Solver(rng);
 #else
-      die("cvc5 not configured");
+      MURXLA_EXIT_ERROR(true) << "cvc5 not configured";
 #endif
     }
     else if (options.solver == MURXLA_SOLVER_YICES)
@@ -1172,7 +1051,7 @@ run_aux(Options& options,
 #if MURXLA_USE_YICES
       solver = new murxla::yices::YicesSolver(rng);
 #else
-      die("Yices not configured");
+      MURXLA_EXIT_ERROR << "Yices not configured";
 #endif
     }
     else if (options.solver == MURXLA_SOLVER_SMT2)
@@ -1180,16 +1059,12 @@ run_aux(Options& options,
       if (smt2_online)
       {
         /* Open input/output pipes from and to the external online solver. */
-        if (pipe(fd_to) != 0 || pipe(fd_from) != 0)
-        {
-          die("creating input and/or output pipes failed");
-        }
+        MURXLA_EXIT_ERROR(pipe(fd_to) != 0 || pipe(fd_from) != 0)
+            << "creating input and/or output pipes failed";
 
         smt2_pid = fork();
-        if (smt2_pid == -1)
-        {
-          die("forking solver process failed.");
-        }
+
+        MURXLA_EXIT_ERROR(smt2_pid == -1) << "forking solver process failed.";
 
         if (smt2_pid == 0)  // child
         {
@@ -1225,9 +1100,9 @@ run_aux(Options& options,
             delete[] execargs[i];
           }
           delete[] execargs;
-          std::stringstream es;
-          es << "'" << options.solver_binary << "' is not executable";
-          die(es.str());
+
+          MURXLA_EXIT_ERROR(true)
+              << "'" << options.solver_binary << "' is not executable";
         }
 
         close(fd_to[MURXLA_SMT2_READ_END]);
@@ -1235,10 +1110,8 @@ run_aux(Options& options,
         close(fd_from[MURXLA_SMT2_WRITE_END]);
         from_external = fdopen(fd_from[MURXLA_SMT2_READ_END], "r");
 
-        if (to_external == nullptr || from_external == nullptr)
-        {
-          die("opening read/write channels to external solver failed");
-        }
+        MURXLA_EXIT_ERROR(to_external == nullptr || from_external == nullptr)
+            << "opening read/write channels to external solver failed";
       }
       solver = new smt2::Smt2Solver(
           rng, smt2, smt2_online, to_external, from_external);
@@ -1272,11 +1145,11 @@ run_aux(Options& options,
     }
     catch (MurxlaConfigException& e)
     {
-      die(e.get_msg(), EXIT_ERROR_CONFIG);
+      MURXLA_EXIT_ERROR_CONFIG(true) << e.get_msg();
     }
     catch (MurxlaException& e)
     {
-      die(e.get_msg());
+      MURXLA_EXIT_ERROR(true) << e.get_msg();
     }
 
     if (smt2_online) waitpid(smt2_pid, nullptr, 0);
@@ -1478,7 +1351,8 @@ dd(Options& options, SolverOptions& solver_options)
     opts.dd_trace_file_name =
         prepend_path(options.out_dir, opts.dd_trace_file_name);
   }
-  message("dd", "start minimizing file '%s'", opts.untrace_file_name.c_str());
+  MURXLA_MESSAGE_DD << "start minimizing file '"
+                    << opts.untrace_file_name.c_str() << "'";
 
   /* golden run */
   gold_exit = run(opts,
@@ -1488,32 +1362,28 @@ dd(Options& options, SolverOptions& solver_options)
                   gold_err_file_name,
                   &stats);
 
-  message("dd", "golden exit: %s", get_info(gold_exit).c_str());
+  MURXLA_MESSAGE_DD << "golden exit: " << get_info(gold_exit).c_str();
   {
     std::ifstream gold_out_file = open_ifile(gold_out_file_name);
     std::stringstream ss;
-    ss << "golden stdout output: " << gold_out_file.rdbuf();
-    message("dd", ss);
+    ss << gold_out_file.rdbuf();
+    MURXLA_MESSAGE_DD << "golden stdout output: " << ss.str();
     gold_out_file.close();
   }
   {
     std::ifstream gold_err_file = open_ifile(gold_err_file_name);
-    std::stringstream ss;
-    ss << "golden stderr output: " << gold_err_file.rdbuf();
-    message("dd", ss);
+    MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
     gold_err_file.close();
   }
   if (!opts.dd_out_string.empty())
   {
-    message("dd",
-            "checking for occurrence of '%s' in stdout output",
-            opts.dd_out_string.c_str());
+    MURXLA_MESSAGE_DD << "checking for occurrence of '"
+                      << opts.dd_out_string.c_str() << "' in stdout output";
   }
   if (!opts.dd_err_string.empty())
   {
-    message("dd",
-            "checking for occurrence of '%s' in stderr output",
-            opts.dd_err_string.c_str());
+    MURXLA_MESSAGE_DD << "checking for occurrence of '"
+                      << opts.dd_err_string.c_str() << "' in stderr output";
   }
 
   /* start delta debugging */
@@ -1597,9 +1467,9 @@ dd(Options& options, SolverOptions& solver_options)
         cur_superset = tmp;
         excluded_sets.insert(i);
         n_failed += 1;
-        message("dd",
-                "reduced to %.2f%% of original size",
-                ((double) cur_superset.size()) / orig_size * 100);
+        MURXLA_MESSAGE_DD << "reduced to " << std::fixed << std::setprecision(2)
+                          << (((double) cur_superset.size()) / orig_size * 100)
+                          << "% of original size";
       }
     }
     if (cur_superset.empty())
@@ -1615,9 +1485,10 @@ dd(Options& options, SolverOptions& solver_options)
       subset_size = size / 2;
     }
   }
-  message("dd", "");
-  message("dd", "%u of %u successful (reducing) tests", n_failed, n_tests);
-  message("dd", "written to: %s", opts.dd_trace_file_name.c_str());
+  MURXLA_MESSAGE_DD << std::endl;
+  MURXLA_MESSAGE_DD << n_failed << " of " << n_tests
+                    << " successful (reduced) tests";
+  MURXLA_MESSAGE_DD << "written to: " << opts.dd_trace_file_name.c_str();
 }
 
 /* ========================================================================== */
@@ -1876,16 +1747,15 @@ main(int argc, char* argv[])
       {
         g_options.dd_trace_file_name = prepend_prefix_to_file_name(
             MURXLA_DD_PREFIX, g_options.untrace_file_name);
-        message("dd",
-                "minimizing untraced file '%s'",
-                g_options.untrace_file_name.c_str());
+        MURXLA_MESSAGE_DD << "minimizing untraced file '"
+                          << g_options.untrace_file_name.c_str() << "'";
       }
       else
       {
         std::stringstream ss;
         ss << MURXLA_DD_PREFIX << g_options.seed << ".trace";
         g_options.dd_trace_file_name = ss.str();
-        message("dd", "minimizing run with seed %u", g_options.seed);
+        MURXLA_MESSAGE_DD << "minimizing run with seed " << g_options.seed;
       }
     }
 
@@ -1936,10 +1806,8 @@ main(int argc, char* argv[])
     g_stats->print();
   }
 
-  if (munmap(g_stats, sizeof(Statistics)))
-  {
-    die("failed to unmap shared memory for statistics");
-  }
+  MURXLA_EXIT_ERROR(munmap(g_stats, sizeof(Statistics)))
+      << "failed to unmap shared memory for statistics";
 
   if (std::filesystem::exists(TMP_DIR))
   {

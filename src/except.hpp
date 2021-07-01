@@ -3,6 +3,8 @@
 
 #include <sstream>
 
+#include "exit.hpp"
+
 namespace murxla {
 
 /* -------------------------------------------------------------------------- */
@@ -68,6 +70,20 @@ class MurxlaActionUntraceException : public MurxlaException
 
 /* -------------------------------------------------------------------------- */
 
+class MessageStream
+{
+ public:
+  MessageStream();
+  MessageStream(const std::string& prefix);
+  ~MessageStream();
+  MessageStream(const MessageStream& astream) = default;
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+};
+
 class WarnStream
 {
  public:
@@ -92,6 +108,20 @@ class AbortStream
 
  private:
   void flush();
+};
+
+class ExitStream
+{
+ public:
+  ExitStream(ExitCode exit_code = EXIT_ERROR);
+  ~ExitStream();
+  ExitStream(const ExitStream& astream) = default;
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+  ExitCode d_exit;
 };
 
 class ConfigExceptionStream
@@ -129,11 +159,21 @@ class OstreamVoider
   void operator&(std::ostream& ostream) {}
 };
 
+#define MURXLA_MESSAGE MessageStream().stream()
+
+#define MURXLA_MESSAGE_DD MessageStream("dd:").stream()
+
 #define MURXLA_WARN(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & WarnStream().stream()
 
 #define MURXLA_ABORT(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()
+
+#define MURXLA_EXIT_ERROR(cond) \
+  !(cond) ? (void) 0 : OstreamVoider() & ExitStream().stream()
+
+#define MURXLA_EXIT_ERROR_CONFIG(cond) \
+  !(cond) ? (void) 0 : OstreamVoider() & ExitStream(EXIT_ERROR_CONFIG).stream()
 
 #define MURXLA_CHECK_CONFIG(cond) \
   (cond) ? (void) 0 : OstreamVoider() & ConfigExceptionStream().stream()

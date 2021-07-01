@@ -1,5 +1,5 @@
-#ifndef __MURXLA__FSM_HPP_INCLUDED
-#define __MURXLA__FSM_HPP_INCLUDED
+#ifndef __MURXLA__FSM_H
+#define __MURXLA__FSM_H
 
 #include <cstdint>
 #include <cstring>
