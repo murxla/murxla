@@ -95,6 +95,10 @@ class RNGenerator
    template <typename T>
    T pick_weighted(std::vector<T>& weights);
 
+   template <typename T,
+             typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+   T pick_weighted(T from, T to);
+
    /** Pick with given probability, 100% = 1000. */
    bool pick_with_prob(uint32_t prob);
    /** Pick with probability of 50%. */
@@ -182,6 +186,22 @@ RNGenerator::pick_weighted(std::vector<T>& weights)
 {
   std::discrete_distribution<T> dist(weights.begin(), weights.end());
   return dist(d_rng);
+}
+
+template <typename T,
+          typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+T
+RNGenerator::pick_weighted(T from, T to)
+{
+  assert(to >= from);
+  std::vector<T> weights;
+  T diff = to - from;
+  for (T i = 0; i < diff; ++i)
+  {
+    weights.push_back(diff - i);
+  }
+  std::discrete_distribution<T> dist(weights.begin(), weights.end());
+  return dist(d_rng) + from;
 }
 
 /* -------------------------------------------------------------------------- */

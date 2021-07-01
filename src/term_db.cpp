@@ -103,8 +103,7 @@ TermDb::add_term(Term& term,
   }
   assert(term->get_sort()->get_id());
   assert(term->get_sort()->get_kind() != SORT_ANY);
-  // TODO: increment reference count of args
-  tmap.at(term) += 1;
+  // tmap.at(term) += 1;
 }
 
 void
@@ -318,7 +317,7 @@ TermDb::get_number_of_terms(SortKind sort_kind) const
 }
 
 Term
-TermDb::pick_term(Sort sort) const
+TermDb::pick_term(Sort sort)
 {
   assert(has_term(sort));
   assert(d_smgr.has_sort(sort));
@@ -337,13 +336,13 @@ TermDb::pick_term(Sort sort) const
   size_t level    = pick_level(s);
   SortKind s_kind = s->get_kind();
   assert(d_term_db[level].find(s_kind) != d_term_db[level].end());
-  const SortMap& smap = d_term_db[level].at(s_kind);
+  SortMap& smap = d_term_db[level].at(s_kind);
   assert(smap.find(s) != smap.end());
-  return d_rng.pick_from_map<TermMap, Term>(smap.at(s));
+  return pick_from_term_map(smap.at(s));
 }
 
 Term
-TermDb::pick_term(SortKind sort_kind, size_t level) const
+TermDb::pick_term(SortKind sort_kind, size_t level)
 {
   assert(sort_kind != SORT_ANY);
   assert(has_term(sort_kind, level));
@@ -358,13 +357,13 @@ TermDb::pick_term(SortKind sort_kind, size_t level) const
   }
   assert(d_term_db[level].find(sort_kind) != d_term_db[level].end());
 
-  const SortMap& smap = d_term_db[level].at(sort_kind);
+  SortMap& smap = d_term_db[level].at(sort_kind);
   Sort sort     = d_rng.pick_from_map<SortMap, Sort>(smap);
-  return d_rng.pick_from_map<TermMap, Term>(smap.at(sort));
+  return pick_from_term_map(smap.at(sort));
 }
 
 Term
-TermDb::pick_term(SortKind sort_kind) const
+TermDb::pick_term(SortKind sort_kind)
 {
   assert(sort_kind != SORT_ANY);
   assert(has_term(sort_kind));
@@ -374,7 +373,7 @@ TermDb::pick_term(SortKind sort_kind) const
 }
 
 Term
-TermDb::pick_term() const
+TermDb::pick_term()
 {
   assert(has_term());
   return pick_term(pick_sort_kind());
@@ -493,6 +492,35 @@ TermDb::pick_level(Sort sort) const
     }
   }
   return d_rng.pick_weighted<size_t>(levels);
+}
+
+Term
+TermDb::pick_from_term_map(TermMap& tmap)
+{
+  std::vector<size_t> weights;
+  size_t sum = 0;
+
+  for (const auto& p : tmap)
+  {
+    sum += p.second;
+    weights.push_back(p.second);
+  }
+
+  for (size_t i = 0; i < weights.size(); ++i)
+  {
+    weights[i] = sum - weights[i] + 1;
+  }
+
+  size_t idx = d_rng.pick_weighted(weights);
+
+  auto it = tmap.begin();
+  std::advance(it, idx);
+  Term t = it->first;
+
+  // Term t = d_rng.pick_from_map<TermMap, Term>(tmap);
+  tmap.at(t) += 1;  // increment reference count
+  // std::cout << t << ": " << tmap.at(t) << std::endl;
+  return t;
 }
 
 void

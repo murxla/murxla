@@ -1701,6 +1701,12 @@ class ActionCheckSat : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
+    /* If the last call was unsat, call check-sat again with a lower
+     * probability. */
+    if (d_smgr.d_sat_result == Solver::UNSAT && d_rng.pick_with_prob(95))
+    {
+      return false;
+    }
     _run();
     return true;
   }
@@ -2112,7 +2118,7 @@ FSM::configure()
 
   /* State: opt .......................................................... */
   s_opt->add_action(a_setoption, 1);
-  s_opt->add_action(t_default, 2, s_sorts);
+  s_opt->add_action(t_default, 5, s_sorts);
 
   s_sorts->add_action(a_mksort, 1);
   s_sorts->add_action(t_sorts, 5, s_inputs);
@@ -2121,52 +2127,54 @@ FSM::configure()
   s_inputs->add_action(a_mksort, 100, s_sorts);
   s_inputs->add_action(a_mkval, 10);
   s_inputs->add_action(a_mksval, 5);
-  s_inputs->add_action(a_mkconst, 5);
+  s_inputs->add_action(a_mkconst, 2);
   if (d_smgr.get_solver().supports_theory(THEORY_QUANT))
   {
     s_inputs->add_action(a_mkvar, 200);
   }
   s_inputs->add_action(a_termchksort, 1);
   s_inputs->add_action(t_inputs, 50, s_terms);
-  s_inputs->add_action(t_inputs, 1000, s_sat);
+  s_inputs->add_action(t_inputs, 5000, s_sat);
   s_inputs->add_action(t_inputs, 1000, s_push_pop);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 1);
   s_terms->add_action(a_termchksort, 1);
-  s_terms->add_action(t_default, 100, s_assert);
+  s_terms->add_action(t_default, 250, s_assert);
   s_terms->add_action(t_default, 500, s_sat);
   s_terms->add_action(t_inputs, 1000, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
   s_assert->add_action(a_assert, 1);
-  s_assert->add_action(t_default, 100, s_delete);
+  s_assert->add_action(t_default, 200, s_delete);
   s_assert->add_action(t_default, 20, s_sat);
   s_assert->add_action(t_inputs, 50, s_push_pop);
+  s_assert->add_action(t_default, 50, s_terms);
 
   /* State: check sat .................................................... */
   s_sat->add_action(a_sat, 1);
-  s_sat->add_action(a_sat_ass, 2);
+  s_sat->add_action(a_sat_ass, 1);
   s_sat->add_action(a_failed, 5);
-  s_sat->add_action(t_inputs, 5, s_push_pop);
-  s_sat->add_action(t_inputs, 20, s_delete);
+  s_sat->add_action(t_inputs, 2, s_push_pop);
+  s_sat->add_action(t_inputs, 200, s_delete);
 
   /* State: model ........................................................ */
   s_model->add_action(a_printmodel, 1);
   s_model->add_action(a_getvalue, 1);
-  add_action_to_all_states_next(t_default, 1, s_model, {State::OPT});
+  add_action_to_all_states_next(t_default, 10, s_model, {State::OPT});
   add_action_to_all_states(t_model, 10, {State::OPT}, s_model);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
   s_push_pop->add_action(a_pop, 1);
+  s_push_pop->add_action(t_default, 2, s_assert);
   add_action_to_all_states_next(t_default, 1, s_push_pop, {State::OPT});
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);
 
   /* All States (with exceptions) ........................................ */
-  add_action_to_all_states(a_reset_ass, 1000);
+  add_action_to_all_states(a_reset_ass, 5000);
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */

@@ -123,7 +123,7 @@ class TermDb
    *               or SORT_REAL at given or lower scope levels, weighted by
    *               number of terms of these sorts in the database.
    */
-  Term pick_term(SortKind kind, size_t level) const;
+  Term pick_term(SortKind kind, size_t level);
   /**
    * Pick a term of given sort kind.
    * Requires that terms of this sort kind exist.
@@ -132,7 +132,7 @@ class TermDb
    *               or SORT_REAL, weighted by number of terms of these sorts
    *               in the database.
    */
-  Term pick_term(SortKind kind) const;
+  Term pick_term(SortKind kind);
   /**
    * Pick a term of given sort.
    * Requires that terms of this sort exist.
@@ -141,12 +141,12 @@ class TermDb
    *               or SORT_REAL, weighted by number of terms of these sorts
    *               in the database.
    */
-  Term pick_term(Sort sort) const;
+  Term pick_term(Sort sort);
   /**
    * Pick any term.
    * Requires that a term exists.
    */
-  Term pick_term() const;
+  Term pick_term();
 
   /**
    * Pick variable from current scope.
@@ -170,6 +170,8 @@ class TermDb
   Sort pick_sort(SortKind sort_kind) const;
 
  private:
+  Term pick_from_term_map(TermMap& tmap);
+
   /** Open new scope with given variable. */
   void push(Term& var);
   /** Close current scope with given variable. */
