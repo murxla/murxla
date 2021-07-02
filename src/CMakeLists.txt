@@ -5,6 +5,7 @@ set(murxla_src_files
   except.cpp
   fsm.cpp
   main.cpp
+  murxla.cpp
   op.cpp
   smt2_solver.cpp
   solver.cpp

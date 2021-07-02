@@ -1,6 +1,7 @@
 #include "util.hpp"
 
 #include <stdlib.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include <algorithm>
@@ -8,9 +9,14 @@
 #include <cassert>
 #include <cstring>
 #include <ctime>
+#include <filesystem>
+#include <fstream>
 #include <limits>
 #include <sstream>
 #include <vector>
+
+#include "except.hpp"
+
 /* -------------------------------------------------------------------------- */
 
 #define MURXLA_PROB_MAX 1000 /* Maximum probability 100% = 1000. */
@@ -715,6 +721,164 @@ operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
 {
   for (const uint32_t v : vector) out << " " << v;
   return out;
+}
+
+/* -------------------------------------------------------------------------- */
+
+std::string
+get_tmp_file_path(const std::string& filename, const std::string& directory)
+{
+  std::filesystem::path p(directory);
+  p /= filename;
+  return p.string();
+}
+
+std::string
+prepend_path(const std::string& prefix, const std::string& file_name)
+{
+  std::filesystem::path p(prefix);
+  p /= file_name;
+  return p.string();
+}
+
+std::string
+prepend_prefix_to_file_name(const std::string& prefix,
+                            const std::string& file_name)
+{
+  size_t pos = file_name.find_last_of('/');
+  std::stringstream ss;
+  if (pos == std::string::npos)
+  {
+    ss << prefix << file_name;
+  }
+  else
+  {
+    std::string path = file_name.substr(0, pos);
+    std::string file = file_name.substr(pos + 1);
+    ss << path << "/" << prefix << file;
+  }
+  return ss.str();
+}
+
+std::string
+get_smt2_file_name(uint32_t seed, std::string& untrace_file_name)
+{
+  std::stringstream ss;
+  if (untrace_file_name.empty())
+  {
+    ss << "murxla-" << seed << ".smt2";
+  }
+  else
+  {
+    auto path = std::filesystem::path(untrace_file_name);
+    ss << path.replace_extension(".smt2").c_str();
+  }
+  return ss.str();
+}
+
+std::ifstream
+open_input_file(const std::string& file_name)
+{
+  std::ifstream res(file_name);
+  MURXLA_EXIT_ERROR(!res.is_open())
+      << "unable to open input file '" << file_name << "'";
+  return res;
+}
+
+std::ofstream
+open_output_file(const std::string& file_name)
+{
+  std::ofstream res(file_name, std::ofstream::out | std::ofstream::trunc);
+  MURXLA_EXIT_ERROR(!res.is_open())
+      << "unable to open output file '" << file_name << "'";
+  return res;
+}
+
+bool
+compare_files(const std::string& file_name1, const std::string& file_name2)
+{
+  std::ifstream file1(file_name1, std::ifstream::binary | std::ifstream::ate);
+  std::ifstream file2(file_name2, std::ifstream::binary | std::ifstream::ate);
+
+  if (file1.fail() || file2.fail())
+  {
+    return false;
+  }
+
+  if (file1.tellg() != file2.tellg())
+  {
+    return false;
+  }
+
+  file1.seekg(0, file1.beg);
+  file2.seekg(0, file2.beg);
+  return std::equal(std::istreambuf_iterator<char>(file1.rdbuf()),
+                    std::istreambuf_iterator<char>(),
+                    std::istreambuf_iterator<char>(file2.rdbuf()));
+}
+
+void
+diff_files(std::ostream& out,
+           const std::string& file_name1,
+           const std::string& file_name2)
+{
+  std::ifstream file1 = open_input_file(file_name1);
+  std::ifstream file2 = open_input_file(file_name2);
+  std::string line1, line2;
+
+  while (std::getline(file1, line1))
+  {
+    if (std::getline(file2, line2))
+    {
+      if (line1 == line2)
+      {
+        out << COLOR_DEFAULT << "  ";
+      }
+      else
+      {
+        out << COLOR_RED << "x ";
+      }
+      out << std::left << std::setw(9) << line1;
+      out << std::left << std::setw(9) << line2;
+    }
+    else
+    {
+      out << COLOR_RED << "x ";
+      out << std::left << std::setw(9) << line1;
+    }
+    out << std::endl;
+  }
+  while (std::getline(file2, line2))
+  {
+    out << COLOR_RED << "x ";
+    out << std::left << std::setw(9) << " ";
+    out << std::left << std::setw(9) << line2 << std::endl;
+  }
+  out << COLOR_DEFAULT << std::flush;
+  file1.close();
+  file2.close();
+}
+
+bool
+find_in_file(const std::string& file_name, const std::string& s)
+{
+  std::ifstream file = open_input_file(file_name);
+  std::string line;
+  while (std::getline(file, line))
+  {
+    if (line.find(s) != std::string::npos) return true;
+  }
+  return false;
+}
+
+/* -------------------------------------------------------------------------- */
+
+double
+get_cur_wall_time()
+{
+  struct timeval time;
+  MURXLA_EXIT_ERROR(gettimeofday(&time, nullptr)) << "failed to get time";
+  return (double) time.tv_sec + (double) time.tv_usec / 1000000;
 }
 
 /* -------------------------------------------------------------------------- */

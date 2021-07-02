@@ -240,6 +240,43 @@ std::ostream& operator<<(std::ostream& out,
                          const std::vector<uint32_t>& vector);
 
 /* -------------------------------------------------------------------------- */
+
+const std::string DEVNULL       = "/dev/null";
+const std::string COLOR_BLUE    = "\33[94m";
+const std::string COLOR_DEFAULT = "\33[39m";
+const std::string COLOR_GREEN   = "\33[92m";
+const std::string COLOR_RED     = "\33[91m";
+
+std::string get_tmp_file_path(const std::string& filename,
+                              const std::string& directory);
+
+std::string prepend_path(const std::string& prefix,
+                         const std::string& file_name);
+
+std::string prepend_prefix_to_file_name(const std::string& prefix,
+                                        const std::string& file_name);
+
+std::string get_smt2_file_name(uint32_t seed, std::string& untrace_file_name);
+
+std::ifstream open_input_file(const std::string& file_name);
+
+std::ofstream open_output_file(const std::string& file_name);
+
+bool compare_files(const std::string& file_name1,
+                   const std::string& file_name2);
+
+void diff_files(std::ostream& out,
+                const std::string& file_name1,
+                const std::string& file_name2);
+
+bool find_in_file(const std::string& file_name, const std::string& s);
+
+/* -------------------------------------------------------------------------- */
+
+double get_cur_wall_time();
+
+/* -------------------------------------------------------------------------- */
+
 }  // namespace murxla
 
 #endif
