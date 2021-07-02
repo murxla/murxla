@@ -124,6 +124,20 @@ class ExitStream
   ExitCode d_exit;
 };
 
+class ExceptionStream
+{
+ public:
+  ExceptionStream() {}
+  ~ExceptionStream() noexcept(false);
+  ExceptionStream(const ExceptionStream& cstream);
+
+  std::ostream& stream();
+
+ private:
+  void flush();
+  std::stringstream d_ss;
+};
+
 class ConfigExceptionStream
 {
  public:
@@ -174,6 +188,9 @@ class OstreamVoider
 
 #define MURXLA_EXIT_ERROR_CONFIG(cond) \
   !(cond) ? (void) 0 : OstreamVoider() & ExitStream(EXIT_ERROR_CONFIG).stream()
+
+#define MURXLA_CHECK(cond) \
+  (cond) ? (void) 0 : OstreamVoider() & ExceptionStream().stream()
 
 #define MURXLA_CHECK_CONFIG(cond) \
   (cond) ? (void) 0 : OstreamVoider() & ConfigExceptionStream().stream()

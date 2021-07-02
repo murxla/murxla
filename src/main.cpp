@@ -555,72 +555,84 @@ main(int argc, char* argv[])
   std::string smt2_file_name      = options.smt2_file_name;
   std::string api_trace_file_name = options.api_trace_file_name;
 
-  if (is_continuous)
+  try
   {
-    set_sigint_handler_stats();
-    murxla.test();
-  }
-  else
-  {
-    std::string tmp_api_trace_file_name;
-    std::string out_file_name = DEVNULL;
-    std::string err_file_name = DEVNULL;
-
-    if (options.dd && options.api_trace_file_name.empty())
+    if (is_continuous)
     {
-      /* When delta-debugging, we need to trace into file instead of stdout. */
-      tmp_api_trace_file_name     = get_tmp_file_path("tmp.trace", TMP_DIR);
-      options.api_trace_file_name = tmp_api_trace_file_name;
-      /* Minimized trace file name. */
-      if (is_untrace)
-      {
-        options.dd_trace_file_name = prepend_prefix_to_file_name(
-            Murxla::DD_PREFIX, options.untrace_file_name);
-        MURXLA_MESSAGE_DD << "minimizing untraced file '"
-                          << options.untrace_file_name.c_str() << "'";
-      }
-      else
-      {
-        std::stringstream ss;
-        ss << Murxla::DD_PREFIX << options.seed << ".trace";
-        options.dd_trace_file_name = ss.str();
-        MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
-      }
+      set_sigint_handler_stats();
+      murxla.test();
     }
+    else
+    {
+      std::string tmp_api_trace_file_name;
+      std::string out_file_name = DEVNULL;
+      std::string err_file_name = DEVNULL;
 
-    if (is_cross)
-    {
-      if (options.api_trace_file_name.empty())
+      if (options.dd && options.api_trace_file_name.empty())
       {
-        /* When cross checking, we don't want to pollute stdout with the api
-         * trace, we need it to only contain the check-sat answers. */
-        options.api_trace_file_name = DEVNULL;
+        /* When delta-debugging, we need to trace into file instead of stdout.
+         */
+        tmp_api_trace_file_name     = get_tmp_file_path("tmp.trace", TMP_DIR);
+        options.api_trace_file_name = tmp_api_trace_file_name;
+        /* Minimized trace file name. */
+        if (is_untrace)
+        {
+          options.dd_trace_file_name = prepend_prefix_to_file_name(
+              Murxla::DD_PREFIX, options.untrace_file_name);
+          MURXLA_MESSAGE_DD << "minimizing untraced file '"
+                            << options.untrace_file_name.c_str() << "'";
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << Murxla::DD_PREFIX << options.seed << ".trace";
+          options.dd_trace_file_name = ss.str();
+          MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
+        }
       }
-      /* When cross checking, check-sat answers and the error output of
-       * solver must be recorded for the actual cross check. */
-      out_file_name = get_tmp_file_path("tmp.out", TMP_DIR);
-      err_file_name = get_tmp_file_path("tmp.err", TMP_DIR);
-    }
-    else if (options.solver == Murxla::SOLVER_SMT2
-             && options.smt2_file_name.empty())
-    {
-      /* We always dump .smt2 if the SMT2 solver is enabled. If no file name
-       * given, we use a generic (but unique) file name. */
-      options.smt2_file_name =
-          get_smt2_file_name(options.seed, options.untrace_file_name);
-      if (!options.out_dir.empty())
+
+      if (is_cross)
       {
+        if (options.api_trace_file_name.empty())
+        {
+          /* When cross checking, we don't want to pollute stdout with the api
+           * trace, we need it to only contain the check-sat answers. */
+          options.api_trace_file_name = DEVNULL;
+        }
+        /* When cross checking, check-sat answers and the error output of
+         * solver must be recorded for the actual cross check. */
+        out_file_name = get_tmp_file_path("tmp.out", TMP_DIR);
+        err_file_name = get_tmp_file_path("tmp.err", TMP_DIR);
+      }
+      else if (options.solver == Murxla::SOLVER_SMT2
+               && options.smt2_file_name.empty())
+      {
+        /* We always dump .smt2 if the SMT2 solver is enabled. If no file name
+         * given, we use a generic (but unique) file name. */
         options.smt2_file_name =
-            prepend_path(options.out_dir, options.smt2_file_name);
+            get_smt2_file_name(options.seed, options.untrace_file_name);
+        if (!options.out_dir.empty())
+        {
+          options.smt2_file_name =
+              prepend_path(options.out_dir, options.smt2_file_name);
+        }
+      }
+
+      (void) murxla.run(is_forked, out_file_name, err_file_name);
+
+      if (options.dd)
+      {
+        murxla.dd();
       }
     }
-
-    (void) murxla.run(is_forked, out_file_name, err_file_name);
-
-    if (options.dd)
-    {
-      murxla.dd();
-    }
+  }
+  catch (MurxlaConfigException& e)
+  {
+    MURXLA_EXIT_ERROR_CONFIG(true) << e.get_msg();
+  }
+  catch (MurxlaException& e)
+  {
+    MURXLA_EXIT_ERROR(true) << e.get_msg();
   }
 
   print_error_summary();

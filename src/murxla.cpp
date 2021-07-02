@@ -715,7 +715,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
   if (run_forked)
   {
     solver_pid = fork();
-    MURXLA_EXIT_ERROR(solver_pid == -1) << "forking solver process failed.";
+    MURXLA_CHECK(solver_pid >= 0) << "forking solver process failed.";
   }
 
   /* parent */
@@ -726,7 +726,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
     if (d_options.time)
     {
       timeout_pid = fork();
-      MURXLA_EXIT_ERROR(timeout_pid == -1) << "forking timeout process failed";
+      MURXLA_CHECK(timeout_pid >= 0) << "forking timeout process failed";
       if (timeout_pid == 0)
       {
         signal(SIGINT, SIG_DFL);  // reset stats signal handler
@@ -806,7 +806,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 #if MURXLA_USE_BOOLECTOR
       solver = new btor::BtorSolver(rng);
 #else
-      MURXLA_EXIT_ERROR(true) << "Boolector not configured";
+      MURXLA_EXIT_ERROR_CONFIG(true) << "Boolector not configured";
 #endif
     }
     else if (d_options.solver == SOLVER_BZLA)
@@ -814,7 +814,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 #if MURXLA_USE_BITWUZLA
       solver = new bzla::BzlaSolver(rng);
 #else
-      MURXLA_EXIT_ERROR(true) << "Bitwuzla not configured";
+      MURXLA_EXIT_ERROR_CONFIG(true) << "Bitwuzla not configured";
 #endif
     }
     else if (d_options.solver == SOLVER_CVC5)
@@ -822,7 +822,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 #if MURXLA_USE_CVC5
       solver = new cvc5::Cvc5Solver(rng);
 #else
-      MURXLA_EXIT_ERROR(true) << "cvc5 not configured";
+      MURXLA_EXIT_ERROR_CONFIG(true) << "cvc5 not configured";
 #endif
     }
     else if (d_options.solver == SOLVER_YICES)
@@ -830,7 +830,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 #if MURXLA_USE_YICES
       solver = new yices::YicesSolver(rng);
 #else
-      MURXLA_EXIT_ERROR << "Yices not configured";
+      MURXLA_EXIT_ERROR_CONFIG(true) << "Yices not configured";
 #endif
     }
     else if (d_options.solver == SOLVER_SMT2)
@@ -843,7 +843,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 
         smt2_pid = fork();
 
-        MURXLA_EXIT_ERROR(smt2_pid == -1) << "forking solver process failed.";
+        MURXLA_EXIT_ERROR(smt2_pid < 0) << "forking solver process failed.";
 
         if (smt2_pid == 0)  // child
         {

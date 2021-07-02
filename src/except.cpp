@@ -88,6 +88,30 @@ ExitStream::flush()
   stream().flush();
 }
 
+ExceptionStream::ExceptionStream(const ExceptionStream& cstream)
+{
+  d_ss << cstream.d_ss.rdbuf();
+}
+
+ExceptionStream::~ExceptionStream() noexcept(false)
+{
+  flush();
+  throw MurxlaException(d_ss);
+}
+
+std::ostream&
+ExceptionStream::stream()
+{
+  return d_ss;
+}
+
+void
+ExceptionStream::flush()
+{
+  stream() << std::endl;
+  stream().flush();
+}
+
 ConfigExceptionStream::ConfigExceptionStream(
     const ConfigExceptionStream& cstream)
 {
