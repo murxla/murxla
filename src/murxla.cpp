@@ -106,7 +106,7 @@ write_idxs_to_file(const std::vector<std::string>& lines,
                    std::string& out_file_name)
 {
   size_t size            = lines.size();
-  std::ofstream out_file = open_output_file(out_file_name);
+  std::ofstream out_file = open_output_file(out_file_name, false);
   for (size_t idx : indices)
   {
     assert(idx < size);
@@ -233,7 +233,7 @@ Murxla::run(bool run_forked, std::string file_out, std::string file_err)
       err << d_options.solver << ": " << get_info(res) << std::endl;
       if (res == RESULT_ERROR)
       {
-        std::ifstream tmp_err = open_input_file(tmp_file_err);
+        std::ifstream tmp_err = open_input_file(tmp_file_err, false);
         err << tmp_err.rdbuf();
         tmp_err.close();
         err << std::endl;
@@ -242,7 +242,7 @@ Murxla::run(bool run_forked, std::string file_out, std::string file_err)
 
       if (cres == RESULT_ERROR)
       {
-        std::ifstream tmp_err = open_input_file(tmp_file_cross_err);
+        std::ifstream tmp_err = open_input_file(tmp_file_cross_err, false);
         err << tmp_err.rdbuf();
         tmp_err.close();
       }
@@ -260,21 +260,21 @@ Murxla::run(bool run_forked, std::string file_out, std::string file_err)
       else
       {
         out << ":" << std::endl;
-        diff_files(out, tmp_file_out, tmp_file_cross_out);
+        diff_files(out, tmp_file_out, tmp_file_cross_out, false);
       }
       res = RESULT_ERROR;
     }
   }
   else if (forked)
   {
-    std::ofstream err = open_output_file(file_err);
-    std::ofstream out = open_output_file(file_out);
+    std::ofstream err = open_output_file(file_err, true);
+    std::ofstream out = open_output_file(file_out, true);
 
-    std::ifstream tmp_out = open_input_file(tmp_file_out);
+    std::ifstream tmp_out = open_input_file(tmp_file_out, true);
     out << tmp_out.rdbuf();
     tmp_out.close();
 
-    std::ifstream tmp_err = open_input_file(tmp_file_err);
+    std::ifstream tmp_err = open_input_file(tmp_file_err, true);
     err << tmp_err.rdbuf();
     tmp_err.close();
 
@@ -361,15 +361,23 @@ Murxla::test()
     {
       /* Read error file and check if we already encounterd the same error. */
       bool duplicate = false;
-      if (res == RESULT_ERROR)
+      if (res == RESULT_ERROR || res == RESULT_ERROR_CONFIG)
       {
-        std::ifstream errs = open_input_file(err_file_name);
+        std::ifstream errs = open_input_file(err_file_name, false);
         std::string errmsg, line;
         while (std::getline(errs, line))
         {
           errmsg += line + "\n";
         }
-        duplicate = add_error(errmsg, options_test.seed);
+        if (res == RESULT_ERROR)
+        {
+          duplicate = add_error(errmsg, options_test.seed);
+        }
+        else
+        {
+          std::cout << "\33[2K\r" << std::flush;
+          MURXLA_CHECK_CONFIG(false) << errmsg;
+        }
       }
 
       std::stringstream info;
@@ -516,14 +524,14 @@ Murxla::dd()
 
   MURXLA_MESSAGE_DD << "golden exit: " << Murxla::get_info(gold_exit).c_str();
   {
-    std::ifstream gold_out_file = open_input_file(gold_out_file_name);
+    std::ifstream gold_out_file = open_input_file(gold_out_file_name, false);
     std::stringstream ss;
     ss << gold_out_file.rdbuf();
     MURXLA_MESSAGE_DD << "golden stdout output: " << ss.str();
     gold_out_file.close();
   }
   {
-    std::ifstream gold_err_file = open_input_file(gold_err_file_name);
+    std::ifstream gold_err_file = open_input_file(gold_err_file_name, false);
     MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
     gold_err_file.close();
   }
@@ -546,7 +554,7 @@ Murxla::dd()
    * are accompanied by a return statement are represented as one element of
    * the vector */
 
-  std::ifstream trace_file = open_input_file(tmp_trace_file_name);
+  std::ifstream trace_file = open_input_file(tmp_trace_file_name, false);
   while (std::getline(trace_file, line))
   {
     if (line[0] == '#') continue;
@@ -610,10 +618,12 @@ Murxla::dd()
       n_tests += 1;
       if (exit == gold_exit
           && ((!options_dd.dd_out_string.empty()
-               && find_in_file(tmp_err_file_name, options_dd.dd_out_string))
+               && find_in_file(
+                   tmp_err_file_name, options_dd.dd_out_string, false))
               || compare_files(tmp_out_file_name, gold_out_file_name))
           && ((!options_dd.dd_err_string.empty()
-               && find_in_file(tmp_err_file_name, options_dd.dd_err_string))
+               && find_in_file(
+                   tmp_err_file_name, options_dd.dd_err_string, false))
               || compare_files(tmp_err_file_name, gold_err_file_name)))
       {
         cur_superset = tmp;
@@ -653,7 +663,7 @@ Murxla::dd()
 //  ss << "/tmp/murxla-shm-" << getpid();
 //  shmfilename = ss.str();
 //
-//  MURXLA_EXIT_ERROR((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT,
+//  MURXLA_EXIT_ERROR_FORK((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT,
 //  S_IRWXU))
 //                    < 0)
 //      << "failed to create shared memory file for statistics";
@@ -666,7 +676,7 @@ Murxla::dd()
 //                                        0));
 //  memset(d_stats, 0, sizeof(Statistics));
 //
-//  MURXLA_EXIT_ERROR(close(fd))
+//  MURXLA_EXIT_ERROR_FORK(close(fd))
 //      << "failed to close shared memory file for statistics";
 //  (void) unlink(shmfilename.c_str());
 //}
@@ -687,7 +697,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 
   if (!d_options.api_trace_file_name.empty())
   {
-    trace_file = open_output_file(d_options.api_trace_file_name);
+    trace_file = open_output_file(d_options.api_trace_file_name, false);
     trace_buf  = trace_file.rdbuf();
   }
   else
@@ -698,7 +708,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 
   if (!d_options.smt2_file_name.empty())
   {
-    smt2_file = open_output_file(d_options.smt2_file_name);
+    smt2_file = open_output_file(d_options.smt2_file_name, false);
     smt2_buf  = smt2_file.rdbuf();
   }
   else
@@ -715,6 +725,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
   if (run_forked)
   {
     solver_pid = fork();
+
     MURXLA_CHECK(solver_pid >= 0) << "forking solver process failed.";
   }
 
@@ -726,7 +737,9 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
     if (d_options.time)
     {
       timeout_pid = fork();
+
       MURXLA_CHECK(timeout_pid >= 0) << "forking timeout process failed";
+
       if (timeout_pid == 0)
       {
         signal(SIGINT, SIG_DFL);  // reset stats signal handler
@@ -785,7 +798,9 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
       /* Redirect stdout and stderr of child process into given files. */
       fd = open(
           file_out.c_str(), O_CREAT | O_WRONLY | O_TRUNC, S_IRUSR | S_IWUSR);
-      MURXLA_EXIT_ERROR(fd < 0) << "unable to open file " << file_out;
+
+      MURXLA_EXIT_ERROR_FORK(fd < 0, true)
+          << "unable to open file " << file_out;
       dup2(fd, STDOUT_FILENO);
       close(fd);
       fd = open(
@@ -793,7 +808,8 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
       if (fd < 0)
       {
         perror(0);
-        MURXLA_EXIT_ERROR(true) << "unable to open file " << file_err;
+        MURXLA_EXIT_ERROR_FORK(true, true)
+            << "unable to open file " << file_err;
       }
       dup2(fd, STDERR_FILENO);
       close(fd);
@@ -806,7 +822,8 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 #if MURXLA_USE_BOOLECTOR
       solver = new btor::BtorSolver(rng);
 #else
-      MURXLA_EXIT_ERROR_CONFIG(true) << "Boolector not configured";
+      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked)
+          << "Boolector not configured";
 #endif
     }
     else if (d_options.solver == SOLVER_BZLA)
@@ -814,7 +831,8 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 #if MURXLA_USE_BITWUZLA
       solver = new bzla::BzlaSolver(rng);
 #else
-      MURXLA_EXIT_ERROR_CONFIG(true) << "Bitwuzla not configured";
+      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked)
+          << "Bitwuzla not configured";
 #endif
     }
     else if (d_options.solver == SOLVER_CVC5)
@@ -822,7 +840,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 #if MURXLA_USE_CVC5
       solver = new cvc5::Cvc5Solver(rng);
 #else
-      MURXLA_EXIT_ERROR_CONFIG(true) << "cvc5 not configured";
+      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << "cvc5 not configured";
 #endif
     }
     else if (d_options.solver == SOLVER_YICES)
@@ -830,7 +848,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 #if MURXLA_USE_YICES
       solver = new yices::YicesSolver(rng);
 #else
-      MURXLA_EXIT_ERROR_CONFIG(true) << "Yices not configured";
+      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << "Yices not configured";
 #endif
     }
     else if (d_options.solver == SOLVER_SMT2)
@@ -838,12 +856,14 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
       if (smt2_online)
       {
         /* Open input/output pipes from and to the external online solver. */
-        MURXLA_EXIT_ERROR(pipe(fd_to) != 0 || pipe(fd_from) != 0)
+        MURXLA_EXIT_ERROR_FORK(pipe(fd_to) != 0 || pipe(fd_from) != 0,
+                               run_forked)
             << "creating input and/or output pipes failed";
 
         smt2_pid = fork();
 
-        MURXLA_EXIT_ERROR(smt2_pid < 0) << "forking solver process failed.";
+        MURXLA_EXIT_ERROR_FORK(smt2_pid < 0, run_forked)
+            << "forking solver process failed.";
 
         if (smt2_pid == 0)  // child
         {
@@ -880,7 +900,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
           }
           delete[] execargs;
 
-          MURXLA_EXIT_ERROR(true)
+          MURXLA_EXIT_ERROR_FORK(true, run_forked)
               << "'" << d_options.solver_binary << "' is not executable";
         }
 
@@ -889,7 +909,8 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
         close(fd_from[SMT2_WRITE_END]);
         from_external = fdopen(fd_from[SMT2_READ_END], "r");
 
-        MURXLA_EXIT_ERROR(to_external == nullptr || from_external == nullptr)
+        MURXLA_EXIT_ERROR_FORK(
+            to_external == nullptr || from_external == nullptr, run_forked)
             << "opening read/write channels to external solver failed";
       }
       solver = new smt2::Smt2Solver(
@@ -924,11 +945,11 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
     }
     catch (MurxlaConfigException& e)
     {
-      MURXLA_EXIT_ERROR_CONFIG(true) << e.get_msg();
+      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << e.get_msg();
     }
     catch (MurxlaException& e)
     {
-      MURXLA_EXIT_ERROR(true) << e.get_msg();
+      MURXLA_EXIT_ERROR_FORK(true, run_forked) << e.get_msg();
     }
 
     if (smt2_online) waitpid(smt2_pid, nullptr, 0);

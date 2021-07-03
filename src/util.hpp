@@ -258,18 +258,21 @@ std::string prepend_prefix_to_file_name(const std::string& prefix,
 
 std::string get_smt2_file_name(uint32_t seed, std::string& untrace_file_name);
 
-std::ifstream open_input_file(const std::string& file_name);
+std::ifstream open_input_file(const std::string& file_name, bool is_forked);
 
-std::ofstream open_output_file(const std::string& file_name);
+std::ofstream open_output_file(const std::string& file_name, bool is_forked);
 
 bool compare_files(const std::string& file_name1,
                    const std::string& file_name2);
 
 void diff_files(std::ostream& out,
                 const std::string& file_name1,
-                const std::string& file_name2);
+                const std::string& file_name2,
+                bool is_forked);
 
-bool find_in_file(const std::string& file_name, const std::string& s);
+bool find_in_file(const std::string& file_name,
+                  const std::string& s,
+                  bool is_forked);
 
 /* -------------------------------------------------------------------------- */
 

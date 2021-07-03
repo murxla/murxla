@@ -64,9 +64,13 @@ AbortStream::flush()
   stream().flush();
 }
 
-ExitStream::ExitStream(ExitCode exit_code) : d_exit(exit_code)
+ExitStream::ExitStream(bool is_forked, ExitCode exit_code)
+    : d_is_forked(is_forked), d_exit(exit_code)
 {
-  stream() << "murxla: ERROR: ";
+  if (!d_is_forked)
+  {
+    stream() << "murxla: ERROR: ";
+  }
 }
 
 ExitStream::~ExitStream()

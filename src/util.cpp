@@ -777,19 +777,19 @@ get_smt2_file_name(uint32_t seed, std::string& untrace_file_name)
 }
 
 std::ifstream
-open_input_file(const std::string& file_name)
+open_input_file(const std::string& file_name, bool is_forked)
 {
   std::ifstream res(file_name);
-  MURXLA_EXIT_ERROR(!res.is_open())
+  MURXLA_EXIT_ERROR_FORK(!res.is_open(), is_forked)
       << "unable to open input file '" << file_name << "'";
   return res;
 }
 
 std::ofstream
-open_output_file(const std::string& file_name)
+open_output_file(const std::string& file_name, bool is_forked)
 {
   std::ofstream res(file_name, std::ofstream::out | std::ofstream::trunc);
-  MURXLA_EXIT_ERROR(!res.is_open())
+  MURXLA_EXIT_ERROR_FORK(!res.is_open(), is_forked)
       << "unable to open output file '" << file_name << "'";
   return res;
 }
@@ -820,10 +820,11 @@ compare_files(const std::string& file_name1, const std::string& file_name2)
 void
 diff_files(std::ostream& out,
            const std::string& file_name1,
-           const std::string& file_name2)
+           const std::string& file_name2,
+           bool is_forked)
 {
-  std::ifstream file1 = open_input_file(file_name1);
-  std::ifstream file2 = open_input_file(file_name2);
+  std::ifstream file1 = open_input_file(file_name1, is_forked);
+  std::ifstream file2 = open_input_file(file_name2, is_forked);
   std::string line1, line2;
 
   while (std::getline(file1, line1))
@@ -860,9 +861,9 @@ diff_files(std::ostream& out,
 }
 
 bool
-find_in_file(const std::string& file_name, const std::string& s)
+find_in_file(const std::string& file_name, const std::string& s, bool is_forked)
 {
-  std::ifstream file = open_input_file(file_name);
+  std::ifstream file = open_input_file(file_name, is_forked);
   std::string line;
   while (std::getline(file, line))
   {
