@@ -534,7 +534,8 @@ main(int argc, char* argv[])
 {
   statistics::Statistics* stats = initialize_statistics();
   SolverOptions solver_options;
-  Murxla::Options options;
+  Murxla murxla(stats, &solver_options, &g_errors, TMP_DIR);
+  Murxla::Options& options = murxla.d_options;
 
   parse_options(options, argc, argv);
 
@@ -549,8 +550,6 @@ main(int argc, char* argv[])
   {
     parse_solver_options_file(options, solver_options);
   }
-
-  Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
 
   std::string smt2_file_name      = options.smt2_file_name;
   std::string api_trace_file_name = options.api_trace_file_name;
