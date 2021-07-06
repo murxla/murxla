@@ -143,5 +143,8 @@ class Murxla
   /** Map normalized error message to pair (original error message, seeds). */
   ErrorMap* d_errors;
 };
+
+std::ostream& operator<<(std::ostream& out, const Murxla::Result& res);
+
 }  // namespace murxla
 #endif

@@ -131,21 +131,6 @@ remove_subsets(std::vector<std::vector<size_t>>& subsets,
 
 }  // namespace
 
-std::string
-Murxla::get_info(Murxla::Result res)
-{
-  std::stringstream info;
-  switch (res)
-  {
-    case RESULT_OK: info << "ok"; break;
-    case RESULT_ERROR: info << "error"; break;
-    case RESULT_ERROR_CONFIG: info << "config error"; break;
-    case RESULT_TIMEOUT: info << "timeout"; break;
-    default: assert(res == RESULT_UNKNOWN); info << "unknown";
-  }
-  return info.str();
-}
-
 std::string Murxla::DD_PREFIX    = "murxla-dd-";
 std::string Murxla::SOLVER_BTOR  = "btor";
 std::string Murxla::SOLVER_BZLA  = "czla";
@@ -230,7 +215,7 @@ Murxla::run(bool run_forked, std::string file_out, std::string file_err)
     /* write result / error output to .err */
     if (res != cres)
     {
-      err << d_options.solver << ": " << get_info(res) << std::endl;
+      err << d_options.solver << ": " << res << std::endl;
       if (res == RESULT_ERROR)
       {
         std::ifstream tmp_err = open_input_file(tmp_file_err, false);
@@ -238,7 +223,7 @@ Murxla::run(bool run_forked, std::string file_out, std::string file_err)
         tmp_err.close();
         err << std::endl;
       }
-      err << d_options.cross_check << ": " << get_info(cres) << std::endl;
+      err << d_options.cross_check << ": " << cres << std::endl;
 
       if (cres == RESULT_ERROR)
       {
@@ -522,7 +507,7 @@ Murxla::dd()
       &stats_golden, options_dd, d_solver_options, nullptr, d_tmp_dir);
   gold_exit = murxla_golden.run(true, gold_out_file_name, gold_err_file_name);
 
-  MURXLA_MESSAGE_DD << "golden exit: " << Murxla::get_info(gold_exit).c_str();
+  MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
   {
     std::ifstream gold_out_file = open_input_file(gold_out_file_name, false);
     std::stringstream ss;
@@ -1003,4 +988,19 @@ Murxla::add_error(const std::string& err, uint32_t seed)
 
   return duplicate;
 }
+
+std::ostream&
+operator<<(std::ostream& out, const Murxla::Result& res)
+{
+  switch (res)
+  {
+    case Murxla::Result::RESULT_OK: out << "ok"; break;
+    case Murxla::Result::RESULT_ERROR: out << "error"; break;
+    case Murxla::Result::RESULT_ERROR_CONFIG: out << "config error"; break;
+    case Murxla::Result::RESULT_TIMEOUT: out << "timeout"; break;
+    default: assert(res == Murxla::Result::RESULT_UNKNOWN); out << "unknown";
+  }
+  return out;
+}
+
 }  // namespace murxla
