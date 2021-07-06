@@ -632,7 +632,7 @@ Murxla::dd()
       subset_size = size / 2;
     }
   }
-  MURXLA_MESSAGE_DD << std::endl;
+  MURXLA_MESSAGE_DD;
   MURXLA_MESSAGE_DD << n_failed << " of " << n_tests
                     << " successful (reduced) tests";
   MURXLA_MESSAGE_DD << "written to: " << options_dd.dd_trace_file_name.c_str();
