@@ -19,6 +19,7 @@
 #include "except.hpp"
 #include "exit.hpp"
 #include "murxla.hpp"
+#include "options.hpp"
 #include "solver_option.hpp"
 #include "statistics.hpp"
 #include "util.hpp"
@@ -200,7 +201,7 @@ check_next_arg(std::string& option, int i, int argc)
 }
 
 void
-parse_options(Murxla::Options& options, int argc, char* argv[])
+parse_options(Options& options, int argc, char* argv[])
 {
   for (int i = 1; i < argc; i++)
   {
@@ -423,8 +424,7 @@ get_limits(const toml::table& table)
 }
 
 void
-parse_solver_options_file(Murxla::Options& options,
-                          SolverOptions& solver_options)
+parse_solver_options_file(Options& options, SolverOptions& solver_options)
 {
   const auto options_data = toml::parse(options.solver_options_file);
   const std::vector<toml::table> tables =
@@ -534,8 +534,7 @@ main(int argc, char* argv[])
 {
   statistics::Statistics* stats = initialize_statistics();
   SolverOptions solver_options;
-  Murxla murxla(stats, &solver_options, &g_errors, TMP_DIR);
-  Murxla::Options& options = murxla.d_options;
+  Options options;
 
   parse_options(options, argc, argv);
 
@@ -559,6 +558,7 @@ main(int argc, char* argv[])
     if (is_continuous)
     {
       set_sigint_handler_stats();
+      Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
       murxla.test();
     }
     else
@@ -616,6 +616,8 @@ main(int argc, char* argv[])
               prepend_path(options.out_dir, options.smt2_file_name);
         }
       }
+
+      Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
 
       (void) murxla.run(is_forked, out_file_name, err_file_name);
 

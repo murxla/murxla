@@ -139,20 +139,6 @@ std::string Murxla::SOLVER_SMT2  = "smt2";
 std::string Murxla::SOLVER_YICES = "yices";
 
 Murxla::Murxla(statistics::Statistics* stats,
-               SolverOptions* solver_options,
-               ErrorMap* error_map,
-               const std::string& tmp_dir)
-    : d_solver_options(solver_options),
-      d_tmp_dir(tmp_dir),
-      d_stats(stats),
-      d_errors(error_map)
-{
-  assert(stats);
-  assert(solver_options);
-  //  init_statistics();
-}
-
-Murxla::Murxla(statistics::Statistics* stats,
                const Options& options,
                SolverOptions* solver_options,
                ErrorMap* error_map,
@@ -474,7 +460,7 @@ Murxla::dd()
   std::string tmp_err_file_name = get_tmp_file_path("dd-tmp.err", d_tmp_dir);
 
   /* init options object for golden (replay of original) run */
-  Murxla::Options options_dd(d_options);
+  Options options_dd(d_options);
   options_dd.verbosity           = 0;
   options_dd.api_trace_file_name = tmp_trace_file_name;
   options_dd.untrace_file_name   = d_options.api_trace_file_name;
