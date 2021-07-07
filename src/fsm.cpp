@@ -1542,8 +1542,7 @@ class ActionMkSpecialValue : public Action
     if (special_values.empty()) return false;
     _run(sort,
          d_rng.pick_from_set<std::unordered_set<Solver::SpecialValueKind>,
-                             Solver::SpecialValueKind>(
-             d_solver.get_special_values(sort_kind)));
+                             Solver::SpecialValueKind>(special_values));
 
     return true;
   }
@@ -2132,23 +2131,23 @@ FSM::configure()
   {
     s_inputs->add_action(a_mkvar, 200);
   }
-  s_inputs->add_action(a_termchksort, 1);
+  s_inputs->add_action(a_termchksort, 10);
   s_inputs->add_action(t_inputs, 50, s_terms);
   s_inputs->add_action(t_inputs, 5000, s_sat);
-  s_inputs->add_action(t_inputs, 1000, s_push_pop);
+  s_inputs->add_action(t_inputs, 500, s_push_pop);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 1);
-  s_terms->add_action(a_termchksort, 1);
+  s_terms->add_action(a_termchksort, 10);
   s_terms->add_action(t_default, 250, s_assert);
   s_terms->add_action(t_default, 500, s_sat);
-  s_terms->add_action(t_inputs, 1000, s_push_pop);
+  s_terms->add_action(t_inputs, 500, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
   s_assert->add_action(a_assert, 1);
   s_assert->add_action(t_default, 200, s_delete);
   s_assert->add_action(t_default, 20, s_sat);
-  s_assert->add_action(t_inputs, 50, s_push_pop);
+  s_assert->add_action(t_inputs, 5, s_push_pop);
   s_assert->add_action(t_default, 50, s_terms);
 
   /* State: check sat .................................................... */
