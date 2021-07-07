@@ -318,9 +318,8 @@ Murxla::test()
     /* Run and test for error without tracing to trace file (we by default still
      * trace to stdout here, which is redirected to /dev/null).
      * If error encountered, replay and trace below. */
-    statistics::Statistics stats_test;
     Murxla murxla_test(
-        &stats_test, options_test, d_solver_options, nullptr, d_tmp_dir);
+        d_stats, options_test, d_solver_options, nullptr, d_tmp_dir);
     Result res = murxla_test.run(true, out_file_name, err_file_name);
 
     /* report status */
@@ -704,7 +703,7 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
   if (solver_pid)
   {
     /* If a time limit is given, fork another process that kills the solver_pid
-     * after g_option.time seconds. (https://stackoverflow.com/a/8020324) */
+     * after d_option.time seconds. (https://stackoverflow.com/a/8020324) */
     if (d_options.time)
     {
       timeout_pid = fork();
