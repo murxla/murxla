@@ -563,16 +563,15 @@ main(int argc, char* argv[])
     }
     else
     {
-      std::string tmp_api_trace_file_name;
+      std::string api_trace_file_name = options.api_trace_file_name;
       std::string out_file_name = DEVNULL;
       std::string err_file_name = DEVNULL;
 
-      if (options.dd && options.api_trace_file_name.empty())
+      if (options.dd && api_trace_file_name.empty())
       {
         /* When delta-debugging, we need to trace into file instead of stdout.
          */
-        tmp_api_trace_file_name     = get_tmp_file_path("tmp.trace", TMP_DIR);
-        options.api_trace_file_name = tmp_api_trace_file_name;
+        api_trace_file_name = get_tmp_file_path("tmp.trace", TMP_DIR);
         /* Minimized trace file name. */
         if (is_untrace)
         {
@@ -592,11 +591,11 @@ main(int argc, char* argv[])
 
       if (is_cross)
       {
-        if (options.api_trace_file_name.empty())
+        if (api_trace_file_name.empty())
         {
           /* When cross checking, we don't want to pollute stdout with the api
            * trace, we need it to only contain the check-sat answers. */
-          options.api_trace_file_name = DEVNULL;
+          api_trace_file_name = DEVNULL;
         }
         /* When cross checking, check-sat answers and the error output of
          * solver must be recorded for the actual cross check. */
@@ -619,7 +618,11 @@ main(int argc, char* argv[])
 
       Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
 
-      (void) murxla.run(is_forked, out_file_name, err_file_name);
+      (void) murxla.run(out_file_name,
+                        err_file_name,
+                        options.untrace_file_name,
+                        is_forked,
+                        !options.api_trace_file_name.empty());
 
       if (options.dd)
       {

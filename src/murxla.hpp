@@ -30,13 +30,16 @@ class Murxla
     RESULT_UNKNOWN,
   };
 
-  static std::string get_info(Result res);
-  static std::string DD_PREFIX;
-  static std::string SOLVER_BTOR;
-  static std::string SOLVER_BZLA;
-  static std::string SOLVER_CVC5;
-  static std::string SOLVER_SMT2;
-  static std::string SOLVER_YICES;
+  inline static const std::string DD_PREFIX    = "murxla-dd-";
+  inline static const std::string SOLVER_BTOR  = "btor";
+  inline static const std::string SOLVER_BZLA  = "bzla";
+  inline static const std::string SOLVER_CVC5  = "cvc5";
+  inline static const std::string SOLVER_SMT2  = "smt2";
+  inline static const std::string SOLVER_YICES = "yices";
+
+  inline static const std::string API_TRACE = "tmp-api.trace";
+  inline static const std::string SMT2_FILE = "tmp-smt2.smt2";
+
   static constexpr int32_t SMT2_READ_END  = 0;
   static constexpr int32_t SMT2_WRITE_END = 1;
 
@@ -46,7 +49,11 @@ class Murxla
          ErrorMap* error_map,
          const std::string& tmp_dir);
 
-  Result run(bool run_forked, std::string file_out, std::string file_err);
+  Result run(const std::string& file_out,
+             const std::string& file_err,
+             const std::string& untrace_file_name,
+             bool run_forked,
+             bool trace_file);
 
   void test();
 
@@ -57,11 +64,15 @@ class Murxla
   std::string d_tmp_dir;
 
  private:
-  // void init_statistics();
+  Result run_aux(const std::string& file_out,
+                 const std::string& file_err,
+                 const std::string& untrace_file_name,
+                 bool run_forked,
+                 bool trace_file);
 
-  Result run_aux(bool run_forked, std::string file_out, std::string file_err);
-
-  Result replay(std::string& out_file_name, std::string& err_file_name);
+  Result replay(const std::string& out_file_name,
+                const std::string& err_file_name,
+                const std::string& untrace_file_name);
 
   bool add_error(const std::string& err, uint32_t seed);
 

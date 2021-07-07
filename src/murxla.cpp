@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <regex>
@@ -131,13 +132,6 @@ remove_subsets(std::vector<std::vector<size_t>>& subsets,
 
 }  // namespace
 
-std::string Murxla::DD_PREFIX    = "murxla-dd-";
-std::string Murxla::SOLVER_BTOR  = "btor";
-std::string Murxla::SOLVER_BZLA  = "czla";
-std::string Murxla::SOLVER_CVC5  = "cvc5";
-std::string Murxla::SOLVER_SMT2  = "smt2";
-std::string Murxla::SOLVER_YICES = "yices";
-
 Murxla::Murxla(statistics::Statistics* stats,
                const Options& options,
                SolverOptions* solver_options,
@@ -154,15 +148,63 @@ Murxla::Murxla(statistics::Statistics* stats,
 }
 
 Murxla::Result
-Murxla::run(bool run_forked, std::string file_out, std::string file_err)
+Murxla::run(const std::string& file_out,
+            const std::string& file_err,
+            const std::string& untrace_file_name,
+            bool run_forked,
+            bool trace_file)
 {
   bool cross  = !d_options.cross_check.empty();
   bool forked = run_forked || cross;
+  bool generate_smt2 = trace_file && d_options.cross_check.empty()
+                       && d_options.solver == Murxla::SOLVER_SMT2
+                       && d_options.solver_binary.empty();
 
   std::string tmp_file_out = get_tmp_file_path("run-tmp1.out", d_tmp_dir);
   std::string tmp_file_err = get_tmp_file_path("run-tmp1.err", d_tmp_dir);
 
-  Result res = run_aux(forked, tmp_file_out, tmp_file_err);
+  Result res = run_aux(
+      tmp_file_out, tmp_file_err, untrace_file_name, forked, trace_file);
+
+  /* write trace file to path if given */
+  if (trace_file)
+  {
+    if (d_options.api_trace_file_name.empty())
+    {
+      std::string api_trace_file_name = get_api_trace_file_name(
+          d_options.seed, d_options.dd, untrace_file_name);
+      if (!d_options.out_dir.empty())
+      {
+        api_trace_file_name =
+            prepend_path(d_options.out_dir, api_trace_file_name);
+      }
+      assert(std::filesystem::exists(API_TRACE));
+      std::filesystem::copy(API_TRACE, api_trace_file_name);
+    }
+    else
+    {
+      std::filesystem::copy(API_TRACE, d_options.api_trace_file_name);
+    }
+  }
+  /* write smt2 file to path if given */
+  if (generate_smt2)
+  {
+    if (d_options.smt2_file_name.empty())
+    {
+      std::string smt2_file_name =
+          get_smt2_file_name(d_options.seed, untrace_file_name);
+      if (!d_options.out_dir.empty())
+      {
+        smt2_file_name = prepend_path(d_options.out_dir, smt2_file_name);
+      }
+      assert(std::filesystem::exists(SMT2_FILE));
+      std::filesystem::copy(SMT2_FILE, smt2_file_name);
+    }
+    else
+    {
+      std::filesystem::copy(SMT2_FILE, d_options.smt2_file_name);
+    }
+  }
 
   if (cross)
   {
@@ -195,8 +237,12 @@ Murxla::run(bool run_forked, std::string file_out, std::string file_err)
 
     Murxla murxla_cross(
         &stats_cross, options_cross, &solver_options_cross, nullptr, d_tmp_dir);
-    Result cres =
-        murxla_cross.run_aux(forked, tmp_file_cross_out, tmp_file_cross_err);
+    // TODO check if we should trace here
+    Result cres = murxla_cross.run_aux(tmp_file_cross_out,
+                                       tmp_file_cross_err,
+                                       untrace_file_name,
+                                       forked,
+                                       false);
 
     /* write result / error output to .err */
     if (res != cres)
@@ -269,14 +315,12 @@ Murxla::test()
 
   if (is_cross)
   {
-    options_test.api_trace_file_name = DEVNULL;
-    out_file_name                    = get_tmp_file_path("tmp.out", d_tmp_dir);
+    out_file_name = get_tmp_file_path("tmp.out", d_tmp_dir);
   }
 
   do
   {
     double cur_time            = get_cur_wall_time();
-    std::string smt2_file_name = options_test.smt2_file_name;
 
     options_test.seed = sg.next();
 
@@ -293,34 +337,19 @@ Murxla::test()
     std::cout << d_errors->size() << " errors";
     std::cout << std::flush;
 
-    if (!is_cross && options_test.solver == Murxla::SOLVER_SMT2)
-    {
-      if (!options_test.solver_binary.empty())
-      {
-        options_test.smt2_file_name = "";
-      }
-      else if (options_test.smt2_file_name.empty())
-      {
-        /* If no online solver is configured, we'll never run into the error
-         * case below and replay (the Smt2Solver only answers 'unknown' and
-         * dumps SMT2 -> should never terminate with an error).
-         * We therefore dump every generated sequence to smt2 continuously. */
-        options_test.smt2_file_name = get_smt2_file_name(
-            options_test.seed, options_test.untrace_file_name);
-        if (!options_test.out_dir.empty())
-        {
-          options_test.smt2_file_name =
-              prepend_path(options_test.out_dir, options_test.smt2_file_name);
-        }
-      }
-    }
+    /* Note: If the selected solver is SOLVER_SMT2 and no online solver is
+     *       configured, we'll never run into the error case below and replay
+     *       (the Smt2Solver only answers 'unknown' and dumps SMT2 -> should
+     *       never terminate with an error).  We therefore dump every generated
+     *       sequence to smt2 continuously. */
 
     /* Run and test for error without tracing to trace file (we by default still
      * trace to stdout here, which is redirected to /dev/null).
      * If error encountered, replay and trace below. */
     Murxla murxla_test(
         d_stats, options_test, d_solver_options, nullptr, d_tmp_dir);
-    Result res = murxla_test.run(true, out_file_name, err_file_name);
+    Result res = murxla_test.run(
+        out_file_name, err_file_name, d_options.untrace_file_name, true, false);
 
     /* report status */
     if (res == RESULT_OK)
@@ -384,50 +413,28 @@ Murxla::test()
      * here (the SMT2 solver should never return an error result). */
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
-      options_test.api_trace_file_name = d_options.api_trace_file_name;
-      Result res_replay = murxla_test.replay(out_file_name, err_file_name);
+      Result res_replay = murxla_test.replay(
+          out_file_name, err_file_name, d_options.untrace_file_name);
       assert(res == res_replay);
     }
     std::cout << "\r" << std::flush;
-    options_test.smt2_file_name = smt2_file_name;
   } while (options_test.max_runs == 0 || num_runs < options_test.max_runs);
 }
 
 Murxla::Result
-Murxla::replay(std::string& out_file_name, std::string& err_file_name)
+Murxla::replay(const std::string& out_file_name,
+               const std::string& err_file_name,
+               const std::string& untrace_file_name)
 {
   statistics::Statistics stats_replay;
   Options options_replay(d_options);
 
   options_replay.time = 0;  // reset time limit
 
-  if (options_replay.api_trace_file_name.empty())
-  {
-    options_replay.api_trace_file_name =
-        get_api_trace_file_name(options_replay.seed,
-                                options_replay.dd,
-                                options_replay.untrace_file_name);
-    if (!options_replay.out_dir.empty())
-    {
-      options_replay.api_trace_file_name = prepend_path(
-          options_replay.out_dir, options_replay.api_trace_file_name);
-    }
-  }
-  if (options_replay.smt2_file_name.empty()
-      && options_replay.solver == Murxla::SOLVER_SMT2)
-  {
-    options_replay.smt2_file_name = get_smt2_file_name(
-        options_replay.seed, options_replay.untrace_file_name);
-    if (!options_replay.out_dir.empty())
-    {
-      options_replay.smt2_file_name =
-          prepend_path(options_replay.out_dir, options_replay.smt2_file_name);
-    }
-  }
-
   Murxla murxla_replay(
       &stats_replay, options_replay, d_solver_options, nullptr, d_tmp_dir);
-  Result res = murxla_replay.run(true, out_file_name, err_file_name);
+  Result res = murxla_replay.run(
+      out_file_name, err_file_name, untrace_file_name, true, true);
 
   if (options_replay.dd)
   {
@@ -445,6 +452,7 @@ Murxla::dd()
 {
   assert(!d_options.api_trace_file_name.empty());
 
+#if 0
   std::vector<std::string> lines;
   std::string line, token;
   Murxla::Result gold_exit, exit;
@@ -490,7 +498,7 @@ Murxla::dd()
   statistics::Statistics stats_golden;
   Murxla murxla_golden(
       &stats_golden, options_dd, d_solver_options, nullptr, d_tmp_dir);
-  gold_exit = murxla_golden.run(true, gold_out_file_name, gold_err_file_name);
+  gold_exit = murxla_golden.run(gold_out_file_name, gold_err_file_name, true);
 
   MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
   {
@@ -584,7 +592,7 @@ Murxla::dd()
       std::vector<size_t> tmp = remove_subsets(subsets, ex);
 
       write_idxs_to_file(lines, tmp, tmp_trace_file_name);
-      exit = murxla_dd.run(true, tmp_out_file_name, tmp_err_file_name);
+      exit = murxla_dd.run(tmp_out_file_name, tmp_err_file_name, true);
       n_tests += 1;
       if (exit == gold_exit
           && ((!options_dd.dd_out_string.empty()
@@ -621,71 +629,50 @@ Murxla::dd()
   MURXLA_MESSAGE_DD << n_failed << " of " << n_tests
                     << " successful (reduced) tests";
   MURXLA_MESSAGE_DD << "written to: " << options_dd.dd_trace_file_name.c_str();
+#endif
 }
 
-// void
-// Murxla::init_statistics()
-//{
-//  int fd;
-//  std::stringstream ss;
-//  std::string shmfilename;
-//
-//  ss << "/tmp/murxla-shm-" << getpid();
-//  shmfilename = ss.str();
-//
-//  MURXLA_EXIT_ERROR_FORK((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT,
-//  S_IRWXU))
-//                    < 0)
-//      << "failed to create shared memory file for statistics";
-//
-//  d_stats = static_cast<Statistics*>(mmap(0,
-//                                        sizeof(Statistics),
-//                                        PROT_READ | PROT_WRITE,
-//                                        MAP_ANONYMOUS | MAP_SHARED,
-//                                        fd,
-//                                        0));
-//  memset(d_stats, 0, sizeof(Statistics));
-//
-//  MURXLA_EXIT_ERROR_FORK(close(fd))
-//      << "failed to close shared memory file for statistics";
-//  (void) unlink(shmfilename.c_str());
-//}
-
 Murxla::Result
-Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
+Murxla::run_aux(const std::string& file_out,
+                const std::string& file_err,
+                const std::string& untrace_file_name,
+                bool run_forked,
+                bool trace_file)
 {
-  bool untrace     = !d_options.untrace_file_name.empty();
   bool smt2_online = !d_options.solver_binary.empty();
+  bool generate_smt2 = trace_file && d_options.cross_check.empty()
+                       && d_options.solver == Murxla::SOLVER_SMT2
+                       && d_options.solver_binary.empty();
   int32_t status, fd;
   Result result;
-  pid_t solver_pid = 0, timeout_pid = 0;
-  std::streambuf *trace_buf, *smt2_buf;
-  std::ofstream trace_file;
-  std::ofstream smt2_file;
+  pid_t pid_solver = 0, pid_timeout = 0;
+  std::streambuf *buf_trace, *buf_smt2;
+  std::ofstream file_trace;
+  std::ofstream file_smt2;
 
   if (smt2_online) run_forked = true;
 
-  if (!d_options.api_trace_file_name.empty())
+  if (trace_file)
   {
-    trace_file = open_output_file(d_options.api_trace_file_name, false);
-    trace_buf  = trace_file.rdbuf();
+    file_trace = open_output_file(API_TRACE, false);
+    buf_trace  = file_trace.rdbuf();
   }
   else
   {
-    trace_buf = std::cout.rdbuf();
+    buf_trace = std::cout.rdbuf();
   }
-  std::ostream trace(trace_buf);
+  std::ostream trace(buf_trace);
 
-  if (!d_options.smt2_file_name.empty())
+  if (generate_smt2)
   {
-    smt2_file = open_output_file(d_options.smt2_file_name, false);
-    smt2_buf  = smt2_file.rdbuf();
+    file_smt2 = open_output_file(SMT2_FILE, false);
+    buf_smt2  = file_smt2.rdbuf();
   }
   else
   {
-    smt2_buf = std::cout.rdbuf();
+    buf_smt2 = std::cout.rdbuf();
   }
-  std::ostream smt2(smt2_buf);
+  std::ostream smt2(buf_smt2);
 
   RNGenerator rng(d_options.seed);
 
@@ -694,23 +681,23 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
   /* If seeded run in main process. */
   if (run_forked)
   {
-    solver_pid = fork();
+    pid_solver = fork();
 
-    MURXLA_CHECK(solver_pid >= 0) << "forking solver process failed.";
+    MURXLA_CHECK(pid_solver >= 0) << "forking solver process failed.";
   }
 
   /* parent */
-  if (solver_pid)
+  if (pid_solver)
   {
-    /* If a time limit is given, fork another process that kills the solver_pid
+    /* If a time limit is given, fork another process that kills the pid_solver
      * after d_option.time seconds. (https://stackoverflow.com/a/8020324) */
     if (d_options.time)
     {
-      timeout_pid = fork();
+      pid_timeout = fork();
 
-      MURXLA_CHECK(timeout_pid >= 0) << "forking timeout process failed";
+      MURXLA_CHECK(pid_timeout >= 0) << "forking timeout process failed";
 
-      if (timeout_pid == 0)
+      if (pid_timeout == 0)
       {
         signal(SIGINT, SIG_DFL);  // reset stats signal handler
         usleep(d_options.time * 1000000);
@@ -718,16 +705,16 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
       }
     }
 
-    /* Wait for the first process to finish (solver_pid or timeout_pid). */
+    /* Wait for the first process to finish (pid_solver or pid_timeout). */
     pid_t exited_pid = wait(&status);
 
-    if (exited_pid == solver_pid)
+    if (exited_pid == pid_solver)
     {
       /* Kill and collect timeout process if solver process terminated first. */
-      if (timeout_pid)
+      if (pid_timeout)
       {
-        kill(timeout_pid, SIGKILL);
-        waitpid(timeout_pid, nullptr, 0);
+        kill(pid_timeout, SIGKILL);
+        waitpid(pid_timeout, nullptr, 0);
       }
       if (WIFEXITED(status))
       {
@@ -748,9 +735,9 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
     else
     {
       /* Kill and collect solver process if time limit is exceeded. */
-      assert(timeout_pid);
-      kill(solver_pid, SIGKILL);
-      waitpid(solver_pid, nullptr, 0);
+      assert(pid_timeout);
+      kill(pid_solver, SIGKILL);
+      waitpid(pid_solver, nullptr, 0);
       result = RESULT_TIMEOUT;
     }
   }
@@ -903,9 +890,9 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
       fsm.configure();
 
       /* replay/untrace given API trace */
-      if (untrace)
+      if (!untrace_file_name.empty())
       {
-        fsm.untrace(d_options.untrace_file_name);
+        fsm.untrace(untrace_file_name);
       }
       /* regular MBT run */
       else
@@ -924,8 +911,8 @@ Murxla::run_aux(bool run_forked, std::string file_out, std::string file_err)
 
     if (smt2_online) waitpid(smt2_pid, nullptr, 0);
 
-    if (trace_file.is_open()) trace_file.close();
-    if (smt2_file.is_open()) smt2_file.close();
+    if (file_trace.is_open()) file_trace.close();
+    if (file_smt2.is_open()) file_smt2.close();
 
     if (run_forked)
     {

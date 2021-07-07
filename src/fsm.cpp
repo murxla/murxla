@@ -2290,7 +2290,7 @@ tokenize(std::string& line, std::string& id, std::vector<std::string>& tokens)
 }
 
 void
-FSM::untrace(std::string& trace_file_name)
+FSM::untrace(const std::string& trace_file_name)
 {
   assert(!trace_file_name.empty());
 

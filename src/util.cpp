@@ -761,7 +761,7 @@ prepend_prefix_to_file_name(const std::string& prefix,
 }
 
 std::string
-get_smt2_file_name(uint32_t seed, std::string& untrace_file_name)
+get_smt2_file_name(uint32_t seed, const std::string& untrace_file_name)
 {
   std::stringstream ss;
   if (untrace_file_name.empty())

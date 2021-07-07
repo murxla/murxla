@@ -388,7 +388,7 @@ class FSM
   /** Configure state machine with base configuration. */
   void configure();
   /** Replay given trace. */
-  void untrace(std::string& trace_file_name);
+  void untrace(const std::string& trace_file_name);
 
  private:
   SolverManager d_smgr;
