@@ -506,6 +506,7 @@ TermDb::pick_from_term_map(TermMap& tmap)
     weights.push_back(p.second);
   }
 
+  /* Terms with higher reference count have lower probability to be picked. */
   for (size_t i = 0; i < weights.size(); ++i)
   {
     weights[i] = sum - weights[i] + 1;
@@ -517,9 +518,7 @@ TermDb::pick_from_term_map(TermMap& tmap)
   std::advance(it, idx);
   Term t = it->first;
 
-  // Term t = d_rng.pick_from_map<TermMap, Term>(tmap);
   tmap.at(t) += 1;  // increment reference count
-  // std::cout << t << ": " << tmap.at(t) << std::endl;
   return t;
 }
 
