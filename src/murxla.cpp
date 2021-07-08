@@ -174,7 +174,7 @@ Murxla::run(const std::string& file_out,
                           std::filesystem::copy_options::overwrite_existing);
     if (!d_options.dd)
     {
-      std::cout << "api trace file: " << api_trace_file_name << std::endl;
+      MURXLA_MESSAGE << "api trace file: " << api_trace_file_name;
     }
   }
   /* write smt2 file to path if given */
@@ -197,7 +197,7 @@ Murxla::run(const std::string& file_out,
                           std::filesystem::copy_options::overwrite_existing);
     if (!d_options.dd)
     {
-      std::cout << "smt2 file: " << smt2_file_name << std::endl;
+      MURXLA_MESSAGE << "smt2 file: " << smt2_file_name;
     }
   }
 
@@ -531,11 +531,6 @@ Murxla::dd(std::string untrace_file_name, std::string dd_trace_file_name)
   /* start delta debugging */
 
   untrace_file_name = tmp_untrace_file_name;
-  std::cout << tmp_untrace_file_name << std::endl;
-  std::cout << "tmp_err " << tmp_err_file_name << std::endl;
-  std::cout << "tmp_out " << tmp_out_file_name << std::endl;
-  std::cout << "gold_err " << gold_err_file_name << std::endl;
-  std::cout << "gold_out " << gold_out_file_name << std::endl;
 
   /* represent input trace as vector of lines, trace statements that expect and
    * are accompanied by a return statement are represented as one element of
