@@ -175,7 +175,8 @@ Murxla::run(uint32_t seed,
                           std::filesystem::copy_options::overwrite_existing);
     if (!d_options.dd)
     {
-      std::cout << "api trace file: " << api_trace_file_name << std::endl;
+      std::cout << (run_forked ? "" : "api trace file: ") << api_trace_file_name
+                << std::endl;
     }
   }
   /* write smt2 file to path if given */
@@ -306,7 +307,6 @@ Murxla::test()
   bool is_cross             = !d_options.cross_check.empty();
   std::string out_file_name = DEVNULL;
   SeedGenerator sg(d_options.seed);
-  Options options_test(d_options);
 
   std::string err_file_name = get_tmp_file_path("tmp.err", d_tmp_dir);
 
@@ -355,15 +355,13 @@ Murxla::test()
             prepend_path(d_options.out_dir, api_trace_file_name);
       }
     }
-    Murxla murxla_test(
-        d_stats, options_test, d_solver_options, nullptr, d_tmp_dir);
-    Result res = murxla_test.run(seed,
-                                 out_file_name,
-                                 err_file_name,
-                                 api_trace_file_name,
-                                 d_options.untrace_file_name,
-                                 true,
-                                 NONE);
+    Result res = run(seed,
+                     out_file_name,
+                     err_file_name,
+                     api_trace_file_name,
+                     d_options.untrace_file_name,
+                     true,
+                     NONE);
 
     /* report status */
     if (res == RESULT_OK)
@@ -427,15 +425,15 @@ Murxla::test()
      * here (the SMT2 solver should never return an error result). */
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
-      Result res_replay = murxla_test.replay(seed,
-                                             out_file_name,
-                                             err_file_name,
-                                             api_trace_file_name,
-                                             d_options.untrace_file_name);
+      Result res_replay = replay(seed,
+                                 out_file_name,
+                                 err_file_name,
+                                 api_trace_file_name,
+                                 d_options.untrace_file_name);
       assert(res == res_replay);
     }
     std::cout << "\r" << std::flush;
-  } while (options_test.max_runs == 0 || num_runs < options_test.max_runs);
+  } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
 }
 
 Murxla::Result
