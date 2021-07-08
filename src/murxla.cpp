@@ -332,7 +332,7 @@ Murxla::test()
 
   do
   {
-    double cur_time            = get_cur_wall_time();
+    double cur_time = get_cur_wall_time();
 
     uint32_t seed = sg.next();
 
@@ -512,14 +512,14 @@ Murxla::dd(uint32_t seed,
 
   /* golden run */
   gold_exit = run(seed,
-                                time,
-                                gold_out_file_name,
-                                gold_err_file_name,
-                                tmp_untrace_file_name,
-                                untrace_file_name,
-                                true,
-                                false,
-                                TO_FILE);
+                  time,
+                  gold_out_file_name,
+                  gold_err_file_name,
+                  tmp_untrace_file_name,
+                  untrace_file_name,
+                  true,
+                  false,
+                  TO_FILE);
 
   MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
   {
@@ -610,14 +610,14 @@ Murxla::dd(uint32_t seed,
       write_idxs_to_file(lines, tmp, untrace_file_name);
       /* while delta debugging, do not trace to file or stdout */
       exit = run(seed,
-                           time,
-                           tmp_out_file_name,
-                           tmp_err_file_name,
-                           "",
-                           untrace_file_name,
-                           true,
-                           false,
-                           NONE);
+                 time,
+                 tmp_out_file_name,
+                 tmp_err_file_name,
+                 "",
+                 untrace_file_name,
+                 true,
+                 false,
+                 NONE);
       n_tests += 1;
       if (exit == gold_exit
           && ((!d_options.dd_out_string.empty()
