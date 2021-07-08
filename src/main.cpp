@@ -550,7 +550,6 @@ main(int argc, char* argv[])
     parse_solver_options_file(options, solver_options);
   }
 
-  std::string smt2_file_name      = options.smt2_file_name;
   std::string api_trace_file_name = options.api_trace_file_name;
 
   try
@@ -579,7 +578,7 @@ main(int argc, char* argv[])
           dd_trace_file_name = prepend_prefix_to_file_name(
               Murxla::DD_PREFIX, options.untrace_file_name);
           MURXLA_MESSAGE_DD << "minimizing untraced file '"
-                            << options.untrace_file_name.c_str() << "'";
+                            << options.untrace_file_name << "'";
         }
         else
         {
@@ -602,19 +601,6 @@ main(int argc, char* argv[])
          * solver must be recorded for the actual cross check. */
         out_file_name = get_tmp_file_path("tmp.out", TMP_DIR);
         err_file_name = get_tmp_file_path("tmp.err", TMP_DIR);
-      }
-      else if (options.solver == Murxla::SOLVER_SMT2
-               && options.smt2_file_name.empty())
-      {
-        /* We always dump .smt2 if the SMT2 solver is enabled. If no file name
-         * given, we use a generic (but unique) file name. */
-        options.smt2_file_name =
-            get_smt2_file_name(options.seed, options.untrace_file_name);
-        if (!options.out_dir.empty())
-        {
-          options.smt2_file_name =
-              prepend_path(options.out_dir, options.smt2_file_name);
-        }
       }
 
       Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
