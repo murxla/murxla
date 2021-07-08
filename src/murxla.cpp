@@ -149,6 +149,7 @@ Murxla::Murxla(statistics::Statistics* stats,
 
 Murxla::Result
 Murxla::run(uint32_t seed,
+            double time,
             const std::string& file_out,
             const std::string& file_err,
             const std::string& api_trace_file_name,
@@ -162,8 +163,13 @@ Murxla::run(uint32_t seed,
   std::string tmp_file_out = get_tmp_file_path("run-tmp1.out", d_tmp_dir);
   std::string tmp_file_err = get_tmp_file_path("run-tmp1.err", d_tmp_dir);
 
-  Result res = run_aux(
-      seed, tmp_file_out, tmp_file_err, untrace_file_name, forked, trace_mode);
+  Result res = run_aux(seed,
+                       time,
+                       tmp_file_out,
+                       tmp_file_err,
+                       untrace_file_name,
+                       forked,
+                       trace_mode);
 
   /* write trace file to path if given */
   if (trace_mode == TO_FILE)
@@ -236,6 +242,7 @@ Murxla::run(uint32_t seed,
         &stats_cross, options_cross, &solver_options_cross, nullptr, d_tmp_dir);
     // TODO check if we should trace here
     Result cres = murxla_cross.run_aux(seed,
+                                       time,
                                        tmp_file_cross_out,
                                        tmp_file_cross_err,
                                        untrace_file_name,
@@ -356,6 +363,7 @@ Murxla::test()
       }
     }
     Result res = run(seed,
+                     d_options.time,
                      out_file_name,
                      err_file_name,
                      api_trace_file_name,
@@ -443,30 +451,25 @@ Murxla::replay(uint32_t seed,
                const std::string& api_trace_file_name,
                const std::string& untrace_file_name)
 {
-  statistics::Statistics stats_replay;
-  Options options_replay(d_options);
+  Result res = run(seed,
+                   0,
+                   out_file_name,
+                   err_file_name,
+                   api_trace_file_name,
+                   untrace_file_name,
+                   true,
+                   TO_FILE);
 
-  options_replay.time = 0;  // reset time limit
-
-  Murxla murxla_replay(
-      &stats_replay, options_replay, d_solver_options, nullptr, d_tmp_dir);
-  Result res = murxla_replay.run(seed,
-                                 out_file_name,
-                                 err_file_name,
-                                 api_trace_file_name,
-                                 untrace_file_name,
-                                 true,
-                                 TO_FILE);
-
-  if (options_replay.dd)
+  if (d_options.dd)
   {
-    murxla_replay.dd(seed, api_trace_file_name, d_options.dd_trace_file_name);
+    dd(seed, 0, api_trace_file_name, d_options.dd_trace_file_name);
   }
   return res;
 }
 
 void
 Murxla::dd(uint32_t seed,
+           double time,
            std::string untrace_file_name,
            std::string dd_trace_file_name)
 {
@@ -502,6 +505,7 @@ Murxla::dd(uint32_t seed,
   Murxla murxla_golden(
       &stats_golden, options_dd, d_solver_options, nullptr, d_tmp_dir);
   gold_exit = murxla_golden.run(seed,
+                                time,
                                 gold_out_file_name,
                                 gold_err_file_name,
                                 tmp_untrace_file_name,
@@ -601,6 +605,7 @@ Murxla::dd(uint32_t seed,
       write_idxs_to_file(lines, tmp, untrace_file_name);
       /* while delta debugging, do not trace to file or stdout */
       exit = murxla_dd.run(seed,
+                           time,
                            tmp_out_file_name,
                            tmp_err_file_name,
                            "",
@@ -678,6 +683,7 @@ Murxla::dd(uint32_t seed,
 
 Murxla::Result
 Murxla::run_aux(uint32_t seed,
+                double time,
                 const std::string& file_out,
                 const std::string& file_err,
                 const std::string& untrace_file_name,
@@ -755,8 +761,8 @@ Murxla::run_aux(uint32_t seed,
   if (pid_solver)
   {
     /* If a time limit is given, fork another process that kills the pid_solver
-     * after d_option.time seconds. (https://stackoverflow.com/a/8020324) */
-    if (d_options.time)
+     * after time seconds. (https://stackoverflow.com/a/8020324) */
+    if (time)
     {
       pid_timeout = fork();
 
@@ -765,7 +771,7 @@ Murxla::run_aux(uint32_t seed,
       if (pid_timeout == 0)
       {
         signal(SIGINT, SIG_DFL);  // reset stats signal handler
-        usleep(d_options.time * 1000000);
+        usleep(time * 1000000);
         exit(EXIT_OK);
       }
     }

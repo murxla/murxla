@@ -57,6 +57,7 @@ class Murxla
          const std::string& tmp_dir);
 
   Result run(uint32_t seed,
+             double time,
              const std::string& file_out,
              const std::string& file_err,
              const std::string& api_trace_file_name,
@@ -67,6 +68,7 @@ class Murxla
   void test();
 
   void dd(uint32_t seed,
+          double time,
           std::string untrace_file_name,
           std::string dd_trace_file_name);
 
@@ -76,6 +78,7 @@ class Murxla
 
  private:
   Result run_aux(uint32_t seed,
+                 double time,
                  const std::string& file_out,
                  const std::string& file_err,
                  const std::string& untrace_file_name,

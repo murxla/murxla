@@ -606,6 +606,7 @@ main(int argc, char* argv[])
       Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
 
       (void) murxla.run(options.seed,
+                        options.time,
                         out_file_name,
                         err_file_name,
                         api_trace_file_name,
@@ -617,7 +618,10 @@ main(int argc, char* argv[])
 
       if (options.dd)
       {
-        murxla.dd(options.seed, api_trace_file_name, dd_trace_file_name);
+        murxla.dd(options.seed,
+                  options.time,
+                  api_trace_file_name,
+                  dd_trace_file_name);
       }
     }
   }
