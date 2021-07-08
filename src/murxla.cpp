@@ -660,14 +660,22 @@ Murxla::dd(uint32_t seed,
   {
     dd_trace_file_name = prepend_path(d_options.out_dir, dd_trace_file_name);
   }
-  std::filesystem::copy(get_tmp_file_path(API_TRACE, d_tmp_dir),
-                        dd_trace_file_name,
-                        std::filesystem::copy_options::overwrite_existing);
 
   MURXLA_MESSAGE_DD;
   MURXLA_MESSAGE_DD << n_failed << " of " << n_tests
                     << " successful (reduced) tests";
-  MURXLA_MESSAGE_DD << "written to: " << dd_trace_file_name.c_str();
+
+  if (std::filesystem::exists(tmp_dd_trace_file_name))
+  {
+    std::filesystem::copy(tmp_dd_trace_file_name,
+                          dd_trace_file_name,
+                          std::filesystem::copy_options::overwrite_existing);
+    MURXLA_MESSAGE_DD << "written to: " << dd_trace_file_name.c_str();
+  }
+  else
+  {
+    MURXLA_MESSAGE_DD << "unable to reduce api trace";
+  }
 }
 
 Murxla::Result
