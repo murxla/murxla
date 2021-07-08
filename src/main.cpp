@@ -564,18 +564,19 @@ main(int argc, char* argv[])
     else
     {
       std::string api_trace_file_name = options.api_trace_file_name;
+      std::string dd_trace_file_name  = options.dd_trace_file_name;
       std::string out_file_name = DEVNULL;
       std::string err_file_name = DEVNULL;
 
-      if (options.dd && api_trace_file_name.empty())
+      if (options.dd && dd_trace_file_name.empty()
+          && api_trace_file_name.empty())
       {
-        /* When delta-debugging, we need to trace into file instead of stdout.
-         */
+        /* When delta-debugging, trace into file instead of stdout. */
         api_trace_file_name = get_tmp_file_path("tmp.trace", TMP_DIR);
         /* Minimized trace file name. */
         if (is_untrace)
         {
-          options.dd_trace_file_name = prepend_prefix_to_file_name(
+          dd_trace_file_name = prepend_prefix_to_file_name(
               Murxla::DD_PREFIX, options.untrace_file_name);
           MURXLA_MESSAGE_DD << "minimizing untraced file '"
                             << options.untrace_file_name.c_str() << "'";
@@ -584,7 +585,7 @@ main(int argc, char* argv[])
         {
           std::stringstream ss;
           ss << Murxla::DD_PREFIX << options.seed << ".trace";
-          options.dd_trace_file_name = ss.str();
+          dd_trace_file_name = ss.str();
           MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
         }
       }
@@ -620,13 +621,16 @@ main(int argc, char* argv[])
 
       (void) murxla.run(out_file_name,
                         err_file_name,
+                        api_trace_file_name,
                         options.untrace_file_name,
                         is_forked,
-                        !options.api_trace_file_name.empty());
+                        api_trace_file_name.empty()
+                            ? Murxla::TraceMode::TO_STDOUT
+                            : Murxla::TraceMode::TO_FILE);
 
       if (options.dd)
       {
-        murxla.dd();
+        murxla.dd(api_trace_file_name, dd_trace_file_name);
       }
     }
   }

@@ -104,7 +104,7 @@ str_diff(const std::string& s1, const std::string& s2)
 void
 write_idxs_to_file(const std::vector<std::string>& lines,
                    const std::vector<size_t> indices,
-                   std::string& out_file_name)
+                   const std::string& out_file_name)
 {
   size_t size            = lines.size();
   std::ofstream out_file = open_output_file(out_file_name, false);
@@ -150,13 +150,14 @@ Murxla::Murxla(statistics::Statistics* stats,
 Murxla::Result
 Murxla::run(const std::string& file_out,
             const std::string& file_err,
+            const std::string& api_trace_file_name,
             const std::string& untrace_file_name,
             bool run_forked,
-            bool trace_file)
+            Murxla::TraceMode trace_mode)
 {
   bool cross  = !d_options.cross_check.empty();
   bool forked = run_forked || cross;
-  bool generate_smt2 = trace_file && d_options.cross_check.empty()
+  bool generate_smt2 = trace_mode == TO_FILE && d_options.cross_check.empty()
                        && d_options.solver == Murxla::SOLVER_SMT2
                        && d_options.solver_binary.empty();
 
@@ -164,46 +165,37 @@ Murxla::run(const std::string& file_out,
   std::string tmp_file_err = get_tmp_file_path("run-tmp1.err", d_tmp_dir);
 
   Result res = run_aux(
-      tmp_file_out, tmp_file_err, untrace_file_name, forked, trace_file);
+      tmp_file_out, tmp_file_err, untrace_file_name, forked, trace_mode);
 
   /* write trace file to path if given */
-  if (trace_file)
+  if (trace_mode == TO_FILE)
   {
-    if (d_options.api_trace_file_name.empty())
+    assert(api_trace_file_name != DEVNULL);
+    assert(std::filesystem::exists(get_tmp_file_path(API_TRACE, d_tmp_dir)));
+    std::filesystem::copy(get_tmp_file_path(API_TRACE, d_tmp_dir),
+                          api_trace_file_name,
+                          std::filesystem::copy_options::overwrite_existing);
+    if (!d_options.dd)
     {
-      std::string api_trace_file_name = get_api_trace_file_name(
-          d_options.seed, d_options.dd, untrace_file_name);
-      if (!d_options.out_dir.empty())
-      {
-        api_trace_file_name =
-            prepend_path(d_options.out_dir, api_trace_file_name);
-      }
-      assert(std::filesystem::exists(API_TRACE));
-      std::filesystem::copy(API_TRACE, api_trace_file_name);
-    }
-    else
-    {
-      std::filesystem::copy(API_TRACE, d_options.api_trace_file_name);
+      std::cout << api_trace_file_name << std::endl;
     }
   }
   /* write smt2 file to path if given */
   if (generate_smt2)
   {
-    if (d_options.smt2_file_name.empty())
+    std::string smt2_file_name = d_options.smt2_file_name;
+    if (smt2_file_name.empty())
     {
-      std::string smt2_file_name =
-          get_smt2_file_name(d_options.seed, untrace_file_name);
+      smt2_file_name = get_smt2_file_name(d_options.seed, untrace_file_name);
       if (!d_options.out_dir.empty())
       {
         smt2_file_name = prepend_path(d_options.out_dir, smt2_file_name);
       }
-      assert(std::filesystem::exists(SMT2_FILE));
-      std::filesystem::copy(SMT2_FILE, smt2_file_name);
     }
-    else
-    {
-      std::filesystem::copy(SMT2_FILE, d_options.smt2_file_name);
-    }
+    assert(std::filesystem::exists(SMT2_FILE));
+    std::filesystem::copy(SMT2_FILE,
+                          smt2_file_name,
+                          std::filesystem::copy_options::overwrite_existing);
   }
 
   if (cross)
@@ -242,7 +234,7 @@ Murxla::run(const std::string& file_out,
                                        tmp_file_cross_err,
                                        untrace_file_name,
                                        forked,
-                                       false);
+                                       NONE);
 
     /* write result / error output to .err */
     if (res != cres)
@@ -346,10 +338,26 @@ Murxla::test()
     /* Run and test for error without tracing to trace file (we by default still
      * trace to stdout here, which is redirected to /dev/null).
      * If error encountered, replay and trace below. */
+
+    std::string api_trace_file_name = d_options.api_trace_file_name;
+    if (api_trace_file_name.empty())
+    {
+      api_trace_file_name = get_api_trace_file_name(
+          d_options.seed, d_options.dd, d_options.untrace_file_name);
+      if (!d_options.out_dir.empty())
+      {
+        api_trace_file_name =
+            prepend_path(d_options.out_dir, api_trace_file_name);
+      }
+    }
     Murxla murxla_test(
         d_stats, options_test, d_solver_options, nullptr, d_tmp_dir);
-    Result res = murxla_test.run(
-        out_file_name, err_file_name, d_options.untrace_file_name, true, false);
+    Result res = murxla_test.run(out_file_name,
+                                 err_file_name,
+                                 api_trace_file_name,
+                                 d_options.untrace_file_name,
+                                 true,
+                                 NONE);
 
     /* report status */
     if (res == RESULT_OK)
@@ -413,8 +421,10 @@ Murxla::test()
      * here (the SMT2 solver should never return an error result). */
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
-      Result res_replay = murxla_test.replay(
-          out_file_name, err_file_name, d_options.untrace_file_name);
+      Result res_replay = murxla_test.replay(out_file_name,
+                                             err_file_name,
+                                             api_trace_file_name,
+                                             d_options.untrace_file_name);
       assert(res == res_replay);
     }
     std::cout << "\r" << std::flush;
@@ -424,6 +434,7 @@ Murxla::test()
 Murxla::Result
 Murxla::replay(const std::string& out_file_name,
                const std::string& err_file_name,
+               const std::string& api_trace_file_name,
                const std::string& untrace_file_name)
 {
   statistics::Statistics stats_replay;
@@ -433,72 +444,60 @@ Murxla::replay(const std::string& out_file_name,
 
   Murxla murxla_replay(
       &stats_replay, options_replay, d_solver_options, nullptr, d_tmp_dir);
-  Result res = murxla_replay.run(
-      out_file_name, err_file_name, untrace_file_name, true, true);
+  Result res = murxla_replay.run(out_file_name,
+                                 err_file_name,
+                                 api_trace_file_name,
+                                 untrace_file_name,
+                                 true,
+                                 TO_FILE);
 
   if (options_replay.dd)
   {
-    murxla_replay.dd();
-  }
-  else
-  {
-    std::cout << options_replay.api_trace_file_name << std::endl;
+    murxla_replay.dd(api_trace_file_name, d_options.dd_trace_file_name);
   }
   return res;
 }
 
 void
-Murxla::dd()
+Murxla::dd(std::string untrace_file_name, std::string dd_trace_file_name)
 {
-  assert(!d_options.api_trace_file_name.empty());
+  assert(!untrace_file_name.empty());
 
-#if 0
   std::vector<std::string> lines;
   std::string line, token;
   Murxla::Result gold_exit, exit;
 
   std::string gold_out_file_name =
-      get_tmp_file_path("dd-gold-tmp.out", d_tmp_dir);
+      get_tmp_file_path("tmp-dd-gold.out", d_tmp_dir);
   std::string gold_err_file_name =
-      get_tmp_file_path("dd-gold-tmp.err", d_tmp_dir);
-  std::string tmp_trace_file_name =
-      get_tmp_file_path("dd-tmp.trace", d_tmp_dir);
-  std::string tmp_out_file_name = get_tmp_file_path("dd-tmp.out", d_tmp_dir);
-  std::string tmp_err_file_name = get_tmp_file_path("dd-tmp.err", d_tmp_dir);
+      get_tmp_file_path("tmp-dd-gold.err", d_tmp_dir);
+
+  std::string tmp_out_file_name = get_tmp_file_path("tmp-dd.out", d_tmp_dir);
+  std::string tmp_err_file_name = get_tmp_file_path("tmp-dd.err", d_tmp_dir);
+
+  std::string tmp_api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
+  std::string tmp_untrace_file_name =
+      get_tmp_file_path("tmp-dd.trace", d_tmp_dir);
+  std::string tmp_dd_trace_file_name =
+      get_tmp_file_path("tmp-api-dd.trace", d_tmp_dir);
 
   /* init options object for golden (replay of original) run */
   Options options_dd(d_options);
-  options_dd.verbosity           = 0;
-  options_dd.api_trace_file_name = tmp_trace_file_name;
-  options_dd.untrace_file_name   = d_options.api_trace_file_name;
+  options_dd.verbosity = 0;
 
-  /* init trace file name for minimized trace */
-  if (options_dd.dd_trace_file_name.empty())
-  {
-    if (d_options.untrace_file_name.empty())
-    {
-      options_dd.dd_trace_file_name = prepend_prefix_to_file_name(
-          Murxla::DD_PREFIX, d_options.api_trace_file_name);
-    }
-    else
-    {
-      options_dd.dd_trace_file_name = prepend_prefix_to_file_name(
-          Murxla::DD_PREFIX, d_options.untrace_file_name);
-    }
-  }
-  if (!d_options.out_dir.empty())
-  {
-    options_dd.dd_trace_file_name =
-        prepend_path(d_options.out_dir, options_dd.dd_trace_file_name);
-  }
-  MURXLA_MESSAGE_DD << "start minimizing file '"
-                    << options_dd.untrace_file_name.c_str() << "'";
+  MURXLA_MESSAGE_DD << "start minimizing file '" << untrace_file_name.c_str()
+                    << "'";
 
   /* golden run */
   statistics::Statistics stats_golden;
   Murxla murxla_golden(
       &stats_golden, options_dd, d_solver_options, nullptr, d_tmp_dir);
-  gold_exit = murxla_golden.run(gold_out_file_name, gold_err_file_name, true);
+  gold_exit = murxla_golden.run(gold_out_file_name,
+                                gold_err_file_name,
+                                tmp_untrace_file_name,
+                                untrace_file_name,
+                                true,
+                                TO_FILE);
 
   MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
   {
@@ -528,11 +527,18 @@ Murxla::dd()
 
   /* start delta debugging */
 
+  untrace_file_name = tmp_untrace_file_name;
+  std::cout << tmp_untrace_file_name << std::endl;
+  std::cout << "tmp_err " << tmp_err_file_name << std::endl;
+  std::cout << "tmp_out " << tmp_out_file_name << std::endl;
+  std::cout << "gold_err " << gold_err_file_name << std::endl;
+  std::cout << "gold_out " << gold_out_file_name << std::endl;
+
   /* represent input trace as vector of lines, trace statements that expect and
    * are accompanied by a return statement are represented as one element of
    * the vector */
 
-  std::ifstream trace_file = open_input_file(tmp_trace_file_name, false);
+  std::ifstream trace_file = open_input_file(untrace_file_name, false);
   while (std::getline(trace_file, line))
   {
     if (line[0] == '#') continue;
@@ -551,10 +557,6 @@ Murxla::dd()
     }
   }
   trace_file.close();
-
-  /* while delta debugging, do not trace to file */
-  options_dd.api_trace_file_name = DEVNULL;
-  options_dd.untrace_file_name   = tmp_trace_file_name;
 
   statistics::Statistics stats_dd;
   Murxla murxla_dd(&stats_dd, options_dd, d_solver_options, nullptr, d_tmp_dir);
@@ -591,8 +593,14 @@ Murxla::dd()
       ex.insert(i);
       std::vector<size_t> tmp = remove_subsets(subsets, ex);
 
-      write_idxs_to_file(lines, tmp, tmp_trace_file_name);
-      exit = murxla_dd.run(tmp_out_file_name, tmp_err_file_name, true);
+      write_idxs_to_file(lines, tmp, untrace_file_name);
+      /* while delta debugging, do not trace to file or stdout */
+      exit = murxla_dd.run(tmp_out_file_name,
+                           tmp_err_file_name,
+                           "",
+                           untrace_file_name,
+                           true,
+                           NONE);
       n_tests += 1;
       if (exit == gold_exit
           && ((!options_dd.dd_out_string.empty()
@@ -619,17 +627,39 @@ Murxla::dd()
     else
     {
       /* write found subset immediately to file and continue */
-      write_idxs_to_file(lines, cur_superset, options_dd.dd_trace_file_name);
+      write_idxs_to_file(lines, cur_superset, tmp_dd_trace_file_name);
       superset    = cur_superset;
       size        = superset.size();
       subset_size = size / 2;
     }
   }
+
+  /* write minimized trace file to path if given */
+  if (dd_trace_file_name.empty())
+  {
+    if (untrace_file_name.empty())
+    {
+      dd_trace_file_name = prepend_prefix_to_file_name(
+          Murxla::DD_PREFIX, d_options.api_trace_file_name);
+    }
+    else
+    {
+      dd_trace_file_name = prepend_prefix_to_file_name(
+          Murxla::DD_PREFIX, d_options.untrace_file_name);
+    }
+  }
+  if (!d_options.out_dir.empty())
+  {
+    dd_trace_file_name = prepend_path(d_options.out_dir, dd_trace_file_name);
+  }
+  std::filesystem::copy(get_tmp_file_path(API_TRACE, d_tmp_dir),
+                        dd_trace_file_name,
+                        std::filesystem::copy_options::overwrite_existing);
+
   MURXLA_MESSAGE_DD;
   MURXLA_MESSAGE_DD << n_failed << " of " << n_tests
                     << " successful (reduced) tests";
-  MURXLA_MESSAGE_DD << "written to: " << options_dd.dd_trace_file_name.c_str();
-#endif
+  MURXLA_MESSAGE_DD << "written to: " << dd_trace_file_name.c_str();
 }
 
 Murxla::Result
@@ -637,10 +667,10 @@ Murxla::run_aux(const std::string& file_out,
                 const std::string& file_err,
                 const std::string& untrace_file_name,
                 bool run_forked,
-                bool trace_file)
+                Murxla::TraceMode trace_mode)
 {
   bool smt2_online = !d_options.solver_binary.empty();
-  bool generate_smt2 = trace_file && d_options.cross_check.empty()
+  bool generate_smt2 = trace_mode == TO_FILE && d_options.cross_check.empty()
                        && d_options.solver == Murxla::SOLVER_SMT2
                        && d_options.solver_binary.empty();
   int32_t status, fd;
@@ -652,13 +682,20 @@ Murxla::run_aux(const std::string& file_out,
 
   if (smt2_online) run_forked = true;
 
-  if (trace_file)
+  if (trace_mode == NONE)
   {
-    file_trace = open_output_file(API_TRACE, false);
+    file_trace = open_output_file(DEVNULL, false);
+    buf_trace  = file_trace.rdbuf();
+  }
+  else if (trace_mode == TO_FILE)
+  {
+    std::string api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
+    file_trace = open_output_file(api_trace_file_name, false);
     buf_trace  = file_trace.rdbuf();
   }
   else
   {
+    assert(trace_mode == TO_STDOUT);
     buf_trace = std::cout.rdbuf();
   }
   std::ostream trace(buf_trace);

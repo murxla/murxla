@@ -30,6 +30,13 @@ class Murxla
     RESULT_UNKNOWN,
   };
 
+  enum TraceMode
+  {
+    NONE,
+    TO_STDOUT,
+    TO_FILE,
+  };
+
   inline static const std::string DD_PREFIX    = "murxla-dd-";
   inline static const std::string SOLVER_BTOR  = "btor";
   inline static const std::string SOLVER_BZLA  = "bzla";
@@ -51,13 +58,14 @@ class Murxla
 
   Result run(const std::string& file_out,
              const std::string& file_err,
+             const std::string& api_trace_file_name,
              const std::string& untrace_file_name,
              bool run_forked,
-             bool trace_file);
+             TraceMode trace_mode);
 
   void test();
 
-  void dd();
+  void dd(std::string untrace_file_name, std::string dd_trace_file_name);
 
   Options d_options;
   SolverOptions* d_solver_options;
@@ -68,10 +76,11 @@ class Murxla
                  const std::string& file_err,
                  const std::string& untrace_file_name,
                  bool run_forked,
-                 bool trace_file);
+                 TraceMode trace_mode);
 
   Result replay(const std::string& out_file_name,
                 const std::string& err_file_name,
+                const std::string& api_trace_file_name,
                 const std::string& untrace_file_name);
 
   bool add_error(const std::string& err, uint32_t seed);
