@@ -73,7 +73,7 @@ class Murxla
           std::string untrace_file_name,
           std::string dd_trace_file_name);
 
-  Options d_options;
+  const Options& d_options;
   SolverOptions* d_solver_options;
   std::string d_tmp_dir;
 

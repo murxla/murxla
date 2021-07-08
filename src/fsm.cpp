@@ -142,7 +142,7 @@ FSM::FSM(RNGenerator& rng,
          bool simple_symbols,
          bool smt,
          statistics::Statistics* stats,
-         TheoryIdVector& enabled_theories)
+         const TheoryIdVector& enabled_theories)
     : d_smgr(solver,
              rng,
              trace,

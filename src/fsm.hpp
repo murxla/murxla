@@ -317,7 +317,7 @@ class FSM
       bool simple_symbols,
       bool smt,
       statistics::Statistics* stats,
-      TheoryIdVector& enabled_theories);
+      const TheoryIdVector& enabled_theories);
 
   /** Default constructor is disabled. */
   FSM() = delete;

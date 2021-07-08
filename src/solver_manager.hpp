@@ -45,7 +45,7 @@ class SolverManager
                 bool cross_check,
                 bool simple_symbols,
                 statistics::Statistics* stats,
-                TheoryIdVector& enabled_theories);
+                const TheoryIdVector& enabled_theories);
   ~SolverManager() = default;
 
   statistics::Statistics* d_mbt_stats;
@@ -425,7 +425,7 @@ class SolverManager
    * All theories supported by a solvers are by default enabled and can
    * optionally be disabled (the latter is still TODO).
    */
-  void add_enabled_theories(TheoryIdVector& enabled_theories);
+  void add_enabled_theories(const TheoryIdVector& enabled_theories);
 
   /**
    * Populate sort kinds database with enabled sort kinds.

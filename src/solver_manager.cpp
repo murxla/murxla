@@ -23,7 +23,7 @@ SolverManager::SolverManager(Solver* solver,
                              bool cross_check,
                              bool simple_symbols,
                              statistics::Statistics* stats,
-                             TheoryIdVector& enabled_theories)
+                             const TheoryIdVector& enabled_theories)
     : d_mbt_stats(stats),
       d_arith_linear(arith_linear),
       d_trace_seeds(trace_seeds),
@@ -821,7 +821,7 @@ SolverManager::pick_option()
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::add_enabled_theories(TheoryIdVector& enabled_theories)
+SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories)
 {
   /* Get theories supported by enabled solver. */
   TheoryIdVector solver_theories = d_solver->get_supported_theories();
