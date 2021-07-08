@@ -612,6 +612,7 @@ main(int argc, char* argv[])
                         api_trace_file_name,
                         options.untrace_file_name,
                         is_forked,
+                        true,
                         api_trace_file_name.empty()
                             ? Murxla::TraceMode::TO_STDOUT
                             : Murxla::TraceMode::TO_FILE);

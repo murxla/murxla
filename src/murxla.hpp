@@ -63,6 +63,7 @@ class Murxla
              const std::string& api_trace_file_name,
              const std::string& untrace_file_name,
              bool run_forked,
+             bool record_stats,
              TraceMode trace_mode);
 
   void test();
@@ -83,6 +84,7 @@ class Murxla
                  const std::string& file_err,
                  const std::string& untrace_file_name,
                  bool run_forked,
+                 bool record_stats,
                  TraceMode trace_mode);
 
   Result replay(uint32_t seed,

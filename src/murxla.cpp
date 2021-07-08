@@ -155,6 +155,7 @@ Murxla::run(uint32_t seed,
             const std::string& api_trace_file_name,
             const std::string& untrace_file_name,
             bool run_forked,
+            bool record_stats,
             Murxla::TraceMode trace_mode)
 {
   bool cross  = !d_options.cross_check.empty();
@@ -169,6 +170,7 @@ Murxla::run(uint32_t seed,
                        tmp_file_err,
                        untrace_file_name,
                        forked,
+                       record_stats,
                        trace_mode);
 
   /* write trace file to path if given */
@@ -247,6 +249,7 @@ Murxla::run(uint32_t seed,
                                        tmp_file_cross_err,
                                        untrace_file_name,
                                        forked,
+                                       false,
                                        NONE);
 
     /* write result / error output to .err */
@@ -369,6 +372,7 @@ Murxla::test()
                      api_trace_file_name,
                      d_options.untrace_file_name,
                      true,
+                     true,
                      NONE);
 
     /* report status */
@@ -458,6 +462,7 @@ Murxla::replay(uint32_t seed,
                    api_trace_file_name,
                    untrace_file_name,
                    true,
+                   false,
                    TO_FILE);
 
   if (d_options.dd)
@@ -493,24 +498,18 @@ Murxla::dd(uint32_t seed,
   std::string tmp_dd_trace_file_name =
       get_tmp_file_path("tmp-api-dd.trace", d_tmp_dir);
 
-  /* init options object for golden (replay of original) run */
-  Options options_dd(d_options);
-  options_dd.verbosity = 0;
-
   MURXLA_MESSAGE_DD << "start minimizing file '" << untrace_file_name.c_str()
                     << "'";
 
   /* golden run */
-  statistics::Statistics stats_golden;
-  Murxla murxla_golden(
-      &stats_golden, options_dd, d_solver_options, nullptr, d_tmp_dir);
-  gold_exit = murxla_golden.run(seed,
+  gold_exit = run(seed,
                                 time,
                                 gold_out_file_name,
                                 gold_err_file_name,
                                 tmp_untrace_file_name,
                                 untrace_file_name,
                                 true,
+                                false,
                                 TO_FILE);
 
   MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
@@ -526,16 +525,16 @@ Murxla::dd(uint32_t seed,
     MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
     gold_err_file.close();
   }
-  if (!options_dd.dd_out_string.empty())
+  if (!d_options.dd_out_string.empty())
   {
     MURXLA_MESSAGE_DD << "checking for occurrence of '"
-                      << options_dd.dd_out_string.c_str()
+                      << d_options.dd_out_string.c_str()
                       << "' in stdout output";
   }
-  if (!options_dd.dd_err_string.empty())
+  if (!d_options.dd_err_string.empty())
   {
     MURXLA_MESSAGE_DD << "checking for occurrence of '"
-                      << options_dd.dd_err_string.c_str()
+                      << d_options.dd_err_string.c_str()
                       << "' in stderr output";
   }
 
@@ -566,9 +565,6 @@ Murxla::dd(uint32_t seed,
     }
   }
   trace_file.close();
-
-  statistics::Statistics stats_dd;
-  Murxla murxla_dd(&stats_dd, options_dd, d_solver_options, nullptr, d_tmp_dir);
 
   int64_t orig_size = lines.size();
   int64_t size      = orig_size;
@@ -604,23 +600,24 @@ Murxla::dd(uint32_t seed,
 
       write_idxs_to_file(lines, tmp, untrace_file_name);
       /* while delta debugging, do not trace to file or stdout */
-      exit = murxla_dd.run(seed,
+      exit = run(seed,
                            time,
                            tmp_out_file_name,
                            tmp_err_file_name,
                            "",
                            untrace_file_name,
                            true,
+                           false,
                            NONE);
       n_tests += 1;
       if (exit == gold_exit
-          && ((!options_dd.dd_out_string.empty()
+          && ((!d_options.dd_out_string.empty()
                && find_in_file(
-                   tmp_err_file_name, options_dd.dd_out_string, false))
+                   tmp_err_file_name, d_options.dd_out_string, false))
               || compare_files(tmp_out_file_name, gold_out_file_name))
-          && ((!options_dd.dd_err_string.empty()
+          && ((!d_options.dd_err_string.empty()
                && find_in_file(
-                   tmp_err_file_name, options_dd.dd_err_string, false))
+                   tmp_err_file_name, d_options.dd_err_string, false))
               || compare_files(tmp_err_file_name, gold_err_file_name)))
       {
         cur_superset = tmp;
@@ -688,6 +685,7 @@ Murxla::run_aux(uint32_t seed,
                 const std::string& file_err,
                 const std::string& untrace_file_name,
                 bool run_forked,
+                bool record_stats,
                 Murxla::TraceMode trace_mode)
 {
   bool smt2_online = !d_options.solver_binary.empty();
@@ -947,6 +945,10 @@ Murxla::run_aux(uint32_t seed,
 
     try
     {
+      /* Dummy statistics object for the cases were we don't want to record
+       * statistics (replay, dd). */
+      statistics::Statistics dummy_stats;
+
       FSM fsm(rng,
               solver,
               trace,
@@ -956,7 +958,7 @@ Murxla::run_aux(uint32_t seed,
               !d_options.cross_check.empty(),
               d_options.simple_symbols,
               d_options.smt,
-              d_stats,
+              record_stats ? d_stats : &dummy_stats,
               d_options.enabled_theories);
       fsm.configure();
 
