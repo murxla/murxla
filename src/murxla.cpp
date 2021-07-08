@@ -680,7 +680,11 @@ Murxla::run_aux(const std::string& file_out,
   std::ofstream file_trace;
   std::ofstream file_smt2;
 
-  if (smt2_online) run_forked = true;
+  if (smt2_online)
+  {
+    run_forked = true;
+    if (trace_mode == TO_STDOUT) trace_mode = NONE;
+  }
 
   if (trace_mode == NONE)
   {
@@ -702,7 +706,11 @@ Murxla::run_aux(const std::string& file_out,
 
   if (d_options.solver == Murxla::SOLVER_SMT2)
   {
-    if (d_options.solver_binary.empty())
+    if (smt2_online)
+    {
+      buf_smt2 = std::cout.rdbuf();
+    }
+    else
     {
       if (trace_mode != NONE)
       {
@@ -715,10 +723,6 @@ Murxla::run_aux(const std::string& file_out,
         file_smt2 = open_output_file(DEVNULL, false);
         buf_smt2  = file_smt2.rdbuf();
       }
-    }
-    else
-    {
-      buf_smt2 = std::cout.rdbuf();
     }
   }
   std::ostream smt2(buf_smt2);
