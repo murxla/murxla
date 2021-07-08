@@ -175,7 +175,7 @@ Murxla::run(uint32_t seed,
                           std::filesystem::copy_options::overwrite_existing);
     if (!d_options.dd)
     {
-      MURXLA_MESSAGE << "api trace file: " << api_trace_file_name;
+      std::cout << "api trace file: " << api_trace_file_name << std::endl;
     }
   }
   /* write smt2 file to path if given */
@@ -198,7 +198,7 @@ Murxla::run(uint32_t seed,
                           std::filesystem::copy_options::overwrite_existing);
     if (!d_options.dd)
     {
-      MURXLA_MESSAGE << "smt2 file: " << smt2_file_name;
+      std::cout << "smt2 file: " << smt2_file_name << std::endl;
     }
   }
 
