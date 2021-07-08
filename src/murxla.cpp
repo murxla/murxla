@@ -157,9 +157,6 @@ Murxla::run(const std::string& file_out,
 {
   bool cross  = !d_options.cross_check.empty();
   bool forked = run_forked || cross;
-  bool generate_smt2 = trace_mode == TO_FILE && d_options.cross_check.empty()
-                       && d_options.solver == Murxla::SOLVER_SMT2
-                       && d_options.solver_binary.empty();
 
   std::string tmp_file_out = get_tmp_file_path("run-tmp1.out", d_tmp_dir);
   std::string tmp_file_err = get_tmp_file_path("run-tmp1.err", d_tmp_dir);
@@ -177,11 +174,12 @@ Murxla::run(const std::string& file_out,
                           std::filesystem::copy_options::overwrite_existing);
     if (!d_options.dd)
     {
-      std::cout << api_trace_file_name << std::endl;
+      std::cout << "api trace file: " << api_trace_file_name << std::endl;
     }
   }
   /* write smt2 file to path if given */
-  if (generate_smt2)
+  if (d_options.solver == Murxla::SOLVER_SMT2 && trace_mode != NONE
+      && d_options.solver_binary.empty())
   {
     std::string smt2_file_name = d_options.smt2_file_name;
     if (smt2_file_name.empty())
@@ -192,10 +190,15 @@ Murxla::run(const std::string& file_out,
         smt2_file_name = prepend_path(d_options.out_dir, smt2_file_name);
       }
     }
-    assert(std::filesystem::exists(SMT2_FILE));
-    std::filesystem::copy(SMT2_FILE,
+    std::string tmp_smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
+    assert(std::filesystem::exists(tmp_smt2_file_name));
+    std::filesystem::copy(tmp_smt2_file_name,
                           smt2_file_name,
                           std::filesystem::copy_options::overwrite_existing);
+    if (!d_options.dd)
+    {
+      std::cout << "smt2 file: " << smt2_file_name << std::endl;
+    }
   }
 
   if (cross)
@@ -670,9 +673,6 @@ Murxla::run_aux(const std::string& file_out,
                 Murxla::TraceMode trace_mode)
 {
   bool smt2_online = !d_options.solver_binary.empty();
-  bool generate_smt2 = trace_mode == TO_FILE && d_options.cross_check.empty()
-                       && d_options.solver == Murxla::SOLVER_SMT2
-                       && d_options.solver_binary.empty();
   int32_t status, fd;
   Result result;
   pid_t pid_solver = 0, pid_timeout = 0;
@@ -700,14 +700,26 @@ Murxla::run_aux(const std::string& file_out,
   }
   std::ostream trace(buf_trace);
 
-  if (generate_smt2)
+  if (d_options.solver == Murxla::SOLVER_SMT2)
   {
-    file_smt2 = open_output_file(SMT2_FILE, false);
-    buf_smt2  = file_smt2.rdbuf();
-  }
-  else
-  {
-    buf_smt2 = std::cout.rdbuf();
+    if (d_options.solver_binary.empty())
+    {
+      if (trace_mode != NONE)
+      {
+        std::string smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
+        file_smt2                  = open_output_file(smt2_file_name, false);
+        buf_smt2                   = file_smt2.rdbuf();
+      }
+      else
+      {
+        file_smt2 = open_output_file(DEVNULL, false);
+        buf_smt2  = file_smt2.rdbuf();
+      }
+    }
+    else
+    {
+      buf_smt2 = std::cout.rdbuf();
+    }
   }
   std::ostream smt2(buf_smt2);
 
