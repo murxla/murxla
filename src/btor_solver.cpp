@@ -1937,7 +1937,7 @@ class BtorActionResetAssumptions : public Action
   void _run()
   {
     MURXLA_TRACE << get_kind();
-    d_smgr.clear();
+    d_smgr.clear_assumptions();
     boolector_reset_assumptions(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
   }
