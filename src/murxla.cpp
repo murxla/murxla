@@ -148,7 +148,8 @@ Murxla::Murxla(statistics::Statistics* stats,
 }
 
 Murxla::Result
-Murxla::run(const std::string& file_out,
+Murxla::run(uint32_t seed,
+            const std::string& file_out,
             const std::string& file_err,
             const std::string& api_trace_file_name,
             const std::string& untrace_file_name,
@@ -162,7 +163,7 @@ Murxla::run(const std::string& file_out,
   std::string tmp_file_err = get_tmp_file_path("run-tmp1.err", d_tmp_dir);
 
   Result res = run_aux(
-      tmp_file_out, tmp_file_err, untrace_file_name, forked, trace_mode);
+      seed, tmp_file_out, tmp_file_err, untrace_file_name, forked, trace_mode);
 
   /* write trace file to path if given */
   if (trace_mode == TO_FILE)
@@ -184,7 +185,7 @@ Murxla::run(const std::string& file_out,
     std::string smt2_file_name = d_options.smt2_file_name;
     if (smt2_file_name.empty())
     {
-      smt2_file_name = get_smt2_file_name(d_options.seed, untrace_file_name);
+      smt2_file_name = get_smt2_file_name(seed, untrace_file_name);
       if (!d_options.out_dir.empty())
       {
         smt2_file_name = prepend_path(d_options.out_dir, smt2_file_name);
@@ -233,7 +234,8 @@ Murxla::run(const std::string& file_out,
     Murxla murxla_cross(
         &stats_cross, options_cross, &solver_options_cross, nullptr, d_tmp_dir);
     // TODO check if we should trace here
-    Result cres = murxla_cross.run_aux(tmp_file_cross_out,
+    Result cres = murxla_cross.run_aux(seed,
+                                       tmp_file_cross_out,
                                        tmp_file_cross_err,
                                        untrace_file_name,
                                        forked,
@@ -317,9 +319,9 @@ Murxla::test()
   {
     double cur_time            = get_cur_wall_time();
 
-    options_test.seed = sg.next();
+    uint32_t seed = sg.next();
 
-    std::cout << std::setw(10) << options_test.seed;
+    std::cout << std::setw(10) << seed;
     std::cout << " " << std::setw(5) << num_runs++ << " runs";
     std::cout << " " << std::setw(8);
     std::cout << std::setprecision(2) << std::fixed;
@@ -346,7 +348,7 @@ Murxla::test()
     if (api_trace_file_name.empty())
     {
       api_trace_file_name = get_api_trace_file_name(
-          d_options.seed, d_options.dd, d_options.untrace_file_name);
+          seed, d_options.dd, d_options.untrace_file_name);
       if (!d_options.out_dir.empty())
       {
         api_trace_file_name =
@@ -355,7 +357,8 @@ Murxla::test()
     }
     Murxla murxla_test(
         d_stats, options_test, d_solver_options, nullptr, d_tmp_dir);
-    Result res = murxla_test.run(out_file_name,
+    Result res = murxla_test.run(seed,
+                                 out_file_name,
                                  err_file_name,
                                  api_trace_file_name,
                                  d_options.untrace_file_name,
@@ -381,7 +384,7 @@ Murxla::test()
         }
         if (res == RESULT_ERROR)
         {
-          duplicate = add_error(errmsg, options_test.seed);
+          duplicate = add_error(errmsg, seed);
         }
         else
         {
@@ -424,7 +427,8 @@ Murxla::test()
      * here (the SMT2 solver should never return an error result). */
     if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
-      Result res_replay = murxla_test.replay(out_file_name,
+      Result res_replay = murxla_test.replay(seed,
+                                             out_file_name,
                                              err_file_name,
                                              api_trace_file_name,
                                              d_options.untrace_file_name);
@@ -435,7 +439,8 @@ Murxla::test()
 }
 
 Murxla::Result
-Murxla::replay(const std::string& out_file_name,
+Murxla::replay(uint32_t seed,
+               const std::string& out_file_name,
                const std::string& err_file_name,
                const std::string& api_trace_file_name,
                const std::string& untrace_file_name)
@@ -447,7 +452,8 @@ Murxla::replay(const std::string& out_file_name,
 
   Murxla murxla_replay(
       &stats_replay, options_replay, d_solver_options, nullptr, d_tmp_dir);
-  Result res = murxla_replay.run(out_file_name,
+  Result res = murxla_replay.run(seed,
+                                 out_file_name,
                                  err_file_name,
                                  api_trace_file_name,
                                  untrace_file_name,
@@ -456,13 +462,15 @@ Murxla::replay(const std::string& out_file_name,
 
   if (options_replay.dd)
   {
-    murxla_replay.dd(api_trace_file_name, d_options.dd_trace_file_name);
+    murxla_replay.dd(seed, api_trace_file_name, d_options.dd_trace_file_name);
   }
   return res;
 }
 
 void
-Murxla::dd(std::string untrace_file_name, std::string dd_trace_file_name)
+Murxla::dd(uint32_t seed,
+           std::string untrace_file_name,
+           std::string dd_trace_file_name)
 {
   assert(!untrace_file_name.empty());
 
@@ -495,7 +503,8 @@ Murxla::dd(std::string untrace_file_name, std::string dd_trace_file_name)
   statistics::Statistics stats_golden;
   Murxla murxla_golden(
       &stats_golden, options_dd, d_solver_options, nullptr, d_tmp_dir);
-  gold_exit = murxla_golden.run(gold_out_file_name,
+  gold_exit = murxla_golden.run(seed,
+                                gold_out_file_name,
                                 gold_err_file_name,
                                 tmp_untrace_file_name,
                                 untrace_file_name,
@@ -593,7 +602,8 @@ Murxla::dd(std::string untrace_file_name, std::string dd_trace_file_name)
 
       write_idxs_to_file(lines, tmp, untrace_file_name);
       /* while delta debugging, do not trace to file or stdout */
-      exit = murxla_dd.run(tmp_out_file_name,
+      exit = murxla_dd.run(seed,
+                           tmp_out_file_name,
                            tmp_err_file_name,
                            "",
                            untrace_file_name,
@@ -661,7 +671,8 @@ Murxla::dd(std::string untrace_file_name, std::string dd_trace_file_name)
 }
 
 Murxla::Result
-Murxla::run_aux(const std::string& file_out,
+Murxla::run_aux(uint32_t seed,
+                const std::string& file_out,
                 const std::string& file_err,
                 const std::string& untrace_file_name,
                 bool run_forked,
@@ -722,11 +733,11 @@ Murxla::run_aux(const std::string& file_out,
   }
   std::ostream smt2(buf_smt2);
 
-  RNGenerator rng(d_options.seed);
+  RNGenerator rng(seed);
 
   result = RESULT_UNKNOWN;
 
-  /* If seeded run in main process. */
+  /* If seeded, run in main process. */
   if (run_forked)
   {
     pid_solver = fork();

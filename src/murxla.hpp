@@ -56,7 +56,8 @@ class Murxla
          ErrorMap* error_map,
          const std::string& tmp_dir);
 
-  Result run(const std::string& file_out,
+  Result run(uint32_t seed,
+             const std::string& file_out,
              const std::string& file_err,
              const std::string& api_trace_file_name,
              const std::string& untrace_file_name,
@@ -65,20 +66,24 @@ class Murxla
 
   void test();
 
-  void dd(std::string untrace_file_name, std::string dd_trace_file_name);
+  void dd(uint32_t seed,
+          std::string untrace_file_name,
+          std::string dd_trace_file_name);
 
   Options d_options;
   SolverOptions* d_solver_options;
   std::string d_tmp_dir;
 
  private:
-  Result run_aux(const std::string& file_out,
+  Result run_aux(uint32_t seed,
+                 const std::string& file_out,
                  const std::string& file_err,
                  const std::string& untrace_file_name,
                  bool run_forked,
                  TraceMode trace_mode);
 
-  Result replay(const std::string& out_file_name,
+  Result replay(uint32_t seed,
+                const std::string& out_file_name,
                 const std::string& err_file_name,
                 const std::string& api_trace_file_name,
                 const std::string& untrace_file_name);

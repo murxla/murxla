@@ -10,7 +10,7 @@ namespace murxla {
 
 struct Options
 {
-  /** The current seed. */
+  /** The seed for the random number generator. */
   uint32_t seed = 0;
   /** The verbosity level. */
   uint32_t verbosity = 0;
