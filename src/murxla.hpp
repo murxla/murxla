@@ -47,9 +47,6 @@ class Murxla
   inline static const std::string API_TRACE = "tmp-api.trace";
   inline static const std::string SMT2_FILE = "tmp-smt2.smt2";
 
-  static constexpr int32_t SMT2_READ_END  = 0;
-  static constexpr int32_t SMT2_WRITE_END = 1;
-
   Murxla(statistics::Statistics* stats,
          const Options& options,
          SolverOptions* solver_options,

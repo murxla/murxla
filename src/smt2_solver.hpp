@@ -267,9 +267,10 @@ class Smt2Term : public AbsTerm
 class Smt2Solver : public Solver
 {
  public:
-  Smt2Solver(
-      RNGenerator& rng, std::ostream& out, bool online, FILE* to, FILE* from);
-  ~Smt2Solver() override{};
+  Smt2Solver(RNGenerator& rng,
+             std::ostream& out,
+             const std::string& solver_binary);
+  ~Smt2Solver() override;
 
   void new_solver() override;
   void delete_solver() override;
@@ -350,6 +351,12 @@ class Smt2Solver : public Solver
   uint32_t d_n_unnamed_ufs    = 0;
   uint32_t d_n_unnamed_vars   = 0;
   Solver::Result d_last_result = Solver::Result::UNKNOWN;
+
+  static constexpr int32_t SMT2_READ_END  = 0;
+  static constexpr int32_t SMT2_WRITE_END = 1;
+
+  pid_t d_online_pid = 0;
+  std::string d_solver_call;
 };
 
 /* -------------------------------------------------------------------------- */

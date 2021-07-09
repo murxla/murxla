@@ -1,10 +1,14 @@
 #include "smt2_solver.hpp"
 
+#include <sys/wait.h>
+#include <unistd.h>
+
 #include <algorithm>
 #include <cassert>
 #include <unordered_map>
 
 #include "exit.hpp"
+#include "murxla.hpp"
 
 namespace murxla {
 namespace smt2 {
@@ -516,14 +520,80 @@ Smt2Solver::dump_smt2(std::string s, ResponseKind expected)
   if (d_online) push_to_external(s, expected);
 }
 
-Smt2Solver::Smt2Solver(
-    RNGenerator& rng, std::ostream& out, bool online, FILE* to, FILE* from)
+Smt2Solver::Smt2Solver(RNGenerator& rng,
+                       std::ostream& out,
+                       const std::string& solver_binary)
     : Solver(rng),
       d_out(out),
-      d_online(online),
-      d_file_to(to),
-      d_file_from(from)
+      d_online(!solver_binary.empty()),
+      d_file_to(nullptr),
+      d_file_from(nullptr),
+      d_solver_call(solver_binary)
 {
+  if (d_online)
+  {
+    int32_t fd_to[2], fd_from[2];
+
+    /* Open input/output pipes from and to the external online solver. */
+    MURXLA_EXIT_ERROR(pipe(fd_to) != 0) << "creating input pipe failed";
+    MURXLA_EXIT_ERROR(pipe(fd_from) != 0) << "creating output pipe failed";
+
+    d_online_pid = fork();
+
+    MURXLA_EXIT_ERROR_FORK(d_online_pid < 0, true)
+        << "forking solver process failed.";
+
+    /* Online solver process. */
+    if (d_online_pid == 0)
+    {
+      close(fd_to[SMT2_WRITE_END]);
+      dup2(fd_to[SMT2_READ_END], STDIN_FILENO);
+
+      close(fd_from[SMT2_READ_END]);
+      /* Redirect stdout of external solver to write end. */
+      dup2(fd_from[SMT2_WRITE_END], STDOUT_FILENO);
+      /* Redirect stderr of external solver to write end. */
+      dup2(fd_from[SMT2_WRITE_END], STDERR_FILENO);
+
+      std::vector<char*> execv_args;
+      std::string arg;
+      std::stringstream ss(d_solver_call);
+      while (std::getline(ss, arg, ' '))
+      {
+        execv_args.push_back(strdup(arg.c_str()));
+      }
+      execv_args.push_back(nullptr);
+
+      execv(execv_args[0], execv_args.data());
+
+      for (char* s : execv_args)
+      {
+        free(s);
+      }
+
+      MURXLA_EXIT_ERROR_FORK(true, true)
+          << "'" << d_solver_call << "' is not executable";
+    }
+
+    close(fd_to[SMT2_READ_END]);
+    close(fd_from[SMT2_WRITE_END]);
+    d_file_to   = fdopen(fd_to[SMT2_WRITE_END], "w");
+    d_file_from = fdopen(fd_from[SMT2_READ_END], "r");
+
+    MURXLA_EXIT_ERROR_FORK(d_file_to == nullptr, true)
+        << "opening read channel to external solver failed";
+    MURXLA_EXIT_ERROR_FORK(d_file_from == nullptr, true)
+        << "opening write channel to external solver failed";
+  }
+}
+
+Smt2Solver::~Smt2Solver()
+{
+  if (d_online)
+  {
+    assert(d_online_pid);
+    waitpid(d_online_pid, nullptr, 0);
+  }
 }
 
 void

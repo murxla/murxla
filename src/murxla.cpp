@@ -173,41 +173,46 @@ Murxla::run(uint32_t seed,
                        record_stats,
                        trace_mode);
 
-  /* write trace file to path if given */
   if (trace_mode == TO_FILE)
   {
-    assert(api_trace_file_name != DEVNULL);
-    assert(std::filesystem::exists(get_tmp_file_path(API_TRACE, d_tmp_dir)));
-    std::filesystem::copy(get_tmp_file_path(API_TRACE, d_tmp_dir),
-                          api_trace_file_name,
-                          std::filesystem::copy_options::overwrite_existing);
-    if (!d_options.dd)
+    /* For the SMT2 solver, we only write the SMT2 file (not the trace). */
+    if (d_options.solver == Murxla::SOLVER_SMT2)
     {
-      std::cout << (run_forked ? "" : "api trace file: ") << api_trace_file_name
-                << std::endl;
-    }
-  }
-  /* write smt2 file to path if given */
-  if (d_options.solver == Murxla::SOLVER_SMT2 && trace_mode != NONE
-      && d_options.solver_binary.empty())
-  {
-    std::string smt2_file_name = d_options.smt2_file_name;
-    if (smt2_file_name.empty())
-    {
-      smt2_file_name = get_smt2_file_name(seed, untrace_file_name);
-      if (!d_options.out_dir.empty())
+      std::string smt2_file_name = d_options.smt2_file_name;
+      if (smt2_file_name.empty())
       {
-        smt2_file_name = prepend_path(d_options.out_dir, smt2_file_name);
+        smt2_file_name = get_smt2_file_name(seed, untrace_file_name);
+        if (!d_options.out_dir.empty())
+        {
+          smt2_file_name = prepend_path(d_options.out_dir, smt2_file_name);
+        }
+      }
+      std::string tmp_smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
+      assert(std::filesystem::exists(tmp_smt2_file_name));
+      std::filesystem::copy(tmp_smt2_file_name,
+                            smt2_file_name,
+                            std::filesystem::copy_options::overwrite_existing);
+      if (!d_options.dd)
+      {
+        if (res != RESULT_OK && res != RESULT_TIMEOUT)
+        {
+          std::cout << smt2_file_name << std::endl;
+        }
       }
     }
-    std::string tmp_smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
-    assert(std::filesystem::exists(tmp_smt2_file_name));
-    std::filesystem::copy(tmp_smt2_file_name,
-                          smt2_file_name,
-                          std::filesystem::copy_options::overwrite_existing);
-    if (!d_options.dd)
+    /* For all other solvers, we write the trace file. */
+    else
     {
-      std::cout << "smt2 file: " << smt2_file_name << std::endl;
+      assert(api_trace_file_name != DEVNULL);
+      assert(std::filesystem::exists(get_tmp_file_path(API_TRACE, d_tmp_dir)));
+      std::filesystem::copy(get_tmp_file_path(API_TRACE, d_tmp_dir),
+                            api_trace_file_name,
+                            std::filesystem::copy_options::overwrite_existing);
+      if (!d_options.dd)
+      {
+        std::cout << (run_forked ? "" : "api trace file: ")
+                  << api_trace_file_name << std::endl;
+      }
     }
   }
 
@@ -365,15 +370,19 @@ Murxla::test()
             prepend_path(d_options.out_dir, api_trace_file_name);
       }
     }
-    Result res = run(seed,
-                     d_options.time,
-                     out_file_name,
-                     err_file_name,
-                     api_trace_file_name,
-                     d_options.untrace_file_name,
-                     true,
-                     true,
-                     NONE);
+    Result res =
+        run(seed,
+            d_options.time,
+            out_file_name,
+            err_file_name,
+            api_trace_file_name,
+            d_options.untrace_file_name,
+            true,
+            true,
+            // for the SMT2 offline mode we want to store all SMT2 files
+            (d_options.solver == SOLVER_SMT2 && d_options.solver_binary.empty())
+                ? TO_FILE
+                : NONE);
 
     /* report status */
     if (res == RESULT_OK)
@@ -688,60 +697,44 @@ Murxla::run_aux(uint32_t seed,
                 bool record_stats,
                 Murxla::TraceMode trace_mode)
 {
-  bool smt2_online = !d_options.solver_binary.empty();
   int32_t status, fd;
   Result result;
   pid_t pid_solver = 0, pid_timeout = 0;
-  std::streambuf *buf_trace, *buf_smt2;
-  std::ofstream file_trace;
-  std::ofstream file_smt2;
-
-  if (smt2_online)
-  {
-    run_forked = true;
-    if (trace_mode == TO_STDOUT) trace_mode = NONE;
-  }
+  std::ofstream file_trace, file_smt2;
+  std::ostream smt2_out(std::cout.rdbuf());
+  std::ostream trace(std::cout.rdbuf());
 
   if (trace_mode == NONE)
   {
     file_trace = open_output_file(DEVNULL, false);
-    buf_trace  = file_trace.rdbuf();
+    trace.rdbuf(file_trace.rdbuf());
+    if (d_options.solver == SOLVER_SMT2)
+    {
+      smt2_out.rdbuf(file_trace.rdbuf());
+    }
   }
   else if (trace_mode == TO_FILE)
   {
     std::string api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
     file_trace = open_output_file(api_trace_file_name, false);
-    buf_trace  = file_trace.rdbuf();
+    trace.rdbuf(file_trace.rdbuf());
+    if (d_options.solver == SOLVER_SMT2)
+    {
+      std::string smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
+      file_smt2                  = open_output_file(smt2_file_name, false);
+      smt2_out.rdbuf(file_smt2.rdbuf());
+    }
   }
   else
   {
     assert(trace_mode == TO_STDOUT);
-    buf_trace = std::cout.rdbuf();
-  }
-  std::ostream trace(buf_trace);
-
-  if (d_options.solver == Murxla::SOLVER_SMT2)
-  {
-    if (smt2_online)
+    /* Disable trace output since we only want SMT2 output on stdout. */
+    if (d_options.solver == SOLVER_SMT2)
     {
-      buf_smt2 = std::cout.rdbuf();
-    }
-    else
-    {
-      if (trace_mode != NONE)
-      {
-        std::string smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
-        file_smt2                  = open_output_file(smt2_file_name, false);
-        buf_smt2                   = file_smt2.rdbuf();
-      }
-      else
-      {
-        file_smt2 = open_output_file(DEVNULL, false);
-        buf_smt2  = file_smt2.rdbuf();
-      }
+      file_trace = open_output_file(DEVNULL, false);
+      trace.rdbuf(file_trace.rdbuf());
     }
   }
-  std::ostream smt2(buf_smt2);
 
   RNGenerator rng(seed);
 
@@ -815,10 +808,6 @@ Murxla::run_aux(uint32_t seed,
   {
     signal(SIGINT, SIG_DFL);  // reset stats signal handler
 
-    int32_t fd_to[2], fd_from[2];
-    FILE *to_external = nullptr, *from_external = nullptr;
-    pid_t smt2_pid = 0;
-
     if (run_forked)
     {
       /* Redirect stdout and stderr of child process into given files. */
@@ -879,68 +868,7 @@ Murxla::run_aux(uint32_t seed,
     }
     else if (d_options.solver == SOLVER_SMT2)
     {
-      if (smt2_online)
-      {
-        /* Open input/output pipes from and to the external online solver. */
-        MURXLA_EXIT_ERROR_FORK(pipe(fd_to) != 0 || pipe(fd_from) != 0,
-                               run_forked)
-            << "creating input and/or output pipes failed";
-
-        smt2_pid = fork();
-
-        MURXLA_EXIT_ERROR_FORK(smt2_pid < 0, run_forked)
-            << "forking solver process failed.";
-
-        if (smt2_pid == 0)  // child
-        {
-          close(fd_to[SMT2_WRITE_END]);
-          dup2(fd_to[SMT2_READ_END], STDIN_FILENO);
-
-          close(fd_from[SMT2_READ_END]);
-          /* Redirect stdout of external solver to write end. */
-          dup2(fd_from[SMT2_WRITE_END], STDOUT_FILENO);
-          /* Redirect stderr of external solver to write end. */
-          dup2(fd_from[SMT2_WRITE_END], STDERR_FILENO);
-
-          std::vector<std::string> args;
-          std::string arg;
-          std::stringstream ss(d_options.solver_binary);
-          while (std::getline(ss, arg, ' '))
-          {
-            args.push_back(arg);
-          }
-          size_t n        = args.size();
-          char** execargs = new char*[n + 1];
-          for (size_t i = 0; i < n; ++i)
-          {
-            size_t m    = args[i].size() + 1;
-            execargs[i] = new char[m];
-            std::strncpy(execargs[i], args[i].c_str(), m);
-          }
-          execargs[n] = nullptr;
-
-          execv(execargs[0], execargs);
-          for (size_t i = 0; i < n; ++i)
-          {
-            delete[] execargs[i];
-          }
-          delete[] execargs;
-
-          MURXLA_EXIT_ERROR_FORK(true, run_forked)
-              << "'" << d_options.solver_binary << "' is not executable";
-        }
-
-        close(fd_to[SMT2_READ_END]);
-        to_external = fdopen(fd_to[SMT2_WRITE_END], "w");
-        close(fd_from[SMT2_WRITE_END]);
-        from_external = fdopen(fd_from[SMT2_READ_END], "r");
-
-        MURXLA_EXIT_ERROR_FORK(
-            to_external == nullptr || from_external == nullptr, run_forked)
-            << "opening read/write channels to external solver failed";
-      }
-      solver = new smt2::Smt2Solver(
-          rng, smt2, smt2_online, to_external, from_external);
+      solver = new smt2::Smt2Solver(rng, smt2_out, d_options.solver_binary);
     }
 
     try
@@ -982,10 +910,7 @@ Murxla::run_aux(uint32_t seed,
       MURXLA_EXIT_ERROR_FORK(true, run_forked) << e.get_msg();
     }
 
-    if (smt2_online) waitpid(smt2_pid, nullptr, 0);
-
     if (file_trace.is_open()) file_trace.close();
-    if (file_smt2.is_open()) file_smt2.close();
 
     if (run_forked)
     {
