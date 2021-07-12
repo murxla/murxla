@@ -377,7 +377,7 @@ class ActionTermGetSort : public UntraceAction
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
+    Term t = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
     return _run(t);
   }
@@ -629,11 +629,11 @@ class ActionMkSort : public Action
             << "solver does not support theory of arrays";
         MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
         std::vector<Sort> sorts;
-        sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[1])));
+        sorts.push_back(d_smgr.get_sort(FSM::untrace_str_to_id(tokens[1])));
         MURXLA_CHECK_TRACE(sorts[0] != nullptr)
             << "unknown sort id '" << tokens[1] << "' as argument to "
             << get_kind();
-        sorts.push_back(d_smgr.get_sort(str_to_uint32(tokens[2])));
+        sorts.push_back(d_smgr.get_sort(FSM::untrace_str_to_id(tokens[2])));
         MURXLA_CHECK_TRACE(sorts[1] != nullptr)
             << "unknown sort id '" << tokens[2] << "' as argument to "
             << get_kind();
@@ -649,7 +649,7 @@ class ActionMkSort : public Action
         std::vector<Sort> sorts;
         for (auto it = tokens.begin() + 1; it < tokens.end(); ++it)
         {
-          Sort s = d_smgr.get_sort(str_to_uint32(*it));
+          Sort s = d_smgr.get_sort(FSM::untrace_str_to_id(*it));
           MURXLA_CHECK_TRACE(s != nullptr) << "unknown sort id '" << *it
                                            << "' as argument to " << get_kind();
           sorts.push_back(s);
@@ -1171,7 +1171,7 @@ class ActionMkTerm : public Action
 
     for (uint32_t i = 0; i < n_args; ++i, ++idx)
     {
-      uint32_t id = str_to_uint32(tokens[idx]);
+      uint32_t id = FSM::untrace_str_to_id(tokens[idx]);
       Term t      = d_smgr.get_term(id);
       MURXLA_CHECK_TRACE_TERM(t, id);
       args.push_back(t);
@@ -1249,7 +1249,7 @@ class ActionMkConst : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
-    Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
+    Sort sort = d_smgr.get_sort(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     return _run(sort, symbol);
@@ -1288,7 +1288,7 @@ class ActionMkVar : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
-    Sort sort = d_smgr.get_sort(str_to_uint32(tokens[0]));
+    Sort sort = d_smgr.get_sort(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     return _run(sort, symbol);
@@ -1421,7 +1421,7 @@ class ActionMkValue : public Action
     MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
 
     uint64_t res = 0;
-    Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
+    Sort sort    = d_smgr.get_sort(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
     switch (tokens.size())
     {
@@ -1552,7 +1552,7 @@ class ActionMkSpecialValue : public Action
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
 
     uint64_t res = 0;
-    Sort sort    = d_smgr.get_sort(str_to_uint32(tokens[0]));
+    Sort sort    = d_smgr.get_sort(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
     const auto& special_vals = d_solver.get_special_values(sort->get_kind());
 
@@ -1599,7 +1599,7 @@ class ActionTermCheckSort : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
+    Term t = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
     _run(t);
     return 0;
@@ -1677,7 +1677,7 @@ class ActionAssertFormula : public Action
   uint64_t untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term t = d_smgr.get_term(str_to_uint32(tokens[0]));
+    Term t = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
     _run(t);
     return 0;
@@ -1763,7 +1763,7 @@ class ActionCheckSatAssuming : public Action
     uint32_t n_args = str_to_uint32(tokens[0]);
     for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
     {
-      uint32_t id = str_to_uint32(tokens[idx]);
+      uint32_t id = FSM::untrace_str_to_id(tokens[idx]);
       Term t      = d_smgr.get_term(id);
       MURXLA_CHECK_TRACE_TERM(t, id);
       assumptions.push_back(t);
@@ -1832,7 +1832,7 @@ class ActionGetUnsatAssumptions : public Action
 class ActionGetValue : public Action
 {
  public:
-  ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, true) {}
+  ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, false) {}
 
   bool run() override
   {
@@ -1859,7 +1859,7 @@ class ActionGetValue : public Action
     uint32_t n_args = str_to_uint32(tokens[0]);
     for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
     {
-      uint32_t id = str_to_uint32(tokens[idx]);
+      uint32_t id = FSM::untrace_str_to_id(tokens[idx]);
       Term t      = d_smgr.get_term(id);
       MURXLA_CHECK_TRACE_TERM(t, id);
       terms.push_back(t);
@@ -2303,102 +2303,130 @@ FSM::untrace(const std::string& trace_file_name)
   MURXLA_CHECK_CONFIG(trace.is_open())
       << "untrace: unable to open file '" << trace_file_name << "'";
 
-  while (std::getline(trace, line))
+  try
   {
-    nline += 1;
-    if (line.empty()) continue;
-    if (line[0] == '#') continue;
-
-    std::string id;
-    std::vector<std::string> tokens;
-
-    tokenize(line, id, tokens);
-
-    if (id == "return")
+    while (std::getline(trace, line))
     {
-      if (tokens.size() != 1)
-      {
-        throw MurxlaUntraceException(
-            trace_file_name, nline, "expected single argument to 'return'");
-      }
-      uint64_t rid = str_to_uint64(tokens[0]);
-      assert(rid == ret_val);
-      ret_val = 0;
-    }
-    else if (id == "set-seed")
-    {
-      std::stringstream sss;
-      for (auto t : tokens) sss << " " << t;
-      sss >> d_rng.get_engine();
-    }
-    else
-    {
-      if (d_actions.find(id) == d_actions.end())
-      {
-        std::stringstream ss;
-        ss << "unknown action '" << id << "'";
-        throw MurxlaUntraceException(trace_file_name, nline, ss);
-      }
+      nline += 1;
+      if (line.empty()) continue;
+      if (line[0] == '#') continue;
 
-      Action* action = d_actions.at(id).get();
+      std::string id;
+      std::vector<std::string> tokens;
 
-      if (action->returns())
+      tokenize(line, id, tokens);
+
+      if (id == "return")
       {
-        try
+        if (tokens.size() != 1)
         {
-          ret_val = action->untrace(tokens);
+          throw MurxlaUntraceException(
+              trace_file_name, nline, "expected single argument to 'return'");
         }
-        catch (MurxlaActionUntraceException& e)
+        uint64_t rid = untrace_str_to_id(tokens[0]);
+        assert(rid == ret_val);
+        ret_val = 0;
+      }
+      else if (id == "set-seed")
+      {
+        std::stringstream sss;
+        for (auto t : tokens) sss << " " << t;
+        sss >> d_rng.get_engine();
+      }
+      else
+      {
+        if (d_actions.find(id) == d_actions.end())
         {
-          throw MurxlaUntraceException(trace_file_name, nline, e.get_msg());
+          std::stringstream ss;
+          ss << "unknown action '" << id << "'";
+          throw MurxlaUntraceException(trace_file_name, nline, ss);
         }
 
-        if (std::getline(trace, line))
+        Action* action = d_actions.at(id).get();
+
+        if (action->returns())
         {
-          nline += 1;
-
-          std::string next_id;
-          std::vector<std::string> next_tokens;
-
-          tokenize(line, next_id, next_tokens);
-
-          if (next_id == "return")
+          try
           {
-            if (next_tokens.size() != 1)
-            {
-              throw MurxlaUntraceException(
-                  trace_file_name,
-                  nline,
-                  "expected single argument to 'return'");
-            }
+            ret_val = action->untrace(tokens);
+          }
+          catch (MurxlaActionUntraceException& e)
+          {
+            throw MurxlaUntraceException(trace_file_name, nline, e.get_msg());
+          }
 
-            uint64_t rid = str_to_uint64(next_tokens[0]);
-            if (id == Action::MK_SORT || id == Action::TERM_GET_SORT)
+          if (std::getline(trace, line))
+          {
+            nline += 1;
+
+            std::string next_id;
+            std::vector<std::string> next_tokens;
+
+            tokenize(line, next_id, next_tokens);
+
+            if (next_id == "return")
             {
-              d_smgr.register_sort(rid, ret_val);
+              if (next_tokens.size() != 1)
+              {
+                throw MurxlaUntraceException(
+                    trace_file_name,
+                    nline,
+                    "expected single argument to 'return'");
+              }
+
+              uint64_t rid = untrace_str_to_id(next_tokens[0]);
+              if (id == Action::MK_SORT || id == Action::TERM_GET_SORT)
+              {
+                d_smgr.register_sort(rid, ret_val);
+              }
+              else
+              {
+                d_smgr.register_term(rid, ret_val);
+              }
             }
             else
             {
-              d_smgr.register_term(rid, ret_val);
+              if (next_tokens.size() != 1)
+              {
+                throw MurxlaUntraceException(
+                    trace_file_name, nline, "expected 'return' statement");
+              }
             }
           }
-          else
-          {
-            if (next_tokens.size() != 1)
-            {
-              throw MurxlaUntraceException(
-                  trace_file_name, nline, "expected 'return' statement");
-            }
-          }
+          ret_val = 0;
+          continue;
         }
-        ret_val = 0;
-        continue;
-      }
 
-      ret_val = action->untrace(tokens);
+        ret_val = action->untrace(tokens);
+      }
     }
   }
+  catch (MurxlaUntraceIdException& e)
+  {
+    throw MurxlaUntraceException(trace_file_name, nline, e.get_msg());
+  }
   if (trace.is_open()) trace.close();
+}
+
+uint64_t
+FSM::untrace_str_to_id(const std::string& s)
+{
+  if (s.size() < 2 || (s[0] != 's' && s[0] != 't'))
+  {
+    throw MurxlaUntraceIdException("invalid sort or term argument: " + s);
+  }
+  try
+  {
+    return str_to_uint64(std::string(s, 1));
+  }
+  catch (std::invalid_argument& e)
+  {
+    if (s[0] == 's')
+    {
+      throw MurxlaUntraceIdException("invalid sort argument: " + s);
+    }
+    throw MurxlaUntraceIdException("invalid term argument: " + s);
+  }
 }
 
 /* ========================================================================== */

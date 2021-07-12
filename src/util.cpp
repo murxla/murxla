@@ -689,7 +689,7 @@ is_bv_special_value_max_signed_str(std::string& value)
 /* -------------------------------------------------------------------------- */
 
 uint32_t
-str_to_uint32(std::string& s)
+str_to_uint32(const std::string& s)
 {
   assert(!s.empty());
   assert(s[0] != '-');
@@ -697,7 +697,7 @@ str_to_uint32(std::string& s)
 }
 
 uint64_t
-str_to_uint64(std::string& s)
+str_to_uint64(const std::string& s)
 {
   assert(!s.empty());
   assert(s[0] != '-');
@@ -705,7 +705,7 @@ str_to_uint64(std::string& s)
 }
 
 std::string
-str_to_str(std::string& s)
+str_to_str(const std::string& s)
 {
   assert(s.size() >= 2);
   assert(s[0] == '"');

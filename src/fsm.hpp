@@ -306,6 +306,13 @@ class FSM
     SolverManager& d_smgr;
   };
 
+  /**
+   * Convert untraced sort or term id string to uint64_t.
+   * Throws a MurxlaUntraceIdException if given string does not represent
+   * a valid sort or term id.
+   */
+  static uint64_t untrace_str_to_id(const std::string& s);
+
   /** Constructor. */
   FSM(RNGenerator& rng,
       Solver* solver,

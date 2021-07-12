@@ -75,7 +75,7 @@ std::ostream&
 operator<<(std::ostream& out, const Sort s)
 {
   assert(s->get_id());
-  out << s->get_id();
+  out << "s" << s->get_id();
   return out;
 }
 
@@ -145,7 +145,7 @@ std::ostream&
 operator<<(std::ostream& out, const Term t)
 {
   assert(t->get_id());
-  out << t->get_id();
+  out << "t" << t->get_id();
   return out;
 }
 

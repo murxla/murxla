@@ -585,7 +585,7 @@ SolverManager::pick_symbol()
   if (d_simple_symbols)
   {
     std::stringstream ss;
-    ss << "_s" << d_n_symbols++;
+    ss << "_x" << d_n_symbols++;
     return ss.str();
   }
   uint32_t len = d_rng.pick<uint32_t>(0, MURXLA_SYMBOL_LEN_MAX);

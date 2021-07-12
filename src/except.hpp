@@ -58,6 +58,16 @@ class MurxlaUntraceException : public MurxlaException
   const char* what() const noexcept override { return d_msg.c_str(); }
 };
 
+class MurxlaUntraceIdException : public MurxlaException
+{
+ public:
+  MurxlaUntraceIdException(const std::string& msg) : MurxlaException(msg) {}
+  MurxlaUntraceIdException(const std::stringstream& stream)
+      : MurxlaException(stream)
+  {
+  }
+};
+
 class MurxlaActionUntraceException : public MurxlaException
 {
  public:
