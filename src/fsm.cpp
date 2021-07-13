@@ -2316,18 +2316,8 @@ FSM::untrace(const std::string& trace_file_name)
 
       if (id == "return")
       {
-        if (tokens.size() != 1)
-        {
-          throw MurxlaUntraceException(
-              trace_file_name, nline, "expected single argument to 'return'");
-        }
-        assert(ret_val.size() == tokens.size());
-        for (uint32_t i = 0, n = tokens.size(); i < n; ++i)
-        {
-          // TODO untrace exception?
-          assert(ret_val[i] == untrace_str_to_id(tokens[i]));
-        }
-        ret_val = {};
+        throw MurxlaUntraceException(
+            trace_file_name, nline, "stray 'return' statement");
       }
       else if (id == "set-seed")
       {
@@ -2346,7 +2336,11 @@ FSM::untrace(const std::string& trace_file_name)
 
         Action* action = d_actions.at(id).get();
 
-        if (action->returns() != Action::ReturnValue::NONE)
+        if (action->returns() == Action::ReturnValue::NONE)
+        {
+          ret_val = action->untrace(tokens);
+        }
+        else
         {
           try
           {
@@ -2366,54 +2360,46 @@ FSM::untrace(const std::string& trace_file_name)
 
             tokenize(line, next_id, next_tokens);
 
-            if (next_id == "return")
+            if (next_id != "return")
             {
-              if (action->returns() == Action::ReturnValue::ID
-                  && next_tokens.size() != 1)
-              {
-                throw MurxlaUntraceException(
-                    trace_file_name,
-                    nline,
-                    "expected single argument to 'return'");
-              }
-              else if (action->returns() == Action::ReturnValue::ID_LIST
-                       && next_tokens.size() < 1)
-              {
-                throw MurxlaUntraceException(
-                    trace_file_name,
-                    nline,
-                    "expected at least one argument to 'return'");
-              }
-
-              assert(ret_val.size() == next_tokens.size());
-              for (uint32_t i = 0, n = next_tokens.size(); i < n; ++i)
-              {
-                uint64_t rid = untrace_str_to_id(next_tokens[i]);
-                if (next_tokens[i][0] == 's')
-                {
-                  d_smgr.register_sort(rid, ret_val[i]);
-                }
-                else
-                {
-                  assert(next_tokens[i][0] == 't');
-                  d_smgr.register_term(rid, ret_val[i]);
-                }
-              }
+              throw MurxlaUntraceException(
+                  trace_file_name, nline, "expected 'return' statement");
             }
-            else
+
+            if (action->returns() == Action::ReturnValue::ID
+                && next_tokens.size() != 1)
             {
-              if (next_tokens.size() != 1)
+              throw MurxlaUntraceException(
+                  trace_file_name,
+                  nline,
+                  "expected single argument to 'return'");
+            }
+            else if (action->returns() == Action::ReturnValue::ID_LIST
+                     && next_tokens.size() < 1)
+            {
+              throw MurxlaUntraceException(
+                  trace_file_name,
+                  nline,
+                  "expected at least one argument to 'return'");
+            }
+
+            assert(ret_val.size() == next_tokens.size());
+            for (uint32_t i = 0, n = next_tokens.size(); i < n; ++i)
+            {
+              uint64_t rid = untrace_str_to_id(next_tokens[i]);
+              if (next_tokens[i][0] == 's')
               {
-                throw MurxlaUntraceException(
-                    trace_file_name, nline, "expected 'return' statement");
+                d_smgr.register_sort(rid, ret_val[i]);
+              }
+              else
+              {
+                assert(next_tokens[i][0] == 't');
+                d_smgr.register_term(rid, ret_val[i]);
               }
             }
           }
           ret_val = {};
-          continue;
         }
-
-        ret_val = action->untrace(tokens);
       }
     }
   }
