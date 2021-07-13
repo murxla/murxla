@@ -102,7 +102,7 @@ str_diff(const std::string& s1, const std::string& s2)
   return diff;
 }
 void
-write_idxs_to_file(const std::vector<std::string>& lines,
+write_idxs_to_file(const std::vector<std::vector<std::string>>& lines,
                    const std::vector<size_t> indices,
                    const std::string& out_file_name)
 {
@@ -111,7 +111,14 @@ write_idxs_to_file(const std::vector<std::string>& lines,
   for (size_t idx : indices)
   {
     assert(idx < size);
-    out_file << lines[idx] << std::endl;
+    assert(lines[idx].size() > 0);
+    assert(lines[idx].size() <= 2);
+    out_file << lines[idx][0];
+    if (lines[idx].size() == 2)
+    {
+      out_file << std::endl << lines[idx][1];
+    }
+    out_file << std::endl;
   }
   out_file.close();
 }
@@ -489,7 +496,6 @@ Murxla::dd(uint32_t seed,
 {
   assert(!untrace_file_name.empty());
 
-  std::vector<std::string> lines;
   std::string line, token;
   Murxla::Result gold_exit, exit;
 
@@ -547,14 +553,20 @@ Murxla::dd(uint32_t seed,
                       << "' in stderr output";
   }
 
-  /* start delta debugging */
+  /* Start delta debugging */
 
   untrace_file_name = tmp_untrace_file_name;
 
-  /* represent input trace as vector of lines, trace statements that expect and
-   * are accompanied by a return statement are represented as one element of
-   * the vector */
+  /* Represent input trace as vector of lines.
+   *
+   * A line is a vector of strings with at most two elements.
+   * Trace statements that do not expect a return statement are represented
+   * as a line (vector) with one element.  Trace statements that expect a
+   * return statement are represented as one line, that is, a vector with two
+   * elements: the statement and the return statement.
+   */
 
+  std::vector<std::vector<std::string>> lines;
   std::ifstream trace_file = open_input_file(untrace_file_name, false);
   while (std::getline(trace_file, line))
   {
@@ -563,14 +575,12 @@ Murxla::dd(uint32_t seed,
     {
       std::stringstream ss;
       assert(lines.size() > 0);
-      std::string prev = lines.back();
-      ss << prev << std::endl << line;
-      lines.pop_back();
-      lines.push_back(ss.str());
+      std::vector<std::string>& prev = lines.back();
+      prev.push_back(line);
     }
     else
     {
-      lines.push_back(line);
+      lines.push_back(std::vector{line});
     }
   }
   trace_file.close();
