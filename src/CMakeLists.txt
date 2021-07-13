@@ -1,4 +1,5 @@
 set(murxla_src_files
+  action.cpp
   btor_solver.cpp
   bzla_solver.cpp
   cvc5_solver.cpp

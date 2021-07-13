@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstdlib>
 
+#include "action.hpp"
 #include "config.hpp"
 #include "theory.hpp"
 #include "util.hpp"
@@ -1775,7 +1776,7 @@ class BtorActionFailed : public Action
   std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
+    Term term = d_smgr.get_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return {};
@@ -2033,7 +2034,7 @@ class BtorActionSetSymbol : public Action
   std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
-    Term term = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
+    Term term = d_smgr.get_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     _run(term, symbol);

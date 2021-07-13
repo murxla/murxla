@@ -10,25 +10,13 @@
 #include <unordered_map>
 #include <vector>
 
+#include "action.hpp"
 #include "config.hpp"
 #include "except.hpp"
 #include "solver_manager.hpp"
 #include "solver_option.hpp"
 #include "statistics.hpp"
 #include "util.hpp"
-
-/* -------------------------------------------------------------------------- */
-
-#define MURXLA_TRACE                      \
-  OstreamVoider()                         \
-      & FSM::TraceStream(d_smgr).stream() \
-            << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "")
-
-#define MURXLA_TRACE_RETURN \
-  OstreamVoider() & FSM::TraceStream(d_smgr).stream() << "return "
-
-#define MURXLA_TRACE_GET_SORT \
-  OstreamVoider() & FSM::TraceStream(d_smgr).stream() << TERM_GET_SORT << " "
 
 /* -------------------------------------------------------------------------- */
 
@@ -40,195 +28,7 @@ namespace statistics {
 struct Statistics;
 }
 
-using ActionKind = std::string;
 using StateKind  = std::string;
-
-class State;
-
-/**
- * Transition from current state to next state while performing an action
- * (a call to the solver API), with or without preconditions.
- */
-class Action
-{
- public:
-  /**
-   * Default action kinds / trace strings.
-   * We use strings here to make FSM::d_actions easily extendible with
-   * solver-specific actions.
-   */
-  static const ActionKind UNDEFINED;
-  static const ActionKind NEW;
-  static const ActionKind DELETE;
-  static const ActionKind MK_SORT;
-  static const ActionKind MK_VALUE;
-  static const ActionKind MK_SPECIAL_VALUE;
-  static const ActionKind MK_CONST;
-  static const ActionKind MK_VAR;
-  static const ActionKind MK_TERM;
-  static const ActionKind TERM_GET_SORT;
-  static const ActionKind TERM_CHECK_SORT;
-  static const ActionKind ASSERT_FORMULA;
-  static const ActionKind GET_UNSAT_ASSUMPTIONS;
-  static const ActionKind GET_VALUE;
-  static const ActionKind PRINT_MODEL;
-  static const ActionKind CHECK_SAT;
-  static const ActionKind CHECK_SAT_ASSUMING;
-  static const ActionKind PUSH;
-  static const ActionKind POP;
-  static const ActionKind RESET_ASSERTIONS;
-  static const ActionKind SET_OPTION;
-  static const ActionKind TRANS;
-  static const ActionKind TRANS_CREATE_INPUTS;
-  static const ActionKind TRANS_CREATE_SORTS;
-  static const ActionKind TRANS_MODEL;
-
-  enum ReturnValue
-  {
-    NONE,
-    ID,
-    ID_LIST,
-  };
-
-  /** Get Action kind from string representation. */
-  const ActionKind& get_kind() { return d_kind; };
-
-  /** Disallow default constructor. */
-  Action() = delete;
-  /** Constructor. */
-  Action(SolverManager& smgr,
-         const ActionKind& kind,
-         ReturnValue returns,
-         bool empty = false)
-      : d_rng(smgr.get_rng()),
-        d_solver(smgr.get_solver()),
-        d_smgr(smgr),
-        d_returns(returns),
-        d_is_empty(empty),
-        d_kind(kind)
-
-  {
-    MURXLA_CHECK_CONFIG(kind.size() <= MURXLA_MAX_KIND_LEN)
-        << "'" << kind
-        << "' exceeds maximum length for action kinds, increase limit by "
-           "adjusting value of macro MURXLA_MAX_KIND_LEN in config.hpp";
-  }
-
-  /** Destructor. */
-  virtual ~Action()  = default;
-
-  /** Execute the action. */
-  virtual bool run() = 0;
-
-  /**
-   * Replay an action.
-   *
-   * Return a vector of ids of created objects, if objects have been created,
-   * and an empty vector otherwise. Needed to be able to compare ids of created
-   * objects to the traced ids in the trace's return statement.
-   */
-  virtual std::vector<uint64_t> untrace(std::vector<std::string>& tokens) = 0;
-
-  /** Return the string representing the kind of this action. */
-  const ActionKind& get_kind() const { return d_kind; }
-  /** Return the id of this action. */
-  const uint64_t get_id() const { return d_id; }
-  /** Set the id of this action. */
-  void set_id(uint64_t id) { d_id = id; }
-  /** Return the kind of return value this action returns. */
-  ReturnValue returns() const { return d_returns; }
-  /**
-   * Returns true if this action is empty, i.e., a transition without
-   * performing any API calls.
-   */
-  bool empty() const { return d_is_empty; }
-
-  /**
-   * Trace a ("phantom") action 'get-sort' for given term.
-   *
-   * When adding terms of parameterized sort, e.g., bit-vectors or
-   * floating-points, or when creating terms with a Real operator, that is
-   * actually of sort Int, it can happen that the resulting term has yet unknown
-   * sort, i.e., a sort that has not previously been created via ActionMksort.
-   * In order to ensure that the untracer can map such sorts back correctly,
-   * we have to trace a "phantom" action (= an action, that is only executed
-   * when untracing) for new sorts.
-   */
-  void trace_get_sorts() const;
-
- protected:
-  void reset_sat();
-  /** The random number generator associated with this action. */
-  RNGenerator& d_rng;
-  /** The solver associated with this action. */
-  Solver& d_solver;
-  /** The solver manager associated with this action. */
-  SolverManager& d_smgr;
-  /** True if this returns a Term or Sort. */
-  ReturnValue d_returns = NONE;
-  /** True if this is an empty transition. */
-  bool d_is_empty = false;
-
- private:
-  /* Action kind. */
-  const ActionKind& d_kind = UNDEFINED;
-  /* Action id, assigned in the order they have been created. */
-  uint64_t d_id = 0u;
-};
-
-/**
- * (Empty) transition from current state to next state without pre-conditions.
- */
-class Transition : public Action
-{
- public:
-  Transition(SolverManager& smgr, const ActionKind& kind)
-      : Action(smgr, kind, NONE, true)
-  {
-  }
-  bool run() override { return true; }
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
-  {
-    return {};
-  }
-};
-
-/**
- * Default (generic) transition.
- *
- * State:      create inputs
- * Transition: if there exists at least one input
- */
-class TransitionDefault : public Transition
-{
- public:
-  TransitionDefault(SolverManager& smgr) : Transition(smgr, TRANS) {}
-};
-
-/** "Phantom" action that is only used for untracing.  */
-class UntraceAction : public Action
-{
- public:
-  UntraceAction(SolverManager& smgr,
-                const ActionKind& kind,
-                ReturnValue returns)
-      : Action(smgr, kind, returns)
-  {
-  }
-  bool run() override { assert(false); }  // not to be used
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
-  {
-    return {};
-  }
-};
-
-struct ActionTuple
-{
-  ActionTuple(Action* a, State* next) : d_action(a), d_next(next){};
-
-  Action* d_action;
-  State* d_next;
-};
 
 class State
 {
@@ -307,27 +107,6 @@ class State
 class FSM
 {
  public:
-  class TraceStream
-  {
-   public:
-    TraceStream(SolverManager& smgr);
-    ~TraceStream();
-    TraceStream(const TraceStream& astream) = default;
-
-    std::ostream& stream();
-
-   private:
-    void flush();
-    SolverManager& d_smgr;
-  };
-
-  /**
-   * Convert untraced sort or term id string to uint64_t.
-   * Throws a MurxlaUntraceIdException if given string does not represent
-   * a valid sort or term id.
-   */
-  static uint64_t untrace_str_to_id(const std::string& s);
-
   /** Constructor. */
   FSM(RNGenerator& rng,
       Solver* solver,

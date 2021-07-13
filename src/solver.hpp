@@ -225,6 +225,16 @@ class Solver
   virtual void configure_smgr(SolverManager* smgr) const;
   void add_special_value(SortKind sort_kind, const SpecialValueKind& kind);
 
+  /**
+   * Reset solver state into assert mode.
+   *
+   * After this call, calling
+   *   - get_model()
+   *   - get_unsat_assumptions()
+   *   - get_unsat_core() and
+   *   - get_proof()
+   * is not possible until after the next SAT call.
+   */
   virtual void reset_sat();
 
   virtual Term mk_var(Sort sort, const std::string& name)   = 0;
