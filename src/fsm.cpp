@@ -370,11 +370,11 @@ class ActionTermGetSort : public UntraceAction
 {
  public:
   ActionTermGetSort(SolverManager& smgr)
-      : UntraceAction(smgr, TERM_GET_SORT, true)
+      : UntraceAction(smgr, TERM_GET_SORT, ID)
   {
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
@@ -383,12 +383,12 @@ class ActionTermGetSort : public UntraceAction
   }
 
  private:
-  uint64_t _run(Term term)
+  std::vector<uint64_t> _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     Sort res = term->get_sort();
     MURXLA_TRACE_RETURN << res;
-    return res->get_id();
+    return {res->get_id()};
   }
 };
 
@@ -399,7 +399,7 @@ class ActionTermGetSort : public UntraceAction
 class ActionNew : public Action
 {
  public:
-  ActionNew(SolverManager& smgr) : Action(smgr, NEW, false) {}
+  ActionNew(SolverManager& smgr) : Action(smgr, NEW, NONE) {}
 
   bool run() override
   {
@@ -408,11 +408,11 @@ class ActionNew : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -426,7 +426,7 @@ class ActionNew : public Action
 class ActionDelete : public Action
 {
  public:
-  ActionDelete(SolverManager& smgr) : Action(smgr, DELETE, false) {}
+  ActionDelete(SolverManager& smgr) : Action(smgr, DELETE, NONE) {}
 
   bool run() override
   {
@@ -435,11 +435,11 @@ class ActionDelete : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -454,7 +454,7 @@ class ActionDelete : public Action
 class ActionSetOption : public Action
 {
  public:
-  ActionSetOption(SolverManager& smgr) : Action(smgr, SET_OPTION, false) {}
+  ActionSetOption(SolverManager& smgr) : Action(smgr, SET_OPTION, NONE) {}
 
   bool run() override
   {
@@ -503,11 +503,11 @@ class ActionSetOption : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     _run(tokens[0], tokens[1]);
-    return 0;
+    return {};
   }
 
  private:
@@ -524,7 +524,7 @@ class ActionSetOption : public Action
 class ActionMkSort : public Action
 {
  public:
-  ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, true) {}
+  ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, ID) {}
 
   bool run() override
   {
@@ -610,7 +610,7 @@ class ActionMkSort : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     size_t n_tokens = tokens.size();
 
@@ -721,7 +721,7 @@ class ActionMkSort : public Action
 
       default: MURXLA_CHECK_TRACE(false) << "unknown sort kind " << tokens[0];
     }
-    return res;
+    return {res};
   }
 
  private:
@@ -777,7 +777,7 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
-  ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, true) {}
+  ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID) {}
 
   bool run() override
   {
@@ -1153,7 +1153,7 @@ class ActionMkTerm : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS_MIN(
         3, " (operator kind, sort id, number of arguments) ", tokens.size());
@@ -1194,10 +1194,10 @@ class ActionMkTerm : public Action
   }
 
  private:
-  uint64_t _run(OpKind kind,
-                SortKind sort_kind,
-                std::vector<Term> args,
-                std::vector<uint32_t> params)
+  std::vector<uint64_t> _run(OpKind kind,
+                             SortKind sort_kind,
+                             std::vector<Term> args,
+                             std::vector<uint32_t> params)
   {
     std::stringstream trace_str;
     trace_str << " " << kind << " " << sort_kind;
@@ -1219,14 +1219,14 @@ class ActionMkTerm : public Action
 
     d_smgr.add_term(res, sort_kind, args);
     MURXLA_TRACE_RETURN << res;
-    return res->get_id();
+    return {res->get_id()};
   }
 };
 
 class ActionMkConst : public Action
 {
  public:
-  ActionMkConst(SolverManager& smgr) : Action(smgr, MK_CONST, true) {}
+  ActionMkConst(SolverManager& smgr) : Action(smgr, MK_CONST, ID) {}
 
   bool run() override
   {
@@ -1246,7 +1246,7 @@ class ActionMkConst : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     Sort sort = d_smgr.get_sort(FSM::untrace_str_to_id(tokens[0]));
@@ -1256,20 +1256,20 @@ class ActionMkConst : public Action
   }
 
  private:
-  uint64_t _run(Sort sort, std::string& symbol)
+  std::vector<uint64_t> _run(Sort sort, std::string& symbol)
   {
     MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
     Term res = d_solver.mk_const(sort, symbol);
     d_smgr.add_input(res, sort, sort->get_kind());
     MURXLA_TRACE_RETURN << res;
-    return res->get_id();
+    return {res->get_id()};
   }
 };
 
 class ActionMkVar : public Action
 {
  public:
-  ActionMkVar(SolverManager& smgr) : Action(smgr, MK_VAR, true) {}
+  ActionMkVar(SolverManager& smgr) : Action(smgr, MK_VAR, ID) {}
 
   bool run() override
   {
@@ -1285,7 +1285,7 @@ class ActionMkVar : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     Sort sort = d_smgr.get_sort(FSM::untrace_str_to_id(tokens[0]));
@@ -1295,20 +1295,20 @@ class ActionMkVar : public Action
   }
 
  private:
-  uint64_t _run(Sort sort, std::string& symbol)
+  std::vector<uint64_t> _run(Sort sort, std::string& symbol)
   {
     MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
     Term res = d_solver.mk_var(sort, symbol);
     d_smgr.add_var(res, sort, sort->get_kind());
     MURXLA_TRACE_RETURN << res;
-    return res->get_id();
+    return {res->get_id()};
   }
 };
 
 class ActionMkValue : public Action
 {
  public:
-  ActionMkValue(SolverManager& smgr) : Action(smgr, MK_VALUE, true) {}
+  ActionMkValue(SolverManager& smgr) : Action(smgr, MK_VALUE, ID) {}
 
   bool run() override
   {
@@ -1416,7 +1416,7 @@ class ActionMkValue : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
 
@@ -1464,7 +1464,7 @@ class ActionMkValue : public Action
         }
     }
 
-    return res;
+    return {res};
   }
 
  private:
@@ -1526,8 +1526,7 @@ class ActionMkValue : public Action
 class ActionMkSpecialValue : public Action
 {
  public:
-  ActionMkSpecialValue(SolverManager& smgr)
-      : Action(smgr, MK_SPECIAL_VALUE, true)
+  ActionMkSpecialValue(SolverManager& smgr) : Action(smgr, MK_SPECIAL_VALUE, ID)
   {
   }
 
@@ -1547,7 +1546,7 @@ class ActionMkSpecialValue : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
 
@@ -1564,7 +1563,7 @@ class ActionMkSpecialValue : public Action
 
     res = _run(sort, value);
 
-    return res;
+    return {res};
   }
 
  private:
@@ -1582,8 +1581,7 @@ class ActionMkSpecialValue : public Action
 class ActionTermCheckSort : public Action
 {
  public:
-  ActionTermCheckSort(SolverManager& smgr)
-      : Action(smgr, TERM_CHECK_SORT, false)
+  ActionTermCheckSort(SolverManager& smgr) : Action(smgr, TERM_CHECK_SORT, NONE)
   {
   }
 
@@ -1596,13 +1594,13 @@ class ActionTermCheckSort : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
     _run(t);
-    return 0;
+    return {};
   }
 
  private:
@@ -1660,7 +1658,7 @@ class ActionTermCheckSort : public Action
 class ActionAssertFormula : public Action
 {
  public:
-  ActionAssertFormula(SolverManager& smgr) : Action(smgr, ASSERT_FORMULA, false)
+  ActionAssertFormula(SolverManager& smgr) : Action(smgr, ASSERT_FORMULA, NONE)
   {
   }
 
@@ -1674,13 +1672,13 @@ class ActionAssertFormula : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term t = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
     _run(t);
-    return 0;
+    return {};
   }
 
  private:
@@ -1695,7 +1693,7 @@ class ActionAssertFormula : public Action
 class ActionCheckSat : public Action
 {
  public:
-  ActionCheckSat(SolverManager& smgr) : Action(smgr, CHECK_SAT, false) {}
+  ActionCheckSat(SolverManager& smgr) : Action(smgr, CHECK_SAT, NONE) {}
 
   bool run() override
   {
@@ -1710,12 +1708,12 @@ class ActionCheckSat : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.empty());
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1736,7 +1734,7 @@ class ActionCheckSatAssuming : public Action
 {
  public:
   ActionCheckSatAssuming(SolverManager& smgr)
-      : Action(smgr, CHECK_SAT_ASSUMING, false)
+      : Action(smgr, CHECK_SAT_ASSUMING, NONE)
   {
   }
 
@@ -1756,7 +1754,7 @@ class ActionCheckSatAssuming : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
     std::vector<Term> assumptions;
@@ -1769,7 +1767,7 @@ class ActionCheckSatAssuming : public Action
       assumptions.push_back(t);
     }
     _run(assumptions);
-    return 0;
+    return {};
   }
 
  private:
@@ -1787,7 +1785,7 @@ class ActionGetUnsatAssumptions : public Action
 {
  public:
   ActionGetUnsatAssumptions(SolverManager& smgr)
-      : Action(smgr, GET_UNSAT_ASSUMPTIONS, false)
+      : Action(smgr, GET_UNSAT_ASSUMPTIONS, NONE)
   {
   }
 
@@ -1803,11 +1801,11 @@ class ActionGetUnsatAssumptions : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1832,7 +1830,7 @@ class ActionGetUnsatAssumptions : public Action
 class ActionGetValue : public Action
 {
  public:
-  ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, false) {}
+  ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, ID_LIST) {}
 
   bool run() override
   {
@@ -1852,7 +1850,7 @@ class ActionGetValue : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.size() > 1);
     std::vector<Term> terms;
@@ -1864,51 +1862,51 @@ class ActionGetValue : public Action
       MURXLA_CHECK_TRACE_TERM(t, id);
       terms.push_back(t);
     }
-    _run(terms);
-    return 0;
+    return _run(terms);
   }
 
  private:
-  void _run(std::vector<Term> terms)
+  std::vector<uint64_t> _run(std::vector<Term> terms)
   {
     MURXLA_TRACE << get_kind() << " " << terms.size() << terms;
+    std::vector<uint64_t> res;
     /* Note: The Terms in this vector are solver terms wrapped into Term,
      *       without sort information! */
-    std::vector<Term> res = d_solver.get_value(terms);
-    assert(terms.size() == res.size());
+    std::vector<Term> res_terms = d_solver.get_value(terms);
+    assert(terms.size() == res_terms.size());
     if (d_smgr.d_incremental && d_rng.flip_coin())
     {
       /* assume assignment and check if result is still SAT */
       std::vector<Term> assumptions;
       for (size_t i = 0, n = terms.size(); i < n; ++i)
       {
-        std::vector<Term> args = {terms[i], res[i]};
+        std::vector<Term> args = {terms[i], res_terms[i]};
         std::vector<uint32_t> params;
         assumptions.push_back(d_solver.mk_term(Op::EQUAL, args, params));
       }
       assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
     }
-    else
+    /* add values to term database */
+    std::stringstream ss;
+    for (size_t i = 0, n = terms.size(); i < n; ++i)
     {
-      /* add values to term database */
-      for (size_t i = 0, n = terms.size(); i < n; ++i)
-      {
-        Sort sort = terms[i]->get_sort();
-        assert(sort != nullptr);
-        SortKind sort_kind = sort->get_kind();
-        assert(sort_kind != SORT_ANY);
-        d_smgr.add_term(res[i], sort_kind);
-        /* We don't trace resulting terms on purpose, would cause problems
-         * with traces across solvers. */
-      }
+      Sort sort = terms[i]->get_sort();
+      assert(sort != nullptr);
+      SortKind sort_kind = sort->get_kind();
+      assert(sort_kind != SORT_ANY);
+      d_smgr.add_term(res_terms[i], sort_kind);
+      ss << (i > 0 ? " " : "") << res_terms[i];
+      res.push_back(res_terms[i]->get_id());
     }
+    MURXLA_TRACE_RETURN << ss.str();
+    return res;
   }
 };
 
 class ActionPush : public Action
 {
  public:
-  ActionPush(SolverManager& smgr) : Action(smgr, PUSH, false) {}
+  ActionPush(SolverManager& smgr) : Action(smgr, PUSH, NONE) {}
 
   bool run() override
   {
@@ -1918,12 +1916,12 @@ class ActionPush : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.size() == 1);
     uint32_t n_levels = str_to_uint32(tokens[0]);
     _run(n_levels);
-    return 0;
+    return {};
   }
 
  private:
@@ -1939,7 +1937,7 @@ class ActionPush : public Action
 class ActionPop : public Action
 {
  public:
-  ActionPop(SolverManager& smgr) : Action(smgr, POP, false) {}
+  ActionPop(SolverManager& smgr) : Action(smgr, POP, NONE) {}
 
   bool run() override
   {
@@ -1950,12 +1948,12 @@ class ActionPop : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.size() == 1);
     uint32_t n_levels = str_to_uint32(tokens[0]);
     _run(n_levels);
-    return 0;
+    return {};
   }
 
  private:
@@ -1972,7 +1970,7 @@ class ActionResetAssertions : public Action
 {
  public:
   ActionResetAssertions(SolverManager& smgr)
-      : Action(smgr, RESET_ASSERTIONS, false)
+      : Action(smgr, RESET_ASSERTIONS, NONE)
   {
   }
 
@@ -1983,11 +1981,11 @@ class ActionResetAssertions : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -2003,7 +2001,7 @@ class ActionResetAssertions : public Action
 class ActionPrintModel : public Action
 {
  public:
-  ActionPrintModel(SolverManager& smgr) : Action(smgr, PRINT_MODEL, false) {}
+  ActionPrintModel(SolverManager& smgr) : Action(smgr, PRINT_MODEL, NONE) {}
 
   bool run() override
   {
@@ -2015,11 +2013,11 @@ class ActionPrintModel : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -2295,7 +2293,7 @@ FSM::untrace(const std::string& trace_file_name)
   assert(!trace_file_name.empty());
 
   uint32_t nline   = 0;
-  uint64_t ret_val = 0;
+  std::vector<uint64_t> ret_val;
   std::string line;
   std::ifstream trace;
 
@@ -2323,9 +2321,13 @@ FSM::untrace(const std::string& trace_file_name)
           throw MurxlaUntraceException(
               trace_file_name, nline, "expected single argument to 'return'");
         }
-        uint64_t rid = untrace_str_to_id(tokens[0]);
-        assert(rid == ret_val);
-        ret_val = 0;
+        assert(ret_val.size() == tokens.size());
+        for (uint32_t i = 0, n = tokens.size(); i < n; ++i)
+        {
+          // TODO untrace exception?
+          assert(ret_val[i] == untrace_str_to_id(tokens[i]));
+        }
+        ret_val = {};
       }
       else if (id == "set-seed")
       {
@@ -2344,7 +2346,7 @@ FSM::untrace(const std::string& trace_file_name)
 
         Action* action = d_actions.at(id).get();
 
-        if (action->returns())
+        if (action->returns() != Action::ReturnValue::NONE)
         {
           try
           {
@@ -2366,22 +2368,36 @@ FSM::untrace(const std::string& trace_file_name)
 
             if (next_id == "return")
             {
-              if (next_tokens.size() != 1)
+              if (action->returns() == Action::ReturnValue::ID
+                  && next_tokens.size() != 1)
               {
                 throw MurxlaUntraceException(
                     trace_file_name,
                     nline,
                     "expected single argument to 'return'");
               }
-
-              uint64_t rid = untrace_str_to_id(next_tokens[0]);
-              if (id == Action::MK_SORT || id == Action::TERM_GET_SORT)
+              else if (action->returns() == Action::ReturnValue::ID_LIST
+                       && next_tokens.size() < 1)
               {
-                d_smgr.register_sort(rid, ret_val);
+                throw MurxlaUntraceException(
+                    trace_file_name,
+                    nline,
+                    "expected at least one argument to 'return'");
               }
-              else
+
+              assert(ret_val.size() == next_tokens.size());
+              for (uint32_t i = 0, n = next_tokens.size(); i < n; ++i)
               {
-                d_smgr.register_term(rid, ret_val);
+                uint64_t rid = untrace_str_to_id(next_tokens[i]);
+                if (next_tokens[i][0] == 's')
+                {
+                  d_smgr.register_sort(rid, ret_val[i]);
+                }
+                else
+                {
+                  assert(next_tokens[i][0] == 't');
+                  d_smgr.register_term(rid, ret_val[i]);
+                }
               }
             }
             else
@@ -2393,7 +2409,7 @@ FSM::untrace(const std::string& trace_file_name)
               }
             }
           }
-          ret_val = 0;
+          ret_val = {};
           continue;
         }
 

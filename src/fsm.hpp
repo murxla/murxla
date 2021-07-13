@@ -83,6 +83,13 @@ class Action
   static const ActionKind TRANS_CREATE_SORTS;
   static const ActionKind TRANS_MODEL;
 
+  enum ReturnValue
+  {
+    NONE,
+    ID,
+    ID_LIST,
+  };
+
   /** Get Action kind from string representation. */
   const ActionKind& get_kind() { return d_kind; };
 
@@ -91,7 +98,7 @@ class Action
   /** Constructor. */
   Action(SolverManager& smgr,
          const ActionKind& kind,
-         bool returns,
+         ReturnValue returns,
          bool empty = false)
       : d_rng(smgr.get_rng()),
         d_solver(smgr.get_solver()),
@@ -116,11 +123,11 @@ class Action
   /**
    * Replay an action.
    *
-   * Returns id of created object, if an object has been created, and 0
-   * otherwise. Needed to be able to compare this id to the traced id in
-   * the trace's return statement.
+   * Return a vector of ids of created objects, if objects have been created,
+   * and an empty vector otherwise. Needed to be able to compare ids of created
+   * objects to the traced ids in the trace's return statement.
    */
-  virtual uint64_t untrace(std::vector<std::string>& tokens) = 0;
+  virtual std::vector<uint64_t> untrace(std::vector<std::string>& tokens) = 0;
 
   /** Return the string representing the kind of this action. */
   const ActionKind& get_kind() const { return d_kind; }
@@ -128,8 +135,8 @@ class Action
   const uint64_t get_id() const { return d_id; }
   /** Set the id of this action. */
   void set_id(uint64_t id) { d_id = id; }
-  /** Returns true if this action returns a Term or Sort. */
-  bool returns() const { return d_returns; }
+  /** Return the kind of return value this action returns. */
+  ReturnValue returns() const { return d_returns; }
   /**
    * Returns true if this action is empty, i.e., a transition without
    * performing any API calls.
@@ -158,7 +165,7 @@ class Action
   /** The solver manager associated with this action. */
   SolverManager& d_smgr;
   /** True if this returns a Term or Sort. */
-  bool d_returns = false;
+  ReturnValue d_returns = NONE;
   /** True if this is an empty transition. */
   bool d_is_empty = false;
 
@@ -176,11 +183,14 @@ class Transition : public Action
 {
  public:
   Transition(SolverManager& smgr, const ActionKind& kind)
-      : Action(smgr, kind, false, true)
+      : Action(smgr, kind, NONE, true)
   {
   }
   bool run() override { return true; }
-  uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  {
+    return {};
+  }
 };
 
 /**
@@ -199,12 +209,17 @@ class TransitionDefault : public Transition
 class UntraceAction : public Action
 {
  public:
-  UntraceAction(SolverManager& smgr, const ActionKind& kind, bool returns)
+  UntraceAction(SolverManager& smgr,
+                const ActionKind& kind,
+                ReturnValue returns)
       : Action(smgr, kind, returns)
   {
   }
   bool run() override { assert(false); }  // not to be used
-  uint64_t untrace(std::vector<std::string>& tokens) override { return 0; }
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  {
+    return {};
+  }
 };
 
 struct ActionTuple

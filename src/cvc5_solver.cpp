@@ -1419,7 +1419,7 @@ class Cvc5ActionCheckEntailed : public Action
 {
  public:
   Cvc5ActionCheckEntailed(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_CHECK_ENTAILED, false)
+      : Action(smgr, Cvc5Solver::ACTION_CHECK_ENTAILED, NONE)
   {
   }
 
@@ -1449,7 +1449,7 @@ class Cvc5ActionCheckEntailed : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS_MIN(1, "", tokens.size());
     if (tokens.size() == 1)
@@ -1471,7 +1471,7 @@ class Cvc5ActionCheckEntailed : public Action
       }
       _run(terms);
     }
-    return 0;
+    return {};
   }
 
  private:
@@ -1548,7 +1548,7 @@ class Cvc5ActionSimplify : public Action
 {
  public:
   Cvc5ActionSimplify(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_SIMPLIFY, true)
+      : Action(smgr, Cvc5Solver::ACTION_SIMPLIFY, ID)
   {
   }
 
@@ -1561,7 +1561,7 @@ class Cvc5ActionSimplify : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
@@ -1570,7 +1570,7 @@ class Cvc5ActionSimplify : public Action
   }
 
  private:
-  uint64_t _run(Term term)
+  std::vector<uint64_t> _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
@@ -1590,7 +1590,7 @@ class Cvc5ActionSimplify : public Action
     }
     d_smgr.add_term(res, sort->get_kind());
     MURXLA_TRACE_RETURN << res;
-    return res->get_id();
+    return {res->get_id()};
   }
 };
 

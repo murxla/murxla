@@ -1185,7 +1185,7 @@ class BzlaActionIsUnsatAssumption : public Action
 {
  public:
   BzlaActionIsUnsatAssumption(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_IS_UNSAT_ASSUMPTION, false)
+      : Action(smgr, BzlaSolver::ACTION_IS_UNSAT_ASSUMPTION, NONE)
   {
   }
 
@@ -1201,13 +1201,13 @@ class BzlaActionIsUnsatAssumption : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
-    return 0;
+    return {};
   }
 
  private:
@@ -1224,7 +1224,7 @@ class BzlaActionFixateAssumptions : public Action
 {
  public:
   BzlaActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_FIXATE_ASSUMPTIONS, false)
+      : Action(smgr, BzlaSolver::ACTION_FIXATE_ASSUMPTIONS, NONE)
   {
   }
 
@@ -1236,11 +1236,11 @@ class BzlaActionFixateAssumptions : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1257,7 +1257,7 @@ class BzlaActionResetAssumptions : public Action
 {
  public:
   BzlaActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_RESET_ASSUMPTIONS, false)
+      : Action(smgr, BzlaSolver::ACTION_RESET_ASSUMPTIONS, NONE)
   {
   }
 
@@ -1269,11 +1269,11 @@ class BzlaActionResetAssumptions : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1290,7 +1290,7 @@ class BzlaActionSimplify : public Action
 {
  public:
   BzlaActionSimplify(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_SIMPLIFY, false)
+      : Action(smgr, BzlaSolver::ACTION_SIMPLIFY, NONE)
   {
   }
 
@@ -1303,11 +1303,11 @@ class BzlaActionSimplify : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1324,7 +1324,7 @@ class BzlaActionTermSetSymbol : public Action
 {
  public:
   BzlaActionTermSetSymbol(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_TERM_SET_SYMBOL, false)
+      : Action(smgr, BzlaSolver::ACTION_TERM_SET_SYMBOL, NONE)
   {
   }
 
@@ -1338,14 +1338,14 @@ class BzlaActionTermSetSymbol : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     Term term = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     _run(term, symbol);
-    return 0;
+    return {};
   }
 
  private:

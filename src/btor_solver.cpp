@@ -1584,7 +1584,7 @@ class BtorActionBvAssignment : public Action
 {
  public:
   BtorActionBvAssignment(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_BV_ASSIGNMENT, false)
+      : Action(smgr, BtorSolver::ACTION_BV_ASSIGNMENT, NONE)
   {
   }
 
@@ -1599,11 +1599,11 @@ class BtorActionBvAssignment : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1638,7 +1638,7 @@ class BtorActionClone : public Action
 {
  public:
   BtorActionClone(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_CLONE, false)
+      : Action(smgr, BtorSolver::ACTION_CLONE, NONE)
   {
   }
 
@@ -1649,11 +1649,11 @@ class BtorActionClone : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1756,7 +1756,7 @@ class BtorActionFailed : public Action
 {
  public:
   BtorActionFailed(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_FAILED, false)
+      : Action(smgr, BtorSolver::ACTION_FAILED, NONE)
   {
   }
 
@@ -1772,13 +1772,13 @@ class BtorActionFailed : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
-    return 0;
+    return {};
   }
 
  private:
@@ -1795,7 +1795,7 @@ class BtorActionFixateAssumptions : public Action
 {
  public:
   BtorActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_FIXATE_ASSUMPTIONS, false)
+      : Action(smgr, BtorSolver::ACTION_FIXATE_ASSUMPTIONS, NONE)
   {
   }
 
@@ -1807,11 +1807,11 @@ class BtorActionFixateAssumptions : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1828,7 +1828,7 @@ class BtorActionOptIterator : public Action
 {
  public:
   BtorActionOptIterator(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_OPT_ITERATOR, false)
+      : Action(smgr, BtorSolver::ACTION_OPT_ITERATOR, NONE)
   {
   }
 
@@ -1839,11 +1839,11 @@ class BtorActionOptIterator : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1882,7 +1882,7 @@ class BtorActionReleaseAll : public Action
 {
  public:
   BtorActionReleaseAll(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_RELEASE_ALL, false)
+      : Action(smgr, BtorSolver::ACTION_RELEASE_ALL, NONE)
   {
   }
 
@@ -1893,11 +1893,11 @@ class BtorActionReleaseAll : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1914,7 +1914,7 @@ class BtorActionResetAssumptions : public Action
 {
  public:
   BtorActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_RESET_ASSUMPTIONS, false)
+      : Action(smgr, BtorSolver::ACTION_RESET_ASSUMPTIONS, NONE)
   {
   }
 
@@ -1926,11 +1926,11 @@ class BtorActionResetAssumptions : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -1947,7 +1947,7 @@ class BtorActionSetSatSolver : public Action
 {
  public:
   BtorActionSetSatSolver(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_SET_SAT_SOLVER, false)
+      : Action(smgr, BtorSolver::ACTION_SET_SAT_SOLVER, NONE)
   {
   }
 
@@ -1962,12 +1962,12 @@ class BtorActionSetSatSolver : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     assert(tokens.size() == 1);
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     _run(tokens[0]);
-    return 0;
+    return {};
   }
 
  private:
@@ -1983,7 +1983,7 @@ class BtorActionSimplify : public Action
 {
  public:
   BtorActionSimplify(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_SIMPLIFY, false)
+      : Action(smgr, BtorSolver::ACTION_SIMPLIFY, NONE)
   {
   }
 
@@ -1996,11 +1996,11 @@ class BtorActionSimplify : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
     _run();
-    return 0;
+    return {};
   }
 
  private:
@@ -2016,7 +2016,7 @@ class BtorActionSetSymbol : public Action
 {
  public:
   BtorActionSetSymbol(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_SET_SYMBOL, false)
+      : Action(smgr, BtorSolver::ACTION_SET_SYMBOL, NONE)
   {
   }
 
@@ -2030,14 +2030,14 @@ class BtorActionSetSymbol : public Action
     return true;
   }
 
-  uint64_t untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
     Term term = d_smgr.get_term(FSM::untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     _run(term, symbol);
-    return 0;
+    return {};
   }
 
  private:
