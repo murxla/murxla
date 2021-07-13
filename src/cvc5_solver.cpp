@@ -397,10 +397,10 @@ Cvc5Solver::mk_var(Sort sort, const std::string& name)
 Term
 Cvc5Solver::mk_value(Sort sort, bool value)
 {
-  assert(sort->is_bool());
-  MURXLA_CHECK_CONFIG(false) << "unexpected sort of kind '" << sort->get_kind()
-                             << "' as argument to "
-                                "Cvc5Solver::mk_value, expected Boolean sort ";
+  MURXLA_CHECK_CONFIG(sort->is_bool())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to "
+         "Cvc5Solver::mk_value, expected Boolean sort ";
 
   ::cvc5::api::Term cvc5_res;
 
