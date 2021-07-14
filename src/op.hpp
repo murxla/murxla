@@ -10,7 +10,15 @@
 
 namespace murxla {
 
+namespace statistics {
+struct Statistics;
+}
+
+/* -------------------------------------------------------------------------- */
+
 using OpKind = std::string;
+
+/* -------------------------------------------------------------------------- */
 
 struct Op
 {
@@ -193,11 +201,78 @@ struct Op
   std::vector<SortKind> d_sort_kind_args;
 };
 
+/* -------------------------------------------------------------------------- */
+
 using OpKindVector = std::vector<OpKind>;
 using OpKindSet    = std::unordered_set<OpKind>;
 using OpKindMap    = std::unordered_map<OpKind, Op>;
 using OpKinds = std::unordered_map<SortKind, OpKindVector>;
 
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The OpKind Manager.
+ *
+ * Maintains the current set of operator kinds, based on enabled theories
+ * and unsupported operator kinds.
+ */
+class OpKindManager
+{
+ public:
+  /** Constructor. */
+  OpKindManager(const TheoryIdSet& enabled_theories,
+                const OpKindSet& disabled_op_kinds,
+                bool arith_linear,
+                statistics::Statistics* stats)
+      : d_enabled_theories(enabled_theories),
+        d_disabled_op_kinds(disabled_op_kinds),
+        d_arith_linear(arith_linear),
+        d_stats(stats)
+  {
+    add_op_kinds();
+  }
+
+  /** Get operator of given kind. */
+  Op& get_op(const OpKind& kind);
+
+  /**
+   * Add operator kind to operator kinds database.
+   * kind           : The operator kind
+   * arity          : The arity of the operator
+   * nparams        : The number of parameters of the operator
+   * sort_kind      : The sort kind of the operator
+   * sort_kind_args : A vector of sorts of the operators' arguments. if all or
+   *                  the remaining kinds are the same, it's sufficient to only
+   *                  list it once.
+   */
+  void add_op_kind(const OpKind& kind,
+                   int32_t arity,
+                   uint32_t nparams,
+                   SortKind sort_kind,
+                   const std::vector<SortKind>& sort_kind_args,
+                   TheoryId theory);
+
+  const OpKindMap& get_op_kinds() { return d_op_kinds; }
+
+ private:
+  /**
+   * Populate operator kinds database with enabled operator kinds.
+   * Operator kinds are enabled based on the set of enabled theories.
+   */
+  void add_op_kinds();
+  /** The set of enabled operator kinds. Maps OpKind to Op. */
+  OpKindMap d_op_kinds;
+  /** The set of enabled theories. */
+  TheoryIdSet d_enabled_theories;
+  /** The set of disabled operator kinds. */
+  OpKindSet d_disabled_op_kinds;
+  /** True to restrict arithmetic operators to linear fragment. */
+  bool d_arith_linear = false;
+  /** Statistics. */
+  statistics::Statistics* d_stats;
+};
+
+/* -------------------------------------------------------------------------- */
 }  // namespace murxla
 
 #endif

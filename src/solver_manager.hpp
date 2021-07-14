@@ -83,22 +83,6 @@ class SolverManager
   /** Get the number of created terms of given sort kind. */
   uint64_t get_n_terms(SortKind sort_kind);
 
-  /**
-   * Add operator kind to operator kinds database.
-   * kind           : the operator kind
-   * arity          : the arity of the operator
-   * nparams        : the number of parameters of the operator
-   * sort_kind      : the sort kind of the operator
-   * sort_kind_args : a vector of sorts of the operators' arguments, if all or
-   *                  the remaining kinds are the same, it's sufficient to only
-   *                  list it once
-   */
-  void add_op_kind(const OpKind& kind,
-                   int32_t arity,
-                   uint32_t nparams,
-                   SortKind sort_kind,
-                   const std::vector<SortKind>& sort_kind_args,
-                   TheoryId theory);
   /** Add sort to sort databse. */
   void add_sort(Sort& sort, SortKind sort_kind);
   /** Add value to term database. */
@@ -432,11 +416,6 @@ class SolverManager
    * Sort kinds are enabled based on the set of enabled theories.
    */
   void add_sort_kinds();
-  /**
-   * Populate operator kinds database with enabled operator kinds.
-   * Operator kinds are enabled based on the set of enabled theories.
-   */
-  void add_op_kinds();
 
 #if 0
   template <typename TKind,
@@ -477,8 +456,8 @@ class SolverManager
 
   /** The set of enabled sort kinds. Maps SortKind to SortKindData. */
   SortKindMap d_sort_kinds;
-  /** The set of enabled operator kinds. Maps OpKind to Op. */
-  OpKindMap d_op_kinds;
+  /** The OpKind manager. */
+  std::unique_ptr<OpKindManager> d_opmgr;
 
   /** The set of enabled theories. */
   TheoryIdSet d_enabled_theories;

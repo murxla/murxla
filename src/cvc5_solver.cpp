@@ -1390,22 +1390,22 @@ const OpKind Cvc5Solver::OP_STRING_TOUPPER = "cvc5-OP_STRING_TOUPPER";
 const OpKind Cvc5Solver::OP_STRING_REV     = "cvc5-OP_STRING_REV";
 
 void
-Cvc5Solver::configure_smgr(SolverManager* smgr) const
+Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
 {
-  smgr->add_op_kind(OP_BV_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
 
-  smgr->add_op_kind(OP_STRING_UPDATE,
-                    3,
-                    0,
-                    SORT_STRING,
-                    {SORT_STRING, SORT_INT, SORT_STRING},
-                    THEORY_STRING);
-  smgr->add_op_kind(
+  opmgr->add_op_kind(OP_STRING_UPDATE,
+                     3,
+                     0,
+                     SORT_STRING,
+                     {SORT_STRING, SORT_INT, SORT_STRING},
+                     THEORY_STRING);
+  opmgr->add_op_kind(
       OP_STRING_TOLOWER, 1, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
-  smgr->add_op_kind(
+  opmgr->add_op_kind(
       OP_STRING_TOUPPER, 1, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
-  smgr->add_op_kind(
+  opmgr->add_op_kind(
       OP_STRING_REV, 1, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
 }
 

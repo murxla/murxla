@@ -123,7 +123,7 @@ class BzlaSolver : public Solver
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
 
   void configure_fsm(FSM* fsm) const override;
-  void configure_smgr(SolverManager* smgr) const override;
+  void configure_opmgr(OpKindManager* opmgr) const override;
 
   void set_opt(const std::string& opt, const std::string& value) override;
 

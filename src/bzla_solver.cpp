@@ -1147,22 +1147,22 @@ const OpKind BzlaSolver::OP_BV_UMULO  = "bzla-OP_BV_UMULO";
 const OpKind BzlaSolver::OP_BV_USUBO  = "bzla-OP_BV_USUBO";
 
 void
-BzlaSolver::configure_smgr(SolverManager* smgr) const
+BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
 {
-  smgr->add_op_kind(OP_BV_DEC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_INC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_DEC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_INC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  smgr->add_op_kind(OP_BV_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_REDXOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_REDXOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  smgr->add_op_kind(OP_BV_UADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_UMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_USUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_SADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BV_SSUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_UADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_UMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_USUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_SADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_SSUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 }
 
 /* -------------------------------------------------------------------------- */

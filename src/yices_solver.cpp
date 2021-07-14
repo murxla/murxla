@@ -1990,62 +1990,62 @@ const OpKind YicesSolver::OP_REAL_POWER  = "yices-OP_REAL_POWER";
 const OpKind YicesSolver::OP_REAL_SQUARE = "yices-OP_REAL_SQUARE";
 
 void
-YicesSolver::configure_smgr(SolverManager* smgr) const
+YicesSolver::configure_opmgr(OpKindManager* opmgr) const
 {
   /* BV */
-  smgr->add_op_kind(OP_BVSQUARE, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_BVPOWER, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BVSQUARE, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BVPOWER, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  smgr->add_op_kind(OP_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  smgr->add_op_kind(OP_SHIFT_LEFT0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_SHIFT_LEFT1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_SHIFT_RIGHT0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_SHIFT_RIGHT1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-  smgr->add_op_kind(OP_ASHIFT_RIGHT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_SHIFT_LEFT0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_SHIFT_LEFT1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_SHIFT_RIGHT0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_SHIFT_RIGHT1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_ASHIFT_RIGHT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  smgr->add_op_kind(OP_BITEXTRACT, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BITEXTRACT, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
 
-  smgr->add_op_kind(
+  opmgr->add_op_kind(
       OP_BVARRAY, MURXLA_MK_TERM_N_ARGS, 0, SORT_BV, {SORT_BOOL}, THEORY_BV);
 
   /* Ints */
-  smgr->add_op_kind(OP_INT_EQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_NEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_GEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_GT0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_LEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_LT0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_POWER, 1, 1, SORT_INT, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_SQUARE, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_CEIL, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(OP_INT_FLOOR, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-  smgr->add_op_kind(
+  opmgr->add_op_kind(OP_INT_EQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_NEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_GEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_GT0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_LEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_LT0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_POWER, 1, 1, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_SQUARE, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_CEIL, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(OP_INT_FLOOR, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
       OP_INT_POLY, MURXLA_MK_TERM_N_ARGS, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   /* Reals */
-  smgr->add_op_kind(OP_REAL_EQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_NEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_GEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_GT0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_LEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_LT0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_POWER, 1, 1, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_SQUARE, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_CEIL, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_FLOOR, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_POLY,
-                    MURXLA_MK_TERM_N_ARGS,
-                    0,
-                    SORT_REAL,
-                    {SORT_REAL},
-                    THEORY_REAL);
-  smgr->add_op_kind(OP_REAL_RPOLY,
-                    MURXLA_MK_TERM_N_ARGS,
-                    0,
-                    SORT_REAL,
-                    {SORT_REAL},
-                    THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_EQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_NEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_GEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_GT0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_LEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_LT0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_POWER, 1, 1, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_SQUARE, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_CEIL, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_FLOOR, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_POLY,
+                     MURXLA_MK_TERM_N_ARGS,
+                     0,
+                     SORT_REAL,
+                     {SORT_REAL},
+                     THEORY_REAL);
+  opmgr->add_op_kind(OP_REAL_RPOLY,
+                     MURXLA_MK_TERM_N_ARGS,
+                     0,
+                     SORT_REAL,
+                     {SORT_REAL},
+                     THEORY_REAL);
 }
 
 /* -------------------------------------------------------------------------- */

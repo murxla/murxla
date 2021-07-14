@@ -8,6 +8,12 @@ namespace murxla {
 
 namespace statistics {
 
+/**
+ * Statistics.
+ *
+ * The main statistics object is located in shared memory. We thus only use
+ * base types here.
+ */
 struct Statistics
 {
   uint64_t d_results[3];

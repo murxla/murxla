@@ -249,6 +249,12 @@ Solver::configure_smgr(SolverManager* smgr) const
 }
 
 void
+Solver::configure_opmgr(OpKindManager* opmgr) const
+{
+  // default: do nothing
+}
+
+void
 Solver::add_special_value(SortKind sort_kind, const SpecialValueKind& kind)
 {
   if (d_special_values.find(sort_kind) == d_special_values.end())
