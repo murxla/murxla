@@ -101,6 +101,7 @@ str_diff(const std::string& s1, const std::string& s2)
   }
   return diff;
 }
+
 void
 write_idxs_to_file(const std::vector<std::vector<std::string>>& lines,
                    const std::vector<size_t> indices,
@@ -117,6 +118,25 @@ write_idxs_to_file(const std::vector<std::vector<std::string>>& lines,
     if (lines[idx].size() == 2)
     {
       out_file << std::endl << lines[idx][1];
+    }
+    out_file << std::endl;
+  }
+  out_file.close();
+}
+
+void
+write_lines_to_file(const std::vector<std::vector<std::string>>& lines,
+                    const std::string& out_file_name)
+{
+  std::ofstream out_file = open_output_file(out_file_name, false);
+  for (auto& line : lines)
+  {
+    assert(line.size() > 0);
+    assert(line.size() <= 2);
+    out_file << line[0];
+    if (line.size() == 2)
+    {
+      out_file << std::endl << line[1];
     }
     out_file << std::endl;
   }
@@ -496,7 +516,6 @@ Murxla::dd(uint32_t seed,
 {
   assert(!untrace_file_name.empty());
 
-  std::string line, token;
   Murxla::Result gold_exit, exit;
 
   std::string gold_out_file_name =
@@ -566,10 +585,12 @@ Murxla::dd(uint32_t seed,
    * elements: the statement and the return statement.
    */
 
+  std::string line;
   std::vector<std::vector<std::string>> lines;
   std::ifstream trace_file = open_input_file(untrace_file_name, false);
   while (std::getline(trace_file, line))
   {
+    std::string token;
     if (line[0] == '#') continue;
     if (std::getline(std::stringstream(line), token, ' ') && token == "return")
     {
@@ -585,12 +606,15 @@ Murxla::dd(uint32_t seed,
   }
   trace_file.close();
 
+  /* Minimize by removing lines, in a ddmin manner -------------------------- */
+
   int64_t orig_size = lines.size();
   int64_t size      = orig_size;
   std::vector<size_t> superset(size);
   std::iota(superset.begin(), superset.end(), 0);
   int64_t subset_size = size / 2;
   uint32_t n_tests = 0, n_failed = 0;
+
   while (subset_size > 0)
   {
     std::vector<std::vector<size_t>> subsets;
@@ -661,7 +685,135 @@ Murxla::dd(uint32_t seed,
     }
   }
 
-  /* write minimized trace file to path if given */
+  /* Minimize lines by removing operands ------------------------------------ */
+
+  /* Filter out previously removed lines. */
+  if (superset.size() < (size_t) orig_size)
+  {
+    auto lines_copy = lines;
+    lines           = {};
+    for (auto idx : superset)
+    {
+      lines.push_back(lines_copy[idx]);
+    }
+  }
+
+  /* Create OpKindManager to query Op configuration. */
+  statistics::Statistics opmgr_stats;
+  TheoryIdSet opmgr_enabled_theories;
+  for (int32_t t = 0; t < THEORY_ALL; ++t)
+  {
+    /* we enable all theories for delta debugging */
+    opmgr_enabled_theories.insert(static_cast<TheoryId>(t));
+  }
+  OpKindManager opmgr(opmgr_enabled_theories, {}, false, &opmgr_stats);
+  {
+    RNGenerator opmgr_rng;
+    Solver* opmgr_solver = create_solver(opmgr_rng);
+    opmgr_solver->configure_opmgr(&opmgr);
+    delete opmgr_solver;
+  }
+
+  /* The set of actions that we consider for this minimization strategy. */
+  std::unordered_set<ActionKind> actions = {Action::MK_TERM};
+
+  /* Minimize. */
+  for (uint32_t i = 0, ls = lines.size(); i < ls; ++i)
+  {
+    std::string id;
+    std::vector<std::string> tokens;
+    /* first item is the action, second (if present) the return statement */
+    tokenize(lines[i][0], id, tokens);
+
+    auto it = actions.find(id);
+    if (it == actions.end()) continue;
+    const ActionKind& action = *it;
+    uint32_t idx = 0, n_terms = 0, n_tokens = tokens.size();
+
+    if (action == Action::MK_TERM)
+    {
+      OpKind op_kind = tokens[0];
+      Op& op         = opmgr.get_op(op_kind);
+      if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
+      idx     = 3;
+      n_terms = str_to_uint32(tokens[2]);
+    }
+    else
+    {
+      for (idx = 0; idx < n_tokens; ++idx)
+      {
+        std::cout << "  token[" << idx << "]: " << tokens[idx] << std::endl;
+        assert(!tokens[idx].empty());
+        if (tokens[idx].find_first_not_of("0123456789") == std::string::npos)
+        {
+          n_terms = str_to_uint32(tokens[idx]);
+          assert(n_tokens > n_terms);
+          break;
+        }
+      }
+    }
+
+    if (n_terms > 0)
+    {
+      assert(n_tokens >= n_terms + 1);
+      std::vector<bool> delete_map(n_terms, true);
+      uint32_t _n_terms = n_terms;
+      for (uint32_t j = 0; j < n_terms; ++j)
+      {
+        auto _lines = lines;
+        std::stringstream ss;
+        ss << id;
+        for (uint32_t k = 0; k < idx - 1; ++k)
+        {
+          ss << " " << tokens[k];
+        }
+        ss << " " << (_n_terms - 1);
+        for (uint32_t k = 0; k < n_terms; ++k)
+        {
+          if (!delete_map[k]) continue;
+          if (k == j) continue;
+          ss << " " << tokens[idx + k];
+        }
+        _lines[i][0] = ss.str();
+        /* write to file and test */
+        write_lines_to_file(_lines, untrace_file_name);
+        /* while delta debugging, do not trace to file or stdout */
+        exit = run(seed,
+                   time,
+                   tmp_out_file_name,
+                   tmp_err_file_name,
+                   "",
+                   untrace_file_name,
+                   true,
+                   false,
+                   NONE);
+        n_tests += 1;
+        if (exit == gold_exit
+            && ((!d_options.dd_out_string.empty()
+                 && find_in_file(
+                     tmp_err_file_name, d_options.dd_out_string, false))
+                || compare_files(tmp_out_file_name, gold_out_file_name))
+            && ((!d_options.dd_err_string.empty()
+                 && find_in_file(
+                     tmp_err_file_name, d_options.dd_err_string, false))
+                || compare_files(tmp_err_file_name, gold_err_file_name)))
+        {
+          /* write immediately to file and continue */
+          write_lines_to_file(_lines, tmp_dd_trace_file_name);
+          lines[i][0]   = ss.str();
+          delete_map[j] = false;
+          n_failed += 1;
+          _n_terms -= 1;
+          MURXLA_MESSAGE_DD << "reduced line " << i << " to " << std::fixed
+                            << std::setprecision(2)
+                            << (((double) _n_terms) / n_terms * 100)
+                            << "% of original size";
+        }
+      }
+    }
+  }
+
+  /* Write minimized trace file to path if given. */
   if (dd_trace_file_name.empty())
   {
     if (untrace_file_name.empty())
@@ -695,6 +847,52 @@ Murxla::dd(uint32_t seed,
   {
     MURXLA_MESSAGE_DD << "unable to reduce api trace";
   }
+}
+
+Solver*
+Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out)
+{
+  Solver* solver = nullptr;
+
+  if (d_options.solver == SOLVER_BTOR)
+  {
+#if MURXLA_USE_BOOLECTOR
+    solver = new btor::BtorSolver(rng);
+#else
+    MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked)
+        << "Boolector not configured";
+#endif
+  }
+  else if (d_options.solver == SOLVER_BZLA)
+  {
+#if MURXLA_USE_BITWUZLA
+    solver = new bzla::BzlaSolver(rng);
+#else
+    MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked)
+        << "Bitwuzla not configured";
+#endif
+  }
+  else if (d_options.solver == SOLVER_CVC5)
+  {
+#if MURXLA_USE_CVC5
+    solver = new cvc5::Cvc5Solver(rng);
+#else
+    MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << "cvc5 not configured";
+#endif
+  }
+  else if (d_options.solver == SOLVER_YICES)
+  {
+#if MURXLA_USE_YICES
+    solver = new yices::YicesSolver(rng);
+#else
+    MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << "Yices not configured";
+#endif
+  }
+  else if (d_options.solver == SOLVER_SMT2)
+  {
+    solver = new smt2::Smt2Solver(rng, smt2_out, d_options.solver_binary);
+  }
+  return solver;
 }
 
 Murxla::Result
@@ -840,46 +1038,7 @@ Murxla::run_aux(uint32_t seed,
       close(fd);
     }
 
-    Solver* solver = nullptr;
-
-    if (d_options.solver == SOLVER_BTOR)
-    {
-#if MURXLA_USE_BOOLECTOR
-      solver = new btor::BtorSolver(rng);
-#else
-      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked)
-          << "Boolector not configured";
-#endif
-    }
-    else if (d_options.solver == SOLVER_BZLA)
-    {
-#if MURXLA_USE_BITWUZLA
-      solver = new bzla::BzlaSolver(rng);
-#else
-      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked)
-          << "Bitwuzla not configured";
-#endif
-    }
-    else if (d_options.solver == SOLVER_CVC5)
-    {
-#if MURXLA_USE_CVC5
-      solver = new cvc5::Cvc5Solver(rng);
-#else
-      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << "cvc5 not configured";
-#endif
-    }
-    else if (d_options.solver == SOLVER_YICES)
-    {
-#if MURXLA_USE_YICES
-      solver = new yices::YicesSolver(rng);
-#else
-      MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << "Yices not configured";
-#endif
-    }
-    else if (d_options.solver == SOLVER_SMT2)
-    {
-      solver = new smt2::Smt2Solver(rng, smt2_out, d_options.solver_binary);
-    }
+    Solver* solver = create_solver(rng, smt2_out);
 
     try
     {
@@ -919,6 +1078,8 @@ Murxla::run_aux(uint32_t seed,
     {
       MURXLA_EXIT_ERROR_FORK(true, run_forked) << e.get_msg();
     }
+
+    delete solver;
 
     if (file_trace.is_open()) file_trace.close();
 

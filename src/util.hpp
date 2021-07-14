@@ -301,6 +301,12 @@ double get_cur_wall_time();
 
 /* -------------------------------------------------------------------------- */
 
+void tokenize(const std::string& line,
+              std::string& id,
+              std::vector<std::string>& tokens);
+
+/* -------------------------------------------------------------------------- */
+
 }  // namespace murxla
 
 #endif

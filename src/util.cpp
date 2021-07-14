@@ -884,4 +884,45 @@ get_cur_wall_time()
 
 /* -------------------------------------------------------------------------- */
 
+void
+tokenize(const std::string& line,
+         std::string& id,
+         std::vector<std::string>& tokens)
+{
+  std::stringstream ss;
+  std::string token;
+  std::stringstream tokenstream(line);
+  bool open_str = false;
+
+  /* Note: this std::getline() call also splits piped symbols that have
+   *       spaces, e.g., "|a b|". We join these together again. */
+  while (std::getline(tokenstream, token, ' '))
+  {
+    if (id.empty())
+    {
+      id = token;
+    }
+    else if (open_str)
+    {
+      ss << " " << token;
+      if (token[token.size() - 1] == '"')
+      {
+        open_str = false;
+        tokens.push_back(ss.str());
+      }
+    }
+    else if (token[0] == '"' && token[token.size() - 1] != '"')
+    {
+      open_str = true;
+      ss << token;
+    }
+    else
+    {
+      tokens.push_back(token);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 }  // namespace murxla

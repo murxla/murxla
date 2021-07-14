@@ -13,6 +13,7 @@ namespace murxla {
 namespace statistics {
 class Statistics;
 };
+class Solver;
 
 class Murxla
 {
@@ -75,6 +76,8 @@ class Murxla
   std::string d_tmp_dir;
 
  private:
+  Solver* create_solver(RNGenerator& rng, std::ostream& smt2_out = std::cout);
+
   Result run_aux(uint32_t seed,
                  double time,
                  const std::string& file_out,
