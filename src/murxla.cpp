@@ -102,10 +102,26 @@ str_diff(const std::string& s1, const std::string& s2)
   return diff;
 }
 
+/**
+ * Write trace lines to output file.
+ *
+ * A trace is represented as a vector of lines and a line is represented as a
+ * vector of strings with at most 2 elements.
+ *
+ * Trace statements that do not expect a return statement are represented as a
+ * line (vector) with one element. Trace statements that expect a return
+ * statement are represented as a line (vector) with two elements: the action
+ * and the return statement.
+ *
+ * This function writes only the lines at the indices given in 'indices'
+ * to the output file.
+ *
+ * This is only used for delta debugging traces.
+ */
 void
-write_idxs_to_file(const std::vector<std::vector<std::string>>& lines,
-                   const std::vector<size_t> indices,
-                   const std::string& out_file_name)
+write_lines_to_file(const std::vector<std::vector<std::string>>& lines,
+                    const std::vector<size_t> indices,
+                    const std::string& out_file_name)
 {
   size_t size            = lines.size();
   std::ofstream out_file = open_output_file(out_file_name, false);
@@ -118,25 +134,6 @@ write_idxs_to_file(const std::vector<std::vector<std::string>>& lines,
     if (lines[idx].size() == 2)
     {
       out_file << std::endl << lines[idx][1];
-    }
-    out_file << std::endl;
-  }
-  out_file.close();
-}
-
-void
-write_lines_to_file(const std::vector<std::vector<std::string>>& lines,
-                    const std::string& out_file_name)
-{
-  std::ofstream out_file = open_output_file(out_file_name, false);
-  for (auto& line : lines)
-  {
-    assert(line.size() > 0);
-    assert(line.size() <= 2);
-    out_file << line[0];
-    if (line.size() == 2)
-    {
-      out_file << std::endl << line[1];
     }
     out_file << std::endl;
   }
@@ -608,8 +605,8 @@ Murxla::dd(uint32_t seed,
 
   /* Minimize by removing lines, in a ddmin manner -------------------------- */
 
-  int64_t orig_size = lines.size();
-  int64_t size      = orig_size;
+  int64_t size_orig = lines.size();
+  int64_t size      = size_orig;
   std::vector<size_t> superset(size);
   std::iota(superset.begin(), superset.end(), 0);
   int64_t subset_size = size / 2;
@@ -641,7 +638,7 @@ Murxla::dd(uint32_t seed,
       ex.insert(i);
       std::vector<size_t> tmp = remove_subsets(subsets, ex);
 
-      write_idxs_to_file(lines, tmp, untrace_file_name);
+      write_lines_to_file(lines, tmp, untrace_file_name);
       /* while delta debugging, do not trace to file or stdout */
       exit = run(seed,
                  time,
@@ -667,7 +664,7 @@ Murxla::dd(uint32_t seed,
         excluded_sets.insert(i);
         n_failed += 1;
         MURXLA_MESSAGE_DD << "reduced to " << std::fixed << std::setprecision(2)
-                          << (((double) cur_superset.size()) / orig_size * 100)
+                          << (((double) cur_superset.size()) / size_orig * 100)
                           << "% of original size";
       }
     }
@@ -678,7 +675,7 @@ Murxla::dd(uint32_t seed,
     else
     {
       /* write found subset immediately to file and continue */
-      write_idxs_to_file(lines, cur_superset, tmp_dd_trace_file_name);
+      write_lines_to_file(lines, cur_superset, tmp_dd_trace_file_name);
       superset    = cur_superset;
       size        = superset.size();
       subset_size = size / 2;
@@ -686,17 +683,6 @@ Murxla::dd(uint32_t seed,
   }
 
   /* Minimize lines by removing operands ------------------------------------ */
-
-  /* Filter out previously removed lines. */
-  if (superset.size() < (size_t) orig_size)
-  {
-    auto lines_copy = lines;
-    lines           = {};
-    for (auto idx : superset)
-    {
-      lines.push_back(lines_copy[idx]);
-    }
-  }
 
   /* Create OpKindManager to query Op configuration. */
   statistics::Statistics opmgr_stats;
@@ -718,17 +704,18 @@ Murxla::dd(uint32_t seed,
   std::unordered_set<ActionKind> actions = {Action::MK_TERM};
 
   /* Minimize. */
-  for (uint32_t i = 0, ls = lines.size(); i < ls; ++i)
+  for (size_t line_idx : superset)
   {
-    std::string id;
+    std::string action_id;
     std::vector<std::string> tokens;
-    /* first item is the action, second (if present) the return statement */
-    tokenize(lines[i][0], id, tokens);
 
-    auto it = actions.find(id);
+    /* first item is the action, second (if present) the return statement */
+    tokenize(lines[line_idx][0], action_id, tokens);
+
+    auto it = actions.find(action_id);
     if (it == actions.end()) continue;
     const ActionKind& action = *it;
-    uint32_t idx = 0, n_terms = 0, n_tokens = tokens.size();
+    uint32_t idx = 0, n_terms_orig = 0, n_tokens_orig = tokens.size();
 
     if (action == Action::MK_TERM)
     {
@@ -736,47 +723,47 @@ Murxla::dd(uint32_t seed,
       Op& op         = opmgr.get_op(op_kind);
       if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
       idx     = 3;
-      n_terms = str_to_uint32(tokens[2]);
+      n_terms_orig = str_to_uint32(tokens[2]);
     }
     else
     {
-      for (idx = 0; idx < n_tokens; ++idx)
+      for (idx = 0; idx < n_tokens_orig; ++idx)
       {
         std::cout << "  token[" << idx << "]: " << tokens[idx] << std::endl;
         assert(!tokens[idx].empty());
         if (tokens[idx].find_first_not_of("0123456789") == std::string::npos)
         {
-          n_terms = str_to_uint32(tokens[idx]);
-          assert(n_tokens > n_terms);
+          n_terms_orig = str_to_uint32(tokens[idx]);
+          assert(n_tokens_orig > n_terms_orig);
           break;
         }
       }
     }
 
-    if (n_terms > 0)
+    if (n_terms_orig > 0)
     {
-      assert(n_tokens >= n_terms + 1);
-      std::vector<bool> delete_map(n_terms, true);
-      uint32_t _n_terms = n_terms;
-      for (uint32_t j = 0; j < n_terms; ++j)
+      assert(n_tokens_orig >= n_terms_orig + 1);
+      std::vector<bool> delete_map(n_terms_orig, true);
+      uint32_t n_terms = n_terms_orig;
+      for (uint32_t i = 0; i < n_terms_orig; ++i)
       {
-        auto _lines = lines;
+        std::string line_orig = lines[line_idx][0];
         std::stringstream ss;
-        ss << id;
-        for (uint32_t k = 0; k < idx - 1; ++k)
+        ss << action_id;
+        for (uint32_t j = 0; j < idx - 1; ++j)
         {
-          ss << " " << tokens[k];
+          ss << " " << tokens[j];
         }
-        ss << " " << (_n_terms - 1);
-        for (uint32_t k = 0; k < n_terms; ++k)
+        ss << " " << (n_terms - 1);
+        for (uint32_t j = 0; j < n_terms_orig; ++j)
         {
-          if (!delete_map[k]) continue;
-          if (k == j) continue;
-          ss << " " << tokens[idx + k];
+          if (!delete_map[j]) continue;
+          if (j == i) continue;
+          ss << " " << tokens[idx + j];
         }
-        _lines[i][0] = ss.str();
+        lines[line_idx][0] = ss.str();
         /* write to file and test */
-        write_lines_to_file(_lines, untrace_file_name);
+        write_lines_to_file(lines, superset, untrace_file_name);
         /* while delta debugging, do not trace to file or stdout */
         exit = run(seed,
                    time,
@@ -799,15 +786,18 @@ Murxla::dd(uint32_t seed,
                 || compare_files(tmp_err_file_name, gold_err_file_name)))
         {
           /* write immediately to file and continue */
-          write_lines_to_file(_lines, tmp_dd_trace_file_name);
-          lines[i][0]   = ss.str();
-          delete_map[j] = false;
+          write_lines_to_file(lines, superset, tmp_dd_trace_file_name);
+          delete_map[i] = false;
           n_failed += 1;
-          _n_terms -= 1;
-          MURXLA_MESSAGE_DD << "reduced line " << i << " to " << std::fixed
-                            << std::setprecision(2)
-                            << (((double) _n_terms) / n_terms * 100)
+          n_terms -= 1;
+          MURXLA_MESSAGE_DD << "reduced line " << line_idx << " to "
+                            << std::fixed << std::setprecision(2)
+                            << (((double) n_terms) / n_terms_orig * 100)
                             << "% of original size";
+        }
+        else
+        {
+          lines[line_idx][0] = line_orig;
         }
       }
     }
