@@ -723,7 +723,7 @@ Murxla::dd(uint32_t seed,
   OpKindManager opmgr(opmgr_enabled_theories, {}, false, &opmgr_stats);
   {
     RNGenerator opmgr_rng;
-    Solver* opmgr_solver = create_solver(opmgr_rng);
+    Solver* opmgr_solver = create_solver(opmgr_rng, false);
     opmgr_solver->configure_opmgr(&opmgr);
     delete opmgr_solver;
   }
@@ -868,7 +868,7 @@ Murxla::dd(uint32_t seed,
 }
 
 Solver*
-Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out)
+Murxla::create_solver(RNGenerator& rng, bool run_forked, std::ostream& smt2_out)
 {
   Solver* solver = nullptr;
 
@@ -1056,7 +1056,7 @@ Murxla::run_aux(uint32_t seed,
       close(fd);
     }
 
-    Solver* solver = create_solver(rng, smt2_out);
+    Solver* solver = create_solver(rng, run_forked, smt2_out);
 
     try
     {

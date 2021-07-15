@@ -76,7 +76,9 @@ class Murxla
   std::string d_tmp_dir;
 
  private:
-  Solver* create_solver(RNGenerator& rng, std::ostream& smt2_out = std::cout);
+  Solver* create_solver(RNGenerator& rng,
+                        bool run_forked,
+                        std::ostream& smt2_out = std::cout);
 
   Result run_aux(uint32_t seed,
                  double time,
