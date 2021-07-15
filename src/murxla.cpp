@@ -170,6 +170,31 @@ remove_subsets(std::vector<std::vector<size_t>>& subsets,
   return res;
 }
 
+/**
+ * Split set 'superset' into chunks of size 'subset_size'.
+ *
+ * Last subset will contain the remaining m > subset_size lines if subset_size
+ * does not divide superset.size().
+ */
+std::vector<std::vector<size_t>>
+split_superset(const std::vector<size_t> superset, uint32_t subset_size)
+{
+  std::vector<std::vector<size_t>> subsets;
+  uint32_t superset_size = superset.size();
+  auto begin             = superset.begin();
+  auto end               = superset.begin();
+  for (int64_t lo = 0; end != superset.end(); lo += subset_size)
+  {
+    int64_t hi = lo + subset_size;
+    end        = hi > superset_size || (superset_size - hi) < subset_size
+                     ? superset.end()
+                     : begin + hi;
+    std::vector<size_t> subset(begin + lo, end);
+    subsets.push_back(subset);
+  }
+  assert(subsets.size() == (size_t) superset_size / subset_size);
+  return subsets;
+}
 }  // namespace
 
 Murxla::Murxla(statistics::Statistics* stats,
@@ -630,21 +655,8 @@ Murxla::dd(uint32_t seed,
 
   while (subset_size > 0)
   {
-    std::vector<std::vector<size_t>> subsets;
-    auto begin = superset.begin();
-    auto end   = superset.begin();
-    for (int64_t lo = 0; end != superset.end(); lo += subset_size)
-    {
-      /* split original set into chunks of size 'subset_size' (last subset will
-       * contain the remaining m > subset_size lines if 'subset_size' does not
-       * divide 'size') */
-      int64_t hi = lo + subset_size;
-      end =
-          hi > size || (size - hi) < subset_size ? superset.end() : begin + hi;
-      std::vector<size_t> subset(begin + lo, end);
-      subsets.push_back(subset);
-    }
-    assert(subsets.size() == (size_t) size / subset_size);
+    std::vector<std::vector<size_t>> subsets =
+        split_superset(superset, subset_size);
 
     std::vector<size_t> cur_superset;
     std::unordered_set<size_t> excluded_sets;
@@ -652,9 +664,9 @@ Murxla::dd(uint32_t seed,
     {
       std::unordered_set<size_t> ex(excluded_sets);
       ex.insert(i);
-      std::vector<size_t> tmp = remove_subsets(subsets, ex);
+      std::vector<size_t> tmp_superset = remove_subsets(subsets, ex);
 
-      write_lines_to_file(lines, tmp, untrace_file_name);
+      write_lines_to_file(lines, tmp_superset, untrace_file_name);
       /* while delta debugging, do not trace to file or stdout */
       exit = run(seed,
                  time,
@@ -676,7 +688,7 @@ Murxla::dd(uint32_t seed,
                    tmp_err_file_name, d_options.dd_err_string, false))
               || compare_files(tmp_err_file_name, gold_err_file_name)))
       {
-        cur_superset = tmp;
+        cur_superset = tmp_superset;
         excluded_sets.insert(i);
         n_failed += 1;
         MURXLA_MESSAGE_DD << "reduced to " << std::fixed << std::setprecision(2)
