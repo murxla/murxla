@@ -723,9 +723,8 @@ Murxla::dd(uint32_t seed,
   OpKindManager opmgr(opmgr_enabled_theories, {}, false, &opmgr_stats);
   {
     RNGenerator opmgr_rng;
-    Solver* opmgr_solver = create_solver(opmgr_rng, false);
+    std::unique_ptr<Solver> opmgr_solver(create_solver(opmgr_rng, false));
     opmgr_solver->configure_opmgr(&opmgr);
-    delete opmgr_solver;
   }
 
   /* The set of actions that we consider for this minimization strategy. */
@@ -1056,7 +1055,7 @@ Murxla::run_aux(uint32_t seed,
       close(fd);
     }
 
-    Solver* solver = create_solver(rng, run_forked, smt2_out);
+    std::unique_ptr<Solver> solver(create_solver(rng, run_forked, smt2_out));
 
     try
     {
@@ -1065,7 +1064,7 @@ Murxla::run_aux(uint32_t seed,
       statistics::Statistics dummy_stats;
 
       FSM fsm(rng,
-              solver,
+              solver.get(),
               trace,
               *d_solver_options,
               d_options.arith_linear,
@@ -1096,8 +1095,6 @@ Murxla::run_aux(uint32_t seed,
     {
       MURXLA_EXIT_ERROR_FORK(true, run_forked) << e.get_msg();
     }
-
-    delete solver;
 
     if (file_trace.is_open()) file_trace.close();
 
