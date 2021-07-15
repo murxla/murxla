@@ -61,7 +61,7 @@ class Smt2Term : public AbsTerm
     VAR,
   };
 
-  Smt2Term(OpKind kind,
+  Smt2Term(Op::Kind kind,
            std::vector<Term> args,
            std::vector<uint32_t> params,
            LeafKind leaf_kind,
@@ -87,13 +87,13 @@ class Smt2Term : public AbsTerm
   bool is_string() const override;
   bool is_reglan() const override;
 
-  const OpKind get_kind() const;
+  const Op::Kind get_kind() const;
   const std::vector<Term>& get_args() const;
   const std::vector<uint32_t>& get_params() const;
   const std::string get_repr() const;
 
  private:
-  OpKind d_kind;
+  Op::Kind d_kind;
   std::vector<Term> d_args;
   std::vector<uint32_t> d_params;
   LeafKind d_leaf_kind = LeafKind::NONE;
@@ -293,7 +293,7 @@ class Smt2Solver : public Solver
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
-  Term mk_term(const OpKind& kind,
+  Term mk_term(const Op::Kind& kind,
                std::vector<Term>& args,
                std::vector<uint32_t>& params) override;
 

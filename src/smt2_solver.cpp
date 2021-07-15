@@ -217,7 +217,7 @@ Smt2Term::is_reglan() const
   return get_sort()->is_reglan();
 }
 
-const OpKind
+const Op::Kind
 Smt2Term::get_kind() const
 {
   return d_kind;
@@ -1012,7 +1012,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 }
 
 Term
-Smt2Solver::mk_term(const OpKind& kind,
+Smt2Solver::mk_term(const Op::Kind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
@@ -1027,7 +1027,7 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
   Smt2Term* smt2_term                 = static_cast<Smt2Term*>(term.get());
   const std::vector<Term>& args       = smt2_term->get_args();
   const std::vector<uint32_t>& params = smt2_term->get_params();
-  const OpKind kind                   = smt2_term->get_kind();
+  const Op::Kind kind                 = smt2_term->get_kind();
   uint32_t bv_size                    = 0;
   uint32_t sig_size                   = 0;
   std::string sort;

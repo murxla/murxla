@@ -9,32 +9,6 @@ namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
-const ActionKind Action::UNDEFINED             = "undefined";
-const ActionKind Action::NEW                   = "new";
-const ActionKind Action::DELETE                = "delete";
-const ActionKind Action::MK_SORT               = "mk-sort";
-const ActionKind Action::MK_VALUE              = "mk-value";
-const ActionKind Action::MK_SPECIAL_VALUE      = "mk-special-value";
-const ActionKind Action::MK_CONST              = "mk-const";
-const ActionKind Action::MK_VAR                = "mk-var";
-const ActionKind Action::MK_TERM               = "mk-term";
-const ActionKind Action::TERM_GET_SORT         = "term-get-sort";
-const ActionKind Action::TERM_CHECK_SORT       = "term-check-sort";
-const ActionKind Action::ASSERT_FORMULA        = "assert-formula";
-const ActionKind Action::GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
-const ActionKind Action::GET_VALUE             = "get-value";
-const ActionKind Action::PRINT_MODEL           = "print-model";
-const ActionKind Action::CHECK_SAT             = "check-sat";
-const ActionKind Action::CHECK_SAT_ASSUMING    = "check-sat-assuming";
-const ActionKind Action::PUSH                  = "push";
-const ActionKind Action::POP                   = "pop";
-const ActionKind Action::RESET_ASSERTIONS      = "reset-assertions";
-const ActionKind Action::SET_OPTION            = "set-option";
-const ActionKind Action::TRANS                 = "t_default";
-const ActionKind Action::TRANS_CREATE_INPUTS   = "t_inputs";
-const ActionKind Action::TRANS_CREATE_SORTS    = "t_sorts";
-const ActionKind Action::TRANS_MODEL           = "t_model";
-
 uint64_t
 Action::untrace_str_to_id(const std::string& s)
 {
@@ -65,7 +39,7 @@ Action::get_sort_kind_from_str(std::string& s)
 }
 
 Action::Action(SolverManager& smgr,
-               const ActionKind& kind,
+               const Kind& kind,
                ReturnValue returns,
                bool empty)
     : d_rng(smgr.get_rng()),
@@ -623,7 +597,7 @@ ActionMkTerm::run()
 
   /* Op gets only picked if there already exist terms that can be used as
    * operands. */
-  const OpKind& kind = d_smgr.pick_op_kind();
+  const Op::Kind& kind = d_smgr.pick_op_kind();
   assert(!d_smgr.d_arith_linear || kind != Op::INT_MOD);
   assert(!d_smgr.d_arith_linear || kind != Op::INT_DIV);
   assert(!d_smgr.d_arith_linear || kind != Op::REAL_DIV);
@@ -997,7 +971,7 @@ ActionMkTerm::untrace(std::vector<std::string>& tokens)
   std::vector<Term> args;
   std::vector<uint32_t> params;
   uint32_t n_tokens  = tokens.size();
-  OpKind op_kind     = tokens[0];
+  Op::Kind op_kind   = tokens[0];
   SortKind sort_kind = get_sort_kind_from_str(tokens[1]);
   uint32_t n_args    = str_to_uint32(tokens[2]);
   uint32_t idx       = 3;
@@ -1029,7 +1003,7 @@ ActionMkTerm::untrace(std::vector<std::string>& tokens)
 }
 
 std::vector<uint64_t>
-ActionMkTerm::_run(OpKind kind,
+ActionMkTerm::_run(Op::Kind kind,
                    SortKind sort_kind,
                    std::vector<Term> args,
                    std::vector<uint32_t> params)

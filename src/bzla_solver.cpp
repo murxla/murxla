@@ -621,7 +621,7 @@ BzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 }
 
 Term
-BzlaSolver::mk_term(const OpKind& kind,
+BzlaSolver::mk_term(const Op::Kind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
@@ -1128,23 +1128,8 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific operators, SolverManager configuration.                    */
+/* OpKindManager configuration.                                               */
 /* -------------------------------------------------------------------------- */
-
-const OpKind BzlaSolver::OP_BV_DEC    = "bzla-OP_BV_DEC";
-const OpKind BzlaSolver::OP_BV_INC    = "bzla-OP_BV_INC";
-const OpKind BzlaSolver::OP_BV_REDAND = "bzla-OP_BV_REDAND";
-const OpKind BzlaSolver::OP_BV_REDOR  = "bzla-OP_BV_REDOR";
-const OpKind BzlaSolver::OP_BV_REDXOR = "bzla-OP_BV_REDXOR";
-const OpKind BzlaSolver::OP_BV_ROL    = "bzla-OP_BV_ROL";
-const OpKind BzlaSolver::OP_BV_ROR    = "bzla-OP_BV_ROR";
-const OpKind BzlaSolver::OP_BV_SADDO  = "bzla-OP_BV_SADDO";
-const OpKind BzlaSolver::OP_BV_SDIVO  = "bzla-OP_BV_SDIVO";
-const OpKind BzlaSolver::OP_BV_SMULO  = "bzla-OP_BV_SMULO";
-const OpKind BzlaSolver::OP_BV_SSUBO  = "bzla-OP_BV_SSUBO";
-const OpKind BzlaSolver::OP_BV_UADDO  = "bzla-OP_BV_UADDO";
-const OpKind BzlaSolver::OP_BV_UMULO  = "bzla-OP_BV_UMULO";
-const OpKind BzlaSolver::OP_BV_USUBO  = "bzla-OP_BV_USUBO";
 
 void
 BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
@@ -1166,21 +1151,8 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific actions and states, FSM configuration.                     */
+/* FSM configuration.                                                         */
 /* -------------------------------------------------------------------------- */
-
-/* solver-specific actions */
-const ActionKind BzlaSolver::ACTION_IS_UNSAT_ASSUMPTION =
-    "bzla-is-unsat-assumption";
-const ActionKind BzlaSolver::ACTION_FIXATE_ASSUMPTIONS =
-    "bzla-fixate-assumptions";
-const ActionKind BzlaSolver::ACTION_RESET_ASSUMPTIONS =
-    "bzla-reset-assumptions";
-const ActionKind BzlaSolver::ACTION_SIMPLIFY        = "bzla-simplify";
-const ActionKind BzlaSolver::ACTION_TERM_SET_SYMBOL = "bzla-term-set-symbol";
-/* solver-specific states */
-const StateKind BzlaSolver::STATE_FIX_RESET_ASSUMPTIONS =
-    "bzla-fix-reset-assumptions";
 
 class BzlaActionIsUnsatAssumption : public Action
 {

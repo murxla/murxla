@@ -1949,45 +1949,8 @@ YicesSolver::terms_to_yices_terms(std::vector<Term>& terms) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific operators, SolverManager configuration.                    */
+/* OpKindManager configuration.                                               */
 /* -------------------------------------------------------------------------- */
-
-// BV
-const OpKind YicesSolver::OP_ASHIFT_RIGHT = "yices-OP_ASHIFT_RIGHT";
-const OpKind YicesSolver::OP_BITEXTRACT   = "yices-OP_BITEXTRACT";
-const OpKind YicesSolver::OP_BVARRAY      = "yices-OP_BVARRAY";
-const OpKind YicesSolver::OP_BVPOWER      = "yices-OP_BVPOWER";
-const OpKind YicesSolver::OP_BVSQUARE     = "yices-OP_BVSQUARE";
-const OpKind YicesSolver::OP_REDAND       = "yices-OP_REDAND";
-const OpKind YicesSolver::OP_REDOR        = "yices-OP_REDOR";
-const OpKind YicesSolver::OP_SHIFT_LEFT0  = "yices-OP_SHIFT_LEFT0";
-const OpKind YicesSolver::OP_SHIFT_LEFT1  = "yices-OP_SHIFT_LEFT1";
-const OpKind YicesSolver::OP_SHIFT_RIGHT0 = "yices-OP_SHIFT_RIGHT0";
-const OpKind YicesSolver::OP_SHIFT_RIGHT1 = "yices-OP_SHIFT_RIGHT1";
-// Arithmetic
-const OpKind YicesSolver::OP_INT_CEIL    = "yices-OP_INT_CEIL";
-const OpKind YicesSolver::OP_INT_FLOOR   = "yices-OP_INT_FLOOR";
-const OpKind YicesSolver::OP_INT_EQ0     = "yices-OP_INT_EQ0";
-const OpKind YicesSolver::OP_INT_GEQ0    = "yices-OP_INT_GEQ0";
-const OpKind YicesSolver::OP_INT_GT0     = "yices-OP_INT_GT0";
-const OpKind YicesSolver::OP_INT_LEQ0    = "yices-OP_INT_LEQ0";
-const OpKind YicesSolver::OP_INT_LT0     = "yices-OP_INT_LT0";
-const OpKind YicesSolver::OP_INT_NEQ0    = "yices-OP_INT_NEQ0";
-const OpKind YicesSolver::OP_INT_POLY    = "yices-OP_INT_POLY";
-const OpKind YicesSolver::OP_INT_POWER   = "yices-OP_INT_POWER";
-const OpKind YicesSolver::OP_INT_SQUARE  = "yices-OP_INT_SQUARE";
-const OpKind YicesSolver::OP_REAL_CEIL   = "yices-OP_REAL_CEIL";
-const OpKind YicesSolver::OP_REAL_FLOOR  = "yices-OP_REAL_FLOOR";
-const OpKind YicesSolver::OP_REAL_EQ0    = "yices-OP_REAL_EQ0";
-const OpKind YicesSolver::OP_REAL_GEQ0   = "yices-OP_REAL_GEQ0";
-const OpKind YicesSolver::OP_REAL_GT0    = "yices-OP_REAL_GT0";
-const OpKind YicesSolver::OP_REAL_LEQ0   = "yices-OP_REAL_LEQ0";
-const OpKind YicesSolver::OP_REAL_LT0    = "yices-OP_REAL_LT0";
-const OpKind YicesSolver::OP_REAL_NEQ0   = "yices-OP_REAL_NEQ0";
-const OpKind YicesSolver::OP_REAL_POLY   = "yices-OP_REAL_POLY";
-const OpKind YicesSolver::OP_REAL_RPOLY  = "yices-OP_REAL_RPOLY";
-const OpKind YicesSolver::OP_REAL_POWER  = "yices-OP_REAL_POWER";
-const OpKind YicesSolver::OP_REAL_SQUARE = "yices-OP_REAL_SQUARE";
 
 void
 YicesSolver::configure_opmgr(OpKindManager* opmgr) const

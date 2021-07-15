@@ -118,9 +118,9 @@ class SolverManager
    * Pick enabled operator kind (and get its data).
    * Only operator kinds of enabled theories are picked.
    */
-  OpKind pick_op_kind(bool with_terms = true);
+  Op::Kind pick_op_kind(bool with_terms = true);
 
-  Op& get_op(const OpKind& kind);
+  Op& get_op(const Op::Kind& kind);
 
   /**
    * Return true if
@@ -456,7 +456,7 @@ class SolverManager
 
   /** The set of enabled sort kinds. Maps SortKind to SortKindData. */
   SortKindMap d_sort_kinds;
-  /** The OpKind manager. */
+  /** The Op::Kind manager. */
   std::unique_ptr<OpKindManager> d_opmgr;
 
   /** The set of enabled theories. */

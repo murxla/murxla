@@ -87,19 +87,22 @@ class Cvc5Solver : public Solver
 {
  public:
   /** Solver-specific actions. */
-  static const ActionKind ACTION_CHECK_ENTAILED;
-  static const ActionKind ACTION_SIMPLIFY;
+  inline static const Action::Kind ACTION_CHECK_ENTAILED =
+      "cvc5-check-entailed";
+  inline static const Action::Kind ACTION_SIMPLIFY = "cvc5-simplify";
+
   /** Solver-specific operators. */
   // BV
-  static const OpKind OP_BV_REDAND;
-  static const OpKind OP_BV_REDOR;
+  inline static const Op::Kind OP_BV_REDAND = "cvc5-OP_BV_REDAND";
+  inline static const Op::Kind OP_BV_REDOR  = "cvc5-OP_BV_REDOR";
   //  Strings
-  static const OpKind OP_STRING_UPDATE;
-  static const OpKind OP_STRING_TOLOWER;
-  static const OpKind OP_STRING_TOUPPER;
-  static const OpKind OP_STRING_REV;
+  inline static const Op::Kind OP_STRING_UPDATE  = "cvc5-OP_STRING_UPDATE";
+  inline static const Op::Kind OP_STRING_TOLOWER = "cvc5-OP_STRING_TOLOWER";
+  inline static const Op::Kind OP_STRING_TOUPPER = "cvc5-OP_STRING_TOUPPER";
+  inline static const Op::Kind OP_STRING_REV     = "cvc5-OP_STRING_REV";
+
   /** Solver-specific special values. */
-  static const SpecialValueKind SPECIAL_VALUE_PI;
+  inline static const SpecialValueKind SPECIAL_VALUE_PI = "cvc5-pi";
 
   /** Constructor. */
   Cvc5Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
@@ -161,7 +164,7 @@ class Cvc5Solver : public Solver
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
   Term mk_const(Sort sort, const std::string& name) override;
-  Term mk_term(const OpKind& kind,
+  Term mk_term(const Op::Kind& kind,
                std::vector<Term>& args,
                std::vector<uint32_t>& params) override;
 

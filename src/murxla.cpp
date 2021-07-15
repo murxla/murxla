@@ -717,7 +717,7 @@ Murxla::dd(uint32_t seed,
   }
 
   /* The set of actions that we consider for this minimization strategy. */
-  std::unordered_set<ActionKind> actions = {Action::MK_TERM};
+  std::unordered_set<Action::Kind> actions = {Action::MK_TERM};
 
   /* Minimize. */
   for (size_t line_idx : superset)
@@ -730,12 +730,12 @@ Murxla::dd(uint32_t seed,
 
     auto it = actions.find(action_id);
     if (it == actions.end()) continue;
-    const ActionKind& action = *it;
+    const Action::Kind& action = *it;
     uint32_t idx = 0, n_terms_orig = 0, n_tokens_orig = tokens.size();
 
     if (action == Action::MK_TERM)
     {
-      OpKind op_kind = tokens[0];
+      Op::Kind op_kind = tokens[0];
       Op& op         = opmgr.get_op(op_kind);
       if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
       idx     = 3;

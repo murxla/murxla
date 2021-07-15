@@ -26,8 +26,6 @@ namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
-using ActionKind = std::string;
-
 class RNGenerator;
 class SolverManager;
 class State;
@@ -41,36 +39,38 @@ class State;
 class Action
 {
  public:
+  using Kind = std::string;
+
   /**
    * Default action kinds / trace strings.
    * We use strings here to make FSM::d_actions easily extendible with
    * solver-specific actions.
    */
-  static const ActionKind UNDEFINED;
-  static const ActionKind NEW;
-  static const ActionKind DELETE;
-  static const ActionKind MK_SORT;
-  static const ActionKind MK_VALUE;
-  static const ActionKind MK_SPECIAL_VALUE;
-  static const ActionKind MK_CONST;
-  static const ActionKind MK_VAR;
-  static const ActionKind MK_TERM;
-  static const ActionKind TERM_GET_SORT;
-  static const ActionKind TERM_CHECK_SORT;
-  static const ActionKind ASSERT_FORMULA;
-  static const ActionKind GET_UNSAT_ASSUMPTIONS;
-  static const ActionKind GET_VALUE;
-  static const ActionKind PRINT_MODEL;
-  static const ActionKind CHECK_SAT;
-  static const ActionKind CHECK_SAT_ASSUMING;
-  static const ActionKind PUSH;
-  static const ActionKind POP;
-  static const ActionKind RESET_ASSERTIONS;
-  static const ActionKind SET_OPTION;
-  static const ActionKind TRANS;
-  static const ActionKind TRANS_CREATE_INPUTS;
-  static const ActionKind TRANS_CREATE_SORTS;
-  static const ActionKind TRANS_MODEL;
+  inline static const Kind UNDEFINED             = "undefined";
+  inline static const Kind NEW                   = "new";
+  inline static const Kind DELETE                = "delete";
+  inline static const Kind MK_SORT               = "mk-sort";
+  inline static const Kind MK_VALUE              = "mk-value";
+  inline static const Kind MK_SPECIAL_VALUE      = "mk-special-value";
+  inline static const Kind MK_CONST              = "mk-const";
+  inline static const Kind MK_VAR                = "mk-var";
+  inline static const Kind MK_TERM               = "mk-term";
+  inline static const Kind TERM_GET_SORT         = "term-get-sort";
+  inline static const Kind TERM_CHECK_SORT       = "term-check-sort";
+  inline static const Kind ASSERT_FORMULA        = "assert-formula";
+  inline static const Kind GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
+  inline static const Kind GET_VALUE             = "get-value";
+  inline static const Kind PRINT_MODEL           = "print-model";
+  inline static const Kind CHECK_SAT             = "check-sat";
+  inline static const Kind CHECK_SAT_ASSUMING    = "check-sat-assuming";
+  inline static const Kind PUSH                  = "push";
+  inline static const Kind POP                   = "pop";
+  inline static const Kind RESET_ASSERTIONS      = "reset-assertions";
+  inline static const Kind SET_OPTION            = "set-option";
+  inline static const Kind TRANS                 = "t_default";
+  inline static const Kind TRANS_CREATE_INPUTS   = "t_inputs";
+  inline static const Kind TRANS_CREATE_SORTS    = "t_sorts";
+  inline static const Kind TRANS_MODEL           = "t_model";
 
   /**
    * Convert untraced sort or term id string to uint64_t.
@@ -101,13 +101,13 @@ class Action
   };
 
   /** Get Action kind from string representation. */
-  const ActionKind& get_kind() { return d_kind; };
+  const Kind& get_kind() { return d_kind; };
 
   /** Disallow default constructor. */
   Action() = delete;
   /** Constructor. */
   Action(SolverManager& smgr,
-         const ActionKind& kind,
+         const Kind& kind,
          ReturnValue returns,
          bool empty = false);
 
@@ -127,7 +127,7 @@ class Action
   virtual std::vector<uint64_t> untrace(std::vector<std::string>& tokens) = 0;
 
   /** Return the string representing the kind of this action. */
-  const ActionKind& get_kind() const { return d_kind; }
+  const Kind& get_kind() const { return d_kind; }
   /** Return the id of this action. */
   const uint64_t get_id() const { return d_id; }
   /** Set the id of this action. */
@@ -181,7 +181,7 @@ class Action
 
  private:
   /* Action kind. */
-  const ActionKind& d_kind = UNDEFINED;
+  const Kind& d_kind = UNDEFINED;
   /* Action id, assigned in the order they have been created. */
   uint64_t d_id = 0u;
 };
@@ -204,7 +204,7 @@ struct ActionTuple
 class Transition : public Action
 {
  public:
-  Transition(SolverManager& smgr, const ActionKind& kind)
+  Transition(SolverManager& smgr, const Action::Kind& kind)
       : Action(smgr, kind, NONE, true)
   {
   }
@@ -271,7 +271,7 @@ class UntraceAction : public Action
 {
  public:
   UntraceAction(SolverManager& smgr,
-                const ActionKind& kind,
+                const Action::Kind& kind,
                 ReturnValue returns)
       : Action(smgr, kind, returns)
   {
@@ -373,7 +373,7 @@ class ActionMkTerm : public Action
   std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
 
  private:
-  std::vector<uint64_t> _run(OpKind kind,
+  std::vector<uint64_t> _run(Op::Kind kind,
                              SortKind sort_kind,
                              std::vector<Term> args,
                              std::vector<uint32_t> params);

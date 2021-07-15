@@ -16,163 +16,161 @@ struct Statistics;
 
 /* -------------------------------------------------------------------------- */
 
-using OpKind = std::string;
-
-/* -------------------------------------------------------------------------- */
-
 struct Op
 {
-  static const OpKind UNDEFINED;
+  using Kind = std::string;
+
+  inline static const Kind UNDEFINED = "OP_UNDEFINED";
   /* Special cases */
-  static const OpKind DISTINCT;
-  static const OpKind EQUAL;
-  static const OpKind ITE;
+  inline static const Kind DISTINCT = "OP_DISTINCT";
+  inline static const Kind EQUAL    = "OP_EQUAL";
+  inline static const Kind ITE      = "OP_ITE";
   /* Arrays */
-  static const OpKind ARRAY_SELECT;
-  static const OpKind ARRAY_STORE;
+  inline static const Kind ARRAY_SELECT = "OP_ARRAY_SELECT";
+  inline static const Kind ARRAY_STORE  = "OP_ARRAY_STORE";
   /* Boolean */
-  static const OpKind AND;
-  static const OpKind IFF;
-  static const OpKind IMPLIES;
-  static const OpKind NOT;
-  static const OpKind OR;
-  static const OpKind XOR;
+  inline static const Kind AND     = "OP_AND";
+  inline static const Kind IFF     = "OP_IFF";
+  inline static const Kind IMPLIES = "OP_IMPLIES";
+  inline static const Kind NOT     = "OP_NOT";
+  inline static const Kind OR      = "OP_OR";
+  inline static const Kind XOR     = "OP_XOR";
   /* BV */
-  static const OpKind BV_EXTRACT;
-  static const OpKind BV_REPEAT;
-  static const OpKind BV_ROTATE_LEFT;
-  static const OpKind BV_ROTATE_RIGHT;
-  static const OpKind BV_SIGN_EXTEND;
-  static const OpKind BV_ZERO_EXTEND;
-  static const OpKind BV_ADD;
-  static const OpKind BV_AND;
-  static const OpKind BV_ASHR;
-  static const OpKind BV_COMP;
-  static const OpKind BV_CONCAT;
-  static const OpKind BV_LSHR;
-  static const OpKind BV_MULT;
-  static const OpKind BV_NAND;
-  static const OpKind BV_NEG;
-  static const OpKind BV_NOR;
-  static const OpKind BV_NOT;
-  static const OpKind BV_OR;
-  static const OpKind BV_SDIV;
-  static const OpKind BV_SGE;
-  static const OpKind BV_SGT;
-  static const OpKind BV_SHL;
-  static const OpKind BV_SLE;
-  static const OpKind BV_SLT;
-  static const OpKind BV_SMOD;
-  static const OpKind BV_SREM;
-  static const OpKind BV_SUB;
-  static const OpKind BV_UDIV;
-  static const OpKind BV_UGE;
-  static const OpKind BV_UGT;
-  static const OpKind BV_ULE;
-  static const OpKind BV_ULT;
-  static const OpKind BV_UREM;
-  static const OpKind BV_XNOR;
-  static const OpKind BV_XOR;
+  inline static const Kind BV_EXTRACT      = "OP_BV_EXTRACT";
+  inline static const Kind BV_REPEAT       = "OP_BV_REPEAT";
+  inline static const Kind BV_ROTATE_LEFT  = "OP_BV_ROTATE_LEFT";
+  inline static const Kind BV_ROTATE_RIGHT = "OP_BV_ROTATE_RIGHT";
+  inline static const Kind BV_SIGN_EXTEND  = "OP_BV_SIGN_EXTEND";
+  inline static const Kind BV_ZERO_EXTEND  = "OP_BV_ZERO_EXTEND";
+  inline static const Kind BV_ADD          = "OP_BV_ADD";
+  inline static const Kind BV_AND          = "OP_BV_AND";
+  inline static const Kind BV_ASHR         = "OP_BV_ASHR";
+  inline static const Kind BV_COMP         = "OP_BV_COMP";
+  inline static const Kind BV_CONCAT       = "OP_BV_CONCAT";
+  inline static const Kind BV_LSHR         = "OP_BV_LSHR";
+  inline static const Kind BV_MULT         = "OP_BV_MULT";
+  inline static const Kind BV_NAND         = "OP_BV_NAND";
+  inline static const Kind BV_NEG          = "OP_BV_NEG";
+  inline static const Kind BV_NOR          = "OP_BV_NOR";
+  inline static const Kind BV_NOT          = "OP_BV_NOT";
+  inline static const Kind BV_OR           = "OP_BV_OR";
+  inline static const Kind BV_SDIV         = "OP_BV_SDIV";
+  inline static const Kind BV_SGE          = "OP_BV_SGE";
+  inline static const Kind BV_SGT          = "OP_BV_SGT";
+  inline static const Kind BV_SHL          = "OP_BV_SHL";
+  inline static const Kind BV_SLE          = "OP_BV_SLE";
+  inline static const Kind BV_SLT          = "OP_BV_SLT";
+  inline static const Kind BV_SMOD         = "OP_BV_SMOD";
+  inline static const Kind BV_SREM         = "OP_BV_SREM";
+  inline static const Kind BV_SUB          = "OP_BV_SUB";
+  inline static const Kind BV_UDIV         = "OP_BV_UDIV";
+  inline static const Kind BV_UGE          = "OP_BV_UGE";
+  inline static const Kind BV_UGT          = "OP_BV_UGT";
+  inline static const Kind BV_ULE          = "OP_BV_ULE";
+  inline static const Kind BV_ULT          = "OP_BV_ULT";
+  inline static const Kind BV_UREM         = "OP_BV_UREM";
+  inline static const Kind BV_XNOR         = "OP_BV_XNOR";
+  inline static const Kind BV_XOR          = "OP_BV_XOR";
   /* FP */
-  static const OpKind FP_TO_FP_FROM_BV;
-  static const OpKind FP_TO_FP_FROM_SBV;
-  static const OpKind FP_TO_FP_FROM_FP;
-  static const OpKind FP_TO_FP_FROM_UBV;
-  static const OpKind FP_TO_FP_FROM_REAL;
-  static const OpKind FP_TO_SBV;
-  static const OpKind FP_TO_UBV;
-  static const OpKind FP_ABS;
-  static const OpKind FP_ADD;
-  static const OpKind FP_DIV;
-  static const OpKind FP_EQ;
-  static const OpKind FP_FMA;
-  static const OpKind FP_FP;
-  static const OpKind FP_IS_NORMAL;
-  static const OpKind FP_IS_SUBNORMAL;
-  static const OpKind FP_IS_INF;
-  static const OpKind FP_IS_NAN;
-  static const OpKind FP_IS_NEG;
-  static const OpKind FP_IS_POS;
-  static const OpKind FP_IS_ZERO;
-  static const OpKind FP_LT;
-  static const OpKind FP_LEQ;
-  static const OpKind FP_GT;
-  static const OpKind FP_GEQ;
-  static const OpKind FP_MAX;
-  static const OpKind FP_MIN;
-  static const OpKind FP_MUL;
-  static const OpKind FP_NEG;
-  static const OpKind FP_REM;
-  static const OpKind FP_RTI;
-  static const OpKind FP_SQRT;
-  static const OpKind FP_SUB;
-  static const OpKind FP_TO_REAL;
+  inline static const Kind FP_TO_FP_FROM_BV   = "OP_FP_TO_FP_FROM_BV";
+  inline static const Kind FP_TO_FP_FROM_SBV  = "OP_FP_TO_FP_FROM_SBV";
+  inline static const Kind FP_TO_FP_FROM_FP   = "OP_FP_TO_FP_FROM_FP";
+  inline static const Kind FP_TO_FP_FROM_UBV  = "OP_FP_TO_FP_FROM_UBV";
+  inline static const Kind FP_TO_FP_FROM_REAL = "OP_FP_TO_FP_FROM_REAL";
+  inline static const Kind FP_TO_SBV          = "OP_FP_TO_SBV";
+  inline static const Kind FP_TO_UBV          = "OP_FP_TO_UBV";
+  inline static const Kind FP_ABS             = "OP_FP_ABS";
+  inline static const Kind FP_ADD             = "OP_FP_ADD";
+  inline static const Kind FP_DIV             = "OP_FP_DIV";
+  inline static const Kind FP_EQ              = "OP_FP_EQ";
+  inline static const Kind FP_FMA             = "OP_FP_FMA";
+  inline static const Kind FP_FP              = "OP_FP_FP";
+  inline static const Kind FP_IS_NORMAL       = "OP_FP_IS_NORMAL";
+  inline static const Kind FP_IS_SUBNORMAL    = "OP_FP_IS_SUBNORMAL";
+  inline static const Kind FP_IS_INF          = "OP_FP_IS_INF";
+  inline static const Kind FP_IS_NAN          = "OP_FP_IS_NAN";
+  inline static const Kind FP_IS_NEG          = "OP_FP_IS_NEG";
+  inline static const Kind FP_IS_POS          = "OP_FP_IS_POS";
+  inline static const Kind FP_IS_ZERO         = "OP_FP_IS_ZERO";
+  inline static const Kind FP_LT              = "OP_FP_LT";
+  inline static const Kind FP_LEQ             = "OP_FP_LEQ";
+  inline static const Kind FP_GT              = "OP_FP_GT";
+  inline static const Kind FP_GEQ             = "OP_FP_GEQ";
+  inline static const Kind FP_MAX             = "OP_FP_MAX";
+  inline static const Kind FP_MIN             = "OP_FP_MIN";
+  inline static const Kind FP_MUL             = "OP_FP_MUL";
+  inline static const Kind FP_NEG             = "OP_FP_NEG";
+  inline static const Kind FP_REM             = "OP_FP_REM";
+  inline static const Kind FP_RTI             = "OP_FP_RTI";
+  inline static const Kind FP_SQRT            = "OP_FP_SQRT";
+  inline static const Kind FP_SUB             = "OP_FP_SUB";
+  inline static const Kind FP_TO_REAL         = "OP_FP_TO_REAL";
   /* Ints */
-  static const OpKind INT_IS_DIV;
-  static const OpKind INT_IS_INT;
-  static const OpKind INT_NEG;
-  static const OpKind INT_SUB;
-  static const OpKind INT_ADD;
-  static const OpKind INT_MUL;
-  static const OpKind INT_DIV;
-  static const OpKind INT_MOD;
-  static const OpKind INT_ABS;
-  static const OpKind INT_LT;
-  static const OpKind INT_LTE;
-  static const OpKind INT_GT;
-  static const OpKind INT_GTE;
+  inline static const Kind INT_IS_DIV = "OP_INT_IS_DIV";
+  inline static const Kind INT_IS_INT = "OP_INT_IS_INT";
+  inline static const Kind INT_NEG    = "OP_INT_NEG";
+  inline static const Kind INT_SUB    = "OP_INT_SUB";
+  inline static const Kind INT_ADD    = "OP_INT_ADD";
+  inline static const Kind INT_MUL    = "OP_INT_MUL";
+  inline static const Kind INT_DIV    = "OP_INT_DIV";
+  inline static const Kind INT_MOD    = "OP_INT_MOD";
+  inline static const Kind INT_ABS    = "OP_INT_ABS";
+  inline static const Kind INT_LT     = "OP_INT_LT";
+  inline static const Kind INT_LTE    = "OP_INT_LTE";
+  inline static const Kind INT_GT     = "OP_INT_GT";
+  inline static const Kind INT_GTE    = "OP_INT_GTE";
   /* Reals */
-  static const OpKind REAL_IS_INT;
-  static const OpKind REAL_NEG;
-  static const OpKind REAL_SUB;
-  static const OpKind REAL_ADD;
-  static const OpKind REAL_MUL;
-  static const OpKind REAL_DIV;
-  static const OpKind REAL_LT;
-  static const OpKind REAL_LTE;
-  static const OpKind REAL_GT;
-  static const OpKind REAL_GTE;
+  inline static const Kind REAL_IS_INT = "OP_REAL_IS_INT";
+  inline static const Kind REAL_NEG    = "OP_REAL_NEG";
+  inline static const Kind REAL_SUB    = "OP_REAL_SUB";
+  inline static const Kind REAL_ADD    = "OP_REAL_ADD";
+  inline static const Kind REAL_MUL    = "OP_REAL_MUL";
+  inline static const Kind REAL_DIV    = "OP_REAL_DIV";
+  inline static const Kind REAL_LT     = "OP_REAL_LT";
+  inline static const Kind REAL_LTE    = "OP_REAL_LTE";
+  inline static const Kind REAL_GT     = "OP_REAL_GT";
+  inline static const Kind REAL_GTE    = "OP_REAL_GTE";
   /* Quantifiers */
-  static const OpKind FORALL;
-  static const OpKind EXISTS;
+  inline static const Kind FORALL = "OP_FORALL";
+  inline static const Kind EXISTS = "OP_EXISTS";
   /* Strings */
-  static const OpKind RE_COMP;
-  static const OpKind RE_CONCAT;
-  static const OpKind RE_DIFF;
-  static const OpKind RE_INTER;
-  static const OpKind RE_LOOP;
-  static const OpKind RE_OPT;
-  static const OpKind RE_PLUS;
-  static const OpKind RE_POW;
-  static const OpKind RE_RANGE;
-  static const OpKind RE_STAR;
-  static const OpKind RE_UNION;
-  static const OpKind STR_AT;
-  static const OpKind STR_CONCAT;
-  static const OpKind STR_CONTAINS;
-  static const OpKind STR_FROM_CODE;
-  static const OpKind STR_FROM_INT;
-  static const OpKind STR_INDEXOF;
-  static const OpKind STR_IN_RE;
-  static const OpKind STR_IS_DIGIT;
-  static const OpKind STR_LE;
-  static const OpKind STR_LEN;
-  static const OpKind STR_LT;
-  static const OpKind STR_PREFIXOF;
-  static const OpKind STR_REPLACE;
-  static const OpKind STR_REPLACE_ALL;
-  static const OpKind STR_REPLACE_RE;
-  static const OpKind STR_REPLACE_RE_ALL;
-  static const OpKind STR_SUBSTR;
-  static const OpKind STR_SUFFIXOF;
-  static const OpKind STR_TO_CODE;
-  static const OpKind STR_TO_INT;
-  static const OpKind STR_TO_RE;
+  inline static const Kind RE_COMP            = "OP_RE_COMP";
+  inline static const Kind RE_CONCAT          = "OP_RE_CONCAT";
+  inline static const Kind RE_DIFF            = "OP_RE_DIFF";
+  inline static const Kind RE_INTER           = "OP_RE_INTER";
+  inline static const Kind RE_LOOP            = "OP_RE_LOOP";
+  inline static const Kind RE_OPT             = "OP_RE_OPT";
+  inline static const Kind RE_PLUS            = "OP_RE_PLUS";
+  inline static const Kind RE_POW             = "OP_RE_POW";
+  inline static const Kind RE_RANGE           = "OP_RE_RANGE";
+  inline static const Kind RE_STAR            = "OP_RE_STAR";
+  inline static const Kind RE_UNION           = "OP_RE_UNION";
+  inline static const Kind STR_AT             = "OP_STR_";
+  inline static const Kind STR_CONCAT         = "OP_STR_CONCAT";
+  inline static const Kind STR_CONTAINS       = "OP_STR_CONTAINS";
+  inline static const Kind STR_FROM_CODE      = "OP_STR_FROM_CODE";
+  inline static const Kind STR_FROM_INT       = "OP_STR_FROM_INT";
+  inline static const Kind STR_INDEXOF        = "OP_STR_INDEXOF";
+  inline static const Kind STR_IN_RE          = "OP_STR_IN_RE";
+  inline static const Kind STR_IS_DIGIT       = "OP_STR_IS_DIGIT";
+  inline static const Kind STR_LE             = "OP_STR_";
+  inline static const Kind STR_LEN            = "OP_STR_LEN";
+  inline static const Kind STR_LT             = "OP_STR_LT";
+  inline static const Kind STR_PREFIXOF       = "OP_STR_PREFIXOF";
+  inline static const Kind STR_REPLACE        = "OP_STR_REPLACE";
+  inline static const Kind STR_REPLACE_ALL    = "OP_STR_REPLACE_ALL";
+  inline static const Kind STR_REPLACE_RE     = "OP_STR_REPLACE_RE";
+  inline static const Kind STR_REPLACE_RE_ALL = "OP_STR_REPLACE_RE_ALL";
+  inline static const Kind STR_SUBSTR         = "OP_STR_SUBSTR";
+  inline static const Kind STR_SUFFIXOF       = "OP_STR_SUFFIXOF";
+  inline static const Kind STR_TO_CODE        = "OP_STR_TO_CODE";
+  inline static const Kind STR_TO_INT         = "OP_STR_TO_INT";
+  inline static const Kind STR_TO_RE          = "OP_STR_TO_RE";
   /* UF */
-  static const OpKind UF_APPLY;
+  inline static const Kind UF_APPLY = "OP_UF_APPLY";
 
   Op(uint64_t id,
-     const OpKind& kind,
+     const Kind& kind,
      int32_t arity,
      uint32_t nparams,
      SortKind sort_kind,
@@ -186,7 +184,7 @@ struct Op
   /* Op id, assigned in the order they have been created. */
   uint64_t d_id = 0u;
   /** The Kind. */
-  const OpKind& d_kind = UNDEFINED;
+  const Kind& d_kind = UNDEFINED;
   /** The arity of this kind. */
   int32_t d_arity;
   /** The number of parameters if parameterized. */
@@ -203,15 +201,15 @@ struct Op
 
 /* -------------------------------------------------------------------------- */
 
-using OpKindVector = std::vector<OpKind>;
-using OpKindSet    = std::unordered_set<OpKind>;
-using OpKindMap    = std::unordered_map<OpKind, Op>;
+using OpKindVector = std::vector<Op::Kind>;
+using OpKindSet    = std::unordered_set<Op::Kind>;
+using OpKindMap    = std::unordered_map<Op::Kind, Op>;
 using OpKinds = std::unordered_map<SortKind, OpKindVector>;
 
 /* -------------------------------------------------------------------------- */
 
 /**
- * The OpKind Manager.
+ * The operator kind manager.
  *
  * Maintains the current set of operator kinds, based on enabled theories
  * and unsupported operator kinds.
@@ -233,7 +231,7 @@ class OpKindManager
   }
 
   /** Get operator of given kind. */
-  Op& get_op(const OpKind& kind);
+  Op& get_op(const Op::Kind& kind);
 
   /**
    * Add operator kind to operator kinds database.
@@ -245,7 +243,7 @@ class OpKindManager
    *                  the remaining kinds are the same, it's sufficient to only
    *                  list it once.
    */
-  void add_op_kind(const OpKind& kind,
+  void add_op_kind(const Op::Kind& kind,
                    int32_t arity,
                    uint32_t nparams,
                    SortKind sort_kind,
@@ -260,7 +258,7 @@ class OpKindManager
    * Operator kinds are enabled based on the set of enabled theories.
    */
   void add_op_kinds();
-  /** The set of enabled operator kinds. Maps OpKind to Op. */
+  /** The set of enabled operator kinds. Maps Op::Kind to Op. */
   OpKindMap d_op_kinds;
   /** The set of enabled theories. */
   TheoryIdSet d_enabled_theories;

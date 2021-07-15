@@ -78,31 +78,36 @@ class BtorSolver : public Solver
 {
  public:
   /** Solver-specific actions. */
-  static const OpKind ACTION_OPT_ITERATOR;
-  static const OpKind ACTION_BV_ASSIGNMENT;
-  static const OpKind ACTION_CLONE;
-  static const OpKind ACTION_FAILED;
-  static const OpKind ACTION_FIXATE_ASSUMPTIONS;
-  static const OpKind ACTION_RESET_ASSUMPTIONS;
-  static const OpKind ACTION_RELEASE_ALL;
-  static const OpKind ACTION_SIMPLIFY;
-  static const OpKind ACTION_SET_SAT_SOLVER;
-  static const OpKind ACTION_SET_SYMBOL;
+  inline static const Action::Kind ACTION_OPT_ITERATOR  = "btor-opt-iterator";
+  inline static const Action::Kind ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
+  inline static const Action::Kind ACTION_CLONE         = "btor-clone";
+  inline static const Action::Kind ACTION_FAILED        = "btor-failed";
+  inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
+      "btor-fixate-assumptions";
+  inline static const Action::Kind ACTION_RESET_ASSUMPTIONS =
+      "btor-reset-assumptions";
+  inline static const Action::Kind ACTION_RELEASE_ALL = "btor-release-all";
+  inline static const Action::Kind ACTION_SIMPLIFY    = "btor-simplify";
+  inline static const Action::Kind ACTION_SET_SAT_SOLVER =
+      "btor-set-sat-solver";
+  inline static const Action::Kind ACTION_SET_SYMBOL = "btor-set-symbol";
+
   /** Solver-specific operators. */
-  static const OpKind OP_DEC;
-  static const OpKind OP_INC;
-  static const OpKind OP_REDAND;
-  static const OpKind OP_REDOR;
-  static const OpKind OP_REDXOR;
-  static const OpKind OP_UADDO;
-  static const OpKind OP_UMULO;
-  static const OpKind OP_USUBO;
-  static const OpKind OP_SADDO;
-  static const OpKind OP_SDIVO;
-  static const OpKind OP_SMULO;
-  static const OpKind OP_SSUBO;
+  inline static const Op::Kind OP_DEC    = "btor-OP_DEC";
+  inline static const Op::Kind OP_INC    = "btor-OP_INC";
+  inline static const Op::Kind OP_REDAND = "btor-OP_REDAND";
+  inline static const Op::Kind OP_REDOR  = "btor-OP_REDOR";
+  inline static const Op::Kind OP_REDXOR = "btor-OP_REDXOR";
+  inline static const Op::Kind OP_UADDO  = "btor-OP_UADDO";
+  inline static const Op::Kind OP_UMULO  = "btor-OP_UMULO";
+  inline static const Op::Kind OP_USUBO  = "btor-OP_USUBO";
+  inline static const Op::Kind OP_SADDO  = "btor-OP_SADDO";
+  inline static const Op::Kind OP_SDIVO  = "btor-OP_SDIVO";
+  inline static const Op::Kind OP_SMULO  = "btor-OP_SMULO";
+  inline static const Op::Kind OP_SSUBO  = "btor-OP_SSUBO";
   /* Solver-specific states. */
-  static const OpKind STATE_FIX_RESET_ASSUMPTIONS;
+  inline static const State::Kind STATE_FIX_RESET_ASSUMPTIONS =
+      "btor-fix-reset-assumptions";
 
   /** Constructor. */
   BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
@@ -168,7 +173,7 @@ class BtorSolver : public Solver
 
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
-  Term mk_term(const OpKind& kind,
+  Term mk_term(const Op::Kind& kind,
                std::vector<Term>& args,
                std::vector<uint32_t>& params) override;
 

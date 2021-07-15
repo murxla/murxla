@@ -28,31 +28,31 @@ namespace statistics {
 struct Statistics;
 }
 
-using StateKind  = std::string;
-
 class State
 {
   friend class FSM;
 
  public:
+  using Kind = std::string;
+
   /** Solver-specific states. */
-  static const StateKind UNDEFINED;
-  static const StateKind NEW;
-  static const StateKind OPT;
-  static const StateKind DELETE;
-  static const StateKind FINAL;
-  static const StateKind CREATE_SORTS;
-  static const StateKind CREATE_INPUTS;
-  static const StateKind CREATE_TERMS;
-  static const StateKind ASSERT;
-  static const StateKind MODEL;
-  static const StateKind CHECK_SAT;
-  static const StateKind PUSH_POP;
+  inline static const Kind UNDEFINED     = "undefined";
+  inline static const Kind NEW           = "new";
+  inline static const Kind OPT           = "opt";
+  inline static const Kind DELETE        = "delete";
+  inline static const Kind FINAL         = "final";
+  inline static const Kind CREATE_SORTS  = "create_sorts";
+  inline static const Kind CREATE_INPUTS = "create_inputs";
+  inline static const Kind CREATE_TERMS  = "create_terms";
+  inline static const Kind ASSERT        = "assert";
+  inline static const Kind MODEL         = "model";
+  inline static const Kind CHECK_SAT     = "check_sat";
+  inline static const Kind PUSH_POP      = "push_pop";
 
   /** Default constructor. */
   State() : d_kind(UNDEFINED), d_is_final(false) {}
   /** Constructor. */
-  State(const StateKind& kind, std::function<bool(void)> fun, bool is_final)
+  State(const Kind& kind, std::function<bool(void)> fun, bool is_final)
       : d_kind(kind), d_is_final(is_final), f_precond(fun)
   {
     MURXLA_CHECK_CONFIG(kind.size() <= MURXLA_MAX_KIND_LEN)
@@ -62,7 +62,7 @@ class State
   }
 
   /** Returns the identifier of this state. */
-  const StateKind& get_kind() { return d_kind; }
+  const Kind& get_kind() { return d_kind; }
   /** Return the id of this state. */
   const uint64_t get_id() const { return d_id; }
   /** Set the id of this state. */
@@ -87,7 +87,7 @@ class State
 
  private:
   /* State kind. */
-  const StateKind& d_kind;
+  const Kind& d_kind;
   /* True if state is a final state. */
   bool d_is_final = false;
   /* True if state represents the place holder for all states. */
@@ -195,7 +195,7 @@ class FSM
   SolverManager d_smgr;
   RNGenerator& d_rng;
   std::vector<std::unique_ptr<State>> d_states;
-  std::unordered_map<ActionKind, std::unique_ptr<Action>> d_actions;
+  std::unordered_map<Action::Kind, std::unique_ptr<Action>> d_actions;
 
   /**
    * A temporary list with actions (incl. priorities, the next state and
@@ -204,7 +204,7 @@ class FSM
    * states and actions is finalized.
    */
   std::vector<
-      std::tuple<Action*, uint32_t, std::unordered_set<StateKind>, State*>>
+      std::tuple<Action*, uint32_t, std::unordered_set<State::Kind>, State*>>
       d_actions_all_states;
   /**
    * A temporary list with actions (incl. priorities) that will be added to
@@ -213,7 +213,7 @@ class FSM
    * and actions is finalized.
    */
   std::vector<
-      std::tuple<Action*, uint32_t, State*, std::unordered_set<StateKind>>>
+      std::tuple<Action*, uint32_t, State*, std::unordered_set<State::Kind>>>
       d_actions_all_states_next;
 
   /** The initial state. */
@@ -236,7 +236,7 @@ FSM::new_action()
   static_assert(std::is_base_of<Action, T>::value,
                 "expected class (derived from) Action");
   T* action               = new T(d_smgr);
-  const ActionKind& kind  = action->get_kind();
+  const Action::Kind& kind = action->get_kind();
   assert(kind.size() <= MURXLA_MAX_KIND_LEN);
   if (d_actions.find(kind) == d_actions.end())
   {
@@ -264,11 +264,11 @@ void
 FSM::add_action_to_all_states(
     T* action,
     uint32_t priority,
-    const std::unordered_set<StateKind>& excluded_states,
+    const std::unordered_set<State::Kind>& excluded_states,
     State* next)
 {
   d_actions_all_states.push_back(
-      std::tuple<Action*, uint32_t, std::unordered_set<StateKind>, State*>(
+      std::tuple<Action*, uint32_t, std::unordered_set<State::Kind>, State*>(
           action, priority, excluded_states, next));
 }
 
@@ -278,10 +278,10 @@ FSM::add_action_to_all_states_next(
     T* action,
     uint32_t priority,
     State* state,
-    const std::unordered_set<StateKind>& excluded_states)
+    const std::unordered_set<State::Kind>& excluded_states)
 {
   d_actions_all_states_next.push_back(
-      std::tuple<Action*, uint32_t, State*, std::unordered_set<StateKind>>(
+      std::tuple<Action*, uint32_t, State*, std::unordered_set<State::Kind>>(
           action, priority, state, excluded_states));
 }
 

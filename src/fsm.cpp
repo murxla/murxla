@@ -14,19 +14,6 @@ namespace murxla {
 /* State                                                                      */
 /* -------------------------------------------------------------------------- */
 
-const StateKind State::UNDEFINED     = "undefined";
-const StateKind State::NEW           = "new";
-const StateKind State::OPT           = "opt";
-const StateKind State::DELETE        = "delete";
-const StateKind State::FINAL         = "final";
-const StateKind State::CREATE_SORTS  = "create_sorts";
-const StateKind State::CREATE_INPUTS = "create_inputs";
-const StateKind State::CREATE_TERMS  = "create_terms";
-const StateKind State::ASSERT        = "assert";
-const StateKind State::MODEL         = "model";
-const StateKind State::CHECK_SAT     = "check_sat";
-const StateKind State::PUSH_POP      = "push_pop";
-
 void
 State::add_action(Action* a, uint32_t priority, State* next)
 {
@@ -145,7 +132,7 @@ FSM::get_smgr()
 }
 
 State*
-FSM::new_state(const StateKind& kind,
+FSM::new_state(const State::Kind& kind,
                std::function<bool(void)> fun,
                bool is_final)
 {
@@ -221,7 +208,7 @@ FSM::check_states()
 }
 
 State*
-FSM::get_state(const StateKind& kind) const
+FSM::get_state(const State::Kind& kind) const
 {
   State* res = nullptr;
   for (const auto& s : d_states)

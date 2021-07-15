@@ -79,28 +79,33 @@ class BzlaSolver : public Solver
 {
  public:
   /** Solver-specific actions. */
-  static const OpKind ACTION_IS_UNSAT_ASSUMPTION;
-  static const OpKind ACTION_FIXATE_ASSUMPTIONS;
-  static const OpKind ACTION_RESET_ASSUMPTIONS;
-  static const OpKind ACTION_SIMPLIFY;
-  static const OpKind ACTION_TERM_SET_SYMBOL;
+  inline static const Action::Kind ACTION_IS_UNSAT_ASSUMPTION =
+      "bzla-is-unsat-assumption";
+  inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
+      "bzla-fixate-assumptions";
+  inline static const Action::Kind ACTION_RESET_ASSUMPTIONS =
+      "bzla-reset-assumptions";
+  inline static const Action::Kind ACTION_SIMPLIFY = "bzla-simplify";
+  inline static const Action::Kind ACTION_TERM_SET_SYMBOL =
+      "bzla-term-set-symbol";
   /** Solver-specific operators. */
-  static const OpKind OP_BV_DEC;
-  static const OpKind OP_BV_INC;
-  static const OpKind OP_BV_REDAND;
-  static const OpKind OP_BV_REDOR;
-  static const OpKind OP_BV_REDXOR;
-  static const OpKind OP_BV_ROL;
-  static const OpKind OP_BV_ROR;
-  static const OpKind OP_BV_UADDO;
-  static const OpKind OP_BV_UMULO;
-  static const OpKind OP_BV_USUBO;
-  static const OpKind OP_BV_SADDO;
-  static const OpKind OP_BV_SDIVO;
-  static const OpKind OP_BV_SMULO;
-  static const OpKind OP_BV_SSUBO;
+  inline static const Op::Kind OP_BV_DEC    = "bzla-OP_BV_DEC";
+  inline static const Op::Kind OP_BV_INC    = "bzla-OP_BV_INC";
+  inline static const Op::Kind OP_BV_REDAND = "bzla-OP_BV_REDAND";
+  inline static const Op::Kind OP_BV_REDOR  = "bzla-OP_BV_REDOR";
+  inline static const Op::Kind OP_BV_REDXOR = "bzla-OP_BV_REDXOR";
+  inline static const Op::Kind OP_BV_ROL    = "bzla-OP_BV_ROL";
+  inline static const Op::Kind OP_BV_ROR    = "bzla-OP_BV_ROR";
+  inline static const Op::Kind OP_BV_SADDO  = "bzla-OP_BV_SADDO";
+  inline static const Op::Kind OP_BV_SDIVO  = "bzla-OP_BV_SDIVO";
+  inline static const Op::Kind OP_BV_SMULO  = "bzla-OP_BV_SMULO";
+  inline static const Op::Kind OP_BV_SSUBO  = "bzla-OP_BV_SSUBO";
+  inline static const Op::Kind OP_BV_UADDO  = "bzla-OP_BV_UADDO";
+  inline static const Op::Kind OP_BV_UMULO  = "bzla-OP_BV_UMULO";
+  inline static const Op::Kind OP_BV_USUBO  = "bzla-OP_BV_USUBO";
   /* Solver-specific states. */
-  static const OpKind STATE_FIX_RESET_ASSUMPTIONS;
+  inline static const State::Kind STATE_FIX_RESET_ASSUMPTIONS =
+      "bzla-fix-reset-assumptions";
 
   /** Constructor. */
   BzlaSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
@@ -163,7 +168,7 @@ class BzlaSolver : public Solver
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
-  Term mk_term(const OpKind& kind,
+  Term mk_term(const Op::Kind& kind,
                std::vector<Term>& args,
                std::vector<uint32_t>& params) override;
 

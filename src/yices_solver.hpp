@@ -79,41 +79,41 @@ class YicesSolver : public Solver
  public:
   /* Solver-specific operators. */
   // BV
-  static const OpKind OP_ASHIFT_RIGHT;
-  static const OpKind OP_BITEXTRACT;
-  static const OpKind OP_BVARRAY;
-  static const OpKind OP_BVPOWER;
-  static const OpKind OP_BVSQUARE;
-  static const OpKind OP_REDAND;
-  static const OpKind OP_REDOR;
-  static const OpKind OP_SHIFT_LEFT0;
-  static const OpKind OP_SHIFT_LEFT1;
-  static const OpKind OP_SHIFT_RIGHT0;
-  static const OpKind OP_SHIFT_RIGHT1;
+  inline static const Op::Kind OP_ASHIFT_RIGHT = "yices-OP_ASHIFT_RIGHT";
+  inline static const Op::Kind OP_BITEXTRACT   = "yices-OP_BITEXTRACT";
+  inline static const Op::Kind OP_BVARRAY      = "yices-OP_BVARRAY";
+  inline static const Op::Kind OP_BVPOWER      = "yices-OP_BVPOWER";
+  inline static const Op::Kind OP_BVSQUARE     = "yices-OP_BVSQUARE";
+  inline static const Op::Kind OP_REDAND       = "yices-OP_REDAND";
+  inline static const Op::Kind OP_REDOR        = "yices-OP_REDOR";
+  inline static const Op::Kind OP_SHIFT_LEFT0  = "yices-OP_SHIFT_LEFT0";
+  inline static const Op::Kind OP_SHIFT_LEFT1  = "yices-OP_SHIFT_LEFT1";
+  inline static const Op::Kind OP_SHIFT_RIGHT0 = "yices-OP_SHIFT_RIGHT0";
+  inline static const Op::Kind OP_SHIFT_RIGHT1 = "yices-OP_SHIFT_RIGHT1";
   // Arithmetic
-  static const OpKind OP_INT_CEIL;
-  static const OpKind OP_INT_FLOOR;
-  static const OpKind OP_INT_EQ0;
-  static const OpKind OP_INT_GEQ0;
-  static const OpKind OP_INT_GT0;
-  static const OpKind OP_INT_LEQ0;
-  static const OpKind OP_INT_LT0;
-  static const OpKind OP_INT_NEQ0;
-  static const OpKind OP_INT_POLY;
-  static const OpKind OP_INT_POWER;
-  static const OpKind OP_INT_SQUARE;
-  static const OpKind OP_REAL_CEIL;
-  static const OpKind OP_REAL_FLOOR;
-  static const OpKind OP_REAL_EQ0;
-  static const OpKind OP_REAL_GEQ0;
-  static const OpKind OP_REAL_GT0;
-  static const OpKind OP_REAL_LEQ0;
-  static const OpKind OP_REAL_LT0;
-  static const OpKind OP_REAL_NEQ0;
-  static const OpKind OP_REAL_POLY;
-  static const OpKind OP_REAL_RPOLY;
-  static const OpKind OP_REAL_POWER;
-  static const OpKind OP_REAL_SQUARE;
+  inline static const Op::Kind OP_INT_CEIL    = "yices-OP_INT_CEIL";
+  inline static const Op::Kind OP_INT_FLOOR   = "yices-OP_INT_FLOOR";
+  inline static const Op::Kind OP_INT_EQ0     = "yices-OP_INT_EQ0";
+  inline static const Op::Kind OP_INT_GEQ0    = "yices-OP_INT_GEQ0";
+  inline static const Op::Kind OP_INT_GT0     = "yices-OP_INT_GT0";
+  inline static const Op::Kind OP_INT_LEQ0    = "yices-OP_INT_LEQ0";
+  inline static const Op::Kind OP_INT_LT0     = "yices-OP_INT_LT0";
+  inline static const Op::Kind OP_INT_NEQ0    = "yices-OP_INT_NEQ0";
+  inline static const Op::Kind OP_INT_POLY    = "yices-OP_INT_POLY";
+  inline static const Op::Kind OP_INT_POWER   = "yices-OP_INT_POWER";
+  inline static const Op::Kind OP_INT_SQUARE  = "yices-OP_INT_SQUARE";
+  inline static const Op::Kind OP_REAL_CEIL   = "yices-OP_REAL_CEIL";
+  inline static const Op::Kind OP_REAL_FLOOR  = "yices-OP_REAL_FLOOR";
+  inline static const Op::Kind OP_REAL_EQ0    = "yices-OP_REAL_EQ0";
+  inline static const Op::Kind OP_REAL_GEQ0   = "yices-OP_REAL_GEQ0";
+  inline static const Op::Kind OP_REAL_GT0    = "yices-OP_REAL_GT0";
+  inline static const Op::Kind OP_REAL_LEQ0   = "yices-OP_REAL_LEQ0";
+  inline static const Op::Kind OP_REAL_LT0    = "yices-OP_REAL_LT0";
+  inline static const Op::Kind OP_REAL_NEQ0   = "yices-OP_REAL_NEQ0";
+  inline static const Op::Kind OP_REAL_POLY   = "yices-OP_REAL_POLY";
+  inline static const Op::Kind OP_REAL_RPOLY  = "yices-OP_REAL_RPOLY";
+  inline static const Op::Kind OP_REAL_POWER  = "yices-OP_REAL_POWER";
+  inline static const Op::Kind OP_REAL_SQUARE = "yices-OP_REAL_SQUARE";
 
   YicesSolver(RNGenerator& rng) : Solver(rng) {}
   ~YicesSolver() override;
@@ -171,7 +171,7 @@ class YicesSolver : public Solver
 
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
-  Term mk_term(const OpKind& kind,
+  Term mk_term(const Op::Kind& kind,
                std::vector<Term>& args,
                std::vector<uint32_t>& params) override;
 

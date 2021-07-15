@@ -204,8 +204,6 @@ Cvc5Term::is_reglan() const
 /* Cvc5Solver                                                                 */
 /* -------------------------------------------------------------------------- */
 
-const Solver::SpecialValueKind Cvc5Solver::SPECIAL_VALUE_PI = "cvc5-pi";
-
 OpKindSet
 Cvc5Solver::get_unsupported_op_kinds() const
 {
@@ -732,7 +730,7 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
 }
 
 Term
-Cvc5Solver::mk_term(const OpKind& kind,
+Cvc5Solver::mk_term(const Op::Kind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
@@ -1379,15 +1377,8 @@ Cvc5Solver::get_cvc5_term(Term term) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific operators, SolverManager configuration.                    */
+/* OpKindManager configuration.                                               */
 /* -------------------------------------------------------------------------- */
-
-const OpKind Cvc5Solver::OP_BV_REDAND      = "cvc5-OP_BV_REDAND";
-const OpKind Cvc5Solver::OP_BV_REDOR       = "cvc5-OP_BV_REDOR";
-const OpKind Cvc5Solver::OP_STRING_UPDATE  = "cvc5-OP_STRING_UPDATE";
-const OpKind Cvc5Solver::OP_STRING_TOLOWER = "cvc5-OP_STRING_TOLOWER";
-const OpKind Cvc5Solver::OP_STRING_TOUPPER = "cvc5-OP_STRING_TOUPPER";
-const OpKind Cvc5Solver::OP_STRING_REV     = "cvc5-OP_STRING_REV";
 
 void
 Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
@@ -1410,11 +1401,8 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific actions, FSM configuration. */
+/* FSM configuration.                                                         */
 /* -------------------------------------------------------------------------- */
-
-const ActionKind Cvc5Solver::ACTION_CHECK_ENTAILED = "cvc5-check-entailed";
-const ActionKind Cvc5Solver::ACTION_SIMPLIFY       = "cvc5-simplify";
 
 class Cvc5ActionCheckEntailed : public Action
 {

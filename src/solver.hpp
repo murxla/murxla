@@ -259,7 +259,7 @@ class Solver
   virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize);
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
-  virtual Term mk_term(const OpKind& kind,
+  virtual Term mk_term(const Op::Kind& kind,
                        std::vector<Term>& args,
                        std::vector<uint32_t>& params) = 0;
 

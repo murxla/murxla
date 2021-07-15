@@ -705,7 +705,7 @@ BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 }
 
 Term
-BtorSolver::mk_term(const OpKind& kind,
+BtorSolver::mk_term(const Op::Kind& kind,
                     std::vector<Term>& args,
                     std::vector<uint32_t>& params)
 {
@@ -1526,21 +1526,8 @@ BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific operators, SolverManager configuration.                    */
+/* OpKindManager configuration.                                               */
 /* -------------------------------------------------------------------------- */
-
-const OpKind BtorSolver::OP_DEC    = "btor-OP_DEC";
-const OpKind BtorSolver::OP_INC    = "btor-OP_INC";
-const OpKind BtorSolver::OP_REDAND = "btor-OP_REDAND";
-const OpKind BtorSolver::OP_REDOR  = "btor-OP_REDOR";
-const OpKind BtorSolver::OP_REDXOR = "btor-OP_REDXOR";
-const OpKind BtorSolver::OP_UADDO  = "btor-OP_UADDO";
-const OpKind BtorSolver::OP_UMULO  = "btor-OP_UMULO";
-const OpKind BtorSolver::OP_USUBO  = "btor-OP_USUBO";
-const OpKind BtorSolver::OP_SADDO  = "btor-OP_SADDO";
-const OpKind BtorSolver::OP_SDIVO  = "btor-OP_SDIVO";
-const OpKind BtorSolver::OP_SMULO  = "btor-OP_SMULO";
-const OpKind BtorSolver::OP_SSUBO  = "btor-OP_SSUBO";
 
 void
 BtorSolver::configure_opmgr(OpKindManager* opmgr) const
@@ -1562,24 +1549,8 @@ BtorSolver::configure_opmgr(OpKindManager* opmgr) const
 }
 
 /* -------------------------------------------------------------------------- */
-/* Solver-specific actions and states, FSM configuration.                     */
+/* FSM configuration.                                                         */
 /* -------------------------------------------------------------------------- */
-
-const ActionKind BtorSolver::ACTION_OPT_ITERATOR  = "btor-opt-iterator";
-const ActionKind BtorSolver::ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
-const ActionKind BtorSolver::ACTION_CLONE         = "btor-clone";
-const ActionKind BtorSolver::ACTION_FAILED        = "btor-failed";
-const ActionKind BtorSolver::ACTION_FIXATE_ASSUMPTIONS =
-    "btor-fixate-assumptions";
-const ActionKind BtorSolver::ACTION_RESET_ASSUMPTIONS =
-    "btor-reset-assumptions";
-const ActionKind BtorSolver::ACTION_RELEASE_ALL    = "btor-release-all";
-const ActionKind BtorSolver::ACTION_SIMPLIFY       = "btor-simplify";
-const ActionKind BtorSolver::ACTION_SET_SAT_SOLVER = "btor-set-sat-solver";
-const ActionKind BtorSolver::ACTION_SET_SYMBOL     = "btor-set-symbol";
-
-const StateKind BtorSolver::STATE_FIX_RESET_ASSUMPTIONS =
-    "btor-fix-reset-assumptions";
 
 class BtorActionBvAssignment : public Action
 {

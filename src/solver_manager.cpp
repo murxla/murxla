@@ -277,7 +277,7 @@ SolverManager::pick_sort_kind_data()
   return pick_kind<SortKind, SortKindData, SortKindMap>(d_sort_kinds);
 }
 
-OpKind
+Op::Kind
 SolverManager::pick_op_kind(bool with_terms)
 {
   if (with_terms)
@@ -323,17 +323,17 @@ SolverManager::pick_op_kind(bool with_terms)
        * with many operators). */
       TheoryId theory = d_rng.pick_from_map<decltype(kinds), TheoryId>(kinds);
       auto& op_kinds  = kinds[theory];
-      return d_rng.pick_from_set<decltype(op_kinds), OpKind>(op_kinds);
+      return d_rng.pick_from_set<decltype(op_kinds), Op::Kind>(op_kinds);
     }
 
     /* We cannot create any operation with the current set of terms. */
     return Op::UNDEFINED;
   }
-  return d_rng.pick_from_map<OpKindMap, OpKind>(d_opmgr->get_op_kinds());
+  return d_rng.pick_from_map<OpKindMap, Op::Kind>(d_opmgr->get_op_kinds());
 }
 
 Op&
-SolverManager::get_op(const OpKind& kind)
+SolverManager::get_op(const Op::Kind& kind)
 {
   return d_opmgr->get_op(kind);
 }
