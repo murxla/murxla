@@ -44,7 +44,9 @@ get_api_trace_file_name(uint32_t seed,
   return DEVNULL;
 }
 
-/** Removes memory addresses and ==...== from ASAN messages. */
+/**
+ * Removes memory addresses and ==...== from ASAN messages.
+ */
 std::string
 normalize_asan_error(const std::string& s)
 {
@@ -65,6 +67,9 @@ normalize_asan_error(const std::string& s)
   return res;
 }
 
+/**
+ * Split string into tokens.
+ */
 std::vector<std::string>
 str_tokenize(const std::string& s)
 {
@@ -74,6 +79,9 @@ str_tokenize(const std::string& s)
   return ret;
 }
 
+/**
+ * Count the number of non-digit characters two strings differ in.
+ */
 size_t
 str_diff(const std::string& s1, const std::string& s2)
 {
@@ -140,6 +148,14 @@ write_lines_to_file(const std::vector<std::vector<std::string>>& lines,
   out_file.close();
 }
 
+/**
+ * Remove subsets listed in 'excluded_sets' from the list of 'subsets'.
+ *
+ * Excluded sets are given as indices of the list of subsets.
+ * A subset is a set of indices (line, token) itself.
+ *
+ * This is only used for delta debugging traces.
+ */
 std::vector<size_t>
 remove_subsets(std::vector<std::vector<size_t>>& subsets,
                std::unordered_set<size_t>& excluded_sets)
