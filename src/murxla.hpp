@@ -95,12 +95,26 @@ class Murxla
                 const std::string& api_trace_file_name,
                 const std::string& untrace_file_name);
 
+  std::vector<size_t> dd_test(
+      Result golden_exit,
+      const std::string& golden_out_file_name,
+      const std::string& golden_err_file_name,
+      const std::vector<std::vector<std::string>>& lines,
+      const std::vector<size_t>& superset,
+      uint32_t seed,
+      double time,
+      const std::string& untrace_file_name);
+
   bool add_error(const std::string& err, uint32_t seed);
 
   statistics::Statistics* d_stats;
 
   /** Map normalized error message to pair (original error message, seeds). */
   ErrorMap* d_errors;
+  /** Number of tests performed while delta debugging. */
+  uint64_t d_dd_ntests = 0;
+  /** Number of successful tests performed while delta debugging. */
+  uint64_t d_dd_ntests_success = 0;
 };
 
 std::ostream& operator<<(std::ostream& out, const Murxla::Result& res);

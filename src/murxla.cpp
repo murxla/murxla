@@ -554,15 +554,12 @@ Murxla::dd(uint32_t seed,
 {
   assert(!untrace_file_name.empty());
 
-  Murxla::Result gold_exit, exit;
+  Murxla::Result gold_exit;
 
   std::string gold_out_file_name =
       get_tmp_file_path("tmp-dd-gold.out", d_tmp_dir);
   std::string gold_err_file_name =
       get_tmp_file_path("tmp-dd-gold.err", d_tmp_dir);
-
-  std::string tmp_out_file_name = get_tmp_file_path("tmp-dd.out", d_tmp_dir);
-  std::string tmp_err_file_name = get_tmp_file_path("tmp-dd.err", d_tmp_dir);
 
   std::string tmp_api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
   std::string tmp_untrace_file_name =
@@ -651,7 +648,6 @@ Murxla::dd(uint32_t seed,
   std::vector<size_t> superset(size);
   std::iota(superset.begin(), superset.end(), 0);
   int64_t subset_size = size / 2;
-  uint32_t n_tests = 0, n_failed = 0;
 
   while (subset_size > 0)
   {
@@ -664,33 +660,20 @@ Murxla::dd(uint32_t seed,
     {
       std::unordered_set<size_t> ex(excluded_sets);
       ex.insert(i);
-      std::vector<size_t> tmp_superset = remove_subsets(subsets, ex);
 
-      write_lines_to_file(lines, tmp_superset, untrace_file_name);
-      /* while delta debugging, do not trace to file or stdout */
-      exit = run(seed,
-                 time,
-                 tmp_out_file_name,
-                 tmp_err_file_name,
-                 "",
-                 untrace_file_name,
-                 true,
-                 false,
-                 NONE);
-      n_tests += 1;
-      if (exit == gold_exit
-          && ((!d_options.dd_out_string.empty()
-               && find_in_file(
-                   tmp_err_file_name, d_options.dd_out_string, false))
-              || compare_files(tmp_out_file_name, gold_out_file_name))
-          && ((!d_options.dd_err_string.empty()
-               && find_in_file(
-                   tmp_err_file_name, d_options.dd_err_string, false))
-              || compare_files(tmp_err_file_name, gold_err_file_name)))
+      std::vector<size_t> tmp_superset = dd_test(gold_exit,
+                                                 gold_out_file_name,
+                                                 gold_err_file_name,
+                                                 lines,
+                                                 remove_subsets(subsets, ex),
+                                                 seed,
+                                                 time,
+                                                 untrace_file_name);
+
+      if (!tmp_superset.empty())
       {
         cur_superset = tmp_superset;
         excluded_sets.insert(i);
-        n_failed += 1;
         MURXLA_MESSAGE_DD << "reduced to " << std::fixed << std::setprecision(2)
                           << (((double) cur_superset.size()) / size_orig * 100)
                           << "% of original size";
@@ -792,16 +775,20 @@ Murxla::dd(uint32_t seed,
         /* write to file and test */
         write_lines_to_file(lines, superset, untrace_file_name);
         /* while delta debugging, do not trace to file or stdout */
-        exit = run(seed,
-                   time,
-                   tmp_out_file_name,
-                   tmp_err_file_name,
-                   "",
-                   untrace_file_name,
-                   true,
-                   false,
-                   NONE);
-        n_tests += 1;
+        std::string tmp_out_file_name =
+            get_tmp_file_path("tmp-dd.out", d_tmp_dir);
+        std::string tmp_err_file_name =
+            get_tmp_file_path("tmp-dd.err", d_tmp_dir);
+        Murxla::Result exit = run(seed,
+                                  time,
+                                  tmp_out_file_name,
+                                  tmp_err_file_name,
+                                  "",
+                                  untrace_file_name,
+                                  true,
+                                  false,
+                                  NONE);
+        d_dd_ntests += 1;
         if (exit == gold_exit
             && ((!d_options.dd_out_string.empty()
                  && find_in_file(
@@ -815,7 +802,7 @@ Murxla::dd(uint32_t seed,
           /* write immediately to file and continue */
           write_lines_to_file(lines, superset, tmp_dd_trace_file_name);
           delete_map[i] = false;
-          n_failed += 1;
+          d_dd_ntests_success += 1;
           n_terms -= 1;
           MURXLA_MESSAGE_DD << "reduced line " << line_idx << " to "
                             << std::fixed << std::setprecision(2)
@@ -850,7 +837,7 @@ Murxla::dd(uint32_t seed,
   }
 
   MURXLA_MESSAGE_DD;
-  MURXLA_MESSAGE_DD << n_failed << " of " << n_tests
+  MURXLA_MESSAGE_DD << d_dd_ntests_success << " of " << d_dd_ntests
                     << " successful (reduced) tests";
 
   if (std::filesystem::exists(tmp_dd_trace_file_name))
@@ -1109,6 +1096,46 @@ Murxla::run_aux(uint32_t seed,
   }
 
   return result;
+}
+
+std::vector<size_t>
+Murxla::dd_test(Murxla::Result golden_exit,
+                const std::string& golden_out_file_name,
+                const std::string& golden_err_file_name,
+                const std::vector<std::vector<std::string>>& lines,
+                const std::vector<size_t>& superset,
+                uint32_t seed,
+                double time,
+                const std::string& untrace_file_name)
+{
+  std::vector<size_t> res_superset;
+  std::string tmp_out_file_name = get_tmp_file_path("tmp-dd.out", d_tmp_dir);
+  std::string tmp_err_file_name = get_tmp_file_path("tmp-dd.err", d_tmp_dir);
+
+  write_lines_to_file(lines, superset, untrace_file_name);
+  /* while delta debugging, do not trace to file or stdout */
+  Murxla::Result exit = run(seed,
+                            time,
+                            tmp_out_file_name,
+                            tmp_err_file_name,
+                            "",
+                            untrace_file_name,
+                            true,
+                            false,
+                            NONE);
+  d_dd_ntests += 1;
+  if (exit == golden_exit
+      && ((!d_options.dd_out_string.empty()
+           && find_in_file(tmp_err_file_name, d_options.dd_out_string, false))
+          || compare_files(tmp_out_file_name, golden_out_file_name))
+      && ((!d_options.dd_err_string.empty()
+           && find_in_file(tmp_err_file_name, d_options.dd_err_string, false))
+          || compare_files(tmp_err_file_name, golden_err_file_name)))
+  {
+    res_superset = superset;
+    d_dd_ntests_success += 1;
+  }
+  return res_superset;
 }
 
 bool
