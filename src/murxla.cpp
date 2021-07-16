@@ -640,17 +640,18 @@ Murxla::dd(uint32_t seed,
   trace_file.close();
 
   bool success = false;
+  std::uintmax_t size = std::filesystem::file_size(untrace_file_name);
+  std::vector<size_t> included_lines(lines.size());
+  std::iota(included_lines.begin(), included_lines.end(), 0);
 
-  /* Minimize by removing lines, in a ddmin manner -------------------------- */
+  do
+  {
+    success = dd_minimize_lines(
+        gold_exit, lines, included_lines, seed, time, untrace_file_name);
 
-  std::vector<size_t> included_lines;
-  success = dd_minimize_lines(
-      gold_exit, lines, included_lines, seed, time, untrace_file_name);
-
-  /* Minimize lines by removing operands ------------------------------------ */
-
-  success = dd_minimize_line(
-      gold_exit, lines, included_lines, seed, time, untrace_file_name);
+    success = dd_minimize_line(
+        gold_exit, lines, included_lines, seed, time, untrace_file_name);
+  } while (success);
 
   /* Write minimized trace file to path if given. */
   if (dd_trace_file_name.empty())
@@ -681,6 +682,11 @@ Murxla::dd(uint32_t seed,
                           dd_trace_file_name,
                           std::filesystem::copy_options::overwrite_existing);
     MURXLA_MESSAGE_DD << "written to: " << dd_trace_file_name.c_str();
+    MURXLA_MESSAGE_DD << "file reduced to "
+                      << ((double) std::filesystem::file_size(
+                              dd_trace_file_name)
+                          / size * 100)
+                      << "% of original size";
   }
   else
   {
@@ -941,12 +947,10 @@ Murxla::dd_minimize_lines(Murxla::Result golden_exit,
                           double time,
                           const std::string& untrace_file_name)
 {
-  int64_t n_lines     = lines.size();
-  int64_t n_lines_cur = n_lines;
-  int64_t subset_size = n_lines_cur / 2;
-
-  included_lines = std::vector<size_t>(n_lines_cur);
-  std::iota(included_lines.begin(), included_lines.end(), 0);
+  MURXLA_MESSAGE_DD << "Start trying to minimize number of trace lines...";
+  size_t n_lines     = included_lines.size();
+  size_t n_lines_cur = n_lines;
+  size_t subset_size = n_lines_cur / 2;
 
   while (subset_size > 0)
   {
@@ -970,9 +974,6 @@ Murxla::dd_minimize_lines(Murxla::Result golden_exit,
       {
         superset_cur = tmp_superset;
         excluded_sets.insert(i);
-        MURXLA_MESSAGE_DD << "reduced to " << std::fixed << std::setprecision(2)
-                          << (((double) superset_cur.size()) / n_lines * 100)
-                          << "% of original size";
       }
     }
     if (superset_cur.empty())
@@ -986,6 +987,11 @@ Murxla::dd_minimize_lines(Murxla::Result golden_exit,
       included_lines = superset_cur;
       n_lines_cur    = included_lines.size();
       subset_size = n_lines_cur / 2;
+      MURXLA_MESSAGE_DD << "number of lines reduced to " << std::fixed
+                        << std::setprecision(2)
+                        << (((double) included_lines.size()) / lines.size()
+                            * 100)
+                        << "% of original number";
     }
   }
   return included_lines.size() < n_lines;
@@ -999,6 +1005,8 @@ Murxla::dd_minimize_line(Murxla::Result golden_exit,
                          double time,
                          const std::string& untrace_file_name)
 {
+  MURXLA_MESSAGE_DD << "Start trying to minimize trace lines...";
+
   bool res = false;
 
   /* Create OpKindManager to query Op configuration. */
@@ -1059,6 +1067,7 @@ Murxla::dd_minimize_line(Murxla::Result golden_exit,
     if (n_terms > 0)
     {
       assert(n_tokens >= n_terms + 1);
+      size_t line_size = lines[line_idx][0].size();
       std::vector<size_t> line_superset(n_terms);
       std::iota(line_superset.begin(), line_superset.end(), 0);
       uint32_t subset_size = n_terms / 2;
@@ -1102,11 +1111,6 @@ Murxla::dd_minimize_line(Murxla::Result golden_exit,
           {
             cur_line_superset = included_terms;
             excluded_sets.insert(i);
-            MURXLA_MESSAGE_DD
-                << "reduced line " << line_idx << " to " << std::fixed
-                << std::setprecision(2)
-                << (((double) cur_line_superset.size()) / n_terms * 100)
-                << "% of original size";
           }
           else
           {
@@ -1124,6 +1128,11 @@ Murxla::dd_minimize_line(Murxla::Result golden_exit,
           line_superset = cur_line_superset;
           subset_size   = line_superset.size() / 2;
           res           = true;
+          MURXLA_MESSAGE_DD
+              << "line " << line_idx << " reduced to " << std::fixed
+              << std::setprecision(2)
+              << (((double) lines[line_idx][0].size()) / line_size * 100)
+              << "% of original size";
         }
       }
     }
