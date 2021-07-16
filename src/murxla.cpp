@@ -796,8 +796,6 @@ Murxla::dd(uint32_t seed,
                                                      untrace_file_name);
           if (!tmp_superset.empty())
           {
-            /* write to file and continue */
-            write_lines_to_file(lines, superset, tmp_dd_trace_file_name);
             cur_line_superset = included_terms;
             excluded_sets.insert(i);
             MURXLA_MESSAGE_DD
@@ -817,6 +815,8 @@ Murxla::dd(uint32_t seed,
         }
         else
         {
+          /* write to file and continue */
+          write_lines_to_file(lines, superset, tmp_dd_trace_file_name);
           line_superset = cur_line_superset;
           subset_size   = line_superset.size() / 2;
         }
