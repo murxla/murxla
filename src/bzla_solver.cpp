@@ -150,7 +150,7 @@ bool
 BzlaTerm::equals(const Term& other) const
 {
   BzlaTerm* bzla_term = dynamic_cast<BzlaTerm*>(other.get());
-  return bitwuzla_term_is_equal_sort(d_term, bzla_term->d_term);
+  return d_term == bzla_term->d_term;
 }
 
 bool
