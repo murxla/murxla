@@ -771,38 +771,20 @@ Murxla::dd(uint32_t seed,
           if (j == i) continue;
           ss << " " << tokens[idx + j];
         }
-        lines[line_idx][0] = ss.str();
-        /* write to file and test */
-        write_lines_to_file(lines, superset, untrace_file_name);
-        /* while delta debugging, do not trace to file or stdout */
-        std::string tmp_out_file_name =
-            get_tmp_file_path("tmp-dd.out", d_tmp_dir);
-        std::string tmp_err_file_name =
-            get_tmp_file_path("tmp-dd.err", d_tmp_dir);
-        Murxla::Result exit = run(seed,
-                                  time,
-                                  tmp_out_file_name,
-                                  tmp_err_file_name,
-                                  "",
-                                  untrace_file_name,
-                                  true,
-                                  false,
-                                  NONE);
-        d_dd_ntests += 1;
-        if (exit == gold_exit
-            && ((!d_options.dd_out_string.empty()
-                 && find_in_file(
-                     tmp_err_file_name, d_options.dd_out_string, false))
-                || compare_files(tmp_out_file_name, gold_out_file_name))
-            && ((!d_options.dd_err_string.empty()
-                 && find_in_file(
-                     tmp_err_file_name, d_options.dd_err_string, false))
-                || compare_files(tmp_err_file_name, gold_err_file_name)))
+        lines[line_idx][0]               = ss.str();
+        std::vector<size_t> tmp_superset = dd_test(gold_exit,
+                                                   gold_out_file_name,
+                                                   gold_err_file_name,
+                                                   lines,
+                                                   superset,
+                                                   seed,
+                                                   time,
+                                                   untrace_file_name);
+        if (!tmp_superset.empty())
         {
           /* write immediately to file and continue */
           write_lines_to_file(lines, superset, tmp_dd_trace_file_name);
           delete_map[i] = false;
-          d_dd_ntests_success += 1;
           n_terms -= 1;
           MURXLA_MESSAGE_DD << "reduced line " << line_idx << " to "
                             << std::fixed << std::setprecision(2)
