@@ -95,6 +95,13 @@ class Murxla
                 const std::string& api_trace_file_name,
                 const std::string& untrace_file_name);
 
+  std::vector<size_t> dd_minimize_lines(
+      Result golden_exit,
+      const std::vector<std::vector<std::string>>& lines,
+      uint32_t seed,
+      double time,
+      const std::string& untrace_file_name);
+
   std::vector<size_t> dd_test(
       Result golden_exit,
       const std::vector<std::vector<std::string>>& lines,
@@ -113,12 +120,12 @@ class Murxla
   uint64_t d_dd_ntests = 0;
   /** Number of successful tests performed while delta debugging. */
   uint64_t d_dd_ntests_success = 0;
-  /** The output file name for the initial test run when delta debugging. */
+  /** The output file name for the initial dd test run. */
   std::string d_dd_gold_out_file_name;
-  /**
-   * The error output file name for the initial test run when delta debugging.
-   */
+  /** The error output file name for the initial dd test run. */
   std::string d_dd_gold_err_file_name;
+  /** The temp trace file name for dd. */
+  std::string d_dd_tmp_trace_file_name;
 };
 
 std::ostream& operator<<(std::ostream& out, const Murxla::Result& res);
