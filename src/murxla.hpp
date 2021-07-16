@@ -95,12 +95,19 @@ class Murxla
                 const std::string& api_trace_file_name,
                 const std::string& untrace_file_name);
 
-  std::vector<size_t> dd_minimize_lines(
-      Result golden_exit,
-      const std::vector<std::vector<std::string>>& lines,
-      uint32_t seed,
-      double time,
-      const std::string& untrace_file_name);
+  bool dd_minimize_lines(Result golden_exit,
+                         const std::vector<std::vector<std::string>>& lines,
+                         std::vector<size_t>& included_lines,
+                         uint32_t seed,
+                         double time,
+                         const std::string& untrace_file_name);
+
+  bool dd_minimize_line(Result golden_exit,
+                        std::vector<std::vector<std::string>>& lines,
+                        const std::vector<size_t>& included_lines,
+                        uint32_t seed,
+                        double time,
+                        const std::string& untrace_file_name);
 
   std::vector<size_t> dd_test(
       Result golden_exit,
