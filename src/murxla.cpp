@@ -210,6 +210,8 @@ Murxla::Murxla(statistics::Statistics* stats,
 {
   assert(stats);
   assert(solver_options);
+  d_dd_gold_out_file_name = get_tmp_file_path("tmp-dd-gold.out", d_tmp_dir);
+  d_dd_gold_err_file_name = get_tmp_file_path("tmp-dd-gold.err", d_tmp_dir);
 }
 
 Murxla::Result
@@ -556,11 +558,6 @@ Murxla::dd(uint32_t seed,
 
   Murxla::Result gold_exit;
 
-  std::string gold_out_file_name =
-      get_tmp_file_path("tmp-dd-gold.out", d_tmp_dir);
-  std::string gold_err_file_name =
-      get_tmp_file_path("tmp-dd-gold.err", d_tmp_dir);
-
   std::string tmp_api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
   std::string tmp_untrace_file_name =
       get_tmp_file_path("tmp-dd.trace", d_tmp_dir);
@@ -573,8 +570,8 @@ Murxla::dd(uint32_t seed,
   /* golden run */
   gold_exit = run(seed,
                   time,
-                  gold_out_file_name,
-                  gold_err_file_name,
+                  d_dd_gold_out_file_name,
+                  d_dd_gold_err_file_name,
                   tmp_untrace_file_name,
                   untrace_file_name,
                   true,
@@ -583,14 +580,16 @@ Murxla::dd(uint32_t seed,
 
   MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
   {
-    std::ifstream gold_out_file = open_input_file(gold_out_file_name, false);
+    std::ifstream gold_out_file =
+        open_input_file(d_dd_gold_out_file_name, false);
     std::stringstream ss;
     ss << gold_out_file.rdbuf();
     MURXLA_MESSAGE_DD << "golden stdout output: " << ss.str();
     gold_out_file.close();
   }
   {
-    std::ifstream gold_err_file = open_input_file(gold_err_file_name, false);
+    std::ifstream gold_err_file =
+        open_input_file(d_dd_gold_err_file_name, false);
     MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
     gold_err_file.close();
   }
@@ -662,8 +661,6 @@ Murxla::dd(uint32_t seed,
       ex.insert(i);
 
       std::vector<size_t> tmp_superset = dd_test(gold_exit,
-                                                 gold_out_file_name,
-                                                 gold_err_file_name,
                                                  lines,
                                                  remove_subsets(subsets, ex),
                                                  seed,
@@ -787,8 +784,6 @@ Murxla::dd(uint32_t seed,
           lines[line_idx][0]   = ss.str();
 
           std::vector<size_t> tmp_superset = dd_test(gold_exit,
-                                                     gold_out_file_name,
-                                                     gold_err_file_name,
                                                      lines,
                                                      superset,
                                                      seed,
@@ -1107,8 +1102,6 @@ Murxla::run_aux(uint32_t seed,
 
 std::vector<size_t>
 Murxla::dd_test(Murxla::Result golden_exit,
-                const std::string& golden_out_file_name,
-                const std::string& golden_err_file_name,
                 const std::vector<std::vector<std::string>>& lines,
                 const std::vector<size_t>& superset,
                 uint32_t seed,
@@ -1134,10 +1127,10 @@ Murxla::dd_test(Murxla::Result golden_exit,
   if (exit == golden_exit
       && ((!d_options.dd_out_string.empty()
            && find_in_file(tmp_err_file_name, d_options.dd_out_string, false))
-          || compare_files(tmp_out_file_name, golden_out_file_name))
+          || compare_files(tmp_out_file_name, d_dd_gold_out_file_name))
       && ((!d_options.dd_err_string.empty()
            && find_in_file(tmp_err_file_name, d_options.dd_err_string, false))
-          || compare_files(tmp_err_file_name, golden_err_file_name)))
+          || compare_files(tmp_err_file_name, d_dd_gold_err_file_name)))
   {
     res_superset = superset;
     d_dd_ntests_success += 1;

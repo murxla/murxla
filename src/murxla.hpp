@@ -97,8 +97,6 @@ class Murxla
 
   std::vector<size_t> dd_test(
       Result golden_exit,
-      const std::string& golden_out_file_name,
-      const std::string& golden_err_file_name,
       const std::vector<std::vector<std::string>>& lines,
       const std::vector<size_t>& superset,
       uint32_t seed,
@@ -115,6 +113,12 @@ class Murxla
   uint64_t d_dd_ntests = 0;
   /** Number of successful tests performed while delta debugging. */
   uint64_t d_dd_ntests_success = 0;
+  /** The output file name for the initial test run when delta debugging. */
+  std::string d_dd_gold_out_file_name;
+  /**
+   * The error output file name for the initial test run when delta debugging.
+   */
+  std::string d_dd_gold_err_file_name;
 };
 
 std::ostream& operator<<(std::ostream& out, const Murxla::Result& res);
