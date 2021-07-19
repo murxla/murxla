@@ -576,14 +576,14 @@ main(int argc, char* argv[])
         if (is_untrace)
         {
           dd_trace_file_name = prepend_prefix_to_file_name(
-              Murxla::DD_PREFIX, options.untrace_file_name);
+              MurxlaDD::TRACE_PREFIX, options.untrace_file_name);
           MURXLA_MESSAGE_DD << "minimizing untraced file '"
                             << options.untrace_file_name << "'";
         }
         else
         {
           std::stringstream ss;
-          ss << Murxla::DD_PREFIX << options.seed << ".trace";
+          ss << MurxlaDD::TRACE_PREFIX << options.seed << ".trace";
           dd_trace_file_name = ss.str();
           MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
         }
@@ -619,10 +619,16 @@ main(int argc, char* argv[])
 
       if (options.dd)
       {
-        murxla.dd(options.seed,
-                  options.time,
-                  api_trace_file_name,
-                  dd_trace_file_name);
+        MurxlaDD(&murxla,
+                 options.out_dir,
+                 TMP_DIR,
+                 options.dd_out_string,
+                 options.dd_err_string)
+            .dd(options.seed,
+                options.time,
+                options.untrace_file_name,
+                api_trace_file_name,
+                dd_trace_file_name);
       }
     }
   }

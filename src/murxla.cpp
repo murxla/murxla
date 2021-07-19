@@ -22,6 +22,8 @@
 
 namespace murxla {
 
+/* -------------------------------------------------------------------------- */
+
 namespace {
 
 std::string
@@ -197,6 +199,8 @@ split_superset(const std::vector<size_t> superset, uint32_t subset_size)
 }
 }  // namespace
 
+/* -------------------------------------------------------------------------- */
+
 Murxla::Murxla(statistics::Statistics* stats,
                const Options& options,
                SolverOptions* solver_options,
@@ -210,9 +214,6 @@ Murxla::Murxla(statistics::Statistics* stats,
 {
   assert(stats);
   assert(solver_options);
-  d_dd_gold_out_file_name = get_tmp_file_path("tmp-dd-gold.out", d_tmp_dir);
-  d_dd_gold_err_file_name = get_tmp_file_path("tmp-dd-gold.err", d_tmp_dir);
-  d_dd_tmp_trace_file_name = get_tmp_file_path("tmp-api-dd.trace", d_tmp_dir);
 }
 
 Murxla::Result
@@ -544,154 +545,18 @@ Murxla::replay(uint32_t seed,
 
   if (d_options.dd)
   {
-    dd(seed, 0, api_trace_file_name, d_options.dd_trace_file_name);
+    MurxlaDD(this,
+             d_options.out_dir,
+             d_tmp_dir,
+             d_options.dd_out_string,
+             d_options.dd_err_string)
+        .dd(seed,
+            0,
+            d_options.api_trace_file_name,
+            api_trace_file_name,
+            d_options.dd_trace_file_name);
   }
   return res;
-}
-
-void
-Murxla::dd(uint32_t seed,
-           double time,
-           std::string untrace_file_name,
-           std::string dd_trace_file_name)
-{
-  assert(!untrace_file_name.empty());
-
-  Murxla::Result gold_exit;
-
-  std::string tmp_api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
-  std::string tmp_untrace_file_name =
-      get_tmp_file_path("tmp-dd.trace", d_tmp_dir);
-
-  MURXLA_MESSAGE_DD << "start minimizing file '" << untrace_file_name.c_str()
-                    << "'";
-
-  /* golden run */
-  gold_exit = run(seed,
-                  time,
-                  d_dd_gold_out_file_name,
-                  d_dd_gold_err_file_name,
-                  tmp_untrace_file_name,
-                  untrace_file_name,
-                  true,
-                  false,
-                  TO_FILE);
-
-  MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
-  {
-    std::ifstream gold_out_file =
-        open_input_file(d_dd_gold_out_file_name, false);
-    std::stringstream ss;
-    ss << gold_out_file.rdbuf();
-    MURXLA_MESSAGE_DD << "golden stdout output: " << ss.str();
-    gold_out_file.close();
-  }
-  {
-    std::ifstream gold_err_file =
-        open_input_file(d_dd_gold_err_file_name, false);
-    MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
-    gold_err_file.close();
-  }
-  if (!d_options.dd_out_string.empty())
-  {
-    MURXLA_MESSAGE_DD << "checking for occurrence of '"
-                      << d_options.dd_out_string.c_str()
-                      << "' in stdout output";
-  }
-  if (!d_options.dd_err_string.empty())
-  {
-    MURXLA_MESSAGE_DD << "checking for occurrence of '"
-                      << d_options.dd_err_string.c_str()
-                      << "' in stderr output";
-  }
-
-  /* Start delta debugging */
-
-  untrace_file_name = tmp_untrace_file_name;
-
-  /* Represent input trace as vector of lines.
-   *
-   * A line is a vector of strings with at most two elements.
-   * Trace statements that do not expect a return statement are represented
-   * as a line (vector) with one element.  Trace statements that expect a
-   * return statement are represented as one line, that is, a vector with two
-   * elements: the statement and the return statement.
-   */
-
-  std::string line;
-  std::vector<std::vector<std::string>> lines;
-  std::ifstream trace_file = open_input_file(untrace_file_name, false);
-  while (std::getline(trace_file, line))
-  {
-    std::string token;
-    if (line[0] == '#') continue;
-    if (std::getline(std::stringstream(line), token, ' ') && token == "return")
-    {
-      std::stringstream ss;
-      assert(lines.size() > 0);
-      std::vector<std::string>& prev = lines.back();
-      prev.push_back(line);
-    }
-    else
-    {
-      lines.push_back(std::vector{line});
-    }
-  }
-  trace_file.close();
-
-  bool success = false;
-  std::uintmax_t size = std::filesystem::file_size(untrace_file_name);
-  std::vector<size_t> included_lines(lines.size());
-  std::iota(included_lines.begin(), included_lines.end(), 0);
-
-  do
-  {
-    success = dd_minimize_lines(
-        gold_exit, lines, included_lines, seed, time, untrace_file_name);
-
-    success = dd_minimize_line(
-        gold_exit, lines, included_lines, seed, time, untrace_file_name);
-  } while (success);
-
-  /* Write minimized trace file to path if given. */
-  if (dd_trace_file_name.empty())
-  {
-    if (untrace_file_name.empty())
-    {
-      dd_trace_file_name = prepend_prefix_to_file_name(
-          Murxla::DD_PREFIX, d_options.api_trace_file_name);
-    }
-    else
-    {
-      dd_trace_file_name = prepend_prefix_to_file_name(
-          Murxla::DD_PREFIX, d_options.untrace_file_name);
-    }
-  }
-  if (!d_options.out_dir.empty())
-  {
-    dd_trace_file_name = prepend_path(d_options.out_dir, dd_trace_file_name);
-  }
-
-  MURXLA_MESSAGE_DD;
-  MURXLA_MESSAGE_DD << d_dd_ntests_success << " (of " << d_dd_ntests
-                    << ") tests reduced successfully";
-
-  if (std::filesystem::exists(d_dd_tmp_trace_file_name))
-  {
-    std::filesystem::copy(d_dd_tmp_trace_file_name,
-                          dd_trace_file_name,
-                          std::filesystem::copy_options::overwrite_existing);
-    MURXLA_MESSAGE_DD << "written to: " << dd_trace_file_name.c_str();
-    MURXLA_MESSAGE_DD << "file reduced to "
-                      << ((double) std::filesystem::file_size(
-                              dd_trace_file_name)
-                          / size * 100)
-                      << "% of original size";
-  }
-  else
-  {
-    MURXLA_MESSAGE_DD << "unable to reduce api trace";
-  }
 }
 
 Solver*
@@ -940,12 +805,227 @@ Murxla::run_aux(uint32_t seed,
 }
 
 bool
-Murxla::dd_minimize_lines(Murxla::Result golden_exit,
-                          const std::vector<std::vector<std::string>>& lines,
-                          std::vector<size_t>& included_lines,
-                          uint32_t seed,
-                          double time,
-                          const std::string& untrace_file_name)
+Murxla::add_error(const std::string& err, uint32_t seed)
+{
+  bool duplicate       = false;
+  std::string err_norm = normalize_asan_error(err);
+
+  for (auto& p : *d_errors)
+  {
+    const auto& e_norm = p.first;
+    auto& seeds        = p.second.second;
+
+    size_t len   = std::max(err_norm.size(), e_norm.size());
+    size_t diff  = str_diff(err_norm, e_norm);
+    double pdiff = diff / static_cast<double>(len);
+
+    /* Errors are classified as the same error if they differ in at most 5% of
+     * characters. */
+    if (pdiff <= 0.05)
+    {
+      seeds.push_back(seed);
+      duplicate = true;
+      break;
+    }
+  }
+
+  if (!duplicate)
+  {
+    std::vector<uint32_t> seeds = {seed};
+    d_errors->emplace(err_norm, std::make_pair(err, seeds));
+  }
+
+  return duplicate;
+}
+
+std::ostream&
+operator<<(std::ostream& out, const Murxla::Result& res)
+{
+  switch (res)
+  {
+    case Murxla::Result::RESULT_OK: out << "ok"; break;
+    case Murxla::Result::RESULT_ERROR: out << "error"; break;
+    case Murxla::Result::RESULT_ERROR_CONFIG: out << "config error"; break;
+    case Murxla::Result::RESULT_TIMEOUT: out << "timeout"; break;
+    default: assert(res == Murxla::Result::RESULT_UNKNOWN); out << "unknown";
+  }
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
+
+MurxlaDD::MurxlaDD(Murxla* murxla,
+                   const std::string& out_dir,
+                   const std::string& tmp_dir,
+                   const std::string& match_out,
+                   const std::string& match_err)
+    : d_murxla(murxla),
+      d_out_dir(out_dir),
+      d_tmp_dir(tmp_dir),
+      d_match_out(match_out),
+      d_match_err(match_err)
+{
+  assert(d_murxla);
+  d_gold_out_file_name  = get_tmp_file_path("tmp-dd-gold.out", d_tmp_dir);
+  d_gold_err_file_name  = get_tmp_file_path("tmp-dd-gold.err", d_tmp_dir);
+  d_tmp_trace_file_name = get_tmp_file_path("tmp-api-dd.trace", d_tmp_dir);
+}
+
+void
+MurxlaDD::dd(uint32_t seed,
+             double time,
+             const std::string& api_trace_file_name,
+             const std::string& input_trace_file_name,
+             std::string reduced_trace_file_name)
+{
+  assert(!input_trace_file_name.empty());
+
+  Murxla::Result gold_exit;
+
+  std::string tmp_api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
+  std::string tmp_input_trace_file_name =
+      get_tmp_file_path("tmp-dd.trace", d_tmp_dir);
+
+  MURXLA_MESSAGE_DD << "start minimizing file '"
+                    << input_trace_file_name.c_str() << "'";
+
+  /* golden run */
+  gold_exit = d_murxla->run(seed,
+                            time,
+                            d_gold_out_file_name,
+                            d_gold_err_file_name,
+                            tmp_input_trace_file_name,
+                            input_trace_file_name,
+                            true,
+                            false,
+                            Murxla::TraceMode::TO_FILE);
+
+  MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
+  {
+    std::ifstream gold_out_file = open_input_file(d_gold_out_file_name, false);
+    std::stringstream ss;
+    ss << gold_out_file.rdbuf();
+    MURXLA_MESSAGE_DD << "golden stdout output: " << ss.str();
+    gold_out_file.close();
+  }
+  {
+    std::ifstream gold_err_file = open_input_file(d_gold_err_file_name, false);
+    MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
+    gold_err_file.close();
+  }
+  if (!d_match_out.empty())
+  {
+    MURXLA_MESSAGE_DD << "checking for occurrence of '" << d_match_out.c_str()
+                      << "' in stdout output";
+  }
+  if (!d_match_err.empty())
+  {
+    MURXLA_MESSAGE_DD << "checking for occurrence of '" << d_match_err.c_str()
+                      << "' in stderr output";
+  }
+
+  /* Start delta debugging */
+
+  /* Represent input trace as vector of lines.
+   *
+   * A line is a vector of strings with at most two elements.
+   * Trace statements that do not expect a return statement are represented
+   * as a line (vector) with one element.  Trace statements that expect a
+   * return statement are represented as one line, that is, a vector with two
+   * elements: the statement and the return statement.
+   */
+
+  std::string line;
+  std::vector<std::vector<std::string>> lines;
+  std::ifstream trace_file = open_input_file(tmp_input_trace_file_name, false);
+  while (std::getline(trace_file, line))
+  {
+    std::string token;
+    if (line[0] == '#') continue;
+    if (std::getline(std::stringstream(line), token, ' ') && token == "return")
+    {
+      std::stringstream ss;
+      assert(lines.size() > 0);
+      std::vector<std::string>& prev = lines.back();
+      prev.push_back(line);
+    }
+    else
+    {
+      lines.push_back(std::vector{line});
+    }
+  }
+  trace_file.close();
+
+  bool success        = false;
+  std::uintmax_t size = std::filesystem::file_size(tmp_input_trace_file_name);
+  std::vector<size_t> included_lines(lines.size());
+  std::iota(included_lines.begin(), included_lines.end(), 0);
+
+  do
+  {
+    success = minimize_lines(gold_exit,
+                             lines,
+                             included_lines,
+                             seed,
+                             time,
+                             tmp_input_trace_file_name);
+
+    success = minimize_line(gold_exit,
+                            lines,
+                            included_lines,
+                            seed,
+                            time,
+                            tmp_input_trace_file_name);
+  } while (success);
+
+  /* Write minimized trace file to path if given. */
+  if (reduced_trace_file_name.empty())
+  {
+    if (tmp_input_trace_file_name.empty())
+    {
+      reduced_trace_file_name =
+          prepend_prefix_to_file_name(TRACE_PREFIX, api_trace_file_name);
+    }
+    else
+    {
+      reduced_trace_file_name =
+          prepend_prefix_to_file_name(TRACE_PREFIX, input_trace_file_name);
+    }
+  }
+  if (!d_out_dir.empty())
+  {
+    reduced_trace_file_name = prepend_path(d_out_dir, reduced_trace_file_name);
+  }
+
+  MURXLA_MESSAGE_DD;
+  MURXLA_MESSAGE_DD << d_ntests_success << " (of " << d_ntests
+                    << ") tests reduced successfully";
+
+  if (std::filesystem::exists(d_tmp_trace_file_name))
+  {
+    std::filesystem::copy(d_tmp_trace_file_name,
+                          reduced_trace_file_name,
+                          std::filesystem::copy_options::overwrite_existing);
+    MURXLA_MESSAGE_DD << "written to: " << reduced_trace_file_name.c_str();
+    MURXLA_MESSAGE_DD << "file reduced to "
+                      << ((double) std::filesystem::file_size(
+                              reduced_trace_file_name)
+                          / size * 100)
+                      << "% of original size";
+  }
+  else
+  {
+    MURXLA_MESSAGE_DD << "unable to reduce api trace";
+  }
+}
+
+bool
+MurxlaDD::minimize_lines(Murxla::Result golden_exit,
+                         const std::vector<std::vector<std::string>>& lines,
+                         std::vector<size_t>& included_lines,
+                         uint32_t seed,
+                         double time,
+                         const std::string& untrace_file_name)
 {
   MURXLA_MESSAGE_DD << "Start trying to minimize number of trace lines...";
   size_t n_lines     = included_lines.size();
@@ -964,12 +1044,12 @@ Murxla::dd_minimize_lines(Murxla::Result golden_exit,
       std::unordered_set<size_t> ex(excluded_sets);
       ex.insert(i);
 
-      std::vector<size_t> tmp_superset = dd_test(golden_exit,
-                                                 lines,
-                                                 remove_subsets(subsets, ex),
-                                                 seed,
-                                                 time,
-                                                 untrace_file_name);
+      std::vector<size_t> tmp_superset = test(golden_exit,
+                                              lines,
+                                              remove_subsets(subsets, ex),
+                                              seed,
+                                              time,
+                                              untrace_file_name);
       if (!tmp_superset.empty())
       {
         superset_cur = tmp_superset;
@@ -983,7 +1063,7 @@ Murxla::dd_minimize_lines(Murxla::Result golden_exit,
     else
     {
       /* write found subset immediately to file and continue */
-      write_lines_to_file(lines, superset_cur, d_dd_tmp_trace_file_name);
+      write_lines_to_file(lines, superset_cur, d_tmp_trace_file_name);
       included_lines = superset_cur;
       n_lines_cur    = included_lines.size();
       subset_size = n_lines_cur / 2;
@@ -998,12 +1078,12 @@ Murxla::dd_minimize_lines(Murxla::Result golden_exit,
 }
 
 bool
-Murxla::dd_minimize_line(Murxla::Result golden_exit,
-                         std::vector<std::vector<std::string>>& lines,
-                         const std::vector<size_t>& included_lines,
-                         uint32_t seed,
-                         double time,
-                         const std::string& untrace_file_name)
+MurxlaDD::minimize_line(Murxla::Result golden_exit,
+                        std::vector<std::vector<std::string>>& lines,
+                        const std::vector<size_t>& included_lines,
+                        uint32_t seed,
+                        double time,
+                        const std::string& untrace_file_name)
 {
   MURXLA_MESSAGE_DD << "Start trying to minimize trace lines...";
 
@@ -1020,7 +1100,8 @@ Murxla::dd_minimize_line(Murxla::Result golden_exit,
   OpKindManager opmgr(opmgr_enabled_theories, {}, false, &opmgr_stats);
   {
     RNGenerator opmgr_rng;
-    std::unique_ptr<Solver> opmgr_solver(create_solver(opmgr_rng, false));
+    std::unique_ptr<Solver> opmgr_solver(
+        d_murxla->create_solver(opmgr_rng, false));
     opmgr_solver->configure_opmgr(&opmgr);
   }
 
@@ -1101,12 +1182,12 @@ Murxla::dd_minimize_line(Murxla::Result golden_exit,
           std::string line_cur = lines[line_idx][0];
           lines[line_idx][0]   = ss.str();
 
-          std::vector<size_t> tmp_superset = dd_test(golden_exit,
-                                                     lines,
-                                                     included_lines,
-                                                     seed,
-                                                     time,
-                                                     untrace_file_name);
+          std::vector<size_t> tmp_superset = test(golden_exit,
+                                                  lines,
+                                                  included_lines,
+                                                  seed,
+                                                  time,
+                                                  untrace_file_name);
           if (!tmp_superset.empty())
           {
             cur_line_superset = included_terms;
@@ -1124,7 +1205,7 @@ Murxla::dd_minimize_line(Murxla::Result golden_exit,
         else
         {
           /* write to file and continue */
-          write_lines_to_file(lines, included_lines, d_dd_tmp_trace_file_name);
+          write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
           line_superset = cur_line_superset;
           subset_size   = line_superset.size() / 2;
           res           = true;
@@ -1141,12 +1222,12 @@ Murxla::dd_minimize_line(Murxla::Result golden_exit,
 }
 
 std::vector<size_t>
-Murxla::dd_test(Murxla::Result golden_exit,
-                const std::vector<std::vector<std::string>>& lines,
-                const std::vector<size_t>& superset,
-                uint32_t seed,
-                double time,
-                const std::string& untrace_file_name)
+MurxlaDD::test(Murxla::Result golden_exit,
+               const std::vector<std::vector<std::string>>& lines,
+               const std::vector<size_t>& superset,
+               uint32_t seed,
+               double time,
+               const std::string& untrace_file_name)
 {
   std::vector<size_t> res_superset;
   std::string tmp_out_file_name = get_tmp_file_path("tmp-dd.out", d_tmp_dir);
@@ -1154,76 +1235,30 @@ Murxla::dd_test(Murxla::Result golden_exit,
 
   write_lines_to_file(lines, superset, untrace_file_name);
   /* while delta debugging, do not trace to file or stdout */
-  Murxla::Result exit = run(seed,
-                            time,
-                            tmp_out_file_name,
-                            tmp_err_file_name,
-                            "",
-                            untrace_file_name,
-                            true,
-                            false,
-                            NONE);
-  d_dd_ntests += 1;
+  Murxla::Result exit = d_murxla->run(seed,
+                                      time,
+                                      tmp_out_file_name,
+                                      tmp_err_file_name,
+                                      "",
+                                      untrace_file_name,
+                                      true,
+                                      false,
+                                      Murxla::TraceMode::NONE);
+  d_ntests += 1;
   if (exit == golden_exit
-      && ((!d_options.dd_out_string.empty()
-           && find_in_file(tmp_err_file_name, d_options.dd_out_string, false))
-          || compare_files(tmp_out_file_name, d_dd_gold_out_file_name))
-      && ((!d_options.dd_err_string.empty()
-           && find_in_file(tmp_err_file_name, d_options.dd_err_string, false))
-          || compare_files(tmp_err_file_name, d_dd_gold_err_file_name)))
+      && ((!d_match_out.empty()
+           && find_in_file(tmp_err_file_name, d_match_out, false))
+          || compare_files(tmp_out_file_name, d_gold_out_file_name))
+      && ((!d_match_err.empty()
+           && find_in_file(tmp_err_file_name, d_match_err, false))
+          || compare_files(tmp_err_file_name, d_gold_err_file_name)))
   {
     res_superset = superset;
-    d_dd_ntests_success += 1;
+    d_ntests_success += 1;
   }
   return res_superset;
 }
 
-bool
-Murxla::add_error(const std::string& err, uint32_t seed)
-{
-  bool duplicate       = false;
-  std::string err_norm = normalize_asan_error(err);
-
-  for (auto& p : *d_errors)
-  {
-    const auto& e_norm = p.first;
-    auto& seeds        = p.second.second;
-
-    size_t len   = std::max(err_norm.size(), e_norm.size());
-    size_t diff  = str_diff(err_norm, e_norm);
-    double pdiff = diff / static_cast<double>(len);
-
-    /* Errors are classified as the same error if they differ in at most 5% of
-     * characters. */
-    if (pdiff <= 0.05)
-    {
-      seeds.push_back(seed);
-      duplicate = true;
-      break;
-    }
-  }
-
-  if (!duplicate)
-  {
-    std::vector<uint32_t> seeds = {seed};
-    d_errors->emplace(err_norm, std::make_pair(err, seeds));
-  }
-
-  return duplicate;
-}
-
-std::ostream&
-operator<<(std::ostream& out, const Murxla::Result& res)
-{
-  switch (res)
-  {
-    case Murxla::Result::RESULT_OK: out << "ok"; break;
-    case Murxla::Result::RESULT_ERROR: out << "error"; break;
-    case Murxla::Result::RESULT_ERROR_CONFIG: out << "config error"; break;
-    case Murxla::Result::RESULT_TIMEOUT: out << "timeout"; break;
-    default: assert(res == Murxla::Result::RESULT_UNKNOWN); out << "unknown";
-  }
-  return out;
-}
+/* -------------------------------------------------------------------------- */
 
 }  // namespace murxla
