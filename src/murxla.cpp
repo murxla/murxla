@@ -1116,7 +1116,8 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
   }
 
   /* The set of actions that we consider for this minimization strategy. */
-  std::unordered_set<Action::Kind> actions = {Action::MK_TERM};
+  std::unordered_set<Action::Kind> actions = {Action::MK_TERM,
+                                              Action::GET_VALUE};
 
   /* Minimize. */
   for (size_t line_idx : included_lines)
@@ -1144,11 +1145,11 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
     {
       for (idx = 0; idx < n_tokens; ++idx)
       {
-        std::cout << "  token[" << idx << "]: " << tokens[idx] << std::endl;
         assert(!tokens[idx].empty());
         if (tokens[idx].find_first_not_of("0123456789") == std::string::npos)
         {
           n_terms = str_to_uint32(tokens[idx]);
+          idx += 1;
           assert(n_tokens > n_terms);
           break;
         }
