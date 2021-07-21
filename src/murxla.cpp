@@ -748,8 +748,6 @@ Murxla::run_aux(uint32_t seed,
       close(fd);
     }
 
-    std::unique_ptr<Solver> solver(create_solver(rng, run_forked, smt2_out));
-
     try
     {
       /* Dummy statistics object for the cases were we don't want to record
@@ -757,7 +755,7 @@ Murxla::run_aux(uint32_t seed,
       statistics::Statistics dummy_stats;
 
       FSM fsm(rng,
-              solver.get(),
+              create_solver(rng, run_forked, smt2_out),
               trace,
               *d_solver_options,
               d_options.arith_linear,
