@@ -115,6 +115,8 @@ class MurxlaDD
   MurxlaDD(Murxla* murxla,
            const std::string& out_dir,
            const std::string& tmp_dir,
+           bool ignore_out              = false,
+           bool ignore_err              = false,
            const std::string& match_out = "",
            const std::string& match_err = "");
 
@@ -152,6 +154,10 @@ class MurxlaDD
   std::string d_out_dir = "";
   /** The directory for temp files. */
   std::string d_tmp_dir;
+  /** True to ignore stdout output. */
+  bool d_ignore_out;
+  /** True to ignore stderr output. */
+  bool d_ignore_err;
   /**
    * The string to check for occurrence in stdout output (rather than
    * matching against the whole stderr output).

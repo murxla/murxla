@@ -548,6 +548,8 @@ Murxla::replay(uint32_t seed,
     MurxlaDD(this,
              d_options.out_dir,
              d_tmp_dir,
+             d_options.dd_ignore_out,
+             d_options.dd_ignore_err,
              d_options.dd_match_out,
              d_options.dd_match_err)
         .dd(seed,
@@ -855,6 +857,8 @@ operator<<(std::ostream& out, const Murxla::Result& res)
 MurxlaDD::MurxlaDD(Murxla* murxla,
                    const std::string& out_dir,
                    const std::string& tmp_dir,
+                   bool ignore_out,
+                   bool ignore_err,
                    const std::string& match_out,
                    const std::string& match_err)
     : d_murxla(murxla),
@@ -911,12 +915,20 @@ MurxlaDD::dd(uint32_t seed,
     MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
     gold_err_file.close();
   }
-  if (!d_match_out.empty())
+  if (d_ignore_out)
+  {
+    MURXLA_MESSAGE_DD << "ignoring stdout output";
+  }
+  if (d_ignore_err)
+  {
+    MURXLA_MESSAGE_DD << "ignoring stderr output";
+  }
+  if (!d_ignore_out && !d_match_out.empty())
   {
     MURXLA_MESSAGE_DD << "checking for occurrence of '" << d_match_out.c_str()
                       << "' in stdout output";
   }
-  if (!d_match_err.empty())
+  if (!d_ignore_err && !d_match_err.empty())
   {
     MURXLA_MESSAGE_DD << "checking for occurrence of '" << d_match_err.c_str()
                       << "' in stderr output";
@@ -1244,11 +1256,13 @@ MurxlaDD::test(Murxla::Result golden_exit,
                                       Murxla::TraceMode::NONE);
   d_ntests += 1;
   if (exit == golden_exit
-      && ((!d_match_out.empty()
-           && find_in_file(tmp_err_file_name, d_match_out, false))
+      && (d_ignore_out
+          || (!d_match_out.empty()
+              && find_in_file(tmp_err_file_name, d_match_out, false))
           || compare_files(tmp_out_file_name, d_gold_out_file_name))
-      && ((!d_match_err.empty()
-           && find_in_file(tmp_err_file_name, d_match_err, false))
+      && (d_ignore_err
+          || (!d_match_err.empty()
+              && find_in_file(tmp_err_file_name, d_match_err, false))
           || compare_files(tmp_err_file_name, d_gold_err_file_name)))
   {
     res_superset = superset;

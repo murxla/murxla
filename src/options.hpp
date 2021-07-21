@@ -56,6 +56,10 @@ struct Options
    * traces are reduced.
    */
   bool dd = false;
+  /** Ignore output on stdout when delta debugging. */
+  bool dd_ignore_out = false;
+  /** Ignore output on stderr when delta debugging. */
+  bool dd_ignore_err = false;
   /**
    * Check for occurrence of this string in stdout output (rather than
    * matching against the whole stderr output) when delta debugging.

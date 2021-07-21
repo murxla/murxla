@@ -160,6 +160,8 @@ set_sigint_handler_stats(void)
   "                             output when delta debugging\n"                 \
   "  --dd-match-out <string>    check for occurrence of <string> in stdout\n"  \
   "                             output when delta debugging\n"                 \
+  "  --dd-ignore-err            ignore stderr output when delta debugging\n"   \
+  "  --dd-ignore-out            ignore stdout output when delta debugging\n"   \
   "  -D, --dd-trace <file>      delta debug API trace into <file>\n"           \
   "  -a, --api-trace <file>     trace API call sequence into <file>\n"         \
   "  -u, --untrace <file>       replay given API call sequence\n"              \
@@ -253,6 +255,14 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, argc);
       options.dd_match_err = argv[i];
+    }
+    else if (arg == "--dd-ignore-out")
+    {
+      options.dd_ignore_out = true;
+    }
+    else if (arg == "--dd-ignore-err")
+    {
+      options.dd_ignore_err = true;
     }
     else if (arg == "-D" || arg == "--dd-trace")
     {
@@ -622,6 +632,8 @@ main(int argc, char* argv[])
         MurxlaDD(&murxla,
                  options.out_dir,
                  TMP_DIR,
+                 options.dd_ignore_out,
+                 options.dd_ignore_err,
                  options.dd_match_out,
                  options.dd_match_err)
             .dd(options.seed,
