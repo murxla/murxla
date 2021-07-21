@@ -156,9 +156,9 @@ set_sigint_handler_stats(void)
   "  -v, --verbosity            increase verbosity\n"                          \
   "  -m, --max-runs <int>       limit number of test runs\n"                   \
   "  -d, --dd                   enable delta debugging\n"                      \
-  "  --dd-err <string>          check for occurrence of <string> in stderr\n"  \
+  "  --dd-match-err <string>    check for occurrence of <string> in stderr\n"  \
   "                             output when delta debugging\n"                 \
-  "  --dd-out <string>          check for occurrence of <string> in stdout\n"  \
+  "  --dd-match-out <string>    check for occurrence of <string> in stdout\n"  \
   "                             output when delta debugging\n"                 \
   "  -D, --dd-trace <file>      delta debug API trace into <file>\n"           \
   "  -a, --api-trace <file>     trace API call sequence into <file>\n"         \
@@ -242,17 +242,17 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.dd = true;
     }
-    else if (arg == "--dd-out")
+    else if (arg == "--dd-match-out")
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      options.dd_out_string = argv[i];
+      options.dd_match_out = argv[i];
     }
-    else if (arg == "--dd-err")
+    else if (arg == "--dd-match-err")
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      options.dd_err_string = argv[i];
+      options.dd_match_err = argv[i];
     }
     else if (arg == "-D" || arg == "--dd-trace")
     {
@@ -622,8 +622,8 @@ main(int argc, char* argv[])
         MurxlaDD(&murxla,
                  options.out_dir,
                  TMP_DIR,
-                 options.dd_out_string,
-                 options.dd_err_string)
+                 options.dd_match_out,
+                 options.dd_match_err)
             .dd(options.seed,
                 options.time,
                 options.untrace_file_name,

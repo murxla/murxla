@@ -548,8 +548,8 @@ Murxla::replay(uint32_t seed,
     MurxlaDD(this,
              d_options.out_dir,
              d_tmp_dir,
-             d_options.dd_out_string,
-             d_options.dd_err_string)
+             d_options.dd_match_out,
+             d_options.dd_match_err)
         .dd(seed,
             0,
             d_options.api_trace_file_name,

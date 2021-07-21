@@ -60,12 +60,12 @@ struct Options
    * Check for occurrence of this string in stdout output (rather than
    * matching against the whole stderr output) when delta debugging.
    */
-  std::string dd_out_string;
+  std::string dd_match_out;
   /**
    * Check for occurrence of this string in stderr output (rather than
    * matching against the whole stderr output) when delta debugging.
    */
-  std::string dd_err_string;
+  std::string dd_match_err;
   /** The file to write the reduced API trace to. */
   std::string dd_trace_file_name;
 
