@@ -966,6 +966,7 @@ MurxlaDD::dd(uint32_t seed,
   }
   trace_file.close();
 
+  uint64_t iterations = 0;
   bool success        = false;
   std::uintmax_t size = std::filesystem::file_size(tmp_input_trace_file_name);
   std::vector<size_t> included_lines(lines.size());
@@ -980,12 +981,15 @@ MurxlaDD::dd(uint32_t seed,
                              time,
                              tmp_input_trace_file_name);
 
+    if (iterations > 0 && !success) break;
+
     success = minimize_line(gold_exit,
                             lines,
                             included_lines,
                             seed,
                             time,
                             tmp_input_trace_file_name);
+    iterations += 1;
   } while (success);
 
   /* Write minimized trace file to path if given. */
