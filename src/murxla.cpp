@@ -1053,10 +1053,14 @@ MurxlaDD::minimize_lines(Murxla::Result golden_exit,
 
     std::vector<size_t> superset_cur;
     std::unordered_set<size_t> excluded_sets;
-    for (size_t i = 0, n = subsets.size(); i < n; ++i)
+    /* we skip the first subset (will always fail since it contains 'new') */
+    for (size_t i = 0, n = subsets.size() - 1; i < n; ++i)
     {
+      /* remove subsets from last to first */
+      size_t idx = n - i - 1;
+
       std::unordered_set<size_t> ex(excluded_sets);
-      ex.insert(i);
+      ex.insert(idx);
 
       std::vector<size_t> tmp_superset = test(golden_exit,
                                               lines,
@@ -1067,7 +1071,7 @@ MurxlaDD::minimize_lines(Murxla::Result golden_exit,
       if (!tmp_superset.empty())
       {
         superset_cur = tmp_superset;
-        excluded_sets.insert(i);
+        excluded_sets.insert(idx);
       }
     }
     if (superset_cur.empty())
