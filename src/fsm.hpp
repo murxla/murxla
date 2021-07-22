@@ -85,6 +85,9 @@ class State
    */
   void add_action(Action* action, uint32_t priority, State* next = nullptr);
 
+  /** Disable action of given `kind`. This will set the priority to 0. */
+  void disable_action(Action::Kind kind);
+
  private:
   /* State kind. */
   const Kind& d_kind;
@@ -114,7 +117,6 @@ class FSM
       SolverOptions& options,
       bool arith_linear,
       bool trace_seeds,
-      bool cross_check,
       bool simple_symbols,
       bool smt,
       statistics::Statistics* stats,
@@ -148,6 +150,9 @@ class FSM
   /** Create new action of given type T. */
   template <class T>
   T* new_action();
+
+  /** Disable action of kind `kind` in all states. */
+  void disable_action(Action::Kind kind);
 
   /**
    * Add given action to all configured states (excl. states "new" and "delete"

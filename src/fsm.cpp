@@ -21,6 +21,18 @@ State::add_action(Action* a, uint32_t priority, State* next)
   d_weights.push_back(priority);
 }
 
+void
+State::disable_action(Action::Kind kind)
+{
+  for (size_t i = 0; i < d_actions.size(); ++i)
+  {
+    if (d_actions[i].d_action->get_kind() == kind)
+    {
+      d_weights[i] = 0;
+    }
+  }
+}
+
 State*
 State::run(RNGenerator& rng)
 {
@@ -76,7 +88,6 @@ FSM::FSM(RNGenerator& rng,
          SolverOptions& options,
          bool arith_linear,
          bool trace_seeds,
-         bool cross_check,
          bool simple_symbols,
          bool smt,
          statistics::Statistics* stats,
@@ -87,7 +98,6 @@ FSM::FSM(RNGenerator& rng,
              options,
              arith_linear,
              trace_seeds,
-             cross_check,
              simple_symbols,
              stats,
              enabled_theories),
@@ -151,6 +161,15 @@ FSM::new_state(const State::Kind& kind,
   strncpy(d_mbt_stats->d_state_kinds[id], kind.c_str(), kind.size());
 
   return state;
+}
+
+void
+FSM::disable_action(Action::Kind kind)
+{
+  for (auto& s : d_states)
+  {
+    s->disable_action(kind);
+  }
 }
 
 void
@@ -448,6 +467,7 @@ FSM::configure()
     uint32_t i = 0;
     for (uint32_t& w : s->d_weights)
     {
+      if (w == 0) continue;
       w = sum / w;
       i += 1;
     }
