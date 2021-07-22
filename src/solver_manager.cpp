@@ -20,14 +20,12 @@ SolverManager::SolverManager(Solver* solver,
                              SolverOptions& options,
                              bool arith_linear,
                              bool trace_seeds,
-                             bool cross_check,
                              bool simple_symbols,
                              statistics::Statistics* stats,
                              const TheoryIdVector& enabled_theories)
     : d_mbt_stats(stats),
       d_arith_linear(arith_linear),
       d_trace_seeds(trace_seeds),
-      d_cross_check(cross_check),
       d_simple_symbols(simple_symbols),
       d_solver(solver),
       d_rng(rng),
@@ -100,12 +98,6 @@ SolverManager::trace_seed() const
   std::stringstream ss;
   ss << "set-seed " << d_rng.get_engine() << std::endl;
   return ss.str();
-}
-
-bool
-SolverManager::is_cross_check() const
-{
-  return d_cross_check;
 }
 
 std::ostream&

@@ -57,10 +57,6 @@ class Murxla
          ErrorMap* error_map,
          const std::string& tmp_dir);
 
-  Solver* create_solver(RNGenerator& rng,
-                        bool run_forked,
-                        std::ostream& smt2_out = std::cout);
-
   Result run(uint32_t seed,
              double time,
              const std::string& file_out,
@@ -73,12 +69,18 @@ class Murxla
 
   void test();
 
+  Solver* create_solver(RNGenerator& rng, std::ostream& smt2_out = std::cout);
+
   const Options& d_options;
   SolverOptions* d_solver_options;
   /** The directory for temp files. */
   std::string d_tmp_dir;
 
  private:
+  Solver* new_solver(RNGenerator& rng,
+                     const std::string& solver_name,
+                     std::ostream& smt2_out = std::cout);
+
   Result run_aux(uint32_t seed,
                  double time,
                  const std::string& file_out,

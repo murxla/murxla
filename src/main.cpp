@@ -203,6 +203,35 @@ check_next_arg(std::string& option, int i, int argc)
 }
 
 void
+check_solver(const std::string& solver_name)
+{
+  if (solver_name == Murxla::SOLVER_BTOR)
+  {
+#ifndef MURXLA_USE_BOOLECTOR
+    MURXLA_EXIT_ERROR(true) << "Boolector not configured";
+#endif
+  }
+  else if (solver_name == Murxla::SOLVER_BZLA)
+  {
+#ifndef MURXLA_USE_BITWUZLA
+    MURXLA_EXIT_ERROR(true) << "Bitwuzla not configured";
+#endif
+  }
+  else if (solver_name == Murxla::SOLVER_CVC5)
+  {
+#ifndef MURXLA_USE_CVC5
+    MURXLA_EXIT_ERROR(true) << "cvc5 not configured";
+#endif
+  }
+  else if (solver_name == Murxla::SOLVER_YICES)
+  {
+#ifndef MURXLA_USE_YICES
+    MURXLA_EXIT_ERROR(true) << "Yices not configured";
+#endif
+  }
+}
+
+void
 parse_options(Options& options, int argc, char* argv[])
 {
   for (int i = 1; i < argc; i++)
@@ -278,8 +307,6 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "-c" || arg == "--cross-check")
     {
-      MURXLA_EXIT_ERROR(options.solver == Murxla::SOLVER_SMT2)
-          << "option " << arg << " is incompatible with option --smt2";
       i += 1;
       check_next_arg(arg, i, argc);
       std::string solver = argv[i];
@@ -287,6 +314,7 @@ parse_options(Options& options, int argc, char* argv[])
           solver != Murxla::SOLVER_BTOR && solver != Murxla::SOLVER_BZLA
           && solver != Murxla::SOLVER_CVC5 && solver != Murxla::SOLVER_YICES)
           << "invalid argument " << solver << " to option '" << arg << "'";
+      check_solver(solver);
       options.cross_check = solver;
     }
     else if (arg == "-y" || arg == "--random-symbols")
@@ -311,29 +339,30 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "--btor")
     {
+      check_solver(Murxla::SOLVER_BTOR);
       MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = Murxla::SOLVER_BTOR;
     }
     else if (arg == "--bzla")
     {
+      check_solver(Murxla::SOLVER_BZLA);
       MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = Murxla::SOLVER_BZLA;
     }
     else if (arg == "--cvc5")
     {
+      check_solver(Murxla::SOLVER_CVC5);
       MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = Murxla::SOLVER_CVC5;
     }
     else if (arg == "--yices")
     {
+      check_solver(Murxla::SOLVER_YICES);
       MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = Murxla::SOLVER_YICES;
     }
     else if (arg == "--smt2")
     {
-      MURXLA_EXIT_ERROR(!options.cross_check.empty())
-          << "option " << arg
-          << " is incompatible with option -c, --cross-check";
       if (i + 1 < argc && argv[i + 1][0] != '-')
       {
         MURXLA_EXIT_ERROR(!options.solver.empty())
@@ -550,7 +579,6 @@ main(int argc, char* argv[])
 
   bool is_untrace    = !options.untrace_file_name.empty();
   bool is_continuous = !options.is_seeded && !is_untrace;
-  bool is_cross      = !options.cross_check.empty();
   bool is_forked     = options.dd || is_continuous;
 
   create_tmp_directory(options.tmp_dir);
@@ -597,20 +625,6 @@ main(int argc, char* argv[])
           dd_trace_file_name = ss.str();
           MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
         }
-      }
-
-      if (is_cross)
-      {
-        if (api_trace_file_name.empty())
-        {
-          /* When cross checking, we don't want to pollute stdout with the api
-           * trace, we need it to only contain the check-sat answers. */
-          api_trace_file_name = DEVNULL;
-        }
-        /* When cross checking, check-sat answers and the error output of
-         * solver must be recorded for the actual cross check. */
-        out_file_name = get_tmp_file_path("tmp.out", TMP_DIR);
-        err_file_name = get_tmp_file_path("tmp.err", TMP_DIR);
       }
 
       Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);

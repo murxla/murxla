@@ -12,6 +12,7 @@
 
 #include "btor_solver.hpp"
 #include "bzla_solver.hpp"
+#include "cross_check_solver.hpp"
 #include "cvc5_solver.hpp"
 #include "except.hpp"
 #include "fsm.hpp"
@@ -227,9 +228,6 @@ Murxla::run(uint32_t seed,
             bool record_stats,
             Murxla::TraceMode trace_mode)
 {
-  bool cross  = !d_options.cross_check.empty();
-  bool forked = run_forked || cross;
-
   std::string tmp_file_out = get_tmp_file_path("run-tmp1.out", d_tmp_dir);
   std::string tmp_file_err = get_tmp_file_path("run-tmp1.err", d_tmp_dir);
 
@@ -238,7 +236,7 @@ Murxla::run(uint32_t seed,
                        tmp_file_out,
                        tmp_file_err,
                        untrace_file_name,
-                       forked,
+                       run_forked,
                        record_stats,
                        trace_mode);
 
@@ -285,86 +283,7 @@ Murxla::run(uint32_t seed,
     }
   }
 
-  if (cross)
-  {
-    std::streambuf *obuf, *ebuf;
-    std::ofstream fout, ferr;
-
-    if (d_options.dd)
-    {
-      fout.open(file_out);
-      ferr.open(file_err);
-      obuf = fout.rdbuf();
-      ebuf = ferr.rdbuf();
-    }
-    else
-    {
-      obuf = std::cout.rdbuf();
-      ebuf = std::cout.rdbuf();
-    }
-    std::ostream out(obuf), err(ebuf);
-
-    SolverOptions solver_options_cross;  // not used for now
-    std::string tmp_file_cross_out =
-        get_tmp_file_path("run-tmp2.out", d_tmp_dir);
-    std::string tmp_file_cross_err =
-        get_tmp_file_path("run-tmp2.err", d_tmp_dir);
-
-    statistics::Statistics stats_cross;
-    Options options_cross(d_options);
-    options_cross.solver = d_options.cross_check;
-
-    Murxla murxla_cross(
-        &stats_cross, options_cross, &solver_options_cross, nullptr, d_tmp_dir);
-    // TODO check if we should trace here
-    Result cres = murxla_cross.run_aux(seed,
-                                       time,
-                                       tmp_file_cross_out,
-                                       tmp_file_cross_err,
-                                       untrace_file_name,
-                                       forked,
-                                       false,
-                                       NONE);
-
-    /* write result / error output to .err */
-    if (res != cres)
-    {
-      err << d_options.solver << ": " << res << std::endl;
-      if (res == RESULT_ERROR)
-      {
-        std::ifstream tmp_err = open_input_file(tmp_file_err, false);
-        err << tmp_err.rdbuf();
-        tmp_err.close();
-        err << std::endl;
-      }
-      err << d_options.cross_check << ": " << cres << std::endl;
-
-      if (cres == RESULT_ERROR)
-      {
-        std::ifstream tmp_err = open_input_file(tmp_file_cross_err, false);
-        err << tmp_err.rdbuf();
-        tmp_err.close();
-      }
-      res = RESULT_ERROR;
-    }
-
-    /* write output diff to .out */
-    if (!compare_files(tmp_file_out, tmp_file_cross_out))
-    {
-      out << "output differs";
-      if (d_options.dd)
-      {
-        out << std::endl;
-      }
-      else
-      {
-        out << ":" << std::endl;
-        diff_files(out, tmp_file_out, tmp_file_cross_out, false);
-      }
-      res = RESULT_ERROR;
-    }
-  }
-  else if (forked)
+  if (run_forked)
   {
     std::ofstream err = open_output_file(file_err, true);
     std::ofstream out = open_output_file(file_out, true);
@@ -388,16 +307,10 @@ Murxla::test()
 {
   uint32_t num_runs         = 0;
   double start_time         = get_cur_wall_time();
-  bool is_cross             = !d_options.cross_check.empty();
   std::string out_file_name = DEVNULL;
   SeedGenerator sg(d_options.seed);
 
   std::string err_file_name = get_tmp_file_path("tmp.err", d_tmp_dir);
-
-  if (is_cross)
-  {
-    out_file_name = get_tmp_file_path("tmp.out", d_tmp_dir);
-  }
 
   do
   {
@@ -439,6 +352,8 @@ Murxla::test()
             prepend_path(d_options.out_dir, api_trace_file_name);
       }
     }
+    bool smt2_offline =
+        (d_options.solver == SOLVER_SMT2 && d_options.solver_binary.empty());
     Result res =
         run(seed,
             d_options.time,
@@ -449,9 +364,7 @@ Murxla::test()
             true,
             true,
             // for the SMT2 offline mode we want to store all SMT2 files
-            (d_options.solver == SOLVER_SMT2 && d_options.solver_binary.empty())
-                ? TO_FILE
-                : NONE);
+            smt2_offline ? TO_FILE : NONE);
 
     /* report status */
     if (res == RESULT_OK)
@@ -513,7 +426,7 @@ Murxla::test()
      * If SMT2 solver with online solver configured, dump smt2 on replay.
      * If SMT2 solver configured without an online solver, we'll never enter
      * here (the SMT2 solver should never return an error result). */
-    if (res != RESULT_OK && res != RESULT_TIMEOUT)
+    if (res != RESULT_OK && res != RESULT_TIMEOUT && !smt2_offline)
     {
       Result res_replay = replay(seed,
                                  out_file_name,
@@ -562,48 +475,53 @@ Murxla::replay(uint32_t seed,
 }
 
 Solver*
-Murxla::create_solver(RNGenerator& rng, bool run_forked, std::ostream& smt2_out)
+Murxla::new_solver(RNGenerator& rng,
+                   const std::string& solver_name,
+                   std::ostream& smt2_out)
 {
-  Solver* solver = nullptr;
-
-  if (d_options.solver == SOLVER_BTOR)
+  if (solver_name == SOLVER_BTOR)
   {
 #if MURXLA_USE_BOOLECTOR
-    solver = new btor::BtorSolver(rng);
-#else
-    MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked)
-        << "Boolector not configured";
+    return new btor::BtorSolver(rng);
 #endif
   }
-  else if (d_options.solver == SOLVER_BZLA)
+  else if (solver_name == SOLVER_BZLA)
   {
 #if MURXLA_USE_BITWUZLA
-    solver = new bzla::BzlaSolver(rng);
-#else
-    MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked)
-        << "Bitwuzla not configured";
+    return new bzla::BzlaSolver(rng);
 #endif
   }
-  else if (d_options.solver == SOLVER_CVC5)
+  else if (solver_name == SOLVER_CVC5)
   {
 #if MURXLA_USE_CVC5
-    solver = new cvc5::Cvc5Solver(rng);
-#else
-    MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << "cvc5 not configured";
+    return new cvc5::Cvc5Solver(rng);
 #endif
   }
-  else if (d_options.solver == SOLVER_YICES)
+  else if (solver_name == SOLVER_YICES)
   {
 #if MURXLA_USE_YICES
-    solver = new yices::YicesSolver(rng);
-#else
-    MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << "Yices not configured";
+    return new yices::YicesSolver(rng);
 #endif
   }
-  else if (d_options.solver == SOLVER_SMT2)
+  else if (solver_name == SOLVER_SMT2)
   {
-    solver = new smt2::Smt2Solver(rng, smt2_out, d_options.solver_binary);
+    return new smt2::Smt2Solver(rng, smt2_out, d_options.solver_binary);
   }
+  MURXLA_CHECK(true) << "no solver created";
+  return nullptr;
+}
+
+Solver*
+Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out)
+{
+  Solver* solver = new_solver(rng, d_options.solver, smt2_out);
+
+  if (!d_options.cross_check.empty())
+  {
+    Solver* reference_solver = new_solver(rng, d_options.cross_check);
+    solver = new cross_check::CrossCheckSolver(rng, solver, reference_solver);
+  }
+
   return solver;
 }
 
@@ -757,12 +675,11 @@ Murxla::run_aux(uint32_t seed,
       statistics::Statistics dummy_stats;
 
       FSM fsm(rng,
-              create_solver(rng, run_forked, smt2_out),
+              create_solver(rng, smt2_out),
               trace,
               *d_solver_options,
               d_options.arith_linear,
               d_options.trace_seeds,
-              !d_options.cross_check.empty(),
               d_options.simple_symbols,
               d_options.smt,
               record_stats ? d_stats : &dummy_stats,
@@ -1118,8 +1035,7 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
   OpKindManager opmgr(opmgr_enabled_theories, {}, false, &opmgr_stats);
   {
     RNGenerator opmgr_rng;
-    std::unique_ptr<Solver> opmgr_solver(
-        d_murxla->create_solver(opmgr_rng, false));
+    std::unique_ptr<Solver> opmgr_solver(d_murxla->create_solver(opmgr_rng));
     opmgr_solver->configure_opmgr(&opmgr);
   }
 

@@ -42,7 +42,6 @@ class SolverManager
                 SolverOptions& options,
                 bool arith_linear,
                 bool trace_seeds,
-                bool cross_check,
                 bool simple_symbols,
                 statistics::Statistics* stats,
                 const TheoryIdVector& enabled_theories);
@@ -66,9 +65,6 @@ class SolverManager
 
   /** Get the trace line for the current seed ("set-seed <seed>"). */
   std::string trace_seed() const;
-
-  /** True if current run is a cross check run. */
-  bool is_cross_check() const;
 
   /** Get set of enabled theories. */
   const TheoryIdSet& get_enabled_theories() const;
@@ -390,12 +386,6 @@ class SolverManager
    * manager for actions to have access to it.
    */
   bool d_trace_seeds = false;
-
-  /**
-   * True if cross checking is enabled. We need to provide this option in the
-   * solver manager for the actions to have access to it.
-   * */
-  bool d_cross_check = false;
 
   /**
    * True if all symbols for terms should be of the form '_sX' rather than

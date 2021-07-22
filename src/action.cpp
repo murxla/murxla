@@ -1443,8 +1443,6 @@ ActionCheckSat::_run()
   d_smgr.d_sat_result = d_solver.check_sat();
   d_smgr.d_sat_called = true;
   d_smgr.d_n_sat_calls += 1;
-  if (d_smgr.is_cross_check()) std::cout << d_smgr.d_sat_result << std::endl;
-
   d_smgr.d_mbt_stats->d_results[d_smgr.d_sat_result]++;
 }
 
@@ -1491,7 +1489,6 @@ ActionCheckSatAssuming::_run(std::vector<Term> assumptions)
   reset_sat();
   d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
   d_smgr.d_sat_called = true;
-  if (d_smgr.is_cross_check()) std::cout << d_smgr.d_sat_result << std::endl;
 }
 
 /* -------------------------------------------------------------------------- */

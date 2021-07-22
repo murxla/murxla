@@ -66,10 +66,10 @@ class AbsSort
   void set_id(uint64_t id);
   uint64_t get_id() const;
 
-  void set_kind(SortKind sort_kind);
+  virtual void set_kind(SortKind sort_kind);
   SortKind get_kind();
 
-  void set_sorts(const std::vector<Sort>& sorts);
+  virtual void set_sorts(const std::vector<Sort>& sorts);
   const std::vector<Sort>& get_sorts() const;
 
  protected:
@@ -122,7 +122,7 @@ class AbsTerm
   void set_id(uint64_t id);
   uint64_t get_id() const;
 
-  void set_sort(Sort sort);
+  virtual void set_sort(Sort sort);
   Sort get_sort() const;
 
   void set_levels(const std::vector<uint64_t>& levels);
