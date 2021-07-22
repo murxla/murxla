@@ -781,6 +781,8 @@ MurxlaDD::MurxlaDD(Murxla* murxla,
     : d_murxla(murxla),
       d_out_dir(out_dir),
       d_tmp_dir(tmp_dir),
+      d_ignore_out(ignore_out),
+      d_ignore_err(ignore_err),
       d_match_out(match_out),
       d_match_err(match_err)
 {
