@@ -509,7 +509,7 @@ BtorSolver::mk_value(Sort sort, bool value)
 }
 
 BoolectorNode*
-BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
+BtorSolver::mk_value_bv_uint32(Sort sort, uint32_t value)
 {
   MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
@@ -518,7 +518,8 @@ BtorSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
   BoolectorNode* btor_res = 0;
   BoolectorSort btor_sort = get_btor_sort(sort);
   uint32_t bw             = sort->get_bv_size();
-  bool check_bits         = bw <= 64 && d_rng.pick_with_prob(10);
+  assert(bw <= 32);
+  bool check_bits = d_rng.pick_with_prob(10);
   std::string str;
 
   if (d_rng.flip_coin())
@@ -570,10 +571,10 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
   switch (base)
   {
     case HEX:
-      if (bw <= 64 && d_rng.flip_coin())
+      if (bw <= 32 && d_rng.flip_coin())
       {
         btor_res =
-            mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 16));
+            mk_value_bv_uint32(sort, strtoull(value.c_str(), nullptr, 16));
       }
       else
       {
@@ -588,10 +589,10 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
       break;
 
     case DEC:
-      if (bw <= 64 && d_rng.flip_coin())
+      if (bw <= 32 && d_rng.flip_coin())
       {
         btor_res =
-            mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 10));
+            mk_value_bv_uint32(sort, strtoull(value.c_str(), nullptr, 10));
       }
       else
       {
@@ -607,10 +608,10 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
 
     default:
       assert(base == BIN);
-      if (bw <= 64 && d_rng.flip_coin())
+      if (bw <= 32 && d_rng.flip_coin())
       {
         btor_res =
-            mk_value_bv_uint64(sort, strtoull(value.c_str(), nullptr, 2));
+            mk_value_bv_uint32(sort, strtoull(value.c_str(), nullptr, 2));
       }
       else
       {

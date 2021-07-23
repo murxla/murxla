@@ -216,7 +216,7 @@ class BtorSolver : public Solver
                          BoolectorNode* node) const;
 
   BoolectorSort get_btor_sort(Sort sort) const;
-  BoolectorNode* mk_value_bv_uint64 (Sort sort, uint64_t value);
+  BoolectorNode* mk_value_bv_uint32(Sort sort, uint32_t value);
   BoolectorNode* mk_term_left_assoc(
       std::vector<BoolectorNode*>& args,
       BoolectorNode* (*fun)(Btor*, BoolectorNode*, BoolectorNode*) ) const;
