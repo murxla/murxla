@@ -20,10 +20,13 @@ class BtorSort : public AbsSort
   friend class BtorSolver;
 
  public:
-  BtorSort(Btor* btor, BoolectorSort sort);
+  BtorSort(Btor* btor,
+           BoolectorSort sort,
+           const std::vector<BoolectorSort>& domain = {});
   ~BtorSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;
@@ -37,8 +40,16 @@ class BtorSort : public AbsSort
   uint32_t get_bv_size() const override;
 
  private:
-  Btor* d_solver;
+  /** Return a string representation of a bit-vector sort. */
+  std::string bv_sort_to_string(BoolectorSort sort) const;
+  Btor* d_solver = nullptr;
   BoolectorSort d_sort;
+  /**
+   * We have to cache the domain sorts for array and function sorts in order to
+   * be able to print them in to_string(). Boolector does not provide functions
+   * to retrieve the domain sorts from array and function sorts.
+   */
+  std::vector<BoolectorSort> d_domain;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -54,6 +65,7 @@ class BtorTerm : public AbsTerm
   ~BtorTerm() override;
   size_t hash() const override;
   bool equals(const Term& other) const override;
+  std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;

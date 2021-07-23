@@ -17,6 +17,7 @@ class CrossCheckSort : public AbsSort
   ~CrossCheckSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;
@@ -50,6 +51,7 @@ class CrossCheckTerm : public AbsTerm
   ~CrossCheckTerm() override;
   size_t hash() const override;
   bool equals(const Term& other) const override;
+  std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;

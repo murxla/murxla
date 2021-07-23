@@ -31,8 +31,10 @@ is_power_of_2(uint32_t x)
 /* BtorSort                                                                   */
 /* -------------------------------------------------------------------------- */
 
-BtorSort::BtorSort(Btor* btor, BoolectorSort sort)
-    : d_solver(btor), d_sort(boolector_copy_sort(btor, sort))
+BtorSort::BtorSort(Btor* btor,
+                   BoolectorSort sort,
+                   const std::vector<BoolectorSort>& domain)
+    : d_solver(btor), d_sort(boolector_copy_sort(btor, sort)), d_domain(domain)
 {
 }
 
@@ -53,6 +55,35 @@ BtorSort::equals(const Sort& other) const
     return d_sort == btor_sort->d_sort;
   }
   return false;
+}
+
+std::string
+BtorSort::bv_sort_to_string(BoolectorSort sort) const
+{
+  assert(boolector_is_bitvec_sort(d_solver, sort));
+  uint32_t bw = boolector_bitvec_sort_get_width(d_solver, sort);
+  return "(_ BitVec " + std::to_string(bw) + ")";
+}
+
+std::string
+BtorSort::to_string() const
+{
+  if (boolector_is_bitvec_sort(d_solver, d_sort))
+  {
+    return bv_sort_to_string(d_sort);
+  }
+  if (boolector_is_array_sort(d_solver, d_sort))
+  {
+    assert(d_domain.size() == 2);
+    return "(Array " + bv_sort_to_string(d_domain[0]) + " "
+           + bv_sort_to_string(d_domain[1]) + ")";
+  }
+  assert(boolector_is_fun_sort(d_solver, d_sort));
+  std::stringstream ss;
+  ss << "(-> ";
+  for (BoolectorSort s : d_domain) ss << " " << bv_sort_to_string(s);
+  ss << ")";
+  return ss.str();
 }
 
 bool
@@ -166,6 +197,24 @@ BtorTerm::equals(const Term& other) const
            == get_btor_node_id(btor_term->d_solver, btor_term->d_term);
   }
   return false;
+}
+
+std::string
+BtorTerm::to_string() const
+{
+  FILE* tmp_file = std::tmpfile();
+  boolector_dump_smt2_node(d_solver, tmp_file, d_term);
+  std::rewind(tmp_file);
+  std::stringstream ss;
+  int32_t ch;
+  while ((ch = std::fgetc(tmp_file)) != EOF)
+  {
+    ss << (char) ch;
+  }
+  std::fclose(tmp_file);
+  MURXLA_EXIT_ERROR(std::ferror(tmp_file))
+      << "error while reading from tmp file";
+  return ss.str();
 }
 
 bool
@@ -355,18 +404,23 @@ Sort
 BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
   BoolectorSort btor_res = 0;
+  std::vector<BoolectorSort> domain;
 
   switch (kind)
   {
     case SORT_ARRAY:
-      btor_res = boolector_array_sort(
-          d_solver, get_btor_sort(sorts[0]), get_btor_sort(sorts[1]));
-      break;
+    {
+      BoolectorSort isort = get_btor_sort(sorts[0]);
+      BoolectorSort esort = get_btor_sort(sorts[1]);
+      btor_res            = boolector_array_sort(d_solver, isort, esort);
+      domain.push_back(isort);
+      domain.push_back(esort);
+    }
+    break;
 
     case SORT_FUN:
     {
       BoolectorSort codomain = get_btor_sort(sorts.back());
-      std::vector<BoolectorSort> domain;
       for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
       {
         domain.push_back(get_btor_sort(*it));
@@ -382,7 +436,7 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
           << "' as argument to BtorSolver::mk_sort, expected '" << SORT_ARRAY
           << "' or '" << SORT_FUN << "'";
   }
-  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res, domain));
   assert(btor_res);
   boolector_release_sort(d_solver, btor_res);
   assert(res);

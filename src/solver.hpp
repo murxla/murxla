@@ -31,8 +31,10 @@ class AbsSort
 {
  public:
   virtual ~AbsSort(){};
+
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
+  virtual std::string to_string() const                            = 0;
 
   /** Return true if this sort is an Array sort. */
   virtual bool is_array() const = 0;
@@ -80,6 +82,13 @@ class AbsSort
 
 bool operator==(const Sort& a, const Sort& b);
 
+/**
+ * Serialize a Sort to given stream.
+ *
+ * This represents a sort as 's' + its id and is mainly intended for tracing
+ * purposes.  For a representation of a term as provided by the corresponding
+ * solver, user AbsSort::to_string() insted.
+ */
 std::ostream& operator<<(std::ostream& out, const Sort s);
 
 /* -------------------------------------------------------------------------- */
@@ -91,8 +100,10 @@ class AbsTerm
  public:
   AbsTerm(){};
   virtual ~AbsTerm(){};
+
   virtual size_t hash() const                                      = 0;
   virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
+  virtual std::string to_string() const                            = 0;
 
   /** Return true if this term is an Array term. */
   virtual bool is_array() const = 0;
@@ -144,7 +155,20 @@ using Term = std::shared_ptr<AbsTerm>;
 
 bool operator==(const Term& a, const Term& b);
 
+/**
+ * Serialize a Term to given stream.
+ *
+ * This represents a term as 't' + its id and is mainly intended for tracing
+ * purposes.  For a representation of a term as provided by the corresponding
+ * solver, user AbsTerm::to_string() insted.
+ */
 std::ostream& operator<<(std::ostream& out, const Term t);
+/**
+ * Serialize a vector of Terms to given stream.
+ *
+ * As above, a term is represented as 't' + its id, so this will yield a list
+ * of space separated ids.
+ */
 std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
 
 /* -------------------------------------------------------------------------- */

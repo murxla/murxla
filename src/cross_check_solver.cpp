@@ -53,6 +53,11 @@ CrossCheckSort::equals(const Sort& other) const
   CrossCheckSort* cc_sort = dynamic_cast<CrossCheckSort*>(other.get());
   return d_sort_test == cc_sort->d_sort_test;
 }
+std::string
+CrossCheckSort::to_string() const
+{
+  return d_sort_test->to_string();
+}
 bool
 CrossCheckSort::is_array() const
 {
@@ -161,6 +166,11 @@ CrossCheckTerm::equals(const Term& other) const
 {
   CrossCheckTerm* cc_term = dynamic_cast<CrossCheckTerm*>(other.get());
   return d_term_test == cc_term->d_term_test;
+}
+std::string
+CrossCheckTerm::to_string() const
+{
+  return d_term_test->to_string();
 }
 bool
 CrossCheckTerm::is_array() const

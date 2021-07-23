@@ -32,6 +32,24 @@ BzlaSort::hash() const
   return bitwuzla_sort_hash(d_sort);
 }
 
+std::string
+BzlaSort::to_string() const
+{
+  FILE* tmp_file = std::tmpfile();
+  bitwuzla_sort_dump(d_sort, "smt2", tmp_file);
+  std::rewind(tmp_file);
+  std::stringstream ss;
+  int32_t ch;
+  while ((ch = std::fgetc(tmp_file)) != EOF)
+  {
+    ss << (char) ch;
+  }
+  std::fclose(tmp_file);
+  MURXLA_EXIT_ERROR(std::ferror(tmp_file))
+      << "error while reading from tmp file";
+  return ss.str();
+}
+
 bool
 BzlaSort::equals(const Sort& other) const
 {
@@ -151,6 +169,24 @@ BzlaTerm::equals(const Term& other) const
 {
   BzlaTerm* bzla_term = dynamic_cast<BzlaTerm*>(other.get());
   return d_term == bzla_term->d_term;
+}
+
+std::string
+BzlaTerm::to_string() const
+{
+  FILE* tmp_file = std::tmpfile();
+  bitwuzla_term_dump(d_term, "smt2", tmp_file);
+  std::rewind(tmp_file);
+  std::stringstream ss;
+  int32_t ch;
+  while ((ch = std::fgetc(tmp_file)) != EOF)
+  {
+    ss << (char) ch;
+  }
+  std::fclose(tmp_file);
+  MURXLA_EXIT_ERROR(std::ferror(tmp_file))
+      << "error while reading from tmp file";
+  return ss.str();
 }
 
 bool

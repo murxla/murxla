@@ -31,6 +31,15 @@ YicesSort::equals(const Sort& other) const
   return false;
 }
 
+std::string
+YicesSort::to_string() const
+{
+  char* s = yices_type_to_string(d_sort, 80, 80, 0);
+  std::string res(s);
+  yices_free_string(s);
+  return res;
+}
+
 bool
 YicesSort::is_array() const
 {
@@ -123,6 +132,15 @@ YicesTerm::equals(const Term& other) const
     return d_term == yices_term->d_term;
   }
   return false;
+}
+
+std::string
+YicesTerm::to_string() const
+{
+  char* s = yices_term_to_string(d_term, 80, 80, 0);
+  std::string res(s);
+  yices_free_string(s);
+  return res;
 }
 
 bool

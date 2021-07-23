@@ -29,6 +29,12 @@ Smt2Sort::equals(const Sort& other) const
   return d_repr == static_cast<Smt2Sort*>(other.get())->get_repr();
 }
 
+std::string
+Smt2Sort::to_string() const
+{
+  return d_repr;
+}
+
 bool
 Smt2Sort::is_array() const
 {
@@ -155,6 +161,12 @@ Smt2Term::equals(const Term& other) const
     }
   }
   return res;
+}
+
+std::string
+Smt2Term::to_string() const
+{
+  return d_repr;
 }
 
 bool

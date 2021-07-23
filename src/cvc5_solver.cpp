@@ -35,6 +35,12 @@ Cvc5Sort::equals(const Sort& other) const
   return false;
 }
 
+std::string
+Cvc5Sort::to_string() const
+{
+  return d_sort.toString();
+}
+
 bool
 Cvc5Sort::is_array() const
 {
@@ -138,6 +144,12 @@ Cvc5Term::equals(const Term& other) const
   Cvc5Term* cvc5_term = dynamic_cast<Cvc5Term*>(other.get());
   if (cvc5_term) return d_term == cvc5_term->d_term;
   return false;
+}
+
+std::string
+Cvc5Term::to_string() const
+{
+  return d_term.toString();
 }
 
 bool

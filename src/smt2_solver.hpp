@@ -24,6 +24,7 @@ class Smt2Sort : public AbsSort
   ~Smt2Sort(){};
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;
@@ -76,6 +77,7 @@ class Smt2Term : public AbsTerm
   ~Smt2Term(){};
   size_t hash() const override;
   bool equals(const Term& other) const override;
+  std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;

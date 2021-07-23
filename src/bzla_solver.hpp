@@ -24,6 +24,7 @@ class BzlaSort : public AbsSort
   ~BzlaSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;
@@ -55,6 +56,7 @@ class BzlaTerm : public AbsTerm
   BzlaTerm(BitwuzlaTerm* term);
   ~BzlaTerm() override;
   size_t hash() const override;
+  std::string to_string() const override;
   bool equals(const Term& other) const override;
   bool is_array() const override;
   bool is_bool() const override;
