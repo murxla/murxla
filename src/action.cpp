@@ -1416,6 +1416,7 @@ bool
 ActionCheckSat::run()
 {
   assert(d_solver.is_initialized());
+  if (!d_smgr.d_incremental && d_smgr.d_n_sat_calls > 0) return false;
   /* If the last call was unsat, call check-sat again with a lower
    * probability. */
   if (d_smgr.d_sat_result == Solver::UNSAT && d_rng.pick_with_prob(95))
@@ -1489,6 +1490,7 @@ ActionCheckSatAssuming::_run(std::vector<Term> assumptions)
   reset_sat();
   d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
   d_smgr.d_sat_called = true;
+  d_smgr.d_n_sat_calls += 1;
 }
 
 /* -------------------------------------------------------------------------- */

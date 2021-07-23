@@ -1415,6 +1415,7 @@ class Cvc5ActionCheckEntailed : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
+    if (!d_smgr.d_incremental && d_smgr.d_n_sat_calls > 0) return false;
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
 
     if (d_rng.flip_coin())
@@ -1496,6 +1497,7 @@ class Cvc5ActionCheckEntailed : public Action
       d_smgr.d_sat_result = Solver::Result::SAT;
     }
     d_smgr.d_sat_called = true;
+    d_smgr.d_n_sat_calls += 1;
   }
 
   void _run(std::vector<Term> terms)
@@ -1530,6 +1532,7 @@ class Cvc5ActionCheckEntailed : public Action
       d_smgr.d_sat_result = Solver::Result::SAT;
     }
     d_smgr.d_sat_called = true;
+    d_smgr.d_n_sat_calls += 1;
   }
 };
 
