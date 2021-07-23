@@ -235,6 +235,7 @@ Murxla::run(uint32_t seed,
                        time,
                        tmp_file_out,
                        tmp_file_err,
+                       api_trace_file_name,
                        untrace_file_name,
                        run_forked,
                        record_stats,
@@ -530,6 +531,7 @@ Murxla::run_aux(uint32_t seed,
                 double time,
                 const std::string& file_out,
                 const std::string& file_err,
+                const std::string& api_trace_file_name,
                 const std::string& untrace_file_name,
                 bool run_forked,
                 bool record_stats,
@@ -553,7 +555,19 @@ Murxla::run_aux(uint32_t seed,
   }
   else if (trace_mode == TO_FILE)
   {
-    std::string api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
+    std::string tmp_api_trace_file_name;
+    if (!run_forked && !api_trace_file_name.empty())
+    {
+      /* If we don't run forked and an explicit api trace file name is given,
+       * we have to immediately trace into file. Else, we don't get a chance to
+       * write the contents from the temp file back to the given file when the
+       * process aborts (if the trace triggers an issue). */
+      tmp_api_trace_file_name = api_trace_file_name;
+    }
+    else
+    {
+      tmp_api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
+    }
     file_trace = open_output_file(api_trace_file_name, false);
     trace.rdbuf(file_trace.rdbuf());
     if (d_options.solver == SOLVER_SMT2)

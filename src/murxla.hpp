@@ -85,6 +85,7 @@ class Murxla
                  double time,
                  const std::string& file_out,
                  const std::string& file_err,
+                 const std::string& api_trace_file_name,
                  const std::string& untrace_file_name,
                  bool run_forked,
                  bool record_stats,
