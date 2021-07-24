@@ -67,12 +67,15 @@ TermDb::add_term(Term& term,
   }
 
   /* If sort_kind is SORT_REAL, given sort can only be an Int sort when the
-   * solver identifies it as an Int sort (since Int is a subtype of Real).
+   * solver identifies it as an Int sort (since Int may be a subtype of Real).
    * We don't infer this based on the arguments but delegate this inference
    * to the solver. We always store terms of sort Int under sort kind SORT_INT,
    * even if they were created from a Real operator (and thus, the expected
    * sort kind sort_kind = SORT_REAL).  */
-  if (sort_kind == SORT_REAL && sort->is_int()) sort_kind = SORT_INT;
+  if (sort_kind == SORT_REAL && sort->is_int())
+  {
+    sort_kind = SORT_INT;
+  }
 
   SortMap& map  = d_term_db[level][sort_kind];
   d_smgr.add_sort(sort, sort_kind);
@@ -170,7 +173,8 @@ TermDb::has_value(Sort sort) const
 {
   assert(sort != nullptr);
   std::vector<Sort> sorts = {sort};
-  if (sort->get_kind() == SORT_REAL && has_term(SORT_INT))
+  if (d_smgr.d_arith_subtyping && sort->get_kind() == SORT_REAL
+      && has_term(SORT_INT))
   {
     sorts.push_back(pick_sort(SORT_INT));
   }
@@ -197,7 +201,10 @@ TermDb::has_term(SortKind kind) const
 {
   if (kind == SORT_ANY) return has_term();
   std::vector<SortKind> sort_kinds = {kind};
-  if (kind == SORT_REAL) sort_kinds.push_back(SORT_INT);
+  if (d_smgr.d_arith_subtyping && kind == SORT_REAL)
+  {
+    sort_kinds.push_back(SORT_INT);
+  }
   for (const SortKind& k : sort_kinds)
   {
     for (const auto& tmap : d_term_db)
@@ -217,7 +224,10 @@ TermDb::has_term(SortKind kind, size_t level) const
   if (d_term_db.empty()) return false;
   if (kind == SORT_ANY) return has_term();
   std::vector<SortKind> sort_kinds = {kind};
-  if (kind == SORT_REAL) sort_kinds.push_back(SORT_INT);
+  if (d_smgr.d_arith_subtyping && kind == SORT_REAL)
+  {
+    sort_kinds.push_back(SORT_INT);
+  }
   for (const SortKind& k : sort_kinds)
   {
     if (d_term_db[level].find(k) != d_term_db[level].end()) return true;
@@ -230,7 +240,8 @@ TermDb::has_term(Sort sort) const
 {
   assert(sort != nullptr);
   std::vector<Sort> sorts = {sort};
-  if (sort->get_kind() == SORT_REAL && has_term(SORT_INT))
+  if (d_smgr.d_arith_subtyping && sort->get_kind() == SORT_REAL
+      && has_term(SORT_INT))
   {
     sorts.push_back(pick_sort(SORT_INT));
   }
@@ -268,7 +279,8 @@ TermDb::pick_value(Sort sort) const
   assert(d_smgr.has_sort(sort));
 
   std::vector<Sort> sorts = {sort};
-  if (sort->get_kind() == SORT_REAL && has_term(SORT_INT))
+  if (d_smgr.d_arith_subtyping && sort->get_kind() == SORT_REAL
+      && has_term(SORT_INT))
   {
     sorts.push_back(pick_sort(SORT_INT));
   }
@@ -323,7 +335,8 @@ TermDb::pick_term(Sort sort)
   assert(d_smgr.has_sort(sort));
 
   Sort s = sort;
-  if (sort->get_kind() == SORT_REAL && has_term(SORT_INT))
+  if (d_smgr.d_arith_subtyping && sort->get_kind() == SORT_REAL
+      && has_term(SORT_INT))
   {
     size_t n_reals = get_number_of_terms(SORT_REAL);
     size_t n_ints  = get_number_of_terms(SORT_INT);
@@ -347,7 +360,8 @@ TermDb::pick_term(SortKind sort_kind, size_t level)
   assert(sort_kind != SORT_ANY);
   assert(has_term(sort_kind, level));
   assert(level < d_term_db.size());
-  if (sort_kind == SORT_REAL && has_term(SORT_INT, level))
+  if (d_smgr.d_arith_subtyping && sort_kind == SORT_REAL
+      && has_term(SORT_INT, level))
   {
     size_t n_reals = get_number_of_terms(SORT_REAL, level);
     size_t n_ints  = get_number_of_terms(SORT_INT, level);
@@ -456,7 +470,7 @@ TermDb::pick_level(SortKind& kind) const
   assert(kind != SORT_ANY);
   assert(has_term(kind));
 
-  if (kind == SORT_REAL && has_term(SORT_INT))
+  if (d_smgr.d_arith_subtyping && kind == SORT_REAL && has_term(SORT_INT))
   {
     size_t n_reals = get_number_of_terms(SORT_REAL);
     size_t n_ints  = get_number_of_terms(SORT_INT);

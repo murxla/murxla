@@ -40,6 +40,7 @@ class SolverManager
                 RNGenerator& rng,
                 std::ostream& trace,
                 SolverOptions& options,
+                bool arith_subtyping,
                 bool arith_linear,
                 bool trace_seeds,
                 bool simple_symbols,
@@ -377,6 +378,8 @@ class SolverManager
   /** Statistics. */
   Stats d_stats;
 
+  /** True if solver treats Int as a subtype of Real. */
+  bool d_arith_subtyping = false;
   /** True to restrict arithmetic operators to linear fragment. */
   bool d_arith_linear = false;
 

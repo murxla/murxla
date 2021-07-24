@@ -18,12 +18,14 @@ SolverManager::SolverManager(Solver* solver,
                              RNGenerator& rng,
                              std::ostream& trace,
                              SolverOptions& options,
+                             bool arith_subtyping,
                              bool arith_linear,
                              bool trace_seeds,
                              bool simple_symbols,
                              statistics::Statistics* stats,
                              const TheoryIdVector& enabled_theories)
     : d_mbt_stats(stats),
+      d_arith_subtyping(arith_subtyping),
       d_arith_linear(arith_linear),
       d_trace_seeds(trace_seeds),
       d_simple_symbols(simple_symbols),
@@ -209,8 +211,10 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
   }
   assert((sort_kind != SORT_INT && sort->get_kind() != SORT_INT)
          || sort->is_int());
-  assert((sort_kind == SORT_REAL && sort->get_kind() == SORT_INT)
-         || (sort_kind == SORT_INT && sort->get_kind() == SORT_REAL)
+  assert((d_arith_subtyping && sort_kind == SORT_REAL
+          && sort->get_kind() == SORT_INT)
+         || (d_arith_subtyping && sort_kind == SORT_INT
+             && sort->get_kind() == SORT_REAL)
          || (sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
              && sort->get_bv_size() == 1)
          || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)
@@ -228,8 +232,10 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
     sort = *it;
     assert((sort_kind != SORT_INT && sort->get_kind() != SORT_INT)
            || sort->is_int());
-    assert((sort_kind == SORT_REAL && sort->get_kind() == SORT_INT)
-           || (sort_kind == SORT_INT && sort->get_kind() == SORT_REAL)
+    assert((d_arith_subtyping && sort_kind == SORT_REAL
+            && sort->get_kind() == SORT_INT)
+           || (d_arith_subtyping && sort_kind == SORT_INT
+               && sort->get_kind() == SORT_REAL)
            || (sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
                && sort->get_bv_size() == 1)
            || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)

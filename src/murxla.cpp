@@ -688,10 +688,26 @@ Murxla::run_aux(uint32_t seed,
        * statistics (replay, dd). */
       statistics::Statistics dummy_stats;
 
+      bool arith_subtyping = false;
+      /* Check if Int is treated as subtype of Real (if supported). */
+      {
+        /* We need a solver instance for the check (will not be passed to FSM
+         * in order to have a fresh instance for the actual run). */
+        Solver* solver = create_solver(rng, smt2_out);
+        if (solver->supports_theory(THEORY_INT))
+        {
+          solver->new_solver();
+          Sort sort       = solver->mk_sort(SORT_INT);
+          arith_subtyping = sort->is_real();
+        }
+        delete solver;
+      }
+
       FSM fsm(rng,
               create_solver(rng, smt2_out),
               trace,
               *d_solver_options,
+              arith_subtyping,
               d_options.arith_linear,
               d_options.trace_seeds,
               d_options.simple_symbols,

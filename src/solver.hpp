@@ -293,7 +293,7 @@ class Solver
    * This is used for querying the sort of a freshly created term while
    * delegating sort inference to the solver. The returned sort will have
    * sort kind SORT_ANY and id 0 (will be assigned in the FSM, before adding
-   * the sort to the sort databse). Given sort kind is typically unused, but
+   * the sort to the sort database). Given sort kind is typically unused, but
    * needed by the Smt2Solver.
    */
   virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
