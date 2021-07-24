@@ -81,11 +81,19 @@ class Murxla
                      const std::string& solver_name,
                      std::ostream& smt2_out = std::cout);
 
+  /**
+   * api_trace_file_name: If given, trace is immediately written to file if
+   *                      'run_forked' is false. Else, 'api_trace_file_name' is
+   *                      set to the name of the temp trace file name and its
+   *                      contents are copied to the final trace file in run(),
+   *                      after run_aux() is finished.
+   * run_forked         : True if test run is executed in a child process.
+   */
   Result run_aux(uint32_t seed,
                  double time,
                  const std::string& file_out,
                  const std::string& file_err,
-                 const std::string& api_trace_file_name,
+                 std::string& api_trace_file_name,
                  const std::string& untrace_file_name,
                  bool run_forked,
                  bool record_stats,
