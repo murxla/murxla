@@ -123,13 +123,7 @@ class MurxlaDD
   inline static const std::string TRACE_PREFIX = "murxla-dd-";
   inline static const std::string API_TRACE    = "tmp-dd-api.trace";
 
-  MurxlaDD(Murxla* murxla,
-           const std::string& out_dir,
-           const std::string& tmp_dir,
-           bool ignore_out              = false,
-           bool ignore_err              = false,
-           const std::string& match_out = "",
-           const std::string& match_err = "");
+  MurxlaDD(Murxla* murxla);
 
   void dd(uint32_t seed,
           double time,
@@ -174,20 +168,6 @@ class MurxlaDD
   std::string d_out_dir = "";
   /** The directory for temp files. */
   std::string d_tmp_dir;
-  /** True to ignore stdout output. */
-  bool d_ignore_out;
-  /** True to ignore stderr output. */
-  bool d_ignore_err;
-  /**
-   * The string to check for occurrence in stdout output (rather than
-   * matching against the whole stderr output).
-   */
-  std::string d_match_out;
-  /**
-   * The string to check for occurrence in stderr output (rather than
-   * matching against the whole stderr output).
-   */
-  std::string d_match_err;
 
   /** Number of tests performed while delta debugging. */
   uint64_t d_ntests = 0;

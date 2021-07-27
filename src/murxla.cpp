@@ -464,18 +464,11 @@ Murxla::replay(uint32_t seed,
 
   if (d_options.dd)
   {
-    MurxlaDD(this,
-             d_options.out_dir,
-             d_tmp_dir,
-             d_options.dd_ignore_out,
-             d_options.dd_ignore_err,
-             d_options.dd_match_out,
-             d_options.dd_match_err)
-        .dd(seed,
-            0,
-            d_options.api_trace_file_name,
-            api_trace_file_name,
-            d_options.dd_trace_file_name);
+    MurxlaDD(this).dd(seed,
+                      0,
+                      d_options.api_trace_file_name,
+                      api_trace_file_name,
+                      d_options.dd_trace_file_name);
   }
   return res;
 }
@@ -801,25 +794,15 @@ operator<<(std::ostream& out, const Murxla::Result& res)
 
 /* -------------------------------------------------------------------------- */
 
-MurxlaDD::MurxlaDD(Murxla* murxla,
-                   const std::string& out_dir,
-                   const std::string& tmp_dir,
-                   bool ignore_out,
-                   bool ignore_err,
-                   const std::string& match_out,
-                   const std::string& match_err)
-    : d_murxla(murxla),
-      d_out_dir(out_dir),
-      d_tmp_dir(tmp_dir),
-      d_ignore_out(ignore_out),
-      d_ignore_err(ignore_err),
-      d_match_out(match_out),
-      d_match_err(match_err)
+MurxlaDD::MurxlaDD(Murxla* murxla) : d_murxla(murxla)
 {
   assert(d_murxla);
-  d_gold_out_file_name  = get_tmp_file_path("tmp-dd-gold.out", d_tmp_dir);
-  d_gold_err_file_name  = get_tmp_file_path("tmp-dd-gold.err", d_tmp_dir);
-  d_tmp_trace_file_name = get_tmp_file_path("tmp-api-dd.trace", d_tmp_dir);
+  d_gold_out_file_name =
+      get_tmp_file_path("tmp-dd-gold.out", d_murxla->d_tmp_dir);
+  d_gold_err_file_name =
+      get_tmp_file_path("tmp-dd-gold.err", d_murxla->d_tmp_dir);
+  d_tmp_trace_file_name =
+      get_tmp_file_path("tmp-api-dd.trace", d_murxla->d_tmp_dir);
 }
 
 void
@@ -833,9 +816,10 @@ MurxlaDD::dd(uint32_t seed,
 
   Murxla::Result gold_exit;
 
-  std::string tmp_api_trace_file_name = get_tmp_file_path(API_TRACE, d_tmp_dir);
+  std::string tmp_api_trace_file_name =
+      get_tmp_file_path(API_TRACE, d_murxla->d_tmp_dir);
   std::string tmp_input_trace_file_name =
-      get_tmp_file_path("tmp-dd.trace", d_tmp_dir);
+      get_tmp_file_path("tmp-dd.trace", d_murxla->d_tmp_dir);
 
   MURXLA_MESSAGE_DD << "start minimizing file '"
                     << input_trace_file_name.c_str() << "'";
@@ -864,22 +848,26 @@ MurxlaDD::dd(uint32_t seed,
     MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
     gold_err_file.close();
   }
-  if (d_ignore_out)
+  if (d_murxla->d_options.dd_ignore_out)
   {
     MURXLA_MESSAGE_DD << "ignoring stdout output";
   }
-  if (d_ignore_err)
+  if (d_murxla->d_options.dd_ignore_err)
   {
     MURXLA_MESSAGE_DD << "ignoring stderr output";
   }
-  if (!d_ignore_out && !d_match_out.empty())
+  if (!d_murxla->d_options.dd_ignore_out
+      && !d_murxla->d_options.dd_match_out.empty())
   {
-    MURXLA_MESSAGE_DD << "checking for occurrence of '" << d_match_out.c_str()
+    MURXLA_MESSAGE_DD << "checking for occurrence of '"
+                      << d_murxla->d_options.dd_match_out.c_str()
                       << "' in stdout output";
   }
-  if (!d_ignore_err && !d_match_err.empty())
+  if (!d_murxla->d_options.dd_ignore_err
+      && !d_murxla->d_options.dd_match_err.empty())
   {
-    MURXLA_MESSAGE_DD << "checking for occurrence of '" << d_match_err.c_str()
+    MURXLA_MESSAGE_DD << "checking for occurrence of '"
+                      << d_murxla->d_options.dd_match_err.c_str()
                       << "' in stderr output";
   }
 
@@ -955,9 +943,10 @@ MurxlaDD::dd(uint32_t seed,
           prepend_prefix_to_file_name(TRACE_PREFIX, input_trace_file_name);
     }
   }
-  if (!d_out_dir.empty())
+  if (!d_murxla->d_options.out_dir.empty())
   {
-    reduced_trace_file_name = prepend_path(d_out_dir, reduced_trace_file_name);
+    reduced_trace_file_name =
+        prepend_path(d_murxla->d_options.out_dir, reduced_trace_file_name);
   }
 
   MURXLA_MESSAGE_DD;
@@ -1415,8 +1404,10 @@ MurxlaDD::test(Murxla::Result golden_exit,
                const std::string& untrace_file_name)
 {
   std::vector<size_t> res_superset;
-  std::string tmp_out_file_name = get_tmp_file_path("tmp-dd.out", d_tmp_dir);
-  std::string tmp_err_file_name = get_tmp_file_path("tmp-dd.err", d_tmp_dir);
+  std::string tmp_out_file_name =
+      get_tmp_file_path("tmp-dd.out", d_murxla->d_tmp_dir);
+  std::string tmp_err_file_name =
+      get_tmp_file_path("tmp-dd.err", d_murxla->d_tmp_dir);
 
   write_lines_to_file(lines, superset, untrace_file_name);
   /* while delta debugging, do not trace to file or stdout */
@@ -1431,13 +1422,15 @@ MurxlaDD::test(Murxla::Result golden_exit,
                                       Murxla::TraceMode::NONE);
   d_ntests += 1;
   if (exit == golden_exit
-      && (d_ignore_out
-          || (!d_match_out.empty()
-              && find_in_file(tmp_err_file_name, d_match_out, false))
+      && (d_murxla->d_options.dd_ignore_out
+          || (!d_murxla->d_options.dd_match_out.empty()
+              && find_in_file(
+                  tmp_err_file_name, d_murxla->d_options.dd_match_out, false))
           || compare_files(tmp_out_file_name, d_gold_out_file_name))
-      && (d_ignore_err
-          || (!d_match_err.empty()
-              && find_in_file(tmp_err_file_name, d_match_err, false))
+      && (d_murxla->d_options.dd_ignore_err
+          || (!d_murxla->d_options.dd_match_err.empty()
+              && find_in_file(
+                  tmp_err_file_name, d_murxla->d_options.dd_match_err, false))
           || compare_files(tmp_err_file_name, d_gold_err_file_name)))
   {
     res_superset = superset;

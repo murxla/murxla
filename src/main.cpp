@@ -643,18 +643,11 @@ main(int argc, char* argv[])
 
       if (options.dd)
       {
-        MurxlaDD(&murxla,
-                 options.out_dir,
-                 TMP_DIR,
-                 options.dd_ignore_out,
-                 options.dd_ignore_err,
-                 options.dd_match_out,
-                 options.dd_match_err)
-            .dd(options.seed,
-                options.time,
-                options.untrace_file_name,
-                api_trace_file_name,
-                dd_trace_file_name);
+        MurxlaDD(&murxla).dd(options.seed,
+                             options.time,
+                             options.untrace_file_name,
+                             api_trace_file_name,
+                             dd_trace_file_name);
       }
     }
   }
