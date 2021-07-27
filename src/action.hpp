@@ -79,6 +79,9 @@ class Action
    */
   static uint64_t untrace_str_to_id(const std::string& s);
 
+  /** Helper to convert a sort kind string to a SortKind. */
+  static SortKind get_sort_kind_from_str(std::string& s);
+
   enum ReturnValue
   {
     NONE,
@@ -165,8 +168,6 @@ class Action
    * may not be run until after the next SAT call.
    */
   void reset_sat();
-  /** Helper to convert a sort kind string to a SortKind. */
-  SortKind get_sort_kind_from_str(std::string& s);
 
   /** The random number generator associated with this action. */
   RNGenerator& d_rng;

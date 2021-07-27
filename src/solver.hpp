@@ -281,6 +281,14 @@ class Solver
   virtual Sort mk_sort(SortKind kind)                          = 0;
   virtual Sort mk_sort(SortKind kind, uint32_t size);
   virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize);
+  /**
+   * Create sort with given sort arguments.
+   *
+   * SORT_ARRAY: First sort is index sort, second sort is element sort.
+   *
+   * SORT_FUN: First n - 1 sorts represent the domain, last (nth) sort is the
+   *           codomain.
+   */
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
   virtual Term mk_term(const Op::Kind& kind,

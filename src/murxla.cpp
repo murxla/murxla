@@ -1072,8 +1072,8 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
   }
 
   /* The set of actions that we consider for this minimization strategy. */
-  std::unordered_set<Action::Kind> actions = {Action::MK_TERM,
-                                              Action::GET_VALUE};
+  std::unordered_set<Action::Kind> actions = {
+      Action::GET_VALUE, Action::MK_SORT, Action::MK_TERM};
 
   /* Minimize. */
   for (size_t line_idx : included_lines)
@@ -1089,98 +1089,277 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
     const Action::Kind& action = *it;
     uint32_t idx = 0, n_terms = 0, n_tokens = tokens.size();
 
-    if (action == Action::MK_TERM)
+    if (action == Action::MK_SORT)
     {
-      Op::Kind op_kind = tokens[0];
-      Op& op           = opmgr.get_op(op_kind);
-      if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
-      idx     = 3;
-      n_terms = str_to_uint32(tokens[2]);
-    }
-    else
-    {
-      for (idx = 0; idx < n_tokens; ++idx)
+      if (Action::get_sort_kind_from_str(tokens[0]) != SORT_FUN) continue;
+
+      idx     = 1;
+      n_terms = n_tokens - 2;
+
+      std::string sort_id;
       {
-        assert(!tokens[idx].empty());
-        if (tokens[idx].find_first_not_of("0123456789") == std::string::npos)
+        assert(lines[line_idx].size() == 2);
+        std::vector<std::string> tokens_return;
+        std::string _action_id;
+        tokenize(lines[line_idx][1], _action_id, tokens_return);
+        assert(_action_id == "return");
+        assert(tokens_return.size() == 1);
+        sort_id = tokens_return[0];
+      }
+
+      /* collect all function terms that can occur as an argument to apply */
+      std::unordered_set<std::string> funs;
+      std::unordered_map<size_t, std::vector<std::string>> applies;
+      for (size_t i = line_idx + 1, n = included_lines.size(); i < n; ++i)
+      {
+        std::vector<std::string> _tokens;
+        std::string _action_id;
+        tokenize(lines[i][0], _action_id, _tokens);
+        size_t _n_tokens = _tokens.size();
+        if (_n_tokens > 0)
         {
-          n_terms = str_to_uint32(tokens[idx]);
-          idx += 1;
-          assert(n_tokens > n_terms);
-          break;
+          if (_action_id == Action::MK_CONST && _tokens[0] == sort_id)
+          {
+            assert(lines[i].size() == 2);
+            std::vector<std::string> _tokens_return;
+            std::string _action_id_return;
+            tokenize(lines[i][1], _action_id_return, _tokens_return);
+            assert(_action_id_return == "return");
+            assert(_tokens_return.size() == 1);
+            funs.insert(_tokens_return[0]);
+          }
+          else if (_action_id == Action::MK_TERM && _tokens[0] == Op::ITE)
+          {
+            assert(str_to_uint32(_tokens[2]) == 3);
+            for (size_t j = 4; j < 6; ++j)
+            {
+              if (funs.find(_tokens[j]) != funs.end())
+              {
+                assert(lines[i].size() == 2);
+                std::string _action_id_return;
+                std::vector<std::string> _tokens_return;
+                tokenize(lines[i][1], _action_id_return, _tokens_return);
+                assert(_action_id_return == "return");
+                assert(_tokens_return.size() == 1);
+                funs.insert(_tokens_return[0]);
+              }
+            }
+          }
+          else if (_action_id == Action::MK_TERM && _tokens[0] == Op::UF_APPLY)
+          {
+            applies[i] = _tokens;
+          }
         }
       }
-    }
 
-    if (n_terms > 0)
-    {
-      assert(n_tokens >= n_terms + 1);
-      size_t line_size = lines[line_idx][0].size();
-      std::vector<size_t> line_superset(n_terms);
-      std::iota(line_superset.begin(), line_superset.end(), 0);
-      uint32_t subset_size = n_terms / 2;
-
-      while (subset_size > 0)
+      /* Minimize */
       {
-        std::vector<std::vector<size_t>> subsets =
-            split_superset(line_superset, subset_size);
+        /* we minimized based on what is given for MK_SORT */
+        assert(n_tokens >= n_terms + 1);
+        size_t line_size = lines[line_idx][0].size();
+        std::vector<size_t> line_superset(n_terms);
+        std::iota(line_superset.begin(), line_superset.end(), 0);
+        uint32_t subset_size = n_terms / 2;
 
-        std::vector<size_t> cur_line_superset;
-        std::unordered_set<size_t> excluded_sets;
-        for (size_t i = 0, n = subsets.size(); i < n; ++i)
+        while (subset_size > 0)
         {
-          std::unordered_set<size_t> ex(excluded_sets);
-          ex.insert(i);
-          std::vector<size_t> included_terms = remove_subsets(subsets, ex);
-          if (action == Action::MK_TERM && included_terms.size() < 2) continue;
-          if (included_terms.size() == 0) continue;
+          std::vector<std::vector<size_t>> subsets =
+              split_superset(line_superset, subset_size);
 
-          std::stringstream ss;
-          ss << action_id;
-          for (uint32_t j = 0; j < idx - 1; ++j)
+          std::vector<size_t> cur_line_superset;
+          std::unordered_set<size_t> excluded_sets;
+          for (size_t i = 0, n = subsets.size(); i < n; ++i)
           {
-            ss << " " << tokens[j];
-          }
-          ss << " " << included_terms.size();
-          for (size_t j : included_terms)
-          {
-            ss << " " << tokens[idx + j];
-          }
-          std::string line_cur = lines[line_idx][0];
-          lines[line_idx][0]   = ss.str();
+            std::unordered_set<size_t> ex(excluded_sets);
+            ex.insert(i);
+            std::vector<size_t> included_terms = remove_subsets(subsets, ex);
+            if (included_terms.size() == 0) continue;
 
-          std::vector<size_t> tmp_superset = test(golden_exit,
-                                                  lines,
-                                                  included_lines,
-                                                  seed,
-                                                  time,
-                                                  untrace_file_name);
-          if (!tmp_superset.empty())
+            /* original line for creating function sort with MK_SORT */
+            std::string line_cur_sort;
+
+            /* write minimized MK_SORT line */
+            {
+              std::stringstream ss;
+              ss << action_id;
+              for (uint32_t j = 0; j < idx; ++j)
+              {
+                ss << " " << tokens[j];
+              }
+              for (size_t j : included_terms)
+              {
+                ss << " " << tokens[idx + j];
+              }
+              ss << " " << tokens[n_tokens - 1];
+              line_cur_sort      = lines[line_idx][0];
+              lines[line_idx][0] = ss.str();
+            }
+
+            /* map line number of apply to original line for reverting if
+             * reduction was not successful*/
+            std::unordered_map<size_t, std::string> line_cur_apply;
+
+            /* write minimized MK_TERM apply lines */
+            size_t _idx = 4;
+            for (const auto& a : applies)
+            {
+              size_t line_idx_a                       = a.first;
+              const std::vector<std::string>& _tokens = a.second;
+              std::stringstream ss;
+              ss << Action::MK_TERM;
+              for (uint32_t j = 0; j < _idx - 2; ++j)
+              {
+                ss << " " << _tokens[j];
+              }
+              ss << " " << (included_terms.size() + 1) << " "
+                 << _tokens[_idx - 1];
+              for (size_t j : included_terms)
+              {
+                ss << " " << _tokens[_idx + j];
+              }
+              line_cur_apply[line_idx_a] = lines[line_idx_a][0];
+              lines[line_idx_a][0]       = ss.str();
+            }
+
+            /* test if minimization was successful */
+            std::vector<size_t> tmp_superset = test(golden_exit,
+                                                    lines,
+                                                    included_lines,
+                                                    seed,
+                                                    time,
+                                                    untrace_file_name);
+            if (!tmp_superset.empty())
+            {
+              /* success */
+              cur_line_superset = included_terms;
+              excluded_sets.insert(i);
+            }
+            else
+            {
+              /* failure */
+              lines[line_idx][0] = line_cur_sort;
+              for (const auto& l : line_cur_apply)
+              {
+                lines[l.first][0] = l.second;
+              }
+            }
+          }
+          if (cur_line_superset.empty())
           {
-            cur_line_superset = included_terms;
-            excluded_sets.insert(i);
+            subset_size = subset_size / 2;
           }
           else
           {
-            lines[line_idx][0] = line_cur;
+            /* write to file and continue */
+            write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
+            line_superset = cur_line_superset;
+            subset_size   = line_superset.size() / 2;
+            res           = true;
+            MURXLA_MESSAGE_DD
+                << "line " << line_idx << " reduced to " << std::fixed
+                << std::setprecision(2)
+                << (((double) lines[line_idx][0].size()) / line_size * 100)
+                << "% of original size";
           }
         }
-        if (cur_line_superset.empty())
+      }
+    }
+    else
+    {
+      if (action == Action::MK_TERM)
+      {
+        Op::Kind op_kind = tokens[0];
+        Op& op           = opmgr.get_op(op_kind);
+        if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
+        idx     = 3;
+        n_terms = str_to_uint32(tokens[2]);
+      }
+      else
+      {
+        for (idx = 0; idx < n_tokens; ++idx)
         {
-          subset_size = subset_size / 2;
+          assert(!tokens[idx].empty());
+          if (tokens[idx].find_first_not_of("0123456789") == std::string::npos)
+          {
+            n_terms = str_to_uint32(tokens[idx]);
+            idx += 1;
+            assert(n_tokens > n_terms);
+            break;
+          }
         }
-        else
+      }
+
+      if (n_terms > 0)
+      {
+        assert(n_tokens >= n_terms + 1);
+        size_t line_size = lines[line_idx][0].size();
+        std::vector<size_t> line_superset(n_terms);
+        std::iota(line_superset.begin(), line_superset.end(), 0);
+        uint32_t subset_size = n_terms / 2;
+
+        while (subset_size > 0)
         {
-          /* write to file and continue */
-          write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
-          line_superset = cur_line_superset;
-          subset_size   = line_superset.size() / 2;
-          res           = true;
-          MURXLA_MESSAGE_DD
-              << "line " << line_idx << " reduced to " << std::fixed
-              << std::setprecision(2)
-              << (((double) lines[line_idx][0].size()) / line_size * 100)
-              << "% of original size";
+          std::vector<std::vector<size_t>> subsets =
+              split_superset(line_superset, subset_size);
+
+          std::vector<size_t> cur_line_superset;
+          std::unordered_set<size_t> excluded_sets;
+          for (size_t i = 0, n = subsets.size(); i < n; ++i)
+          {
+            std::unordered_set<size_t> ex(excluded_sets);
+            ex.insert(i);
+            std::vector<size_t> included_terms = remove_subsets(subsets, ex);
+            if (action == Action::MK_TERM && included_terms.size() < 2)
+              continue;
+            if (included_terms.size() == 0) continue;
+
+            std::stringstream ss;
+            ss << action_id;
+            for (uint32_t j = 0; j < idx - 1; ++j)
+            {
+              ss << " " << tokens[j];
+            }
+            ss << " " << included_terms.size();
+            for (size_t j : included_terms)
+            {
+              ss << " " << tokens[idx + j];
+            }
+            std::string line_cur = lines[line_idx][0];
+            lines[line_idx][0]   = ss.str();
+
+            std::vector<size_t> tmp_superset = test(golden_exit,
+                                                    lines,
+                                                    included_lines,
+                                                    seed,
+                                                    time,
+                                                    untrace_file_name);
+            if (!tmp_superset.empty())
+            {
+              cur_line_superset = included_terms;
+              excluded_sets.insert(i);
+            }
+            else
+            {
+              lines[line_idx][0] = line_cur;
+            }
+          }
+          if (cur_line_superset.empty())
+          {
+            subset_size = subset_size / 2;
+          }
+          else
+          {
+            /* write to file and continue */
+            write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
+            line_superset = cur_line_superset;
+            subset_size   = line_superset.size() / 2;
+            res           = true;
+            MURXLA_MESSAGE_DD
+                << "line " << line_idx << " reduced to " << std::fixed
+                << std::setprecision(2)
+                << (((double) lines[line_idx][0].size()) / line_size * 100)
+                << "% of original size";
+          }
         }
       }
     }
