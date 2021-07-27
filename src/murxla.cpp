@@ -464,11 +464,10 @@ Murxla::replay(uint32_t seed,
 
   if (d_options.dd)
   {
-    MurxlaDD(this).dd(seed,
-                      0,
-                      d_options.api_trace_file_name,
-                      api_trace_file_name,
-                      d_options.dd_trace_file_name);
+    MurxlaDD(this, seed, 0)
+        .dd(d_options.api_trace_file_name,
+            api_trace_file_name,
+            d_options.dd_trace_file_name);
   }
   return res;
 }
@@ -794,7 +793,8 @@ operator<<(std::ostream& out, const Murxla::Result& res)
 
 /* -------------------------------------------------------------------------- */
 
-MurxlaDD::MurxlaDD(Murxla* murxla) : d_murxla(murxla)
+MurxlaDD::MurxlaDD(Murxla* murxla, uint32_t seed, double time)
+    : d_murxla(murxla), d_seed(seed), d_time(time)
 {
   assert(d_murxla);
   d_gold_out_file_name =
@@ -806,9 +806,7 @@ MurxlaDD::MurxlaDD(Murxla* murxla) : d_murxla(murxla)
 }
 
 void
-MurxlaDD::dd(uint32_t seed,
-             double time,
-             const std::string& api_trace_file_name,
+MurxlaDD::dd(const std::string& api_trace_file_name,
              const std::string& input_trace_file_name,
              std::string reduced_trace_file_name)
 {
@@ -825,8 +823,8 @@ MurxlaDD::dd(uint32_t seed,
                     << input_trace_file_name.c_str() << "'";
 
   /* golden run */
-  gold_exit = d_murxla->run(seed,
-                            time,
+  gold_exit = d_murxla->run(d_seed,
+                            d_time,
                             d_gold_out_file_name,
                             d_gold_err_file_name,
                             tmp_input_trace_file_name,
@@ -914,8 +912,6 @@ MurxlaDD::dd(uint32_t seed,
     success = minimize_lines(gold_exit,
                              lines,
                              included_lines,
-                             seed,
-                             time,
                              tmp_input_trace_file_name);
 
     if (iterations > 0 && !success) break;
@@ -923,8 +919,6 @@ MurxlaDD::dd(uint32_t seed,
     success = minimize_line(gold_exit,
                             lines,
                             included_lines,
-                            seed,
-                            time,
                             tmp_input_trace_file_name);
     iterations += 1;
   } while (success);
@@ -975,8 +969,6 @@ bool
 MurxlaDD::minimize_lines(Murxla::Result golden_exit,
                          const std::vector<std::vector<std::string>>& lines,
                          std::vector<size_t>& included_lines,
-                         uint32_t seed,
-                         double time,
                          const std::string& untrace_file_name)
 {
   MURXLA_MESSAGE_DD << "Start trying to minimize number of trace lines ...";
@@ -1003,8 +995,6 @@ MurxlaDD::minimize_lines(Murxla::Result golden_exit,
       std::vector<size_t> tmp_superset = test(golden_exit,
                                               lines,
                                               remove_subsets(subsets, ex),
-                                              seed,
-                                              time,
                                               untrace_file_name);
       if (!tmp_superset.empty())
       {
@@ -1037,8 +1027,6 @@ bool
 MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
                                  std::vector<std::vector<std::string>>& lines,
                                  const std::vector<size_t>& included_lines,
-                                 uint32_t seed,
-                                 double time,
                                  const std::string& untrace_file_name,
                                  size_t line_idx,
                                  const std::vector<std::string>& tokens)
@@ -1191,8 +1179,8 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
         }
 
         /* test if minimization was successful */
-        std::vector<size_t> tmp_superset = test(
-            golden_exit, lines, included_lines, seed, time, untrace_file_name);
+        std::vector<size_t> tmp_superset =
+            test(golden_exit, lines, included_lines, untrace_file_name);
 
         if (!tmp_superset.empty())
         {
@@ -1236,8 +1224,6 @@ bool
 MurxlaDD::minimize_line(Murxla::Result golden_exit,
                         std::vector<std::vector<std::string>>& lines,
                         const std::vector<size_t>& included_lines,
-                        uint32_t seed,
-                        double time,
                         const std::string& untrace_file_name)
 {
   MURXLA_MESSAGE_DD << "Start trying to minimize trace lines ...";
@@ -1283,8 +1269,6 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
       res = minimize_line_sort_fun(golden_exit,
                                    lines,
                                    included_lines,
-                                   seed,
-                                   time,
                                    untrace_file_name,
                                    line_idx,
                                    tokens);
@@ -1358,8 +1342,6 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
             std::vector<size_t> tmp_superset = test(golden_exit,
                                                     lines,
                                                     included_lines,
-                                                    seed,
-                                                    time,
                                                     untrace_file_name);
             if (!tmp_superset.empty())
             {
@@ -1399,8 +1381,6 @@ std::vector<size_t>
 MurxlaDD::test(Murxla::Result golden_exit,
                const std::vector<std::vector<std::string>>& lines,
                const std::vector<size_t>& superset,
-               uint32_t seed,
-               double time,
                const std::string& untrace_file_name)
 {
   std::vector<size_t> res_superset;
@@ -1411,8 +1391,8 @@ MurxlaDD::test(Murxla::Result golden_exit,
 
   write_lines_to_file(lines, superset, untrace_file_name);
   /* while delta debugging, do not trace to file or stdout */
-  Murxla::Result exit = d_murxla->run(seed,
-                                      time,
+  Murxla::Result exit = d_murxla->run(d_seed,
+                                      d_time,
                                       tmp_out_file_name,
                                       tmp_err_file_name,
                                       "",

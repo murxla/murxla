@@ -123,11 +123,9 @@ class MurxlaDD
   inline static const std::string TRACE_PREFIX = "murxla-dd-";
   inline static const std::string API_TRACE    = "tmp-dd-api.trace";
 
-  MurxlaDD(Murxla* murxla);
+  MurxlaDD(Murxla* murxla, uint32_t seed, double time);
 
-  void dd(uint32_t seed,
-          double time,
-          const std::string& api_trace_file_name,
+  void dd(const std::string& api_trace_file_name,
           const std::string& input_trace_file_name,
           std::string reduced_trace_file_name);
 
@@ -135,22 +133,16 @@ class MurxlaDD
   bool minimize_lines(Murxla::Result golden_exit,
                       const std::vector<std::vector<std::string>>& lines,
                       std::vector<size_t>& included_lines,
-                      uint32_t seed,
-                      double time,
                       const std::string& input_trace_file_name);
 
   bool minimize_line(Murxla::Result golden_exit,
                      std::vector<std::vector<std::string>>& lines,
                      const std::vector<size_t>& included_lines,
-                     uint32_t seed,
-                     double time,
                      const std::string& input_trace_file_name);
 
   bool minimize_line_sort_fun(Murxla::Result golden_exit,
                               std::vector<std::vector<std::string>>& lines,
                               const std::vector<size_t>& included_lines,
-                              uint32_t seed,
-                              double time,
                               const std::string& input_trace_file_name,
                               size_t line_idx,
                               const std::vector<std::string>& tokens);
@@ -158,8 +150,6 @@ class MurxlaDD
   std::vector<size_t> test(Murxla::Result golden_exit,
                            const std::vector<std::vector<std::string>>& lines,
                            const std::vector<size_t>& superset,
-                           uint32_t seed,
-                           double time,
                            const std::string& input_trace_file_name);
 
   /** The associated Murxla instance. */
@@ -168,6 +158,10 @@ class MurxlaDD
   std::string d_out_dir = "";
   /** The directory for temp files. */
   std::string d_tmp_dir;
+  /** The current seed for the RNG. */
+  uint32_t d_seed;
+  /** The time limit for one test run. */
+  double d_time;
 
   /** Number of tests performed while delta debugging. */
   uint64_t d_ntests = 0;
