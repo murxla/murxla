@@ -793,6 +793,40 @@ operator<<(std::ostream& out, const Murxla::Result& res)
 
 /* -------------------------------------------------------------------------- */
 
+namespace {
+
+std::string
+generate_minimized_line(Action::Kind action_kind,
+                        const std::vector<std::string>& tokens,
+                        const std::vector<size_t>& included_terms,
+                        size_t idx,
+                        const std::vector<std::string>& pre,
+                        const std::vector<std::string>& post)
+{
+  std::stringstream ss;
+  ss << action_kind;
+  for (size_t i = 0, n = idx - pre.size(); i < n; ++i)
+  {
+    ss << " " << tokens[i];
+  }
+  for (const std::string& p : pre)
+  {
+    ss << " " << p;
+  }
+  for (size_t i : included_terms)
+  {
+    ss << " " << tokens[idx + i];
+  }
+  for (const std::string& p : post)
+  {
+    ss << " " << p;
+  }
+
+  return ss.str();
+}
+
+}  // namespace
+
 MurxlaDD::MurxlaDD(Murxla* murxla, uint32_t seed, double time)
     : d_murxla(murxla), d_seed(seed), d_time(time)
 {
@@ -1136,18 +1170,13 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
         /* Write minimized MK_SORT line. */
         {
           std::stringstream ss;
-          ss << Action::MK_SORT;
-          for (uint32_t j = 0; j < idx; ++j)
-          {
-            ss << " " << tokens[j];
-          }
-          for (size_t j : included_terms)
-          {
-            ss << " " << tokens[idx + j];
-          }
-          ss << " " << tokens[n_tokens - 1];
           line_cur_sort      = lines[line_idx][0];
-          lines[line_idx][0] = ss.str();
+          lines[line_idx][0] = generate_minimized_line(Action::MK_SORT,
+                                                       tokens,
+                                                       included_terms,
+                                                       idx,
+                                                       {},
+                                                       {tokens[n_tokens - 1]});
         }
 
         /* Map line number of apply to original line for reverting if
@@ -1162,20 +1191,15 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
         {
           size_t line_idx_apply                        = apply.first;
           const std::vector<std::string>& tokens_apply = apply.second;
-          std::stringstream ss;
-          ss << Action::MK_TERM;
-          for (uint32_t j = 0; j < idx_apply - 2; ++j)
-          {
-            ss << " " << tokens_apply[j];
-          }
-          ss << " " << (included_terms.size() + 1) << " "
-             << tokens_apply[idx_apply - 1];
-          for (size_t j : included_terms)
-          {
-            ss << " " << tokens_apply[idx_apply + j];
-          }
           line_cur_apply[line_idx_apply] = lines[line_idx_apply][0];
-          lines[line_idx_apply][0]       = ss.str();
+          lines[line_idx_apply][0]       = generate_minimized_line(
+              Action::MK_TERM,
+              tokens_apply,
+              included_terms,
+              idx_apply,
+              {std::to_string((included_terms.size() + 1)),
+               tokens_apply[idx_apply - 1]},
+              {});
         }
 
         /* test if minimization was successful */
@@ -1325,19 +1349,14 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
               continue;
             if (included_terms.size() == 0) continue;
 
-            std::stringstream ss;
-            ss << action_id;
-            for (uint32_t j = 0; j < idx - 1; ++j)
-            {
-              ss << " " << tokens[j];
-            }
-            ss << " " << included_terms.size();
-            for (size_t j : included_terms)
-            {
-              ss << " " << tokens[idx + j];
-            }
             std::string line_cur = lines[line_idx][0];
-            lines[line_idx][0]   = ss.str();
+            lines[line_idx][0]   = generate_minimized_line(
+                action_id,
+                tokens,
+                included_terms,
+                idx,
+                {std::to_string((included_terms.size()))},
+                {});
 
             std::vector<size_t> tmp_superset = test(golden_exit,
                                                     lines,
