@@ -1065,20 +1065,20 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
    * of the included_terms set. */
   std::unordered_map<size_t, std::vector<std::string>> applies;
 
-  for (size_t i = line_idx + 1, n = included_lines.size(); i < n; ++i)
+  for (size_t _line_idx : included_lines)
   {
     std::vector<std::string> _tokens;
     std::string _action_id;
-    tokenize(lines[i][0], _action_id, _tokens);
+    tokenize(lines[_line_idx][0], _action_id, _tokens);
     size_t _n_tokens = _tokens.size();
     if (_n_tokens > 0)
     {
       if (_action_id == Action::MK_CONST && _tokens[0] == sort_id)
       {
-        assert(lines[i].size() == 2);
+        assert(lines[_line_idx].size() == 2);
         std::vector<std::string> _tokens_return;
         std::string _action_id_return;
-        tokenize(lines[i][1], _action_id_return, _tokens_return);
+        tokenize(lines[_line_idx][1], _action_id_return, _tokens_return);
         assert(_action_id_return == "return");
         assert(_tokens_return.size() == 1);
         funs.insert(_tokens_return[0]);
@@ -1090,10 +1090,10 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
         {
           if (funs.find(_tokens[j]) != funs.end())
           {
-            assert(lines[i].size() == 2);
+            assert(lines[_line_idx].size() == 2);
             std::string _action_id_return;
             std::vector<std::string> _tokens_return;
-            tokenize(lines[i][1], _action_id_return, _tokens_return);
+            tokenize(lines[_line_idx][1], _action_id_return, _tokens_return);
             assert(_action_id_return == "return");
             assert(_tokens_return.size() == 1);
             funs.insert(_tokens_return[0]);
@@ -1102,7 +1102,7 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
       }
       else if (_action_id == Action::MK_TERM && _tokens[0] == Op::UF_APPLY)
       {
-        applies[i] = _tokens;
+        applies[_line_idx] = _tokens;
       }
     }
   }
