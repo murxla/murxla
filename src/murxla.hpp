@@ -152,6 +152,15 @@ class MurxlaDD
                      double time,
                      const std::string& input_trace_file_name);
 
+  bool minimize_line_sort_fun(Murxla::Result golden_exit,
+                              std::vector<std::vector<std::string>>& lines,
+                              const std::vector<size_t>& included_lines,
+                              uint32_t seed,
+                              double time,
+                              const std::string& input_trace_file_name,
+                              size_t line_idx,
+                              const std::vector<std::string>& tokens);
+
   std::vector<size_t> test(Murxla::Result golden_exit,
                            const std::vector<std::vector<std::string>>& lines,
                            const std::vector<size_t>& superset,
