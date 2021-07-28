@@ -154,8 +154,9 @@ class MurxlaDD
       const std::vector<size_t>& included_lines,
       const std::string& input_trace_file_name,
       size_t n_args,
-      std::vector<
-          std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>);
+      const std::vector<
+          std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
+          to_minimize);
 
   std::vector<size_t> test(Murxla::Result golden_exit,
                            const std::vector<std::vector<std::string>>& lines,

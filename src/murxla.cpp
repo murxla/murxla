@@ -102,7 +102,7 @@ str_diff(const std::string& s1, const std::string& s2)
   {
     if (t1[i] != t2[i])
     {
-      // Ignore numbers for diff.
+      /* Ignore numbers for diff. */
       for (size_t j = 0; j < t1[i].size(); ++j)
       {
         if (std::isdigit(t1[i][j])) continue;
@@ -1122,6 +1122,10 @@ update_lines(
       pre.push_back(std::to_string((included_args.size() + 1)));
       pre.push_back(tokens[idx - 1]);
     }
+    else
+    {
+      pre = {std::to_string((included_args.size()))};
+    }
     /* update line */
     lines[line_idx][0] =
         generate_minimized_line(kind, tokens, included_args, idx, pre, post);
@@ -1137,20 +1141,20 @@ MurxlaDD::minimize_line_aux(
     const std::vector<size_t>& included_lines,
     const std::string& input_trace_file_name,
     size_t n_args,
-    std::vector<
-        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
-        to_update)
+    const std::vector<
+        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
+        to_minimize)
 {
-  assert(to_update.size() >= 1);
+  assert(to_minimize.size() >= 1);
 
   bool res = false;
 
   /* We minimize based on the first line of the lines to update. For example,
    * when minimizing function sorts, that would be the line to create the sort
    * with MK_SORT. */
-  size_t line_idx_first   = std::get<0>(to_update[0]);
-  Action::Kind kind_first = std::get<1>(to_update[0]);
-  auto tokens_first       = std::get<2>(to_update[0]);
+  size_t line_idx_first   = std::get<0>(to_minimize[0]);
+  Action::Kind kind_first = std::get<1>(to_minimize[0]);
+  auto tokens_first       = std::get<2>(to_minimize[0]);
   assert(tokens_first.size() >= n_args + 1);
 
   size_t line_size = lines[line_idx_first][0].size();
@@ -1170,10 +1174,15 @@ MurxlaDD::minimize_line_aux(
       std::unordered_set<size_t> ex(excluded_sets);
       ex.insert(i);
       std::vector<size_t> included_args = remove_subsets(subsets, ex);
-      if (included_args.size() == 0) continue;
+      size_t n_included_args            = included_args.size();
+      if (n_included_args == 0) continue;
+      if (kind_first == Action::MK_TERM && n_included_args < 2)
+      {
+        continue;
+      }
 
       /* Cache previous state of lines to update and update lines. */
-      auto lines_cur = update_lines(lines, included_args, to_update);
+      auto lines_cur = update_lines(lines, included_args, to_minimize);
 
       /* test if minimization was successful */
       std::vector<size_t> tmp_superset =
@@ -1259,7 +1268,7 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
    * indices of the included_args set. */
   std::vector<
       std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
-      to_update{std::make_tuple(line_idx, Action::MK_SORT, tokens, idx)};
+      to_minize{std::make_tuple(line_idx, Action::MK_SORT, tokens, idx)};
 
   for (size_t _line_idx : included_lines)
   {
@@ -1298,7 +1307,7 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
       }
       else if (_action_id == Action::MK_TERM && _tokens[0] == Op::UF_APPLY)
       {
-        to_update.emplace_back(_line_idx, _action_id, _tokens, 4);
+        to_minize.emplace_back(_line_idx, _action_id, _tokens, 4);
       }
     }
   }
@@ -1308,7 +1317,7 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
                           included_lines,
                           input_trace_file_name,
                           n_args,
-                          to_update);
+                          to_minize);
   return res;
 }
 
@@ -1316,7 +1325,7 @@ bool
 MurxlaDD::minimize_line(Murxla::Result golden_exit,
                         std::vector<std::vector<std::string>>& lines,
                         const std::vector<size_t>& included_lines,
-                        const std::string& untrace_file_name)
+                        const std::string& input_trace_file_name)
 {
   MURXLA_MESSAGE_DD << "Start trying to minimize trace lines ...";
 
@@ -1353,30 +1362,32 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
     auto it = actions.find(action_id);
     if (it == actions.end()) continue;
     const Action::Kind& action = *it;
-    uint32_t idx = 0, n_terms = 0, n_tokens = tokens.size();
+    uint32_t idx = 0, n_args = 0, n_tokens = tokens.size();
 
     if (action == Action::MK_SORT)
     {
       if (Action::get_sort_kind_from_str(tokens[0]) != SORT_FUN) continue;
-      res = minimize_line_sort_fun(golden_exit,
-                                   lines,
-                                   included_lines,
-                                   untrace_file_name,
-                                   line_idx,
-                                   tokens);
+      if (minimize_line_sort_fun(golden_exit,
+                                 lines,
+                                 included_lines,
+                                 input_trace_file_name,
+                                 line_idx,
+                                 tokens))
+      {
+        res = true;
+      }
     }
     else
     {
       MURXLA_MESSAGE_DD << "Start trying to minimize line " << line_idx
                         << " ...";
-
       if (action == Action::MK_TERM)
       {
         Op::Kind op_kind = tokens[0];
         Op& op           = opmgr.get_op(op_kind);
         if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
         idx     = 3;
-        n_terms = str_to_uint32(tokens[2]);
+        n_args  = str_to_uint32(tokens[2]);
       }
       else
       {
@@ -1385,78 +1396,28 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
           assert(!tokens[idx].empty());
           if (tokens[idx].find_first_not_of("0123456789") == std::string::npos)
           {
-            n_terms = str_to_uint32(tokens[idx]);
+            n_args = str_to_uint32(tokens[idx]);
             idx += 1;
-            assert(n_tokens > n_terms);
+            assert(n_tokens > n_args);
             break;
           }
         }
       }
 
-      if (n_terms > 0)
+      if (n_args > 0)
       {
-        assert(n_tokens >= n_terms + 1);
-        size_t line_size = lines[line_idx][0].size();
-        std::vector<size_t> line_superset(n_terms);
-        std::iota(line_superset.begin(), line_superset.end(), 0);
-        uint32_t subset_size = n_terms / 2;
+        std::vector<
+            std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
+            to_minize{std::make_tuple(line_idx, action_id, tokens, idx)};
 
-        while (subset_size > 0)
+        if (minimize_line_aux(golden_exit,
+                              lines,
+                              included_lines,
+                              input_trace_file_name,
+                              n_args,
+                              to_minize))
         {
-          std::vector<std::vector<size_t>> subsets =
-              split_superset(line_superset, subset_size);
-
-          std::vector<size_t> cur_line_superset;
-          std::unordered_set<size_t> excluded_sets;
-          for (size_t i = 0, n = subsets.size(); i < n; ++i)
-          {
-            std::unordered_set<size_t> ex(excluded_sets);
-            ex.insert(i);
-            std::vector<size_t> included_terms = remove_subsets(subsets, ex);
-            if (action == Action::MK_TERM && included_terms.size() < 2)
-              continue;
-            if (included_terms.size() == 0) continue;
-
-            std::string line_cur = lines[line_idx][0];
-            lines[line_idx][0]   = generate_minimized_line(
-                action_id,
-                tokens,
-                included_terms,
-                idx,
-                {std::to_string((included_terms.size()))},
-                {});
-
-            std::vector<size_t> tmp_superset = test(golden_exit,
-                                                    lines,
-                                                    included_lines,
-                                                    untrace_file_name);
-            if (!tmp_superset.empty())
-            {
-              cur_line_superset = included_terms;
-              excluded_sets.insert(i);
-            }
-            else
-            {
-              lines[line_idx][0] = line_cur;
-            }
-          }
-          if (cur_line_superset.empty())
-          {
-            subset_size = subset_size / 2;
-          }
-          else
-          {
-            /* write to file and continue */
-            write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
-            line_superset = cur_line_superset;
-            subset_size   = line_superset.size() / 2;
-            res           = true;
-            MURXLA_MESSAGE_DD
-                << "line " << line_idx << " reduced to " << std::fixed
-                << std::setprecision(2)
-                << (((double) lines[line_idx][0].size()) / line_size * 100)
-                << "% of original size";
-          }
+          res = true;
         }
       }
     }
