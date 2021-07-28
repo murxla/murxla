@@ -793,60 +793,6 @@ operator<<(std::ostream& out, const Murxla::Result& res)
 
 /* -------------------------------------------------------------------------- */
 
-namespace {
-
-/**
- * Generate a minimized action trace line from the given original tokens and
- * the terms to include.
- *
- * action_kind  : The kind of the action.
- * tokens       : The tokens of the original action line (does not include the
- *                action kind).
- * included_args: The indices of the sorts/terms to include, starting from
- *                index 'idx'.  The indices start from 0 and occur in 'tokens'
- *                at 'idx' + included_terms[i].
- * idx          : The starting index (in 'tokens') of the (term or sort)
- *                argument set to minimize.
- * pre          : The updated set of trace line arguments to print right before
- *                the set of minimized arguments. This contains, for example,
- *                the number of term arguments to 'mk-term'. All trace
- *                arguments before these updated arguments remain unchanged.
- * post         : The updated set of trace line arguments to print right after
- *                the set of minimized arguments. This contains, for example,
- *                the domain sort for an action that creates a function sort.
- */
-std::string
-generate_minimized_line(Action::Kind action_kind,
-                        const std::vector<std::string>& tokens,
-                        const std::vector<size_t>& included_args,
-                        size_t idx,
-                        const std::vector<std::string>& pre,
-                        const std::vector<std::string>& post)
-{
-  std::stringstream ss;
-  ss << action_kind;
-  for (size_t i = 0, n = idx - pre.size(); i < n; ++i)
-  {
-    ss << " " << tokens[i];
-  }
-  for (const std::string& p : pre)
-  {
-    ss << " " << p;
-  }
-  for (size_t i : included_args)
-  {
-    ss << " " << tokens[idx + i];
-  }
-  for (const std::string& p : post)
-  {
-    ss << " " << p;
-  }
-
-  return ss.str();
-}
-
-}  // namespace
-
 MurxlaDD::MurxlaDD(Murxla* murxla, uint32_t seed, double time)
     : d_murxla(murxla), d_seed(seed), d_time(time)
 {
@@ -1077,11 +1023,203 @@ MurxlaDD::minimize_lines(Murxla::Result golden_exit,
   return included_lines.size() < n_lines;
 }
 
+namespace {
+
+/**
+ * Generate a minimized action trace line from the given original tokens and
+ * the terms to include.
+ *
+ * action_kind  : The kind of the action.
+ * tokens       : The tokens of the original action line (does not include the
+ *                action kind).
+ * included_args: The indices of the sorts/terms to include, starting from
+ *                index 'idx'.  The indices start from 0 and occur in 'tokens'
+ *                at 'idx' + included_terms[i].
+ * idx          : The starting index (in 'tokens') of the (term or sort)
+ *                argument set to minimize.
+ * pre          : The updated set of trace line arguments to print right before
+ *                the set of minimized arguments. This contains, for example,
+ *                the number of term arguments to 'mk-term'. All trace
+ *                arguments before these updated arguments remain unchanged.
+ * post         : The updated set of trace line arguments to print right after
+ *                the set of minimized arguments. This contains, for example,
+ *                the domain sort for an action that creates a function sort.
+ */
+std::string
+generate_minimized_line(Action::Kind action_kind,
+                        const std::vector<std::string>& tokens,
+                        const std::vector<size_t>& included_args,
+                        size_t idx,
+                        const std::vector<std::string>& pre,
+                        const std::vector<std::string>& post)
+{
+  std::stringstream ss;
+  ss << action_kind;
+  for (size_t i = 0, n = idx - pre.size(); i < n; ++i)
+  {
+    ss << " " << tokens[i];
+  }
+  for (const std::string& p : pre)
+  {
+    ss << " " << p;
+  }
+  for (size_t i : included_args)
+  {
+    ss << " " << tokens[idx + i];
+  }
+  for (const std::string& p : post)
+  {
+    ss << " " << p;
+  }
+
+  return ss.str();
+}
+
+/**
+ * Update lines with their minimized correspondence.
+ *
+ * lines    : The set of trace lines.  A line is represented as a vector of
+ *            strings with at most 2 elements.
+ * to_update: Map line number of the line to update to
+ *            - its action kind
+ *            - its original tokens
+ *            - the arguments to include
+ *            - the start index of the arguments to minimize
+ *
+ * return: The previous state of the updated lines as a map from line index to
+ *         action line string.
+ */
+std::unordered_map<size_t, std::string>
+update_lines(
+    std::vector<std::vector<std::string>>& lines,
+    const std::vector<size_t>& included_args,
+    const std::vector<
+        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
+        to_update)
+{
+  std::unordered_map<size_t, std::string> updated_lines_prev;
+
+  for (const auto& t : to_update)
+  {
+    size_t line_idx    = std::get<0>(t);
+    Action::Kind kind  = std::get<1>(t);
+    const auto& tokens = std::get<2>(t);
+    size_t idx         = std::get<3>(t);
+
+    /* save current state of line in case we need to revert */
+    updated_lines_prev[line_idx] = lines[line_idx][0];
+
+    /* determine pre and post terms for generate_minimized_line */
+    std::vector<std::string> pre;
+    std::vector<std::string> post;
+
+    if (kind == Action::MK_SORT)
+    {
+      post.push_back(tokens[tokens.size() - 1]);
+    }
+    else if (kind == Action::MK_TERM && tokens[0] == Op::UF_APPLY)
+    {
+      pre.push_back(std::to_string((included_args.size() + 1)));
+      pre.push_back(tokens[idx - 1]);
+    }
+    /* update line */
+    lines[line_idx][0] =
+        generate_minimized_line(kind, tokens, included_args, idx, pre, post);
+  }
+  return updated_lines_prev;
+}
+}  // namespace
+
+bool
+MurxlaDD::minimize_line_aux(
+    Murxla::Result golden_exit,
+    std::vector<std::vector<std::string>>& lines,
+    const std::vector<size_t>& included_lines,
+    const std::string& input_trace_file_name,
+    size_t n_args,
+    std::vector<
+        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
+        to_update)
+{
+  assert(to_update.size() >= 1);
+
+  bool res = false;
+
+  /* We minimize based on the first line of the lines to update. For example,
+   * when minimizing function sorts, that would be the line to create the sort
+   * with MK_SORT. */
+  size_t line_idx_first   = std::get<0>(to_update[0]);
+  Action::Kind kind_first = std::get<1>(to_update[0]);
+  auto tokens_first       = std::get<2>(to_update[0]);
+  assert(tokens_first.size() >= n_args + 1);
+
+  size_t line_size = lines[line_idx_first][0].size();
+  std::vector<size_t> line_superset(n_args);
+  std::iota(line_superset.begin(), line_superset.end(), 0);
+  uint32_t subset_size = n_args / 2;
+
+  while (subset_size > 0)
+  {
+    std::vector<std::vector<size_t>> subsets =
+        split_superset(line_superset, subset_size);
+
+    std::vector<size_t> cur_line_superset;
+    std::unordered_set<size_t> excluded_sets;
+    for (size_t i = 0, n = subsets.size(); i < n; ++i)
+    {
+      std::unordered_set<size_t> ex(excluded_sets);
+      ex.insert(i);
+      std::vector<size_t> included_args = remove_subsets(subsets, ex);
+      if (included_args.size() == 0) continue;
+
+      /* Cache previous state of lines to update and update lines. */
+      auto lines_cur = update_lines(lines, included_args, to_update);
+
+      /* test if minimization was successful */
+      std::vector<size_t> tmp_superset =
+          test(golden_exit, lines, included_lines, input_trace_file_name);
+
+      if (!tmp_superset.empty())
+      {
+        /* success */
+        cur_line_superset = included_args;
+        excluded_sets.insert(i);
+      }
+      else
+      {
+        /* failure */
+        for (auto l : lines_cur)
+        {
+          lines[l.first][0] = l.second;
+        }
+      }
+    }
+    if (cur_line_superset.empty())
+    {
+      subset_size = subset_size / 2;
+    }
+    else
+    {
+      /* write to file and continue */
+      write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
+      line_superset = cur_line_superset;
+      subset_size   = line_superset.size() / 2;
+      res           = true;
+      MURXLA_MESSAGE_DD << "line " << line_idx_first << " reduced to "
+                        << std::fixed << std::setprecision(2)
+                        << (((double) lines[line_idx_first][0].size())
+                            / line_size * 100)
+                        << "% of original size";
+    }
+  }
+  return res;
+}
+
 bool
 MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
                                  std::vector<std::vector<std::string>>& lines,
                                  const std::vector<size_t>& included_lines,
-                                 const std::string& untrace_file_name,
+                                 const std::string& input_trace_file_name,
                                  size_t line_idx,
                                  const std::vector<std::string>& tokens)
 {
@@ -1093,7 +1231,7 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
   /* The index of the first domain sort. */
   size_t idx = 1;
   /* The number of domain sorts. */
-  size_t n_terms = n_tokens - 2;
+  size_t n_args = n_tokens - 2;
 
   /* Retrieve sort id. */
   std::string sort_id;
@@ -1114,10 +1252,14 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
 
   /* The function terms. */
   std::unordered_set<std::string> funs;
-  /* Map line number of apply to its tokens. We can't retokenize these lines on
-   * the fly while delta debugging, the set of tokens has to match the indices
-   * of the included_args set. */
-  std::unordered_map<size_t, std::vector<std::string>> applies;
+
+  /* Collect the data for the lines to update.
+   * We have to record the original tokens here -- we can't retokenize these
+   * lines on the fly while delta debugging, the set of tokens has to match the
+   * indices of the included_args set. */
+  std::vector<
+      std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
+      to_update{std::make_tuple(line_idx, Action::MK_SORT, tokens, idx)};
 
   for (size_t _line_idx : included_lines)
   {
@@ -1156,111 +1298,17 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
       }
       else if (_action_id == Action::MK_TERM && _tokens[0] == Op::UF_APPLY)
       {
-        applies[_line_idx] = _tokens;
+        to_update.emplace_back(_line_idx, _action_id, _tokens, 4);
       }
     }
   }
 
-  /* Minimize */
-  {
-    /* We minimize based on what is given for MK_SORT. */
-    assert(n_tokens >= n_terms + 1);
-    size_t line_size = lines[line_idx][0].size();
-    std::vector<size_t> line_superset(n_terms);
-    std::iota(line_superset.begin(), line_superset.end(), 0);
-    uint32_t subset_size = n_terms / 2;
-
-    while (subset_size > 0)
-    {
-      std::vector<std::vector<size_t>> subsets =
-          split_superset(line_superset, subset_size);
-
-      std::vector<size_t> cur_line_superset;
-      std::unordered_set<size_t> excluded_sets;
-      for (size_t i = 0, n = subsets.size(); i < n; ++i)
-      {
-        std::unordered_set<size_t> ex(excluded_sets);
-        ex.insert(i);
-        std::vector<size_t> included_args = remove_subsets(subsets, ex);
-        if (included_args.size() == 0) continue;
-
-        /* Original line for creating function sort with MK_SORT. */
-        std::string line_cur_sort;
-
-        /* Write minimized MK_SORT line. */
-        {
-          std::stringstream ss;
-          line_cur_sort      = lines[line_idx][0];
-          lines[line_idx][0] = generate_minimized_line(Action::MK_SORT,
-                                                       tokens,
-                                                       included_args,
-                                                       idx,
-                                                       {},
-                                                       {tokens[n_tokens - 1]});
-        }
-
-        /* Map line number of apply to original line for reverting if
-         * reduction was not successful. */
-        std::unordered_map<size_t, std::string> line_cur_apply;
-
-        /* Write minimized MK_TERM apply lines. */
-
-        /* The index of the first argument term. */
-        size_t idx_apply = 4;
-        for (const auto& apply : applies)
-        {
-          size_t line_idx_apply                        = apply.first;
-          const std::vector<std::string>& tokens_apply = apply.second;
-          line_cur_apply[line_idx_apply] = lines[line_idx_apply][0];
-          lines[line_idx_apply][0]       = generate_minimized_line(
-              Action::MK_TERM,
-              tokens_apply,
-              included_args,
-              idx_apply,
-              {std::to_string((included_args.size() + 1)),
-               tokens_apply[idx_apply - 1]},
-              {});
-        }
-
-        /* test if minimization was successful */
-        std::vector<size_t> tmp_superset =
-            test(golden_exit, lines, included_lines, untrace_file_name);
-
-        if (!tmp_superset.empty())
-        {
-          /* success */
-          cur_line_superset = included_args;
-          excluded_sets.insert(i);
-        }
-        else
-        {
-          /* failure */
-          lines[line_idx][0] = line_cur_sort;  /* revert MK_SORT line */
-          for (const auto& l : line_cur_apply) /* revert apply lines */
-          {
-            lines[l.first][0] = l.second;
-          }
-        }
-      }
-      if (cur_line_superset.empty())
-      {
-        subset_size = subset_size / 2;
-      }
-      else
-      {
-        /* write to file and continue */
-        write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
-        line_superset = cur_line_superset;
-        subset_size   = line_superset.size() / 2;
-        res           = true;
-        MURXLA_MESSAGE_DD << "line " << line_idx << " reduced to " << std::fixed
-                          << std::setprecision(2)
-                          << (((double) lines[line_idx][0].size()) / line_size
-                              * 100)
-                          << "% of original size";
-      }
-    }
-  }
+  res = minimize_line_aux(golden_exit,
+                          lines,
+                          included_lines,
+                          input_trace_file_name,
+                          n_args,
+                          to_update);
   return res;
 }
 

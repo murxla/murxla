@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 
+#include "action.hpp"
 #include "options.hpp"
 #include "solver_option.hpp"
 #include "theory.hpp"
@@ -146,6 +147,15 @@ class MurxlaDD
                               const std::string& input_trace_file_name,
                               size_t line_idx,
                               const std::vector<std::string>& tokens);
+
+  bool minimize_line_aux(
+      Murxla::Result golden_exit,
+      std::vector<std::vector<std::string>>& lines,
+      const std::vector<size_t>& included_lines,
+      const std::string& input_trace_file_name,
+      size_t n_args,
+      std::vector<
+          std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>);
 
   std::vector<size_t> test(Murxla::Result golden_exit,
                            const std::vector<std::vector<std::string>>& lines,
