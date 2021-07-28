@@ -1132,6 +1132,85 @@ update_lines(
   }
   return updated_lines_prev;
 }
+
+void
+collect_to_minimize_lines_sort_fun(
+    const std::vector<std::vector<std::string>>& lines,
+    const std::vector<size_t>& included_lines,
+    size_t line_idx,
+    const std::vector<std::string>& line_tokens,
+    std::vector<
+        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
+        to_minimize)
+{
+  /* Add function sort trace line. */
+  to_minimize.emplace_back(
+      std::make_tuple(line_idx, Action::MK_SORT, line_tokens, 1));
+
+  /* Collect all function terms that can occur as an argument to apply
+   * (MK_CONST of the function sort 'sort_id' and ITE over function
+   * constants of that sort). Further, collect all applies that need to be
+   * updated
+   * simultaneously, together with the update of the function sort. */
+
+  /* Retrieve sort id. */
+  std::string sort_id;
+  {
+    assert(lines[line_idx].size() == 2);
+    std::vector<std::string> tokens_return;
+    std::string _action_id;
+    tokenize(lines[line_idx][1], _action_id, tokens_return);
+    assert(_action_id == "return");
+    assert(tokens_return.size() == 1);
+    sort_id = tokens_return[0];
+  }
+
+  /* The function terms. */
+  std::unordered_set<std::string> funs;
+
+  for (size_t _line_idx : included_lines)
+  {
+    std::vector<std::string> tokens;
+    std::string action;
+    tokenize(lines[_line_idx][0], action, tokens);
+    size_t _n_tokens = tokens.size();
+    if (_n_tokens > 0)
+    {
+      if (action == Action::MK_CONST && tokens[0] == sort_id)
+      {
+        assert(lines[_line_idx].size() == 2);
+        std::vector<std::string> tokens_return;
+        std::string action_return;
+        tokenize(lines[_line_idx][1], action_return, tokens_return);
+        assert(action_return == "return");
+        assert(tokens_return.size() == 1);
+        funs.insert(tokens_return[0]);
+      }
+      else if (action == Action::MK_TERM && tokens[0] == Op::ITE)
+      {
+        assert(str_to_uint32(tokens[2]) == 3);
+        for (size_t j = 4; j < 6; ++j)
+        {
+          if (funs.find(tokens[j]) != funs.end())
+          {
+            assert(lines[_line_idx].size() == 2);
+            std::string action_return;
+            std::vector<std::string> tokens_return;
+            tokenize(lines[_line_idx][1], action_return, tokens_return);
+            assert(action_return == "return");
+            assert(tokens_return.size() == 1);
+            funs.insert(tokens_return[0]);
+          }
+        }
+      }
+      else if (action == Action::MK_TERM && tokens[0] == Op::UF_APPLY)
+      {
+        to_minimize.emplace_back(_line_idx, action, tokens, 4);
+      }
+    }
+  }
+}
+
 }  // namespace
 
 bool
@@ -1225,103 +1304,6 @@ MurxlaDD::minimize_line_aux(
 }
 
 bool
-MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
-                                 std::vector<std::vector<std::string>>& lines,
-                                 const std::vector<size_t>& included_lines,
-                                 const std::string& input_trace_file_name,
-                                 size_t line_idx,
-                                 const std::vector<std::string>& tokens)
-{
-  MURXLA_MESSAGE_DD << "Start trying to minimize function sort on line "
-                    << line_idx << " ...";
-
-  bool res        = false;
-  size_t n_tokens = tokens.size();
-  /* The index of the first domain sort. */
-  size_t idx = 1;
-  /* The number of domain sorts. */
-  size_t n_args = n_tokens - 2;
-
-  /* Retrieve sort id. */
-  std::string sort_id;
-  {
-    assert(lines[line_idx].size() == 2);
-    std::vector<std::string> tokens_return;
-    std::string _action_id;
-    tokenize(lines[line_idx][1], _action_id, tokens_return);
-    assert(_action_id == "return");
-    assert(tokens_return.size() == 1);
-    sort_id = tokens_return[0];
-  }
-
-  /* Collect all function terms that can occur as an argument to apply
-   * (MK_CONST of the function sort 'sort_id' and ITE over function constants
-   * of that sort). Further, collect all applies that need to be updated
-   * simultaneously, together with the update of the function sort. */
-
-  /* The function terms. */
-  std::unordered_set<std::string> funs;
-
-  /* Collect the data for the lines to update.
-   * We have to record the original tokens here -- we can't retokenize these
-   * lines on the fly while delta debugging, the set of tokens has to match the
-   * indices of the included_args set. */
-  std::vector<
-      std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
-      to_minize{std::make_tuple(line_idx, Action::MK_SORT, tokens, idx)};
-
-  for (size_t _line_idx : included_lines)
-  {
-    std::vector<std::string> _tokens;
-    std::string _action_id;
-    tokenize(lines[_line_idx][0], _action_id, _tokens);
-    size_t _n_tokens = _tokens.size();
-    if (_n_tokens > 0)
-    {
-      if (_action_id == Action::MK_CONST && _tokens[0] == sort_id)
-      {
-        assert(lines[_line_idx].size() == 2);
-        std::vector<std::string> _tokens_return;
-        std::string _action_id_return;
-        tokenize(lines[_line_idx][1], _action_id_return, _tokens_return);
-        assert(_action_id_return == "return");
-        assert(_tokens_return.size() == 1);
-        funs.insert(_tokens_return[0]);
-      }
-      else if (_action_id == Action::MK_TERM && _tokens[0] == Op::ITE)
-      {
-        assert(str_to_uint32(_tokens[2]) == 3);
-        for (size_t j = 4; j < 6; ++j)
-        {
-          if (funs.find(_tokens[j]) != funs.end())
-          {
-            assert(lines[_line_idx].size() == 2);
-            std::string _action_id_return;
-            std::vector<std::string> _tokens_return;
-            tokenize(lines[_line_idx][1], _action_id_return, _tokens_return);
-            assert(_action_id_return == "return");
-            assert(_tokens_return.size() == 1);
-            funs.insert(_tokens_return[0]);
-          }
-        }
-      }
-      else if (_action_id == Action::MK_TERM && _tokens[0] == Op::UF_APPLY)
-      {
-        to_minize.emplace_back(_line_idx, _action_id, _tokens, 4);
-      }
-    }
-  }
-
-  res = minimize_line_aux(golden_exit,
-                          lines,
-                          included_lines,
-                          input_trace_file_name,
-                          n_args,
-                          to_minize);
-  return res;
-}
-
-bool
 MurxlaDD::minimize_line(Murxla::Result golden_exit,
                         std::vector<std::vector<std::string>>& lines,
                         const std::vector<size_t>& included_lines,
@@ -1362,20 +1344,25 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
     auto it = actions.find(action_id);
     if (it == actions.end()) continue;
     const Action::Kind& action = *it;
-    uint32_t idx = 0, n_args = 0, n_tokens = tokens.size();
+    size_t idx = 0, n_args = 0, n_tokens = tokens.size();
+
+    /* Collect the data for the lines to update.
+     * We have to record the original tokens here -- we can't retokenize these
+     * lines on the fly while delta debugging, the set of tokens has to match
+     * the indices of the included_args set. */
+    std::vector<
+        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
+        to_minimize;
 
     if (action == Action::MK_SORT)
     {
       if (Action::get_sort_kind_from_str(tokens[0]) != SORT_FUN) continue;
-      if (minimize_line_sort_fun(golden_exit,
-                                 lines,
-                                 included_lines,
-                                 input_trace_file_name,
-                                 line_idx,
-                                 tokens))
-      {
-        res = true;
-      }
+
+      MURXLA_MESSAGE_DD << "Start trying to minimize function sort on line "
+                        << line_idx << " ...";
+      n_args = n_tokens - 2;
+      collect_to_minimize_lines_sort_fun(
+          lines, included_lines, line_idx, tokens, to_minimize);
     }
     else
     {
@@ -1386,8 +1373,8 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
         Op::Kind op_kind = tokens[0];
         Op& op           = opmgr.get_op(op_kind);
         if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
-        idx     = 3;
-        n_args  = str_to_uint32(tokens[2]);
+        idx    = 3;
+        n_args = str_to_uint32(tokens[2]);
       }
       else
       {
@@ -1403,22 +1390,20 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
           }
         }
       }
+      to_minimize.emplace_back(
+          std::make_tuple(line_idx, action_id, tokens, idx));
+    }
 
-      if (n_args > 0)
+    if (n_args > 0)
+    {
+      if (minimize_line_aux(golden_exit,
+                            lines,
+                            included_lines,
+                            input_trace_file_name,
+                            n_args,
+                            to_minimize))
       {
-        std::vector<
-            std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
-            to_minize{std::make_tuple(line_idx, action_id, tokens, idx)};
-
-        if (minimize_line_aux(golden_exit,
-                              lines,
-                              included_lines,
-                              input_trace_file_name,
-                              n_args,
-                              to_minize))
-        {
-          res = true;
-        }
+        res = true;
       }
     }
   }

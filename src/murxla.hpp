@@ -141,13 +141,6 @@ class MurxlaDD
                      const std::vector<size_t>& included_lines,
                      const std::string& input_trace_file_name);
 
-  bool minimize_line_sort_fun(Murxla::Result golden_exit,
-                              std::vector<std::vector<std::string>>& lines,
-                              const std::vector<size_t>& included_lines,
-                              const std::string& input_trace_file_name,
-                              size_t line_idx,
-                              const std::vector<std::string>& tokens);
-
   bool minimize_line_aux(
       Murxla::Result golden_exit,
       std::vector<std::vector<std::string>>& lines,
