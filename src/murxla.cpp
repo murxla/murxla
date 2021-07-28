@@ -795,10 +795,30 @@ operator<<(std::ostream& out, const Murxla::Result& res)
 
 namespace {
 
+/**
+ * Generate a minimized action trace line from the given original tokens and
+ * the terms to include.
+ *
+ * action_kind  : The kind of the action.
+ * tokens       : The tokens of the original action line (does not include the
+ *                action kind).
+ * included_args: The indices of the sorts/terms to include, starting from
+ *                index 'idx'.  The indices start from 0 and occur in 'tokens'
+ *                at 'idx' + included_terms[i].
+ * idx          : The starting index (in 'tokens') of the (term or sort)
+ *                argument set to minimize.
+ * pre          : The updated set of trace line arguments to print right before
+ *                the set of minimized arguments. This contains, for example,
+ *                the number of term arguments to 'mk-term'. All trace
+ *                arguments before these updated arguments remain unchanged.
+ * post         : The updated set of trace line arguments to print right after
+ *                the set of minimized arguments. This contains, for example,
+ *                the domain sort for an action that creates a function sort.
+ */
 std::string
 generate_minimized_line(Action::Kind action_kind,
                         const std::vector<std::string>& tokens,
-                        const std::vector<size_t>& included_terms,
+                        const std::vector<size_t>& included_args,
                         size_t idx,
                         const std::vector<std::string>& pre,
                         const std::vector<std::string>& post)
@@ -813,7 +833,7 @@ generate_minimized_line(Action::Kind action_kind,
   {
     ss << " " << p;
   }
-  for (size_t i : included_terms)
+  for (size_t i : included_args)
   {
     ss << " " << tokens[idx + i];
   }
@@ -1096,7 +1116,7 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
   std::unordered_set<std::string> funs;
   /* Map line number of apply to its tokens. We can't retokenize these lines on
    * the fly while delta debugging, the set of tokens has to match the indices
-   * of the included_terms set. */
+   * of the included_args set. */
   std::unordered_map<size_t, std::vector<std::string>> applies;
 
   for (size_t _line_idx : included_lines)
@@ -1161,8 +1181,8 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
       {
         std::unordered_set<size_t> ex(excluded_sets);
         ex.insert(i);
-        std::vector<size_t> included_terms = remove_subsets(subsets, ex);
-        if (included_terms.size() == 0) continue;
+        std::vector<size_t> included_args = remove_subsets(subsets, ex);
+        if (included_args.size() == 0) continue;
 
         /* Original line for creating function sort with MK_SORT. */
         std::string line_cur_sort;
@@ -1173,7 +1193,7 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
           line_cur_sort      = lines[line_idx][0];
           lines[line_idx][0] = generate_minimized_line(Action::MK_SORT,
                                                        tokens,
-                                                       included_terms,
+                                                       included_args,
                                                        idx,
                                                        {},
                                                        {tokens[n_tokens - 1]});
@@ -1195,9 +1215,9 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
           lines[line_idx_apply][0]       = generate_minimized_line(
               Action::MK_TERM,
               tokens_apply,
-              included_terms,
+              included_args,
               idx_apply,
-              {std::to_string((included_terms.size() + 1)),
+              {std::to_string((included_args.size() + 1)),
                tokens_apply[idx_apply - 1]},
               {});
         }
@@ -1209,7 +1229,7 @@ MurxlaDD::minimize_line_sort_fun(Murxla::Result golden_exit,
         if (!tmp_superset.empty())
         {
           /* success */
-          cur_line_superset = included_terms;
+          cur_line_superset = included_args;
           excluded_sets.insert(i);
         }
         else
