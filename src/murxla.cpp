@@ -969,7 +969,7 @@ bool
 MurxlaDD::minimize_lines(Murxla::Result golden_exit,
                          const std::vector<std::vector<std::string>>& lines,
                          std::vector<size_t>& included_lines,
-                         const std::string& untrace_file_name)
+                         const std::string& input_trace_file_name)
 {
   MURXLA_MESSAGE_DD << "Start trying to minimize number of trace lines ...";
   size_t n_lines     = included_lines.size();
@@ -995,7 +995,7 @@ MurxlaDD::minimize_lines(Murxla::Result golden_exit,
       std::vector<size_t> tmp_superset = test(golden_exit,
                                               lines,
                                               remove_subsets(subsets, ex),
-                                              untrace_file_name);
+                                              input_trace_file_name);
       if (!tmp_superset.empty())
       {
         superset_cur = tmp_superset;
@@ -1158,9 +1158,9 @@ collect_to_minimize_lines_sort_fun(
   {
     assert(lines[line_idx].size() == 2);
     std::vector<std::string> tokens_return;
-    std::string _action_id;
-    tokenize(lines[line_idx][1], _action_id, tokens_return);
-    assert(_action_id == "return");
+    std::string action_return;
+    tokenize(lines[line_idx][1], action_return, tokens_return);
+    assert(action_return == "return");
     assert(tokens_return.size() == 1);
     sort_id = tokens_return[0];
   }
@@ -1170,6 +1170,7 @@ collect_to_minimize_lines_sort_fun(
 
   for (size_t _line_idx : included_lines)
   {
+    if (_line_idx <= line_idx) continue;
     std::vector<std::string> tokens;
     std::string action;
     tokenize(lines[_line_idx][0], action, tokens);
