@@ -151,6 +151,11 @@ class MurxlaDD
           std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
           to_minimize);
 
+  bool substitute_terms(Murxla::Result golden_exit,
+                        std::vector<std::vector<std::string>>& lines,
+                        std::vector<size_t>& included_lines,
+                        const std::string& input_trace_file_name);
+
   std::vector<size_t> test(Murxla::Result golden_exit,
                            const std::vector<std::vector<std::string>>& lines,
                            const std::vector<size_t>& superset,

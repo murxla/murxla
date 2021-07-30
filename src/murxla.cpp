@@ -909,17 +909,19 @@ MurxlaDD::dd(const std::string& api_trace_file_name,
 
   do
   {
-    success = minimize_lines(gold_exit,
-                             lines,
-                             included_lines,
-                             tmp_input_trace_file_name);
+    success = minimize_lines(
+        gold_exit, lines, included_lines, tmp_input_trace_file_name);
 
     if (iterations > 0 && !success) break;
 
-    success = minimize_line(gold_exit,
-                            lines,
-                            included_lines,
-                            tmp_input_trace_file_name);
+    success = minimize_line(
+        gold_exit, lines, included_lines, tmp_input_trace_file_name);
+
+    if (iterations > 0 && !success) break;
+
+    success = substitute_terms(
+        gold_exit, lines, included_lines, tmp_input_trace_file_name);
+
     iterations += 1;
   } while (success);
 
@@ -971,7 +973,7 @@ MurxlaDD::minimize_lines(Murxla::Result golden_exit,
                          std::vector<size_t>& included_lines,
                          const std::string& input_trace_file_name)
 {
-  MURXLA_MESSAGE_DD << "Start trying to minimize number of trace lines ...";
+  MURXLA_MESSAGE_DD << "trying to minimize number of trace lines ...";
   size_t n_lines     = included_lines.size();
   size_t n_lines_cur = n_lines;
   size_t subset_size = n_lines_cur / 2;
@@ -1012,11 +1014,10 @@ MurxlaDD::minimize_lines(Murxla::Result golden_exit,
       write_lines_to_file(lines, superset_cur, d_tmp_trace_file_name);
       included_lines = superset_cur;
       n_lines_cur    = included_lines.size();
-      subset_size = n_lines_cur / 2;
-      MURXLA_MESSAGE_DD << "number of lines reduced to " << std::fixed
+      subset_size    = n_lines_cur / 2;
+      MURXLA_MESSAGE_DD << ">> number of lines reduced to " << std::fixed
                         << std::setprecision(2)
-                        << (((double) included_lines.size()) / lines.size()
-                            * 100)
+                        << (((double) included_lines.size()) / n_lines * 100)
                         << "% of original number";
     }
   }
@@ -1078,13 +1079,15 @@ generate_minimized_line(Action::Kind action_kind,
 /**
  * Update lines with their minimized correspondence.
  *
- * lines    : The set of trace lines.  A line is represented as a vector of
- *            strings with at most 2 elements.
- * to_update: Map line number of the line to update to
- *            - its action kind
- *            - its original tokens
- *            - the arguments to include
- *            - the start index of the arguments to minimize
+ * lines         : The set of trace lines representing the full (unminimized)
+ *                 trace.  A line is represented as a vector of strings with at
+ *                 most 2 elements.
+ * included_args: The indices of the arguments to minimize that are considered.
+ * to_update    : Map line number of the line to update to
+ *                - its action kind
+ *                - its original tokens
+ *                - the arguments to include
+ *                - the start index of the arguments to minimize
  *
  * return: The previous state of the updated lines as a map from line index to
  *         action line string.
@@ -1133,6 +1136,21 @@ update_lines(
   return updated_lines_prev;
 }
 
+/**
+ * Collect all lines that have to be minimized simultaneously when minimizing a
+ * MK_SORT trace line.
+ *
+ * lines         : The set of trace lines representing the full (unminimized)
+ *                 trace.  A line is represented as a vector of strings with at
+ *                 most 2 elements.
+ * included_lines: The current set of considered lines.
+ * line_idx      : The line index (in 'lines') of the line creating the sort.
+ * line_tokens   : The tokenized line at 'line_idx'.
+ * term_id       : The id of the term.
+ * to_minimize   : The resulting collected lines, given as a vector of tuples
+ *                 of line id, action kind, line tokens and the index of the
+ *                 first argument of the set of to minimize arguments.
+ */
 void
 collect_to_minimize_lines_sort_fun(
     const std::vector<std::vector<std::string>>& lines,
@@ -1212,7 +1230,187 @@ collect_to_minimize_lines_sort_fun(
   }
 }
 
+void
+str_replace_all(std::string& str,
+                const std::string& from,
+                const std::string& to)
+{
+  if (from.empty()) return;
+  size_t start_pos = 0;
+  while ((start_pos = str.find(from, start_pos)) != std::string::npos)
+  {
+    str.replace(start_pos, from.length(), to);
+    start_pos += to.length();  // In case 'to' contains 'from', like replacing
+                               // 'x' with 'yx'
+  }
+}
+
+/**
+ * Collect all lines with ocurrences of 'term_id'.
+ *
+ * lines            : The set of trace lines representing the full (unminimized)
+ *                    trace.  A line is represented as a vector of strings with
+ *                    at most 2 elements.
+ * included_lines   : The current set of considered lines.
+ * line_idx         : The line index (in 'lines') of the line creating const
+ *                    'term_id'.
+ * term_id          : The id of the term.
+ * to_substitute_map: The resulting map of lines to substitute. Maps line index
+ *                    to the indices at which 'term_id' occurs in the tokens
+ *                    list.
+ * to_substitute_idx: A vector of indices of the lines to substitute.
+ */
+std::vector<size_t>
+collect_to_update_lines_mk_const(
+    const std::vector<std::vector<std::string>>& lines,
+    const std::vector<size_t>& included_lines,
+    const std::string& term_id)
+
+{
+  std::vector<size_t> res;
+  for (size_t line_idx : included_lines)
+  {
+    std::vector<std::string> tokens;
+    std::string action;
+    tokenize(lines[line_idx][0], action, tokens);
+    if (action == Action::MK_CONST) continue;
+    for (size_t i = 0, n = tokens.size(); i < n; ++i)
+    {
+      if (tokens[i] == term_id)
+      {
+        res.push_back(line_idx);
+        break;
+      }
+    }
+  }
+  return res;
+}
+
+std::unordered_map<std::string, std::vector<std::string>>
+collect_consts(const std::vector<std::vector<std::string>>& lines,
+               std::vector<size_t>& included_lines)
+{
+  std::unordered_map<std::string, std::vector<std::string>> res;
+  for (size_t line_idx : included_lines)
+  {
+    std::vector<std::string> tokens;
+    std::string action;
+    tokenize(lines[line_idx][0], action, tokens);
+    if (action != Action::MK_CONST) continue;
+    std::string sort_id = tokens[0];
+    std::string term_id;
+    {
+      assert(lines[line_idx].size() == 2);
+      std::vector<std::string> tokens_return;
+      std::string action_return;
+      tokenize(lines[line_idx][1], action_return, tokens_return);
+      assert(action_return == "return");
+      assert(tokens_return.size() == 1);
+      term_id = tokens_return[0];
+    }
+    res[sort_id].push_back(term_id);
+  }
+  return res;
+}
 }  // namespace
+
+bool
+MurxlaDD::substitute_terms(Murxla::Result golden_exit,
+                           std::vector<std::vector<std::string>>& lines,
+                           std::vector<size_t>& included_lines,
+                           const std::string& input_trace_file_name)
+{
+  MURXLA_MESSAGE_DD << "trying to minimize trace by substituting terms ...";
+
+  bool res = false;
+
+  std::unordered_map<std::string, std::vector<std::string>> consts =
+      collect_consts(lines, included_lines);
+
+  for (const auto& c : consts)
+  {
+    if (c.second.size() < 2) continue;
+
+    const std::string& term_id = c.second[0];
+    for (size_t i = 1, n = c.second.size(); i < n; ++i)
+    {
+      const std::string& term_id_to_substitute = c.second[i];
+
+      /* A map of lines with occurrence of 'term_id', maps line index to a
+       * vector of iterators that point to the occurrences of the term. */
+      std::unordered_map<size_t, std::vector<size_t>> to_substitute;
+      /* The line indices of the lines with occurrences. */
+      std::vector<size_t> superset = collect_to_update_lines_mk_const(
+          lines, included_lines, term_id_to_substitute);
+
+      size_t n_lines     = superset.size();
+      size_t n_lines_cur = n_lines;
+      size_t subset_size = n_lines;
+
+      while (subset_size > 0)
+      {
+        std::vector<std::vector<size_t>> subsets =
+            split_superset(superset, subset_size);
+
+        std::vector<size_t> superset_cur;
+        std::unordered_set<size_t> successful_sets;
+
+        /* We try for each subset if we can replace the term in all of
+         * its lines. */
+        for (size_t i = 0, n = subsets.size(); i < n; ++i)
+        {
+          /* Cache previous state of lines to update and update lines. */
+          std::unordered_map<size_t, std::string> lines_cur;
+
+          for (size_t line_idx : subsets[i])
+          {
+            lines_cur[line_idx] = lines[line_idx][0];
+            str_replace_all(lines[line_idx][0], term_id_to_substitute, term_id);
+          }
+
+          std::vector<size_t> tmp_superset =
+              test(golden_exit, lines, included_lines, input_trace_file_name);
+
+          if (!tmp_superset.empty())
+          {
+            /* success */
+            successful_sets.insert(i);
+          }
+          else
+          {
+            /* failure */
+            superset_cur.insert(
+                superset_cur.end(), subsets[i].begin(), subsets[i].end());
+            for (auto l : lines_cur)
+            {
+              lines[l.first][0] = l.second;
+            }
+          }
+        }
+        if (successful_sets.empty())
+        {
+          subset_size = subset_size / 2;
+        }
+        else
+        {
+          /* write found subset immediately to file and continue */
+          write_lines_to_file(lines, superset_cur, d_tmp_trace_file_name);
+          superset    = superset_cur;
+          n_lines_cur = superset.size();
+          subset_size = n_lines_cur / 2;
+          MURXLA_MESSAGE_DD << ">> replaced term '" << term_id_to_substitute
+                            << "' with '" << term_id << "' in "
+                            << (n_lines - superset.size()) << " lines";
+        }
+      }
+      if (superset.size() < n_lines)
+      {
+        res = true;
+      }
+    }
+  }
+  return res;
+}
 
 bool
 MurxlaDD::minimize_line_aux(
@@ -1294,7 +1492,7 @@ MurxlaDD::minimize_line_aux(
       line_superset = cur_line_superset;
       subset_size   = line_superset.size() / 2;
       res           = true;
-      MURXLA_MESSAGE_DD << "line " << line_idx_first << " reduced to "
+      MURXLA_MESSAGE_DD << ">> line " << line_idx_first << " reduced to "
                         << std::fixed << std::setprecision(2)
                         << (((double) lines[line_idx_first][0].size())
                             / line_size * 100)
@@ -1310,7 +1508,7 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
                         const std::vector<size_t>& included_lines,
                         const std::string& input_trace_file_name)
 {
-  MURXLA_MESSAGE_DD << "Start trying to minimize trace lines ...";
+  MURXLA_MESSAGE_DD << "trying to minimize trace lines ...";
 
   bool res = false;
 
@@ -1359,7 +1557,7 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
     {
       if (Action::get_sort_kind_from_str(tokens[0]) != SORT_FUN) continue;
 
-      MURXLA_MESSAGE_DD << "Start trying to minimize function sort on line "
+      MURXLA_MESSAGE_DD << "trying to minimize function sort on line "
                         << line_idx << " ...";
       n_args = n_tokens - 2;
       collect_to_minimize_lines_sort_fun(
@@ -1367,8 +1565,7 @@ MurxlaDD::minimize_line(Murxla::Result golden_exit,
     }
     else
     {
-      MURXLA_MESSAGE_DD << "Start trying to minimize line " << line_idx
-                        << " ...";
+      MURXLA_MESSAGE_DD << "trying to minimize line " << line_idx << " ...";
       if (action == Action::MK_TERM)
       {
         Op::Kind op_kind = tokens[0];
