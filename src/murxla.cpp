@@ -1329,16 +1329,13 @@ MurxlaDD::substitute_terms(Murxla::Result golden_exit,
 
   for (const auto& c : consts)
   {
-    if (c.second.size() < 2) continue;
+    if (c.second.size() < 2) continue; /* only one term with this sort */
 
     const std::string& term_id = c.second[0];
     for (size_t i = 1, n = c.second.size(); i < n; ++i)
     {
       const std::string& term_id_to_substitute = c.second[i];
 
-      /* A map of lines with occurrence of 'term_id', maps line index to a
-       * vector of iterators that point to the occurrences of the term. */
-      std::unordered_map<size_t, std::vector<size_t>> to_substitute;
       /* The line indices of the lines with occurrences. */
       std::vector<size_t> superset = collect_to_update_lines_mk_const(
           lines, included_lines, term_id_to_substitute);
@@ -1394,7 +1391,7 @@ MurxlaDD::substitute_terms(Murxla::Result golden_exit,
         else
         {
           /* write found subset immediately to file and continue */
-          write_lines_to_file(lines, superset_cur, d_tmp_trace_file_name);
+          write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
           superset    = superset_cur;
           n_lines_cur = superset.size();
           subset_size = n_lines_cur / 2;
