@@ -231,7 +231,20 @@ Murxla::run(uint32_t seed,
   std::string tmp_file_out = get_tmp_file_path("run-tmp1.out", d_tmp_dir);
   std::string tmp_file_err = get_tmp_file_path("run-tmp1.err", d_tmp_dir);
 
+  /* If we don't run forked, and an explicit api trace file name is given, the
+   * trace is immediately written to the given file (rather than writing it
+   * first to a temp file).  This is because else, we don't get a chance to
+   * write the contents from the temp file back to the given file when the
+   * process aborts (if the trace triggers an issue).
+   *
+   * When forking, run_aux stores the name of the temp file in
+   * 'tmp_api_trace_file_name', and its contents are then copied into the
+   * given file 'api_trace_file_name'. */
   std::string tmp_api_trace_file_name;
+  if (!run_forked)
+  {
+    tmp_api_trace_file_name = api_trace_file_name;
+  }
   Result res = run_aux(seed,
                        time,
                        tmp_file_out,
