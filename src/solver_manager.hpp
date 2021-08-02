@@ -254,8 +254,9 @@ class SolverManager
   /**
    * Map an id from a trace to an actual sort ID.
    * Note: Only used for untracing.
+   * Returns false if a sort with the given id does not exist.
    */
-  void register_sort(uint64_t untraced_id, uint64_t sort_id);
+  bool register_sort(uint64_t untraced_id, uint64_t sort_id);
 
   /**
    * Pick sort.

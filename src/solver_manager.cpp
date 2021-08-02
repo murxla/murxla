@@ -554,7 +554,7 @@ SolverManager::register_term(uint64_t untraced_id, uint64_t term_id)
   d_untraced_terms.emplace(untraced_id, term);
 }
 
-void
+bool
 SolverManager::register_sort(uint64_t untraced_id, uint64_t sort_id)
 {
   Sort sort;
@@ -566,16 +566,18 @@ SolverManager::register_sort(uint64_t untraced_id, uint64_t sort_id)
       break;
     }
   }
-  assert(sort != nullptr);
+
+  if (sort == nullptr) return false;
 
   // If we already have a sort with given 'id' we don't register the sort.
   if (d_untraced_sorts.find(untraced_id) != d_untraced_sorts.end())
   {
     Sort s = get_sort(untraced_id);
     assert(s == sort);
-    return;
+    return true;
   }
   d_untraced_sorts.emplace(untraced_id, sort);
+  return true;
 }
 
 /* -------------------------------------------------------------------------- */

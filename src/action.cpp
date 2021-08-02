@@ -1027,8 +1027,9 @@ ActionMkTerm::_run(Op::Kind kind,
   Term res = d_solver.mk_term(kind, args, params);
 
   d_smgr.add_term(res, sort_kind, args);
-  MURXLA_TRACE_RETURN << res;
-  return {res->get_id()};
+  Sort res_sort = res->get_sort();
+  MURXLA_TRACE_RETURN << res << " " << res_sort;
+  return {res->get_id(), res_sort->get_id()};
 }
 
 /* -------------------------------------------------------------------------- */

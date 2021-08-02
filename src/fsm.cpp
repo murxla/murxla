@@ -487,6 +487,7 @@ FSM::untrace(const std::string& trace_file_name)
 
   uint32_t nline   = 0;
   std::vector<uint64_t> ret_val;
+  Action* ret_action;
   std::string line;
   std::ifstream trace;
 
@@ -532,12 +533,14 @@ FSM::untrace(const std::string& trace_file_name)
         if (action->returns() == Action::ReturnValue::NONE)
         {
           ret_val = action->untrace(tokens);
+          assert(ret_val.empty());
         }
         else
         {
           try
           {
             ret_val = action->untrace(tokens);
+            ret_action = action;
           }
           catch (MurxlaActionUntraceException& e)
           {
@@ -559,13 +562,25 @@ FSM::untrace(const std::string& trace_file_name)
                   trace_file_name, nline, "expected 'return' statement");
             }
 
-            if (action->returns() == Action::ReturnValue::ID
-                && next_tokens.size() != 1)
+            if (action->returns() == Action::ReturnValue::ID)
             {
-              throw MurxlaUntraceException(
-                  trace_file_name,
-                  nline,
-                  "expected single argument to 'return'");
+              if (ret_action->get_kind() == Action::MK_TERM)
+              {
+                if (next_tokens.size() != 2)
+                {
+                  throw MurxlaUntraceException(
+                      trace_file_name,
+                      nline,
+                      "expected two arguments (term, sort) to 'return'");
+                }
+              }
+              else if (next_tokens.size() != 1)
+              {
+                throw MurxlaUntraceException(
+                    trace_file_name,
+                    nline,
+                    "expected single argument to 'return'");
+              }
             }
             else if (action->returns() == Action::ReturnValue::ID_LIST
                      && next_tokens.size() < 1)
@@ -582,7 +597,13 @@ FSM::untrace(const std::string& trace_file_name)
               uint64_t rid = Action::untrace_str_to_id(next_tokens[i]);
               if (next_tokens[i][0] == 's')
               {
-                d_smgr.register_sort(rid, ret_val[i]);
+                if (!d_smgr.register_sort(rid, ret_val[i]))
+                {
+                  throw MurxlaUntraceException(
+                      trace_file_name,
+                      nline,
+                      "unknown sort id '" + next_tokens[i] + "'");
+                }
               }
               else
               {
