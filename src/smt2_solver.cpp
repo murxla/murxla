@@ -382,15 +382,13 @@ Smt2Term::get_repr() const
   std::stringstream res;
   if (!lets.empty())
   {
-    res << "(let (";
-
+    std::stringstream close;
     for (size_t i = 0; i < lets.size(); i += 2)
     {
-      if (i > 0) res << " ";
-      res << "(" << lets[i] << " " << lets[i + 1] << ")";
+      res << "(let ((" << lets[i] << " " << lets[i + 1] << "))";
+      close << ")";
     }
-    res << ") ";
-    res << itt->second << ")";
+    res << itt->second << close.str();
   }
   else
   {
