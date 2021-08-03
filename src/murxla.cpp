@@ -695,6 +695,7 @@ Murxla::run_aux(uint32_t seed,
 
       bool arith_subtyping = false;
       /* Check if Int is treated as subtype of Real (if supported). */
+      if (d_options.solver != SOLVER_SMT2 || d_options.solver_binary.empty())
       {
         /* We need a solver instance for the check (will not be passed to FSM
          * in order to have a fresh instance for the actual run). */
