@@ -4,9 +4,6 @@
 [submodule "solvers/cvc5"]
 	path = solvers/cvc5
 	url = https://github.com/cvc5/cvc5.git
-[submodule "traces"]
-	path = traces
-	url = git@gitlab.com:monkeyzoo/smtmbt-bugs.git
 [submodule "solvers/yices"]
 	path = solvers/yices
 	url = git@github.com:SRI-CSL/yices2.git
