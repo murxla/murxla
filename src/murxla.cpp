@@ -916,28 +916,34 @@ MurxlaDD::dd(const std::string& api_trace_file_name,
   trace_file.close();
 
   uint64_t iterations = 0;
-  bool success        = false;
   std::uintmax_t size = std::filesystem::file_size(tmp_input_trace_file_name);
   std::vector<size_t> included_lines(lines.size());
   std::iota(included_lines.begin(), included_lines.end(), 0);
+  bool success, fixed_point;
 
   do
   {
+    fixed_point = true;
+
     success = minimize_lines(
         gold_exit, lines, included_lines, tmp_input_trace_file_name);
 
-    if (iterations > 0 && !success) break;
+    if (!success && iterations > 0) break;
 
-    success = minimize_line(
-        gold_exit, lines, included_lines, tmp_input_trace_file_name);
+    if (minimize_line(
+            gold_exit, lines, included_lines, tmp_input_trace_file_name))
+    {
+      fixed_point = false;
+    }
 
-    if (iterations > 0 && !success) break;
-
-    success = substitute_terms(
-        gold_exit, lines, included_lines, tmp_input_trace_file_name);
+    if (substitute_terms(
+            gold_exit, lines, included_lines, tmp_input_trace_file_name))
+    {
+      fixed_point = false;
+    }
 
     iterations += 1;
-  } while (success);
+  } while (!fixed_point);
 
   /* Write minimized trace file to path if given. */
   if (reduced_trace_file_name.empty())
@@ -1231,7 +1237,7 @@ collect_to_minimize_lines_sort_fun(
             std::vector<std::string> tokens_return;
             tokenize(lines[_line_idx][1], action_return, tokens_return);
             assert(action_return == "return");
-            assert(tokens_return.size() == 1);
+            assert(tokens_return.size() == 2);
             funs.insert(tokens_return[0]);
           }
         }
@@ -1301,8 +1307,8 @@ collect_to_update_lines_mk_const(
 }
 
 std::unordered_map<std::string, std::vector<std::string>>
-collect_consts(const std::vector<std::vector<std::string>>& lines,
-               std::vector<size_t>& included_lines)
+collect_terms_by_sort(const std::vector<std::vector<std::string>>& lines,
+                      std::vector<size_t>& included_lines)
 {
   std::unordered_map<std::string, std::vector<std::string>> res;
   for (size_t line_idx : included_lines)
@@ -1310,17 +1316,28 @@ collect_consts(const std::vector<std::vector<std::string>>& lines,
     std::vector<std::string> tokens;
     std::string action;
     tokenize(lines[line_idx][0], action, tokens);
-    if (action != Action::MK_CONST) continue;
-    std::string sort_id = tokens[0];
-    std::string term_id;
+
+    if (action != Action::MK_CONST && action != Action::MK_TERM) continue;
+
+    std::string sort_id, term_id;
+
+    assert(lines[line_idx].size() == 2);
+    std::vector<std::string> tokens_return;
+    std::string action_return;
+    tokenize(lines[line_idx][1], action_return, tokens_return);
+    assert(action_return == "return");
+
+    if (action == Action::MK_CONST)
     {
-      assert(lines[line_idx].size() == 2);
-      std::vector<std::string> tokens_return;
-      std::string action_return;
-      tokenize(lines[line_idx][1], action_return, tokens_return);
-      assert(action_return == "return");
+      sort_id = tokens[0];
       assert(tokens_return.size() == 1);
       term_id = tokens_return[0];
+    }
+    else
+    {
+      assert(tokens_return.size() == 2);
+      term_id = tokens_return[0];
+      sort_id = tokens_return[1];
     }
     res[sort_id].push_back(term_id);
   }
@@ -1338,17 +1355,17 @@ MurxlaDD::substitute_terms(Murxla::Result golden_exit,
 
   bool res = false;
 
-  std::unordered_map<std::string, std::vector<std::string>> consts =
-      collect_consts(lines, included_lines);
+  std::unordered_map<std::string, std::vector<std::string>> terms =
+      collect_terms_by_sort(lines, included_lines);
 
-  for (const auto& c : consts)
+  for (const auto& t : terms)
   {
-    if (c.second.size() < 2) continue; /* only one term with this sort */
+    if (t.second.size() < 2) continue; /* only one term with this sort */
 
-    const std::string& term_id = c.second[0];
-    for (size_t i = 1, n = c.second.size(); i < n; ++i)
+    const std::string& term_id = t.second[0];
+    for (size_t i = 1, n = t.second.size(); i < n; ++i)
     {
-      const std::string& term_id_to_substitute = c.second[i];
+      const std::string& term_id_to_substitute = t.second[i];
 
       /* The line indices of the lines with occurrences. */
       std::vector<size_t> superset = collect_to_update_lines_mk_const(
