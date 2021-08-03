@@ -3,7 +3,6 @@
 set -e -o pipefail
 
 deps_dir=$(pwd)/deps
-toml_dir=$(pwd)/libs/toml11
 
 reinstall=no
 freshinstall=no
@@ -76,7 +75,6 @@ if [ -e "$deps_dir" ]; then
 fi
 
 mkdir -p "$deps_dir"
-rm -rf "$toml_dir"
 
 # Setup Boolector
 (
@@ -222,17 +220,4 @@ rm -rf "$toml_dir"
     make -j $(nproc)
     make install -j $(nproc)
   fi
-)
-
-# Setup toml11
-(
-  mkdir -p libs
-  git clone https://github.com/ToruNiina/toml11.git libs/toml11
-  cd libs/toml11
-
-  rm build -rf
-  mkdir -p build
-  cd build
-  cmake .. -DCMAKE_INSTALL_PREFIX="$deps_dir" -Dtoml11_BUILD_TEST=OFF
-  make install -j $(nproc)
 )

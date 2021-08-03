@@ -26,9 +26,6 @@ add_executable(murxla ${murxla_src_files})
 if(Boolector_FOUND)
   target_link_libraries(murxla Boolector::boolector)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_BOOLECTOR)
-
-  add_executable(genbtoropt btor/gen_btor_options.cpp)
-  target_link_libraries(genbtoropt Boolector::boolector)
 endif()
 
 if(Bitwuzla_FOUND)
@@ -40,16 +37,6 @@ endif()
 if(cvc5_FOUND)
   target_link_libraries(murxla cvc5::cvc5)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_CVC5)
-
-  if(toml11_FOUND)
-    add_executable(gencvc5options cvc5/gen_cvc5_options.cpp)
-    target_link_libraries(gencvc5options toml11::toml11)
-  endif()
-endif()
-
-if(toml11_FOUND)
-  target_link_libraries(murxla toml11::toml11)
-  target_compile_definitions(murxla PUBLIC HAVE_TOML11)
 endif()
 
 if (Yices_FOUND)

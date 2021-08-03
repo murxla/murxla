@@ -14,7 +14,6 @@
 #include <numeric>
 #include <regex>
 #include <sstream>
-#include <toml.hpp>
 
 #include "except.hpp"
 #include "exit.hpp"
@@ -165,7 +164,6 @@ set_sigint_handler_stats(void)
   "  -D, --dd-trace <file>      delta debug API trace into <file>\n"           \
   "  -a, --api-trace <file>     trace API call sequence into <file>\n"         \
   "  -u, --untrace <file>       replay given API call sequence\n"              \
-  "  -o, --options <file>       solver option model toml file\n"               \
   "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
   "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
@@ -378,12 +376,6 @@ parse_options(Options& options, int argc, char* argv[])
       check_next_arg(arg, i, argc);
       options.smt2_file_name = argv[i];
     }
-    else if (arg == "-o" || arg == "--options")
-    {
-      i += 1;
-      check_next_arg(arg, i, argc);
-      options.solver_options_file = argv[i];
-    }
     else if (arg == "-S" || arg == "--trace-seeds")
     {
       options.trace_seeds = true;
@@ -447,125 +439,6 @@ parse_options(Options& options, int argc, char* argv[])
   MURXLA_EXIT_ERROR(options.solver.empty()) << "No solver selected";
 }
 
-/* -------------------------------------------------------------------------- */
-/* Solver option parsing                                                      */
-/* -------------------------------------------------------------------------- */
-
-template <class T>
-std::pair<T, T>
-get_limits(const toml::table& table)
-{
-  T min = (table.find("min") != table.end()) ? toml::get<T>(table.at("min"))
-                                             : std::numeric_limits<T>::min();
-  T max = (table.find("max") != table.end()) ? toml::get<T>(table.at("max"))
-                                             : std::numeric_limits<T>::max();
-  return std::make_pair(min, max);
-}
-
-void
-parse_solver_options_file(Options& options, SolverOptions& solver_options)
-{
-  const auto options_data = toml::parse(options.solver_options_file);
-  const std::vector<toml::table> tables =
-      toml::find<std::vector<toml::table>>(options_data, "option");
-
-  std::unordered_map<std::string, SolverOption*> options_map;
-
-  SolverOption* opt;
-  for (const toml::table& table : tables)
-  {
-    std::string name = toml::get<std::string>(table.at("name"));
-    std::string type = toml::get<std::string>(table.at("type"));
-    std::vector<std::string> depends =
-        toml::get<std::vector<std::string>>(table.at("depends"));
-    std::vector<std::string> conflicts =
-        toml::get<std::vector<std::string>>(table.at("conflicts"));
-
-    if (type == "bool")
-    {
-      opt = new SolverOptionBool(name, depends, conflicts);
-    }
-    else if (type == "int" || type == "int16_t" || type == "int32_t"
-             || type == "int64_t")
-    {
-      int64_t min, max;
-      if (type == "int16_t")
-      {
-        std::tie(min, max) = get_limits<int16_t>(table);
-      }
-      else if (type == "int64_t")
-      {
-        std::tie(min, max) = get_limits<int64_t>(table);
-      }
-      else
-      {
-        std::tie(min, max) = get_limits<int32_t>(table);
-      }
-      opt = new SolverOptionNum<int64_t>(name, depends, conflicts, min, max);
-    }
-    else if (type == "unsigned" || type == "unsigned long" || type == "uint16_t"
-             || type == "uint32_t" || type == "uint64_t")
-    {
-      uint64_t min, max;
-      if (type == "uint16_t")
-      {
-        std::tie(min, max) = get_limits<uint16_t>(table);
-      }
-      else if (type == "uint64_t" || type == "unsigned long")
-      {
-        std::tie(min, max) = get_limits<uint64_t>(table);
-      }
-      else
-      {
-        std::tie(min, max) = get_limits<uint32_t>(table);
-      }
-      opt = new SolverOptionNum<uint64_t>(name, depends, conflicts, min, max);
-    }
-    else if (type == "double")
-    {
-      double min, max;
-      std::tie(min, max) = get_limits<double>(table);
-      opt = new SolverOptionNum<double>(name, depends, conflicts, min, max);
-    }
-    else if (type == "list")
-    {
-      std::vector<std::string> values =
-          toml::get<std::vector<std::string>>(table.at("values"));
-      opt = new SolverOptionList(name, depends, conflicts, values);
-    }
-    else
-    {
-      MURXLA_EXIT_ERROR(true) << "Unknown option type " << type;
-    }
-
-    solver_options.push_back(std::unique_ptr<SolverOption>(opt));
-    options_map.emplace(std::make_pair(name, opt));
-  }
-
-  /* Check option names and propagate conflicts/dependencies to options_map. */
-  for (const auto& uptr : solver_options)
-  {
-    const auto& confl = uptr->get_conflicts();
-    const auto& deps  = uptr->get_depends();
-
-    for (const auto& o : confl)
-    {
-      MURXLA_EXIT_ERROR(options_map.find(o) == options_map.end())
-          << "Unknown conflicting option name '" << o << "' for option "
-          << uptr->get_name();
-      options_map.at(o)->add_conflict(uptr->get_name());
-    }
-
-    for (const auto& o : deps)
-    {
-      MURXLA_EXIT_ERROR(options_map.find(o) == options_map.end())
-          << "Unknown dependency option name '" << o << "' for option "
-          << uptr->get_name();
-      options_map.at(o)->add_depends(uptr->get_name());
-    }
-  }
-}
-
 /* ========================================================================== */
 
 int
@@ -582,11 +455,6 @@ main(int argc, char* argv[])
   bool is_forked     = options.dd || is_continuous;
 
   create_tmp_directory(options.tmp_dir);
-
-  if (!options.solver_options_file.empty())
-  {
-    parse_solver_options_file(options, solver_options);
-  }
 
   std::string api_trace_file_name = options.api_trace_file_name;
 
