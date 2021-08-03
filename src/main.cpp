@@ -458,6 +458,9 @@ main(int argc, char* argv[])
 
   std::string api_trace_file_name = options.api_trace_file_name;
 
+  MURXLA_EXIT_ERROR(api_trace_file_name == options.untrace_file_name)
+      << "tracing into the file that is untraced is not supported";
+
   try
   {
     if (is_continuous)
