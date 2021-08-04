@@ -476,25 +476,31 @@ main(int argc, char* argv[])
       std::string out_file_name = DEVNULL;
       std::string err_file_name = DEVNULL;
 
-      if (options.dd && dd_trace_file_name.empty()
-          && api_trace_file_name.empty())
+      if (options.dd)
       {
-        /* When delta-debugging, trace into file instead of stdout. */
-        api_trace_file_name = get_tmp_file_path("tmp.trace", TMP_DIR);
-        /* Minimized trace file name. */
-        if (is_untrace)
+        if (api_trace_file_name.empty())
         {
-          dd_trace_file_name = prepend_prefix_to_file_name(
-              MurxlaDD::TRACE_PREFIX, options.untrace_file_name);
-          MURXLA_MESSAGE_DD << "minimizing untraced file '"
-                            << options.untrace_file_name << "'";
+          /* When delta-debugging, trace into file instead of stdout. */
+          api_trace_file_name = get_tmp_file_path("tmp.trace", TMP_DIR);
         }
-        else
+
+        if (dd_trace_file_name.empty())
         {
-          std::stringstream ss;
-          ss << MurxlaDD::TRACE_PREFIX << options.seed << ".trace";
-          dd_trace_file_name = ss.str();
-          MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
+          /* Minimized trace file name. */
+          if (is_untrace)
+          {
+            dd_trace_file_name = prepend_prefix_to_file_name(
+                MurxlaDD::TRACE_PREFIX, options.untrace_file_name);
+            MURXLA_MESSAGE_DD << "minimizing untraced file '"
+                              << options.untrace_file_name << "'";
+          }
+          else
+          {
+            std::stringstream ss;
+            ss << MurxlaDD::TRACE_PREFIX << options.seed << ".trace";
+            dd_trace_file_name = ss.str();
+            MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
+          }
         }
       }
 
