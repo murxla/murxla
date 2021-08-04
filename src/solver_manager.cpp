@@ -834,19 +834,7 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories)
   if (enabled_theories.empty())
   {
     for (int32_t t = 0; t < THEORY_ALL; ++t)
-    {
       all_theories.push_back(static_cast<TheoryId>(t));
-    }
-    uint32_t nremove = d_rng.pick<uint32_t>(0, solver_theories.size() - 1);
-    for (uint32_t i = 0; i < nremove; ++i)
-    {
-      size_t idx = d_rng.pick<size_t>(0, solver_theories.size() - 1);
-      auto it = solver_theories.begin();
-      std::advance(it, idx);
-      solver_theories.erase(it);
-    }
-    assert(solver_theories.size() >= 1);
-    solver_theories.push_back(THEORY_BOOL);
   }
   else
   {
@@ -854,6 +842,8 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories)
     {
       all_theories.push_back(theory);
     }
+    /* THEORY_BOOL is always enabled. */
+    all_theories.push_back(THEORY_BOOL);
   }
 
   /* We need to sort these for intersection. */
@@ -869,8 +859,6 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories)
   /* Resize to intersection size. */
   tmp.resize(it - tmp.begin());
   d_enabled_theories = TheoryIdSet(tmp.begin(), tmp.end());
-  /* THEORY_BOOL is always enabled. */
-  d_enabled_theories.insert(THEORY_BOOL);
 }
 
 void
