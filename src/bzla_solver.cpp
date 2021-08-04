@@ -769,7 +769,7 @@ void
 BzlaSolver::print_model()
 {
   const char* fmt = d_rng.flip_coin() ? "btor" : "smt2";
-  bitwuzla_print_model(d_solver, (char*) fmt, stdout);
+  bitwuzla_print_model(d_solver, fmt, stdout);
 }
 
 void
