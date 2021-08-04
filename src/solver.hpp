@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "op.hpp"
+#include "rng.hpp"
 #include "sort.hpp"
-#include "util.hpp"
 
 /* -------------------------------------------------------------------------- */
 

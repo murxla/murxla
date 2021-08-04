@@ -9,7 +9,6 @@
 #include "action.hpp"
 #include "config.hpp"
 #include "theory.hpp"
-#include "util.hpp"
 
 namespace murxla {
 namespace btor {

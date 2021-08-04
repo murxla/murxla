@@ -3,7 +3,6 @@
 #include "yices_solver.hpp"
 
 #include "config.hpp"
-#include "util.hpp"
 
 namespace murxla {
 namespace yices {

@@ -16,7 +16,6 @@
 #include "solver_manager.hpp"
 #include "solver_option.hpp"
 #include "statistics.hpp"
-#include "util.hpp"
 
 /* -------------------------------------------------------------------------- */
 

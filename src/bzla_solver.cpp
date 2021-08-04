@@ -10,7 +10,6 @@
 #include "config.hpp"
 #include "except.hpp"
 #include "theory.hpp"
-#include "util.hpp"
 
 namespace murxla {
 namespace bzla {

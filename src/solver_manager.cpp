@@ -8,7 +8,6 @@
 #include "config.hpp"
 #include "except.hpp"
 #include "statistics.hpp"
-#include "util.hpp"
 
 namespace murxla {
 

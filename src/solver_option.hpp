@@ -7,7 +7,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "util.hpp"
+#include "rng.hpp"
 
 namespace murxla {
 

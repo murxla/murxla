@@ -9,6 +9,7 @@ set(murxla_src_files
   main.cpp
   murxla.cpp
   op.cpp
+  rng.cpp
   smt2_solver.cpp
   solver.cpp
   solver_manager.cpp
