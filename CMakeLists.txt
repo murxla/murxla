@@ -81,7 +81,6 @@ endif()
 if(ENABLE_YICES)
   find_package(Yices)
 endif()
-find_package(toml11)
 
 if(GCOV)
   include(CodeCoverage)
