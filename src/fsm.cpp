@@ -328,9 +328,7 @@ FSM::configure()
            && d_smgr.d_sat_result == Solver::Result::SAT;
   });
 
-  auto s_sat = new_state(State::CHECK_SAT, [this]() {
-    return d_smgr.d_n_sat_calls == 0 || d_smgr.d_incremental;
-  });
+  auto s_sat = new_state(State::CHECK_SAT);
 
   auto s_push_pop =
       new_state(State::PUSH_POP, [this]() { return d_smgr.d_incremental; });
@@ -367,7 +365,7 @@ FSM::configure()
   s_terms->add_action(a_mkterm, 1);
   s_terms->add_action(a_termchksort, 10);
   s_terms->add_action(t_default, 250, s_assert);
-  s_terms->add_action(t_default, 5000, s_sat);
+  s_terms->add_action(t_default, 1000, s_sat);
   s_terms->add_action(t_inputs, 500, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
