@@ -1613,6 +1613,8 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   auto a_check_entailed = fsm->new_action<Cvc5ActionCheckEntailed>();
   s_sat->add_action(a_check_entailed, 1);
 }
+/* -------------------------------------------------------------------------- */
+
 }  // namespace cvc5
 }  // namespace murxla
 

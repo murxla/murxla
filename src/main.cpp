@@ -15,6 +15,7 @@
 #include <regex>
 #include <sstream>
 
+#include "dd.hpp"
 #include "except.hpp"
 #include "exit.hpp"
 #include "murxla.hpp"
@@ -491,14 +492,14 @@ main(int argc, char* argv[])
           if (is_untrace)
           {
             dd_trace_file_name = prepend_prefix_to_file_name(
-                MurxlaDD::TRACE_PREFIX, options.untrace_file_name);
+                DD::TRACE_PREFIX, options.untrace_file_name);
             MURXLA_MESSAGE_DD << "minimizing untraced file '"
                               << options.untrace_file_name << "'";
           }
           else
           {
             std::stringstream ss;
-            ss << MurxlaDD::TRACE_PREFIX << options.seed << ".trace";
+            ss << DD::TRACE_PREFIX << options.seed << ".trace";
             dd_trace_file_name = ss.str();
             MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
           }
@@ -521,7 +522,7 @@ main(int argc, char* argv[])
 
       if (options.dd)
       {
-        MurxlaDD(&murxla, options.seed, options.time)
+        DD(&murxla, options.seed, options.time)
             .dd(options.untrace_file_name,
                 api_trace_file_name,
                 dd_trace_file_name);

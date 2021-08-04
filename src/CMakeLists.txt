@@ -4,11 +4,13 @@ set(murxla_src_files
   bzla_solver.cpp
   cross_check_solver.cpp
   cvc5_solver.cpp
+  dd.cpp
   except.cpp
   fsm.cpp
   main.cpp
   murxla.cpp
   op.cpp
+  result.cpp
   rng.cpp
   smt2_solver.cpp
   solver.cpp

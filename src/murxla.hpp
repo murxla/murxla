@@ -6,6 +6,7 @@
 
 #include "action.hpp"
 #include "options.hpp"
+#include "result.hpp"
 #include "solver_option.hpp"
 #include "theory.hpp"
 
@@ -14,7 +15,7 @@ namespace murxla {
 /* -------------------------------------------------------------------------- */
 
 namespace statistics {
-class Statistics;
+struct Statistics;
 };
 class Solver;
 
@@ -26,15 +27,6 @@ class Murxla
   using ErrorMap =
       std::unordered_map<std::string,
                          std::pair<std::string, std::vector<uint32_t>>>;
-
-  enum Result
-  {
-    RESULT_ERROR,
-    RESULT_ERROR_CONFIG,
-    RESULT_OK,
-    RESULT_TIMEOUT,
-    RESULT_UNKNOWN,
-  };
 
   enum TraceMode
   {
@@ -112,76 +104,6 @@ class Murxla
 
   /** Map normalized error message to pair (original error message, seeds). */
   ErrorMap* d_errors;
-};
-
-std::ostream& operator<<(std::ostream& out, const Murxla::Result& res);
-
-/* -------------------------------------------------------------------------- */
-
-class MurxlaDD
-{
- public:
-  inline static const std::string TRACE_PREFIX = "murxla-dd-";
-  inline static const std::string API_TRACE    = "tmp-dd-api.trace";
-
-  MurxlaDD(Murxla* murxla, uint32_t seed, double time);
-
-  void dd(const std::string& api_trace_file_name,
-          const std::string& input_trace_file_name,
-          std::string reduced_trace_file_name);
-
- private:
-  bool minimize_lines(Murxla::Result golden_exit,
-                      const std::vector<std::vector<std::string>>& lines,
-                      std::vector<size_t>& included_lines,
-                      const std::string& input_trace_file_name);
-
-  bool minimize_line(Murxla::Result golden_exit,
-                     std::vector<std::vector<std::string>>& lines,
-                     const std::vector<size_t>& included_lines,
-                     const std::string& input_trace_file_name);
-
-  bool minimize_line_aux(
-      Murxla::Result golden_exit,
-      std::vector<std::vector<std::string>>& lines,
-      const std::vector<size_t>& included_lines,
-      const std::string& input_trace_file_name,
-      size_t n_args,
-      const std::vector<
-          std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
-          to_minimize);
-
-  bool substitute_terms(Murxla::Result golden_exit,
-                        std::vector<std::vector<std::string>>& lines,
-                        std::vector<size_t>& included_lines,
-                        const std::string& input_trace_file_name);
-
-  std::vector<size_t> test(Murxla::Result golden_exit,
-                           const std::vector<std::vector<std::string>>& lines,
-                           const std::vector<size_t>& superset,
-                           const std::string& input_trace_file_name);
-
-  /** The associated Murxla instance. */
-  Murxla* d_murxla = nullptr;
-  /** The directory for output files (default: current). */
-  std::string d_out_dir = "";
-  /** The directory for temp files. */
-  std::string d_tmp_dir;
-  /** The current seed for the RNG. */
-  uint32_t d_seed;
-  /** The time limit for one test run. */
-  double d_time;
-
-  /** Number of tests performed while delta debugging. */
-  uint64_t d_ntests = 0;
-  /** Number of successful tests performed while delta debugging. */
-  uint64_t d_ntests_success = 0;
-  /** The output file name for the initial dd test run. */
-  std::string d_gold_out_file_name;
-  /** The error output file name for the initial dd test run. */
-  std::string d_gold_err_file_name;
-  /** The temp trace file name for dd. */
-  std::string d_tmp_trace_file_name;
 };
 
 /* -------------------------------------------------------------------------- */
