@@ -1418,12 +1418,8 @@ ActionCheckSat::run()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.d_incremental && d_smgr.d_n_sat_calls > 0) return false;
-  /* If the last call was unsat, call check-sat again with a lower
-   * probability. */
-  if (d_smgr.d_sat_result == Solver::UNSAT && d_rng.pick_with_prob(95))
-  {
-    return false;
-  }
+  /* Only call action immediately again with low priority. */
+  if (d_smgr.d_sat_called && d_rng.pick_with_prob(95)) return false;
   _run();
   return true;
 }
@@ -1456,6 +1452,8 @@ ActionCheckSatAssuming::run()
   assert(d_solver.is_initialized());
   if (!d_smgr.d_incremental) return false;
   if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
+  /* Only call action immediately again with low priority. */
+  if (d_smgr.d_sat_called && d_rng.pick_with_prob(95)) return false;
   uint32_t n_assumptions =
       d_rng.pick<uint32_t>(1, MURXLA_MAX_N_ASSUMPTIONS_CHECK_SAT);
   std::vector<Term> assumptions;
@@ -1492,6 +1490,7 @@ ActionCheckSatAssuming::_run(std::vector<Term> assumptions)
   d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
   d_smgr.d_sat_called = true;
   d_smgr.d_n_sat_calls += 1;
+  d_smgr.d_mbt_stats->d_results[d_smgr.d_sat_result]++;
 }
 
 /* -------------------------------------------------------------------------- */

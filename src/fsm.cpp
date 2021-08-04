@@ -367,19 +367,18 @@ FSM::configure()
   s_terms->add_action(a_mkterm, 1);
   s_terms->add_action(a_termchksort, 10);
   s_terms->add_action(t_default, 250, s_assert);
-  s_terms->add_action(t_default, 500, s_sat);
+  s_terms->add_action(t_default, 5000, s_sat);
   s_terms->add_action(t_inputs, 500, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
   s_assert->add_action(a_assert, 1);
-  s_assert->add_action(t_default, 200, s_delete);
   s_assert->add_action(t_default, 20, s_sat);
-  s_assert->add_action(t_inputs, 5, s_push_pop);
+  s_assert->add_action(t_inputs, 3, s_push_pop);
   s_assert->add_action(t_default, 50, s_terms);
 
   /* State: check sat .................................................... */
   s_sat->add_action(a_sat, 1);
-  s_sat->add_action(a_sat_ass, 1);
+  s_sat->add_action(a_sat_ass, 2);
   s_sat->add_action(a_failed, 5);
   s_sat->add_action(t_inputs, 2, s_push_pop);
   s_sat->add_action(t_inputs, 200, s_delete);
