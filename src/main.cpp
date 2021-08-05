@@ -523,9 +523,7 @@ main(int argc, char* argv[])
       if (options.dd)
       {
         DD(&murxla, options.seed, options.time)
-            .dd(options.untrace_file_name,
-                api_trace_file_name,
-                dd_trace_file_name);
+            .run(api_trace_file_name, dd_trace_file_name);
       }
     }
   }

@@ -393,10 +393,7 @@ Murxla::replay(uint32_t seed,
 
   if (d_options.dd)
   {
-    DD(this, seed, 0)
-        .dd(d_options.api_trace_file_name,
-            api_trace_file_name,
-            d_options.dd_trace_file_name);
+    DD(this, seed, 0).run(api_trace_file_name, d_options.dd_trace_file_name);
   }
   return res;
 }

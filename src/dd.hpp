@@ -15,14 +15,29 @@ class Murxla;
 class DD
 {
  public:
+  /** The default file name prefix used for reduced trace files. */
   inline static const std::string TRACE_PREFIX = "murxla-dd-";
+  /** The default api trace file name for temporary trace files. */
   inline static const std::string API_TRACE    = "tmp-dd-api.trace";
 
+  /**
+   * Constructor.
+   *
+   * murxla: The associated Murxla instance.
+   * seed  : The seed for the RNG.
+   * time  : The time limit for one test run.
+   */
   DD(Murxla* murxla, uint32_t seed, double time);
 
-  void dd(const std::string& api_trace_file_name,
-          const std::string& input_trace_file_name,
-          std::string reduced_trace_file_name);
+  /**
+   * Delta debug a given api trace.
+   *
+   * input_trace_file_name  : The name of the api trace file to minimize.
+   * reduced_trace_file_name: The name of the resulting reduced trace, may be
+   *                          empty.
+   */
+  void run(const std::string& input_trace_file_name,
+           std::string reduced_trace_file_name);
 
  private:
   bool minimize_lines(Result golden_exit,

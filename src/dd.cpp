@@ -115,9 +115,8 @@ DD::DD(Murxla* murxla, uint32_t seed, double time)
 }
 
 void
-DD::dd(const std::string& api_trace_file_name,
-       const std::string& input_trace_file_name,
-       std::string reduced_trace_file_name)
+DD::run(const std::string& input_trace_file_name,
+        std::string reduced_trace_file_name)
 {
   assert(!input_trace_file_name.empty());
 
@@ -243,16 +242,8 @@ DD::dd(const std::string& api_trace_file_name,
   /* Write minimized trace file to path if given. */
   if (reduced_trace_file_name.empty())
   {
-    if (tmp_input_trace_file_name.empty())
-    {
-      reduced_trace_file_name =
-          prepend_prefix_to_file_name(TRACE_PREFIX, api_trace_file_name);
-    }
-    else
-    {
-      reduced_trace_file_name =
-          prepend_prefix_to_file_name(TRACE_PREFIX, input_trace_file_name);
-    }
+    reduced_trace_file_name =
+        prepend_prefix_to_file_name(TRACE_PREFIX, input_trace_file_name);
   }
   if (!d_murxla->d_options.out_dir.empty())
   {
@@ -545,6 +536,15 @@ collect_to_minimize_lines_sort_fun(
   }
 }
 
+/**
+ * Replace all occurrence of string 'from' with string 'to' in string 'str'.
+ * Replacement is in place.
+ *
+ * str : The string in which all occurrences of a given string are to be
+ *       replaced.
+ * from: The string that is to be replaced in all occurrences.
+ * to  : The string that replaces all occurrences of 'from'.
+ */
 void
 str_replace_all(std::string& str,
                 const std::string& from,
@@ -601,6 +601,19 @@ collect_to_update_lines_mk_const(
   return res;
 }
 
+/**
+ * Group all term strings occurring in an api trace by sort. Additionally,
+ * collect a set of declared (first-order) constants.
+ *
+ * lines         : The set of trace lines representing the full (unminimized)
+ *                 trace.  A line is represented as a vector of strings with at
+ *                 most 2 elements.
+ * included_lines: The current set of considered lines.
+ * consts        : The resulting set of constants.
+ * terms         : The resulting set of terms (including constants), grouped
+ *                 by sort (given as a map from sort id string to a vector of
+ *                 term id strings).
+ */
 void
 collect_terms_by_sort(
     const std::vector<std::vector<std::string>>& lines,
