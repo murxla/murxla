@@ -601,11 +601,13 @@ collect_to_update_lines_mk_const(
   return res;
 }
 
-std::unordered_map<std::string, std::vector<std::string>>
-collect_terms_by_sort(const std::vector<std::vector<std::string>>& lines,
-                      std::vector<size_t>& included_lines)
+void
+collect_terms_by_sort(
+    const std::vector<std::vector<std::string>>& lines,
+    const std::vector<size_t>& included_lines,
+    std::unordered_set<std::string>& consts,
+    std::unordered_map<std::string, std::vector<std::string>>& terms)
 {
-  std::unordered_map<std::string, std::vector<std::string>> res;
   for (size_t line_idx : included_lines)
   {
     std::vector<std::string> tokens;
@@ -627,6 +629,7 @@ collect_terms_by_sort(const std::vector<std::vector<std::string>>& lines,
       sort_id = tokens[0];
       assert(tokens_return.size() == 1);
       term_id = tokens_return[0];
+      consts.insert(term_id);
     }
     else
     {
@@ -634,9 +637,8 @@ collect_terms_by_sort(const std::vector<std::vector<std::string>>& lines,
       term_id = tokens_return[0];
       sort_id = tokens_return[1];
     }
-    res[sort_id].push_back(term_id);
+    terms[sort_id].push_back(term_id);
   }
-  return res;
 }
 }  // namespace
 
@@ -650,85 +652,97 @@ DD::substitute_terms(Result golden_exit,
 
   bool res = false;
 
-  std::unordered_map<std::string, std::vector<std::string>> terms =
-      collect_terms_by_sort(lines, included_lines);
+  std::unordered_set<std::string> consts;
+  std::unordered_map<std::string, std::vector<std::string>> terms;
+  collect_terms_by_sort(lines, included_lines, consts, terms);
 
   for (const auto& t : terms)
   {
     if (t.second.size() < 2) continue; /* only one term with this sort */
 
-    const std::string& term_id = t.second[0];
-    for (size_t i = 1, n = t.second.size(); i < n; ++i)
+    size_t n_terms = t.second.size();
+    bool is_const  = consts.find(t.first) != consts.end();
+    bool success   = false;
+
+    for (size_t i = 0; i < n_terms && (is_const || !success); ++i)
     {
-      const std::string& term_id_to_substitute = t.second[i];
-
-      /* The line indices of the lines with occurrences. */
-      std::vector<size_t> superset = collect_to_update_lines_mk_const(
-          lines, included_lines, term_id_to_substitute);
-
-      size_t n_lines     = superset.size();
-      size_t n_lines_cur = n_lines;
-      size_t subset_size = n_lines;
-
-      while (subset_size > 0)
+      const std::string& term_id = t.second[i];
+      for (size_t j = 0, n = t.second.size(); j < n; ++j)
       {
-        std::vector<std::vector<size_t>> subsets =
-            split_superset(superset, subset_size);
+        if (i == j) continue;
 
-        std::vector<size_t> superset_cur;
-        std::unordered_set<size_t> successful_sets;
+        const std::string& term_id_to_substitute = t.second[j];
 
-        /* We try for each subset if we can replace the term in all of
-         * its lines. */
-        for (size_t i = 0, n = subsets.size(); i < n; ++i)
+        /* The line indices of the lines with occurrences. */
+        std::vector<size_t> superset = collect_to_update_lines_mk_const(
+            lines, included_lines, term_id_to_substitute);
+
+        size_t n_lines     = superset.size();
+        size_t n_lines_cur = n_lines;
+        size_t subset_size = n_lines;
+
+        while (subset_size > 0)
         {
-          /* Cache previous state of lines to update and update lines. */
-          std::unordered_map<size_t, std::string> lines_cur;
+          std::vector<std::vector<size_t>> subsets =
+              split_superset(superset, subset_size);
 
-          for (size_t line_idx : subsets[i])
+          std::vector<size_t> superset_cur;
+          std::unordered_set<size_t> successful_sets;
+
+          /* We try for each subset if we can replace the term in all of
+           * its lines. */
+          for (size_t i = 0, n = subsets.size(); i < n; ++i)
           {
-            lines_cur[line_idx] = lines[line_idx][0];
-            str_replace_all(lines[line_idx][0], term_id_to_substitute, term_id);
+            /* Cache previous state of lines to update and update lines. */
+            std::unordered_map<size_t, std::string> lines_cur;
+
+            for (size_t line_idx : subsets[i])
+            {
+              lines_cur[line_idx] = lines[line_idx][0];
+              str_replace_all(
+                  lines[line_idx][0], term_id_to_substitute, term_id);
+            }
+
+            std::vector<size_t> tmp_superset =
+                test(golden_exit, lines, included_lines, input_trace_file_name);
+
+            if (!tmp_superset.empty())
+            {
+              /* success */
+              successful_sets.insert(i);
+            }
+            else
+            {
+              /* failure */
+              superset_cur.insert(
+                  superset_cur.end(), subsets[i].begin(), subsets[i].end());
+              for (auto l : lines_cur)
+              {
+                lines[l.first][0] = l.second;
+              }
+            }
           }
-
-          std::vector<size_t> tmp_superset =
-              test(golden_exit, lines, included_lines, input_trace_file_name);
-
-          if (!tmp_superset.empty())
+          if (successful_sets.empty())
           {
-            /* success */
-            successful_sets.insert(i);
+            subset_size = subset_size / 2;
           }
           else
           {
-            /* failure */
-            superset_cur.insert(
-                superset_cur.end(), subsets[i].begin(), subsets[i].end());
-            for (auto l : lines_cur)
-            {
-              lines[l.first][0] = l.second;
-            }
+            /* write found subset immediately to file and continue */
+            write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
+            superset    = superset_cur;
+            n_lines_cur = superset.size();
+            subset_size = n_lines_cur / 2;
+            MURXLA_MESSAGE_DD << ">> replaced term '" << term_id_to_substitute
+                              << "' with '" << term_id << "' in "
+                              << (n_lines - superset.size()) << " lines";
           }
         }
-        if (successful_sets.empty())
+        if (superset.size() < n_lines)
         {
-          subset_size = subset_size / 2;
+          res     = true;
+          success = true;
         }
-        else
-        {
-          /* write found subset immediately to file and continue */
-          write_lines_to_file(lines, included_lines, d_tmp_trace_file_name);
-          superset    = superset_cur;
-          n_lines_cur = superset.size();
-          subset_size = n_lines_cur / 2;
-          MURXLA_MESSAGE_DD << ">> replaced term '" << term_id_to_substitute
-                            << "' with '" << term_id << "' in "
-                            << (n_lines - superset.size()) << " lines";
-        }
-      }
-      if (superset.size() < n_lines)
-      {
-        res = true;
       }
     }
   }
