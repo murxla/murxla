@@ -550,6 +550,18 @@ class SolverManager
 
   /** Map untraced ids to corresponding Terms. */
   std::unordered_map<uint64_t, Sort> d_untraced_sorts;
+
+  /**
+   * Cache used by pick_from_term_map. Caches operator kinds that are currently
+   * safe to pick since the required terms to create an operator already exist.
+   */
+  std::unordered_map<TheoryId, OpKindSet> d_enabled_op_kinds;
+
+  /**
+   * Cache used by pick_from_term_map. Caches available operator kinds reported
+   * by opmgr, but cannot be constructed yet due to missing terms.
+   */
+  OpKindMap d_available_op_kinds;
 };
 
 /* -------------------------------------------------------------------------- */

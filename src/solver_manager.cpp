@@ -45,6 +45,9 @@ SolverManager::SolverManager(Solver* solver,
                                   d_mbt_stats));
   solver->configure_smgr(this);
   solver->configure_opmgr(d_opmgr.get());
+
+  const auto& kinds = d_opmgr->get_op_kinds();
+  d_available_op_kinds.insert(kinds.begin(), kinds.end());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -60,6 +63,9 @@ SolverManager::clear()
   d_string_char_values.clear();
   d_untraced_terms.clear();
   d_untraced_sorts.clear();
+  const auto& kinds = d_opmgr->get_op_kinds();
+  d_available_op_kinds.insert(kinds.begin(), kinds.end());
+  d_enabled_op_kinds.clear();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -294,10 +300,10 @@ SolverManager::pick_op_kind(bool with_terms)
 {
   if (with_terms)
   {
-    std::unordered_map<TheoryId, OpKindSet> kinds;
-    for (const auto& p : d_opmgr->get_op_kinds())
+    std::unordered_map<TheoryId, OpKindSet> kinds(d_enabled_op_kinds);
+    std::vector<Op::Kind> remove;
+    for (const auto& [kind, op] : d_available_op_kinds)
     {
-      const Op& op   = p.second;
       bool has_terms = true;
 
       /* Quantifiers can only be created if we already have variables and
@@ -306,27 +312,46 @@ SolverManager::pick_op_kind(bool with_terms)
       {
         if (!d_term_db.has_var() || !d_term_db.has_quant_body()) continue;
       }
-
-      /* Check if we already have terms that can be used with this operator. */
-      if (op.d_arity < 0)
-      {
-        has_terms = has_term(op.get_arg_sort_kind(0));
-      }
       else
       {
-        for (int32_t i = 0; i < op.d_arity; ++i)
+        /* Check if we already have terms that can be used with this operator.
+         */
+        if (op.d_arity < 0)
         {
-          if (!has_term(op.get_arg_sort_kind(i)))
+          has_terms = has_term(op.get_arg_sort_kind(0));
+        }
+        else
+        {
+          for (int32_t i = 0; i < op.d_arity; ++i)
           {
-            has_terms = false;
-            break;
+            if (!has_term(op.get_arg_sort_kind(i)))
+            {
+              has_terms = false;
+              break;
+            }
           }
         }
       }
       if (has_terms)
       {
+        /* In general if a term was added to the term db it will always be
+         * available. However, for quantifiers, terms get "consumed" and
+         * therefore we always have to check whether we can create a quantified
+         * term and therefore the FORALL and EXISTS kinds can't be cached. */
+        if (op.d_kind != Op::FORALL && op.d_kind != Op::EXISTS)
+        {
+          d_enabled_op_kinds[op.d_theory].insert(op.d_kind);
+          remove.push_back(op.d_kind);
+        }
         kinds[op.d_theory].insert(op.d_kind);
       }
+    }
+
+    /* Remove the enabled kinds from d_available_op_kinds since these kinds now
+     * can be constructed with terms in the db. */
+    for (const auto& k : remove)
+    {
+      d_available_op_kinds.erase(k);
     }
 
     if (kinds.size() > 0)
