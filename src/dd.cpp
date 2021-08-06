@@ -882,8 +882,11 @@ DD::minimize_line(Result golden_exit,
       Action::GET_VALUE, Action::MK_SORT, Action::MK_TERM};
 
   /* Minimize. */
+  size_t line_number = 0;
   for (size_t line_idx : included_lines)
   {
+    line_number += lines[line_idx].size();
+
     std::string action_id;
     std::vector<std::string> tokens;
 
@@ -908,14 +911,15 @@ DD::minimize_line(Result golden_exit,
       if (Action::get_sort_kind_from_str(tokens[0]) != SORT_FUN) continue;
 
       MURXLA_MESSAGE_DD << "trying to minimize function sort on line "
-                        << line_idx << " ...";
+                        << (line_number - lines[line_idx].size() + 1) << " ...";
       n_args = n_tokens - 2;
       collect_to_minimize_lines_sort_fun(
           lines, included_lines, line_idx, tokens, to_minimize);
     }
     else
     {
-      MURXLA_MESSAGE_DD << "trying to minimize line " << line_idx << " ...";
+      MURXLA_MESSAGE_DD << "trying to minimize line "
+                        << (line_number - lines[line_idx].size() + 1) << " ...";
       if (action == Action::MK_TERM)
       {
         Op::Kind op_kind = tokens[0];
