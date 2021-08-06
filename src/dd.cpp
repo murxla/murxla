@@ -372,6 +372,7 @@ generate_minimized_line(Action::Kind action_kind,
   }
   for (size_t i : included_args)
   {
+    assert(idx + i < tokens.size());
     ss << " " << tokens[idx + i];
   }
   for (const std::string& p : post)
@@ -530,7 +531,7 @@ collect_to_minimize_lines_sort_fun(
       }
       else if (action == Action::MK_TERM && tokens[0] == Op::UF_APPLY)
       {
-        to_minimize.emplace_back(_line_idx, action, tokens, 4);
+        to_minimize.emplace_back(_line_idx, action, tokens, 3);
       }
     }
   }
