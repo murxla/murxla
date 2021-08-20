@@ -677,7 +677,42 @@ BzlaSolver::mk_term(const Op::Kind& kind,
   }
   else
   {
-    bzla_res = bitwuzla_mk_term(d_solver, bzla_kind, n_args, bzla_args.data());
+    if (kind == OP_FP_TO_FP_FROM_REAL)
+    {
+      /* Bitwuzla only supports a very restricted version of to_fp from Real:
+       * only from strings representing real or rational values. */
+
+      BitwuzlaSort* bzla_sort = bitwuzla_term_get_sort(bzla_args[1]);
+      auto choice             = d_rng.pick_one_of_three();
+      if (choice == RNGenerator::Choice::FIRST)
+      {
+        bzla_res =
+            bitwuzla_mk_fp_value_from_real(d_solver,
+                                           bzla_sort,
+                                           bzla_args[0],
+                                           d_rng.pick_real_string().c_str());
+      }
+      else
+      {
+        bzla_res = bitwuzla_mk_fp_value_from_rational(
+            d_solver,
+            bzla_sort,
+            bzla_args[0],
+            d_rng
+                .pick_dec_int_string(
+                    d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX))
+                .c_str(),
+            d_rng
+                .pick_dec_int_string(
+                    d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX))
+                .c_str());
+      }
+    }
+    else
+    {
+      bzla_res =
+          bitwuzla_mk_term(d_solver, bzla_kind, n_args, bzla_args.data());
+    }
   }
   assert(bzla_res);
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
@@ -992,6 +1027,8 @@ BzlaSolver::init_op_kinds()
       {OP_BV_USUBO, BITWUZLA_KIND_BV_USUB_OVERFLOW},
       {OP_BV_SSUBO, BITWUZLA_KIND_BV_SSUB_OVERFLOW},
       {OP_BV_SDIVO, BITWUZLA_KIND_BV_SDIV_OVERFLOW},
+      /* Special treatment, not really a Bitwuzla kind. */
+      {OP_FP_TO_FP_FROM_REAL, BITWUZLA_NUM_KINDS},
   };
 }
 
@@ -1183,6 +1220,15 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
   opmgr->add_op_kind(OP_BV_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(OP_BV_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(OP_BV_SSUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  /* Bitwuzla only supports a very restricted version of to_fp from Real:
+   * only from strings representing real or rational values. We thus define
+   * this as a solver-specific operator with two arguments: a rounding mode
+   * term, and an FP term (which is only needed to get an existing FP sort to
+   * convert to).  This is a workaround for this very special case (we don't)
+   * want to generalize it for all solvers because it is too special). */
+  opmgr->add_op_kind(
+      OP_FP_TO_FP_FROM_REAL, 2, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
 }
 
 /* -------------------------------------------------------------------------- */
