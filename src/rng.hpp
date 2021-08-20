@@ -126,6 +126,11 @@ class RNGenerator
   std::string pick_dec_real_string(uint32_t len);
   /** Pick rational string with given lengths for numerator and denominator. */
   std::string pick_dec_rational_string(uint32_t nlen, uint32_t dlen);
+  /**
+   * Pick real string.
+   * This picks either a decimal int or real string, with equal probability.
+   */
+  std::string pick_real_string();
   /** Pick simple symbol string (as defined in SMT-LIB) of given length. */
   std::string pick_simple_symbol(uint32_t len);
   /** Pick piped symbol string (as defined in SMT-LIB) of given length. */

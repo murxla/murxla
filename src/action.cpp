@@ -1120,7 +1120,6 @@ ActionMkValue::run()
   if (!d_smgr.has_sort()) return false;
   Sort sort          = d_smgr.pick_sort();
   SortKind sort_kind = sort->get_kind();
-  RNGenerator::Choice pick;
 
   /* Pick value. */
   switch (sort_kind)
@@ -1168,32 +1167,30 @@ ActionMkValue::run()
       break;
 
     case SORT_REAL:
-      pick = d_rng.pick_one_of_four();
-      switch (pick)
+      /* RNGenerator::pick_real_string picks from 2 different options, hence
+       * we pick between this and passing two decimal strings as rational
+       * arguments with probability 50%. */
+      if (d_rng.pick_with_prob(500))
       {
-        case RNGenerator::Choice::FIRST:
-          _run(sort,
-               d_rng.pick_dec_int_string(
-                   d_rng.pick<uint32_t>(1, MURXLA_INT_LEN_MAX)));
-          break;
-        case RNGenerator::Choice::SECOND:
-          _run(sort,
-               d_rng.pick_dec_real_string(
-                   d_rng.pick<uint32_t>(1, MURXLA_REAL_LEN_MAX)));
-          break;
-        case RNGenerator::Choice::THIRD:
+        _run(sort, d_rng.pick_real_string());
+      }
+      else
+      {
+        if (d_rng.flip_coin())
+        {
           _run(sort,
                d_rng.pick_dec_rational_string(
                    d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX),
                    d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
-          break;
-        default:
-          assert(pick == RNGenerator::Choice::FOURTH);
+        }
+        else
+        {
           _run(sort,
                d_rng.pick_dec_int_string(
                    d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)),
                d_rng.pick_dec_int_string(
                    d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
+        }
       }
       break;
 

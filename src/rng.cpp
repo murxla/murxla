@@ -6,6 +6,7 @@
 #include <cassert>
 #include <sstream>
 
+#include "config.hpp"
 #include "except.hpp"
 #include "util.hpp"
 
@@ -233,6 +234,16 @@ RNGenerator::pick_dec_rational_string(uint32_t nlen, uint32_t dlen)
   std::stringstream ss;
   ss << num << "/" << den;
   return ss.str();
+}
+
+std::string
+RNGenerator::pick_real_string()
+{
+  if (flip_coin())
+  {
+    return pick_dec_int_string(pick<uint32_t>(1, MURXLA_INT_LEN_MAX));
+  }
+  return pick_dec_real_string(pick<uint32_t>(1, MURXLA_REAL_LEN_MAX));
 }
 
 std::string
