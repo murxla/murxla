@@ -52,11 +52,12 @@ SolverManager::SolverManager(Solver* solver,
 void
 SolverManager::clear()
 {
-  d_n_sort_terms.clear();
   d_sorts.clear();
   d_sort_kind_to_sorts.clear();
-  d_term_db.clear();
+  d_n_sort_terms.clear();
   d_assumptions.clear();
+  d_term_db.clear();
+  d_string_char_values.clear();
   d_untraced_terms.clear();
   d_untraced_sorts.clear();
 }

@@ -50,7 +50,11 @@ class SolverManager
 
   statistics::Statistics* d_mbt_stats;
 
-  /** Clear all data. */
+  /**
+   * Clear all data.
+   *
+   * This only clears term, sort
+   */
   void clear();
 
   /** Get solver. */
@@ -344,6 +348,38 @@ class SolverManager
   /** Clear set of assumptions. */
   void clear_assumptions();
 
+  /** Statistics. */
+  Stats d_stats;
+
+  /** Config ----------------------------------------------------------------
+   *
+   * Config members are not cleared or reset on reset() / clear().
+   */
+
+  /** True if solver treats Int as a subtype of Real. */
+  bool d_arith_subtyping = false;
+  /** True to restrict arithmetic operators to linear fragment. */
+  bool d_arith_linear = false;
+
+  /**
+   * True if every non-return trace call should be preceded by a
+   * 'set-seed <seed>' line. We need to provide this option in the solver
+   * manager for actions to have access to it.
+   */
+  bool d_trace_seeds = false;
+
+  /**
+   * True if all symbols for terms should be of the form '_sX' rather than
+   * a random string.
+   */
+  bool d_simple_symbols = false;
+
+  /** Solver (config) state -------------------------------------------------
+   *
+   *  All members below are reset / cleared on reset().
+   *  All members that are data structures are cleared on clear().
+   */
+
   /**
    * True if incremental solving is enabled.
    * (SMT-LIB: option :incremental).
@@ -375,27 +411,6 @@ class SolverManager
 
   /** The number of check-sat calls issued. */
   uint32_t d_n_sat_calls = 0;
-
-  /** Statistics. */
-  Stats d_stats;
-
-  /** True if solver treats Int as a subtype of Real. */
-  bool d_arith_subtyping = false;
-  /** True to restrict arithmetic operators to linear fragment. */
-  bool d_arith_linear = false;
-
-  /**
-   * True if every non-return trace call should be preceded by a
-   * 'set-seed <seed>' line. We need to provide this option in the solver
-   * manager for actions to have access to it.
-   */
-  bool d_trace_seeds = false;
-
-  /**
-   * True if all symbols for terms should be of the form '_sX' rather than
-   * a random string.
-   */
-  bool d_simple_symbols = false;
 
  private:
   /**
@@ -440,13 +455,10 @@ class SolverManager
   /** The stream to capture the API trace. */
   std::ostream& d_trace;
 
-  /** Term id counter. */
-  uint64_t d_n_terms = 0;
-  /** Sort id counter. */
-  uint64_t d_n_sorts = 0;
-
-  /** Map SortKind to number of created terms of that SortKind. */
-  std::unordered_map<SortKind, uint64_t> d_n_sort_terms;
+  /** Config ----------------------------------------------------------------
+   *
+   * Config members are not cleared or reset on reset() / clear().
+   */
 
   /** The set of enabled sort kinds. Maps SortKind to SortKindData. */
   SortKindMap d_sort_kinds;
@@ -456,34 +468,25 @@ class SolverManager
   /** The set of enabled theories. */
   TheoryIdSet d_enabled_theories;
 
-  /** Maintain all created sorts. */
-  SortSet d_sorts;
-
-  /** Map sort kind -> sorts. */
-  std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
-
-  /** The set of already assumed formulas. */
-  std::unordered_set<Term> d_assumptions;
-
   /** Vector of available solver options */
   SolverOptions& d_solver_options;
 
+  /** Solver state ----------------------------------------------------------
+   *
+   *  All members below are reset / cleared on reset().
+   *  All data members that are are cleared on clear().
+   */
+
+  /** The solver options that have already been configured. */
   std::unordered_set<std::string> d_used_solver_options;
+
+  /** Term id counter. */
+  uint64_t d_n_terms = 0;
+  /** Sort id counter. */
+  uint64_t d_n_sorts = 0;
 
   /** Counter to create simple symbol names when option is enabled. */
   uint32_t d_n_symbols = 0;
-
-  /** Term database */
-  TermDb d_term_db;
-
-  /** Map untraced ids to corresponding Terms. */
-  std::unordered_map<uint64_t, Term> d_untraced_terms;
-
-  /** Map untraced ids to corresponding Terms. */
-  std::unordered_map<uint64_t, Sort> d_untraced_sorts;
-
-  /** Set of currently created string values with length 1. */
-  std::unordered_set<Term> d_string_char_values;
 
   /**
    * List of terms for which we have to trace a ("phantom") action
@@ -501,6 +504,32 @@ class SolverManager
    * previous action with yet unseen sort.
    */
   std::vector<Term> d_pending_get_sorts;
+
+  /** Solver state data members -------------------- */
+
+  /** Maintain all created sorts. */
+  SortSet d_sorts;
+
+  /** Map sort kind -> sorts. */
+  std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
+
+  /** Map SortKind to number of created terms of that SortKind. */
+  std::unordered_map<SortKind, uint64_t> d_n_sort_terms;
+
+  /** The set of already assumed formulas. */
+  std::unordered_set<Term> d_assumptions;
+
+  /** Term database */
+  TermDb d_term_db;
+
+  /** Set of currently created string values with length 1. */
+  std::unordered_set<Term> d_string_char_values;
+
+  /** Map untraced ids to corresponding Terms. */
+  std::unordered_map<uint64_t, Term> d_untraced_terms;
+
+  /** Map untraced ids to corresponding Terms. */
+  std::unordered_map<uint64_t, Sort> d_untraced_sorts;
 };
 
 /* -------------------------------------------------------------------------- */
