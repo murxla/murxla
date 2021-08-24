@@ -710,8 +710,28 @@ BzlaSolver::mk_term(const Op::Kind& kind,
     }
     else
     {
-      bzla_res =
-          bitwuzla_mk_term(d_solver, bzla_kind, n_args, bzla_args.data());
+      if (n_args <= 3 && d_rng.flip_coin())
+      {
+        switch (n_args)
+        {
+          case 1:
+            bzla_res = bitwuzla_mk_term1(d_solver, bzla_kind, bzla_args[0]);
+            break;
+          case 2:
+            bzla_res = bitwuzla_mk_term2(
+                d_solver, bzla_kind, bzla_args[0], bzla_args[1]);
+            break;
+          default:
+            assert(n_args == 3);
+            bzla_res = bitwuzla_mk_term3(
+                d_solver, bzla_kind, bzla_args[0], bzla_args[1], bzla_args[2]);
+        }
+      }
+      else
+      {
+        bzla_res =
+            bitwuzla_mk_term(d_solver, bzla_kind, n_args, bzla_args.data());
+      }
     }
   }
   assert(bzla_res);
