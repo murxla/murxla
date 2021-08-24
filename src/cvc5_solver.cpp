@@ -751,6 +751,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   ::cvc5::api::Term cvc5_res;
   ::cvc5::api::Kind cvc5_kind = d_op_kinds.at(kind);
   ::cvc5::api::Op cvc5_opterm;
+  std::vector<::cvc5::api::Term> cvc5_args = terms_to_cvc5_terms(args);
 
   int32_t n_args    = args.size();
   uint32_t n_params = params.size();
@@ -761,7 +762,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     std::vector<::cvc5::api::Term> vars;
     for (size_t i = 0; i < args.size() - 1; ++i)
     {
-      vars.push_back(get_cvc5_term(args[i]));
+      vars.push_back(cvc5_args[i]);
     }
     ::cvc5::api::Term bvl =
         d_solver->mkTerm(::cvc5::api::Kind::BOUND_VAR_LIST, vars);
@@ -827,13 +828,12 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       if (kind == Op::NOT && d_rng.flip_coin())
       {
         assert(!n_params);
-        cvc5_res = get_cvc5_term(args[0]).notTerm();
+        cvc5_res = cvc5_args[0].notTerm();
       }
       else
       {
-        cvc5_res = n_params
-                       ? d_solver->mkTerm(cvc5_opterm, get_cvc5_term(args[0]))
-                       : d_solver->mkTerm(cvc5_kind, get_cvc5_term(args[0]));
+        cvc5_res = n_params ? d_solver->mkTerm(cvc5_opterm, cvc5_args[0])
+                            : d_solver->mkTerm(cvc5_kind, cvc5_args[0]);
       }
       break;
 
@@ -841,36 +841,33 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       if (kind == Op::AND && d_rng.flip_coin())
       {
         assert(!n_params);
-        cvc5_res = get_cvc5_term(args[0]).andTerm(get_cvc5_term(args[1]));
+        cvc5_res = cvc5_args[0].andTerm(cvc5_args[1]);
       }
       else if (kind == Op::OR && d_rng.flip_coin())
       {
         assert(!n_params);
-        cvc5_res = get_cvc5_term(args[0]).orTerm(get_cvc5_term(args[1]));
+        cvc5_res = cvc5_args[0].orTerm(cvc5_args[1]);
       }
       else if (kind == Op::XOR && d_rng.flip_coin())
       {
         assert(!n_params);
-        cvc5_res = get_cvc5_term(args[0]).xorTerm(get_cvc5_term(args[1]));
+        cvc5_res = cvc5_args[0].xorTerm(cvc5_args[1]);
       }
       else if (kind == Op::EQUAL && d_rng.flip_coin())
       {
         assert(!n_params);
-        cvc5_res = get_cvc5_term(args[0]).eqTerm(get_cvc5_term(args[1]));
+        cvc5_res = cvc5_args[0].eqTerm(cvc5_args[1]);
       }
       else if (kind == Op::IMPLIES && d_rng.flip_coin())
       {
         assert(!n_params);
-        cvc5_res = get_cvc5_term(args[0]).impTerm(get_cvc5_term(args[1]));
+        cvc5_res = cvc5_args[0].impTerm(cvc5_args[1]);
       }
       else
       {
         cvc5_res =
-            n_params
-                ? d_solver->mkTerm(
-                    cvc5_opterm, get_cvc5_term(args[0]), get_cvc5_term(args[1]))
-                : d_solver->mkTerm(
-                    cvc5_kind, get_cvc5_term(args[0]), get_cvc5_term(args[1]));
+            n_params ? d_solver->mkTerm(cvc5_opterm, cvc5_args[0], cvc5_args[1])
+                     : d_solver->mkTerm(cvc5_kind, cvc5_args[0], cvc5_args[1]);
       }
       break;
 
@@ -878,26 +875,20 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       if (kind == Op::ITE && d_rng.flip_coin())
       {
         assert(!n_params);
-        cvc5_res = get_cvc5_term(args[0]).iteTerm(get_cvc5_term(args[1]),
-                                                  get_cvc5_term(args[2]));
+        cvc5_res = cvc5_args[0].iteTerm(cvc5_args[1], cvc5_args[2]);
       }
       else
       {
-        cvc5_res = n_params ? d_solver->mkTerm(cvc5_opterm,
-                                               get_cvc5_term(args[0]),
-                                               get_cvc5_term(args[1]),
-                                               get_cvc5_term(args[2]))
-                            : d_solver->mkTerm(cvc5_kind,
-                                               get_cvc5_term(args[0]),
-                                               get_cvc5_term(args[1]),
-                                               get_cvc5_term(args[2]));
+        cvc5_res =
+            n_params ? d_solver->mkTerm(
+                cvc5_opterm, cvc5_args[0], cvc5_args[1], cvc5_args[2])
+                     : d_solver->mkTerm(
+                         cvc5_kind, cvc5_args[0], cvc5_args[1], cvc5_args[2]);
       }
       break;
 
     default:
       assert(n_args == MURXLA_MK_TERM_N_ARGS_BIN || n_args > 3);
-      std::vector<::cvc5::api::Term> cvc5_args;
-      cvc5_args = terms_to_cvc5_terms(args);
       cvc5_res  = n_params ? d_solver->mkTerm(cvc5_opterm, cvc5_args)
                            : d_solver->mkTerm(cvc5_kind, cvc5_args);
   }
