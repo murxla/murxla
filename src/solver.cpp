@@ -261,9 +261,11 @@ Solver::add_special_value(SortKind sort_kind, const SpecialValueKind& kind)
   {
     d_special_values[sort_kind] = {};
   }
-  assert(d_special_values.at(sort_kind).find(kind)
-         == d_special_values.at(sort_kind).end());
-  d_special_values.at(sort_kind).insert(kind);
+  if (d_special_values.at(sort_kind).find(kind)
+      == d_special_values.at(sort_kind).end())
+  {
+    d_special_values.at(sort_kind).insert(kind);
+  }
 }
 
 void
