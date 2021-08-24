@@ -565,6 +565,12 @@ ActionMkSort::_run(SortKind kind, uint32_t ew, uint32_t sw)
   assert(res->get_fp_sig_size() == sw);
   d_smgr.add_sort(res, kind);
   MURXLA_TRACE_RETURN << res;
+  /* Operator fp expects three bit-vector terms of size 1, ew and sw - 1 as
+   * arguments. To increase the probability that terms of these sizes are
+   * available, we also generate the corresponding bit-vector sorts. */
+  _run(SORT_BV, 1);
+  _run(SORT_BV, ew);
+  _run(SORT_BV, sw - 1);
   return res->get_id();
 }
 
