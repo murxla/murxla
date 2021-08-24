@@ -1205,6 +1205,14 @@ BtorSolver::print_model()
 }
 
 void
+BtorSolver::reset()
+{
+  boolector_delete(d_solver);
+  d_solver = nullptr;
+  new_solver();
+}
+
+void
 BtorSolver::reset_assertions()
 {
   /* boolector does not support this yet */

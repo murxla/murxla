@@ -21,6 +21,11 @@ class TermDb
 
   /** Clear term database. */
   void clear();
+  /**
+   * Reset term database.
+   * This clears and reinitializes the term database.
+   */
+  void reset();
 
   /** Reset term id counter to id (required for untracing) */
   void set_term_id_couter(uint64_t id);

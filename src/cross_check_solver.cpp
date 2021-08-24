@@ -639,6 +639,13 @@ CrossCheckSolver::print_model()
 }
 
 void
+CrossCheckSolver::reset()
+{
+  d_test_solver->reset();
+  d_reference_solver->reset();
+}
+
+void
 CrossCheckSolver::reset_assertions()
 {
   d_test_solver->reset_assertions();

@@ -1825,6 +1825,12 @@ YicesSolver::print_model()
 }
 
 void
+YicesSolver::reset()
+{
+  yices_reset();
+}
+
+void
 YicesSolver::reset_assertions()
 {
   if (d_context) yices_reset_context(d_context);

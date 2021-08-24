@@ -456,6 +456,26 @@ SolverManager::clear_assumptions()
 }
 
 void
+SolverManager::reset()
+{
+  clear();
+  d_term_db.reset();
+  d_used_solver_options.clear();
+  d_pending_get_sorts.clear();
+
+  d_incremental       = false;
+  d_model_gen         = false;
+  d_unsat_assumptions = false;
+  d_n_push_levels     = 0;
+  d_sat_called        = false;
+  d_sat_result        = Solver::Result::UNKNOWN;
+  d_n_sat_calls       = 0;
+  d_n_terms           = 0;
+  d_n_sorts           = 0;
+  d_n_symbols         = 0;
+}
+
+void
 SolverManager::reset_sat()
 {
   if (d_sat_called)

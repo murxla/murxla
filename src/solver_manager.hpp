@@ -191,6 +191,9 @@ class SolverManager
    */
   Term pick_assumed_assumption();
 
+  /** Reset solver manager state into start mode. */
+  void reset();
+
   /**
    * Reset solver manager state into assert mode.
    *

@@ -1227,6 +1227,12 @@ Smt2Solver::print_model()
 }
 
 void
+Smt2Solver::reset()
+{
+  dump_smt2("(reset)");
+}
+
+void
 Smt2Solver::reset_assertions()
 {
   dump_smt2("(reset-assertions)");

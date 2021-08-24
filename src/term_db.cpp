@@ -23,6 +23,14 @@ TermDb::clear()
 }
 
 void
+TermDb::reset()
+{
+  clear();
+  d_term_db.emplace_back();
+  d_vars.emplace_back();
+}
+
+void
 TermDb::add_term(Term& term,
                  Sort& sort,
                  SortKind sort_kind,

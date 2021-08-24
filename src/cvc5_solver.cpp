@@ -1016,6 +1016,14 @@ Cvc5Solver::print_model()
 }
 
 void
+Cvc5Solver::reset()
+{
+  delete d_solver;
+  d_solver = nullptr;
+  new_solver();
+}
+
+void
 Cvc5Solver::reset_assertions()
 {
   d_solver->resetAssertions();

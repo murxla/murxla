@@ -808,6 +808,12 @@ BzlaSolver::print_model()
 }
 
 void
+BzlaSolver::reset()
+{
+  bitwuzla_reset(d_solver);
+}
+
+void
 BzlaSolver::reset_assertions()
 {
   /* Bitwuzla does not support this yet */

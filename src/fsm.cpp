@@ -297,6 +297,7 @@ FSM::configure()
   auto a_push = new_action<ActionPush>();
   auto a_pop  = new_action<ActionPop>();
 
+  auto a_reset     = new_action<ActionReset>();
   auto a_reset_ass = new_action<ActionResetAssertions>();
 
   auto a_setoption = new_action<ActionSetOption>();
@@ -397,6 +398,7 @@ FSM::configure()
   s_delete->add_action(a_delete, 1, s_final);
 
   /* All States (with exceptions) ........................................ */
+  add_action_to_all_states(a_reset, 5000, {}, s_opt);
   add_action_to_all_states(a_reset_ass, 5000);
 
   /* --------------------------------------------------------------------- */

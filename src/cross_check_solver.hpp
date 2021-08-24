@@ -136,6 +136,7 @@ class CrossCheckSolver : public Solver
 
   void print_model() override;
 
+  void reset() override;
   void reset_assertions() override;
 
   void set_opt(const std::string& opt, const std::string& value) override;

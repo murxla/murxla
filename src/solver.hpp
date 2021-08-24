@@ -250,6 +250,9 @@ class Solver
   virtual void configure_opmgr(OpKindManager* opmgr) const;
   void add_special_value(SortKind sort_kind, const SpecialValueKind& kind);
 
+  /** Reset solver.  */
+  virtual void reset() = 0;
+
   /**
    * Reset solver state into assert mode.
    *

@@ -65,6 +65,7 @@ class Action
   inline static const Kind CHECK_SAT_ASSUMING    = "check-sat-assuming";
   inline static const Kind PUSH                  = "push";
   inline static const Kind POP                   = "pop";
+  inline static const Kind RESET                 = "reset";
   inline static const Kind RESET_ASSERTIONS      = "reset-assertions";
   inline static const Kind SET_OPTION            = "set-option";
   inline static const Kind TRANS                 = "t_default";
@@ -518,6 +519,18 @@ class ActionPop : public Action
 
  private:
   void _run(uint32_t n_levels);
+};
+
+class ActionReset : public Action
+{
+ public:
+  ActionReset(SolverManager& smgr) : Action(smgr, RESET, NONE) {}
+
+  bool run() override;
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+
+ private:
+  void _run();
 };
 
 class ActionResetAssertions : public Action

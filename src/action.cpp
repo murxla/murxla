@@ -1666,6 +1666,32 @@ ActionPop::_run(uint32_t n_levels)
 /* -------------------------------------------------------------------------- */
 
 bool
+ActionReset::run()
+{
+  assert(d_solver.is_initialized());
+  _run();
+  return true;
+}
+
+std::vector<uint64_t>
+ActionReset::untrace(std::vector<std::string>& tokens)
+{
+  MURXLA_CHECK_TRACE_EMPTY(tokens);
+  _run();
+  return {};
+}
+
+void
+ActionReset::_run()
+{
+  MURXLA_TRACE << get_kind();
+  d_solver.reset();
+  d_smgr.reset();
+}
+
+/* -------------------------------------------------------------------------- */
+
+bool
 ActionResetAssertions::run()
 {
   assert(d_solver.is_initialized());

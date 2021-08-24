@@ -192,6 +192,7 @@ class BzlaSolver : public Solver
 
   void print_model() override;
 
+  void reset() override;
   void reset_assertions() override;
 
   //

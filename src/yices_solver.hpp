@@ -131,6 +131,7 @@ class YicesSolver : public Solver
 
   void configure_fsm(FSM* fsm) const override;
   void configure_opmgr(OpKindManager* opmgr) const override;
+  void reset() override;
   void reset_sat() override;
 
   void set_opt(const std::string& opt, const std::string& value) override;
