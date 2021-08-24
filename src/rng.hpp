@@ -116,8 +116,12 @@ class RNGenerator
   std::string pick_string(std::string& chars, uint32_t len);
   /** Pick binary string of given length. */
   std::string pick_bin_string(uint32_t len);
-  /** Pick decimal string of given length in binary representation. */
-  std::string pick_dec_bin_string(uint32_t bin_len);
+  /**
+   * Pick decimal string of given length in binary representation.
+   * This will produce signed (that is, possibly negative) values if
+   * 'sign' is true.
+   */
+  std::string pick_dec_bin_string(uint32_t bin_len, bool sign);
   /** Pick hexadecimal string of given length in binary representation. */
   std::string pick_hex_bin_string(uint32_t bin_len);
   /** Pick decimal integer string of given length. */

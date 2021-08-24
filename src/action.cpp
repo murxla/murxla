@@ -1146,7 +1146,9 @@ ActionMkValue::run()
       /* use random value */
       switch (base)
       {
-        case Solver::Base::DEC: val = d_rng.pick_dec_bin_string(bw); break;
+        case Solver::Base::DEC:
+          val = d_rng.pick_dec_bin_string(bw, d_rng.flip_coin());
+          break;
         case Solver::Base::HEX: val = d_rng.pick_hex_bin_string(bw); break;
         default:
           assert(base == Solver::Base::BIN);

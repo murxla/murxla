@@ -143,10 +143,43 @@ RNGenerator::pick_bin_string(uint32_t len)
 }
 
 std::string
-RNGenerator::pick_dec_bin_string(uint32_t bin_len)
+RNGenerator::pick_dec_bin_string(uint32_t bin_len, bool sign)
 {
   std::string s = pick_bin_string(bin_len);
-  return str_bin_to_dec(s);
+  bool neg      = sign && s[0] == '1';
+
+  if (neg)
+  {
+    // convert two's complement negative number to positive number
+    for (auto& c : s) c = c == '0' ? '1' : '0';  // invert
+    bool overflow = true;
+    for (size_t i = 0, n = s.size(); i < n; ++i)
+    {
+      size_t idx = n - i - 1;
+      if (overflow)
+      {
+        if (s[idx] == '1')
+        {
+          // 1 + 1
+          s[idx] = '0';
+        }
+        else
+        {
+          // 0 + 1
+          s[idx]   = '1';
+          overflow = false;
+        }
+      }
+      else if (s[idx] == '1')
+      {
+        // 1 + 0
+        s[idx] = '1';
+      }
+    }
+  }
+
+  std::string res = str_bin_to_dec(s);
+  return neg ? "-" + res : res;
 }
 
 std::string
