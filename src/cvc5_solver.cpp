@@ -439,6 +439,15 @@ Cvc5Solver::mk_value(Sort sort, std::string value)
 
   switch (sort_kind)
   {
+    case SORT_FP:
+    {
+      uint32_t ew = sort->get_fp_exp_size();
+      uint32_t sw = sort->get_fp_sig_size();
+      cvc5_res =
+          d_solver->mkFloatingPoint(ew, sw, d_solver->mkBitVector(value));
+    }
+    break;
+
     case SORT_INT:
     {
       assert(sort->is_int());
