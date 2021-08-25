@@ -1082,6 +1082,7 @@ BzlaSolver::init_op_kinds()
       {OP_BV_USUBO, BITWUZLA_KIND_BV_USUB_OVERFLOW},
       {OP_BV_SSUBO, BITWUZLA_KIND_BV_SSUB_OVERFLOW},
       {OP_BV_SDIVO, BITWUZLA_KIND_BV_SDIV_OVERFLOW},
+      {OP_IFF, BITWUZLA_KIND_IFF},
       /* Special treatment, not really a Bitwuzla kind. */
       {OP_FP_TO_FP_FROM_REAL, BITWUZLA_NUM_KINDS},
   };
@@ -1284,6 +1285,8 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
    * want to generalize it for all solvers because it is too special). */
   opmgr->add_op_kind(
       OP_FP_TO_FP_FROM_REAL, 2, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+
+  opmgr->add_op_kind(OP_IFF, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
 }
 
 /* -------------------------------------------------------------------------- */

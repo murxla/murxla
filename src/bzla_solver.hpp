@@ -107,6 +107,7 @@ class BzlaSolver : public Solver
   inline static const Op::Kind OP_BV_USUBO  = "bzla-OP_BV_USUBO";
   inline static const Op::Kind OP_FP_TO_FP_FROM_REAL =
       "bzla-OP_FP_TO_FP_FROM_REAL";
+  inline static const Op::Kind OP_IFF = "bzla-OP_IFF";
   /* Solver-specific states. */
   inline static const State::Kind STATE_FIX_RESET_ASSUMPTIONS =
       "bzla-fix-reset-assumptions";
