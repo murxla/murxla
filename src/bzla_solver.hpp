@@ -158,6 +158,7 @@ class BzlaSolver : public Solver
   }
 
   Term mk_value(Sort sort, bool value) override;
+  Term mk_value(Sort sort, std::string value) override;
   Term mk_value(Sort sort, std::string value, Base base) override;
 
   Term mk_special_value(Sort sort, const SpecialValueKind& value) override;

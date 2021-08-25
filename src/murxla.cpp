@@ -199,9 +199,8 @@ Murxla::run(uint32_t seed,
       }
     }
     /* For all other solvers, we write the trace file. */
-    else
+    else if (api_trace_file_name != DEVNULL)
     {
-      assert(api_trace_file_name != DEVNULL);
       assert(std::filesystem::exists(tmp_api_trace_file_name));
       if (tmp_api_trace_file_name != api_trace_file_name)
       {

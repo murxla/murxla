@@ -1165,8 +1165,13 @@ ActionMkValue::run()
     break;
 
     case SORT_FP:
-      return false;
-      // TODO arbitrary values
+    {
+      uint32_t ew     = sort->get_fp_exp_size();
+      uint32_t sw     = sort->get_fp_sig_size();
+      std::string val = d_rng.pick_bin_string(ew + sw);
+      _run(sort, val);
+    }
+    break;
 
     case SORT_INT:
       _run(sort,

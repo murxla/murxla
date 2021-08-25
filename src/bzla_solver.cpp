@@ -507,6 +507,35 @@ BzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 }
 
 Term
+BzlaSolver::mk_value(Sort sort, std::string value)
+{
+  MURXLA_CHECK_CONFIG(sort->is_fp())
+      << "unexpected sort of kind '" << sort->get_kind()
+      << "' as argument to BzlaSolver::mk_value, expected floating-point sort";
+
+  uint32_t ew = sort->get_fp_exp_size();
+  uint32_t sw = sort->get_fp_sig_size();
+  assert(value.size() == ew + sw);
+
+  BitwuzlaSort* bzla_sort_1 = bitwuzla_mk_bv_sort(d_solver, 1);
+  BitwuzlaSort* bzla_sort_e = bitwuzla_mk_bv_sort(d_solver, ew);
+  BitwuzlaSort* bzla_sort_s = bitwuzla_mk_bv_sort(d_solver, sw - 1);
+  BitwuzlaTerm* bzla_sign   = bitwuzla_mk_bv_value(
+      d_solver, bzla_sort_1, value.substr(0, 1).c_str(), BITWUZLA_BV_BASE_BIN);
+  BitwuzlaTerm* bzla_exp = bitwuzla_mk_bv_value(
+      d_solver, bzla_sort_e, value.substr(1, ew).c_str(), BITWUZLA_BV_BASE_BIN);
+  BitwuzlaTerm* bzla_sig = bitwuzla_mk_bv_value(d_solver,
+                                                bzla_sort_s,
+                                                value.substr(1 + ew).c_str(),
+                                                BITWUZLA_BV_BASE_BIN);
+
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(
+      bitwuzla_mk_fp_value(d_solver, bzla_sign, bzla_exp, bzla_sig)));
+  assert(res);
+  return res;
+}
+
+Term
 BzlaSolver::mk_value(Sort sort, std::string value, Base base)
 {
   MURXLA_CHECK_CONFIG(sort->is_bv())
