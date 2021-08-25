@@ -1272,6 +1272,8 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
   opmgr->add_op_kind(OP_BV_UADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(OP_BV_UMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(OP_BV_USUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_ROL, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(OP_BV_ROR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(OP_BV_SADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(OP_BV_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(OP_BV_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
