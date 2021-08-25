@@ -701,8 +701,50 @@ BzlaSolver::mk_term(const Op::Kind& kind,
 
   if (n_params)
   {
-    bzla_res = bitwuzla_mk_term_indexed(
-        d_solver, bzla_kind, n_args, bzla_args.data(), n_params, params.data());
+    if (n_args < 3 && n_params < 3 && d_rng.flip_coin())
+    {
+      switch (n_args)
+      {
+        case 1:
+          if (n_params == 1)
+          {
+            bzla_res = bitwuzla_mk_term1_indexed1(
+                d_solver, bzla_kind, bzla_args[0], params[0]);
+          }
+          else
+          {
+            bzla_res = bitwuzla_mk_term1_indexed2(
+                d_solver, bzla_kind, bzla_args[0], params[0], params[1]);
+          }
+          break;
+        default:
+          assert(n_args == 2);
+          if (n_params == 1)
+          {
+            bzla_res = bitwuzla_mk_term2_indexed1(
+                d_solver, bzla_kind, bzla_args[0], bzla_args[1], params[0]);
+          }
+          else
+          {
+            bzla_res = bitwuzla_mk_term2_indexed2(d_solver,
+                                                  bzla_kind,
+                                                  bzla_args[0],
+                                                  bzla_args[1],
+                                                  params[0],
+                                                  params[1]);
+          }
+          break;
+      }
+    }
+    else
+    {
+      bzla_res = bitwuzla_mk_term_indexed(d_solver,
+                                          bzla_kind,
+                                          n_args,
+                                          bzla_args.data(),
+                                          n_params,
+                                          params.data());
+    }
   }
   else
   {
