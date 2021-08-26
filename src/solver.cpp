@@ -326,6 +326,12 @@ Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
   return Sort();
 }
 
+std::vector<Term>
+Solver::get_unsat_core()
+{
+  return std::vector<Term>();
+}
+
 std::ostream&
 operator<<(std::ostream& out, const Solver::Result& r)
 {

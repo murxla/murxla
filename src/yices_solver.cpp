@@ -302,7 +302,8 @@ YicesSolver::reset_sat()
 void
 YicesSolver::set_opt(const std::string& opt, const std::string& value)
 {
-  if (opt == "produce-models" || opt == "produce-unsat-assumptions")
+  if (opt == "produce-models" || opt == "produce-unsat-assumptions"
+      || opt == "produce-unsat-cores")
   {
     /* always enabled in Yices, can not be configured via set_opt */
     return;
@@ -351,6 +352,13 @@ YicesSolver::get_option_name_unsat_assumptions() const
   return "produce-unsat-assumptions";
 }
 
+std::string
+YicesSolver::get_option_name_unsat_cores() const
+{
+  /* always enabled in Yices, can not be configured via set_opt */
+  return "produce-unsat-cores";
+}
+
 bool
 YicesSolver::option_incremental_enabled() const
 {
@@ -365,6 +373,12 @@ YicesSolver::option_model_gen_enabled() const
 
 bool
 YicesSolver::option_unsat_assumptions_enabled() const
+{
+  return true;
+}
+
+bool
+YicesSolver::option_unsat_cores_enabled() const
 {
   return true;
 }
@@ -1760,6 +1774,17 @@ YicesSolver::check_sat_assuming(std::vector<Term>& assumptions)
 
 std::vector<Term>
 YicesSolver::get_unsat_assumptions()
+{
+  if (!d_context) d_context = yices_new_context(d_config);
+  term_vector_t yices_res;
+  yices_init_term_vector(&yices_res);
+  int32_t status = yices_get_unsat_core(d_context, &yices_res);
+  assert(status == 0);
+  return yices_terms_to_terms(&yices_res);
+}
+
+std::vector<Term>
+YicesSolver::get_unsat_core()
 {
   if (!d_context) d_context = yices_new_context(d_config);
   term_vector_t yices_res;

@@ -285,7 +285,8 @@ FSM::configure()
 
   auto a_assert = new_action<ActionAssertFormula>();
 
-  auto a_failed = new_action<ActionGetUnsatAssumptions>();
+  auto a_getunsatass  = new_action<ActionGetUnsatAssumptions>();
+  auto a_getunsatcore = new_action<ActionGetUnsatCore>();
 
   auto a_getvalue = new_action<ActionGetValue>();
 
@@ -378,7 +379,8 @@ FSM::configure()
   /* State: check sat .................................................... */
   s_sat->add_action(a_sat, 1);
   s_sat->add_action(a_sat_ass, 2);
-  s_sat->add_action(a_failed, 5);
+  s_sat->add_action(a_getunsatass, 2);
+  s_sat->add_action(a_getunsatcore, 2);
   s_sat->add_action(t_inputs, 2, s_push_pop);
   s_sat->add_action(t_inputs, 200, s_delete);
 

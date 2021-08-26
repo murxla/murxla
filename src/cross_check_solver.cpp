@@ -552,6 +552,12 @@ CrossCheckSolver::get_option_name_unsat_assumptions() const
   return d_test_solver->get_option_name_unsat_assumptions();
 }
 
+std::string
+CrossCheckSolver::get_option_name_unsat_cores() const
+{
+  return d_test_solver->get_option_name_unsat_cores();
+}
+
 bool
 CrossCheckSolver::option_incremental_enabled() const
 {
@@ -571,6 +577,13 @@ CrossCheckSolver::option_unsat_assumptions_enabled() const
 {
   return d_test_solver->option_unsat_assumptions_enabled()
          && d_reference_solver->option_unsat_assumptions_enabled();
+}
+
+bool
+CrossCheckSolver::option_unsat_cores_enabled() const
+{
+  return d_test_solver->option_unsat_cores_enabled()
+         && d_reference_solver->option_unsat_cores_enabled();
 }
 
 bool
@@ -613,6 +626,12 @@ CrossCheckSolver::check_sat_assuming(std::vector<Term>& assumptions)
 
 std::vector<Term>
 CrossCheckSolver::get_unsat_assumptions()
+{
+  return std::vector<Term>();
+}
+
+std::vector<Term>
+CrossCheckSolver::get_unsat_core()
 {
   return std::vector<Term>();
 }

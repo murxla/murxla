@@ -1360,6 +1360,12 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value)
     return;
   }
 
+  if (opt == "produce-unsat-cores")
+  {
+    /* not supported */
+    return;
+  }
+
   /* Boolector options are all integer values */
   uint32_t val = 0;
 
@@ -1400,6 +1406,13 @@ BtorSolver::get_option_name_unsat_assumptions() const
   return "produce-unsat-assumptions";
 }
 
+std::string
+BtorSolver::get_option_name_unsat_cores() const
+{
+  /* always enabled in Boolector, can not be configured via set_opt */
+  return "produce-unsat-cores";
+}
+
 bool
 BtorSolver::option_incremental_enabled() const
 {
@@ -1417,6 +1430,13 @@ BtorSolver::option_unsat_assumptions_enabled() const
 {
   /* always enabled in Boolector, can not be configured via set_opt */
   return true;
+}
+
+bool
+BtorSolver::option_unsat_cores_enabled() const
+{
+  /* not supported */
+  return false;
 }
 
 /* -------------------------------------------------------------------------- */

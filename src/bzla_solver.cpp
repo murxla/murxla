@@ -866,6 +866,20 @@ BzlaSolver::get_unsat_assumptions()
 }
 
 std::vector<Term>
+BzlaSolver::get_unsat_core()
+{
+  size_t size;
+  std::vector<Term> res;
+  BitwuzlaTerm** bzla_res = bitwuzla_get_unsat_assumptions(d_solver, &size);
+  for (uint32_t i = 0; i < size; ++i)
+  {
+    res.push_back(
+        std::shared_ptr<BzlaTerm>(new BzlaTerm((BitwuzlaTerm*) bzla_res[i])));
+  }
+  return res;
+}
+
+std::vector<Term>
 BzlaSolver::get_value(std::vector<Term>& terms)
 {
   std::vector<Term> res;
@@ -958,6 +972,10 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   {
     bzla_opt = BITWUZLA_OPT_PRODUCE_MODELS;
   }
+  else if (opt == "produce-unsat-cores")
+  {
+    bzla_opt = BITWUZLA_OPT_PRODUCE_UNSAT_CORES;
+  }
   else if (opt == "incremental")
   {
     bzla_opt = BITWUZLA_OPT_INCREMENTAL;
@@ -989,6 +1007,12 @@ BzlaSolver::get_option_name_unsat_assumptions() const
   return "produce-unsat-assumptions";
 }
 
+std::string
+BzlaSolver::get_option_name_unsat_cores() const
+{
+  return "produce-unsat-cores";
+}
+
 bool
 BzlaSolver::option_incremental_enabled() const
 {
@@ -1006,6 +1030,12 @@ BzlaSolver::option_unsat_assumptions_enabled() const
 {
   /* always enabled in Bitwuzla, can not be configured via set_opt */
   return true;
+}
+
+bool
+BzlaSolver::option_unsat_cores_enabled() const
+{
+  return bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_UNSAT_CORES) > 0;
 }
 
 /* -------------------------------------------------------------------------- */

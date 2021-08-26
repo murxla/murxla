@@ -977,6 +977,14 @@ Cvc5Solver::get_unsat_assumptions()
 }
 
 std::vector<Term>
+Cvc5Solver::get_unsat_core()
+{
+  std::vector<Term> res;
+  std::vector<::cvc5::api::Term> cvc5_res = d_solver->getUnsatCore();
+  return cvc5_terms_to_terms(cvc5_res);
+}
+
+std::vector<Term>
 Cvc5Solver::get_value(std::vector<Term>& terms)
 {
   std::vector<Term> res;
@@ -1055,6 +1063,12 @@ Cvc5Solver::get_option_name_unsat_assumptions() const
   return "produce-unsat-assumptions";
 }
 
+std::string
+Cvc5Solver::get_option_name_unsat_cores() const
+{
+  return "produce-unsat-cores";
+}
+
 bool
 Cvc5Solver::option_incremental_enabled() const
 {
@@ -1071,6 +1085,12 @@ bool
 Cvc5Solver::option_unsat_assumptions_enabled() const
 {
   return d_solver->getOption("produce-unsat-assumptions") == "true";
+}
+
+bool
+Cvc5Solver::option_unsat_cores_enabled() const
+{
+  return d_solver->getOption("produce-unsat-cores") == "true";
 }
 
 std::vector<Term>

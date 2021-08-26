@@ -398,6 +398,11 @@ class SolverManager
    * (SMT-LIB: option :produce-unsat-assumptions).
    */
   bool d_unsat_assumptions = false;
+  /**
+   * True if producing unsat cores is enabled.
+   * (SMT-LIB: option :produce-unsat-cores).
+   */
+  bool d_unsat_cores = false;
 
   /** The number of scope levels previously pushed. */
   uint32_t d_n_push_levels = 0;

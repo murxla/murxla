@@ -321,10 +321,12 @@ class Solver
   virtual std::string get_option_name_incremental() const       = 0;
   virtual std::string get_option_name_model_gen() const         = 0;
   virtual std::string get_option_name_unsat_assumptions() const = 0;
+  virtual std::string get_option_name_unsat_cores() const       = 0;
 
   virtual bool option_incremental_enabled() const       = 0;
   virtual bool option_model_gen_enabled() const         = 0;
   virtual bool option_unsat_assumptions_enabled() const = 0;
+  virtual bool option_unsat_cores_enabled() const       = 0;
 
   virtual bool check_unsat_assumption(const Term& t) const = 0;
 
@@ -334,6 +336,16 @@ class Solver
   virtual Result check_sat_assuming(std::vector<Term>& assumptions) = 0;
 
   virtual std::vector<Term> get_unsat_assumptions() = 0;
+
+  /**
+   * SMT-LIB: (get-unsat-core)
+   *
+   * Retrieve the unsat core after an unsat check-sat call.
+   *
+   * Returns an empty vector by default. Do not override if solver does not
+   * support unsat cores.
+   */
+  virtual std::vector<Term> get_unsat_core();
 
   virtual void push(uint32_t n_levels) = 0;
   virtual void pop(uint32_t n_levels)  = 0;
@@ -349,7 +361,6 @@ class Solver
   //
   // get_model()
   // get_proof()
-  // get_unsat_core()
   //
   //
 

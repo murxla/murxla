@@ -59,6 +59,7 @@ class Action
   inline static const Kind TERM_CHECK_SORT       = "term-check-sort";
   inline static const Kind ASSERT_FORMULA        = "assert-formula";
   inline static const Kind GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
+  inline static const Kind GET_UNSAT_CORE        = "get-unsat-core";
   inline static const Kind GET_VALUE             = "get-value";
   inline static const Kind PRINT_MODEL           = "print-model";
   inline static const Kind CHECK_SAT             = "check-sat";
@@ -477,6 +478,20 @@ class ActionGetUnsatAssumptions : public Action
  public:
   ActionGetUnsatAssumptions(SolverManager& smgr)
       : Action(smgr, GET_UNSAT_ASSUMPTIONS, NONE)
+  {
+  }
+
+  bool run() override;
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+
+ private:
+  void _run();
+};
+
+class ActionGetUnsatCore : public Action
+{
+ public:
+  ActionGetUnsatCore(SolverManager& smgr) : Action(smgr, GET_UNSAT_CORE, NONE)
   {
   }
 

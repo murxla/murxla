@@ -329,6 +329,7 @@ ActionSetOption::_run(const std::string& opt, const std::string& value)
   d_smgr.d_incremental       = d_solver.option_incremental_enabled();
   d_smgr.d_model_gen         = d_solver.option_model_gen_enabled();
   d_smgr.d_unsat_assumptions = d_solver.option_unsat_assumptions_enabled();
+  d_smgr.d_unsat_cores       = d_solver.option_unsat_cores_enabled();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1540,7 +1541,41 @@ ActionGetUnsatAssumptions::_run()
     assert(d_smgr.is_assumed(t));
     assert(d_solver.check_unsat_assumption(t));
   }
-  d_smgr.d_sat_called = true;
+}
+
+/* -------------------------------------------------------------------------- */
+
+bool
+ActionGetUnsatCore::run()
+{
+  assert(d_solver.is_initialized());
+  if (!d_smgr.d_unsat_cores) return false;
+  if (!d_smgr.d_sat_called) return false;
+  if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
+  _run();
+  return true;
+}
+
+std::vector<uint64_t>
+ActionGetUnsatCore::untrace(std::vector<std::string>& tokens)
+{
+  MURXLA_CHECK_TRACE_EMPTY(tokens);
+  _run();
+  return {};
+}
+
+void
+ActionGetUnsatCore::_run()
+{
+  MURXLA_TRACE << get_kind();
+  /* Note: The Terms in this vector are solver terms wrapped into Term,
+   *       without sort information! */
+  std::vector<Term> res = d_solver.get_unsat_core();
+  for (Term& fa : res)
+  {
+    Term t = d_smgr.find_term(fa, d_solver.get_sort(fa, SORT_BOOL), SORT_BOOL);
+    assert(t != nullptr);
+  }
 }
 
 /* -------------------------------------------------------------------------- */

@@ -141,10 +141,12 @@ class YicesSolver : public Solver
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;
   std::string get_option_name_unsat_assumptions() const override;
+  std::string get_option_name_unsat_cores() const override;
 
   bool option_incremental_enabled() const override;
   bool option_model_gen_enabled() const override;
   bool option_unsat_assumptions_enabled() const override;
+  bool option_unsat_cores_enabled() const override;
 
   term_t get_yices_term(Term term) const;
 
@@ -187,6 +189,8 @@ class YicesSolver : public Solver
 
   std::vector<Term> get_unsat_assumptions() override;
 
+  std::vector<Term> get_unsat_core() override;
+
   std::vector<Term> get_value(std::vector<Term>& terms) override;
 
   void push(uint32_t n_levels) override;
@@ -199,7 +203,6 @@ class YicesSolver : public Solver
   //
   // get_model()
   // get_proof()
-  // get_unsat_core()
   //
   //
  private:

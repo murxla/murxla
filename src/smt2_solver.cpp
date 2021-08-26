@@ -1204,6 +1204,13 @@ Smt2Solver::get_unsat_assumptions()
   return std::vector<Term>();
 }
 
+std::vector<Term>
+Smt2Solver::get_unsat_core()
+{
+  dump_smt2("(get-unsat-core)", ResponseKind::SMT2_SEXPR);
+  return std::vector<Term>();
+}
+
 void
 Smt2Solver::push(uint32_t n_levels)
 {
@@ -1255,6 +1262,10 @@ Smt2Solver::set_opt(const std::string& opt, const std::string& value)
   {
     d_unsat_assumptions = value == "true" ? true : false;
   }
+  if (opt == get_option_name_unsat_cores())
+  {
+    d_unsat_cores = value == "true" ? true : false;
+  }
 }
 
 std::string
@@ -1275,6 +1286,12 @@ Smt2Solver::get_option_name_unsat_assumptions() const
   return "produce-unsat-assumptions";
 }
 
+std::string
+Smt2Solver::get_option_name_unsat_cores() const
+{
+  return "produce-unsat-cores";
+}
+
 bool
 Smt2Solver::option_incremental_enabled() const
 {
@@ -1292,6 +1309,12 @@ bool
 Smt2Solver::option_unsat_assumptions_enabled() const
 {
   return d_unsat_assumptions;
+}
+
+bool
+Smt2Solver::option_unsat_cores_enabled() const
+{
+  return d_unsat_cores;
 }
 
 bool
