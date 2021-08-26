@@ -280,23 +280,26 @@ ActionSetOption::run()
    *   Boolean values as "true" and "false" (the implementations of class
    *   Solver must support/consider this)
    */
-  if (d_rng.pick_with_prob(10))
+  /* Enable the explicitly picked options with higher priority. */
+  if (d_rng.pick_with_prob(100))
   {
-    /* explicitly enable this option with higher priority */
     opt   = d_solver.get_option_name_incremental();
     value = d_smgr.d_incremental ? "false" : "true";
   }
-  else if (d_rng.pick_with_prob(10))
+  else if (d_rng.pick_with_prob(100))
   {
-    /* explicitly enable this option with higher priority */
     opt   = d_solver.get_option_name_model_gen();
     value = d_smgr.d_model_gen ? "false" : "true";
   }
-  else if (d_rng.pick_with_prob(10))
+  else if (d_rng.pick_with_prob(100))
   {
-    /* explicitly enable this option with higher priority */
     opt   = d_solver.get_option_name_unsat_assumptions();
     value = d_smgr.d_unsat_assumptions ? "false" : "true";
+  }
+  else if (d_rng.pick_with_prob(100))
+  {
+    opt   = d_solver.get_option_name_unsat_cores();
+    value = d_smgr.d_unsat_cores ? "false" : "true";
   }
   else
   {
