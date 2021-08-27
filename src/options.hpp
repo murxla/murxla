@@ -8,6 +8,13 @@
 
 namespace murxla {
 
+using SolverKind              = std::string;
+const SolverKind SOLVER_BTOR  = "btor";
+const SolverKind SOLVER_BZLA  = "bzla";
+const SolverKind SOLVER_CVC5  = "cvc5";
+const SolverKind SOLVER_SMT2  = "smt2";
+const SolverKind SOLVER_YICES = "yices";
+
 struct Options
 {
   /** The seed for the random number generator. */
@@ -29,6 +36,8 @@ struct Options
   bool smt = false;
   /** True to print statistics. */
   bool print_stats = false;
+  /** True to print FSM configuration. */
+  bool print_fsm = false;
   /** Restrict arithmetic operators to linear fragment. */
   bool arith_linear = false;
 
@@ -38,7 +47,7 @@ struct Options
   std::string out_dir = "";
 
   /** The selected solver to test. */
-  std::string solver;
+  SolverKind solver = SOLVER_SMT2;
   /** The path to the solver binary to test when --smt2 is enabled. */
   std::string solver_binary;
   /** The file to trace the API call sequence to. */

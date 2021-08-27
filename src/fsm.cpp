@@ -1,6 +1,7 @@
 #include "fsm.hpp"
 
 #include <cassert>
+#include <iomanip>
 #include <iostream>
 #include <numeric>
 #include <sstream>
@@ -24,7 +25,7 @@ State::add_action(Action* a, uint32_t priority, State* next)
 void
 State::disable_action(Action::Kind kind)
 {
-  for (size_t i = 0; i < d_actions.size(); ++i)
+  for (size_t i = 0, n = d_actions.size(); i < n; ++i)
   {
     if (d_actions[i].d_action->get_kind() == kind)
     {
@@ -474,6 +475,59 @@ FSM::configure()
       w = sum / w;
       i += 1;
     }
+  }
+}
+
+void
+FSM::print() const
+{
+  std::stringstream header;
+  header << "| " << std::setw(25) << "Action"
+         << " | " << std::setw(17) << "Probability [%]"
+         << " | " << std::setw(15) << "Weight"
+         << " | " << std::setw(30) << "Next"
+         << " |";
+  std::string hr(header.str().size(), '-');
+
+  for (const auto& s : d_states)
+  {
+    std::cout << std::endl << "State: " << s->get_kind() << std::endl;
+
+    uint32_t sum =
+        std::accumulate(s->d_weights.begin(), s->d_weights.end(), 0u);
+
+    std::vector<std::tuple<double, uint32_t, std::string, std::string>> actions;
+    for (size_t i = 0, n = s->d_actions.size(); i < n; ++i)
+    {
+      Action* action  = s->d_actions[i].d_action;
+      State* next     = s->d_actions[i].d_next;
+      uint32_t weight = s->d_weights[i];
+      double prob     = (double) weight / sum * 100;
+      actions.emplace_back(
+          std::make_tuple(prob, weight, action->get_kind(), next->get_kind()));
+    }
+
+    std::sort(actions.rbegin(), actions.rend());
+
+    std::cout << hr << std::endl;
+    std::cout << header.str() << std::endl;
+    std::cout << hr << std::endl;
+    for (const auto& a : actions)
+    {
+      double prob               = std::get<0>(a);
+      uint32_t weight           = std::get<1>(a);
+      const std::string& action = std::get<2>(a);
+      const std::string& next   = std::get<3>(a);
+
+      std::cout << "| ";
+      std::cout << std::setw(25) << action << " | ";
+      std::cout << std::setw(17) << std::setprecision(4) << std::fixed << prob
+                << " | ";
+      std::cout << std::setw(15) << weight << " | ";
+      std::cout << std::setw(30) << (next != s->get_kind() ? next : "") << " |";
+      std::cout << std::endl;
+    }
+    std::cout << hr << std::endl;
   }
 }
 

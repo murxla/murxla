@@ -174,7 +174,7 @@ Murxla::run(uint32_t seed,
   if (trace_mode == TO_FILE)
   {
     /* For the SMT2 solver, we only write the SMT2 file (not the trace). */
-    if (d_options.solver == Murxla::SOLVER_SMT2)
+    if (d_options.solver == SOLVER_SMT2)
     {
       std::string smt2_file_name = d_options.smt2_file_name;
       if (smt2_file_name.empty())
@@ -399,34 +399,34 @@ Murxla::replay(uint32_t seed,
 
 Solver*
 Murxla::new_solver(RNGenerator& rng,
-                   const std::string& solver_name,
-                   std::ostream& smt2_out)
+                   const SolverKind& solver_kind,
+                   std::ostream& smt2_out) const
 {
-  if (solver_name == SOLVER_BTOR)
+  if (solver_kind == SOLVER_BTOR)
   {
 #if MURXLA_USE_BOOLECTOR
     return new btor::BtorSolver(rng);
 #endif
   }
-  else if (solver_name == SOLVER_BZLA)
+  else if (solver_kind == SOLVER_BZLA)
   {
 #if MURXLA_USE_BITWUZLA
     return new bzla::BzlaSolver(rng);
 #endif
   }
-  else if (solver_name == SOLVER_CVC5)
+  else if (solver_kind == SOLVER_CVC5)
   {
 #if MURXLA_USE_CVC5
     return new cvc5::Cvc5Solver(rng);
 #endif
   }
-  else if (solver_name == SOLVER_YICES)
+  else if (solver_kind == SOLVER_YICES)
   {
 #if MURXLA_USE_YICES
     return new yices::YicesSolver(rng);
 #endif
   }
-  else if (solver_name == SOLVER_SMT2)
+  else if (solver_kind == SOLVER_SMT2)
   {
     return new smt2::Smt2Solver(rng, smt2_out, d_options.solver_binary);
   }
@@ -435,7 +435,7 @@ Murxla::new_solver(RNGenerator& rng,
 }
 
 Solver*
-Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out)
+Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out) const
 {
   Solver* solver = new_solver(rng, d_options.solver, smt2_out);
 
@@ -446,6 +446,57 @@ Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out)
   }
 
   return solver;
+}
+
+FSM
+Murxla::create_fsm(RNGenerator& rng,
+                   std::ostream& trace,
+                   std::ostream& smt2_out,
+                   bool record_stats) const
+{
+  /* Dummy statistics object for the cases were we don't want to record
+   * statistics (replay, dd). */
+  statistics::Statistics dummy_stats;
+
+  bool arith_subtyping = false;
+  /* Check if Int is treated as subtype of Real (if supported). */
+  if (d_options.solver != SOLVER_SMT2 || d_options.solver_binary.empty())
+  {
+    /* We need a solver instance for the check (will not be passed to FSM
+     * in order to have a fresh instance for the actual run). */
+    Solver* solver = create_solver(rng, smt2_out);
+    if (solver->supports_theory(THEORY_INT))
+    {
+      solver->new_solver();
+      Sort sort       = solver->mk_sort(SORT_INT);
+      arith_subtyping = sort->is_real();
+    }
+    delete solver;
+  }
+
+  return FSM(rng,
+             create_solver(rng, smt2_out),
+             trace,
+             *d_solver_options,
+             arith_subtyping,
+             d_options.arith_linear,
+             d_options.trace_seeds,
+             d_options.simple_symbols,
+             d_options.smt,
+             record_stats ? d_stats : &dummy_stats,
+             d_options.enabled_theories);
+}
+
+void
+Murxla::print_fsm() const
+{
+  RNGenerator rng;
+  std::ofstream file_smt2_out = open_output_file(DEVNULL, false);
+  std::ostream smt2_out(std::cout.rdbuf());
+  smt2_out.rdbuf(file_smt2_out.rdbuf());
+  FSM fsm = create_fsm(rng, std::cout, smt2_out, false);
+  fsm.configure();
+  fsm.print();
 }
 
 Result
@@ -601,37 +652,8 @@ Murxla::run_aux(uint32_t seed,
 
     try
     {
-      /* Dummy statistics object for the cases were we don't want to record
-       * statistics (replay, dd). */
-      statistics::Statistics dummy_stats;
+      FSM fsm = create_fsm(rng, trace, smt2_out, record_stats);
 
-      bool arith_subtyping = false;
-      /* Check if Int is treated as subtype of Real (if supported). */
-      if (d_options.solver != SOLVER_SMT2 || d_options.solver_binary.empty())
-      {
-        /* We need a solver instance for the check (will not be passed to FSM
-         * in order to have a fresh instance for the actual run). */
-        Solver* solver = create_solver(rng, smt2_out);
-        if (solver->supports_theory(THEORY_INT))
-        {
-          solver->new_solver();
-          Sort sort       = solver->mk_sort(SORT_INT);
-          arith_subtyping = sort->is_real();
-        }
-        delete solver;
-      }
-
-      FSM fsm(rng,
-              create_solver(rng, smt2_out),
-              trace,
-              *d_solver_options,
-              arith_subtyping,
-              d_options.arith_linear,
-              d_options.trace_seeds,
-              d_options.simple_symbols,
-              d_options.smt,
-              record_stats ? d_stats : &dummy_stats,
-              d_options.enabled_theories);
       fsm.configure();
 
       /* replay/untrace given API trace */

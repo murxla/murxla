@@ -196,6 +196,9 @@ class FSM
   /** Replay given trace. */
   void untrace(const std::string& trace_file_name);
 
+  /** Print the current configuration of this FSM to stdout. */
+  void print() const;
+
  private:
   SolverManager d_smgr;
   RNGenerator& d_rng;

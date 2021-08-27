@@ -147,14 +147,16 @@ set_sigint_handler_stats(void)
 /* -------------------------------------------------------------------------- */
 
 #define MURXLA_USAGE                                                           \
-  "usage:\n"                                                                   \
-  "  murxla [options]\n\n"                                                     \
+  "usage:"                                                                     \
+  "  murxla [options]\n"                                                       \
+  "\n"                                                                         \
   "  -h, --help                 print this message and exit\n"                 \
   "  -s, --seed <int>           seed for random number generator\n"            \
   "  -S, --trace-seeds          trace seed for each API call\n"                \
   "  -t, --time <double>        time limit for MBT runs\n"                     \
   "  -v, --verbosity            increase verbosity\n"                          \
   "  -m, --max-runs <int>       limit number of test runs\n"                   \
+  "\n"                                                                         \
   "  -d, --dd                   enable delta debugging\n"                      \
   "  --dd-match-err <string>    check for occurrence of <string> in stderr\n"  \
   "                             output when delta debugging\n"                 \
@@ -163,6 +165,7 @@ set_sigint_handler_stats(void)
   "  --dd-ignore-err            ignore stderr output when delta debugging\n"   \
   "  --dd-ignore-out            ignore stdout output when delta debugging\n"   \
   "  -D, --dd-trace <file>      delta debug API trace into <file>\n"           \
+  "\n"                                                                         \
   "  -a, --api-trace <file>     trace API call sequence into <file>\n"         \
   "  -u, --untrace <file>       replay given API call sequence\n"              \
   "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
@@ -171,13 +174,18 @@ set_sigint_handler_stats(void)
   "  -y, --random-symbols       use random symbol names\n"                     \
   "  -T, --tmp-dir <dir>        write tmp files to given directory\n"          \
   "  -O, --out-dir <dir>        write output files to given directory\n"       \
+  "  --stats                    print statistics\n"                            \
+  "  --print-fsm                print FSM configuration, may be combined\n"    \
+  "                             with solver option to show config for "        \
+  "solver\n"                                                                   \
+  "\n"                                                                         \
   "  --btor                     test Boolector\n"                              \
   "  --bzla                     test Bitwuzla\n"                               \
   "  --cvc5                     test cvc5\n"                                   \
   "  --yices                    test Yices\n"                                  \
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
   "                             via stdout)\n"                                 \
-  "  --stats                    print statistics\n\n"                          \
+  "\n"                                                                         \
   " enabling specific theories:\n"                                             \
   "  --arrays                   theory of arrays\n"                            \
   "  --bv                       theory of bit-vectors\n"                       \
@@ -186,6 +194,7 @@ set_sigint_handler_stats(void)
   "  --quant                    quantifiers\n"                                 \
   "  --reals                    theory of reals\n"                             \
   "  --strings                  theory of strings\n"                           \
+  "\n"                                                                         \
   " constraining/extending features based for enabled theories:\n"             \
   "  --linear                   restrict arithmetic to linear fragment\n"      \
   "  --uf                       uninterpreted functions"
@@ -202,27 +211,27 @@ check_next_arg(std::string& option, int i, int argc)
 }
 
 void
-check_solver(const std::string& solver_name)
+check_solver(const SolverKind& solver_kind)
 {
-  if (solver_name == Murxla::SOLVER_BTOR)
+  if (solver_kind == SOLVER_BTOR)
   {
 #ifndef MURXLA_USE_BOOLECTOR
     MURXLA_EXIT_ERROR(true) << "Boolector not configured";
 #endif
   }
-  else if (solver_name == Murxla::SOLVER_BZLA)
+  else if (solver_kind == SOLVER_BZLA)
   {
 #ifndef MURXLA_USE_BITWUZLA
     MURXLA_EXIT_ERROR(true) << "Bitwuzla not configured";
 #endif
   }
-  else if (solver_name == Murxla::SOLVER_CVC5)
+  else if (solver_kind == SOLVER_CVC5)
   {
 #ifndef MURXLA_USE_CVC5
     MURXLA_EXIT_ERROR(true) << "cvc5 not configured";
 #endif
   }
-  else if (solver_name == Murxla::SOLVER_YICES)
+  else if (solver_kind == SOLVER_YICES)
   {
 #ifndef MURXLA_USE_YICES
     MURXLA_EXIT_ERROR(true) << "Yices not configured";
@@ -238,7 +247,7 @@ parse_options(Options& options, int argc, char* argv[])
     std::string arg = argv[i];
     if (arg == "-h" || arg == "--help")
     {
-      MURXLA_MESSAGE << MURXLA_USAGE;
+      std::cout << MURXLA_USAGE << std::endl;
       exit(0);
     }
     else if (arg == "-s" || arg == "--seed")
@@ -308,10 +317,9 @@ parse_options(Options& options, int argc, char* argv[])
     {
       i += 1;
       check_next_arg(arg, i, argc);
-      std::string solver = argv[i];
-      MURXLA_EXIT_ERROR(
-          solver != Murxla::SOLVER_BTOR && solver != Murxla::SOLVER_BZLA
-          && solver != Murxla::SOLVER_CVC5 && solver != Murxla::SOLVER_YICES)
+      SolverKind solver = argv[i];
+      MURXLA_EXIT_ERROR(solver != SOLVER_BTOR && solver != SOLVER_BZLA
+                        && solver != SOLVER_CVC5 && solver != SOLVER_YICES)
           << "invalid argument " << solver << " to option '" << arg << "'";
       check_solver(solver);
       options.cross_check = solver;
@@ -338,27 +346,27 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "--btor")
     {
-      check_solver(Murxla::SOLVER_BTOR);
+      check_solver(SOLVER_BTOR);
       MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
-      options.solver = Murxla::SOLVER_BTOR;
+      options.solver = SOLVER_BTOR;
     }
     else if (arg == "--bzla")
     {
-      check_solver(Murxla::SOLVER_BZLA);
+      check_solver(SOLVER_BZLA);
       MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
-      options.solver = Murxla::SOLVER_BZLA;
+      options.solver = SOLVER_BZLA;
     }
     else if (arg == "--cvc5")
     {
-      check_solver(Murxla::SOLVER_CVC5);
+      check_solver(SOLVER_CVC5);
       MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
-      options.solver = Murxla::SOLVER_CVC5;
+      options.solver = SOLVER_CVC5;
     }
     else if (arg == "--yices")
     {
-      check_solver(Murxla::SOLVER_YICES);
+      check_solver(SOLVER_YICES);
       MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
-      options.solver = Murxla::SOLVER_YICES;
+      options.solver = SOLVER_YICES;
     }
     else if (arg == "--smt2")
     {
@@ -369,7 +377,7 @@ parse_options(Options& options, int argc, char* argv[])
         i += 1;
         options.solver_binary = argv[i];
       }
-      options.solver = Murxla::SOLVER_SMT2;
+      options.solver = SOLVER_SMT2;
     }
     else if (arg == "-f" || arg == "--smt2-file")
     {
@@ -384,6 +392,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--stats")
     {
       options.print_stats = true;
+    }
+    else if (arg == "--print-fsm")
+    {
+      options.print_fsm = true;
     }
     else if (arg == "-m" || arg == "--max-runs")
     {
@@ -437,7 +449,8 @@ parse_options(Options& options, int argc, char* argv[])
     }
   }
 
-  MURXLA_EXIT_ERROR(options.solver.empty()) << "No solver selected";
+  MURXLA_EXIT_ERROR(!options.print_fsm && options.solver.empty())
+      << "No solver selected";
 }
 
 /* ========================================================================== */
@@ -465,10 +478,17 @@ main(int argc, char* argv[])
 
   try
   {
+    Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
+
+    if (options.print_fsm)
+    {
+      murxla.print_fsm();
+      exit(0);
+    }
+
     if (is_continuous)
     {
       set_sigint_handler_stats();
-      Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
       murxla.test();
     }
     else
@@ -505,8 +525,6 @@ main(int argc, char* argv[])
           }
         }
       }
-
-      Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
 
       (void) murxla.run(options.seed,
                         options.time,

@@ -35,12 +35,6 @@ class Murxla
     TO_FILE,
   };
 
-  inline static const std::string SOLVER_BTOR  = "btor";
-  inline static const std::string SOLVER_BZLA  = "bzla";
-  inline static const std::string SOLVER_CVC5  = "cvc5";
-  inline static const std::string SOLVER_SMT2  = "smt2";
-  inline static const std::string SOLVER_YICES = "yices";
-
   inline static const std::string API_TRACE = "tmp-api.trace";
   inline static const std::string SMT2_FILE = "tmp-smt2.smt2";
 
@@ -62,7 +56,11 @@ class Murxla
 
   void test();
 
-  Solver* create_solver(RNGenerator& rng, std::ostream& smt2_out = std::cout);
+  /** Print the current configuration of the FSM to stdout. */
+  void print_fsm() const;
+
+  Solver* create_solver(RNGenerator& rng,
+                        std::ostream& smt2_out = std::cout) const;
 
   const Options& d_options;
   SolverOptions* d_solver_options;
@@ -70,9 +68,27 @@ class Murxla
   std::string d_tmp_dir;
 
  private:
+  /**
+   * Create solver.
+   * rng        : The associated random number generator.
+   * solver_kind: The kind of the solver to be created.
+   * smt2_out   : The output stream for the SMT-LIB output in case of
+   *              SOLVER_SMT2.
+   */
   Solver* new_solver(RNGenerator& rng,
-                     const std::string& solver_name,
-                     std::ostream& smt2_out = std::cout);
+                     const SolverKind& solver_kind,
+                     std::ostream& smt2_out = std::cout) const;
+
+  /**
+   * Create FSM.
+   * trace       : The outputstream for the API trace.
+   * smt2_out    : The output stream for SMT-LIB output, if enabled.
+   * record_stats: True to record statistics.
+   */
+  FSM create_fsm(RNGenerator& rng,
+                 std::ostream& trace,
+                 std::ostream& smt2_out,
+                 bool record_stats) const;
 
   /**
    * api_trace_file_name: If given, trace is immediately written to file if
