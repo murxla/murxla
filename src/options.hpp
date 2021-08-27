@@ -47,7 +47,7 @@ struct Options
   std::string out_dir = "";
 
   /** The selected solver to test. */
-  SolverKind solver = SOLVER_SMT2;
+  SolverKind solver;
   /** The path to the solver binary to test when --smt2 is enabled. */
   std::string solver_binary;
   /** The file to trace the API call sequence to. */

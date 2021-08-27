@@ -449,8 +449,10 @@ parse_options(Options& options, int argc, char* argv[])
     }
   }
 
-  MURXLA_EXIT_ERROR(!options.print_fsm && options.solver.empty())
-      << "No solver selected";
+  if (!options.print_fsm && options.solver.empty())
+  {
+    options.solver = SOLVER_SMT2;
+  }
 }
 
 /* ========================================================================== */
