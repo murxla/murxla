@@ -45,15 +45,7 @@ State::run(RNGenerator& rng)
   /* record state statistics */
   ++d_mbt_stats->d_states[get_id()];
 
-  /* only pick empty transitions if precondition of this state is false */
-  if (f_precond != nullptr && !f_precond())
-  {
-    while (!atup.d_action->empty())
-    {
-      idx  = rng.pick_weighted<uint32_t>(d_weights);
-      atup = d_actions[idx];
-    }
-  }
+  assert(f_precond == nullptr || f_precond());
 
   /* record action statistics */
   ++d_mbt_stats->d_actions[atup.d_action->get_id()];
