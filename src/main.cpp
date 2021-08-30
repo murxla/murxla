@@ -449,7 +449,7 @@ parse_options(Options& options, int argc, char* argv[])
     }
   }
 
-  if (!options.print_fsm && options.solver.empty())
+  if (options.solver.empty())
   {
     options.solver = SOLVER_SMT2;
   }
