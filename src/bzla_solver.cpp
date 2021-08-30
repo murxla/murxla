@@ -1549,7 +1549,16 @@ class BzlaActionTermSetSymbol : public Action
 void
 BzlaSolver::configure_fsm(FSM* fsm) const
 {
-  State* s_assert                = fsm->get_state(State::ASSERT);
+  State* s_assert        = fsm->get_state(State::ASSERT);
+  State* s_check_sat     = fsm->get_state(State::CHECK_SAT);
+  State* s_create_sorts  = fsm->get_state(State::CREATE_SORTS);
+  State* s_create_inputs = fsm->get_state(State::CREATE_INPUTS);
+  State* s_create_terms  = fsm->get_state(State::CREATE_TERMS);
+  State* s_opt           = fsm->get_state(State::OPT);
+  State* s_push_pop      = fsm->get_state(State::PUSH_POP);
+  State* s_sat           = fsm->get_state(State::SAT);
+  State* s_unsat         = fsm->get_state(State::UNSAT);
+
   State* s_fix_reset_assumptions = fsm->new_state(STATE_FIX_RESET_ASSUMPTIONS);
 
   auto t_default = fsm->new_action<TransitionDefault>();
@@ -1570,7 +1579,16 @@ BzlaSolver::configure_fsm(FSM* fsm) const
 
   // bitwuzla_simplify
   auto a_simplify = fsm->new_action<BzlaActionSimplify>();
-  fsm->add_action_to_all_states(a_simplify, 100);
+  s_assert->add_action(a_simplify, 10000);
+  s_create_sorts->add_action(a_simplify, 10000);
+  s_create_inputs->add_action(a_simplify, 10000);
+  s_create_terms->add_action(a_simplify, 10000);
+  s_opt->add_action(a_simplify, 10000);
+  s_push_pop->add_action(a_simplify, 10000);
+  s_check_sat->add_action(a_simplify, 10000, s_assert);
+  s_sat->add_action(a_simplify, 10000, s_assert);
+  s_unsat->add_action(a_simplify, 10000, s_assert);
+  s_sat->add_action(a_simplify, 10000, s_sat);
 
   // bitwuzla_term_set_symbol
   auto a_set_symbol = fsm->new_action<BzlaActionTermSetSymbol>();

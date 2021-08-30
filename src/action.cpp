@@ -113,14 +113,6 @@ TransitionCreateSorts::run()
 
 /* -------------------------------------------------------------------------- */
 
-bool
-TransitionModel::run()
-{
-  return d_smgr.d_sat_result == Solver::Result::SAT;
-}
-
-/* -------------------------------------------------------------------------- */
-
 std::vector<uint64_t>
 ActionTermGetSort::untrace(std::vector<std::string>& tokens)
 {

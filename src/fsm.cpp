@@ -139,6 +139,7 @@ FSM::get_smgr()
 State*
 FSM::new_state(const State::Kind& kind,
                std::function<bool(void)> fun,
+               bool ignore,
                bool is_final)
 {
   uint64_t id = d_states.size();
@@ -148,7 +149,69 @@ FSM::new_state(const State::Kind& kind,
          "value of macro MURXLA_MAX_N_STATES in config.hpp";
 
   State* state;
-  d_states.emplace_back(new State(kind, fun, is_final));
+  d_states.emplace_back(new State(kind, fun, ignore, is_final));
+
+  state = d_states.back().get();
+  state->set_id(id);
+  state->d_mbt_stats = d_mbt_stats;
+  strncpy(d_mbt_stats->d_state_kinds[id], kind.c_str(), kind.size());
+
+  return state;
+}
+
+State*
+FSM::new_decision_state(const State::Kind& kind, std::function<bool(void)> fun)
+{
+  uint64_t id = d_states.size();
+
+  MURXLA_CHECK_CONFIG(id < MURXLA_MAX_N_STATES)
+      << "maximum number of states exceeded, increase limit by adjusting "
+         "value of macro MURXLA_MAX_N_STATES in config.hpp";
+
+  State* state;
+  d_states.emplace_back(new State(kind, fun, true, false));
+
+  state = d_states.back().get();
+  state->set_id(id);
+  state->d_mbt_stats = d_mbt_stats;
+  strncpy(d_mbt_stats->d_state_kinds[id], kind.c_str(), kind.size());
+
+  return state;
+}
+
+State*
+FSM::new_choice_state(const State::Kind& kind,
+                      std::function<bool(void)> fun,
+                      bool is_final)
+{
+  uint64_t id = d_states.size();
+
+  MURXLA_CHECK_CONFIG(id < MURXLA_MAX_N_STATES)
+      << "maximum number of states exceeded, increase limit by adjusting "
+         "value of macro MURXLA_MAX_N_STATES in config.hpp";
+
+  State* state;
+  d_states.emplace_back(new State(kind, fun, true, is_final));
+
+  state = d_states.back().get();
+  state->set_id(id);
+  state->d_mbt_stats = d_mbt_stats;
+  strncpy(d_mbt_stats->d_state_kinds[id], kind.c_str(), kind.size());
+
+  return state;
+}
+
+State*
+FSM::new_final_state(const State::Kind& kind, std::function<bool(void)> fun)
+{
+  uint64_t id = d_states.size();
+
+  MURXLA_CHECK_CONFIG(id < MURXLA_MAX_N_STATES)
+      << "maximum number of states exceeded, increase limit by adjusting "
+         "value of macro MURXLA_MAX_N_STATES in config.hpp";
+
+  State* state;
+  d_states.emplace_back(new State(kind, fun, false, true));
 
   state = d_states.back().get();
   state->set_id(id);
@@ -298,7 +361,6 @@ FSM::configure()
 
   auto t_default = new_action<TransitionDefault>();
   auto t_inputs  = new_action<TransitionCreateInputs>();
-  auto t_model   = new_action<TransitionModel>();
   auto t_sorts   = new_action<TransitionCreateSorts>();
 
   /* --------------------------------------------------------------------- */
@@ -308,7 +370,7 @@ FSM::configure()
   auto s_new    = new_state(State::NEW);
   auto s_opt    = new_state(State::OPT);
   auto s_delete = new_state(State::DELETE);
-  auto s_final  = new_state(State::FINAL, nullptr, true);
+  auto s_final  = new_state(State::FINAL, nullptr, false, true);
 
   auto s_sorts  = new_state(State::CREATE_SORTS);
   auto s_inputs = new_state(State::CREATE_INPUTS);
@@ -318,12 +380,16 @@ FSM::configure()
   auto s_assert =
       new_state(State::ASSERT, [this]() { return d_smgr.has_term(SORT_BOOL); });
 
-  auto s_model = new_state(State::MODEL, [this]() {
-    return d_smgr.d_model_gen && d_smgr.d_sat_called
-           && d_smgr.d_sat_result == Solver::Result::SAT;
-  });
+  auto s_check_sat = new_state(State::CHECK_SAT);
 
-  auto s_sat = new_state(State::CHECK_SAT);
+  auto s_decide_sat_unsat = new_state(
+      State::DECIDE_SAT_UNSAT, [this]() { return d_smgr.d_sat_called; }, true);
+  auto s_sat   = new_choice_state(State::SAT, [this]() {
+    return d_smgr.d_sat_called && d_smgr.d_sat_result != Solver::Result::UNSAT;
+  });
+  auto s_unsat = new_choice_state(State::UNSAT, [this]() {
+    return d_smgr.d_sat_called && d_smgr.d_sat_result == Solver::Result::UNSAT;
+  });
 
   auto s_push_pop =
       new_state(State::PUSH_POP, [this]() { return d_smgr.d_incremental; });
@@ -353,35 +419,42 @@ FSM::configure()
   }
   s_inputs->add_action(a_termchksort, 10);
   s_inputs->add_action(t_inputs, 50, s_terms);
-  s_inputs->add_action(t_inputs, 5000, s_sat);
+  s_inputs->add_action(t_inputs, 5000, s_check_sat);
   s_inputs->add_action(t_inputs, 500, s_push_pop);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 1);
   s_terms->add_action(a_termchksort, 10);
   s_terms->add_action(t_default, 250, s_assert);
-  s_terms->add_action(t_default, 1000, s_sat);
+  s_terms->add_action(t_default, 1000, s_check_sat);
   s_terms->add_action(t_inputs, 500, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
   s_assert->add_action(a_assert, 1);
-  s_assert->add_action(t_default, 20, s_sat);
+  s_assert->add_action(t_default, 20, s_check_sat);
   s_assert->add_action(t_inputs, 3, s_push_pop);
   s_assert->add_action(t_default, 50, s_terms);
 
   /* State: check sat .................................................... */
-  s_sat->add_action(a_sat, 1);
-  s_sat->add_action(a_sat_ass, 2);
-  s_sat->add_action(a_getunsatass, 2);
-  s_sat->add_action(a_getunsatcore, 2);
-  s_sat->add_action(t_inputs, 2, s_push_pop);
-  s_sat->add_action(t_inputs, 200, s_delete);
+  s_check_sat->add_action(a_sat, 1);
+  s_check_sat->add_action(a_sat_ass, 2);
+  s_check_sat->add_action(t_default, 1, s_decide_sat_unsat);
+  s_check_sat->add_action(t_inputs, 2, s_push_pop);
+  s_check_sat->add_action(t_inputs, 200, s_delete);
 
-  /* State: model ........................................................ */
-  s_model->add_action(a_printmodel, 1);
-  s_model->add_action(a_getvalue, 1);
-  add_action_to_all_states_next(t_default, 10, s_model, {State::OPT});
-  add_action_to_all_states(t_model, 10, {State::OPT}, s_model);
+  /* Decision State: to sat/unsat states ................................. */
+  s_decide_sat_unsat->add_action(t_default, 1, s_sat);
+  s_decide_sat_unsat->add_action(t_default, 1, s_unsat);
+
+  /* State: unsat ........................................................ */
+  s_unsat->add_action(a_getunsatass, 1);
+  s_unsat->add_action(a_getunsatcore, 1);
+  s_unsat->add_action(t_default, 2, s_check_sat);
+
+  /* State: sat .......................................................... */
+  s_sat->add_action(a_printmodel, 1);
+  s_sat->add_action(a_getvalue, 1);
+  s_sat->add_action(t_default, 2, s_check_sat);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
@@ -394,7 +467,7 @@ FSM::configure()
 
   /* All States (with exceptions) ........................................ */
   add_action_to_all_states(a_reset, 10000, {}, s_opt);
-  add_action_to_all_states(a_reset_ass, 10000);
+  add_action_to_all_states(a_reset_ass, 10000, {}, s_sorts);
 
   /* --------------------------------------------------------------------- */
   /* Initial State                                                         */
@@ -420,8 +493,11 @@ FSM::configure()
     State* next                                     = std::get<3>(t);
     for (const auto& s : d_states)
     {
+      if (s->d_ignore) continue;
+
       const auto kind = s->get_kind();
-      if (kind == State::NEW || kind == State::DELETE || kind == State::FINAL
+      if (d_actions_all_states_excluded.find(kind)
+              != d_actions_all_states_excluded.end()
           || excluded_states.find(s->get_kind()) != excluded_states.end())
       {
         continue;
@@ -442,8 +518,11 @@ FSM::configure()
     std::unordered_set<std::string> excluded_states = std::get<3>(t);
     for (const auto& s : d_states)
     {
+      if (s->d_ignore) continue;
+
       const auto kind = s->get_kind();
-      if (kind == State::NEW || kind == State::DELETE || kind == State::FINAL
+      if (d_actions_all_states_excluded.find(kind)
+              != d_actions_all_states_excluded.end()
           || excluded_states.find(s->get_kind()) != excluded_states.end())
       {
         continue;

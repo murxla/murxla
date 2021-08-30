@@ -34,7 +34,7 @@ class State
  public:
   using Kind = std::string;
 
-  /** Solver-specific states. */
+  /** States of the SMT-LIB API model. */
   inline static const Kind UNDEFINED     = "undefined";
   inline static const Kind NEW           = "new";
   inline static const Kind OPT           = "opt";
@@ -46,13 +46,20 @@ class State
   inline static const Kind ASSERT        = "assert";
   inline static const Kind MODEL         = "model";
   inline static const Kind CHECK_SAT     = "check_sat";
+  inline static const Kind SAT           = "sat";
+  inline static const Kind UNSAT         = "unsat";
   inline static const Kind PUSH_POP      = "push_pop";
+  /** Decision states of this API model. */
+  inline static const Kind DECIDE_SAT_UNSAT = "decide-sat_unsat";
 
   /** Default constructor. */
   State() : d_kind(UNDEFINED), d_is_final(false) {}
   /** Constructor. */
-  State(const Kind& kind, std::function<bool(void)> fun, bool is_final)
-      : d_kind(kind), d_is_final(is_final), f_precond(fun)
+  State(const Kind& kind,
+        std::function<bool(void)> fun,
+        bool ignore,
+        bool is_final)
+      : d_kind(kind), d_is_final(is_final), d_ignore(ignore), f_precond(fun)
   {
     MURXLA_CHECK_CONFIG(kind.size() <= MURXLA_MAX_KIND_LEN)
         << "'" << kind
@@ -88,21 +95,30 @@ class State
   void disable_action(Action::Kind kind);
 
  private:
-  /* State kind. */
+  /** State kind. */
   const Kind& d_kind;
-  /* True if state is a final state. */
+
+  /** True if state is a final state. */
   bool d_is_final = false;
-  /* True if state represents the place holder for all states. */
-  bool d_is_all = false;
-  /* State id, assigned in the order they have been created. */
+  /**
+   * True if this state should be ignored when adding actions to all states
+   * (add_action_to_all_states), or adding all configured states as next state
+   * for a transition (add_action_to_all_states_next).
+   */
+  bool d_ignore = false;
+
+  /** State id, assigned in the order they have been created. */
   uint64_t d_id = 0u;
-  /* A function defining the precondition for entering the state. */
+
+  /** A function defining the precondition for entering the state. */
   std::function<bool(void)> f_precond;
-  /* The actions that can be performed in this state. */
+
+  /** The actions that can be performed in this state. */
   std::vector<ActionTuple> d_actions;
-  /* The weights of the actions associated with this state. */
+  /** The weights of the actions associated with this state. */
   std::vector<uint32_t> d_weights;
 
+  /** The associated statistics object. */
   statistics::Statistics* d_mbt_stats;
 };
 
@@ -141,11 +157,63 @@ class FSM
    * Create and add a new state.
    * kind    : A unique string identifying the state.
    * fun     : The precondition for transitioning to the next state.
+   * ignore  : True if this state should be ignored when adding actions to
+   *           all states (add_action_to_all_states), or adding all configured
+   *           states as next state for a transition
+   *           (add_action_to_all_states_next).
    * is_final: True if this is the final state.
    */
   State* new_state(const std::string& kind,
                    std::function<bool(void)> fun = nullptr,
+                   bool ignore                   = false,
                    bool is_final                 = false);
+  /**
+   * Create and add a new decision state.
+   *
+   * A decision state is a state that only serves as decision point with a
+   * single point of entrance and only specific transitions (the choices to be
+   * made) out of the state. A decision state is not to be extended with any
+   * other actions other than the transitions that represent the choices this
+   * decision state has been created for.
+   *
+   * As an example, we use a decision state from the check-sat state to
+   * transition into two states, a sat and an unsat state, which allow
+   * additional queries under the specific premise that a check-sat call has
+   * been issued and the sat result is either sat or unsat.
+   *
+   * Note: A decision state is never final.
+   *
+   * kind    : A unique string identifying the state.
+   * fun     : The precondition for transitioning to the next state.
+   */
+  State* new_decision_state(const std::string& kind,
+                            std::function<bool(void)> fun = nullptr);
+
+  /**
+   * Create and add a new choice state.
+   *
+   * A choice is a state that we transition into from a decision state.
+   *
+   * As an example, the sat and unsat states are choice states.
+   *
+   * Note: A choice state can be final.
+   *
+   * kind    : A unique string identifying the state.
+   * fun     : The precondition for transitioning to the next state.
+   */
+  State* new_choice_state(const std::string& kind,
+                          std::function<bool(void)> fun = nullptr,
+                          bool is_final                 = false);
+  /**
+   * Create and add a new final state.
+   *
+   * Note: A final state is never a decision state.
+   *
+   * kind    : A unique string identifying the state.
+   * fun     : The precondition for transitioning to the next state.
+   */
+  State* new_final_state(const std::string& kind,
+                         std::function<bool(void)> fun = nullptr);
 
   /** Create new action of given type T. */
   template <class T>
@@ -207,22 +275,29 @@ class FSM
 
   /**
    * A temporary list with actions (incl. priorities, the next state and
-   * excluded states) that will be added to all states (excl. states "new" and
-   * "delete" and the given excluded states) after configuring solver-specific
-   * states and actions is finalized.
+   * excluded states) that will be added to all states (excluding states from
+   * d_actions_all_states_excluded and the given excluded states) after
+   * configuring solver-specific states and actions is finalized.
    */
   std::vector<
       std::tuple<Action*, uint32_t, std::unordered_set<State::Kind>, State*>>
       d_actions_all_states;
   /**
    * A temporary list with actions (incl. priorities) that will be added to
-   * transition from given state to all states (excl. state "new" and "delete"
-   * and the given excluded states) after configuring solver-specific states
-   * and actions is finalized.
+   * transition from given state to all states (excluding
+   * d_actions_all_states_excluded and the given excluded states) after
+   * configuring solver-specific states and actions is finalized.
    */
   std::vector<
       std::tuple<Action*, uint32_t, State*, std::unordered_set<State::Kind>>>
       d_actions_all_states_next;
+
+  /**
+   * The state kinds always to exclude when adding actions to all states
+   * (add_action_to_all_states) or when adding all aconfigured states to an
+   * action/transition (add_action_to_all_states_next). */
+  std::unordered_set<std::string> d_actions_all_states_excluded = {
+      State::NEW, State::DELETE};
 
   /** The initial state. */
   State* d_state_init = nullptr;

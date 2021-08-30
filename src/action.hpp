@@ -258,13 +258,6 @@ class TransitionCreateSorts : public Transition
   bool run() override;
 };
 
-class TransitionModel : public Transition
-{
- public:
-  TransitionModel(SolverManager& smgr) : Transition(smgr, TRANS_MODEL) {}
-  bool run() override;
-};
-
 /* -------------------------------------------------------------------------- */
 /* Phantom Actions (untracing only)                                           */
 /* -------------------------------------------------------------------------- */
