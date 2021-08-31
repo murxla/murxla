@@ -1592,7 +1592,6 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   s_check_sat->add_action(a_simplify, 10000, s_assert);
   s_sat->add_action(a_simplify, 10000, s_assert);
   s_unsat->add_action(a_simplify, 10000, s_assert);
-  s_sat->add_action(a_simplify, 10000, s_sat);
 
   // bitwuzla_term_set_symbol
   auto a_set_symbol = fsm->new_action<BzlaActionTermSetSymbol>();
