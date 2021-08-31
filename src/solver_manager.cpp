@@ -466,6 +466,7 @@ SolverManager::reset()
   d_incremental       = false;
   d_model_gen         = false;
   d_unsat_assumptions = false;
+  d_unsat_cores       = false;
   d_n_push_levels     = 0;
   d_sat_called        = false;
   d_sat_result        = Solver::Result::UNKNOWN;
