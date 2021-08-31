@@ -69,12 +69,17 @@ class State
 
   /** Returns the identifier of this state. */
   const Kind& get_kind() { return d_kind; }
+
   /** Return the id of this state. */
   const uint64_t get_id() const { return d_id; }
   /** Set the id of this state. */
   void set_id(uint64_t id) { d_id = id; }
+
   /** Returns true if state is a final state. */
   bool is_final() { return d_is_final; }
+
+  /** Update the function defining the precondition for entering the state. */
+  void update_precondition(std::function<bool(void)> fun) { f_precond = fun; }
 
   /** Runs actions associated with this state. */
   State* run(RNGenerator& rng);

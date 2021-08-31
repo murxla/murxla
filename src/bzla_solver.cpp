@@ -1553,6 +1553,9 @@ class BzlaActionTermSetSymbol : public Action
 void
 BzlaSolver::configure_fsm(FSM* fsm) const
 {
+  SolverManager& smgr = fsm->get_smgr();
+
+  /* Retrieve existing states. */
   State* s_assert        = fsm->get_state(State::ASSERT);
   State* s_check_sat     = fsm->get_state(State::CHECK_SAT);
   State* s_create_sorts  = fsm->get_state(State::CREATE_SORTS);
@@ -1562,15 +1565,31 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   State* s_push_pop      = fsm->get_state(State::PUSH_POP);
   State* s_sat           = fsm->get_state(State::SAT);
   State* s_unsat         = fsm->get_state(State::UNSAT);
-
-  State* s_fix_reset_assumptions = fsm->new_state(STATE_FIX_RESET_ASSUMPTIONS);
+  State* s_decide_sat_unsat = fsm->get_state(State::DECIDE_SAT_UNSAT);
 
   auto t_default = fsm->new_action<TransitionDefault>();
 
+  /* Modify precondition of existing states. */
+  s_sat->update_precondition([&smgr]() {
+    return smgr.d_sat_called && smgr.d_sat_result == Solver::Result::SAT;
+  });
+
+  /* Solver-specific states. */
+  State* s_fix_reset_assumptions = fsm->new_state(STATE_FIX_RESET_ASSUMPTIONS);
+  State* s_unknown = fsm->new_choice_state(STATE_UNKNOWN, [&smgr]() {
+    return smgr.d_sat_called && smgr.d_sat_result == Solver::Result::UNKNOWN;
+  });
+
+  /* Reconfigure existing states. */
+  s_decide_sat_unsat->add_action(t_default, 1, s_unknown);
+
+  /* Configure solver-specific states. */
+  s_unknown->add_action(t_default, 1, s_check_sat);
+
+  /* Add solver-specific actions. */
   // bitwuzla_is_unsat_assumption
   auto a_failed = fsm->new_action<BzlaActionIsUnsatAssumption>();
   fsm->add_action_to_all_states(a_failed, 100);
-
   // bitwuzla_fixate_assumptions
   // bitwuzla_reset_assumptions
   auto a_fix_assumptions   = fsm->new_action<BzlaActionFixateAssumptions>();
@@ -1580,7 +1599,6 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
   fsm->add_action_to_all_states_next(
       t_default, 2, s_fix_reset_assumptions, {State::OPT});
-
   // bitwuzla_simplify
   auto a_simplify = fsm->new_action<BzlaActionSimplify>();
   s_assert->add_action(a_simplify, 10000);
@@ -1592,7 +1610,6 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   s_check_sat->add_action(a_simplify, 10000, s_assert);
   s_sat->add_action(a_simplify, 10000, s_assert);
   s_unsat->add_action(a_simplify, 10000, s_assert);
-
   // bitwuzla_term_set_symbol
   auto a_set_symbol = fsm->new_action<BzlaActionTermSetSymbol>();
   fsm->add_action_to_all_states(a_set_symbol, 100);

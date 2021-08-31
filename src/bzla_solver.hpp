@@ -111,6 +111,7 @@ class BzlaSolver : public Solver
   /* Solver-specific states. */
   inline static const State::Kind STATE_FIX_RESET_ASSUMPTIONS =
       "bzla-fix-reset-assumptions";
+  inline static const State::Kind STATE_UNKNOWN = "bzla-unknown";
 
   /** Constructor. */
   BzlaSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
