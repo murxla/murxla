@@ -978,6 +978,10 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   }
   else if (opt == "incremental")
   {
+    if (!val && bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_UNSAT_CORES))
+    {
+      return;
+    }
     bzla_opt = BITWUZLA_OPT_INCREMENTAL;
   }
   else
