@@ -82,6 +82,7 @@ class BzlaSolver : public Solver
  public:
   /** Solver-specific actions. */
   inline static const Action::Kind ACTION_GET_BV_VALUE = "bzla-get-bv-value";
+  inline static const Action::Kind ACTION_GET_FP_VALUE = "bzla-get-fp-value";
   inline static const Action::Kind ACTION_IS_UNSAT_ASSUMPTION =
       "bzla-is-unsat-assumption";
   inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
