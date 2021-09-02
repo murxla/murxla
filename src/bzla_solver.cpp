@@ -1407,7 +1407,7 @@ class BzlaActionGetArrayValue : public Action
     BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla          = bzla_solver.get_solver();
     BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
-    BitwuzlaTerm **bzla_idxs, **bzla_vals, *bzla_default_val;
+    const BitwuzlaTerm **bzla_idxs, **bzla_vals, *bzla_default_val;
     size_t size;
 
     bitwuzla_get_array_value(
