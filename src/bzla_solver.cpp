@@ -1371,6 +1371,54 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
 /* FSM configuration.                                                         */
 /* -------------------------------------------------------------------------- */
 
+class BzlaActionGetBvValue : public Action
+{
+ public:
+  BzlaActionGetBvValue(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_GET_BV_VALUE, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_model_gen) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
+    Term term = d_smgr.pick_term(SORT_BV);
+    _run(term);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+    Term term = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    _run(term);
+    return {};
+  }
+
+ private:
+  void _run(Term term)
+  {
+    MURXLA_TRACE << get_kind() << " " << term;
+    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
+    Bitwuzla* bzla          = bzla_solver.get_solver();
+    BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
+    const char* bv_val      = bitwuzla_get_bv_value(bzla, bzla_term);
+    if (d_smgr.d_incremental && d_rng.flip_coin())
+    {
+      /* assume assignment and check if result is still SAT */
+      Term term_bv_val =
+          d_solver.mk_value(term->get_sort(), bv_val, Solver::Base::BIN);
+      std::vector<Term> assumptions{
+          d_solver.mk_term(Op::EQUAL, {term, term_bv_val}, {})};
+      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+    }
+  }
+};
+
 class BzlaActionIsUnsatAssumption : public Action
 {
  public:
@@ -1578,13 +1626,11 @@ BzlaSolver::configure_fsm(FSM* fsm) const
     return smgr.d_sat_called && smgr.d_sat_result == Solver::Result::UNKNOWN;
   });
 
-  /* Reconfigure existing states. */
+  /* Add solver-specific actions and reconfigure existing states. */
   s_decide_sat_unsat->add_action(t_default, 1, s_unknown);
-
-  /* Configure solver-specific states. */
-  s_unknown->add_action(t_default, 1, s_check_sat);
-
-  /* Add solver-specific actions. */
+  // bitwuzla_get_bv_value
+  auto a_get_bv_val = fsm->new_action<BzlaActionGetBvValue>();
+  s_sat->add_action(a_get_bv_val, 1);
   // bitwuzla_is_unsat_assumption
   auto a_failed = fsm->new_action<BzlaActionIsUnsatAssumption>();
   fsm->add_action_to_all_states(a_failed, 100);
@@ -1611,6 +1657,9 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   // bitwuzla_term_set_symbol
   auto a_set_symbol = fsm->new_action<BzlaActionTermSetSymbol>();
   fsm->add_action_to_all_states(a_set_symbol, 100);
+
+  /* Configure solver-specific states. */
+  s_unknown->add_action(t_default, 1, s_check_sat);
 }
 
 }  // namespace bzla

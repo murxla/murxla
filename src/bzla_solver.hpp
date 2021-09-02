@@ -81,6 +81,7 @@ class BzlaSolver : public Solver
 {
  public:
   /** Solver-specific actions. */
+  inline static const Action::Kind ACTION_GET_BV_VALUE = "bzla-get-bv-value";
   inline static const Action::Kind ACTION_IS_UNSAT_ASSUMPTION =
       "bzla-is-unsat-assumption";
   inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
@@ -151,6 +152,7 @@ class BzlaSolver : public Solver
   bool option_unsat_cores_enabled() const override;
 
   BitwuzlaTerm* get_bzla_term(Term term) const;
+  BitwuzlaSort* get_bzla_sort(Sort sort) const;
 
   Term mk_var(Sort sort, const std::string& name) override;
 
@@ -224,7 +226,6 @@ class BzlaSolver : public Solver
   void check_is_bv_value(const SpecialValueKind& kind,
                          BitwuzlaTerm* node) const;
 
-  BitwuzlaSort* get_bzla_sort(Sort sort) const;
   BitwuzlaTerm* mk_value_bv_uint64(Sort sort, uint64_t value);
 
   Bitwuzla* d_solver;
