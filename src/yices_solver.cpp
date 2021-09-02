@@ -905,8 +905,8 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 
 Term
 YicesSolver::mk_term(const std::string& kind,
-                     std::vector<Term>& args,
-                     std::vector<uint32_t>& params)
+                     const std::vector<Term>& args,
+                     const std::vector<uint32_t>& params)
 {
   term_t yices_res               = -1;
   size_t n_args                  = args.size();
@@ -1975,7 +1975,7 @@ YicesSolver::yices_terms_to_terms(term_vector_t* terms) const
 }
 
 std::vector<Term>
-YicesSolver::yices_terms_to_terms(std::vector<term_t>& terms) const
+YicesSolver::yices_terms_to_terms(const std::vector<term_t>& terms) const
 {
   std::vector<Term> res;
   for (term_t t : terms)
@@ -1986,10 +1986,10 @@ YicesSolver::yices_terms_to_terms(std::vector<term_t>& terms) const
 }
 
 std::vector<term_t>
-YicesSolver::terms_to_yices_terms(std::vector<Term>& terms) const
+YicesSolver::terms_to_yices_terms(const std::vector<Term>& terms) const
 {
   std::vector<term_t> res;
-  for (Term& t : terms)
+  for (auto& t : terms)
   {
     res.push_back(get_yices_term(t));
   }

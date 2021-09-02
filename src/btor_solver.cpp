@@ -760,8 +760,8 @@ BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 
 Term
 BtorSolver::mk_term(const Op::Kind& kind,
-                    std::vector<Term>& args,
-                    std::vector<uint32_t>& params)
+                    const std::vector<Term>& args,
+                    const std::vector<uint32_t>& params)
 {
   BoolectorNode* btor_res = nullptr;
   size_t n_args           = args.size();
@@ -1442,7 +1442,7 @@ BtorSolver::option_unsat_cores_enabled() const
 /* -------------------------------------------------------------------------- */
 
 std::vector<Term>
-BtorSolver::btor_terms_to_terms(std::vector<BoolectorNode*>& terms) const
+BtorSolver::btor_terms_to_terms(const std::vector<BoolectorNode*>& terms) const
 {
   std::vector<Term> res;
   for (BoolectorNode* t : terms)
@@ -1453,10 +1453,10 @@ BtorSolver::btor_terms_to_terms(std::vector<BoolectorNode*>& terms) const
 }
 
 std::vector<BoolectorNode*>
-BtorSolver::terms_to_btor_terms(std::vector<Term>& terms) const
+BtorSolver::terms_to_btor_terms(const std::vector<Term>& terms) const
 {
   std::vector<BoolectorNode*> res;
-  for (Term& t : terms)
+  for (auto& t : terms)
   {
     res.push_back(get_btor_term(t));
   }

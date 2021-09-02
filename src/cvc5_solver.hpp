@@ -141,7 +141,7 @@ class Cvc5Solver : public Solver
   bool option_unsat_cores_enabled() const override;
 
   std::vector<::cvc5::api::Term> terms_to_cvc5_terms(
-      std::vector<Term>& terms) const;
+      const std::vector<Term>& terms) const;
 
   Term mk_var(Sort sort, const std::string& name) override;
 
@@ -169,8 +169,8 @@ class Cvc5Solver : public Solver
 
   Term mk_const(Sort sort, const std::string& name) override;
   Term mk_term(const Op::Kind& kind,
-               std::vector<Term>& args,
-               std::vector<uint32_t>& params) override;
+               const std::vector<Term>& args,
+               const std::vector<uint32_t>& params) override;
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
@@ -204,7 +204,7 @@ class Cvc5Solver : public Solver
   void init_op_kinds();
   ::cvc5::api::Sort& get_cvc5_sort(Sort sort) const;
   std::vector<Term> cvc5_terms_to_terms(
-      std::vector<::cvc5::api::Term>& terms) const;
+      const std::vector<::cvc5::api::Term>& terms) const;
 
   ::cvc5::api::Solver* d_solver;
   std::unordered_map<std::string, ::cvc5::api::Kind> d_op_kinds;

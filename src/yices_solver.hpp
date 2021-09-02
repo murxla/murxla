@@ -177,8 +177,8 @@ class YicesSolver : public Solver
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
   Term mk_term(const Op::Kind& kind,
-               std::vector<Term>& args,
-               std::vector<uint32_t>& params) override;
+               const std::vector<Term>& args,
+               const std::vector<uint32_t>& params) override;
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
@@ -226,8 +226,10 @@ class YicesSolver : public Solver
       const std::vector<Sort>& sorts) const;
 
   std::vector<Term> yices_terms_to_terms(term_vector_t* terms) const;
-  std::vector<Term> yices_terms_to_terms(std::vector<term_t>& terms) const;
-  std::vector<term_t> terms_to_yices_terms(std::vector<Term>& terms) const;
+  std::vector<Term> yices_terms_to_terms(
+      const std::vector<term_t>& terms) const;
+  std::vector<term_t> terms_to_yices_terms(
+      const std::vector<Term>& terms) const;
 
   bool d_is_initialized  = false;
   bool d_incremental     = false;

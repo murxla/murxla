@@ -188,8 +188,8 @@ class BtorSolver : public Solver
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
   Term mk_term(const Op::Kind& kind,
-               std::vector<Term>& args,
-               std::vector<uint32_t>& params) override;
+               const std::vector<Term>& args,
+               const std::vector<uint32_t>& params) override;
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
@@ -220,9 +220,9 @@ class BtorSolver : public Solver
   using BtorFunBoolUnaryVector = std::vector<BtorFunBoolUnary>;
 
   std::vector<Term> btor_terms_to_terms(
-      std::vector<BoolectorNode*>& terms) const;
+      const std::vector<BoolectorNode*>& terms) const;
   std::vector<BoolectorNode*> terms_to_btor_terms(
-      std::vector<Term>& terms) const;
+      const std::vector<Term>& terms) const;
 
   BtorFunBoolUnary pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const;
   BtorFunBoolUnary pick_fun_is_bv_const() const;

@@ -686,8 +686,8 @@ BzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 
 Term
 BzlaSolver::mk_term(const Op::Kind& kind,
-                    std::vector<Term>& args,
-                    std::vector<uint32_t>& params)
+                    const std::vector<Term>& args,
+                    const std::vector<uint32_t>& params)
 {
   MURXLA_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
       << "BzlaSolver: operator kind '" << kind << "' not configured";
@@ -1165,7 +1165,7 @@ BzlaSolver::init_op_kinds()
 }
 
 std::vector<Term>
-BzlaSolver::bzla_terms_to_terms(std::vector<BitwuzlaTerm*>& terms) const
+BzlaSolver::bzla_terms_to_terms(const std::vector<BitwuzlaTerm*>& terms) const
 {
   std::vector<Term> res;
   for (BitwuzlaTerm* t : terms)
@@ -1176,10 +1176,10 @@ BzlaSolver::bzla_terms_to_terms(std::vector<BitwuzlaTerm*>& terms) const
 }
 
 std::vector<const BitwuzlaTerm*>
-BzlaSolver::terms_to_bzla_terms(std::vector<Term>& terms) const
+BzlaSolver::terms_to_bzla_terms(const std::vector<Term>& terms) const
 {
   std::vector<const BitwuzlaTerm*> res;
-  for (Term& t : terms)
+  for (auto& t : terms)
   {
     res.push_back(get_bzla_term(t));
   }

@@ -512,8 +512,8 @@ CrossCheckSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 
 Term
 CrossCheckSolver::mk_term(const Op::Kind& kind,
-                          std::vector<Term>& args,
-                          std::vector<uint32_t>& params)
+                          const std::vector<Term>& args,
+                          const std::vector<uint32_t>& params)
 {
   std::vector<Term> terms_test, terms_ref;
   get_terms_helper(args, terms_test, terms_ref);

@@ -751,8 +751,8 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
 
 Term
 Cvc5Solver::mk_term(const Op::Kind& kind,
-                    std::vector<Term>& args,
-                    std::vector<uint32_t>& params)
+                    const std::vector<Term>& args,
+                    const std::vector<uint32_t>& params)
 {
   MURXLA_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
       << "Cvc5Solver: operator kind '" << kind << "' not configured";
@@ -1094,10 +1094,11 @@ Cvc5Solver::option_unsat_cores_enabled() const
 }
 
 std::vector<Term>
-Cvc5Solver::cvc5_terms_to_terms(std::vector<::cvc5::api::Term>& terms) const
+Cvc5Solver::cvc5_terms_to_terms(
+    const std::vector<::cvc5::api::Term>& terms) const
 {
   std::vector<Term> res;
-  for (::cvc5::api::Term& t : terms)
+  for (auto& t : terms)
   {
     res.push_back(std::shared_ptr<Cvc5Term>(new Cvc5Term(d_solver, t)));
   }
@@ -1105,10 +1106,10 @@ Cvc5Solver::cvc5_terms_to_terms(std::vector<::cvc5::api::Term>& terms) const
 }
 
 std::vector<::cvc5::api::Term>
-Cvc5Solver::terms_to_cvc5_terms(std::vector<Term>& terms) const
+Cvc5Solver::terms_to_cvc5_terms(const std::vector<Term>& terms) const
 {
   std::vector<::cvc5::api::Term> res;
-  for (Term& t : terms)
+  for (auto& t : terms)
   {
     res.push_back(get_cvc5_term(t));
   }

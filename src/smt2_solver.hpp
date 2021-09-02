@@ -296,8 +296,8 @@ class Smt2Solver : public Solver
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
   Term mk_term(const Op::Kind& kind,
-               std::vector<Term>& args,
-               std::vector<uint32_t>& params) override;
+               const std::vector<Term>& args,
+               const std::vector<uint32_t>& params) override;
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 

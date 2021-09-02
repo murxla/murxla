@@ -178,8 +178,8 @@ class BzlaSolver : public Solver
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 
   Term mk_term(const Op::Kind& kind,
-               std::vector<Term>& args,
-               std::vector<uint32_t>& params) override;
+               const std::vector<Term>& args,
+               const std::vector<uint32_t>& params) override;
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
@@ -214,9 +214,9 @@ class BzlaSolver : public Solver
   void init_op_kinds();
 
   std::vector<Term> bzla_terms_to_terms(
-      std::vector<BitwuzlaTerm*>& terms) const;
+      const std::vector<BitwuzlaTerm*>& terms) const;
   std::vector<const BitwuzlaTerm*> terms_to_bzla_terms(
-      std::vector<Term>& terms) const;
+      const std::vector<Term>& terms) const;
 
   BzlaTermFunBoolUnary pick_fun_bool_unary(
       BzlaTermFunBoolUnaryVector& funs) const;

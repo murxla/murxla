@@ -295,8 +295,8 @@ class Solver
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
   virtual Term mk_term(const Op::Kind& kind,
-                       std::vector<Term>& args,
-                       std::vector<uint32_t>& params) = 0;
+                       const std::vector<Term>& args,
+                       const std::vector<uint32_t>& params) = 0;
 
   /**
    * Get a freshly wrapped solver sort of the given term.

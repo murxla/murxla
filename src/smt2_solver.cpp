@@ -1023,8 +1023,8 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 
 Term
 Smt2Solver::mk_term(const Op::Kind& kind,
-                    std::vector<Term>& args,
-                    std::vector<uint32_t>& params)
+                    const std::vector<Term>& args,
+                    const std::vector<uint32_t>& params)
 {
   return std::shared_ptr<Smt2Term>(
       new Smt2Term(kind, args, params, Smt2Term::LeafKind::NONE, ""));
