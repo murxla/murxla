@@ -1404,7 +1404,7 @@ class BzlaActionIsUnsatAssumption : public Action
   void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_smgr.get_solver());
+    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     (void) bitwuzla_is_unsat_assumption(bzla_solver.get_solver(),
                                         bzla_solver.get_bzla_term(term));
   }
@@ -1439,7 +1439,7 @@ class BzlaActionFixateAssumptions : public Action
     MURXLA_TRACE << get_kind();
     d_smgr.clear_assumptions();
     bitwuzla_fixate_assumptions(
-        static_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver());
+        static_cast<BzlaSolver&>(d_solver).get_solver());
   }
 };
 
@@ -1471,8 +1471,7 @@ class BzlaActionResetAssumptions : public Action
   {
     MURXLA_TRACE << get_kind();
     d_smgr.clear_assumptions();
-    bitwuzla_reset_assumptions(
-        static_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver());
+    bitwuzla_reset_assumptions(static_cast<BzlaSolver&>(d_solver).get_solver());
   }
 };
 
@@ -1487,7 +1486,7 @@ class BzlaActionSimplify : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
-    BzlaSolver& solver = static_cast<BzlaSolver&>(d_smgr.get_solver());
+    BzlaSolver& solver = static_cast<BzlaSolver&>(d_solver);
     if (solver.get_solver() == nullptr) return false;
     _run();
     return true;
@@ -1505,8 +1504,7 @@ class BzlaActionSimplify : public Action
   {
     MURXLA_TRACE << get_kind();
     reset_sat();
-    bitwuzla_simplify(
-        static_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver());
+    bitwuzla_simplify(static_cast<BzlaSolver&>(d_solver).get_solver());
   }
 };
 
@@ -1542,7 +1540,7 @@ class BzlaActionTermSetSymbol : public Action
   void _run(Term term, std::string symbol)
   {
     MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
-    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_smgr.get_solver());
+    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     (void) bitwuzla_term_set_symbol(bzla_solver.get_bzla_term(term),
                                     symbol.c_str());
   }
