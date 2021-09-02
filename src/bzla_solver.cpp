@@ -1531,6 +1531,65 @@ class BzlaActionGetFpValue : public Action
   }
 };
 
+class BzlaActionGetFunValue : public Action
+{
+ public:
+  BzlaActionGetFunValue(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_GET_FUN_VALUE, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_model_gen) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
+    if (!d_smgr.has_term(SORT_FUN)) return false;
+    Term term = d_smgr.pick_term(SORT_FUN);
+    _run(term);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+    Term term = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    _run(term);
+    return {};
+  }
+
+ private:
+  void _run(Term term)
+  {
+    MURXLA_TRACE << get_kind() << " " << term;
+    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
+    Bitwuzla* bzla          = bzla_solver.get_solver();
+    BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
+    const BitwuzlaTerm ***bzla_args, **bzla_vals;
+    size_t arity, size;
+
+    bitwuzla_get_fun_value(
+        bzla, bzla_term, &bzla_args, &arity, &bzla_vals, &size);
+
+    if (d_smgr.d_incremental && d_rng.flip_coin())
+    {
+      /* assume assignment and check if result is still SAT */
+      std::vector<Term> assumptions;
+      for (size_t i = 0; i < size; ++i)
+      {
+        BitwuzlaTerm* bzla_apply =
+            bitwuzla_mk_term(bzla, BITWUZLA_KIND_APPLY, arity, bzla_args[i]);
+        BitwuzlaTerm* bzla_eq = bitwuzla_mk_term2(
+            bzla, BITWUZLA_KIND_EQUAL, bzla_apply, bzla_vals[i]);
+        assumptions.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(bzla_eq)));
+      }
+      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+    }
+  }
+};
+
 class BzlaActionGetRmValue : public Action
 {
  public:
@@ -1819,6 +1878,10 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   // bitwuzla_get_fp_value
   auto a_get_fp_val = fsm->new_action<BzlaActionGetFpValue>();
   s_sat->add_action(a_get_fp_val, 2);
+  // bitwuzla_get_fun_value
+  auto a_get_fun_val = fsm->new_action<BzlaActionGetFunValue>();
+  ;
+  s_sat->add_action(a_get_fun_val, 2);
   // bitwuzla_get_rm_value
   auto a_get_rm_val = fsm->new_action<BzlaActionGetRmValue>();
   s_sat->add_action(a_get_rm_val, 2);
