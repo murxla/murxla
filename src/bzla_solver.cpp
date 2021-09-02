@@ -1472,6 +1472,76 @@ class BzlaActionGetFpValue : public Action
   }
 };
 
+class BzlaActionGetRmValue : public Action
+{
+ public:
+  BzlaActionGetRmValue(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_GET_RM_VALUE, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_model_gen) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
+    if (!d_smgr.has_term(SORT_RM)) return false;
+    Term term = d_smgr.pick_term(SORT_RM);
+    _run(term);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+    Term term = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    _run(term);
+    return {};
+  }
+
+ private:
+  void _run(Term term)
+  {
+    MURXLA_TRACE << get_kind() << " " << term;
+    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
+    Bitwuzla* bzla          = bzla_solver.get_solver();
+    BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
+    std::string rm_val(bitwuzla_get_rm_value(bzla, bzla_term));
+    if (d_smgr.d_incremental && d_rng.flip_coin())
+    {
+      Solver::SpecialValueKind value;
+      if (rm_val == "RNA")
+      {
+        value = Solver::SPECIAL_VALUE_RM_RNA;
+      }
+      else if (rm_val == "RNE")
+      {
+        value = Solver::SPECIAL_VALUE_RM_RNE;
+      }
+      else if (rm_val == "RTN")
+      {
+        value = Solver::SPECIAL_VALUE_RM_RTN;
+      }
+      else if (rm_val == "RTP")
+      {
+        value = Solver::SPECIAL_VALUE_RM_RTP;
+      }
+      else
+      {
+        assert(rm_val == "RTZ");
+        value = Solver::SPECIAL_VALUE_RM_RTZ;
+      }
+      /* assume assignment and check if result is still SAT */
+      Term term_rm_val = d_solver.mk_special_value(term->get_sort(), value);
+      std::vector<Term> assumptions{
+          d_solver.mk_term(Op::EQUAL, {term, term_rm_val}, {})};
+      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+    }
+  }
+};
+
 class BzlaActionIsUnsatAssumption : public Action
 {
  public:
@@ -1687,6 +1757,9 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   // bitwuzla_get_fp_value
   auto a_get_fp_val = fsm->new_action<BzlaActionGetFpValue>();
   s_sat->add_action(a_get_fp_val, 2);
+  // bitwuzla_get_rm_value
+  auto a_get_rm_val = fsm->new_action<BzlaActionGetRmValue>();
+  s_sat->add_action(a_get_rm_val, 2);
   // bitwuzla_is_unsat_assumption
   auto a_failed = fsm->new_action<BzlaActionIsUnsatAssumption>();
   fsm->add_action_to_all_states(a_failed, 100);
