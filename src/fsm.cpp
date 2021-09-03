@@ -447,9 +447,9 @@ FSM::configure()
   s_decide_sat_unsat->add_action(t_default, 1, s_unsat);
 
   /* State: unsat ........................................................ */
-  s_unsat->add_action(a_getunsatass, 1);
-  s_unsat->add_action(a_getunsatcore, 1);
-  s_unsat->add_action(t_default, 2, s_check_sat);
+  s_unsat->add_action(a_getunsatass, 2);
+  s_unsat->add_action(a_getunsatcore, 2);
+  s_unsat->add_action(t_default, 1, s_check_sat);
 
   /* State: sat .......................................................... */
   s_sat->add_action(a_printmodel, 1);
