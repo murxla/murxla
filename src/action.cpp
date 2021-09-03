@@ -1536,6 +1536,10 @@ ActionGetUnsatAssumptions::_run()
     assert(d_smgr.is_assumed(t));
     assert(d_solver.is_unsat_assumption(t));
   }
+  if (d_rng.flip_coin())
+  {
+    assert(d_solver.check_sat_assuming(res) == Solver::Result::UNSAT);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
