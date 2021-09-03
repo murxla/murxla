@@ -126,6 +126,20 @@ SolverManager::disable_theory(TheoryId theory)
 
 /* -------------------------------------------------------------------------- */
 
+bool
+SolverManager::is_option_used(const std::string& opt)
+{
+  return d_used_solver_options.find(opt) != d_used_solver_options.end();
+}
+
+void
+SolverManager::mark_option_used(const std::string& opt)
+{
+  d_used_solver_options.insert(opt);
+}
+
+/* -------------------------------------------------------------------------- */
+
 uint64_t
 SolverManager::get_n_terms() const
 {
@@ -794,52 +808,71 @@ SolverManager::has_sort_bv_max(uint32_t bw_max, bool with_terms) const
 }
 
 std::pair<std::string, std::string>
-SolverManager::pick_option()
+SolverManager::pick_option(std::string name, std::string val)
 {
-  if (d_solver_options.empty()) return std::make_pair("", "");
+  SolverOption* option = nullptr;
 
-  SolverOption* option;
-
-  std::vector<SolverOption*> available;
-
-  bool skip;
-  for (auto const& opt : d_solver_options)
+  if (name.empty())
   {
-    option = opt.get();
+    /* No options to configure available. */
+    if (d_solver_options.empty()) return std::make_pair("", "");
 
-    /* Filter out conflicting options */
-    skip = false;
-    for (auto conflict : option->get_conflicts())
+    std::vector<SolverOption*> available;
+    bool skip;
+
+    for (auto const& opt : d_solver_options)
     {
-      if (d_used_solver_options.find(conflict) != d_used_solver_options.end())
-      {
-        skip = true;
-        break;
-      }
-    }
-    if (skip) continue;
+      option = opt.second.get();
 
-    /* Filter out options that depend on each other */
-    for (auto depend : option->get_depends())
+      /* Filter out conflicting options */
+      skip = false;
+      for (auto conflict : option->get_conflicts())
+      {
+        if (is_option_used(conflict))
+        {
+          skip = true;
+          break;
+        }
+      }
+      if (skip) continue;
+
+      /* Filter out options that depend on each other */
+      for (auto depend : option->get_depends())
+      {
+        if (!is_option_used(depend))
+        {
+          skip = true;
+          break;
+        }
+      }
+      if (skip) continue;
+
+      available.push_back(option);
+    }
+
+    option = available[d_rng.pick<uint32_t>() % available.size()];
+    name   = option->get_name();
+  }
+  else
+  {
+    if (d_solver_options.find(name) != d_solver_options.end())
     {
-      if (d_used_solver_options.find(depend) == d_used_solver_options.end())
-      {
-        skip = true;
-        break;
-      }
+      option = d_solver_options.at(name).get();
     }
-    if (skip) continue;
-
-    available.push_back(option);
   }
 
-  option           = available[d_rng.pick<uint32_t>() % available.size()];
-  std::string name = option->get_name();
+  /* Only configure not yet configured options. */
+  if (is_option_used(name)) return std::make_pair("", "");
 
-  if (d_used_solver_options.find(name) == d_used_solver_options.end())
-    d_used_solver_options.insert(name);
+  mark_option_used(name);
 
-  return std::make_pair(name, option->pick_value(d_rng));
+  if (option && val.empty())
+  {
+    val = option->pick_value(d_rng);
+  }
+  assert(!val.empty());
+
+  return std::make_pair(name, val);
 }
 
 /* -------------------------------------------------------------------------- */

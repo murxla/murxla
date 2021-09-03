@@ -84,7 +84,8 @@ class SolverOptionList : public SolverOption
   std::vector<std::string> d_values;
 };
 
-using SolverOptions = std::vector<std::unique_ptr<SolverOption>>;
+using SolverOptions =
+    std::unordered_map<std::string, std::unique_ptr<SolverOption>>;
 
 }  // namespace murxla
 

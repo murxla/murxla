@@ -226,7 +226,13 @@ void
 ActionNew::_run()
 {
   MURXLA_TRACE << get_kind();
+
   d_solver.new_solver();
+
+  d_smgr.d_incremental       = d_solver.option_incremental_enabled();
+  d_smgr.d_model_gen         = d_solver.option_model_gen_enabled();
+  d_smgr.d_unsat_assumptions = d_solver.option_unsat_assumptions_enabled();
+  d_smgr.d_unsat_cores       = d_solver.option_unsat_cores_enabled();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -272,30 +278,33 @@ ActionSetOption::run()
    *   Boolean values as "true" and "false" (the implementations of class
    *   Solver must support/consider this)
    */
-  /* Enable the explicitly picked options with higher priority. */
   if (d_rng.pick_with_prob(100))
   {
-    opt   = d_solver.get_option_name_incremental();
-    value = d_smgr.d_incremental ? "false" : "true";
+    std::tie(opt, value) =
+        d_smgr.pick_option(d_solver.get_option_name_incremental(),
+                           d_smgr.d_incremental ? "false" : "true");
   }
-  else if (d_rng.pick_with_prob(100))
+  else if (opt.empty() && d_rng.pick_with_prob(100))
   {
-    opt   = d_solver.get_option_name_model_gen();
-    value = d_smgr.d_model_gen ? "false" : "true";
+    std::tie(opt, value) =
+        d_smgr.pick_option(d_solver.get_option_name_model_gen(),
+                           d_smgr.d_model_gen ? "false" : "true");
   }
-  else if (d_rng.pick_with_prob(100))
+  else if (opt.empty() && d_rng.pick_with_prob(100))
   {
-    opt   = d_solver.get_option_name_unsat_assumptions();
-    value = d_smgr.d_unsat_assumptions ? "false" : "true";
+    std::tie(opt, value) =
+        d_smgr.pick_option(d_solver.get_option_name_unsat_assumptions(),
+                           d_smgr.d_unsat_assumptions ? "false" : "true");
   }
-  else if (d_rng.pick_with_prob(100))
+  else if (opt.empty() && d_rng.pick_with_prob(100))
   {
-    opt   = d_solver.get_option_name_unsat_cores();
-    value = d_smgr.d_unsat_cores ? "false" : "true";
+    std::tie(opt, value) =
+        d_smgr.pick_option(d_solver.get_option_name_unsat_cores(),
+                           d_smgr.d_unsat_cores ? "false" : "true");
   }
+  /* Pick random options. */
   else
   {
-    /* pick random option */
     std::tie(opt, value) = d_smgr.pick_option();
   }
 

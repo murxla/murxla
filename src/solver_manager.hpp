@@ -79,6 +79,11 @@ class SolverManager
 
   std::ostream& get_trace();
 
+  /** Return true if given option has already been configured. */
+  bool is_option_used(const std::string& opt);
+  /** Mark given option as already configured. */
+  void mark_option_used(const std::string& opt);
+
   /** Get the number of created terms. */
   uint64_t get_n_terms() const;
   /** Get the number of created terms of given sort kind. */
@@ -345,8 +350,12 @@ class SolverManager
 
   /**
    * Pick an option and an option value.
+   *
+   * If either are given, enforce option or value. If no option or the given
+   * option / value can be set, return empty pair.
    */
-  std::pair<std::string, std::string> pick_option();
+  std::pair<std::string, std::string> pick_option(std::string name  = "",
+                                                  std::string value = "");
 
   /** Clear set of assumptions. */
   void clear_assumptions();
