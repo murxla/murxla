@@ -1534,7 +1534,7 @@ ActionGetUnsatAssumptions::_run()
     Term t = d_smgr.find_term(fa, d_solver.get_sort(fa, SORT_BOOL), SORT_BOOL);
     assert(t != nullptr);
     assert(d_smgr.is_assumed(t));
-    assert(d_solver.check_unsat_assumption(t));
+    assert(d_solver.is_unsat_assumption(t));
   }
 }
 

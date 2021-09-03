@@ -149,7 +149,7 @@ class BtorSolver : public Solver
 
   std::vector<std::string> get_supported_sat_solvers();
 
-  bool check_unsat_assumption(const Term& t) const override;
+  bool is_unsat_assumption(const Term& t) const override;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;

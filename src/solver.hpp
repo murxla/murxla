@@ -328,7 +328,7 @@ class Solver
   virtual bool option_unsat_assumptions_enabled() const = 0;
   virtual bool option_unsat_cores_enabled() const       = 0;
 
-  virtual bool check_unsat_assumption(const Term& t) const = 0;
+  virtual bool is_unsat_assumption(const Term& t) const = 0;
 
   virtual void assert_formula(const Term& t) = 0;
 

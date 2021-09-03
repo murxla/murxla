@@ -282,7 +282,7 @@ Cvc5Solver::is_initialized() const
 }
 
 bool
-Cvc5Solver::check_unsat_assumption(const Term& t) const
+Cvc5Solver::is_unsat_assumption(const Term& t) const
 {
   return !get_cvc5_term(t).isNull();
 }

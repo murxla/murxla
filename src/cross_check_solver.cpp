@@ -587,12 +587,12 @@ CrossCheckSolver::option_unsat_cores_enabled() const
 }
 
 bool
-CrossCheckSolver::check_unsat_assumption(const Term& t) const
+CrossCheckSolver::is_unsat_assumption(const Term& t) const
 {
   CrossCheckTerm* term = dynamic_cast<CrossCheckTerm*>(t.get());
   assert(term);
   // TODO: asking d_reference_solver probably doesn't make sense
-  return d_test_solver->check_unsat_assumption(term->get_term_test());
+  return d_test_solver->is_unsat_assumption(term->get_term_test());
 }
 
 void

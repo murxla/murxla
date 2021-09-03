@@ -310,7 +310,7 @@ class Smt2Solver : public Solver
   bool option_unsat_assumptions_enabled() const override;
   bool option_unsat_cores_enabled() const override;
 
-  bool check_unsat_assumption(const Term& t) const override;
+  bool is_unsat_assumption(const Term& t) const override;
 
   void assert_formula(const Term& t) override;
 

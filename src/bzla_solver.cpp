@@ -927,7 +927,7 @@ BzlaSolver::reset_assertions()
 /* -------------------------------------------------------------------------- */
 
 bool
-BzlaSolver::check_unsat_assumption(const Term& t) const
+BzlaSolver::is_unsat_assumption(const Term& t) const
 {
   return bitwuzla_is_unsat_assumption(d_solver, get_bzla_term(t));
 }

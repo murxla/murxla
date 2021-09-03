@@ -326,7 +326,7 @@ YicesSolver::set_opt(const std::string& opt, const std::string& value)
 }
 
 bool
-YicesSolver::check_unsat_assumption(const Term& t) const
+YicesSolver::is_unsat_assumption(const Term& t) const
 {
   assert(is_valid_term(get_yices_term(t)));
   return true;

@@ -1227,7 +1227,7 @@ BtorSolver::get_supported_sat_solvers()
 }
 
 bool
-BtorSolver::check_unsat_assumption(const Term& t) const
+BtorSolver::is_unsat_assumption(const Term& t) const
 {
   return boolector_failed(d_solver, get_btor_term(t));
 }

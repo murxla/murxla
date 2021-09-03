@@ -1318,7 +1318,7 @@ Smt2Solver::option_unsat_cores_enabled() const
 }
 
 bool
-Smt2Solver::check_unsat_assumption(const Term& t) const
+Smt2Solver::is_unsat_assumption(const Term& t) const
 {
   return true;
 }
