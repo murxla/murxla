@@ -1547,7 +1547,7 @@ ActionGetUnsatAssumptions::_run()
   }
   if (d_rng.flip_coin())
   {
-    assert(d_solver.check_sat_assuming(res) == Solver::Result::UNSAT);
+    assert(d_solver.check_sat_assuming(res) != Solver::Result::SAT);
   }
 }
 
@@ -1642,7 +1642,7 @@ ActionGetValue::_run(std::vector<Term> terms)
       std::vector<uint32_t> params;
       assumptions.push_back(d_solver.mk_term(Op::EQUAL, args, params));
     }
-    assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+    assert(d_solver.check_sat_assuming(assumptions) != Solver::Result::UNSAT);
   }
   /* add values to term database */
   std::stringstream ss;
