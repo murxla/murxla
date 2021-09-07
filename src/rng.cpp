@@ -60,7 +60,7 @@ RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
   std::generate_n(std::back_inserter(d_hex_chars), 10, [&i]() { return i++; });
 }
 
-std::mt19937&
+std::default_random_engine&
 RNGenerator::get_engine()
 {
   return d_rng;

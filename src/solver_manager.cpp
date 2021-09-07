@@ -491,6 +491,12 @@ SolverManager::reset()
 }
 
 void
+SolverManager::add_option(SolverOption* opt)
+{
+  d_solver_options.emplace(opt->get_name(), opt);
+}
+
+void
 SolverManager::reset_sat()
 {
   if (d_sat_called)

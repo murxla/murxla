@@ -44,7 +44,7 @@ class RNGenerator
   explicit RNGenerator(uint32_t seed = 0);
 
   /** Get the RNG Mersenne Twister engine. */
-  std::mt19937& get_engine();
+  std::default_random_engine& get_engine();
 
   /** Pick an integral number with type T. */
   template <typename T,
@@ -153,7 +153,7 @@ class RNGenerator
 
  private:
   uint32_t d_seed;
-  std::mt19937 d_rng;
+  std::default_random_engine d_rng;
 
   /** The character set for binary strings. */
   std::string d_bin_char_set = "01";

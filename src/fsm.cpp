@@ -479,7 +479,11 @@ FSM::configure()
   /* Configure solver specific actions/states                              */
   /* --------------------------------------------------------------------- */
 
-  if (!d_smt) d_smgr.get_solver().configure_fsm(this);
+  if (!d_smt)
+  {
+    d_smgr.get_solver().configure_fsm(this);
+    d_smgr.get_solver().configure_options(&d_smgr);
+  }
 
   /* --------------------------------------------------------------------- */
   /* Add actions that are configured via add_action_to_all_states          */

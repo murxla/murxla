@@ -9,6 +9,7 @@
 #include "action.hpp"
 #include "config.hpp"
 #include "except.hpp"
+#include "solver_option.hpp"
 #include "theory.hpp"
 
 namespace murxla {
@@ -1367,6 +1368,16 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
       OP_FP_TO_FP_FROM_REAL, 2, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
 
   opmgr->add_op_kind(OP_IFF, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Option configuration.                                                      */
+/* -------------------------------------------------------------------------- */
+
+void
+BzlaSolver::configure_options(SolverManager* smgr) const
+{
+  smgr->add_option(new SolverOptionNum<uint32_t>("incremental", 0, 1));
 }
 
 /* -------------------------------------------------------------------------- */

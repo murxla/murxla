@@ -360,6 +360,9 @@ class SolverManager
   /** Clear set of assumptions. */
   void clear_assumptions();
 
+  /** Add solver option. */
+  void add_option(SolverOption* opt);
+
   /** Statistics. */
   Stats d_stats;
 
@@ -485,7 +488,7 @@ class SolverManager
   /** The set of enabled theories. */
   TheoryIdSet d_enabled_theories;
 
-  /** Vector of available solver options */
+  /** Map of available solver options */
   SolverOptions& d_solver_options;
 
   /** Solver state ----------------------------------------------------------

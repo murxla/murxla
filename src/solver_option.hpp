@@ -17,8 +17,8 @@ class SolverOption
 {
  public:
   SolverOption(const std::string& name,
-               std::vector<std::string>& depends,
-               std::vector<std::string>& conflicts);
+               const std::vector<std::string>& depends,
+               const std::vector<std::string>& conflicts);
   virtual ~SolverOption() = default;
 
   virtual std::string pick_value(RNGenerator& rng) const = 0;
@@ -27,8 +27,8 @@ class SolverOption
   const std::unordered_set<std::string>& get_conflicts() const;
   const std::unordered_set<std::string>& get_depends() const;
 
-  void add_conflict(std::string opt_name);
-  void add_depends(std::string opt_name);
+  void add_conflict(const std::string& opt_name);
+  void add_depends(const std::string& opt_name);
 
  private:
   std::string d_name;
@@ -40,8 +40,8 @@ class SolverOptionBool : public SolverOption
 {
  public:
   SolverOptionBool(const std::string& name,
-                   std::vector<std::string>& depends,
-                   std::vector<std::string>& conflicts);
+                   const std::vector<std::string>& depends   = {},
+                   const std::vector<std::string>& conflicts = {});
   ~SolverOptionBool() = default;
   std::string pick_value(RNGenerator& rng) const override;
 };
@@ -51,10 +51,10 @@ class SolverOptionNum : public SolverOption
 {
  public:
   SolverOptionNum(const std::string& name,
-                  std::vector<std::string>& depends,
-                  std::vector<std::string>& conflicts,
                   T min,
-                  T max)
+                  T max,
+                  const std::vector<std::string>& depends   = {},
+                  const std::vector<std::string>& conflicts = {})
       : SolverOption(name, depends, conflicts), d_min(min), d_max(max){};
   ~SolverOptionNum() = default;
 
@@ -74,9 +74,9 @@ class SolverOptionList : public SolverOption
 {
  public:
   SolverOptionList(const std::string& name,
-                   std::vector<std::string>& depends,
-                   std::vector<std::string>& conflicts,
-                   std::vector<std::string>& values);
+                   const std::vector<std::string>& values,
+                   const std::vector<std::string>& depends   = {},
+                   const std::vector<std::string>& conflicts = {});
   ~SolverOptionList() = default;
   std::string pick_value(RNGenerator& rng) const override;
 

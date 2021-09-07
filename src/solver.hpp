@@ -248,6 +248,7 @@ class Solver
   virtual void configure_fsm(FSM* fsm) const;
   virtual void configure_smgr(SolverManager* smgr) const;
   virtual void configure_opmgr(OpKindManager* opmgr) const;
+  virtual void configure_options(SolverManager* smgr) const {};
   void add_special_value(SortKind sort_kind, const SpecialValueKind& kind);
 
   /** Reset solver.  */
