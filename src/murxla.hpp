@@ -44,6 +44,27 @@ class Murxla
          ErrorMap* error_map,
          const std::string& tmp_dir);
 
+  /**
+   * A single test run.
+   *
+   * seed               : The current seed for the RNG.
+   * double             : The time limit for one test run.
+   * file_out           : The file to write stdout output of a test run to.
+   * file_err           : The file to write stderr output of a test run to.
+   * api_trace_file_name: When non-empty, trace is immediately written to file
+   *                      if 'run_forked' is false. Else, 'api_trace_file_name'
+   *                      is set to the name of the temp trace file name and
+   *                      its contents are copied to the final trace file in
+   *                      run(), after run_aux() is finished.
+   * untrace_file_name  : When non-empty, the name of the trace file to replay.
+   * run_forked         : True if test run is executed in a child process.
+   * record_stats       : True if statistics for this test run should be
+   *                      recorded. This should only be true for main test
+   *                      runs, not for replayed runs or delta debugging runs.
+   * trace_mode         : The trace mode for this run.
+   *
+   * Returns a result that indicates the status of the test run.
+   */
   Result run(uint32_t seed,
              double time,
              const std::string& file_out,
@@ -91,12 +112,26 @@ class Murxla
                  bool record_stats) const;
 
   /**
-   * api_trace_file_name: If given, trace is immediately written to file if
-   *                      'run_forked' is false. Else, 'api_trace_file_name' is
-   *                      set to the name of the temp trace file name and its
-   *                      contents are copied to the final trace file in run(),
-   *                      after run_aux() is finished.
+   * Auxiliary helper for run().
+   * Forks in case that we run forked (continuous testing, delta debugging).
+   *
+   * seed               : The current seed for the RNG.
+   * double             : The time limit for one test run.
+   * file_out           : The file to write stdout output of a test run to.
+   * file_err           : The file to write stderr output of a test run to.
+   * api_trace_file_name: When non-empty, trace is immediately written to file
+   *                      if 'run_forked' is false. Else, 'api_trace_file_name'
+   *                      is set to the name of the temp trace file name and
+   *                      its contents are copied to the final trace file in
+   *                      run(), after run_aux() is finished.
+   * untrace_file_name  : When non-empty, the name of the trace file to replay.
    * run_forked         : True if test run is executed in a child process.
+   * record_stats       : True if statistics for this test run should be
+   *                      recorded. This should only be true for main test
+   *                      runs, not for replayed runs or delta debugging runs.
+   * trace_mode         : The trace mode for this run.
+   *
+   * Returns a result that indicates the status of the test run.
    */
   Result run_aux(uint32_t seed,
                  double time,
