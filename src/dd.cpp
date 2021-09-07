@@ -531,9 +531,11 @@ collect_to_minimize_lines_sort_fun(
           }
         }
       }
-      else if (action == Action::MK_TERM && tokens[0] == Op::UF_APPLY)
+      else if (action == Action::MK_TERM && tokens[0] == Op::UF_APPLY
+               && funs.find(tokens[3]) != funs.end())
       {
-        to_minimize.emplace_back(_line_idx, action, tokens, 3);
+        assert(tokens.size() == line_tokens.size() + 2);
+        to_minimize.emplace_back(_line_idx, action, tokens, 4);
       }
     }
   }
@@ -988,7 +990,6 @@ DD::test(Result golden_exit,
                               true,
                               false,
                               Murxla::TraceMode::NONE);
-
   d_ntests += 1;
   if (exit == golden_exit
       && (d_murxla->d_options.dd_ignore_out
