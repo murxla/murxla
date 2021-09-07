@@ -87,6 +87,11 @@ class Murxla
   SolverOptions* d_solver_options;
   /** The directory for temp files. */
   std::string d_tmp_dir;
+  /**
+   * The cached error message in case that an exception was thrown when running
+   * forked.
+   */
+  std::string d_error_msg;
 
  private:
   /**
@@ -141,7 +146,8 @@ class Murxla
                  const std::string& untrace_file_name,
                  bool run_forked,
                  bool record_stats,
-                 TraceMode trace_mode);
+                 TraceMode trace_mode,
+                 std::string& error_msg);
 
   Result replay(uint32_t seed,
                 const std::string& out_file_name,

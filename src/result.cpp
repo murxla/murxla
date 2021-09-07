@@ -12,6 +12,7 @@ operator<<(std::ostream& out, const Result& res)
     case Result::RESULT_OK: out << "ok"; break;
     case Result::RESULT_ERROR: out << "error"; break;
     case Result::RESULT_ERROR_CONFIG: out << "config error"; break;
+    case Result::RESULT_ERROR_UNTRACE: out << "untrace error"; break;
     case Result::RESULT_TIMEOUT: out << "timeout"; break;
     default: assert(res == Result::RESULT_UNKNOWN); out << "unknown";
   }

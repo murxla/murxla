@@ -161,6 +161,7 @@ Murxla::run(uint32_t seed,
   {
     tmp_api_trace_file_name = api_trace_file_name;
   }
+
   Result res = run_aux(seed,
                        time,
                        tmp_file_out,
@@ -169,7 +170,8 @@ Murxla::run(uint32_t seed,
                        untrace_file_name,
                        run_forked,
                        record_stats,
-                       trace_mode);
+                       trace_mode,
+                       d_error_msg);
 
   if (trace_mode == TO_FILE)
   {
@@ -309,7 +311,8 @@ Murxla::test()
     {
       /* Read error file and check if we already encounterd the same error. */
       bool duplicate = false;
-      if (res == RESULT_ERROR || res == RESULT_ERROR_CONFIG)
+      if (res == RESULT_ERROR || res == RESULT_ERROR_CONFIG
+          || res == RESULT_ERROR_UNTRACE)
       {
         std::ifstream errs = open_input_file(err_file_name, false);
         std::string errmsg, line;
@@ -321,10 +324,15 @@ Murxla::test()
         {
           duplicate = add_error(errmsg, seed);
         }
-        else
+        else if (res == RESULT_ERROR_CONFIG)
         {
           std::cout << "\33[2K\r" << std::flush;
-          MURXLA_CHECK_CONFIG(false) << errmsg;
+          MURXLA_CHECK_CONFIG(false) << errmsg << " " << d_error_msg;
+        }
+        else
+        {
+          assert(res == RESULT_ERROR_UNTRACE);
+          MURXLA_CHECK_TRACE(false) << errmsg << " " << d_error_msg;
         }
       }
 
@@ -343,6 +351,7 @@ Murxla::test()
           }
           break;
         case RESULT_ERROR_CONFIG: info << COLOR_RED << "config error"; break;
+        case RESULT_ERROR_UNTRACE: info << COLOR_RED << "untrace error"; break;
         case RESULT_TIMEOUT: info << COLOR_BLUE << "timeout"; break;
         default: assert(res == RESULT_UNKNOWN); info << "unknown";
       }
@@ -508,7 +517,8 @@ Murxla::run_aux(uint32_t seed,
                 const std::string& untrace_file_name,
                 bool run_forked,
                 bool record_stats,
-                Murxla::TraceMode trace_mode)
+                Murxla::TraceMode trace_mode,
+                std::string& error_msg)
 {
   int32_t status, fd;
   Result result;
@@ -604,6 +614,7 @@ Murxla::run_aux(uint32_t seed,
         {
           case EXIT_OK: result = RESULT_OK; break;
           case EXIT_ERROR_CONFIG: result = RESULT_ERROR_CONFIG; break;
+          case EXIT_ERROR_UNTRACE: result = RESULT_ERROR_UNTRACE; break;
           default:
             assert(WEXITSTATUS(status) == EXIT_ERROR);
             result = RESULT_ERROR;
@@ -612,6 +623,13 @@ Murxla::run_aux(uint32_t seed,
       else if (WIFSIGNALED(status))
       {
         result = RESULT_ERROR;
+      }
+      if (result == RESULT_ERROR_CONFIG || result == RESULT_ERROR_UNTRACE)
+      {
+        std::ifstream ferr(file_err);
+        std::stringstream ss;
+        ss << ferr.rdbuf();
+        error_msg = ss.str();
       }
     }
     else
@@ -670,6 +688,10 @@ Murxla::run_aux(uint32_t seed,
     catch (MurxlaConfigException& e)
     {
       MURXLA_EXIT_ERROR_CONFIG_FORK(true, run_forked) << e.get_msg();
+    }
+    catch (MurxlaUntraceException& e)
+    {
+      MURXLA_EXIT_ERROR_UNTRACE_FORK(true, run_forked) << e.get_msg();
     }
     catch (MurxlaException& e)
     {

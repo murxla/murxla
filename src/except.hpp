@@ -209,6 +209,11 @@ class OstreamVoider
       ? (void) 0                                       \
       : OstreamVoider() & ExitStream(is_forked, EXIT_ERROR_CONFIG).stream()
 
+#define MURXLA_EXIT_ERROR_UNTRACE_FORK(cond, is_forked) \
+  !(cond)                                               \
+      ? (void) 0                                        \
+      : OstreamVoider() & ExitStream(is_forked, EXIT_ERROR_UNTRACE).stream()
+
 #define MURXLA_CHECK(cond) \
   (cond) ? (void) 0 : OstreamVoider() & ExceptionStream().stream()
 

@@ -141,6 +141,8 @@ DD::run(const std::string& input_trace_file_name,
                             false,
                             Murxla::TraceMode::TO_FILE);
 
+  MURXLA_EXIT_ERROR(gold_exit == RESULT_ERROR_UNTRACE) << d_murxla->d_error_msg;
+
   MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
   {
     std::ifstream gold_out_file = open_input_file(d_gold_out_file_name, false);
@@ -986,6 +988,7 @@ DD::test(Result golden_exit,
                               true,
                               false,
                               Murxla::TraceMode::NONE);
+
   d_ntests += 1;
   if (exit == golden_exit
       && (d_murxla->d_options.dd_ignore_out
