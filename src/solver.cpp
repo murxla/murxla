@@ -65,6 +65,18 @@ AbsSort::get_fp_sig_size() const
   return 0;
 }
 
+Sort
+AbsSort::get_array_index_sort() const
+{
+  return nullptr;
+}
+
+Sort
+AbsSort::get_array_element_sort() const
+{
+  return nullptr;
+}
+
 bool
 operator==(const Sort& a, const Sort& b)
 {

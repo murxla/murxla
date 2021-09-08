@@ -1039,6 +1039,25 @@ ActionMkTerm::_run(Op::Kind kind,
 
   d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
+
+  if (kind == Op::ARRAY_SELECT && d_rng.pick_with_prob(10))
+  {
+    Sort array_sort   = args[0]->get_sort();
+    Sort index_sort   = array_sort->get_array_index_sort();
+    Sort element_sort = array_sort->get_array_element_sort();
+    assert(index_sort == nullptr || index_sort->equals(args[1]->get_sort()));
+    assert(element_sort == nullptr || element_sort->equals(res_sort));
+  }
+  else if (kind == Op::ARRAY_STORE && d_rng.pick_with_prob(10))
+  {
+    Sort array_sort   = args[0]->get_sort();
+    Sort index_sort   = array_sort->get_array_index_sort();
+    Sort element_sort = array_sort->get_array_element_sort();
+    assert(index_sort == nullptr || index_sort->equals(args[1]->get_sort()));
+    assert(element_sort == nullptr
+           || element_sort->equals(args[2]->get_sort()));
+  }
+
   MURXLA_TRACE_RETURN << res << " " << res_sort;
   return {res->get_id(), res_sort->get_id()};
 }

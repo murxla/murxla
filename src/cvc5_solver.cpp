@@ -127,6 +127,26 @@ Cvc5Sort::get_fp_sig_size() const
   return res;
 }
 
+Sort
+Cvc5Sort::get_array_index_sort() const
+{
+  assert(is_array());
+  ::cvc5::api::Sort cvc5_res = d_sort.getArrayIndexSort();
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
+  assert(res);
+  return res;
+}
+
+Sort
+Cvc5Sort::get_array_element_sort() const
+{
+  assert(is_array());
+  ::cvc5::api::Sort cvc5_res = d_sort.getArrayElementSort();
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
+  assert(res);
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Term                                                                   */
 /* -------------------------------------------------------------------------- */

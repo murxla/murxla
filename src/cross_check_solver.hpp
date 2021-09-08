@@ -31,6 +31,8 @@ class CrossCheckSort : public AbsSort
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
+  Sort get_array_index_sort() const override;
+  Sort get_array_element_sort() const override;
   void set_kind(SortKind sort_kind) override;
   void set_sorts(const std::vector<Sort>& sorts) override;
 

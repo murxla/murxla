@@ -123,6 +123,16 @@ CrossCheckSort::get_fp_sig_size() const
 {
   return d_sort_test->get_fp_sig_size();
 }
+Sort
+CrossCheckSort::get_array_index_sort() const
+{
+  return d_sort_test->get_array_index_sort();
+}
+Sort
+CrossCheckSort::get_array_element_sort() const
+{
+  return d_sort_test->get_array_element_sort();
+}
 void
 CrossCheckSort::set_kind(SortKind sort_kind)
 {

@@ -150,6 +150,26 @@ BzlaSort::get_fp_sig_size() const
   return res;
 }
 
+Sort
+BzlaSort::get_array_index_sort() const
+{
+  assert(is_array());
+  BitwuzlaSort* bzla_res = bitwuzla_sort_array_get_index(d_sort);
+  std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
+  assert(res);
+  return res;
+}
+
+Sort
+BzlaSort::get_array_element_sort() const
+{
+  assert(is_array());
+  BitwuzlaSort* bzla_res = bitwuzla_sort_array_get_element(d_sort);
+  std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
+  assert(res);
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 /* BzlaTerm                                                                   */
 /* -------------------------------------------------------------------------- */

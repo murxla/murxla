@@ -119,6 +119,24 @@ Smt2Sort::get_repr() const
   return d_repr;
 }
 
+Sort
+Smt2Sort::get_array_index_sort() const
+{
+  assert(is_array());
+  const Smt2Sort* smt2_index_sort =
+      static_cast<const Smt2Sort*>(d_sorts[0].get());
+  return std::shared_ptr<Smt2Sort>(new Smt2Sort(smt2_index_sort->get_repr()));
+}
+
+Sort
+Smt2Sort::get_array_element_sort() const
+{
+  assert(is_array());
+  const Smt2Sort* smt2_element_sort =
+      static_cast<const Smt2Sort*>(d_sorts[1].get());
+  return std::shared_ptr<Smt2Sort>(new Smt2Sort(smt2_element_sort->get_repr()));
+}
+
 /* -------------------------------------------------------------------------- */
 /* Smt2Term                                                                   */
 /* -------------------------------------------------------------------------- */
