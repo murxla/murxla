@@ -56,7 +56,7 @@ BzlaSort::equals(const Sort& other) const
   BzlaSort* bzla_sort = dynamic_cast<BzlaSort*>(other.get());
   if (bzla_sort)
   {
-    return d_sort == bzla_sort->d_sort;
+    return bitwuzla_sort_is_equal(d_sort, bzla_sort->d_sort);
   }
   return false;
 }
