@@ -43,8 +43,12 @@ class Cvc5Sort : public AbsSort
   uint32_t get_fp_sig_size() const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;
+  Sort get_fun_codomain_sort() const override;
+  std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
+  std::vector<Sort> cvc5_sorts_to_sorts(
+      const std::vector<::cvc5::api::Sort>& sorts) const;
   ::cvc5::api::Solver* d_solver;
   ::cvc5::api::Sort d_sort;
 };

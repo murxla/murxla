@@ -40,6 +40,8 @@ class Smt2Sort : public AbsSort
   uint32_t get_fp_sig_size() const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;
+  Sort get_fun_codomain_sort() const override;
+  std::vector<Sort> get_fun_domain_sorts() const override;
 
   const std::string& get_repr() const;
 

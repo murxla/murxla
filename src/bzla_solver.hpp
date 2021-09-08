@@ -20,7 +20,7 @@ class BzlaSort : public AbsSort
   friend class BzlaSolver;
 
  public:
-  BzlaSort(Bitwuzla* bzla, BitwuzlaSort* sort);
+  BzlaSort(Bitwuzla* bzla, const BitwuzlaSort* sort);
   ~BzlaSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
@@ -40,10 +40,15 @@ class BzlaSort : public AbsSort
   uint32_t get_fp_sig_size() const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;
+  Sort get_fun_codomain_sort() const override;
+  std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
+  std::vector<Sort> bzla_sorts_to_sorts(const BitwuzlaSort** sorts,
+                                        size_t size) const;
+
   Bitwuzla* d_solver   = nullptr;
-  BitwuzlaSort* d_sort = nullptr;
+  const BitwuzlaSort* d_sort = nullptr;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -55,7 +60,7 @@ class BzlaTerm : public AbsTerm
   friend class BzlaSolver;
 
  public:
-  BzlaTerm(BitwuzlaTerm* term);
+  BzlaTerm(const BitwuzlaTerm* term);
   ~BzlaTerm() override;
   size_t hash() const override;
   std::string to_string() const override;
@@ -72,7 +77,7 @@ class BzlaTerm : public AbsTerm
   bool is_reglan() const override;
 
  private:
-  BitwuzlaTerm* d_term = nullptr;
+  const BitwuzlaTerm* d_term = nullptr;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -159,8 +164,8 @@ class BzlaSolver : public Solver
   bool option_unsat_assumptions_enabled() const override;
   bool option_unsat_cores_enabled() const override;
 
-  BitwuzlaTerm* get_bzla_term(Term term) const;
-  BitwuzlaSort* get_bzla_sort(Sort sort) const;
+  const BitwuzlaTerm* get_bzla_term(Term term) const;
+  const BitwuzlaSort* get_bzla_sort(Sort sort) const;
 
   Term mk_var(Sort sort, const std::string& name) override;
 

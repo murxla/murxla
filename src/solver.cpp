@@ -77,6 +77,18 @@ AbsSort::get_array_element_sort() const
   return nullptr;
 }
 
+Sort
+AbsSort::get_fun_codomain_sort() const
+{
+  return nullptr;
+}
+
+std::vector<Sort>
+AbsSort::get_fun_domain_sorts() const
+{
+  return std::vector<Sort>();
+}
+
 bool
 operator==(const Sort& a, const Sort& b)
 {

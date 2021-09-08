@@ -133,6 +133,16 @@ CrossCheckSort::get_array_element_sort() const
 {
   return d_sort_test->get_array_element_sort();
 }
+Sort
+CrossCheckSort::get_fun_codomain_sort() const
+{
+  return d_sort_test->get_fun_codomain_sort();
+}
+std::vector<Sort>
+CrossCheckSort::get_fun_domain_sorts() const
+{
+  return d_sort_test->get_fun_domain_sorts();
+}
 void
 CrossCheckSort::set_kind(SortKind sort_kind)
 {

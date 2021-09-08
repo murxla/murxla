@@ -147,6 +147,35 @@ Cvc5Sort::get_array_element_sort() const
   return res;
 }
 
+Sort
+Cvc5Sort::get_fun_codomain_sort() const
+{
+  assert(is_fun());
+  ::cvc5::api::Sort cvc5_res = d_sort.getFunctionCodomainSort();
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
+  assert(res);
+  return res;
+}
+
+std::vector<Sort>
+Cvc5Sort::get_fun_domain_sorts() const
+{
+  assert(is_fun());
+  std::vector<::cvc5::api::Sort> cvc5_res = d_sort.getFunctionDomainSorts();
+  return cvc5_sorts_to_sorts(cvc5_res);
+}
+
+std::vector<Sort>
+Cvc5Sort::cvc5_sorts_to_sorts(const std::vector<::cvc5::api::Sort>& sorts) const
+{
+  std::vector<Sort> res;
+  for (auto& s : sorts)
+  {
+    res.emplace_back(new Cvc5Sort(d_solver, s));
+  }
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Term                                                                   */
 /* -------------------------------------------------------------------------- */

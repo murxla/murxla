@@ -137,6 +137,31 @@ Smt2Sort::get_array_element_sort() const
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(smt2_element_sort->get_repr()));
 }
 
+Sort
+Smt2Sort::get_fun_codomain_sort() const
+{
+  assert(is_fun());
+  const Smt2Sort* smt2_codomain_sort =
+      static_cast<const Smt2Sort*>(d_sorts.back().get());
+  return std::shared_ptr<Smt2Sort>(
+      new Smt2Sort(smt2_codomain_sort->get_repr()));
+}
+
+std::vector<Sort>
+Smt2Sort::get_fun_domain_sorts() const
+{
+  assert(is_fun());
+  assert(d_sorts.size() > 1);
+  std::vector<Sort> res;
+  for (size_t i = 0, size = d_sorts.size(); i < size - 1; ++i)
+  {
+    const Smt2Sort* smt2_domain_sort =
+        static_cast<const Smt2Sort*>(d_sorts[i].get());
+    res.emplace_back(new Smt2Sort(smt2_domain_sort->get_repr()));
+  }
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Smt2Term                                                                   */
 /* -------------------------------------------------------------------------- */

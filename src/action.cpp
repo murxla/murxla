@@ -1057,6 +1057,21 @@ ActionMkTerm::_run(Op::Kind kind,
     assert(element_sort == nullptr
            || element_sort->equals(args[2]->get_sort()));
   }
+  else if (kind == Op::UF_APPLY && d_rng.pick_with_prob(10))
+  {
+    Sort fun_sort                  = args[0]->get_sort();
+    Sort codomain_sort             = fun_sort->get_fun_codomain_sort();
+    std::vector<Sort> domain_sorts = fun_sort->get_fun_domain_sorts();
+    assert(codomain_sort == nullptr || codomain_sort->equals(res_sort));
+    if (!domain_sorts.empty())
+    {
+      assert(domain_sorts.size() == args.size() - 1);
+      for (size_t i = 0, size = domain_sorts.size(); i < size; ++i)
+      {
+        assert(domain_sorts[i]->equals(args[i + 1]->get_sort()));
+      }
+    }
+  }
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;
   return {res->get_id(), res_sort->get_id()};
