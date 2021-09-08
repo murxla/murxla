@@ -1065,7 +1065,7 @@ ActionMkTerm::_run(Op::Kind kind,
     assert(codomain_sort == nullptr || codomain_sort->equals(res_sort));
     if (!domain_sorts.empty())
     {
-      assert(domain_sorts.size() == args.size() - 1);
+      assert(domain_sorts.size() == fun_sort->get_fun_arity());
       for (size_t i = 0, size = domain_sorts.size(); i < size; ++i)
       {
         assert(domain_sorts[i]->equals(args[i + 1]->get_sort()));

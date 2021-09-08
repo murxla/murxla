@@ -147,6 +147,13 @@ Cvc5Sort::get_array_element_sort() const
   return res;
 }
 
+uint32_t
+Cvc5Sort::get_fun_arity() const
+{
+  assert(is_fun());
+  return d_sort.getFunctionArity();
+}
+
 Sort
 Cvc5Sort::get_fun_codomain_sort() const
 {

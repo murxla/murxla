@@ -77,6 +77,12 @@ AbsSort::get_array_element_sort() const
   return nullptr;
 }
 
+uint32_t
+AbsSort::get_fun_arity() const
+{
+  return 0;
+}
+
 Sort
 AbsSort::get_fun_codomain_sort() const
 {

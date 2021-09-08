@@ -133,6 +133,11 @@ CrossCheckSort::get_array_element_sort() const
 {
   return d_sort_test->get_array_element_sort();
 }
+uint32_t
+CrossCheckSort::get_fun_arity() const
+{
+  return d_sort_test->get_fun_arity();
+}
 Sort
 CrossCheckSort::get_fun_codomain_sort() const
 {

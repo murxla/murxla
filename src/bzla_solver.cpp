@@ -170,6 +170,13 @@ BzlaSort::get_array_element_sort() const
   return res;
 }
 
+uint32_t
+BzlaSort::get_fun_arity() const
+{
+  assert(is_fun());
+  return bitwuzla_sort_fun_get_arity(d_sort);
+}
+
 Sort
 BzlaSort::get_fun_codomain_sort() const
 {

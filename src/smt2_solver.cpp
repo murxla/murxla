@@ -137,6 +137,13 @@ Smt2Sort::get_array_element_sort() const
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(smt2_element_sort->get_repr()));
 }
 
+uint32_t
+Smt2Sort::get_fun_arity() const
+{
+  assert(is_fun());
+  return d_sorts.size() - 1;
+}
+
 Sort
 Smt2Sort::get_fun_codomain_sort() const
 {
