@@ -52,14 +52,26 @@ class State
   /** Decision states of this API model. */
   inline static const Kind DECIDE_SAT_UNSAT = "decide-sat_unsat";
 
+  enum ConfigKind
+  {
+    REGULAR,
+    DECISION,
+    CHOICE,
+  };
+
   /** Default constructor. */
   State() : d_kind(UNDEFINED), d_is_final(false) {}
   /** Constructor. */
   State(const Kind& kind,
         std::function<bool(void)> fun,
         bool ignore,
-        bool is_final)
-      : d_kind(kind), d_is_final(is_final), d_ignore(ignore), f_precond(fun)
+        bool is_final,
+        ConfigKind config)
+      : d_kind(kind),
+        d_config(config),
+        d_is_final(is_final),
+        d_ignore(ignore),
+        f_precond(fun)
   {
     MURXLA_CHECK_CONFIG(kind.size() <= MURXLA_MAX_KIND_LEN)
         << "'" << kind
@@ -67,8 +79,11 @@ class State
            "adjusting value of macro MURXLA_MAX_KIND_LEN in config.hpp";
   }
 
-  /** Returns the identifier of this state. */
+  /** Return the identifier of this state. */
   const Kind& get_kind() { return d_kind; }
+
+  /** Return the configuration of this state. */
+  ConfigKind get_config() { return d_config; }
 
   /** Return the id of this state. */
   const uint64_t get_id() const { return d_id; }
@@ -102,6 +117,9 @@ class State
  private:
   /** State kind. */
   const Kind& d_kind;
+
+  /** The configuration of this state. */
+  ConfigKind d_config = REGULAR;
 
   /** True if state is a final state. */
   bool d_is_final = false;
@@ -171,7 +189,8 @@ class FSM
   State* new_state(const std::string& kind,
                    std::function<bool(void)> fun = nullptr,
                    bool ignore                   = false,
-                   bool is_final                 = false);
+                   bool is_final                 = false,
+                   State::ConfigKind             = State::ConfigKind::REGULAR);
   /**
    * Create and add a new decision state.
    *
@@ -211,6 +230,10 @@ class FSM
                           bool is_final                 = false);
   /**
    * Create and add a new final state.
+   *
+   * Final states are always ignored when adding actions to all states
+   * (add_action_to_all_states), or adding all configured stats as next state
+   * for a transition (add_action_to_all_states_next).
    *
    * Note: A final state is never a decision state.
    *

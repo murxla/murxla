@@ -18,6 +18,13 @@ namespace murxla {
 void
 State::add_action(Action* a, uint32_t priority, State* next)
 {
+  MURXLA_CHECK_CONFIG(d_config != ConfigKind::DECISION || next == nullptr
+                      || next->d_kind == d_kind
+                      || next->d_config == ConfigKind::CHOICE)
+      << "next state of decision state must be same state or choice state";
+  MURXLA_CHECK_CONFIG(d_config == ConfigKind::DECISION || next == nullptr
+                      || next->d_config != ConfigKind::CHOICE)
+      << "transition into choice state must be from decision state";
   d_actions.emplace_back(ActionTuple(a, next == nullptr ? this : next));
   d_weights.push_back(priority);
 }
@@ -140,7 +147,8 @@ State*
 FSM::new_state(const State::Kind& kind,
                std::function<bool(void)> fun,
                bool ignore,
-               bool is_final)
+               bool is_final,
+               State::ConfigKind config)
 {
   uint64_t id = d_states.size();
 
@@ -149,7 +157,7 @@ FSM::new_state(const State::Kind& kind,
          "value of macro MURXLA_MAX_N_STATES in config.hpp";
 
   State* state;
-  d_states.emplace_back(new State(kind, fun, ignore, is_final));
+  d_states.emplace_back(new State(kind, fun, ignore, is_final, config));
 
   state = d_states.back().get();
   state->set_id(id);
@@ -162,21 +170,7 @@ FSM::new_state(const State::Kind& kind,
 State*
 FSM::new_decision_state(const State::Kind& kind, std::function<bool(void)> fun)
 {
-  uint64_t id = d_states.size();
-
-  MURXLA_CHECK_CONFIG(id < MURXLA_MAX_N_STATES)
-      << "maximum number of states exceeded, increase limit by adjusting "
-         "value of macro MURXLA_MAX_N_STATES in config.hpp";
-
-  State* state;
-  d_states.emplace_back(new State(kind, fun, true, false));
-
-  state = d_states.back().get();
-  state->set_id(id);
-  state->d_mbt_stats = d_mbt_stats;
-  strncpy(d_mbt_stats->d_state_kinds[id], kind.c_str(), kind.size());
-
-  return state;
+  return new_state(kind, fun, true, false, State::ConfigKind::DECISION);
 }
 
 State*
@@ -184,41 +178,13 @@ FSM::new_choice_state(const State::Kind& kind,
                       std::function<bool(void)> fun,
                       bool is_final)
 {
-  uint64_t id = d_states.size();
-
-  MURXLA_CHECK_CONFIG(id < MURXLA_MAX_N_STATES)
-      << "maximum number of states exceeded, increase limit by adjusting "
-         "value of macro MURXLA_MAX_N_STATES in config.hpp";
-
-  State* state;
-  d_states.emplace_back(new State(kind, fun, true, is_final));
-
-  state = d_states.back().get();
-  state->set_id(id);
-  state->d_mbt_stats = d_mbt_stats;
-  strncpy(d_mbt_stats->d_state_kinds[id], kind.c_str(), kind.size());
-
-  return state;
+  return new_state(kind, fun, true, is_final, State::ConfigKind::CHOICE);
 }
 
 State*
 FSM::new_final_state(const State::Kind& kind, std::function<bool(void)> fun)
 {
-  uint64_t id = d_states.size();
-
-  MURXLA_CHECK_CONFIG(id < MURXLA_MAX_N_STATES)
-      << "maximum number of states exceeded, increase limit by adjusting "
-         "value of macro MURXLA_MAX_N_STATES in config.hpp";
-
-  State* state;
-  d_states.emplace_back(new State(kind, fun, false, true));
-
-  state = d_states.back().get();
-  state->set_id(id);
-  state->d_mbt_stats = d_mbt_stats;
-  strncpy(d_mbt_stats->d_state_kinds[id], kind.c_str(), kind.size());
-
-  return state;
+  return new_state(kind, fun, true, true);
 }
 
 void
@@ -370,7 +336,7 @@ FSM::configure()
   auto s_new    = new_state(State::NEW);
   auto s_opt    = new_state(State::OPT);
   auto s_delete = new_state(State::DELETE);
-  auto s_final  = new_state(State::FINAL, nullptr, false, true);
+  auto s_final  = new_final_state(State::FINAL, nullptr);
 
   auto s_sorts  = new_state(State::CREATE_SORTS);
   auto s_inputs = new_state(State::CREATE_INPUTS);
@@ -382,8 +348,8 @@ FSM::configure()
 
   auto s_check_sat = new_state(State::CHECK_SAT);
 
-  auto s_decide_sat_unsat = new_state(
-      State::DECIDE_SAT_UNSAT, [this]() { return d_smgr.d_sat_called; }, true);
+  auto s_decide_sat_unsat = new_decision_state(
+      State::DECIDE_SAT_UNSAT, [this]() { return d_smgr.d_sat_called; });
   auto s_sat   = new_choice_state(State::SAT, [this]() {
     return d_smgr.d_sat_called && d_smgr.d_sat_result != Solver::Result::UNSAT;
   });
