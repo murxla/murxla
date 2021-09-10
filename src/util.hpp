@@ -104,9 +104,8 @@ double get_cur_wall_time();
 
 /* -------------------------------------------------------------------------- */
 
-void tokenize(const std::string& line,
-              std::string& id,
-              std::vector<std::string>& tokens);
+std::tuple<std::string, std::vector<std::string>> tokenize(
+    const std::string& line);
 
 /* -------------------------------------------------------------------------- */
 

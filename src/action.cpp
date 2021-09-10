@@ -31,7 +31,7 @@ Action::untrace_str_to_id(const std::string& s)
 }
 
 SortKind
-Action::get_sort_kind_from_str(std::string& s)
+Action::get_sort_kind_from_str(const std::string& s)
 {
   SortKind res = sort_kind_from_str(s);
   MURXLA_CHECK_CONFIG(res != SORT_ANY) << "unknown sort kind '" << s << "'";
@@ -114,7 +114,7 @@ TransitionCreateSorts::run()
 /* -------------------------------------------------------------------------- */
 
 std::vector<uint64_t>
-ActionTermGetSort::untrace(std::vector<std::string>& tokens)
+ActionTermGetSort::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
@@ -144,7 +144,7 @@ ActionTermCheckSort::run()
 }
 
 std::vector<uint64_t>
-ActionTermCheckSort::untrace(std::vector<std::string>& tokens)
+ActionTermCheckSort::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
@@ -215,7 +215,7 @@ ActionNew::run()
 }
 
 std::vector<uint64_t>
-ActionNew::untrace(std::vector<std::string>& tokens)
+ActionNew::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
   _run();
@@ -246,7 +246,7 @@ ActionDelete::run()
 }
 
 std::vector<uint64_t>
-ActionDelete::untrace(std::vector<std::string>& tokens)
+ActionDelete::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
   _run();
@@ -318,7 +318,7 @@ ActionSetOption::run()
 }
 
 std::vector<uint64_t>
-ActionSetOption::untrace(std::vector<std::string>& tokens)
+ActionSetOption::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
   _run(tokens[0], tokens[1]);
@@ -424,7 +424,7 @@ ActionMkSort::run()
 }
 
 std::vector<uint64_t>
-ActionMkSort::untrace(std::vector<std::string>& tokens)
+ActionMkSort::untrace(const std::vector<std::string>& tokens)
 {
   size_t n_tokens = tokens.size();
 
@@ -974,7 +974,7 @@ ActionMkTerm::run()
 }
 
 std::vector<uint64_t>
-ActionMkTerm::untrace(std::vector<std::string>& tokens)
+ActionMkTerm::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS_MIN(
       3, " (operator kind, sort id, number of arguments) ", tokens.size());
@@ -1099,7 +1099,7 @@ ActionMkConst::run()
 }
 
 std::vector<uint64_t>
-ActionMkConst::untrace(std::vector<std::string>& tokens)
+ActionMkConst::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
   Sort sort = d_smgr.get_sort(untrace_str_to_id(tokens[0]));
@@ -1136,7 +1136,7 @@ ActionMkVar::run()
 }
 
 std::vector<uint64_t>
-ActionMkVar::untrace(std::vector<std::string>& tokens)
+ActionMkVar::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
   Sort sort = d_smgr.get_sort(untrace_str_to_id(tokens[0]));
@@ -1269,7 +1269,7 @@ ActionMkValue::run()
 }
 
 std::vector<uint64_t>
-ActionMkValue::untrace(std::vector<std::string>& tokens)
+ActionMkValue::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
 
@@ -1398,7 +1398,7 @@ ActionMkSpecialValue::run()
 }
 
 std::vector<uint64_t>
-ActionMkSpecialValue::untrace(std::vector<std::string>& tokens)
+ActionMkSpecialValue::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
 
@@ -1443,7 +1443,7 @@ ActionAssertFormula::run()
 }
 
 std::vector<uint64_t>
-ActionAssertFormula::untrace(std::vector<std::string>& tokens)
+ActionAssertFormula::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
@@ -1474,7 +1474,7 @@ ActionCheckSat::run()
 }
 
 std::vector<uint64_t>
-ActionCheckSat::untrace(std::vector<std::string>& tokens)
+ActionCheckSat::untrace(const std::vector<std::string>& tokens)
 {
   assert(tokens.empty());
   MURXLA_CHECK_TRACE_EMPTY(tokens);
@@ -1515,7 +1515,7 @@ ActionCheckSatAssuming::run()
 }
 
 std::vector<uint64_t>
-ActionCheckSatAssuming::untrace(std::vector<std::string>& tokens)
+ActionCheckSatAssuming::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
   std::vector<Term> assumptions;
@@ -1558,7 +1558,7 @@ ActionGetUnsatAssumptions::run()
 }
 
 std::vector<uint64_t>
-ActionGetUnsatAssumptions::untrace(std::vector<std::string>& tokens)
+ActionGetUnsatAssumptions::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
   _run();
@@ -1599,7 +1599,7 @@ ActionGetUnsatCore::run()
 }
 
 std::vector<uint64_t>
-ActionGetUnsatCore::untrace(std::vector<std::string>& tokens)
+ActionGetUnsatCore::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
   _run();
@@ -1642,7 +1642,7 @@ ActionGetValue::run()
 }
 
 std::vector<uint64_t>
-ActionGetValue::untrace(std::vector<std::string>& tokens)
+ActionGetValue::untrace(const std::vector<std::string>& tokens)
 {
   assert(tokens.size() > 1);
   std::vector<Term> terms;
@@ -1706,7 +1706,7 @@ ActionPush::run()
 }
 
 std::vector<uint64_t>
-ActionPush::untrace(std::vector<std::string>& tokens)
+ActionPush::untrace(const std::vector<std::string>& tokens)
 {
   assert(tokens.size() == 1);
   uint32_t n_levels = str_to_uint32(tokens[0]);
@@ -1736,7 +1736,7 @@ ActionPop::run()
 }
 
 std::vector<uint64_t>
-ActionPop::untrace(std::vector<std::string>& tokens)
+ActionPop::untrace(const std::vector<std::string>& tokens)
 {
   assert(tokens.size() == 1);
   uint32_t n_levels = str_to_uint32(tokens[0]);
@@ -1764,7 +1764,7 @@ ActionReset::run()
 }
 
 std::vector<uint64_t>
-ActionReset::untrace(std::vector<std::string>& tokens)
+ActionReset::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
   _run();
@@ -1790,7 +1790,7 @@ ActionResetAssertions::run()
 }
 
 std::vector<uint64_t>
-ActionResetAssertions::untrace(std::vector<std::string>& tokens)
+ActionResetAssertions::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
   _run();
@@ -1820,7 +1820,7 @@ ActionPrintModel::run()
 }
 
 std::vector<uint64_t>
-ActionPrintModel::untrace(std::vector<std::string>& tokens)
+ActionPrintModel::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
   _run();

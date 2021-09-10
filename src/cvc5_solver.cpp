@@ -1535,7 +1535,7 @@ class Cvc5ActionCheckEntailed : public Action
     return true;
   }
 
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS_MIN(1, "", tokens.size());
     if (tokens.size() == 1)
@@ -1649,7 +1649,7 @@ class Cvc5ActionSimplify : public Action
     return true;
   }
 
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_term(untrace_str_to_id(tokens[0]));

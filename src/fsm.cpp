@@ -599,10 +599,7 @@ FSM::untrace(const std::string& trace_file_name)
       if (line.empty()) continue;
       if (line[0] == '#') continue;
 
-      std::string id;
-      std::vector<std::string> tokens;
-
-      tokenize(line, id, tokens);
+      const auto& [id, tokens] = tokenize(line);
 
       if (id == "return")
       {
@@ -647,10 +644,7 @@ FSM::untrace(const std::string& trace_file_name)
           {
             nline += 1;
 
-            std::string next_id;
-            std::vector<std::string> next_tokens;
-
-            tokenize(line, next_id, next_tokens);
+            const auto& [next_id, next_tokens] = tokenize(line);
 
             if (next_id != "return")
             {

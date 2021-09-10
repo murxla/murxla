@@ -82,7 +82,7 @@ class Action
   static uint64_t untrace_str_to_id(const std::string& s);
 
   /** Helper to convert a sort kind string to a SortKind. */
-  static SortKind get_sort_kind_from_str(std::string& s);
+  static SortKind get_sort_kind_from_str(const std::string& s);
 
   enum ReturnValue
   {
@@ -129,7 +129,8 @@ class Action
    * and an empty vector otherwise. Needed to be able to compare ids of created
    * objects to the traced ids in the trace's return statement.
    */
-  virtual std::vector<uint64_t> untrace(std::vector<std::string>& tokens) = 0;
+  virtual std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) = 0;
 
   /** Return the string representing the kind of this action. */
   const Kind& get_kind() const { return d_kind; }
@@ -212,7 +213,7 @@ class Transition : public Action
   {
   }
   bool run() override { return true; }
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     return {};
   }
@@ -274,7 +275,7 @@ class UntraceAction : public Action
   }
 
   bool run() override { assert(false); }  // not to be used
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     return {};
   }
@@ -290,7 +291,8 @@ class ActionTermGetSort : public UntraceAction
   {
   }
 
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   std::vector<uint64_t> _run(Term term);
@@ -304,7 +306,8 @@ class ActionTermCheckSort : public Action
   }
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run(Term term);
@@ -317,7 +320,8 @@ class ActionNew : public Action
  public:
   ActionNew(SolverManager& smgr) : Action(smgr, NEW, NONE) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run();
@@ -328,7 +332,8 @@ class ActionDelete : public Action
  public:
   ActionDelete(SolverManager& smgr) : Action(smgr, DELETE, NONE) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run();
@@ -340,7 +345,8 @@ class ActionSetOption : public Action
   ActionSetOption(SolverManager& smgr) : Action(smgr, SET_OPTION, NONE) {}
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run(const std::string& opt, const std::string& value);
@@ -352,7 +358,8 @@ class ActionMkSort : public Action
   ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, ID) {}
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   uint64_t _run(SortKind kind);
@@ -366,7 +373,8 @@ class ActionMkTerm : public Action
  public:
   ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   std::vector<uint64_t> _run(Op::Kind kind,
@@ -380,7 +388,8 @@ class ActionMkConst : public Action
  public:
   ActionMkConst(SolverManager& smgr) : Action(smgr, MK_CONST, ID) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   std::vector<uint64_t> _run(Sort sort, std::string& symbol);
@@ -391,7 +400,8 @@ class ActionMkVar : public Action
  public:
   ActionMkVar(SolverManager& smgr) : Action(smgr, MK_VAR, ID) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   std::vector<uint64_t> _run(Sort sort, std::string& symbol);
@@ -402,7 +412,8 @@ class ActionMkValue : public Action
  public:
   ActionMkValue(SolverManager& smgr) : Action(smgr, MK_VALUE, ID) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   uint64_t _run(Sort sort, bool val);
@@ -420,7 +431,8 @@ class ActionMkSpecialValue : public Action
   }
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   uint64_t _run(Sort sort, const Solver::SpecialValueKind& val);
@@ -434,7 +446,8 @@ class ActionAssertFormula : public Action
   }
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run(Term assertion);
@@ -445,7 +458,8 @@ class ActionCheckSat : public Action
  public:
   ActionCheckSat(SolverManager& smgr) : Action(smgr, CHECK_SAT, NONE) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run();
@@ -460,7 +474,8 @@ class ActionCheckSatAssuming : public Action
   }
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run(std::vector<Term> assumptions);
@@ -475,7 +490,8 @@ class ActionGetUnsatAssumptions : public Action
   }
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run();
@@ -489,7 +505,8 @@ class ActionGetUnsatCore : public Action
   }
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run();
@@ -500,7 +517,8 @@ class ActionGetValue : public Action
  public:
   ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, ID_LIST) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   std::vector<uint64_t> _run(std::vector<Term> terms);
@@ -511,7 +529,8 @@ class ActionPush : public Action
  public:
   ActionPush(SolverManager& smgr) : Action(smgr, PUSH, NONE) {}
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run(uint32_t n_levels);
@@ -523,7 +542,8 @@ class ActionPop : public Action
   ActionPop(SolverManager& smgr) : Action(smgr, POP, NONE) {}
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run(uint32_t n_levels);
@@ -535,7 +555,8 @@ class ActionReset : public Action
   ActionReset(SolverManager& smgr) : Action(smgr, RESET, NONE) {}
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run();
@@ -550,7 +571,8 @@ class ActionResetAssertions : public Action
   }
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run();
@@ -562,7 +584,8 @@ class ActionPrintModel : public Action
   ActionPrintModel(SolverManager& smgr) : Action(smgr, PRINT_MODEL, NONE) {}
 
   bool run() override;
-  std::vector<uint64_t> untrace(std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
 
  private:
   void _run();

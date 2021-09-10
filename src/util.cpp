@@ -548,23 +548,23 @@ get_cur_wall_time()
 
 /* -------------------------------------------------------------------------- */
 
-void
-tokenize(const std::string& line,
-         std::string& id,
-         std::vector<std::string>& tokens)
+std::tuple<std::string, std::vector<std::string>>
+tokenize(const std::string& line)
 {
   std::stringstream ss;
   std::string token;
   std::stringstream tokenstream(line);
+  std::string action;
+  std::vector<std::string> tokens;
   bool open_str = false;
 
   /* Note: this std::getline() call also splits piped symbols that have
    *       spaces, e.g., "|a b|". We join these together again. */
   while (std::getline(tokenstream, token, ' '))
   {
-    if (id.empty())
+    if (action.empty())
     {
-      id = token;
+      action = token;
     }
     else if (open_str)
     {
@@ -585,6 +585,7 @@ tokenize(const std::string& line,
       tokens.push_back(token);
     }
   }
+  return std::make_tuple(action, tokens);
 }
 
 /* -------------------------------------------------------------------------- */

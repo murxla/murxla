@@ -69,7 +69,7 @@ struct SortKindData
 
 std::ostream& operator<<(std::ostream& out, SortKind kind);
 
-SortKind sort_kind_from_str(std::string& s);
+SortKind sort_kind_from_str(const std::string& s);
 
 bool operator==(const SortKindData& a, const SortKindData& b);
 

@@ -484,10 +484,9 @@ collect_to_minimize_lines_sort_fun(
   std::string sort_id;
   {
     assert(lines[line_idx].size() == 2);
-    std::vector<std::string> tokens_return;
-    std::string action_return;
-    tokenize(lines[line_idx][1], action_return, tokens_return);
-    assert(action_return == "return");
+    const auto& [action_kind_return, tokens_return] =
+        tokenize(lines[line_idx][1]);
+    assert(action_kind_return == "return");
     assert(tokens_return.size() == 1);
     sort_id = tokens_return[0];
   }
@@ -498,23 +497,20 @@ collect_to_minimize_lines_sort_fun(
   for (size_t _line_idx : included_lines)
   {
     if (_line_idx <= line_idx) continue;
-    std::vector<std::string> tokens;
-    std::string action;
-    tokenize(lines[_line_idx][0], action, tokens);
+    const auto& [action_kind, tokens] = tokenize(lines[_line_idx][0]);
     size_t _n_tokens = tokens.size();
     if (_n_tokens > 0)
     {
-      if (action == Action::MK_CONST && tokens[0] == sort_id)
+      if (action_kind == Action::MK_CONST && tokens[0] == sort_id)
       {
         assert(lines[_line_idx].size() == 2);
-        std::vector<std::string> tokens_return;
-        std::string action_return;
-        tokenize(lines[_line_idx][1], action_return, tokens_return);
-        assert(action_return == "return");
+        const auto& [action_kind_return, tokens_return] =
+            tokenize(lines[_line_idx][1]);
+        assert(action_kind_return == "return");
         assert(tokens_return.size() == 1);
         funs.insert(tokens_return[0]);
       }
-      else if (action == Action::MK_TERM && tokens[0] == Op::ITE)
+      else if (action_kind == Action::MK_TERM && tokens[0] == Op::ITE)
       {
         assert(str_to_uint32(tokens[2]) == 3);
         for (size_t j = 4; j < 6; ++j)
@@ -522,20 +518,19 @@ collect_to_minimize_lines_sort_fun(
           if (funs.find(tokens[j]) != funs.end())
           {
             assert(lines[_line_idx].size() == 2);
-            std::string action_return;
-            std::vector<std::string> tokens_return;
-            tokenize(lines[_line_idx][1], action_return, tokens_return);
-            assert(action_return == "return");
+            const auto& [action_kind_return, tokens_return] =
+                tokenize(lines[_line_idx][1]);
+            assert(action_kind_return == "return");
             assert(tokens_return.size() == 2);
             funs.insert(tokens_return[0]);
           }
         }
       }
-      else if (action == Action::MK_TERM && tokens[0] == Op::UF_APPLY
+      else if (action_kind == Action::MK_TERM && tokens[0] == Op::UF_APPLY
                && funs.find(tokens[3]) != funs.end())
       {
         assert(tokens.size() == line_tokens.size() + 2);
-        to_minimize.emplace_back(_line_idx, action, tokens, 4);
+        to_minimize.emplace_back(_line_idx, action_kind, tokens, 4);
       }
     }
   }
@@ -590,10 +585,8 @@ collect_to_update_lines_mk_const(
   std::vector<size_t> res;
   for (size_t line_idx : included_lines)
   {
-    std::vector<std::string> tokens;
-    std::string action;
-    tokenize(lines[line_idx][0], action, tokens);
-    if (action == Action::MK_CONST) continue;
+    const auto& [action_kind, tokens] = tokenize(lines[line_idx][0]);
+    if (action_kind == Action::MK_CONST) continue;
     for (size_t i = 0, n = tokens.size(); i < n; ++i)
     {
       if (tokens[i] == term_id)
@@ -628,21 +621,19 @@ collect_terms_by_sort(
 {
   for (size_t line_idx : included_lines)
   {
-    std::vector<std::string> tokens;
-    std::string action;
-    tokenize(lines[line_idx][0], action, tokens);
+    const auto& [action_kind, tokens] = tokenize(lines[line_idx][0]);
 
-    if (action != Action::MK_CONST && action != Action::MK_TERM) continue;
+    if (action_kind != Action::MK_CONST && action_kind != Action::MK_TERM)
+      continue;
 
     std::string sort_id, term_id;
 
     assert(lines[line_idx].size() == 2);
-    std::vector<std::string> tokens_return;
-    std::string action_return;
-    tokenize(lines[line_idx][1], action_return, tokens_return);
-    assert(action_return == "return");
+    const auto& [action_kind_return, tokens_return] =
+        tokenize(lines[line_idx][1]);
+    assert(action_kind_return == "return");
 
-    if (action == Action::MK_CONST)
+    if (action_kind == Action::MK_CONST)
     {
       sort_id = tokens[0];
       assert(tokens_return.size() == 1);
@@ -892,13 +883,10 @@ DD::minimize_line(Result golden_exit,
   {
     line_number += lines[line_idx].size();
 
-    std::string action_id;
-    std::vector<std::string> tokens;
-
     /* first item is the action, second (if present) the return statement */
-    tokenize(lines[line_idx][0], action_id, tokens);
+    const auto& [action_kind, tokens] = tokenize(lines[line_idx][0]);
 
-    auto it = actions.find(action_id);
+    auto it = actions.find(action_kind);
     if (it == actions.end()) continue;
     const Action::Kind& action = *it;
     size_t idx = 0, n_args = 0, n_tokens = tokens.size();
@@ -948,7 +936,7 @@ DD::minimize_line(Result golden_exit,
         }
       }
       to_minimize.emplace_back(
-          std::make_tuple(line_idx, action_id, tokens, idx));
+          std::make_tuple(line_idx, action_kind, tokens, idx));
     }
 
     if (n_args > 0)

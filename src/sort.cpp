@@ -18,7 +18,7 @@ operator==(const SortKindData& a, const SortKindData& b)
 }
 
 SortKind
-sort_kind_from_str(std::string& s)
+sort_kind_from_str(const std::string& s)
 {
   for (const auto& p : sort_kinds_to_str)
   {
