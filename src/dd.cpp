@@ -628,7 +628,11 @@ collect_terms_by_sort(
 
     std::string sort_id, term_id;
 
-    assert(lines[line_idx].size() == 2);
+    /* It can happen, that the last line triggers an issue in the solver,
+     * and no return statement is recorded. */
+    assert(line_idx == lines.size() - 1 || lines[line_idx].size() == 2);
+    if (lines[line_idx].size() != 2) continue;
+
     const auto& [action_kind_return, tokens_return] =
         tokenize(lines[line_idx][1]);
     assert(action_kind_return == "return");
