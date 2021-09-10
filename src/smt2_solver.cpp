@@ -749,6 +749,17 @@ Smt2Solver::mk_value(Sort sort, std::string value)
 
   switch (sort_kind)
   {
+    case SORT_FP:
+    {
+      val << "(fp ";
+      uint32_t ew      = sort->get_fp_exp_size();
+      std::string sign = value.substr(0, 1);
+      std::string exp  = value.substr(1, ew);
+      std::string sig  = value.substr(1 + ew);
+      val << "#b" << sign << " #b" << exp << " #b" << sig << ")";
+    }
+    break;
+
     case SORT_INT:
       assert(sort->is_int());
       val << value;
