@@ -134,7 +134,7 @@ ActionTermGetSort::_run(Term term)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionTermCheckSort::run()
+ActionTermCheck::run()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.has_term()) return false;
@@ -144,7 +144,7 @@ ActionTermCheckSort::run()
 }
 
 std::vector<uint64_t>
-ActionTermCheckSort::untrace(const std::vector<std::string>& tokens)
+ActionTermCheck::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
@@ -154,7 +154,7 @@ ActionTermCheckSort::untrace(const std::vector<std::string>& tokens)
 }
 
 void
-ActionTermCheckSort::_run(Term term)
+ActionTermCheck::_run(Term term)
 {
   MURXLA_TRACE << get_kind() << " " << term;
   Sort sort = term->get_sort();

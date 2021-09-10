@@ -303,7 +303,7 @@ FSM::configure()
   auto a_mkvar   = new_action<ActionMkVar>();
   auto a_mkterm  = new_action<ActionMkTerm>();
 
-  auto a_termchksort = new_action<ActionTermCheckSort>();
+  auto a_termchk = new_action<ActionTermCheck>();
 
   auto a_assert = new_action<ActionAssertFormula>();
 
@@ -383,14 +383,14 @@ FSM::configure()
   {
     s_inputs->add_action(a_mkvar, 200);
   }
-  s_inputs->add_action(a_termchksort, 10);
+  s_inputs->add_action(a_termchk, 10);
   s_inputs->add_action(t_inputs, 50, s_terms);
   s_inputs->add_action(t_inputs, 5000, s_check_sat);
   s_inputs->add_action(t_inputs, 500, s_push_pop);
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 1);
-  s_terms->add_action(a_termchksort, 10);
+  s_terms->add_action(a_termchk, 10);
   s_terms->add_action(t_default, 250, s_assert);
   s_terms->add_action(t_default, 1000, s_check_sat);
   s_terms->add_action(t_inputs, 500, s_push_pop);

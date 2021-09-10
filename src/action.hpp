@@ -56,7 +56,7 @@ class Action
   inline static const Kind MK_VAR                = "mk-var";
   inline static const Kind MK_TERM               = "mk-term";
   inline static const Kind TERM_GET_SORT         = "term-get-sort";
-  inline static const Kind TERM_CHECK_SORT       = "term-check-sort";
+  inline static const Kind TERM_CHECK            = "term-check";
   inline static const Kind ASSERT_FORMULA        = "assert-formula";
   inline static const Kind GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
   inline static const Kind GET_UNSAT_CORE        = "get-unsat-core";
@@ -298,12 +298,10 @@ class ActionTermGetSort : public UntraceAction
   std::vector<uint64_t> _run(Term term);
 };
 
-class ActionTermCheckSort : public Action
+class ActionTermCheck : public Action
 {
  public:
-  ActionTermCheckSort(SolverManager& smgr) : Action(smgr, TERM_CHECK_SORT, NONE)
-  {
-  }
+  ActionTermCheck(SolverManager& smgr) : Action(smgr, TERM_CHECK, NONE) {}
 
   bool run() override;
   std::vector<uint64_t> untrace(
