@@ -61,6 +61,30 @@ class BzlaTerm : public AbsTerm
   friend class BzlaSolver;
 
  public:
+  /** Map operator kinds to Bitwuzla operator kinds. */
+  static std::unordered_map<std::string, BitwuzlaKind> s_kinds_to_bzla_kinds;
+  /** Map Bitwuzla operator kinds to operator kinds. */
+  static std::unordered_map<BitwuzlaKind, std::string> s_bzla_kinds_to_kinds;
+
+  /** Solver-specific operators. */
+  inline static const Op::Kind OP_BV_DEC    = "bzla-OP_BV_DEC";
+  inline static const Op::Kind OP_BV_INC    = "bzla-OP_BV_INC";
+  inline static const Op::Kind OP_BV_REDAND = "bzla-OP_BV_REDAND";
+  inline static const Op::Kind OP_BV_REDOR  = "bzla-OP_BV_REDOR";
+  inline static const Op::Kind OP_BV_REDXOR = "bzla-OP_BV_REDXOR";
+  inline static const Op::Kind OP_BV_ROL    = "bzla-OP_BV_ROL";
+  inline static const Op::Kind OP_BV_ROR    = "bzla-OP_BV_ROR";
+  inline static const Op::Kind OP_BV_SADDO  = "bzla-OP_BV_SADDO";
+  inline static const Op::Kind OP_BV_SDIVO  = "bzla-OP_BV_SDIVO";
+  inline static const Op::Kind OP_BV_SMULO  = "bzla-OP_BV_SMULO";
+  inline static const Op::Kind OP_BV_SSUBO  = "bzla-OP_BV_SSUBO";
+  inline static const Op::Kind OP_BV_UADDO  = "bzla-OP_BV_UADDO";
+  inline static const Op::Kind OP_BV_UMULO  = "bzla-OP_BV_UMULO";
+  inline static const Op::Kind OP_BV_USUBO  = "bzla-OP_BV_USUBO";
+  inline static const Op::Kind OP_FP_TO_FP_FROM_REAL =
+      "bzla-OP_FP_TO_FP_FROM_REAL";
+  inline static const Op::Kind OP_IFF = "bzla-OP_IFF";
+
   BzlaTerm(const BitwuzlaTerm* term);
   ~BzlaTerm() override;
   size_t hash() const override;
@@ -104,24 +128,6 @@ class BzlaSolver : public Solver
   inline static const Action::Kind ACTION_SIMPLIFY = "bzla-simplify";
   inline static const Action::Kind ACTION_TERM_SET_SYMBOL =
       "bzla-term-set-symbol";
-  /** Solver-specific operators. */
-  inline static const Op::Kind OP_BV_DEC    = "bzla-OP_BV_DEC";
-  inline static const Op::Kind OP_BV_INC    = "bzla-OP_BV_INC";
-  inline static const Op::Kind OP_BV_REDAND = "bzla-OP_BV_REDAND";
-  inline static const Op::Kind OP_BV_REDOR  = "bzla-OP_BV_REDOR";
-  inline static const Op::Kind OP_BV_REDXOR = "bzla-OP_BV_REDXOR";
-  inline static const Op::Kind OP_BV_ROL    = "bzla-OP_BV_ROL";
-  inline static const Op::Kind OP_BV_ROR    = "bzla-OP_BV_ROR";
-  inline static const Op::Kind OP_BV_SADDO  = "bzla-OP_BV_SADDO";
-  inline static const Op::Kind OP_BV_SDIVO  = "bzla-OP_BV_SDIVO";
-  inline static const Op::Kind OP_BV_SMULO  = "bzla-OP_BV_SMULO";
-  inline static const Op::Kind OP_BV_SSUBO  = "bzla-OP_BV_SSUBO";
-  inline static const Op::Kind OP_BV_UADDO  = "bzla-OP_BV_UADDO";
-  inline static const Op::Kind OP_BV_UMULO  = "bzla-OP_BV_UMULO";
-  inline static const Op::Kind OP_BV_USUBO  = "bzla-OP_BV_USUBO";
-  inline static const Op::Kind OP_FP_TO_FP_FROM_REAL =
-      "bzla-OP_FP_TO_FP_FROM_REAL";
-  inline static const Op::Kind OP_IFF = "bzla-OP_IFF";
   /* Solver-specific states. */
   inline static const State::Kind STATE_FIX_RESET_ASSUMPTIONS =
       "bzla-fix-reset-assumptions";
@@ -226,8 +232,6 @@ class BzlaSolver : public Solver
  private:
   using BzlaTermFunBoolUnary       = std::function<bool(BitwuzlaTerm*)>;
   using BzlaTermFunBoolUnaryVector = std::vector<BzlaTermFunBoolUnary>;
-
-  void init_op_kinds();
 
   std::vector<Term> bzla_terms_to_terms(
       const std::vector<BitwuzlaTerm*>& terms) const;

@@ -212,6 +212,240 @@ BzlaSort::bzla_sorts_to_sorts(const BitwuzlaSort** sorts, size_t size) const
 /* BzlaTerm                                                                   */
 /* -------------------------------------------------------------------------- */
 
+std::unordered_map<std::string, BitwuzlaKind> BzlaTerm::s_kinds_to_bzla_kinds =
+    {
+        /* Special Cases */
+        {Op::DISTINCT, BITWUZLA_KIND_DISTINCT},
+        {Op::EQUAL, BITWUZLA_KIND_EQUAL},
+        {Op::ITE, BITWUZLA_KIND_ITE},
+
+        /* Bool */
+        {Op::AND, BITWUZLA_KIND_AND},
+        {Op::OR, BITWUZLA_KIND_OR},
+        {Op::NOT, BITWUZLA_KIND_NOT},
+        {Op::XOR, BITWUZLA_KIND_XOR},
+        {Op::IMPLIES, BITWUZLA_KIND_IMPLIES},
+
+        /* Arrays */
+        {Op::ARRAY_SELECT, BITWUZLA_KIND_ARRAY_SELECT},
+        {Op::ARRAY_STORE, BITWUZLA_KIND_ARRAY_STORE},
+
+        /* BV */
+        {Op::BV_EXTRACT, BITWUZLA_KIND_BV_EXTRACT},
+        {Op::BV_REPEAT, BITWUZLA_KIND_BV_REPEAT},
+        {Op::BV_ROTATE_LEFT, BITWUZLA_KIND_BV_ROLI},
+        {Op::BV_ROTATE_RIGHT, BITWUZLA_KIND_BV_RORI},
+        {Op::BV_SIGN_EXTEND, BITWUZLA_KIND_BV_SIGN_EXTEND},
+        {Op::BV_ZERO_EXTEND, BITWUZLA_KIND_BV_ZERO_EXTEND},
+
+        {Op::BV_CONCAT, BITWUZLA_KIND_BV_CONCAT},
+        {Op::BV_AND, BITWUZLA_KIND_BV_AND},
+        {Op::BV_OR, BITWUZLA_KIND_BV_OR},
+        {Op::BV_XOR, BITWUZLA_KIND_BV_XOR},
+        {Op::BV_MULT, BITWUZLA_KIND_BV_MUL},
+        {Op::BV_ADD, BITWUZLA_KIND_BV_ADD},
+        {Op::BV_NOT, BITWUZLA_KIND_BV_NOT},
+        {Op::BV_NEG, BITWUZLA_KIND_BV_NEG},
+        {Op::BV_NAND, BITWUZLA_KIND_BV_NAND},
+        {Op::BV_NOR, BITWUZLA_KIND_BV_NOR},
+        {Op::BV_XNOR, BITWUZLA_KIND_BV_XNOR},
+        {Op::BV_COMP, BITWUZLA_KIND_BV_COMP},
+        {Op::BV_SUB, BITWUZLA_KIND_BV_SUB},
+        {Op::BV_UDIV, BITWUZLA_KIND_BV_UDIV},
+        {Op::BV_UREM, BITWUZLA_KIND_BV_UREM},
+        {Op::BV_UREM, BITWUZLA_KIND_BV_UREM},
+        {Op::BV_SDIV, BITWUZLA_KIND_BV_SDIV},
+        {Op::BV_SREM, BITWUZLA_KIND_BV_SREM},
+        {Op::BV_SMOD, BITWUZLA_KIND_BV_SMOD},
+        {Op::BV_SHL, BITWUZLA_KIND_BV_SHL},
+        {Op::BV_LSHR, BITWUZLA_KIND_BV_SHR},
+        {Op::BV_ASHR, BITWUZLA_KIND_BV_ASHR},
+        {Op::BV_ULT, BITWUZLA_KIND_BV_ULT},
+        {Op::BV_ULE, BITWUZLA_KIND_BV_ULE},
+        {Op::BV_UGT, BITWUZLA_KIND_BV_UGT},
+        {Op::BV_UGE, BITWUZLA_KIND_BV_UGE},
+        {Op::BV_SLT, BITWUZLA_KIND_BV_SLT},
+        {Op::BV_SLE, BITWUZLA_KIND_BV_SLE},
+        {Op::BV_SGT, BITWUZLA_KIND_BV_SGT},
+        {Op::BV_SGE, BITWUZLA_KIND_BV_SGE},
+
+        /* FP */
+        {Op::FP_ABS, BITWUZLA_KIND_FP_ABS},
+        {Op::FP_ADD, BITWUZLA_KIND_FP_ADD},
+        {Op::FP_DIV, BITWUZLA_KIND_FP_DIV},
+        {Op::FP_EQ, BITWUZLA_KIND_FP_EQ},
+        {Op::FP_FMA, BITWUZLA_KIND_FP_FMA},
+        {Op::FP_FP, BITWUZLA_KIND_FP_FP},
+        {Op::FP_IS_NORMAL, BITWUZLA_KIND_FP_IS_NORMAL},
+        {Op::FP_IS_SUBNORMAL, BITWUZLA_KIND_FP_IS_SUBNORMAL},
+        {Op::FP_IS_INF, BITWUZLA_KIND_FP_IS_INF},
+        {Op::FP_IS_NAN, BITWUZLA_KIND_FP_IS_NAN},
+        {Op::FP_IS_NEG, BITWUZLA_KIND_FP_IS_NEG},
+        {Op::FP_IS_POS, BITWUZLA_KIND_FP_IS_POS},
+        {Op::FP_IS_ZERO, BITWUZLA_KIND_FP_IS_ZERO},
+        {Op::FP_LT, BITWUZLA_KIND_FP_LT},
+        {Op::FP_LEQ, BITWUZLA_KIND_FP_LEQ},
+        {Op::FP_GT, BITWUZLA_KIND_FP_GT},
+        {Op::FP_GEQ, BITWUZLA_KIND_FP_GEQ},
+        {Op::FP_MAX, BITWUZLA_KIND_FP_MAX},
+        {Op::FP_MIN, BITWUZLA_KIND_FP_MIN},
+        {Op::FP_MUL, BITWUZLA_KIND_FP_MUL},
+        {Op::FP_NEG, BITWUZLA_KIND_FP_NEG},
+        {Op::FP_REM, BITWUZLA_KIND_FP_REM},
+        {Op::FP_RTI, BITWUZLA_KIND_FP_RTI},
+        {Op::FP_SQRT, BITWUZLA_KIND_FP_SQRT},
+        {Op::FP_SUB, BITWUZLA_KIND_FP_SUB},
+        {Op::FP_TO_FP_FROM_BV, BITWUZLA_KIND_FP_TO_FP_FROM_BV},
+        {Op::FP_TO_FP_FROM_SBV, BITWUZLA_KIND_FP_TO_FP_FROM_SBV},
+        {Op::FP_TO_FP_FROM_FP, BITWUZLA_KIND_FP_TO_FP_FROM_FP},
+        {Op::FP_TO_FP_FROM_UBV, BITWUZLA_KIND_FP_TO_FP_FROM_UBV},
+        {Op::FP_TO_SBV, BITWUZLA_KIND_FP_TO_SBV},
+        {Op::FP_TO_UBV, BITWUZLA_KIND_FP_TO_UBV},
+
+        /* Quantifiers */
+        {Op::FORALL, BITWUZLA_KIND_FORALL},
+        {Op::EXISTS, BITWUZLA_KIND_EXISTS},
+
+        /* UF */
+        {Op::UF_APPLY, BITWUZLA_KIND_APPLY},
+
+        /* Solver-specific operators */
+        {OP_BV_DEC, BITWUZLA_KIND_BV_DEC},
+        {OP_BV_INC, BITWUZLA_KIND_BV_INC},
+        {OP_BV_ROL, BITWUZLA_KIND_BV_ROL},
+        {OP_BV_ROR, BITWUZLA_KIND_BV_ROR},
+        {OP_BV_REDAND, BITWUZLA_KIND_BV_REDAND},
+        {OP_BV_REDOR, BITWUZLA_KIND_BV_REDOR},
+        {OP_BV_REDXOR, BITWUZLA_KIND_BV_REDXOR},
+        {OP_BV_UADDO, BITWUZLA_KIND_BV_UADD_OVERFLOW},
+        {OP_BV_SADDO, BITWUZLA_KIND_BV_SADD_OVERFLOW},
+        {OP_BV_UMULO, BITWUZLA_KIND_BV_UMUL_OVERFLOW},
+        {OP_BV_SMULO, BITWUZLA_KIND_BV_SMUL_OVERFLOW},
+        {OP_BV_USUBO, BITWUZLA_KIND_BV_USUB_OVERFLOW},
+        {OP_BV_SSUBO, BITWUZLA_KIND_BV_SSUB_OVERFLOW},
+        {OP_BV_SDIVO, BITWUZLA_KIND_BV_SDIV_OVERFLOW},
+        {OP_IFF, BITWUZLA_KIND_IFF},
+        /* Special treatment, not really a Bitwuzla kind. */
+        {OP_FP_TO_FP_FROM_REAL, BITWUZLA_NUM_KINDS},
+};
+
+std::unordered_map<BitwuzlaKind, std::string> BzlaTerm::s_bzla_kinds_to_kinds =
+    {
+        /* Special Cases */
+        {BITWUZLA_KIND_DISTINCT, Op::DISTINCT},
+        {BITWUZLA_KIND_EQUAL, Op::EQUAL},
+        {BITWUZLA_KIND_ITE, Op::ITE},
+
+        /* Bool */
+        {BITWUZLA_KIND_AND, Op::AND},
+        {BITWUZLA_KIND_OR, Op::OR},
+        {BITWUZLA_KIND_NOT, Op::NOT},
+        {BITWUZLA_KIND_XOR, Op::XOR},
+        {BITWUZLA_KIND_IMPLIES, Op::IMPLIES},
+
+        /* Arrays */
+        {BITWUZLA_KIND_ARRAY_SELECT, Op::ARRAY_SELECT},
+        {BITWUZLA_KIND_ARRAY_STORE, Op::ARRAY_STORE},
+
+        /* BV */
+        {BITWUZLA_KIND_BV_EXTRACT, Op::BV_EXTRACT},
+        {BITWUZLA_KIND_BV_REPEAT, Op::BV_REPEAT},
+        {BITWUZLA_KIND_BV_ROLI, Op::BV_ROTATE_LEFT},
+        {BITWUZLA_KIND_BV_RORI, Op::BV_ROTATE_RIGHT},
+        {BITWUZLA_KIND_BV_SIGN_EXTEND, Op::BV_SIGN_EXTEND},
+        {BITWUZLA_KIND_BV_ZERO_EXTEND, Op::BV_ZERO_EXTEND},
+
+        {BITWUZLA_KIND_BV_CONCAT, Op::BV_CONCAT},
+        {BITWUZLA_KIND_BV_AND, Op::BV_AND},
+        {BITWUZLA_KIND_BV_OR, Op::BV_OR},
+        {BITWUZLA_KIND_BV_XOR, Op::BV_XOR},
+        {BITWUZLA_KIND_BV_MUL, Op::BV_MULT},
+        {BITWUZLA_KIND_BV_ADD, Op::BV_ADD},
+        {BITWUZLA_KIND_BV_NOT, Op::BV_NOT},
+        {BITWUZLA_KIND_BV_NEG, Op::BV_NEG},
+        {BITWUZLA_KIND_BV_NAND, Op::BV_NAND},
+        {BITWUZLA_KIND_BV_NOR, Op::BV_NOR},
+        {BITWUZLA_KIND_BV_XNOR, Op::BV_XNOR},
+        {BITWUZLA_KIND_BV_COMP, Op::BV_COMP},
+        {BITWUZLA_KIND_BV_SUB, Op::BV_SUB},
+        {BITWUZLA_KIND_BV_UDIV, Op::BV_UDIV},
+        {BITWUZLA_KIND_BV_UREM, Op::BV_UREM},
+        {BITWUZLA_KIND_BV_UREM, Op::BV_UREM},
+        {BITWUZLA_KIND_BV_SDIV, Op::BV_SDIV},
+        {BITWUZLA_KIND_BV_SREM, Op::BV_SREM},
+        {BITWUZLA_KIND_BV_SMOD, Op::BV_SMOD},
+        {BITWUZLA_KIND_BV_SHL, Op::BV_SHL},
+        {BITWUZLA_KIND_BV_SHR, Op::BV_LSHR},
+        {BITWUZLA_KIND_BV_ASHR, Op::BV_ASHR},
+        {BITWUZLA_KIND_BV_ULT, Op::BV_ULT},
+        {BITWUZLA_KIND_BV_ULE, Op::BV_ULE},
+        {BITWUZLA_KIND_BV_UGT, Op::BV_UGT},
+        {BITWUZLA_KIND_BV_UGE, Op::BV_UGE},
+        {BITWUZLA_KIND_BV_SLT, Op::BV_SLT},
+        {BITWUZLA_KIND_BV_SLE, Op::BV_SLE},
+        {BITWUZLA_KIND_BV_SGT, Op::BV_SGT},
+        {BITWUZLA_KIND_BV_SGE, Op::BV_SGE},
+
+        /* FP */
+        {BITWUZLA_KIND_FP_ABS, Op::FP_ABS},
+        {BITWUZLA_KIND_FP_ADD, Op::FP_ADD},
+        {BITWUZLA_KIND_FP_DIV, Op::FP_DIV},
+        {BITWUZLA_KIND_FP_EQ, Op::FP_EQ},
+        {BITWUZLA_KIND_FP_FMA, Op::FP_FMA},
+        {BITWUZLA_KIND_FP_FP, Op::FP_FP},
+        {BITWUZLA_KIND_FP_IS_NORMAL, Op::FP_IS_NORMAL},
+        {BITWUZLA_KIND_FP_IS_SUBNORMAL, Op::FP_IS_SUBNORMAL},
+        {BITWUZLA_KIND_FP_IS_INF, Op::FP_IS_INF},
+        {BITWUZLA_KIND_FP_IS_NAN, Op::FP_IS_NAN},
+        {BITWUZLA_KIND_FP_IS_NEG, Op::FP_IS_NEG},
+        {BITWUZLA_KIND_FP_IS_POS, Op::FP_IS_POS},
+        {BITWUZLA_KIND_FP_IS_ZERO, Op::FP_IS_ZERO},
+        {BITWUZLA_KIND_FP_LT, Op::FP_LT},
+        {BITWUZLA_KIND_FP_LEQ, Op::FP_LEQ},
+        {BITWUZLA_KIND_FP_GT, Op::FP_GT},
+        {BITWUZLA_KIND_FP_GEQ, Op::FP_GEQ},
+        {BITWUZLA_KIND_FP_MAX, Op::FP_MAX},
+        {BITWUZLA_KIND_FP_MIN, Op::FP_MIN},
+        {BITWUZLA_KIND_FP_MUL, Op::FP_MUL},
+        {BITWUZLA_KIND_FP_NEG, Op::FP_NEG},
+        {BITWUZLA_KIND_FP_REM, Op::FP_REM},
+        {BITWUZLA_KIND_FP_RTI, Op::FP_RTI},
+        {BITWUZLA_KIND_FP_SQRT, Op::FP_SQRT},
+        {BITWUZLA_KIND_FP_SUB, Op::FP_SUB},
+        {BITWUZLA_KIND_FP_TO_FP_FROM_BV, Op::FP_TO_FP_FROM_BV},
+        {BITWUZLA_KIND_FP_TO_FP_FROM_SBV, Op::FP_TO_FP_FROM_SBV},
+        {BITWUZLA_KIND_FP_TO_FP_FROM_FP, Op::FP_TO_FP_FROM_FP},
+        {BITWUZLA_KIND_FP_TO_FP_FROM_UBV, Op::FP_TO_FP_FROM_UBV},
+        {BITWUZLA_KIND_FP_TO_SBV, Op::FP_TO_SBV},
+        {BITWUZLA_KIND_FP_TO_UBV, Op::FP_TO_UBV},
+
+        /* Quantifiers */
+        {BITWUZLA_KIND_FORALL, Op::FORALL},
+        {BITWUZLA_KIND_EXISTS, Op::EXISTS},
+
+        /* UF */
+        {BITWUZLA_KIND_APPLY, Op::UF_APPLY},
+
+        /* Solver-specific operators */
+        {BITWUZLA_KIND_BV_DEC, OP_BV_DEC},
+        {BITWUZLA_KIND_BV_INC, OP_BV_INC},
+        {BITWUZLA_KIND_BV_ROL, OP_BV_ROL},
+        {BITWUZLA_KIND_BV_ROR, OP_BV_ROR},
+        {BITWUZLA_KIND_BV_REDAND, OP_BV_REDAND},
+        {BITWUZLA_KIND_BV_REDOR, OP_BV_REDOR},
+        {BITWUZLA_KIND_BV_REDXOR, OP_BV_REDXOR},
+        {BITWUZLA_KIND_BV_UADD_OVERFLOW, OP_BV_UADDO},
+        {BITWUZLA_KIND_BV_SADD_OVERFLOW, OP_BV_SADDO},
+        {BITWUZLA_KIND_BV_UMUL_OVERFLOW, OP_BV_UMULO},
+        {BITWUZLA_KIND_BV_SMUL_OVERFLOW, OP_BV_SMULO},
+        {BITWUZLA_KIND_BV_USUB_OVERFLOW, OP_BV_USUBO},
+        {BITWUZLA_KIND_BV_SSUB_OVERFLOW, OP_BV_SSUBO},
+        {BITWUZLA_KIND_BV_SDIV_OVERFLOW, OP_BV_SDIVO},
+        {BITWUZLA_KIND_IFF, OP_IFF},
+        /* Special treatment, not really a Bitwuzla kind. */
+        {BITWUZLA_NUM_KINDS, OP_FP_TO_FP_FROM_REAL},
+};
+
 BzlaTerm::BzlaTerm(const BitwuzlaTerm* term) : d_term(term) {}
 
 BzlaTerm::~BzlaTerm() {}
@@ -325,7 +559,6 @@ BzlaSolver::new_solver()
 {
   assert(d_solver == nullptr);
   d_solver = bitwuzla_new();
-  init_op_kinds();
   // TODO: initialize options
 }
 
@@ -748,13 +981,14 @@ BzlaSolver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
                     const std::vector<uint32_t>& params)
 {
-  MURXLA_CHECK_CONFIG(d_op_kinds.find(kind) != d_op_kinds.end())
+  MURXLA_CHECK_CONFIG(BzlaTerm::s_kinds_to_bzla_kinds.find(kind)
+                      != BzlaTerm::s_kinds_to_bzla_kinds.end())
       << "BzlaSolver: operator kind '" << kind << "' not configured";
 
   BitwuzlaTerm* bzla_res = nullptr;
   size_t n_args          = args.size();
   size_t n_params        = params.size();
-  BitwuzlaKind bzla_kind = d_op_kinds.at(kind);
+  BitwuzlaKind bzla_kind = BzlaTerm::s_kinds_to_bzla_kinds.at(kind);
   std::vector<BitwuzlaTerm*> vars;
   std::vector<const BitwuzlaTerm*> bzla_args = terms_to_bzla_terms(args);
 
@@ -807,7 +1041,7 @@ BzlaSolver::mk_term(const Op::Kind& kind,
   }
   else
   {
-    if (kind == OP_FP_TO_FP_FROM_REAL)
+    if (kind == BzlaTerm::OP_FP_TO_FP_FROM_REAL)
     {
       /* Bitwuzla only supports a very restricted version of to_fp from Real:
        * only from strings representing real or rational values. */
@@ -1105,126 +1339,6 @@ BzlaSolver::option_unsat_cores_enabled() const
 
 /* -------------------------------------------------------------------------- */
 
-void
-BzlaSolver::init_op_kinds()
-{
-  d_op_kinds = {
-      /* Special Cases */
-      {Op::DISTINCT, BITWUZLA_KIND_DISTINCT},
-      {Op::EQUAL, BITWUZLA_KIND_EQUAL},
-      {Op::ITE, BITWUZLA_KIND_ITE},
-
-      /* Bool */
-      {Op::AND, BITWUZLA_KIND_AND},
-      {Op::OR, BITWUZLA_KIND_OR},
-      {Op::NOT, BITWUZLA_KIND_NOT},
-      {Op::XOR, BITWUZLA_KIND_XOR},
-      {Op::IMPLIES, BITWUZLA_KIND_IMPLIES},
-
-      /* Arrays */
-      {Op::ARRAY_SELECT, BITWUZLA_KIND_ARRAY_SELECT},
-      {Op::ARRAY_STORE, BITWUZLA_KIND_ARRAY_STORE},
-
-      /* BV */
-      {Op::BV_EXTRACT, BITWUZLA_KIND_BV_EXTRACT},
-      {Op::BV_REPEAT, BITWUZLA_KIND_BV_REPEAT},
-      {Op::BV_ROTATE_LEFT, BITWUZLA_KIND_BV_ROLI},
-      {Op::BV_ROTATE_RIGHT, BITWUZLA_KIND_BV_RORI},
-      {Op::BV_SIGN_EXTEND, BITWUZLA_KIND_BV_SIGN_EXTEND},
-      {Op::BV_ZERO_EXTEND, BITWUZLA_KIND_BV_ZERO_EXTEND},
-
-      {Op::BV_CONCAT, BITWUZLA_KIND_BV_CONCAT},
-      {Op::BV_AND, BITWUZLA_KIND_BV_AND},
-      {Op::BV_OR, BITWUZLA_KIND_BV_OR},
-      {Op::BV_XOR, BITWUZLA_KIND_BV_XOR},
-      {Op::BV_MULT, BITWUZLA_KIND_BV_MUL},
-      {Op::BV_ADD, BITWUZLA_KIND_BV_ADD},
-      {Op::BV_NOT, BITWUZLA_KIND_BV_NOT},
-      {Op::BV_NEG, BITWUZLA_KIND_BV_NEG},
-      {Op::BV_NAND, BITWUZLA_KIND_BV_NAND},
-      {Op::BV_NOR, BITWUZLA_KIND_BV_NOR},
-      {Op::BV_XNOR, BITWUZLA_KIND_BV_XNOR},
-      {Op::BV_COMP, BITWUZLA_KIND_BV_COMP},
-      {Op::BV_SUB, BITWUZLA_KIND_BV_SUB},
-      {Op::BV_UDIV, BITWUZLA_KIND_BV_UDIV},
-      {Op::BV_UREM, BITWUZLA_KIND_BV_UREM},
-      {Op::BV_UREM, BITWUZLA_KIND_BV_UREM},
-      {Op::BV_SDIV, BITWUZLA_KIND_BV_SDIV},
-      {Op::BV_SREM, BITWUZLA_KIND_BV_SREM},
-      {Op::BV_SMOD, BITWUZLA_KIND_BV_SMOD},
-      {Op::BV_SHL, BITWUZLA_KIND_BV_SHL},
-      {Op::BV_LSHR, BITWUZLA_KIND_BV_SHR},
-      {Op::BV_ASHR, BITWUZLA_KIND_BV_ASHR},
-      {Op::BV_ULT, BITWUZLA_KIND_BV_ULT},
-      {Op::BV_ULE, BITWUZLA_KIND_BV_ULE},
-      {Op::BV_UGT, BITWUZLA_KIND_BV_UGT},
-      {Op::BV_UGE, BITWUZLA_KIND_BV_UGE},
-      {Op::BV_SLT, BITWUZLA_KIND_BV_SLT},
-      {Op::BV_SLE, BITWUZLA_KIND_BV_SLE},
-      {Op::BV_SGT, BITWUZLA_KIND_BV_SGT},
-      {Op::BV_SGE, BITWUZLA_KIND_BV_SGE},
-
-      /* FP */
-      {Op::FP_ABS, BITWUZLA_KIND_FP_ABS},
-      {Op::FP_ADD, BITWUZLA_KIND_FP_ADD},
-      {Op::FP_DIV, BITWUZLA_KIND_FP_DIV},
-      {Op::FP_EQ, BITWUZLA_KIND_FP_EQ},
-      {Op::FP_FMA, BITWUZLA_KIND_FP_FMA},
-      {Op::FP_FP, BITWUZLA_KIND_FP_FP},
-      {Op::FP_IS_NORMAL, BITWUZLA_KIND_FP_IS_NORMAL},
-      {Op::FP_IS_SUBNORMAL, BITWUZLA_KIND_FP_IS_SUBNORMAL},
-      {Op::FP_IS_INF, BITWUZLA_KIND_FP_IS_INF},
-      {Op::FP_IS_NAN, BITWUZLA_KIND_FP_IS_NAN},
-      {Op::FP_IS_NEG, BITWUZLA_KIND_FP_IS_NEG},
-      {Op::FP_IS_POS, BITWUZLA_KIND_FP_IS_POS},
-      {Op::FP_IS_ZERO, BITWUZLA_KIND_FP_IS_ZERO},
-      {Op::FP_LT, BITWUZLA_KIND_FP_LT},
-      {Op::FP_LEQ, BITWUZLA_KIND_FP_LEQ},
-      {Op::FP_GT, BITWUZLA_KIND_FP_GT},
-      {Op::FP_GEQ, BITWUZLA_KIND_FP_GEQ},
-      {Op::FP_MAX, BITWUZLA_KIND_FP_MAX},
-      {Op::FP_MIN, BITWUZLA_KIND_FP_MIN},
-      {Op::FP_MUL, BITWUZLA_KIND_FP_MUL},
-      {Op::FP_NEG, BITWUZLA_KIND_FP_NEG},
-      {Op::FP_REM, BITWUZLA_KIND_FP_REM},
-      {Op::FP_RTI, BITWUZLA_KIND_FP_RTI},
-      {Op::FP_SQRT, BITWUZLA_KIND_FP_SQRT},
-      {Op::FP_SUB, BITWUZLA_KIND_FP_SUB},
-      {Op::FP_TO_FP_FROM_BV, BITWUZLA_KIND_FP_TO_FP_FROM_BV},
-      {Op::FP_TO_FP_FROM_SBV, BITWUZLA_KIND_FP_TO_FP_FROM_SBV},
-      {Op::FP_TO_FP_FROM_FP, BITWUZLA_KIND_FP_TO_FP_FROM_FP},
-      {Op::FP_TO_FP_FROM_UBV, BITWUZLA_KIND_FP_TO_FP_FROM_UBV},
-      {Op::FP_TO_SBV, BITWUZLA_KIND_FP_TO_SBV},
-      {Op::FP_TO_UBV, BITWUZLA_KIND_FP_TO_UBV},
-
-      /* Quantifiers */
-      {Op::FORALL, BITWUZLA_KIND_FORALL},
-      {Op::EXISTS, BITWUZLA_KIND_EXISTS},
-
-      /* UF */
-      {Op::UF_APPLY, BITWUZLA_KIND_APPLY},
-
-      /* Solver-specific operators */
-      {OP_BV_DEC, BITWUZLA_KIND_BV_DEC},
-      {OP_BV_INC, BITWUZLA_KIND_BV_INC},
-      {OP_BV_ROL, BITWUZLA_KIND_BV_ROL},
-      {OP_BV_ROR, BITWUZLA_KIND_BV_ROR},
-      {OP_BV_REDAND, BITWUZLA_KIND_BV_REDAND},
-      {OP_BV_REDOR, BITWUZLA_KIND_BV_REDOR},
-      {OP_BV_REDXOR, BITWUZLA_KIND_BV_REDXOR},
-      {OP_BV_UADDO, BITWUZLA_KIND_BV_UADD_OVERFLOW},
-      {OP_BV_SADDO, BITWUZLA_KIND_BV_SADD_OVERFLOW},
-      {OP_BV_UMULO, BITWUZLA_KIND_BV_UMUL_OVERFLOW},
-      {OP_BV_SMULO, BITWUZLA_KIND_BV_SMUL_OVERFLOW},
-      {OP_BV_USUBO, BITWUZLA_KIND_BV_USUB_OVERFLOW},
-      {OP_BV_SSUBO, BITWUZLA_KIND_BV_SSUB_OVERFLOW},
-      {OP_BV_SDIVO, BITWUZLA_KIND_BV_SDIV_OVERFLOW},
-      {OP_IFF, BITWUZLA_KIND_IFF},
-      /* Special treatment, not really a Bitwuzla kind. */
-      {OP_FP_TO_FP_FROM_REAL, BITWUZLA_NUM_KINDS},
-  };
-}
-
 std::vector<Term>
 BzlaSolver::bzla_terms_to_terms(const std::vector<BitwuzlaTerm*>& terms) const
 {
@@ -1399,22 +1513,32 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
 void
 BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
 {
-  opmgr->add_op_kind(OP_BV_DEC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_INC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(BzlaTerm::OP_BV_DEC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(BzlaTerm::OP_BV_INC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  opmgr->add_op_kind(OP_BV_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_REDXOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_REDXOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  opmgr->add_op_kind(OP_BV_UADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_UMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_USUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_ROL, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_ROR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_SADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BV_SSUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_UADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_UMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_USUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(BzlaTerm::OP_BV_ROL, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(BzlaTerm::OP_BV_ROR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_SADDO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_SDIVO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_SMULO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_BV_SSUBO, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
   /* Bitwuzla only supports a very restricted version of to_fp from Real:
    * only from strings representing real or rational values. We thus define
@@ -1422,10 +1546,15 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
    * term, and an FP term (which is only needed to get an existing FP sort to
    * convert to).  This is a workaround for this very special case (we don't)
    * want to generalize it for all solvers because it is too special). */
-  opmgr->add_op_kind(
-      OP_FP_TO_FP_FROM_REAL, 2, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);
+  opmgr->add_op_kind(BzlaTerm::OP_FP_TO_FP_FROM_REAL,
+                     2,
+                     0,
+                     SORT_FP,
+                     {SORT_RM, SORT_FP},
+                     THEORY_FP);
 
-  opmgr->add_op_kind(OP_IFF, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+  opmgr->add_op_kind(
+      BzlaTerm::OP_IFF, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
 }
 
 /* -------------------------------------------------------------------------- */
