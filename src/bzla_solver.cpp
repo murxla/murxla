@@ -1484,7 +1484,7 @@ class BzlaActionGetArrayValue : public Action
     bitwuzla_get_array_value(
         bzla, bzla_term, &bzla_idxs, &bzla_vals, &size, &bzla_default_val);
 
-    if (d_smgr.d_incremental && d_rng.flip_coin())
+    if (d_smgr.d_incremental)
     {
       /* assume assignment and check if result is still SAT */
       std::vector<Term> assumptions;
@@ -1538,7 +1538,7 @@ class BzlaActionGetBvValue : public Action
     Bitwuzla* bzla          = bzla_solver.get_solver();
     const BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
     const char* bv_val      = bitwuzla_get_bv_value(bzla, bzla_term);
-    if (d_smgr.d_incremental && d_rng.flip_coin())
+    if (d_smgr.d_incremental)
     {
       /* assume assignment and check if result is still SAT */
       Term term_bv_val =
@@ -1589,7 +1589,7 @@ class BzlaActionGetFpValue : public Action
     const char *fp_val_sign, *fp_val_exp, *fp_val_sig;
     bitwuzla_get_fp_value(
         bzla, bzla_term, &fp_val_sign, &fp_val_exp, &fp_val_sig);
-    if (d_smgr.d_incremental && d_rng.flip_coin())
+    if (d_smgr.d_incremental)
     {
       /* assume assignment and check if result is still SAT */
       std::string fp_val(std::string(fp_val_sign) + std::string(fp_val_exp)
@@ -1644,7 +1644,7 @@ class BzlaActionGetFunValue : public Action
     bitwuzla_get_fun_value(
         bzla, bzla_term, &bzla_args, &arity, &bzla_vals, &size);
 
-    if (d_smgr.d_incremental && d_rng.flip_coin())
+    if (d_smgr.d_incremental)
     {
       /* assume assignment and check if result is still SAT */
       std::vector<Term> assumptions;
@@ -1698,7 +1698,7 @@ class BzlaActionGetRmValue : public Action
     Bitwuzla* bzla          = bzla_solver.get_solver();
     const BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
     std::string rm_val(bitwuzla_get_rm_value(bzla, bzla_term));
-    if (d_smgr.d_incremental && d_rng.flip_coin())
+    if (d_smgr.d_incremental)
     {
       Solver::SpecialValueKind value;
       if (rm_val == "RNA")

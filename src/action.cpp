@@ -1666,7 +1666,7 @@ ActionGetValue::_run(std::vector<Term> terms)
    *       without sort information! */
   std::vector<Term> res_terms = d_solver.get_value(terms);
   assert(terms.size() == res_terms.size());
-  if (d_smgr.d_incremental && d_rng.flip_coin())
+  if (d_smgr.d_incremental)
   {
     /* assume assignment and check if result is still SAT */
     std::vector<Term> assumptions;
