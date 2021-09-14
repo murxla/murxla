@@ -97,6 +97,7 @@ str_bin_to_dec(const std::string& str_bin)
 }
 
 namespace {
+/** Strip leading zeros of given string. */
 std::string
 strip_zeros(std::string s)
 {
@@ -106,6 +107,7 @@ strip_zeros(std::string s)
   return s;
 }
 
+/** Add two binary numbers given as strings. */
 std::string
 add_unbounded_bin_str(std::string a, std::string b)
 {
@@ -132,6 +134,7 @@ add_unbounded_bin_str(std::string a, std::string b)
   return strip_zeros(res);
 }
 
+/** Multiply two binary numbers given as strings. */
 std::string
 mult_unbounded_bin_str(std::string a, std::string b)
 {
@@ -178,6 +181,7 @@ mult_unbounded_bin_str(std::string a, std::string b)
   return res;
 }
 
+/** Convert a digit to its binary representation; */
 const char*
 digit2bin(char ch)
 {
