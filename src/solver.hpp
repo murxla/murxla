@@ -135,6 +135,13 @@ class AbsTerm
   /** Return true if this term is a RegLan term. */
   virtual bool is_reglan() const = 0;
 
+  /**
+   * Return the kind of the current term.
+   * This kind is not a kind we cache on creation, but the kind that the
+   * solver reports. May be Op::UNDEFINED.
+   */
+  virtual const Op::Kind& get_kind() const;
+
   void set_id(uint64_t id);
   uint64_t get_id() const;
 

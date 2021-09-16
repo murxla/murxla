@@ -94,7 +94,7 @@ class Smt2Term : public AbsTerm
   bool is_string() const override;
   bool is_reglan() const override;
 
-  const Op::Kind get_kind() const;
+  const std::string& get_kind() const override;
   const std::vector<Term>& get_args() const;
   const std::vector<uint32_t>& get_params() const;
   const std::string get_repr() const;

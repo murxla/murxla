@@ -113,6 +113,12 @@ operator<<(std::ostream& out, const Sort s)
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
+const Op::Kind&
+AbsTerm::get_kind() const
+{
+  return Op::UNDEFINED;
+}
+
 void
 AbsTerm::set_id(uint64_t id)
 {

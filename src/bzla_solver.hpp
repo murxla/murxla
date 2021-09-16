@@ -62,9 +62,9 @@ class BzlaTerm : public AbsTerm
 
  public:
   /** Map operator kinds to Bitwuzla operator kinds. */
-  static std::unordered_map<std::string, BitwuzlaKind> s_kinds_to_bzla_kinds;
+  static std::unordered_map<Op::Kind, BitwuzlaKind> s_kinds_to_bzla_kinds;
   /** Map Bitwuzla operator kinds to operator kinds. */
-  static std::unordered_map<BitwuzlaKind, std::string> s_bzla_kinds_to_kinds;
+  static std::unordered_map<BitwuzlaKind, Op::Kind> s_bzla_kinds_to_kinds;
 
   /** Solver-specific operators. */
   inline static const Op::Kind OP_BV_DEC    = "bzla-OP_BV_DEC";
@@ -100,6 +100,7 @@ class BzlaTerm : public AbsTerm
   bool is_rm() const override;
   bool is_string() const override;
   bool is_reglan() const override;
+  const Op::Kind& get_kind() const override;
 
  private:
   const BitwuzlaTerm* d_term = nullptr;

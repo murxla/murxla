@@ -64,11 +64,9 @@ class Cvc5Term : public AbsTerm
 
  public:
   /** Map operator kinds to Bitwuzla operator kinds. */
-  static std::unordered_map<std::string, ::cvc5::api::Kind>
-      s_kinds_to_cvc5_kinds;
+  static std::unordered_map<Op::Kind, ::cvc5::api::Kind> s_kinds_to_cvc5_kinds;
   /** Map Bitwuzla operator kinds to operator kinds. */
-  static std::unordered_map<::cvc5::api::Kind, std::string>
-      s_cvc5_kinds_to_kinds;
+  static std::unordered_map<::cvc5::api::Kind, Op::Kind> s_cvc5_kinds_to_kinds;
 
   /** Solver-specific operators. */
   // BV
@@ -99,6 +97,7 @@ class Cvc5Term : public AbsTerm
   bool is_rm() const override;
   bool is_string() const override;
   bool is_reglan() const override;
+  const Op::Kind& get_kind() const override;
 
  private:
   ::cvc5::api::Solver* d_solver = nullptr;

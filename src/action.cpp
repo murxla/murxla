@@ -158,6 +158,8 @@ ActionTermCheck::_run(Term term)
 {
   MURXLA_TRACE << get_kind() << " " << term;
   Sort sort = term->get_sort();
+
+  /* Check sort. */
   if (sort->is_array())
   {
     assert(term->is_array());
@@ -202,6 +204,9 @@ ActionTermCheck::_run(Term term)
   {
     assert(false);
   }
+
+  /* Call Term::get_kind(). */
+  term->get_kind();
 }
 
 /* -------------------------------------------------------------------------- */

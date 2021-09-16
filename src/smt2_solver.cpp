@@ -279,7 +279,7 @@ Smt2Term::is_reglan() const
   return get_sort()->is_reglan();
 }
 
-const Op::Kind
+const std::string&
 Smt2Term::get_kind() const
 {
   return d_kind;

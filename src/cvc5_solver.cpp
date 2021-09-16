@@ -296,7 +296,7 @@ Cvc5Sort::cvc5_sorts_to_sorts(const std::vector<::cvc5::api::Sort>& sorts) const
 //  INST_ATTRIBUTE,
 //  INST_PATTERN_LIST,
 
-std::unordered_map<std::string, ::cvc5::api::Kind>
+std::unordered_map<Op::Kind, ::cvc5::api::Kind>
     Cvc5Term::s_kinds_to_cvc5_kinds = {
         /* Special Cases */
         {Op::UNDEFINED, ::cvc5::api::Kind::UNDEFINED_KIND},
@@ -470,7 +470,7 @@ std::unordered_map<std::string, ::cvc5::api::Kind>
         {OP_STRING_REV, ::cvc5::api::Kind::STRING_REV},
 };
 
-std::unordered_map<::cvc5::api::Kind, std::string>
+std::unordered_map<::cvc5::api::Kind, Op::Kind>
     Cvc5Term::s_cvc5_kinds_to_kinds = {
         /* Special Cases */
         {::cvc5::api::Kind::UNDEFINED_KIND, Op::UNDEFINED},
@@ -722,6 +722,13 @@ bool
 Cvc5Term::is_reglan() const
 {
   return get_sort()->is_reglan();
+}
+
+const Op::Kind&
+Cvc5Term::get_kind() const
+{
+  ::cvc5::api::Kind cvc5_kind = d_term.getKind();
+  return s_cvc5_kinds_to_kinds.at(cvc5_kind);
 }
 
 /* -------------------------------------------------------------------------- */
