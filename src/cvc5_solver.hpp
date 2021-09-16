@@ -63,6 +63,23 @@ class Cvc5Term : public AbsTerm
   friend class Cvc5Solver;
 
  public:
+  /** Map operator kinds to Bitwuzla operator kinds. */
+  static std::unordered_map<std::string, ::cvc5::api::Kind>
+      s_kinds_to_cvc5_kinds;
+  /** Map Bitwuzla operator kinds to operator kinds. */
+  static std::unordered_map<::cvc5::api::Kind, std::string>
+      s_cvc5_kinds_to_kinds;
+
+  /** Solver-specific operators. */
+  // BV
+  inline static const Op::Kind OP_BV_REDAND = "cvc5-OP_BV_REDAND";
+  inline static const Op::Kind OP_BV_REDOR  = "cvc5-OP_BV_REDOR";
+  //  Strings
+  inline static const Op::Kind OP_STRING_UPDATE  = "cvc5-OP_STRING_UPDATE";
+  inline static const Op::Kind OP_STRING_TOLOWER = "cvc5-OP_STRING_TOLOWER";
+  inline static const Op::Kind OP_STRING_TOUPPER = "cvc5-OP_STRING_TOUPPER";
+  inline static const Op::Kind OP_STRING_REV     = "cvc5-OP_STRING_REV";
+
   Cvc5Term(::cvc5::api::Solver* cvc5, ::cvc5::api::Term term)
       : d_solver(cvc5), d_term(term)
   {
@@ -99,16 +116,6 @@ class Cvc5Solver : public Solver
   inline static const Action::Kind ACTION_CHECK_ENTAILED =
       "cvc5-check-entailed";
   inline static const Action::Kind ACTION_SIMPLIFY = "cvc5-simplify";
-
-  /** Solver-specific operators. */
-  // BV
-  inline static const Op::Kind OP_BV_REDAND = "cvc5-OP_BV_REDAND";
-  inline static const Op::Kind OP_BV_REDOR  = "cvc5-OP_BV_REDOR";
-  //  Strings
-  inline static const Op::Kind OP_STRING_UPDATE  = "cvc5-OP_STRING_UPDATE";
-  inline static const Op::Kind OP_STRING_TOLOWER = "cvc5-OP_STRING_TOLOWER";
-  inline static const Op::Kind OP_STRING_TOUPPER = "cvc5-OP_STRING_TOUPPER";
-  inline static const Op::Kind OP_STRING_REV     = "cvc5-OP_STRING_REV";
 
   /** Solver-specific special values. */
   inline static const SpecialValueKind SPECIAL_VALUE_PI = "cvc5-pi";
@@ -208,13 +215,11 @@ class Cvc5Solver : public Solver
   //
   //
  private:
-  void init_op_kinds();
   ::cvc5::api::Sort& get_cvc5_sort(Sort sort) const;
   std::vector<Term> cvc5_terms_to_terms(
       const std::vector<::cvc5::api::Term>& terms) const;
 
   ::cvc5::api::Solver* d_solver;
-  std::unordered_map<std::string, ::cvc5::api::Kind> d_op_kinds;
 };
 
 }  // namespace cvc5
