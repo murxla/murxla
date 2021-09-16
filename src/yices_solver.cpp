@@ -1534,22 +1534,22 @@ YicesSolver::mk_term(const std::string& kind,
   {
     /* Solver-specific operators */
     // BV
-    if (kind == OP_REDAND)
+    if (kind == YicesTerm::OP_REDAND)
     {
       assert(n_args == 1);
       yices_res = yices_redand(yices_args[0]);
     }
-    else if (kind == OP_REDOR)
+    else if (kind == YicesTerm::OP_REDOR)
     {
       assert(n_args == 1);
       yices_res = yices_redor(yices_args[0]);
     }
-    else if (kind == OP_BVSQUARE)
+    else if (kind == YicesTerm::OP_BVSQUARE)
     {
       assert(n_args == 1);
       yices_res = yices_bvsquare(yices_args[0]);
     }
-    else if (kind == OP_BVPOWER)
+    else if (kind == YicesTerm::OP_BVPOWER)
     {
       assert(n_args == 1);
       assert(n_params == 1);
@@ -1558,7 +1558,7 @@ YicesSolver::mk_term(const std::string& kind,
                         uint32_to_value_in_range(
                             params[0], 0, args[0]->get_sort()->get_bv_size()));
     }
-    else if (kind == OP_SHIFT_LEFT0)
+    else if (kind == YicesTerm::OP_SHIFT_LEFT0)
     {
       assert(n_args == 1);
       assert(n_params == 1);
@@ -1567,7 +1567,7 @@ YicesSolver::mk_term(const std::string& kind,
           uint32_to_value_in_range(
               params[0], 0, args[0]->get_sort()->get_bv_size()));
     }
-    else if (kind == OP_SHIFT_LEFT1)
+    else if (kind == YicesTerm::OP_SHIFT_LEFT1)
     {
       assert(n_args == 1);
       assert(n_params == 1);
@@ -1576,7 +1576,7 @@ YicesSolver::mk_term(const std::string& kind,
           uint32_to_value_in_range(
               params[0], 0, args[0]->get_sort()->get_bv_size()));
     }
-    else if (kind == OP_SHIFT_RIGHT0)
+    else if (kind == YicesTerm::OP_SHIFT_RIGHT0)
     {
       assert(n_args == 1);
       assert(n_params == 1);
@@ -1585,7 +1585,7 @@ YicesSolver::mk_term(const std::string& kind,
           uint32_to_value_in_range(
               params[0], 0, args[0]->get_sort()->get_bv_size()));
     }
-    else if (kind == OP_SHIFT_RIGHT1)
+    else if (kind == YicesTerm::OP_SHIFT_RIGHT1)
     {
       assert(n_args == 1);
       assert(n_params == 1);
@@ -1594,7 +1594,7 @@ YicesSolver::mk_term(const std::string& kind,
           uint32_to_value_in_range(
               params[0], 0, args[0]->get_sort()->get_bv_size()));
     }
-    else if (kind == OP_ASHIFT_RIGHT)
+    else if (kind == YicesTerm::OP_ASHIFT_RIGHT)
     {
       assert(n_args == 1);
       assert(n_params == 1);
@@ -1603,7 +1603,7 @@ YicesSolver::mk_term(const std::string& kind,
           uint32_to_value_in_range(
               params[0], 0, args[0]->get_sort()->get_bv_size()));
     }
-    else if (kind == OP_BITEXTRACT)
+    else if (kind == YicesTerm::OP_BITEXTRACT)
     {
       assert(n_args == 1);
       assert(n_params == 1);
@@ -1612,43 +1612,44 @@ YicesSolver::mk_term(const std::string& kind,
           uint32_to_value_in_range(
               params[0], 0, args[0]->get_sort()->get_bv_size() - 1));
     }
-    else if (kind == OP_BVARRAY)
+    else if (kind == YicesTerm::OP_BVARRAY)
     {
       assert(n_args > 0);
       yices_res = yices_bvarray(n_args, yices_args.data());
     }
     // Arithmetic
-    else if (kind == OP_INT_EQ0 || kind == OP_REAL_EQ0)
+    else if (kind == YicesTerm::OP_INT_EQ0 || kind == YicesTerm::OP_REAL_EQ0)
     {
       assert(n_args == 1);
       yices_res = yices_arith_eq0_atom(yices_args[0]);
     }
-    else if (kind == OP_INT_NEQ0 || kind == OP_REAL_NEQ0)
+    else if (kind == YicesTerm::OP_INT_NEQ0 || kind == YicesTerm::OP_REAL_NEQ0)
     {
       assert(n_args == 1);
       yices_res = yices_arith_neq0_atom(yices_args[0]);
     }
-    else if (kind == OP_INT_GEQ0 || kind == OP_REAL_GEQ0)
+    else if (kind == YicesTerm::OP_INT_GEQ0 || kind == YicesTerm::OP_REAL_GEQ0)
     {
       assert(n_args == 1);
       yices_res = yices_arith_geq0_atom(yices_args[0]);
     }
-    else if (kind == OP_INT_LEQ0 || kind == OP_REAL_LEQ0)
+    else if (kind == YicesTerm::OP_INT_LEQ0 || kind == YicesTerm::OP_REAL_LEQ0)
     {
       assert(n_args == 1);
       yices_res = yices_arith_leq0_atom(yices_args[0]);
     }
-    else if (kind == OP_INT_GT0 || kind == OP_REAL_GT0)
+    else if (kind == YicesTerm::OP_INT_GT0 || kind == YicesTerm::OP_REAL_GT0)
     {
       assert(n_args == 1);
       yices_res = yices_arith_gt0_atom(yices_args[0]);
     }
-    else if (kind == OP_INT_LT0 || kind == OP_REAL_LT0)
+    else if (kind == YicesTerm::OP_INT_LT0 || kind == YicesTerm::OP_REAL_LT0)
     {
       assert(n_args == 1);
       yices_res = yices_arith_lt0_atom(yices_args[0]);
     }
-    else if (kind == OP_INT_POWER || kind == OP_REAL_POWER)
+    else if (kind == YicesTerm::OP_INT_POWER
+             || kind == YicesTerm::OP_REAL_POWER)
     {
       assert(n_args == 1);
       assert(n_params == 1);
@@ -1656,22 +1657,24 @@ YicesSolver::mk_term(const std::string& kind,
           yices_args[0],
           uint32_to_value_in_range(params[0], 0, MURXLA_YICES_MAX_DEGREE));
     }
-    else if (kind == OP_INT_SQUARE || kind == OP_REAL_SQUARE)
+    else if (kind == YicesTerm::OP_INT_SQUARE
+             || kind == YicesTerm::OP_REAL_SQUARE)
     {
       assert(n_args == 1);
       yices_res = yices_square(yices_args[0]);
     }
-    else if (kind == OP_INT_CEIL || kind == OP_REAL_CEIL)
+    else if (kind == YicesTerm::OP_INT_CEIL || kind == YicesTerm::OP_REAL_CEIL)
     {
       assert(n_args == 1);
       yices_res = yices_ceil(yices_args[0]);
     }
-    else if (kind == OP_INT_FLOOR || kind == OP_REAL_FLOOR)
+    else if (kind == YicesTerm::OP_INT_FLOOR
+             || kind == YicesTerm::OP_REAL_FLOOR)
     {
       assert(n_args == 1);
       yices_res = yices_floor(yices_args[0]);
     }
-    else if (kind == OP_INT_POLY || kind == OP_REAL_POLY)
+    else if (kind == YicesTerm::OP_INT_POLY || kind == YicesTerm::OP_REAL_POLY)
     {
       assert(n_args > 0);
       if (d_rng.flip_coin())
@@ -1693,7 +1696,7 @@ YicesSolver::mk_term(const std::string& kind,
         yices_res = yices_poly_int64(n_args, a.data(), yices_args.data());
       }
     }
-    else if (kind == OP_REAL_RPOLY)
+    else if (kind == YicesTerm::OP_REAL_RPOLY)
     {
       assert(n_args > 0);
       if (d_rng.flip_coin())
@@ -2004,54 +2007,90 @@ void
 YicesSolver::configure_opmgr(OpKindManager* opmgr) const
 {
   /* BV */
-  opmgr->add_op_kind(OP_BVSQUARE, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_BVPOWER, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      YicesTerm::OP_BVSQUARE, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      YicesTerm::OP_BVPOWER, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
 
-  opmgr->add_op_kind(OP_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-
-  opmgr->add_op_kind(OP_SHIFT_LEFT0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_SHIFT_LEFT1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_SHIFT_RIGHT0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_SHIFT_RIGHT1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(OP_ASHIFT_RIGHT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
-
-  opmgr->add_op_kind(OP_BITEXTRACT, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(YicesTerm::OP_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(YicesTerm::OP_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
   opmgr->add_op_kind(
-      OP_BVARRAY, MURXLA_MK_TERM_N_ARGS, 0, SORT_BV, {SORT_BOOL}, THEORY_BV);
+      YicesTerm::OP_SHIFT_LEFT0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      YicesTerm::OP_SHIFT_LEFT1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      YicesTerm::OP_SHIFT_RIGHT0, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      YicesTerm::OP_SHIFT_RIGHT1, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      YicesTerm::OP_ASHIFT_RIGHT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  opmgr->add_op_kind(
+      YicesTerm::OP_BITEXTRACT, 1, 1, SORT_BOOL, {SORT_BV}, THEORY_BV);
+
+  opmgr->add_op_kind(YicesTerm::OP_BVARRAY,
+                     MURXLA_MK_TERM_N_ARGS,
+                     0,
+                     SORT_BV,
+                     {SORT_BOOL},
+                     THEORY_BV);
 
   /* Ints */
-  opmgr->add_op_kind(OP_INT_EQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_NEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_GEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_GT0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_LEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_LT0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_POWER, 1, 1, SORT_INT, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_SQUARE, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_CEIL, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-  opmgr->add_op_kind(OP_INT_FLOOR, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   opmgr->add_op_kind(
-      OP_INT_POLY, MURXLA_MK_TERM_N_ARGS, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+      YicesTerm::OP_INT_EQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_NEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_GEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_GT0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_LEQ0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_LT0, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_POWER, 1, 1, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_SQUARE, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_CEIL, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      YicesTerm::OP_INT_FLOOR, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(YicesTerm::OP_INT_POLY,
+                     MURXLA_MK_TERM_N_ARGS,
+                     0,
+                     SORT_INT,
+                     {SORT_INT},
+                     THEORY_INT);
   /* Reals */
-  opmgr->add_op_kind(OP_REAL_EQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_NEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_GEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_GT0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_LEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_LT0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_POWER, 1, 1, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_SQUARE, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_CEIL, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_FLOOR, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_POLY,
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_EQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_NEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_GEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_GT0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_LEQ0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_LT0, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_POWER, 1, 1, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_SQUARE, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_CEIL, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(
+      YicesTerm::OP_REAL_FLOOR, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
+  opmgr->add_op_kind(YicesTerm::OP_REAL_POLY,
                      MURXLA_MK_TERM_N_ARGS,
                      0,
                      SORT_REAL,
                      {SORT_REAL},
                      THEORY_REAL);
-  opmgr->add_op_kind(OP_REAL_RPOLY,
+  opmgr->add_op_kind(YicesTerm::OP_REAL_RPOLY,
                      MURXLA_MK_TERM_N_ARGS,
                      0,
                      SORT_REAL,

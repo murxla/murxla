@@ -52,33 +52,6 @@ class YicesTerm : public AbsTerm
   friend class YicesSolver;
 
  public:
-  YicesTerm(term_t term) : d_term(term) {}
-  ~YicesTerm() override {}
-  size_t hash() const override;
-  std::string to_string() const override;
-  bool equals(const Term& other) const override;
-  bool is_array() const override;
-  bool is_bool() const override;
-  bool is_bv() const override;
-  bool is_fp() const override;
-  bool is_fun() const override;
-  bool is_int() const override;
-  bool is_real() const override;
-  bool is_rm() const override;
-  bool is_string() const override;
-  bool is_reglan() const override;
-
- private:
-  term_t d_term = 0;
-};
-
-/* -------------------------------------------------------------------------- */
-/* YicesSolver */
-/* -------------------------------------------------------------------------- */
-
-class YicesSolver : public Solver
-{
- public:
   /* Solver-specific operators. */
   // BV
   inline static const Op::Kind OP_ASHIFT_RIGHT = "yices-OP_ASHIFT_RIGHT";
@@ -117,6 +90,33 @@ class YicesSolver : public Solver
   inline static const Op::Kind OP_REAL_POWER  = "yices-OP_REAL_POWER";
   inline static const Op::Kind OP_REAL_SQUARE = "yices-OP_REAL_SQUARE";
 
+  YicesTerm(term_t term) : d_term(term) {}
+  ~YicesTerm() override {}
+  size_t hash() const override;
+  std::string to_string() const override;
+  bool equals(const Term& other) const override;
+  bool is_array() const override;
+  bool is_bool() const override;
+  bool is_bv() const override;
+  bool is_fp() const override;
+  bool is_fun() const override;
+  bool is_int() const override;
+  bool is_real() const override;
+  bool is_rm() const override;
+  bool is_string() const override;
+  bool is_reglan() const override;
+
+ private:
+  term_t d_term = 0;
+};
+
+/* -------------------------------------------------------------------------- */
+/* YicesSolver */
+/* -------------------------------------------------------------------------- */
+
+class YicesSolver : public Solver
+{
+ public:
   YicesSolver(RNGenerator& rng) : Solver(rng) {}
   ~YicesSolver() override;
 
