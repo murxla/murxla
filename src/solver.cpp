@@ -119,6 +119,12 @@ AbsTerm::get_kind() const
   return Op::UNDEFINED;
 }
 
+std::vector<std::shared_ptr<AbsTerm>>
+AbsTerm::get_children() const
+{
+  return {};
+}
+
 void
 AbsTerm::set_id(uint64_t id)
 {

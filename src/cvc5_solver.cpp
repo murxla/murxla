@@ -472,6 +472,18 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
 
 std::unordered_map<::cvc5::api::Kind, Op::Kind>
     Cvc5Term::s_cvc5_kinds_to_kinds = {
+        /* Leaf Kinds */
+        {::cvc5::api::Kind::CONSTANT, Op::CONSTANT},
+        {::cvc5::api::Kind::CONST_ARRAY, Op::CONST_ARRAY},
+        {::cvc5::api::Kind::CONST_BOOLEAN, Op::VALUE},
+        {::cvc5::api::Kind::CONST_BITVECTOR, Op::VALUE},
+        {::cvc5::api::Kind::CONST_FLOATINGPOINT, Op::VALUE},
+        {::cvc5::api::Kind::CONST_RATIONAL, Op::VALUE},
+        {::cvc5::api::Kind::CONST_ROUNDINGMODE, Op::VALUE},
+        {::cvc5::api::Kind::CONST_SEQUENCE, Op::VALUE},
+        {::cvc5::api::Kind::CONST_STRING, Op::VALUE},
+        {::cvc5::api::Kind::VARIABLE, Op::VARIABLE},
+
         /* Special Cases */
         {::cvc5::api::Kind::UNDEFINED_KIND, Op::UNDEFINED},
         {::cvc5::api::Kind::DISTINCT, Op::DISTINCT},
@@ -729,6 +741,17 @@ Cvc5Term::get_kind() const
 {
   ::cvc5::api::Kind cvc5_kind = d_term.getKind();
   return s_cvc5_kinds_to_kinds.at(cvc5_kind);
+}
+
+std::vector<Term>
+Cvc5Term::get_children() const
+{
+  std::vector<Term> res;
+  for (const auto& c : d_term)
+  {
+    res.emplace_back(new Cvc5Term(d_solver, c));
+  }
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */

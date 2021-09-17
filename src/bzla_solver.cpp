@@ -329,6 +329,12 @@ std::unordered_map<Op::Kind, BitwuzlaKind> BzlaTerm::s_kinds_to_bzla_kinds = {
 };
 
 std::unordered_map<BitwuzlaKind, Op::Kind> BzlaTerm::s_bzla_kinds_to_kinds = {
+    /* Leaf Kinds */
+    {BITWUZLA_KIND_CONST, Op::CONSTANT},
+    {BITWUZLA_KIND_CONST_ARRAY, Op::CONST_ARRAY},
+    {BITWUZLA_KIND_VAL, Op::VALUE},
+    {BITWUZLA_KIND_VAR, Op::VARIABLE},
+
     /* Special Cases */
     {BITWUZLA_KIND_DISTINCT, Op::DISTINCT},
     {BITWUZLA_KIND_EQUAL, Op::EQUAL},
@@ -544,6 +550,19 @@ BzlaTerm::get_kind() const
 {
   BitwuzlaKind bzla_kind = bitwuzla_term_get_kind(d_term);
   return s_bzla_kinds_to_kinds.at(bzla_kind);
+}
+
+std::vector<Term>
+BzlaTerm::get_children() const
+{
+  std::vector<Term> res;
+  size_t size                   = 0;
+  const BitwuzlaTerm** bzla_res = bitwuzla_term_get_children(d_term, &size);
+  for (size_t i = 0; i < size; ++i)
+  {
+    res.emplace_back(new BzlaTerm(bzla_res[i]));
+  }
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */

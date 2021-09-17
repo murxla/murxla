@@ -98,6 +98,7 @@ class Cvc5Term : public AbsTerm
   bool is_string() const override;
   bool is_reglan() const override;
   const Op::Kind& get_kind() const override;
+  std::vector<Term> get_children() const override;
 
  private:
   ::cvc5::api::Solver* d_solver = nullptr;

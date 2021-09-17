@@ -101,6 +101,7 @@ class BzlaTerm : public AbsTerm
   bool is_string() const override;
   bool is_reglan() const override;
   const Op::Kind& get_kind() const override;
+  std::vector<Term> get_children() const override;
 
  private:
   const BitwuzlaTerm* d_term = nullptr;

@@ -206,7 +206,50 @@ ActionTermCheck::_run(Term term)
   }
 
   /* Call Term::get_kind(). */
-  term->get_kind();
+  Op::Kind kind = term->get_kind();
+
+  /* Call Term::get_children(). */
+  std::vector<Term> children = term->get_children();
+  // Perform some checks based on term kind
+  if (kind == Op::ARRAY_SELECT)
+  {
+    assert(children.size() == 2);
+    Sort array_sort            = d_solver.get_sort(children[0], SORT_ANY);
+    Sort index_sort_expected   = array_sort->get_array_index_sort();
+    Sort element_sort_expected = array_sort->get_array_element_sort();
+    Sort index_sort            = d_solver.get_sort(children[1], SORT_ANY);
+    assert(index_sort_expected->equals(index_sort));
+    assert(element_sort_expected->equals(term->get_sort()));
+  }
+  else if (kind == Op::ARRAY_STORE)
+  {
+    assert(children.size() == 3);
+    Sort array_sort            = d_solver.get_sort(children[0], SORT_ANY);
+    Sort index_sort_expected   = array_sort->get_array_index_sort();
+    Sort element_sort_expected = array_sort->get_array_element_sort();
+    Sort index_sort            = d_solver.get_sort(children[1], SORT_ANY);
+    Sort element_sort          = d_solver.get_sort(children[2], SORT_ANY);
+    assert(index_sort_expected->equals(index_sort));
+    assert(element_sort_expected->equals(element_sort));
+  }
+  else if (kind == Op::UF_APPLY)
+  {
+    assert(children.size() >= 1);
+    Sort fun_sort               = d_solver.get_sort(children[0], SORT_ANY);
+    Sort codomain_sort_expected = fun_sort->get_fun_codomain_sort();
+    std::vector<Sort> domain_sorts_expected = fun_sort->get_fun_domain_sorts();
+    assert(domain_sorts_expected.size() == children.size() - 1);
+    assert(codomain_sort_expected->equals(term->get_sort()));
+    if (!domain_sorts_expected.empty())
+    {
+      assert(domain_sorts_expected.size() == fun_sort->get_fun_arity());
+      for (size_t i = 0, size = domain_sorts_expected.size(); i < size; ++i)
+      {
+        assert(domain_sorts_expected[i]->equals(
+            d_solver.get_sort(children[i + 1], SORT_ANY)));
+      }
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1044,39 +1087,6 @@ ActionMkTerm::_run(Op::Kind kind,
 
   d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
-
-  if (kind == Op::ARRAY_SELECT && d_rng.pick_with_prob(10))
-  {
-    Sort array_sort   = args[0]->get_sort();
-    Sort index_sort   = array_sort->get_array_index_sort();
-    Sort element_sort = array_sort->get_array_element_sort();
-    assert(index_sort == nullptr || index_sort->equals(args[1]->get_sort()));
-    assert(element_sort == nullptr || element_sort->equals(res_sort));
-  }
-  else if (kind == Op::ARRAY_STORE && d_rng.pick_with_prob(10))
-  {
-    Sort array_sort   = args[0]->get_sort();
-    Sort index_sort   = array_sort->get_array_index_sort();
-    Sort element_sort = array_sort->get_array_element_sort();
-    assert(index_sort == nullptr || index_sort->equals(args[1]->get_sort()));
-    assert(element_sort == nullptr
-           || element_sort->equals(args[2]->get_sort()));
-  }
-  else if (kind == Op::UF_APPLY && d_rng.pick_with_prob(10))
-  {
-    Sort fun_sort                  = args[0]->get_sort();
-    Sort codomain_sort             = fun_sort->get_fun_codomain_sort();
-    std::vector<Sort> domain_sorts = fun_sort->get_fun_domain_sorts();
-    assert(codomain_sort == nullptr || codomain_sort->equals(res_sort));
-    if (!domain_sorts.empty())
-    {
-      assert(domain_sorts.size() == fun_sort->get_fun_arity());
-      for (size_t i = 0, size = domain_sorts.size(); i < size; ++i)
-      {
-        assert(domain_sorts[i]->equals(args[i + 1]->get_sort()));
-      }
-    }
-  }
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;
   return {res->get_id(), res_sort->get_id()};

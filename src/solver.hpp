@@ -142,6 +142,14 @@ class AbsTerm
    */
   virtual const Op::Kind& get_kind() const;
 
+  /**
+   * Return the children of the current term.
+   * Note: As with Solver::mk_term, the returned terms are "raw" Terms, in the
+   *       sense that they are only wrapped into a Term, with no additional
+   *       book keeping information (all data members have default values).
+   */
+  virtual std::vector<std::shared_ptr<AbsTerm>> get_children() const;
+
   void set_id(uint64_t id);
   uint64_t get_id() const;
 
