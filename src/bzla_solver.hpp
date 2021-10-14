@@ -20,6 +20,13 @@ class BzlaSort : public AbsSort
   friend class BzlaSolver;
 
  public:
+  /** Get wrapped Bitwuzla sort from Murxla Sort. */
+  static const BitwuzlaSort* get_bzla_sort(Sort sort);
+  /** Convert vector of Bitwuzla sorts to Murxla sorts. */
+  static std::vector<Sort> bzla_sorts_to_sorts(Bitwuzla* bzla,
+                                               const BitwuzlaSort** sorts,
+                                               size_t size);
+
   BzlaSort(Bitwuzla* bzla, const BitwuzlaSort* sort);
   ~BzlaSort() override;
   size_t hash() const override;
@@ -45,9 +52,6 @@ class BzlaSort : public AbsSort
   std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
-  std::vector<Sort> bzla_sorts_to_sorts(const BitwuzlaSort** sorts,
-                                        size_t size) const;
-
   Bitwuzla* d_solver   = nullptr;
   const BitwuzlaSort* d_sort = nullptr;
 };
@@ -61,6 +65,17 @@ class BzlaTerm : public AbsTerm
   friend class BzlaSolver;
 
  public:
+  /** Get wrapped Bitwuzla term from Murxla term. */
+  static const BitwuzlaTerm* get_bzla_term(Term term);
+  /** Convert vector of Bitwuzla terms to vector of Murxla terms. */
+  static std::vector<Term> bzla_terms_to_terms(
+      const std::vector<BitwuzlaTerm*>& terms);
+  static std::vector<Term> bzla_terms_to_terms(const BitwuzlaTerm** terms,
+                                               size_t size);
+  /** Convert vector of Murxla terms to vector of Bitwuzla terms. */
+  static std::vector<const BitwuzlaTerm*> terms_to_bzla_terms(
+      const std::vector<Term>& terms);
+
   /** Map operator kinds to Bitwuzla operator kinds. */
   static std::unordered_map<Op::Kind, BitwuzlaKind> s_kinds_to_bzla_kinds;
   /** Map Bitwuzla operator kinds to operator kinds. */
@@ -173,9 +188,6 @@ class BzlaSolver : public Solver
   bool option_unsat_assumptions_enabled() const override;
   bool option_unsat_cores_enabled() const override;
 
-  const BitwuzlaTerm* get_bzla_term(Term term) const;
-  const BitwuzlaSort* get_bzla_sort(Sort sort) const;
-
   Term mk_var(Sort sort, const std::string& name) override;
 
   Term mk_const(Sort sort, const std::string& name) override;
@@ -234,11 +246,6 @@ class BzlaSolver : public Solver
  private:
   using BzlaTermFunBoolUnary       = std::function<bool(BitwuzlaTerm*)>;
   using BzlaTermFunBoolUnaryVector = std::vector<BzlaTermFunBoolUnary>;
-
-  std::vector<Term> bzla_terms_to_terms(
-      const std::vector<BitwuzlaTerm*>& terms) const;
-  std::vector<const BitwuzlaTerm*> terms_to_bzla_terms(
-      const std::vector<Term>& terms) const;
 
   BzlaTermFunBoolUnary pick_fun_bool_unary(
       BzlaTermFunBoolUnaryVector& funs) const;

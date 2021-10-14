@@ -19,6 +19,12 @@ class Cvc5Sort : public AbsSort
   friend class Cvc5Solver;
 
  public:
+  /** Get wrapped cvc5 sort from Murxla sort. */
+  static ::cvc5::api::Sort& get_cvc5_sort(Sort sort);
+  /** Convert vector of cvc5 sorts to vector of Murxla sorts. */
+  static std::vector<Sort> cvc5_sorts_to_sorts(
+      ::cvc5::api::Solver* cvc5, const std::vector<::cvc5::api::Sort>& sorts);
+
   Cvc5Sort(::cvc5::api::Solver* cvc5, ::cvc5::api::Sort sort)
       : d_solver(cvc5), d_sort(sort)
   {
@@ -48,8 +54,6 @@ class Cvc5Sort : public AbsSort
   std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
-  std::vector<Sort> cvc5_sorts_to_sorts(
-      const std::vector<::cvc5::api::Sort>& sorts) const;
   ::cvc5::api::Solver* d_solver;
   ::cvc5::api::Sort d_sort;
 };
@@ -63,6 +67,14 @@ class Cvc5Term : public AbsTerm
   friend class Cvc5Solver;
 
  public:
+  /** Get wrapped cvc5 term from Murxla term. */
+  static ::cvc5::api::Term& get_cvc5_term(Term term);
+  /** Convert vector of cvc5 terms to vector of Murxla terms. */
+  static std::vector<Term> cvc5_terms_to_terms(
+      ::cvc5::api::Solver* cvc5, const std::vector<::cvc5::api::Term>& terms);
+  /** Convert vector of Murxla terms to vector of cvc5 terms. */
+  static std::vector<::cvc5::api::Term> terms_to_cvc5_terms(
+      const std::vector<Term>& terms);
   /** Map operator kinds to Bitwuzla operator kinds. */
   static std::unordered_map<Op::Kind, ::cvc5::api::Kind> s_kinds_to_cvc5_kinds;
   /** Map Bitwuzla operator kinds to operator kinds. */
@@ -135,7 +147,6 @@ class Cvc5Solver : public Solver
   void delete_solver() override;
 
   ::cvc5::api::Solver* get_solver();
-  ::cvc5::api::Term& get_cvc5_term(Term term) const;
 
   bool is_initialized() const override;
 
@@ -153,9 +164,6 @@ class Cvc5Solver : public Solver
   bool option_model_gen_enabled() const override;
   bool option_unsat_assumptions_enabled() const override;
   bool option_unsat_cores_enabled() const override;
-
-  std::vector<::cvc5::api::Term> terms_to_cvc5_terms(
-      const std::vector<Term>& terms) const;
 
   Term mk_var(Sort sort, const std::string& name) override;
 
@@ -215,10 +223,6 @@ class Cvc5Solver : public Solver
   //
   //
  private:
-  ::cvc5::api::Sort& get_cvc5_sort(Sort sort) const;
-  std::vector<Term> cvc5_terms_to_terms(
-      const std::vector<::cvc5::api::Term>& terms) const;
-
   ::cvc5::api::Solver* d_solver;
 };
 

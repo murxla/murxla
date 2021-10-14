@@ -17,6 +17,12 @@ namespace cvc5 {
 /* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
 
+::cvc5::api::Sort&
+Cvc5Sort::get_cvc5_sort(Sort sort)
+{
+  return static_cast<Cvc5Sort*>(sort.get())->d_sort;
+}
+
 size_t
 Cvc5Sort::hash() const
 {
@@ -169,16 +175,17 @@ Cvc5Sort::get_fun_domain_sorts() const
 {
   assert(is_fun());
   std::vector<::cvc5::api::Sort> cvc5_res = d_sort.getFunctionDomainSorts();
-  return cvc5_sorts_to_sorts(cvc5_res);
+  return cvc5_sorts_to_sorts(d_solver, cvc5_res);
 }
 
 std::vector<Sort>
-Cvc5Sort::cvc5_sorts_to_sorts(const std::vector<::cvc5::api::Sort>& sorts) const
+Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
+                              const std::vector<::cvc5::api::Sort>& sorts)
 {
   std::vector<Sort> res;
   for (auto& s : sorts)
   {
-    res.emplace_back(new Cvc5Sort(d_solver, s));
+    res.emplace_back(new Cvc5Sort(cvc5, s));
   }
   return res;
 }
@@ -656,6 +663,35 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::STRING_REV, OP_STRING_REV},
 };
 
+::cvc5::api::Term&
+Cvc5Term::get_cvc5_term(Term term)
+{
+  return static_cast<Cvc5Term*>(term.get())->d_term;
+}
+
+std::vector<Term>
+Cvc5Term::cvc5_terms_to_terms(::cvc5::api::Solver* cvc5,
+                              const std::vector<::cvc5::api::Term>& terms)
+{
+  std::vector<Term> res;
+  for (auto& t : terms)
+  {
+    res.push_back(std::shared_ptr<Cvc5Term>(new Cvc5Term(cvc5, t)));
+  }
+  return res;
+}
+
+std::vector<::cvc5::api::Term>
+Cvc5Term::terms_to_cvc5_terms(const std::vector<Term>& terms)
+{
+  std::vector<::cvc5::api::Term> res;
+  for (auto& t : terms)
+  {
+    res.push_back(get_cvc5_term(t));
+  }
+  return res;
+}
+
 size_t
 Cvc5Term::hash() const
 {
@@ -826,7 +862,7 @@ Cvc5Solver::is_initialized() const
 bool
 Cvc5Solver::is_unsat_assumption(const Term& t) const
 {
-  return !get_cvc5_term(t).isNull();
+  return !Cvc5Term::get_cvc5_term(t).isNull();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -895,8 +931,8 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   switch (kind)
   {
     case SORT_ARRAY:
-      cvc5_res = d_solver->mkArraySort(get_cvc5_sort(sorts[0]),
-                                       get_cvc5_sort(sorts[1]));
+      cvc5_res = d_solver->mkArraySort(Cvc5Sort::get_cvc5_sort(sorts[0]),
+                                       Cvc5Sort::get_cvc5_sort(sorts[1]));
       break;
 
     case SORT_FUN:
@@ -904,9 +940,9 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       std::vector<::cvc5::api::Sort> domain;
       for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
       {
-        domain.push_back(get_cvc5_sort(*it));
+        domain.push_back(Cvc5Sort::get_cvc5_sort(*it));
       }
-      ::cvc5::api::Sort codomain = get_cvc5_sort(sorts.back());
+      ::cvc5::api::Sort codomain = Cvc5Sort::get_cvc5_sort(sorts.back());
 
       cvc5_res = d_solver->mkFunctionSort(domain, codomain);
       break;
@@ -929,7 +965,8 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 Term
 Cvc5Solver::mk_const(Sort sort, const std::string& name)
 {
-  ::cvc5::api::Term cvc5_res = d_solver->mkConst(get_cvc5_sort(sort), name);
+  ::cvc5::api::Term cvc5_res =
+      d_solver->mkConst(Cvc5Sort::get_cvc5_sort(sort), name);
   assert(!cvc5_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
@@ -939,7 +976,8 @@ Cvc5Solver::mk_const(Sort sort, const std::string& name)
 Term
 Cvc5Solver::mk_var(Sort sort, const std::string& name)
 {
-  ::cvc5::api::Term cvc5_res = d_solver->mkVar(get_cvc5_sort(sort), name);
+  ::cvc5::api::Term cvc5_res =
+      d_solver->mkVar(Cvc5Sort::get_cvc5_sort(sort), name);
   assert(!cvc5_res.isNull());
   assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
   assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
@@ -976,7 +1014,7 @@ Term
 Cvc5Solver::mk_value(Sort sort, std::string value)
 {
   ::cvc5::api::Term cvc5_res;
-  ::cvc5::api::Sort cvc5_sort = get_cvc5_sort(sort);
+  ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
   SortKind sort_kind        = sort->get_kind();
 
   switch (sort_kind)
@@ -1094,7 +1132,7 @@ Cvc5Solver::mk_value(Sort sort, std::string value, Base base)
          "Cvc5Solver::mk_value, expected bit-vector sort";
 
   ::cvc5::api::Term cvc5_res;
-  ::cvc5::api::Sort cvc5_sort = get_cvc5_sort(sort);
+  ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
   uint32_t bw               = sort->get_bv_size();
 
   switch (base)
@@ -1303,7 +1341,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   ::cvc5::api::Term cvc5_res;
   ::cvc5::api::Kind cvc5_kind = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
   ::cvc5::api::Op cvc5_opterm;
-  std::vector<::cvc5::api::Term> cvc5_args = terms_to_cvc5_terms(args);
+  std::vector<::cvc5::api::Term> cvc5_args =
+      Cvc5Term::terms_to_cvc5_terms(args);
 
   int32_t n_args    = args.size();
   uint32_t n_params = params.size();
@@ -1318,7 +1357,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     }
     ::cvc5::api::Term bvl =
         d_solver->mkTerm(::cvc5::api::Kind::BOUND_VAR_LIST, vars);
-    ::cvc5::api::Term body = get_cvc5_term(args.back());
+    ::cvc5::api::Term body = Cvc5Term::get_cvc5_term(args.back());
     cvc5_res               = d_solver->mkTerm(cvc5_kind, bvl, body);
     goto DONE;
   }
@@ -1458,14 +1497,14 @@ Sort
 Cvc5Solver::get_sort(Term term, SortKind sort_kind) const
 {
   (void) sort_kind;
-  ::cvc5::api::Term cvc5_term = get_cvc5_term(term);
+  ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
   return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_term.getSort()));
 }
 
 void
 Cvc5Solver::assert_formula(const Term& t)
 {
-  d_solver->assertFormula(get_cvc5_term(t));
+  d_solver->assertFormula(Cvc5Term::get_cvc5_term(t));
 }
 
 Solver::Result
@@ -1489,7 +1528,7 @@ Cvc5Solver::check_sat_assuming(std::vector<Term>& assumptions)
 {
   ::cvc5::api::Result res;
   std::vector<::cvc5::api::Term> cvc5_assumptions =
-      terms_to_cvc5_terms(assumptions);
+      Cvc5Term::terms_to_cvc5_terms(assumptions);
 
   assert(assumptions.size() == cvc5_assumptions.size());
 
@@ -1516,7 +1555,7 @@ Cvc5Solver::get_unsat_assumptions()
 {
   std::vector<Term> res;
   std::vector<::cvc5::api::Term> cvc5_res = d_solver->getUnsatAssumptions();
-  return cvc5_terms_to_terms(cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_solver, cvc5_res);
 }
 
 std::vector<Term>
@@ -1524,7 +1563,7 @@ Cvc5Solver::get_unsat_core()
 {
   std::vector<Term> res;
   std::vector<::cvc5::api::Term> cvc5_res = d_solver->getUnsatCore();
-  return cvc5_terms_to_terms(cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_solver, cvc5_res);
 }
 
 std::vector<Term>
@@ -1532,7 +1571,8 @@ Cvc5Solver::get_value(std::vector<Term>& terms)
 {
   std::vector<Term> res;
   std::vector<::cvc5::api::Term> cvc5_res;
-  std::vector<::cvc5::api::Term> cvc5_terms = terms_to_cvc5_terms(terms);
+  std::vector<::cvc5::api::Term> cvc5_terms =
+      Cvc5Term::terms_to_cvc5_terms(terms);
 
   if (d_rng.flip_coin())
   {
@@ -1545,7 +1585,7 @@ Cvc5Solver::get_value(std::vector<Term>& terms)
       cvc5_res.push_back(d_solver->getValue(t));
     }
   }
-  return cvc5_terms_to_terms(cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_solver, cvc5_res);
 }
 
 void
@@ -1634,43 +1674,6 @@ bool
 Cvc5Solver::option_unsat_cores_enabled() const
 {
   return d_solver->getOption("produce-unsat-cores") == "true";
-}
-
-std::vector<Term>
-Cvc5Solver::cvc5_terms_to_terms(
-    const std::vector<::cvc5::api::Term>& terms) const
-{
-  std::vector<Term> res;
-  for (auto& t : terms)
-  {
-    res.push_back(std::shared_ptr<Cvc5Term>(new Cvc5Term(d_solver, t)));
-  }
-  return res;
-}
-
-std::vector<::cvc5::api::Term>
-Cvc5Solver::terms_to_cvc5_terms(const std::vector<Term>& terms) const
-{
-  std::vector<::cvc5::api::Term> res;
-  for (auto& t : terms)
-  {
-    res.push_back(get_cvc5_term(t));
-  }
-  return res;
-}
-
-/* -------------------------------------------------------------------------- */
-
-::cvc5::api::Sort&
-Cvc5Solver::get_cvc5_sort(Sort sort) const
-{
-  return static_cast<Cvc5Sort*>(sort.get())->d_sort;
-}
-
-::cvc5::api::Term&
-Cvc5Solver::get_cvc5_term(Term term) const
-{
-  return static_cast<Cvc5Term*>(term.get())->d_term;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1778,7 +1781,7 @@ class Cvc5ActionCheckEntailed : public Action
     d_smgr.reset_sat();
     Cvc5Solver& solver          = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5   = solver.get_solver();
-    ::cvc5::api::Term cvc5_term = solver.get_cvc5_term(term);
+    ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
     assert(!cvc5_term.isNull());
     ::cvc5::api::Result res = cvc5->checkEntailed(cvc5_term);
     assert(!d_rng.pick_with_prob(1) || res == res);
@@ -1814,7 +1817,7 @@ class Cvc5ActionCheckEntailed : public Action
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
     std::vector<::cvc5::api::Term> cvc5_terms =
-        solver.terms_to_cvc5_terms(terms);
+        Cvc5Term::terms_to_cvc5_terms(terms);
     ::cvc5::api::Result res = cvc5->checkEntailed(cvc5_terms);
     assert(!d_rng.pick_with_prob(1) || res == res);
     assert(res != ::cvc5::api::Result());
@@ -1875,7 +1878,7 @@ class Cvc5ActionSimplify : public Action
     d_smgr.reset_sat();
     Cvc5Solver& solver         = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5  = solver.get_solver();
-    ::cvc5::api::Term cvc5_res = cvc5->simplify(solver.get_cvc5_term(term));
+    ::cvc5::api::Term cvc5_res = cvc5->simplify(Cvc5Term::get_cvc5_term(term));
     assert(!cvc5_res.isNull());
     Term res  = std::make_shared<Cvc5Term>(cvc5, cvc5_res);
     Sort sort = term->get_sort();

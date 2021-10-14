@@ -19,6 +19,27 @@ namespace bzla {
 /* BzlaSort                                                                   */
 /* -------------------------------------------------------------------------- */
 
+const BitwuzlaSort*
+BzlaSort::get_bzla_sort(Sort sort)
+{
+  BzlaSort* bzla_sort = dynamic_cast<BzlaSort*>(sort.get());
+  assert(bzla_sort);
+  return bzla_sort->d_sort;
+}
+
+std::vector<Sort>
+BzlaSort::bzla_sorts_to_sorts(Bitwuzla* bzla,
+                              const BitwuzlaSort** sorts,
+                              size_t size)
+{
+  std::vector<Sort> res;
+  for (size_t i = 0; i < size; ++i)
+  {
+    res.push_back(std::shared_ptr<BzlaSort>(new BzlaSort(bzla, sorts[i])));
+  }
+  return res;
+}
+
 BzlaSort::BzlaSort(Bitwuzla* bzla, const BitwuzlaSort* sort)
     : d_solver(bzla), d_sort(sort)
 {
@@ -194,18 +215,7 @@ BzlaSort::get_fun_domain_sorts() const
   size_t size;
   const BitwuzlaSort** bzla_res =
       bitwuzla_sort_fun_get_domain_sorts(d_sort, &size);
-  return bzla_sorts_to_sorts(bzla_res, size);
-}
-
-std::vector<Sort>
-BzlaSort::bzla_sorts_to_sorts(const BitwuzlaSort** sorts, size_t size) const
-{
-  std::vector<Sort> res;
-  for (size_t i = 0; i < size; ++i)
-  {
-    res.push_back(std::shared_ptr<BzlaSort>(new BzlaSort(d_solver, sorts[i])));
-  }
-  return res;
+  return bzla_sorts_to_sorts(d_solver, bzla_res, size);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -450,6 +460,47 @@ std::unordered_map<BitwuzlaKind, Op::Kind> BzlaTerm::s_bzla_kinds_to_kinds = {
     {BITWUZLA_NUM_KINDS, OP_FP_TO_FP_FROM_REAL},
 };
 
+const BitwuzlaTerm*
+BzlaTerm::get_bzla_term(Term term)
+{
+  BzlaTerm* bzla_term = dynamic_cast<BzlaTerm*>(term.get());
+  assert(bzla_term);
+  return bzla_term->d_term;
+}
+
+std::vector<Term>
+BzlaTerm::bzla_terms_to_terms(const std::vector<BitwuzlaTerm*>& terms)
+{
+  std::vector<Term> res;
+  for (BitwuzlaTerm* t : terms)
+  {
+    res.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(t)));
+  }
+  return res;
+}
+
+std::vector<Term>
+BzlaTerm::bzla_terms_to_terms(const BitwuzlaTerm** terms, size_t size)
+{
+  std::vector<Term> res;
+  for (size_t i = 0; i < size; ++i)
+  {
+    res.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(terms[i])));
+  }
+  return res;
+}
+
+std::vector<const BitwuzlaTerm*>
+BzlaTerm::terms_to_bzla_terms(const std::vector<Term>& terms)
+{
+  std::vector<const BitwuzlaTerm*> res;
+  for (auto& t : terms)
+  {
+    res.push_back(BzlaTerm::get_bzla_term(t));
+  }
+  return res;
+}
+
 BzlaTerm::BzlaTerm(const BitwuzlaTerm* term) : d_term(term) {}
 
 BzlaTerm::~BzlaTerm() {}
@@ -558,11 +609,7 @@ BzlaTerm::get_children() const
   std::vector<Term> res;
   size_t size                   = 0;
   const BitwuzlaTerm** bzla_res = bitwuzla_term_get_children(d_term, &size);
-  for (size_t i = 0; i < size; ++i)
-  {
-    res.emplace_back(new BzlaTerm(bzla_res[i]));
-  }
-  return res;
+  return bzla_terms_to_terms(bzla_res, size);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -701,17 +748,18 @@ BzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   switch (kind)
   {
     case SORT_ARRAY:
-      bzla_res = bitwuzla_mk_array_sort(
-          d_solver, get_bzla_sort(sorts[0]), get_bzla_sort(sorts[1]));
+      bzla_res = bitwuzla_mk_array_sort(d_solver,
+                                        BzlaSort::get_bzla_sort(sorts[0]),
+                                        BzlaSort::get_bzla_sort(sorts[1]));
       break;
 
     case SORT_FUN:
     {
-      const BitwuzlaSort* codomain = get_bzla_sort(sorts.back());
+      const BitwuzlaSort* codomain = BzlaSort::get_bzla_sort(sorts.back());
       std::vector<const BitwuzlaSort*> domain;
       for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
       {
-        domain.push_back(get_bzla_sort(*it));
+        domain.push_back(BzlaSort::get_bzla_sort(*it));
       }
       bzla_res = bitwuzla_mk_fun_sort(
           d_solver, domain.size(), domain.data(), codomain);
@@ -747,7 +795,7 @@ BzlaSolver::mk_var(Sort sort, const std::string& name)
     cname  = symbol.c_str();
   }
 
-  bzla_res = bitwuzla_mk_var(d_solver, get_bzla_sort(sort), cname);
+  bzla_res = bitwuzla_mk_var(d_solver, BzlaSort::get_bzla_sort(sort), cname);
   assert(bzla_res);
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
@@ -771,7 +819,7 @@ BzlaSolver::mk_const(Sort sort, const std::string& name)
     cname  = symbol.c_str();
   }
 
-  bzla_res = bitwuzla_mk_const(d_solver, get_bzla_sort(sort), cname);
+  bzla_res = bitwuzla_mk_const(d_solver, BzlaSort::get_bzla_sort(sort), cname);
   assert(bzla_res);
   if (d_rng.pick_with_prob(1))
   {
@@ -815,7 +863,7 @@ BzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to BzlaSolver::mk_value, expected bit-vector sort";
 
-  const BitwuzlaSort* bzla_sort = get_bzla_sort(sort);
+  const BitwuzlaSort* bzla_sort = BzlaSort::get_bzla_sort(sort);
   BitwuzlaTerm* bzla_res =
       bitwuzla_mk_bv_value_uint64(d_solver, bzla_sort, value);
   assert(bzla_res);
@@ -859,7 +907,7 @@ BzlaSolver::mk_value(Sort sort, std::string value, Base base)
       << "' as argument to BzlaSolver::mk_value, expected bit-vector sort";
 
   BitwuzlaTerm* bzla_res;
-  const BitwuzlaSort* bzla_sort = get_bzla_sort(sort);
+  const BitwuzlaSort* bzla_sort = BzlaSort::get_bzla_sort(sort);
   uint32_t bw             = sort->get_bv_size();
   int32_t ibase;
   BitwuzlaBVBase cbase;
@@ -900,7 +948,7 @@ Term
 BzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
 {
   BitwuzlaTerm* bzla_res  = 0;
-  const BitwuzlaSort* bzla_sort = get_bzla_sort(sort);
+  const BitwuzlaSort* bzla_sort = BzlaSort::get_bzla_sort(sort);
   bool check              = d_rng.pick_with_prob(10);
   std::string str;
 
@@ -1014,7 +1062,8 @@ BzlaSolver::mk_term(const Op::Kind& kind,
   size_t n_params        = params.size();
   BitwuzlaKind bzla_kind = BzlaTerm::s_kinds_to_bzla_kinds.at(kind);
   std::vector<BitwuzlaTerm*> vars;
-  std::vector<const BitwuzlaTerm*> bzla_args = terms_to_bzla_terms(args);
+  std::vector<const BitwuzlaTerm*> bzla_args =
+      BzlaTerm::terms_to_bzla_terms(args);
 
   if (n_params)
   {
@@ -1132,14 +1181,14 @@ Sort
 BzlaSolver::get_sort(Term term, SortKind sort_kind) const
 {
   (void) sort_kind;
-  return std::shared_ptr<BzlaSort>(
-      new BzlaSort(d_solver, bitwuzla_term_get_sort(get_bzla_term(term))));
+  return std::shared_ptr<BzlaSort>(new BzlaSort(
+      d_solver, bitwuzla_term_get_sort(BzlaTerm::get_bzla_term(term))));
 }
 
 void
 BzlaSolver::assert_formula(const Term& t)
 {
-  bitwuzla_assert(d_solver, get_bzla_term(t));
+  bitwuzla_assert(d_solver, BzlaTerm::get_bzla_term(t));
 }
 
 Solver::Result
@@ -1158,7 +1207,7 @@ BzlaSolver::check_sat_assuming(std::vector<Term>& assumptions)
   int32_t res;
   for (const Term& t : assumptions)
   {
-    bitwuzla_assume(d_solver, get_bzla_term(t));
+    bitwuzla_assume(d_solver, BzlaTerm::get_bzla_term(t));
   }
   res = bitwuzla_check_sat(d_solver);
   if (res == BITWUZLA_SAT) return Result::SAT;
@@ -1201,13 +1250,14 @@ BzlaSolver::get_value(std::vector<Term>& terms)
 {
   std::vector<Term> res;
   std::vector<BitwuzlaTerm*> bzla_res;
-  std::vector<const BitwuzlaTerm*> bzla_terms = terms_to_bzla_terms(terms);
+  std::vector<const BitwuzlaTerm*> bzla_terms =
+      BzlaTerm::terms_to_bzla_terms(terms);
 
   for (const BitwuzlaTerm* t : bzla_terms)
   {
     bzla_res.push_back(bitwuzla_get_value(d_solver, t));
   }
-  return bzla_terms_to_terms(bzla_res);
+  return BzlaTerm::bzla_terms_to_terms(bzla_res);
 }
 
 void
@@ -1248,26 +1298,10 @@ BzlaSolver::reset_assertions()
 bool
 BzlaSolver::is_unsat_assumption(const Term& t) const
 {
-  return bitwuzla_is_unsat_assumption(d_solver, get_bzla_term(t));
+  return bitwuzla_is_unsat_assumption(d_solver, BzlaTerm::get_bzla_term(t));
 }
 
 /* -------------------------------------------------------------------------- */
-
-const BitwuzlaSort*
-BzlaSolver::get_bzla_sort(Sort sort) const
-{
-  BzlaSort* bzla_sort = dynamic_cast<BzlaSort*>(sort.get());
-  assert(bzla_sort);
-  return bzla_sort->d_sort;
-}
-
-const BitwuzlaTerm*
-BzlaSolver::get_bzla_term(Term term) const
-{
-  BzlaTerm* bzla_term = dynamic_cast<BzlaTerm*>(term.get());
-  assert(bzla_term);
-  return bzla_term->d_term;
-}
 
 void
 BzlaSolver::set_opt(const std::string& opt, const std::string& value)
@@ -1362,28 +1396,6 @@ BzlaSolver::option_unsat_cores_enabled() const
 }
 
 /* -------------------------------------------------------------------------- */
-
-std::vector<Term>
-BzlaSolver::bzla_terms_to_terms(const std::vector<BitwuzlaTerm*>& terms) const
-{
-  std::vector<Term> res;
-  for (BitwuzlaTerm* t : terms)
-  {
-    res.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(t)));
-  }
-  return res;
-}
-
-std::vector<const BitwuzlaTerm*>
-BzlaSolver::terms_to_bzla_terms(const std::vector<Term>& terms) const
-{
-  std::vector<const BitwuzlaTerm*> res;
-  for (auto& t : terms)
-  {
-    res.push_back(get_bzla_term(t));
-  }
-  return res;
-}
 
 BzlaSolver::BzlaTermFunBoolUnary
 BzlaSolver::pick_fun_bool_unary(BzlaTermFunBoolUnaryVector& funs) const
@@ -1630,7 +1642,7 @@ class BzlaActionGetArrayValue : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla          = bzla_solver.get_solver();
-    const BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
+    const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     const BitwuzlaTerm **bzla_idxs, **bzla_vals, *bzla_default_val;
     size_t size;
 
@@ -1689,7 +1701,7 @@ class BzlaActionGetBvValue : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla          = bzla_solver.get_solver();
-    const BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
+    const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     const char* bv_val      = bitwuzla_get_bv_value(bzla, bzla_term);
     if (d_smgr.d_incremental)
     {
@@ -1738,7 +1750,7 @@ class BzlaActionGetFpValue : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla          = bzla_solver.get_solver();
-    const BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
+    const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     const char *fp_val_sign, *fp_val_exp, *fp_val_sig;
     bitwuzla_get_fp_value(
         bzla, bzla_term, &fp_val_sign, &fp_val_exp, &fp_val_sig);
@@ -1790,7 +1802,7 @@ class BzlaActionGetFunValue : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla          = bzla_solver.get_solver();
-    const BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
+    const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     const BitwuzlaTerm ***bzla_args, **bzla_vals;
     size_t arity, size;
 
@@ -1849,7 +1861,7 @@ class BzlaActionGetRmValue : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla          = bzla_solver.get_solver();
-    const BitwuzlaTerm* bzla_term = bzla_solver.get_bzla_term(term);
+    const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     std::string rm_val(bitwuzla_get_rm_value(bzla, bzla_term));
     if (d_smgr.d_incremental)
     {
@@ -1919,7 +1931,7 @@ class BzlaActionIsUnsatAssumption : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
     (void) bitwuzla_is_unsat_assumption(bzla_solver.get_solver(),
-                                        bzla_solver.get_bzla_term(term));
+                                        BzlaTerm::get_bzla_term(term));
   }
 };
 
@@ -2053,8 +2065,7 @@ class BzlaActionTermSetSymbol : public Action
   void _run(Term term, std::string symbol)
   {
     MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
-    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_solver);
-    (void) bitwuzla_term_set_symbol(bzla_solver.get_bzla_term(term),
+    (void) bitwuzla_term_set_symbol(BzlaTerm::get_bzla_term(term),
                                     symbol.c_str());
   }
 };

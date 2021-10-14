@@ -22,6 +22,12 @@ class YicesSort : public AbsSort
   friend class YicesSolver;
 
  public:
+  /** Get wrapped Yices sort from Murxla sort. */
+  static type_t get_yices_sort(Sort sort);
+  /** Convert vector of Murxla sorts to Yices sorts. */
+  static std::vector<type_t> sorts_to_yices_sorts(
+      const std::vector<Sort>& sorts);
+
   YicesSort(type_t sort) : d_sort(sort) {}
   ~YicesSort() override {}
   size_t hash() const override;
@@ -52,6 +58,16 @@ class YicesTerm : public AbsTerm
   friend class YicesSolver;
 
  public:
+  /** Get wrapped Yices term from Murxla term. */
+  static term_t get_yices_term(Term term);
+  /** Convert vector of Yices terms to vector Murxla terms. */
+  static std::vector<Term> yices_terms_to_terms(term_vector_t* terms);
+  static std::vector<Term> yices_terms_to_terms(
+      const std::vector<term_t>& terms);
+  /** Convert vector of Murxla terms to vector Yices terms. */
+  static std::vector<term_t> terms_to_yices_terms(
+      const std::vector<Term>& terms);
+
   /* Solver-specific operators. */
   // BV
   inline static const Op::Kind OP_ASHIFT_RIGHT = "yices-OP_ASHIFT_RIGHT";
@@ -148,8 +164,6 @@ class YicesSolver : public Solver
   bool option_unsat_assumptions_enabled() const override;
   bool option_unsat_cores_enabled() const override;
 
-  term_t get_yices_term(Term term) const;
-
   Term mk_var(Sort sort, const std::string& name) override;
 
   Term mk_const(Sort sort, const std::string& name) override;
@@ -206,7 +220,6 @@ class YicesSolver : public Solver
   //
   //
  private:
-  type_t get_yices_sort(Sort sort) const;
   bool is_valid_sort(type_t sort) const;
   bool is_valid_term(term_t term) const;
   bool check_bits(uint32_t bw, term_t term, std::string& expected) const;
@@ -221,15 +234,6 @@ class YicesSolver : public Solver
                           term_t (*fun)(term_t, term_t)) const;
   term_t mk_term_chained(std::vector<term_t>& args,
                          term_t (*fun)(term_t, term_t)) const;
-
-  std::vector<type_t> sorts_to_yices_sorts(
-      const std::vector<Sort>& sorts) const;
-
-  std::vector<Term> yices_terms_to_terms(term_vector_t* terms) const;
-  std::vector<Term> yices_terms_to_terms(
-      const std::vector<term_t>& terms) const;
-  std::vector<term_t> terms_to_yices_terms(
-      const std::vector<Term>& terms) const;
 
   bool d_is_initialized  = false;
   bool d_incremental     = false;
