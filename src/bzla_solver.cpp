@@ -612,6 +612,72 @@ BzlaTerm::get_children() const
   return bzla_terms_to_terms(bzla_res, size);
 }
 
+uint32_t
+BzlaTerm::get_bv_size() const
+{
+  assert(is_bv());
+  return bitwuzla_term_bv_get_size(d_term);
+}
+
+uint32_t
+BzlaTerm::get_fp_exp_size() const
+{
+  assert(is_fp());
+  return bitwuzla_term_fp_get_exp_size(d_term);
+}
+
+uint32_t
+BzlaTerm::get_fp_sig_size() const
+{
+  assert(is_fp());
+  return bitwuzla_term_fp_get_sig_size(d_term);
+}
+
+Sort
+BzlaTerm::get_array_index_sort() const
+{
+  assert(is_array());
+  BitwuzlaSort* bzla_res = bitwuzla_term_array_get_index_sort(d_term);
+  return std::shared_ptr<BzlaSort>(
+      new BzlaSort(bitwuzla_term_get_bitwuzla(d_term), bzla_res));
+}
+
+Sort
+BzlaTerm::get_array_element_sort() const
+{
+  assert(is_array());
+  BitwuzlaSort* bzla_res = bitwuzla_term_array_get_element_sort(d_term);
+  return std::shared_ptr<BzlaSort>(
+      new BzlaSort(bitwuzla_term_get_bitwuzla(d_term), bzla_res));
+}
+
+uint32_t
+BzlaTerm::get_fun_arity() const
+{
+  assert(is_fun());
+  return bitwuzla_term_fun_get_arity(d_term);
+}
+
+Sort
+BzlaTerm::get_fun_codomain_sort() const
+{
+  assert(is_fun());
+  BitwuzlaSort* bzla_res = bitwuzla_term_fun_get_codomain_sort(d_term);
+  return std::shared_ptr<BzlaSort>(
+      new BzlaSort(bitwuzla_term_get_bitwuzla(d_term), bzla_res));
+}
+
+std::vector<Sort>
+BzlaTerm::get_fun_domain_sorts() const
+{
+  assert(is_fun());
+  size_t size;
+  const BitwuzlaSort** bzla_res =
+      bitwuzla_term_fun_get_domain_sorts(d_term, &size);
+  Bitwuzla* bzla = bitwuzla_term_get_bitwuzla(d_term);
+  return BzlaSort::bzla_sorts_to_sorts(bzla, bzla_res, size);
+}
+
 /* -------------------------------------------------------------------------- */
 /* BzlaSolver                                                                 */
 /* -------------------------------------------------------------------------- */

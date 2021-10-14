@@ -111,6 +111,14 @@ class Cvc5Term : public AbsTerm
   bool is_reglan() const override;
   const Op::Kind& get_kind() const override;
   std::vector<Term> get_children() const override;
+  uint32_t get_bv_size() const override;
+  uint32_t get_fp_exp_size() const override;
+  uint32_t get_fp_sig_size() const override;
+  Sort get_array_index_sort() const override;
+  Sort get_array_element_sort() const override;
+  uint32_t get_fun_arity() const override;
+  Sort get_fun_codomain_sort() const override;
+  std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
   ::cvc5::api::Solver* d_solver = nullptr;

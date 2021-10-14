@@ -163,6 +163,8 @@ ActionTermCheck::_run(Term term)
   if (sort->is_array())
   {
     assert(term->is_array());
+    assert(sort->get_array_index_sort() == term->get_array_index_sort());
+    assert(sort->get_array_element_sort() == term->get_array_element_sort());
   }
   else if (sort->is_bool())
   {
@@ -171,14 +173,26 @@ ActionTermCheck::_run(Term term)
   else if (sort->is_bv())
   {
     assert(term->is_bv());
+    assert(sort->get_bv_size() == term->get_bv_size());
   }
   else if (sort->is_fp())
   {
     assert(term->is_fp());
+    assert(sort->get_fp_exp_size() == term->get_fp_exp_size());
+    assert(sort->get_fp_sig_size() == term->get_fp_sig_size());
   }
   else if (sort->is_fun())
   {
     assert(term->is_fun());
+    assert(sort->get_fun_arity() == term->get_fun_arity());
+    assert(sort->get_fun_codomain_sort() == term->get_fun_codomain_sort());
+    std::vector<Sort> domain_sorts_expected = sort->get_fun_domain_sorts();
+    std::vector<Sort> domain_sorts          = term->get_fun_domain_sorts();
+    assert(domain_sorts_expected.size() == domain_sorts.size());
+    for (size_t i = 0, n = domain_sorts_expected.size(); i < n; ++i)
+    {
+      assert(domain_sorts_expected[i] == domain_sorts[i]);
+    }
   }
   else if (sort->is_int())
   {
@@ -207,10 +221,9 @@ ActionTermCheck::_run(Term term)
 
   /* Call Term::get_kind(). */
   Op::Kind kind = term->get_kind();
-
   /* Call Term::get_children(). */
   std::vector<Term> children = term->get_children();
-  // Perform some checks based on term kind
+  /* Perform some checks based on term kind */
   if (kind == Op::ARRAY_SELECT)
   {
     assert(children.size() == 2);

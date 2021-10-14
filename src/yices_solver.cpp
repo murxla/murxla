@@ -266,6 +266,16 @@ YicesTerm::is_string() const
   return false;
 }
 
+uint32_t
+YicesTerm::get_bv_size() const
+{
+  assert(is_bv());
+  type_t yices_type = yices_type_of_term(d_term);
+  uint32_t res      = yices_bvtype_size(yices_type);
+  assert(res);
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 /* YicesSolver                                                                */
 /* -------------------------------------------------------------------------- */

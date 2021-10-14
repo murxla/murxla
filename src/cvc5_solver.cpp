@@ -790,6 +790,67 @@ Cvc5Term::get_children() const
   return res;
 }
 
+uint32_t
+Cvc5Term::get_bv_size() const
+{
+  assert(is_bv());
+  return d_term.getSort().getBVSize();
+}
+
+uint32_t
+Cvc5Term::get_fp_exp_size() const
+{
+  assert(is_fp());
+  return d_term.getSort().getFPExponentSize();
+}
+
+uint32_t
+Cvc5Term::get_fp_sig_size() const
+{
+  assert(is_fp());
+  return d_term.getSort().getFPSignificandSize();
+}
+
+Sort
+Cvc5Term::get_array_index_sort() const
+{
+  assert(is_array());
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_solver, d_term.getSort().getArrayIndexSort()));
+}
+
+Sort
+Cvc5Term::get_array_element_sort() const
+{
+  assert(is_array());
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_solver, d_term.getSort().getArrayElementSort()));
+}
+
+uint32_t
+Cvc5Term::get_fun_arity() const
+{
+  assert(is_fun());
+  return d_term.getSort().getFunctionArity();
+}
+
+Sort
+Cvc5Term::get_fun_codomain_sort() const
+{
+  assert(is_fun());
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_solver, d_term.getSort().getFunctionCodomainSort()));
+}
+
+std::vector<Sort>
+Cvc5Term::get_fun_domain_sorts() const
+{
+  assert(is_fun());
+  std::vector<::cvc5::api::Sort> cvc5_res =
+      d_term.getSort().getFunctionDomainSorts();
+  return Cvc5Sort::cvc5_sorts_to_sorts(d_solver, cvc5_res);
+}
+
 /* -------------------------------------------------------------------------- */
 /* Cvc5Solver                                                                 */
 /* -------------------------------------------------------------------------- */

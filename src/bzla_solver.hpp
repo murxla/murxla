@@ -22,7 +22,7 @@ class BzlaSort : public AbsSort
  public:
   /** Get wrapped Bitwuzla sort from Murxla Sort. */
   static const BitwuzlaSort* get_bzla_sort(Sort sort);
-  /** Convert vector of Bitwuzla sorts to Murxla sorts. */
+  /** Convert array of Bitwuzla sorts to Murxla sorts. */
   static std::vector<Sort> bzla_sorts_to_sorts(Bitwuzla* bzla,
                                                const BitwuzlaSort** sorts,
                                                size_t size);
@@ -70,6 +70,7 @@ class BzlaTerm : public AbsTerm
   /** Convert vector of Bitwuzla terms to vector of Murxla terms. */
   static std::vector<Term> bzla_terms_to_terms(
       const std::vector<BitwuzlaTerm*>& terms);
+  /** Convert array of Bitwuzla terms to vector of Murxla terms. */
   static std::vector<Term> bzla_terms_to_terms(const BitwuzlaTerm** terms,
                                                size_t size);
   /** Convert vector of Murxla terms to vector of Bitwuzla terms. */
@@ -117,6 +118,14 @@ class BzlaTerm : public AbsTerm
   bool is_reglan() const override;
   const Op::Kind& get_kind() const override;
   std::vector<Term> get_children() const override;
+  uint32_t get_bv_size() const override;
+  uint32_t get_fp_exp_size() const override;
+  uint32_t get_fp_sig_size() const override;
+  Sort get_array_index_sort() const override;
+  Sort get_array_element_sort() const override;
+  uint32_t get_fun_arity() const override;
+  Sort get_fun_codomain_sort() const override;
+  std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
   const BitwuzlaTerm* d_term = nullptr;

@@ -156,6 +156,15 @@ class AbsTerm
   virtual void set_sort(Sort sort);
   Sort get_sort() const;
 
+  virtual uint32_t get_bv_size() const;
+  virtual uint32_t get_fp_exp_size() const;
+  virtual uint32_t get_fp_sig_size() const;
+  virtual Sort get_array_index_sort() const;
+  virtual Sort get_array_element_sort() const;
+  virtual uint32_t get_fun_arity() const;
+  virtual Sort get_fun_codomain_sort() const;
+  virtual std::vector<Sort> get_fun_domain_sorts() const;
+
   void set_levels(const std::vector<uint64_t>& levels);
   const std::vector<uint64_t>& get_levels() const;
 

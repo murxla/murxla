@@ -122,6 +122,8 @@ class YicesTerm : public AbsTerm
   bool is_string() const override;
   bool is_reglan() const override;
 
+  uint32_t get_bv_size() const override;
+
  private:
   term_t d_term = 0;
 };

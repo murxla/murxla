@@ -161,6 +161,53 @@ AbsTerm::get_sort() const
   return d_sort;
 }
 
+uint32_t
+AbsTerm::get_bv_size() const
+{
+  return 0;
+}
+
+uint32_t
+AbsTerm::get_fp_exp_size() const
+{
+  return 0;
+}
+uint32_t
+AbsTerm::get_fp_sig_size() const
+{
+  return 0;
+}
+
+Sort
+AbsTerm::get_array_index_sort() const
+{
+  return nullptr;
+}
+
+Sort
+AbsTerm::get_array_element_sort() const
+{
+  return nullptr;
+}
+
+uint32_t
+AbsTerm::get_fun_arity() const
+{
+  return 0;
+}
+
+Sort
+AbsTerm::get_fun_codomain_sort() const
+{
+  return nullptr;
+}
+
+std::vector<Sort>
+AbsTerm::get_fun_domain_sorts() const
+{
+  return std::vector<Sort>();
+}
+
 void
 AbsTerm::set_levels(const std::vector<uint64_t>& levels)
 {
