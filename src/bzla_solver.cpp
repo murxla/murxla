@@ -149,7 +149,7 @@ BzlaSort::get_bv_size() const
 {
   assert(is_bv());
   uint32_t res = bitwuzla_sort_bv_get_size(d_sort);
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -158,7 +158,7 @@ BzlaSort::get_fp_exp_size() const
 {
   assert(is_fp());
   uint32_t res = bitwuzla_sort_fp_get_exp_size(d_sort);
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -167,7 +167,7 @@ BzlaSort::get_fp_sig_size() const
 {
   assert(is_fp());
   uint32_t res = bitwuzla_sort_fp_get_sig_size(d_sort);
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -177,7 +177,7 @@ BzlaSort::get_array_index_sort() const
   assert(is_array());
   BitwuzlaSort* bzla_res = bitwuzla_sort_array_get_index(d_sort);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -187,7 +187,7 @@ BzlaSort::get_array_element_sort() const
   assert(is_array());
   BitwuzlaSort* bzla_res = bitwuzla_sort_array_get_element(d_sort);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -204,7 +204,7 @@ BzlaSort::get_fun_codomain_sort() const
   assert(is_fun());
   BitwuzlaSort* bzla_res = bitwuzla_sort_fun_get_codomain(d_sort);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -778,7 +778,7 @@ BzlaSolver::mk_sort(SortKind kind)
 
   bzla_res = kind == SORT_BOOL ? bitwuzla_mk_bool_sort(d_solver)
                                : bitwuzla_mk_rm_sort(d_solver);
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
   assert(res);
   return res;
@@ -792,7 +792,7 @@ BzlaSolver::mk_sort(SortKind kind, uint32_t size)
       << "' as argument to BzlaSolver::mk_sort, expected '" << SORT_BV << "'";
 
   BitwuzlaSort* bzla_res = bitwuzla_mk_bv_sort(d_solver, size);
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
   assert(res);
   return res;
@@ -806,7 +806,7 @@ BzlaSolver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
       << "' as argument to BzlaSolver::mk_sort, expected '" << SORT_FP << "'";
 
   BitwuzlaSort* bzla_res = bitwuzla_mk_fp_sort(d_solver, esize, ssize);
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
   assert(res);
   return res;
@@ -845,7 +845,7 @@ BzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
           << "' or '" << SORT_FUN << "'";
   }
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   assert(res);
   return res;
 }
@@ -868,7 +868,7 @@ BzlaSolver::mk_var(Sort sort, const std::string& name)
   }
 
   bzla_res = bitwuzla_mk_var(d_solver, BzlaSort::get_bzla_sort(sort), cname);
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
@@ -892,10 +892,10 @@ BzlaSolver::mk_const(Sort sort, const std::string& name)
   }
 
   bzla_res = bitwuzla_mk_const(d_solver, BzlaSort::get_bzla_sort(sort), cname);
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   if (d_rng.pick_with_prob(1))
   {
-    assert(bitwuzla_term_is_equal_sort(bzla_res, bzla_res));
+    MURXLA_TEST(bitwuzla_term_is_equal_sort(bzla_res, bzla_res));
   }
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
@@ -911,7 +911,7 @@ BzlaSolver::mk_value(Sort sort, bool value)
 
   BitwuzlaTerm* bzla_res =
       value ? bitwuzla_mk_true(d_solver) : bitwuzla_mk_false(d_solver);
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   if (d_rng.pick_with_prob(10))
   {
     if (value)
@@ -938,7 +938,7 @@ BzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
   const BitwuzlaSort* bzla_sort = BzlaSort::get_bzla_sort(sort);
   BitwuzlaTerm* bzla_res =
       bitwuzla_mk_bv_value_uint64(d_solver, bzla_sort, value);
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   return bzla_res;
 }
 
@@ -965,8 +965,10 @@ BzlaSolver::mk_value(Sort sort, std::string value)
                                                 value.substr(1 + ew).c_str(),
                                                 BITWUZLA_BV_BASE_BIN);
 
-  std::shared_ptr<BzlaTerm> res(new BzlaTerm(
-      bitwuzla_mk_fp_value(d_solver, bzla_sign, bzla_exp, bzla_sig)));
+  BitwuzlaTerm* bzla_res =
+      bitwuzla_mk_fp_value(d_solver, bzla_sign, bzla_exp, bzla_sig);
+  MURXLA_TEST(bzla_res);
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
 }
@@ -1010,7 +1012,7 @@ BzlaSolver::mk_value(Sort sort, std::string value, Base base)
   {
     bzla_res = bitwuzla_mk_bv_value(d_solver, bzla_sort, value.c_str(), cbase);
   }
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
@@ -1114,7 +1116,7 @@ BzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
              "bit-vector, floating-point or RoundingMode sort";
   }
 
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
@@ -1243,7 +1245,7 @@ BzlaSolver::mk_term(const Op::Kind& kind,
       }
     }
   }
-  assert(bzla_res);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
@@ -1269,7 +1271,7 @@ BzlaSolver::check_sat()
   BitwuzlaResult res = bitwuzla_check_sat(d_solver);
   if (res == BITWUZLA_SAT) return Result::SAT;
   if (res == BITWUZLA_UNSAT) return Result::UNSAT;
-  assert(res == BITWUZLA_UNKNOWN);
+  MURXLA_TEST(res == BITWUZLA_UNKNOWN);
   return Result::UNKNOWN;
 }
 
@@ -1284,7 +1286,7 @@ BzlaSolver::check_sat_assuming(std::vector<Term>& assumptions)
   res = bitwuzla_check_sat(d_solver);
   if (res == BITWUZLA_SAT) return Result::SAT;
   if (res == BITWUZLA_UNSAT) return Result::UNSAT;
-  assert(res == BITWUZLA_UNKNOWN);
+  MURXLA_TEST(res == BITWUZLA_UNKNOWN);
   return Result::UNKNOWN;
 }
 
@@ -1414,7 +1416,7 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
     return;
   }
   bitwuzla_set_option(d_solver, bzla_opt, val);
-  assert(val == bitwuzla_get_option(d_solver, bzla_opt));
+  MURXLA_TEST(val == bitwuzla_get_option(d_solver, bzla_opt));
 }
 
 std::string
@@ -1596,21 +1598,21 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
     }
     if (d_rng.flip_coin())
     {
-      assert(pick_fun_bool_unary(is_funs)(node));
+      MURXLA_TEST(pick_fun_bool_unary(is_funs)(node));
     }
     else
     {
-      assert(!pick_fun_bool_unary(is_not_funs)(node));
+      MURXLA_TEST(!pick_fun_bool_unary(is_not_funs)(node));
     }
   }
   else if (pick == RNGenerator::Choice::SECOND)
   {
-    assert(bitwuzla_term_is_bv_value(node));
+    MURXLA_TEST(bitwuzla_term_is_bv_value(node));
   }
   else
   {
-    assert(pick == RNGenerator::Choice::THIRD);
-    assert(!bitwuzla_term_is_const(node));
+    MURXLA_TEST(pick == RNGenerator::Choice::THIRD);
+    MURXLA_TEST(!bitwuzla_term_is_const(node));
   }
 }
 
@@ -1733,7 +1735,8 @@ class BzlaActionGetArrayValue : public Action
             bzla, BITWUZLA_KIND_EQUAL, bzla_select, bzla_vals[i]);
         assumptions.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(bzla_eq)));
       }
-      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                  == Solver::Result::SAT);
     }
   }
 };
@@ -1782,7 +1785,8 @@ class BzlaActionGetBvValue : public Action
           d_solver.mk_value(term->get_sort(), bv_val, Solver::Base::BIN);
       std::vector<Term> assumptions{
           d_solver.mk_term(Op::EQUAL, {term, term_bv_val}, {})};
-      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                  == Solver::Result::SAT);
     }
   }
 };
@@ -1834,7 +1838,8 @@ class BzlaActionGetFpValue : public Action
       Term term_fp_val = d_solver.mk_value(term->get_sort(), fp_val);
       std::vector<Term> assumptions{
           d_solver.mk_term(Op::EQUAL, {term, term_fp_val}, {})};
-      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                  == Solver::Result::SAT);
     }
   }
 };
@@ -1893,7 +1898,8 @@ class BzlaActionGetFunValue : public Action
             bzla, BITWUZLA_KIND_EQUAL, bzla_apply, bzla_vals[i]);
         assumptions.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(bzla_eq)));
       }
-      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                  == Solver::Result::SAT);
     }
   }
 };
@@ -1963,7 +1969,8 @@ class BzlaActionGetRmValue : public Action
       Term term_rm_val = d_solver.mk_special_value(term->get_sort(), value);
       std::vector<Term> assumptions{
           d_solver.mk_term(Op::EQUAL, {term, term_rm_val}, {})};
-      assert(d_solver.check_sat_assuming(assumptions) == Solver::Result::SAT);
+      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                  == Solver::Result::SAT);
     }
   }
 };

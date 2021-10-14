@@ -111,7 +111,7 @@ Cvc5Sort::get_bv_size() const
 {
   assert(is_bv());
   uint32_t res = d_sort.getBVSize();
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -120,7 +120,7 @@ Cvc5Sort::get_fp_exp_size() const
 {
   assert(is_fp());
   uint32_t res = d_sort.getFPExponentSize();
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -129,7 +129,7 @@ Cvc5Sort::get_fp_sig_size() const
 {
   assert(is_fp());
   uint32_t res = d_sort.getFPSignificandSize();
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -139,7 +139,7 @@ Cvc5Sort::get_array_index_sort() const
   assert(is_array());
   ::cvc5::api::Sort cvc5_res = d_sort.getArrayIndexSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -149,7 +149,7 @@ Cvc5Sort::get_array_element_sort() const
   assert(is_array());
   ::cvc5::api::Sort cvc5_res = d_sort.getArrayElementSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -166,7 +166,7 @@ Cvc5Sort::get_fun_codomain_sort() const
   assert(is_fun());
   ::cvc5::api::Sort cvc5_res = d_sort.getFunctionCodomainSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -954,9 +954,9 @@ Cvc5Solver::mk_sort(SortKind kind)
           << "', '" << SORT_INT << "', '" << SORT_REAL << "', '" << SORT_RM
           << "', '" << SORT_REGLAN << "' or '" << SORT_STRING << "'";
   }
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
 }
 
@@ -967,9 +967,9 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t size)
       << "unsupported sort kind '" << kind
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_BV << "'";
   ::cvc5::api::Sort cvc5_res = d_solver->mkBitVectorSort(size);
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
   assert(res);
   return res;
@@ -982,9 +982,9 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
       << "unsupported sort kind '" << kind
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_FP << "'";
   ::cvc5::api::Sort cvc5_res = d_solver->mkFloatingPointSort(esize, ssize);
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
   assert(res);
   return res;
@@ -1021,9 +1021,9 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
                                     "expected '"
                                  << SORT_ARRAY << "' or '" << SORT_FUN << "'";
   }
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
   assert(res);
   return res;
@@ -1034,9 +1034,9 @@ Cvc5Solver::mk_const(Sort sort, const std::string& name)
 {
   ::cvc5::api::Term cvc5_res =
       d_solver->mkConst(Cvc5Sort::get_cvc5_sort(sort), name);
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_solver, cvc5_res));
 }
 
@@ -1045,9 +1045,9 @@ Cvc5Solver::mk_var(Sort sort, const std::string& name)
 {
   ::cvc5::api::Term cvc5_res =
       d_solver->mkVar(Cvc5Sort::get_cvc5_sort(sort), name);
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_solver, cvc5_res));
 }
 
@@ -1069,9 +1069,9 @@ Cvc5Solver::mk_value(Sort sort, bool value)
   {
     cvc5_res = d_solver->mkBoolean(value);
   }
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
   assert(res);
   return res;
@@ -1161,9 +1161,9 @@ Cvc5Solver::mk_value(Sort sort, std::string value)
              "Cvc5Solver::mk_value, expected Integer, Real, Reglan or String "
              "sort ";
   }
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
   assert(res);
   return res;
@@ -1182,9 +1182,9 @@ Cvc5Solver::mk_value(Sort sort, std::string num, std::string den)
   cvc5_res = d_solver->mkReal(
       static_cast<int64_t>(strtoull(num.c_str(), nullptr, 10)),
       static_cast<int64_t>(strtoull(den.c_str(), nullptr, 10)));
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
   assert(res);
   return res;
@@ -1245,9 +1245,9 @@ Cvc5Solver::mk_value(Sort sort, std::string value, Base base)
                                      : d_solver->mkBitVector(value.c_str(), 2);
       }
   }
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
   std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
   assert(res);
   return res;
@@ -1435,11 +1435,11 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     case 1:
     {
       cvc5_opterm = d_solver->mkOp(cvc5_kind, params[0]);
-      assert(!cvc5_opterm.isNull());
-      assert(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
-      assert(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
-      assert(cvc5_opterm.isIndexed());
-      assert(cvc5_opterm.getKind() == cvc5_kind);
+      MURXLA_TEST(!cvc5_opterm.isNull());
+      MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
+      MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
+      MURXLA_TEST(cvc5_opterm.isIndexed());
+      MURXLA_TEST(cvc5_opterm.getKind() == cvc5_kind);
       uint32_t idx;
       if (kind == Op::INT_IS_DIV)
       {
@@ -1451,21 +1451,21 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       {
         idx = cvc5_opterm.getIndices<uint32_t>();
       }
-      assert(idx == params[0]);
+      MURXLA_TEST(idx == params[0]);
       break;
     }
     case 2:
     {
       cvc5_opterm = d_solver->mkOp(cvc5_kind, params[0], params[1]);
-      assert(!cvc5_opterm.isNull());
-      assert(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
-      assert(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
-      assert(cvc5_opterm.isIndexed());
-      assert(cvc5_opterm.getKind() == cvc5_kind);
+      MURXLA_TEST(!cvc5_opterm.isNull());
+      MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
+      MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
+      MURXLA_TEST(cvc5_opterm.isIndexed());
+      MURXLA_TEST(cvc5_opterm.getKind() == cvc5_kind);
       std::pair<uint32_t, uint32_t> indices =
           cvc5_opterm.getIndices<std::pair<uint32_t, uint32_t>>();
-      assert(indices.first == params[0]);
-      assert(indices.second == params[1]);
+      MURXLA_TEST(indices.first == params[0]);
+      MURXLA_TEST(indices.second == params[1]);
       break;
     }
     default: assert(n_params == 0);
@@ -1551,12 +1551,12 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
                            : d_solver->mkTerm(cvc5_kind, cvc5_args);
   }
 DONE:
-  assert(!cvc5_res.isNull());
-  assert(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
-  assert(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
-  assert(cvc5_kind == cvc5_res.getKind()
-         || (cvc5_res.getSort().isBoolean()
-             && cvc5_res.getKind() == ::cvc5::api::Kind::AND));
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_res == cvc5_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_res != cvc5_res));
+  MURXLA_TEST(cvc5_kind == cvc5_res.getKind()
+              || (cvc5_res.getSort().isBoolean()
+                  && cvc5_res.getKind() == ::cvc5::api::Kind::AND));
   return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_solver, cvc5_res));
 }
 
@@ -1578,11 +1578,11 @@ Solver::Result
 Cvc5Solver::check_sat()
 {
   ::cvc5::api::Result res = d_solver->checkSat();
-  assert(res != ::cvc5::api::Result());
-  assert(!d_rng.pick_with_prob(1) || res == res);
+  MURXLA_TEST(res != ::cvc5::api::Result());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
-  assert(res.isSatUnknown());
+  MURXLA_TEST(res.isSatUnknown());
   if (d_rng.pick_with_prob(1))
   {
     (void) res.getUnknownExplanation();
@@ -1597,19 +1597,19 @@ Cvc5Solver::check_sat_assuming(std::vector<Term>& assumptions)
   std::vector<::cvc5::api::Term> cvc5_assumptions =
       Cvc5Term::terms_to_cvc5_terms(assumptions);
 
-  assert(assumptions.size() == cvc5_assumptions.size());
+  MURXLA_TEST(assumptions.size() == cvc5_assumptions.size());
 
   res = cvc5_assumptions.size() == 1 && d_rng.flip_coin()
             ? d_solver->checkSatAssuming(cvc5_assumptions[0])
             : d_solver->checkSatAssuming(cvc5_assumptions);
-  assert(!d_rng.pick_with_prob(1) || res == res);
-  assert(res != ::cvc5::api::Result());
-  assert(!res.isEntailed());
-  assert(!res.isNotEntailed());
-  assert(!res.isEntailmentUnknown());
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
+  MURXLA_TEST(res != ::cvc5::api::Result());
+  MURXLA_TEST(!res.isEntailed());
+  MURXLA_TEST(!res.isNotEntailed());
+  MURXLA_TEST(!res.isEntailmentUnknown());
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
-  assert(res.isSatUnknown());
+  MURXLA_TEST(res.isSatUnknown());
   if (d_rng.pick_with_prob(1))
   {
     (void) res.getUnknownExplanation();
@@ -1849,13 +1849,13 @@ class Cvc5ActionCheckEntailed : public Action
     Cvc5Solver& solver          = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5   = solver.get_solver();
     ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
-    assert(!cvc5_term.isNull());
+    MURXLA_TEST(!cvc5_term.isNull());
     ::cvc5::api::Result res = cvc5->checkEntailed(cvc5_term);
-    assert(!d_rng.pick_with_prob(1) || res == res);
-    assert(res != ::cvc5::api::Result());
-    assert(!res.isSat());
-    assert(!res.isUnsat());
-    assert(!res.isSatUnknown());
+    MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
+    MURXLA_TEST(res != ::cvc5::api::Result());
+    MURXLA_TEST(!res.isSat());
+    MURXLA_TEST(!res.isUnsat());
+    MURXLA_TEST(!res.isSatUnknown());
     if (res.isEntailmentUnknown())
     {
       if (d_rng.pick_with_prob(1))
@@ -1870,7 +1870,7 @@ class Cvc5ActionCheckEntailed : public Action
     }
     else
     {
-      assert(res.isNotEntailed());
+      MURXLA_TEST(res.isNotEntailed());
       d_smgr.d_sat_result = Solver::Result::SAT;
     }
     d_smgr.d_sat_called = true;
@@ -1886,11 +1886,11 @@ class Cvc5ActionCheckEntailed : public Action
     std::vector<::cvc5::api::Term> cvc5_terms =
         Cvc5Term::terms_to_cvc5_terms(terms);
     ::cvc5::api::Result res = cvc5->checkEntailed(cvc5_terms);
-    assert(!d_rng.pick_with_prob(1) || res == res);
-    assert(res != ::cvc5::api::Result());
-    assert(!res.isSat());
-    assert(!res.isUnsat());
-    assert(!res.isSatUnknown());
+    MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
+    MURXLA_TEST(res != ::cvc5::api::Result());
+    MURXLA_TEST(!res.isSat());
+    MURXLA_TEST(!res.isUnsat());
+    MURXLA_TEST(!res.isSatUnknown());
     if (res.isEntailmentUnknown())
     {
       if (d_rng.pick_with_prob(1))
@@ -1905,7 +1905,7 @@ class Cvc5ActionCheckEntailed : public Action
     }
     else
     {
-      assert(res.isNotEntailed());
+      MURXLA_TEST(res.isNotEntailed());
       d_smgr.d_sat_result = Solver::Result::SAT;
     }
     d_smgr.d_sat_called = true;
@@ -1946,7 +1946,7 @@ class Cvc5ActionSimplify : public Action
     Cvc5Solver& solver         = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5  = solver.get_solver();
     ::cvc5::api::Term cvc5_res = cvc5->simplify(Cvc5Term::get_cvc5_term(term));
-    assert(!cvc5_res.isNull());
+    MURXLA_TEST(!cvc5_res.isNull());
     Term res  = std::make_shared<Cvc5Term>(cvc5, cvc5_res);
     Sort sort = term->get_sort();
     assert (sort != nullptr);

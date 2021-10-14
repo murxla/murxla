@@ -162,57 +162,58 @@ ActionTermCheck::_run(Term term)
   /* Check sort. */
   if (sort->is_array())
   {
-    assert(term->is_array());
-    assert(sort->get_array_index_sort() == term->get_array_index_sort());
-    assert(sort->get_array_element_sort() == term->get_array_element_sort());
+    MURXLA_TEST(term->is_array());
+    MURXLA_TEST(sort->get_array_index_sort() == term->get_array_index_sort());
+    MURXLA_TEST(sort->get_array_element_sort()
+                == term->get_array_element_sort());
   }
   else if (sort->is_bool())
   {
-    assert(term->is_bool());
+    MURXLA_TEST(term->is_bool());
   }
   else if (sort->is_bv())
   {
-    assert(term->is_bv());
-    assert(sort->get_bv_size() == term->get_bv_size());
+    MURXLA_TEST(term->is_bv());
+    MURXLA_TEST(sort->get_bv_size() == term->get_bv_size());
   }
   else if (sort->is_fp())
   {
-    assert(term->is_fp());
-    assert(sort->get_fp_exp_size() == term->get_fp_exp_size());
-    assert(sort->get_fp_sig_size() == term->get_fp_sig_size());
+    MURXLA_TEST(term->is_fp());
+    MURXLA_TEST(sort->get_fp_exp_size() == term->get_fp_exp_size());
+    MURXLA_TEST(sort->get_fp_sig_size() == term->get_fp_sig_size());
   }
   else if (sort->is_fun())
   {
-    assert(term->is_fun());
-    assert(sort->get_fun_arity() == term->get_fun_arity());
-    assert(sort->get_fun_codomain_sort() == term->get_fun_codomain_sort());
+    MURXLA_TEST(term->is_fun());
+    MURXLA_TEST(sort->get_fun_arity() == term->get_fun_arity());
+    MURXLA_TEST(sort->get_fun_codomain_sort() == term->get_fun_codomain_sort());
     std::vector<Sort> domain_sorts_expected = sort->get_fun_domain_sorts();
     std::vector<Sort> domain_sorts          = term->get_fun_domain_sorts();
-    assert(domain_sorts_expected.size() == domain_sorts.size());
+    MURXLA_TEST(domain_sorts_expected.size() == domain_sorts.size());
     for (size_t i = 0, n = domain_sorts_expected.size(); i < n; ++i)
     {
-      assert(domain_sorts_expected[i] == domain_sorts[i]);
+      MURXLA_TEST(domain_sorts_expected[i] == domain_sorts[i]);
     }
   }
   else if (sort->is_int())
   {
-    assert(term->is_int());
+    MURXLA_TEST(term->is_int());
   }
   else if (sort->is_real())
   {
-    assert(term->is_real());
+    MURXLA_TEST(term->is_real());
   }
   else if (sort->is_rm())
   {
-    assert(term->is_rm());
+    MURXLA_TEST(term->is_rm());
   }
   else if (sort->is_string())
   {
-    assert(term->is_string());
+    MURXLA_TEST(term->is_string());
   }
   else if (sort->is_reglan())
   {
-    assert(term->is_reglan());
+    MURXLA_TEST(term->is_reglan());
   }
   else
   {
@@ -231,8 +232,8 @@ ActionTermCheck::_run(Term term)
     Sort index_sort_expected   = array_sort->get_array_index_sort();
     Sort element_sort_expected = array_sort->get_array_element_sort();
     Sort index_sort            = d_solver.get_sort(children[1], SORT_ANY);
-    assert(index_sort_expected->equals(index_sort));
-    assert(element_sort_expected->equals(term->get_sort()));
+    MURXLA_TEST(index_sort_expected->equals(index_sort));
+    MURXLA_TEST(element_sort_expected->equals(term->get_sort()));
   }
   else if (kind == Op::ARRAY_STORE)
   {
@@ -242,8 +243,8 @@ ActionTermCheck::_run(Term term)
     Sort element_sort_expected = array_sort->get_array_element_sort();
     Sort index_sort            = d_solver.get_sort(children[1], SORT_ANY);
     Sort element_sort          = d_solver.get_sort(children[2], SORT_ANY);
-    assert(index_sort_expected->equals(index_sort));
-    assert(element_sort_expected->equals(element_sort));
+    MURXLA_TEST(index_sort_expected->equals(index_sort));
+    MURXLA_TEST(element_sort_expected->equals(element_sort));
   }
   else if (kind == Op::UF_APPLY)
   {
@@ -251,14 +252,14 @@ ActionTermCheck::_run(Term term)
     Sort fun_sort               = d_solver.get_sort(children[0], SORT_ANY);
     Sort codomain_sort_expected = fun_sort->get_fun_codomain_sort();
     std::vector<Sort> domain_sorts_expected = fun_sort->get_fun_domain_sorts();
-    assert(domain_sorts_expected.size() == children.size() - 1);
-    assert(codomain_sort_expected->equals(term->get_sort()));
+    MURXLA_TEST(domain_sorts_expected.size() == children.size() - 1);
+    MURXLA_TEST(codomain_sort_expected->equals(term->get_sort()));
     if (!domain_sorts_expected.empty())
     {
-      assert(domain_sorts_expected.size() == fun_sort->get_fun_arity());
+      MURXLA_TEST(domain_sorts_expected.size() == fun_sort->get_fun_arity());
       for (size_t i = 0, size = domain_sorts_expected.size(); i < size; ++i)
       {
-        assert(domain_sorts_expected[i]->equals(
+        MURXLA_TEST(domain_sorts_expected[i]->equals(
             d_solver.get_sort(children[i + 1], SORT_ANY)));
       }
     }
@@ -615,7 +616,7 @@ ActionMkSort::_run(SortKind kind, uint32_t bw)
   MURXLA_TRACE << get_kind() << " " << kind << " " << bw;
   assert(kind == SORT_BV);
   Sort res = d_solver.mk_sort(kind, bw);
-  assert(res->get_bv_size() == bw);
+  MURXLA_TEST(res->get_bv_size() == bw);
   d_smgr.add_sort(res, kind);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
@@ -627,8 +628,8 @@ ActionMkSort::_run(SortKind kind, uint32_t ew, uint32_t sw)
   MURXLA_TRACE << get_kind() << " " << kind << " " << ew << " " << sw;
   assert(kind == SORT_FP);
   Sort res = d_solver.mk_sort(kind, ew, sw);
-  assert(res->get_fp_exp_size() == ew);
-  assert(res->get_fp_sig_size() == sw);
+  MURXLA_TEST(res->get_fp_exp_size() == ew);
+  MURXLA_TEST(res->get_fp_sig_size() == sw);
   d_smgr.add_sort(res, kind);
   MURXLA_TRACE_RETURN << res;
   /* Operator fp expects three bit-vector terms of size 1, ew and sw - 1 as
@@ -652,7 +653,7 @@ ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
   Sort res = d_solver.mk_sort(kind, sorts);
   res->set_sorts(sorts);
   d_smgr.add_sort(res, kind);
-  assert(res->get_sorts().size() == sorts.size());
+  MURXLA_TEST(res->get_sorts().size() == sorts.size());
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -1504,7 +1505,6 @@ ActionCheckSat::run()
 std::vector<uint64_t>
 ActionCheckSat::untrace(const std::vector<std::string>& tokens)
 {
-  assert(tokens.empty());
   MURXLA_CHECK_TRACE_EMPTY(tokens);
   _run();
   return {};
@@ -1603,13 +1603,13 @@ ActionGetUnsatAssumptions::_run()
   for (Term& fa : res)
   {
     Term t = d_smgr.find_term(fa, d_solver.get_sort(fa, SORT_BOOL), SORT_BOOL);
-    assert(t != nullptr);
+    MURXLA_TEST(t != nullptr);
     assert(d_smgr.is_assumed(t));
-    assert(d_solver.is_unsat_assumption(t));
+    MURXLA_TEST(d_solver.is_unsat_assumption(t));
   }
   if (d_rng.flip_coin())
   {
-    assert(d_solver.check_sat_assuming(res) != Solver::Result::SAT);
+    MURXLA_TEST(d_solver.check_sat_assuming(res) != Solver::Result::SAT);
   }
 }
 
@@ -1672,7 +1672,7 @@ ActionGetValue::run()
 std::vector<uint64_t>
 ActionGetValue::untrace(const std::vector<std::string>& tokens)
 {
-  assert(tokens.size() > 1);
+  MURXLA_CHECK_TRACE_NTOKENS_MIN(2, "", tokens.size());
   std::vector<Term> terms;
   uint32_t n_args = str_to_uint32(tokens[0]);
   for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
@@ -1693,7 +1693,7 @@ ActionGetValue::_run(std::vector<Term> terms)
   /* Note: The Terms in this vector are solver terms wrapped into Term,
    *       without sort information! */
   std::vector<Term> res_terms = d_solver.get_value(terms);
-  assert(terms.size() == res_terms.size());
+  MURXLA_TEST(terms.size() == res_terms.size());
   if (d_smgr.d_incremental)
   {
     /* assume assignment and check if result is still SAT */
@@ -1704,7 +1704,8 @@ ActionGetValue::_run(std::vector<Term> terms)
       std::vector<uint32_t> params;
       assumptions.push_back(d_solver.mk_term(Op::EQUAL, args, params));
     }
-    assert(d_solver.check_sat_assuming(assumptions) != Solver::Result::UNSAT);
+    MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                != Solver::Result::UNSAT);
   }
   /* add values to term database */
   std::stringstream ss;
@@ -1736,7 +1737,7 @@ ActionPush::run()
 std::vector<uint64_t>
 ActionPush::untrace(const std::vector<std::string>& tokens)
 {
-  assert(tokens.size() == 1);
+  MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   uint32_t n_levels = str_to_uint32(tokens[0]);
   _run(n_levels);
   return {};
@@ -1766,7 +1767,7 @@ ActionPop::run()
 std::vector<uint64_t>
 ActionPop::untrace(const std::vector<std::string>& tokens)
 {
-  assert(tokens.size() == 1);
+  MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   uint32_t n_levels = str_to_uint32(tokens[0]);
   _run(n_levels);
   return {};

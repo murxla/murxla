@@ -626,7 +626,11 @@ FSM::untrace(const std::string& trace_file_name)
         if (action->returns() == Action::ReturnValue::NONE)
         {
           ret_val = action->untrace(tokens);
-          assert(ret_val.empty());
+          if (!ret_val.empty())
+          {
+            throw MurxlaUntraceException(
+                trace_file_name, nline, "unexpected return value");
+          }
         }
         else
         {
@@ -681,7 +685,14 @@ FSM::untrace(const std::string& trace_file_name)
                   "expected at least one argument to 'return'");
             }
 
-            assert(ret_val.size() == next_tokens.size());
+            if (ret_val.size() != next_tokens.size())
+            {
+              std::stringstream ss;
+              ss << next_tokens.size() << " arguments given but expected "
+                 << ret_val.size();
+              throw MurxlaUntraceException(trace_file_name, nline, ss.str());
+            }
+
             for (uint32_t i = 0, n = next_tokens.size(); i < n; ++i)
             {
               uint64_t rid = Action::untrace_str_to_id(next_tokens[i]);
@@ -697,7 +708,11 @@ FSM::untrace(const std::string& trace_file_name)
               }
               else
               {
-                assert(next_tokens[i][0] == 't');
+                if (next_tokens[i][0] != 't')
+                {
+                  throw MurxlaUntraceException(
+                      trace_file_name, nline, "expected term id");
+                }
                 d_smgr.register_term(rid, ret_val[i]);
               }
             }
