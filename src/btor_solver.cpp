@@ -276,6 +276,15 @@ BtorTerm::is_reglan() const
   return get_sort()->is_reglan();
 }
 
+uint32_t
+BtorTerm::get_bv_size() const
+{
+  assert(is_bv());
+  uint32_t res = boolector_get_width(d_solver, d_term);
+  MURXLA_TEST(res);
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 /* BtorSolver                                                                 */
 /* -------------------------------------------------------------------------- */

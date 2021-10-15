@@ -76,6 +76,7 @@ class BtorTerm : public AbsTerm
   bool is_rm() const override;
   bool is_string() const override;
   bool is_reglan() const override;
+  uint32_t get_bv_size() const override;
 
  private:
   Btor* d_solver        = nullptr;
