@@ -2,7 +2,7 @@ set(murxla_src_files
   action.cpp
   btor_solver.cpp
   bzla_solver.cpp
-  cross_check_solver.cpp
+  shadow_solver.cpp
   cvc5_solver.cpp
   dd.cpp
   except.cpp

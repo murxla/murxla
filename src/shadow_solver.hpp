@@ -1,20 +1,21 @@
-#ifndef __MURXLA__CROSS_CHECK_SOLVER_H
-#define __MURXLA__CROSS_CHECK_SOLVER_H
+#ifndef __MURXLA__SHADOW_SOLVER_H
+#define __MURXLA__SHADOW_SOLVER_H
 
 #include "fsm.hpp"
 #include "solver.hpp"
 #include "theory.hpp"
 
 namespace murxla {
-namespace cross_check {
+namespace shadow {
 
-class CrossCheckSort : public AbsSort
+class ShadowSort : public AbsSort
 {
-  friend class CrossCheckTerm;
+  friend class ShadowTerm;
+  friend class ShadowSolver;
 
  public:
-  CrossCheckSort(Sort sort_test, Sort sort_ref);
-  ~CrossCheckSort() override;
+  ShadowSort(Sort sort, Sort sort_shadow);
+  ~ShadowSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
   std::string to_string() const override;
@@ -40,21 +41,21 @@ class CrossCheckSort : public AbsSort
   void set_kind(SortKind sort_kind) override;
   void set_sorts(const std::vector<Sort>& sorts) override;
 
-  Sort get_sort_test() const;
-  Sort get_sort_ref() const;
+  Sort get_sort() const { return d_sort; }
+  Sort get_sort_shadow() const { return d_sort_shadow; }
 
  private:
-  Sort d_sort_test;
-  Sort d_sort_ref;
+  Sort d_sort;
+  Sort d_sort_shadow;
 };
 
-class CrossCheckTerm : public AbsTerm
+class ShadowTerm : public AbsTerm
 {
-  friend class CrossCheckSolver;
+  friend class ShadowSolver;
 
  public:
-  CrossCheckTerm(Term term_test, Term term_ref);
-  ~CrossCheckTerm() override;
+  ShadowTerm(Term term, Term term_shadow);
+  ~ShadowTerm() override;
   size_t hash() const override;
   bool equals(const Term& other) const override;
   std::string to_string() const override;
@@ -70,21 +71,19 @@ class CrossCheckTerm : public AbsTerm
   bool is_reglan() const override;
   void set_sort(Sort sort) override;
 
-  Term get_term_test() const;
-  Term get_term_ref() const;
+  Term get_term() const { return d_term; }
+  Term get_term_shadow() const { return d_term_shadow; }
 
  private:
-  Term d_term_test;
-  Term d_term_ref;
+  Term d_term;
+  Term d_term_shadow;
 };
 
-class CrossCheckSolver : public Solver
+class ShadowSolver : public Solver
 {
  public:
-  CrossCheckSolver(RNGenerator& rng,
-                   Solver* test_solver,
-                   Solver* reference_solver);
-  ~CrossCheckSolver() override;
+  ShadowSolver(RNGenerator& rng, Solver* solver, Solver* solver_shadow);
+  ~ShadowSolver() override;
 
   void new_solver() override;
   void delete_solver() override;
@@ -155,23 +154,18 @@ class CrossCheckSolver : public Solver
 
   std::vector<Term> get_value(std::vector<Term>& terms) override;
 
-  void configure_fsm(FSM* fsm) const override;
+  void disable_unsupported_actions(FSM* fsm) const override;
 
  private:
   /** The solver under test. */
-  std::unique_ptr<Solver> d_test_solver;
-  /** The reference solver. */
-  std::unique_ptr<Solver> d_reference_solver;
-
-  void get_terms_test(const std::vector<Term>& terms,
-                      std::vector<Term>& terms_test) const;
-  void get_terms_ref(const std::vector<Term>& terms,
-                     std::vector<Term>& terms_ref) const;
-
-  Sort get_sort_test(Sort s) const;
-  Sort get_sort_ref(Sort s) const;
+  std::unique_ptr<Solver> d_solver;
+  /** The solver used for checking. */
+  std::unique_ptr<Solver> d_solver_shadow;
+  /** Flag that indicates whether d_solver and d_solver_shadow are instances of
+   * the same solver. */
+  bool d_same_solver;
 };
 
-}  // namespace cross_check
+}  // namespace shadow
 }  // namespace murxla
 #endif

@@ -334,6 +334,12 @@ Solver::configure_fsm(FSM* fsm) const
 }
 
 void
+Solver::disable_unsupported_actions(FSM* fsm) const
+{
+  // default: do nothing
+}
+
+void
 Solver::configure_smgr(SolverManager* smgr) const
 {
   // default: do nothing

@@ -501,6 +501,9 @@ FSM::configure()
     }
   }
 
+  /* Disable actions not supported by solver. */
+  d_smgr.get_solver().disable_unsupported_actions(this);
+
   /* --------------------------------------------------------------------- */
   /* Compute actual weights based on given priorities                      */
   /* --------------------------------------------------------------------- */

@@ -12,11 +12,11 @@
 
 #include "btor_solver.hpp"
 #include "bzla_solver.hpp"
-#include "cross_check_solver.hpp"
 #include "cvc5_solver.hpp"
 #include "dd.hpp"
 #include "except.hpp"
 #include "fsm.hpp"
+#include "shadow_solver.hpp"
 #include "smt2_solver.hpp"
 #include "statistics.hpp"
 #include "util.hpp"
@@ -451,7 +451,7 @@ Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out) const
   if (!d_options.cross_check.empty())
   {
     Solver* reference_solver = new_solver(rng, d_options.cross_check);
-    solver = new cross_check::CrossCheckSolver(rng, solver, reference_solver);
+    solver = new shadow::ShadowSolver(rng, solver, reference_solver);
   }
 
   return solver;

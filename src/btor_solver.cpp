@@ -1328,6 +1328,7 @@ void
 BtorSolver::reset_assertions()
 {
   /* boolector does not support this yet */
+  assert(false);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2271,6 +2272,12 @@ BtorSolver::configure_fsm(FSM* fsm) const
   // boolector_set_symbol
   auto a_set_symbol = fsm->new_action<BtorActionSetSymbol>();
   fsm->add_action_to_all_states(a_set_symbol, 100);
+}
+
+void
+BtorSolver::disable_unsupported_actions(FSM* fsm) const
+{
+  fsm->disable_action(Action::RESET_ASSERTIONS);
 }
 
 }  // namespace btor
