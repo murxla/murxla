@@ -164,48 +164,48 @@ AbsTerm::get_sort() const
 uint32_t
 AbsTerm::get_bv_size() const
 {
-  return 0;
+  return get_sort()->get_bv_size();
 }
 
 uint32_t
 AbsTerm::get_fp_exp_size() const
 {
-  return 0;
+  return get_sort()->get_fp_exp_size();
 }
 uint32_t
 AbsTerm::get_fp_sig_size() const
 {
-  return 0;
+  return get_sort()->get_fp_sig_size();
 }
 
 Sort
 AbsTerm::get_array_index_sort() const
 {
-  return nullptr;
+  return get_sort()->get_array_index_sort();
 }
 
 Sort
 AbsTerm::get_array_element_sort() const
 {
-  return nullptr;
+  return get_sort()->get_array_element_sort();
 }
 
 uint32_t
 AbsTerm::get_fun_arity() const
 {
-  return 0;
+  return get_sort()->get_fun_arity();
 }
 
 Sort
 AbsTerm::get_fun_codomain_sort() const
 {
-  return nullptr;
+  return get_sort()->get_fun_codomain_sort();
 }
 
 std::vector<Sort>
 AbsTerm::get_fun_domain_sorts() const
 {
-  return std::vector<Sort>();
+  return get_sort()->get_fun_domain_sorts();
 }
 
 void
