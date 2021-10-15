@@ -55,8 +55,10 @@ SolverManager::SolverManager(Solver* solver,
 void
 SolverManager::clear()
 {
+  d_used_solver_options.clear();
   d_sorts.clear();
   d_sort_kind_to_sorts.clear();
+  d_pending_get_sorts.clear();
   d_n_sort_terms.clear();
   d_assumptions.clear();
   d_term_db.clear();
@@ -499,8 +501,6 @@ SolverManager::reset()
 {
   clear();
   d_term_db.reset();
-  d_used_solver_options.clear();
-  d_pending_get_sorts.clear();
 
   d_incremental       = false;
   d_model_gen         = false;
