@@ -38,11 +38,23 @@ class BtorSort : public AbsSort
   bool is_string() const override;
   bool is_reglan() const override;
   uint32_t get_bv_size() const override;
+  Sort get_array_index_sort() const override;
+  Sort get_array_element_sort() const override;
+  uint32_t get_fun_arity() const override;
+  Sort get_fun_codomain_sort() const override;
 
  private:
   /** Return a string representation of a bit-vector sort. */
   std::string bv_sort_to_string(BoolectorSort sort) const;
+  /**
+   * Return the current count of temp nodes and increase the counter.
+   * This is only used for generating unique symbols for temp nodes.
+   */
+  uint64_t get_next_tmp_id() { return d_tmp_cnt++; }
+
+  /** The associated Boolector instance. */
   Btor* d_solver = nullptr;
+  /** The wrapped Boolector sort. */
   BoolectorSort d_sort;
   /**
    * We have to cache the domain sorts for array and function sorts in order to
@@ -50,6 +62,8 @@ class BtorSort : public AbsSort
    * to retrieve the domain sorts from array and function sorts.
    */
   std::vector<BoolectorSort> d_domain;
+  /** Counter for generating unique symbols for temp nodes. */
+  uint64_t d_tmp_cnt = 0;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -77,9 +91,15 @@ class BtorTerm : public AbsTerm
   bool is_string() const override;
   bool is_reglan() const override;
   uint32_t get_bv_size() const override;
+  Sort get_array_index_sort() const override;
+  Sort get_array_element_sort() const override;
+  uint32_t get_fun_arity() const override;
+  Sort get_fun_codomain_sort() const override;
 
  private:
+  /** The associated Boolector instance. */
   Btor* d_solver        = nullptr;
+  /** The wrapped Boolector term. */
   BoolectorNode* d_term = nullptr;
 };
 

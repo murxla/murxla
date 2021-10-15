@@ -157,6 +157,59 @@ BtorSort::get_bv_size() const
   return res;
 }
 
+Sort
+BtorSort::get_array_index_sort() const
+{
+  assert(is_array());
+  BoolectorNode* n = boolector_array(d_solver, d_sort, nullptr);
+  BoolectorSort btor_res =
+      boolector_bitvec_sort(d_solver, boolector_get_index_width(d_solver, n));
+  MURXLA_TEST(btor_res);
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  assert(res);
+  boolector_release(d_solver, n);
+  boolector_release_sort(d_solver, btor_res);
+  return res;
+}
+
+Sort
+BtorSort::get_array_element_sort() const
+{
+  assert(is_array());
+  BoolectorNode* n = boolector_array(d_solver, d_sort, nullptr);
+  BoolectorSort btor_res =
+      boolector_bitvec_sort(d_solver, boolector_get_width(d_solver, n));
+  MURXLA_TEST(btor_res);
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  assert(res);
+  boolector_release(d_solver, n);
+  boolector_release_sort(d_solver, btor_res);
+  return res;
+}
+
+uint32_t
+BtorSort::get_fun_arity() const
+{
+  assert(is_fun());
+  BoolectorNode* n = boolector_uf(d_solver, d_sort, nullptr);
+  uint32_t res     = boolector_get_fun_arity(d_solver, n);
+  boolector_release(d_solver, n);
+  return res;
+}
+
+Sort
+BtorSort::get_fun_codomain_sort() const
+{
+  assert(is_fun());
+  BoolectorNode* n       = boolector_uf(d_solver, d_sort, nullptr);
+  BoolectorSort btor_res = boolector_fun_get_codomain_sort(d_solver, n);
+  MURXLA_TEST(btor_res);
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  assert(res);
+  boolector_release(d_solver, n);
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 /* BtorTerm                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -282,6 +335,50 @@ BtorTerm::get_bv_size() const
   assert(is_bv());
   uint32_t res = boolector_get_width(d_solver, d_term);
   MURXLA_TEST(res);
+  return res;
+}
+
+Sort
+BtorTerm::get_array_index_sort() const
+{
+  assert(is_array());
+  BoolectorSort btor_res = boolector_bitvec_sort(
+      d_solver, boolector_get_index_width(d_solver, d_term));
+  MURXLA_TEST(btor_res);
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  assert(res);
+  boolector_release_sort(d_solver, btor_res);
+  return res;
+}
+
+Sort
+BtorTerm::get_array_element_sort() const
+{
+  assert(is_array());
+  BoolectorSort btor_res =
+      boolector_bitvec_sort(d_solver, boolector_get_width(d_solver, d_term));
+  MURXLA_TEST(btor_res);
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  assert(res);
+  boolector_release_sort(d_solver, btor_res);
+  return res;
+}
+
+uint32_t
+BtorTerm::get_fun_arity() const
+{
+  assert(is_fun());
+  return boolector_get_fun_arity(d_solver, d_term);
+}
+
+Sort
+BtorTerm::get_fun_codomain_sort() const
+{
+  assert(is_fun());
+  BoolectorSort btor_res = boolector_fun_get_codomain_sort(d_solver, d_term);
+  MURXLA_TEST(btor_res);
+  std::shared_ptr<BtorSort> res(new BtorSort(d_solver, btor_res));
+  assert(res);
   return res;
 }
 
