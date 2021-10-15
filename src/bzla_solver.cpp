@@ -719,6 +719,12 @@ BzlaSolver::is_initialized() const
   return d_solver != nullptr;
 }
 
+const std::string
+BzlaSolver::get_name() const
+{
+  return "Bitwuzla";
+}
+
 TheoryIdVector
 BzlaSolver::get_supported_theories() const
 {

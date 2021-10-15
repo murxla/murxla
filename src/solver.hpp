@@ -253,6 +253,8 @@ class Solver
   virtual void new_solver() = 0;
   virtual void delete_solver() = 0;
   virtual bool is_initialized() const = 0;
+  /** Return solver name. */
+  virtual const std::string get_name() const = 0;
 
   bool supports_theory(TheoryId theory) const;
   virtual TheoryIdVector get_supported_theories() const;

@@ -920,6 +920,12 @@ Cvc5Solver::is_initialized() const
   return d_solver != nullptr;
 }
 
+const std::string
+Cvc5Solver::get_name() const
+{
+  return "cvc5";
+}
+
 bool
 Cvc5Solver::is_unsat_assumption(const Term& t) const
 {

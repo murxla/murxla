@@ -334,6 +334,12 @@ YicesSolver::is_initialized() const
   return d_is_initialized;
 }
 
+const std::string
+YicesSolver::get_name() const
+{
+  return "Yices";
+}
+
 TheoryIdVector
 YicesSolver::get_supported_theories() const
 {

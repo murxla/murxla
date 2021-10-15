@@ -679,6 +679,12 @@ Smt2Solver::is_initialized() const
   return d_initialized;
 }
 
+const std::string
+Smt2Solver::get_name() const
+{
+  return "Smt2";
+}
+
 Term
 Smt2Solver::mk_var(Sort sort, const std::string& name)
 {

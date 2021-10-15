@@ -282,6 +282,7 @@ class Smt2Solver : public Solver
   void new_solver() override;
   void delete_solver() override;
   bool is_initialized() const override;
+  const std::string get_name() const override;
 
   Term mk_var(Sort sort, const std::string& name) override;
   Term mk_const(Sort sort, const std::string& name) override;

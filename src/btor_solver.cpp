@@ -329,6 +329,12 @@ BtorSolver::is_initialized() const
   return d_solver != nullptr;
 }
 
+const std::string
+BtorSolver::get_name() const
+{
+  return "Boolector";
+}
+
 TheoryIdVector
 BtorSolver::get_supported_theories() const
 {

@@ -134,6 +134,8 @@ class BtorSolver : public Solver
 
   bool is_initialized() const override;
 
+  const std::string get_name() const override;
+
   TheoryIdVector get_supported_theories() const override;
   TheoryIdVector get_unsupported_quant_theories() const override;
   OpKindSet get_unsupported_op_kinds() const override;

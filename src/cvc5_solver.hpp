@@ -158,6 +158,8 @@ class Cvc5Solver : public Solver
 
   bool is_initialized() const override;
 
+  const std::string get_name() const override;
+
   void configure_fsm(FSM* fsm) const override;
   void configure_opmgr(OpKindManager* opmgr) const override;
 

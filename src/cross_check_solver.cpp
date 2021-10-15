@@ -302,6 +302,13 @@ CrossCheckSolver::is_initialized() const
   return res;
 }
 
+const std::string
+CrossCheckSolver::get_name() const
+{
+  return "CrossCheck(" + d_test_solver->get_name() + ","
+         + d_reference_solver->get_name() + ")";
+}
+
 /** Return intersection of supported theories. */
 TheoryIdVector
 CrossCheckSolver::get_supported_theories() const

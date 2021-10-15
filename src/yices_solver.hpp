@@ -141,6 +141,7 @@ class YicesSolver : public Solver
   void new_solver() override;
   void delete_solver() override;
   bool is_initialized() const override;
+  const std::string get_name() const override;
 
   TheoryIdVector get_supported_theories() const override;
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
