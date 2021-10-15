@@ -1804,8 +1804,8 @@ void
 ActionReset::_run()
 {
   MURXLA_TRACE << get_kind();
-  d_solver.reset();
   d_smgr.reset();
+  d_solver.reset();
 }
 
 /* -------------------------------------------------------------------------- */
