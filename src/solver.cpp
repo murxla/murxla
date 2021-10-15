@@ -98,6 +98,8 @@ AbsSort::get_fun_domain_sorts() const
 bool
 operator==(const Sort& a, const Sort& b)
 {
+  if (a == nullptr) return b == nullptr;
+  if (b == nullptr) return a == nullptr;
   return a->equals(b) && a->get_kind() == b->get_kind();
 }
 

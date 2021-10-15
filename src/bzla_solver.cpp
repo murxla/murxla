@@ -176,8 +176,9 @@ BzlaSort::get_array_index_sort() const
 {
   assert(is_array());
   BitwuzlaSort* bzla_res = bitwuzla_sort_array_get_index(d_sort);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
-  MURXLA_TEST(res);
+  assert(res);
   return res;
 }
 
@@ -186,8 +187,9 @@ BzlaSort::get_array_element_sort() const
 {
   assert(is_array());
   BitwuzlaSort* bzla_res = bitwuzla_sort_array_get_element(d_sort);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
-  MURXLA_TEST(res);
+  assert(res);
   return res;
 }
 
@@ -203,8 +205,9 @@ BzlaSort::get_fun_codomain_sort() const
 {
   assert(is_fun());
   BitwuzlaSort* bzla_res = bitwuzla_sort_fun_get_codomain(d_sort);
+  MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaSort> res(new BzlaSort(d_solver, bzla_res));
-  MURXLA_TEST(res);
+  assert(res);
   return res;
 }
 
