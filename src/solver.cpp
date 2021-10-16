@@ -210,6 +210,32 @@ AbsTerm::get_fun_domain_sorts() const
   return get_sort()->get_fun_domain_sorts();
 }
 
+bool
+AbsTerm::is_indexed() const
+{
+  Op::Kind kind = get_kind();
+  if (kind == Op::BV_EXTRACT || kind == Op::BV_REPEAT
+      || kind == Op::BV_ROTATE_LEFT || kind == Op::BV_ROTATE_RIGHT
+      || kind == Op::BV_SIGN_EXTEND || kind == Op::BV_ZERO_EXTEND
+      || kind == Op::INT_IS_DIV)
+  {
+    return true;
+  }
+  return false;
+}
+
+std::vector<std::string>
+AbsTerm::get_indices() const
+{
+  return {};
+}
+
+size_t
+AbsTerm::get_num_indices() const
+{
+  return 0;
+}
+
 void
 AbsTerm::set_levels(const std::vector<uint64_t>& levels)
 {

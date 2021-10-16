@@ -150,6 +150,13 @@ class AbsTerm
    */
   virtual std::vector<std::shared_ptr<AbsTerm>> get_children() const;
 
+  /** Return true if this term is of an indexed operator kind. */
+  virtual bool is_indexed() const;
+  /** Get the number of indices of a term with an indexed operator kind. */
+  virtual size_t get_num_indices() const;
+  /** Get the indices of a term with an indexed operator kind. */
+  virtual std::vector<std::string> get_indices() const;
+
   void set_id(uint64_t id);
   uint64_t get_id() const;
 

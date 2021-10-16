@@ -90,6 +90,13 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_STRING_TOUPPER = "cvc5-OP_STRING_TOUPPER";
   inline static const Op::Kind OP_STRING_REV     = "cvc5-OP_STRING_REV";
 
+  /** Special value kinds that have its own node kind in cvc5, only used
+   * for getKind(). */
+  inline static const Op::Kind OP_REAL_PI      = "cvc5-OP_REAL_PI";
+  inline static const Op::Kind OP_REGEXP_EMPTY = "cvc5=OP_REGEXP_EMPTY";
+  inline static const Op::Kind OP_REGEXP_SIGMA = "cvc5=OP_REGEXP_SIGMA";
+  inline static const Op::Kind OP_REGEXP_STAR  = "cvc5=OP_REGEXP_STAR";
+
   Cvc5Term(::cvc5::api::Solver* cvc5, ::cvc5::api::Term term)
       : d_solver(cvc5), d_term(term)
   {
@@ -111,6 +118,9 @@ class Cvc5Term : public AbsTerm
   bool is_reglan() const override;
   const Op::Kind& get_kind() const override;
   std::vector<Term> get_children() const override;
+  bool is_indexed() const override;
+  size_t get_num_indices() const override;
+  std::vector<std::string> get_indices() const override;
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;

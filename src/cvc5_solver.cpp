@@ -661,6 +661,13 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::STRING_TOLOWER, OP_STRING_TOLOWER},
         {::cvc5::api::Kind::STRING_TOUPPER, OP_STRING_TOUPPER},
         {::cvc5::api::Kind::STRING_REV, OP_STRING_REV},
+
+        /* Special value kinds that cvc5 introduces its own node kind for,
+         * only used for getKind(). */
+        {::cvc5::api::Kind::PI, OP_REAL_PI},
+        {::cvc5::api::Kind::REGEXP_EMPTY, OP_REGEXP_EMPTY},
+        {::cvc5::api::Kind::REGEXP_SIGMA, OP_REGEXP_SIGMA},
+        {::cvc5::api::Kind::REGEXP_STAR, OP_REGEXP_STAR},
 };
 
 ::cvc5::api::Term&
@@ -786,6 +793,42 @@ Cvc5Term::get_children() const
   for (const auto& c : d_term)
   {
     res.emplace_back(new Cvc5Term(d_solver, c));
+  }
+  return res;
+}
+
+bool
+Cvc5Term::is_indexed() const
+{
+  return d_term.getOp().isIndexed();
+}
+
+size_t
+Cvc5Term::get_num_indices() const
+{
+  return d_term.getOp().getNumIndices();
+}
+
+std::vector<std::string>
+Cvc5Term::get_indices() const
+{
+  assert(is_indexed());
+  std::vector<std::string> res;
+  Op::Kind kind = get_kind();
+  size_t n_idxs = get_num_indices();
+  if (kind == Op::INT_IS_DIV)
+  {
+    res.push_back(d_term.getOp().getIndices<std::string>());
+  }
+  else if (n_idxs == 2)
+  {
+    auto cvc5_res = d_term.getOp().getIndices<std::pair<uint32_t, uint32_t>>();
+    res.push_back(std::to_string(cvc5_res.first));
+    res.push_back(std::to_string(cvc5_res.second));
+  }
+  else
+  {
+    res.push_back(std::to_string(d_term.getOp().getIndices<uint32_t>()));
   }
   return res;
 }
@@ -1775,6 +1818,9 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
                      THEORY_STRING);
   opmgr->add_op_kind(
       Cvc5Term::OP_STRING_REV, 1, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
+
+  /* We don't add special value kinds here (e.g., OP_REAL_PI), they have only
+   * been defined for get_kind(). */
 }
 
 /* -------------------------------------------------------------------------- */

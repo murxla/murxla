@@ -615,6 +615,36 @@ BzlaTerm::get_children() const
   return bzla_terms_to_terms(bzla_res, size);
 }
 
+bool
+BzlaTerm::is_indexed() const
+{
+  return bitwuzla_term_is_indexed(d_term);
+}
+
+size_t
+BzlaTerm::get_num_indices() const
+{
+  size_t size;
+  uint32_t* bzla_res = bitwuzla_term_get_indices(d_term, &size);
+  (void) bzla_res;
+  return size;
+}
+
+std::vector<std::string>
+BzlaTerm::get_indices() const
+{
+  assert(is_indexed());
+  std::vector<std::string> res;
+  size_t size;
+  uint32_t* bzla_res = bitwuzla_term_get_indices(d_term, &size);
+  MURXLA_TEST(size);
+  for (size_t i = 0; i < size; ++i)
+  {
+    res.push_back(std::to_string(bzla_res[i]));
+  }
+  return res;
+}
+
 uint32_t
 BzlaTerm::get_bv_size() const
 {

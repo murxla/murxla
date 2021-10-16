@@ -1099,6 +1099,17 @@ ActionMkTerm::_run(Op::Kind kind,
 
   Term res = d_solver.mk_term(kind, args, params);
 
+  if (params.size())
+  {
+    size_t n_idxs                        = res->get_num_indices();
+    std::vector<std::string> res_indices = res->get_indices();
+    MURXLA_TEST(n_idxs == res_indices.size());
+    for (size_t i = 0; i < n_idxs; ++i)
+    {
+      MURXLA_TEST(res_indices[i] == std::to_string(params[i]));
+    }
+  }
+
   d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
 
