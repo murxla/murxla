@@ -38,7 +38,7 @@ if(Bitwuzla_FOUND)
 endif()
 
 if(cvc5_FOUND)
-  target_link_libraries(murxla cvc5::cvc5)
+  target_link_libraries(murxla cvc5::cvc5-shared)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_CVC5)
 endif()
 

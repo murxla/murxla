@@ -1133,8 +1133,8 @@ Cvc5Solver::mk_value(Sort sort, std::string value)
     {
       uint32_t ew = sort->get_fp_exp_size();
       uint32_t sw = sort->get_fp_sig_size();
-      cvc5_res =
-          d_solver->mkFloatingPoint(ew, sw, d_solver->mkBitVector(value));
+      cvc5_res    = d_solver->mkFloatingPoint(
+          ew, sw, d_solver->mkBitVector(ew + sw, value, 2));
     }
     break;
 
@@ -1284,8 +1284,9 @@ Cvc5Solver::mk_value(Sort sort, std::string value, Base base)
       }
       else
       {
-        cvc5_res = d_rng.flip_coin() ? d_solver->mkBitVector(value, 2)
-                                     : d_solver->mkBitVector(value.c_str(), 2);
+        cvc5_res = d_rng.flip_coin()
+                       ? d_solver->mkBitVector(bw, value, 2)
+                       : d_solver->mkBitVector(bw, value.c_str(), 2);
       }
   }
   MURXLA_TEST(!cvc5_res.isNull());
@@ -1308,41 +1309,44 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
       uint32_t bw = sort->get_bv_size();
       if (value == SPECIAL_VALUE_BV_ZERO)
       {
-        cvc5_res = d_rng.flip_coin()
-                       ? d_solver->mkBitVector(bv_special_value_zero_str(bw), 2)
-                       : d_solver->mkBitVector(
-                           bv_special_value_zero_str(bw).c_str(), 2);
+        cvc5_res =
+            d_rng.flip_coin()
+                ? d_solver->mkBitVector(bw, bv_special_value_zero_str(bw), 2)
+                : d_solver->mkBitVector(
+                    bw, bv_special_value_zero_str(bw).c_str(), 2);
       }
       else if (value == SPECIAL_VALUE_BV_ONE)
       {
-        cvc5_res = d_rng.flip_coin()
-                       ? d_solver->mkBitVector(bv_special_value_one_str(bw), 2)
-                       : d_solver->mkBitVector(
-                           bv_special_value_one_str(bw).c_str(), 2);
+        cvc5_res =
+            d_rng.flip_coin()
+                ? d_solver->mkBitVector(bw, bv_special_value_one_str(bw), 2)
+                : d_solver->mkBitVector(
+                    bw, bv_special_value_one_str(bw).c_str(), 2);
       }
       else if (value == SPECIAL_VALUE_BV_ONES)
       {
-        cvc5_res = d_rng.flip_coin()
-                       ? d_solver->mkBitVector(bv_special_value_ones_str(bw), 2)
-                       : d_solver->mkBitVector(
-                           bv_special_value_ones_str(bw).c_str(), 2);
+        cvc5_res =
+            d_rng.flip_coin()
+                ? d_solver->mkBitVector(bw, bv_special_value_ones_str(bw), 2)
+                : d_solver->mkBitVector(
+                    bw, bv_special_value_ones_str(bw).c_str(), 2);
       }
       else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
       {
-        cvc5_res =
-            d_rng.flip_coin()
-                ? d_solver->mkBitVector(bv_special_value_min_signed_str(bw), 2)
-                : d_solver->mkBitVector(
-                    bv_special_value_min_signed_str(bw).c_str(), 2);
+        cvc5_res = d_rng.flip_coin()
+                       ? d_solver->mkBitVector(
+                           bw, bv_special_value_min_signed_str(bw), 2)
+                       : d_solver->mkBitVector(
+                           bw, bv_special_value_min_signed_str(bw).c_str(), 2);
       }
       else
       {
         assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
-        cvc5_res =
-            d_rng.flip_coin()
-                ? d_solver->mkBitVector(bv_special_value_max_signed_str(bw), 2)
-                : d_solver->mkBitVector(
-                    bv_special_value_max_signed_str(bw).c_str(), 2);
+        cvc5_res = d_rng.flip_coin()
+                       ? d_solver->mkBitVector(
+                           bw, bv_special_value_max_signed_str(bw), 2)
+                       : d_solver->mkBitVector(
+                           bw, bv_special_value_max_signed_str(bw).c_str(), 2);
       }
     }
     break;
