@@ -1099,15 +1099,25 @@ ActionMkTerm::_run(Op::Kind kind,
 
   Term res = d_solver.mk_term(kind, args, params);
 
-  if (params.size())
+  if ((args.size() > 1 || !args[0]->equals(res)) && res->is_indexed()
+      && params.size())
   {
+    /* We have to guard against the case where an op is rewritten to itself,
+     * which can for example happen for a repeat operator with index 1.
+     * We further have to perform these checks based on if 'res' is indexed and
+     * params.size() > 0. This is because res might not be indexed even if the
+     * latter is true due to rewriting (e.g., a zero extend may be rewritten to
+     * a concat) and vice versa (e.g., Bitwuzla rewrites operator fp to
+     * to_fp from IEEE bit-vector). */
+    MURXLA_TEST(params.size());
     size_t n_idxs                        = res->get_num_indices();
     std::vector<std::string> res_indices = res->get_indices();
     MURXLA_TEST(n_idxs == res_indices.size());
-    for (size_t i = 0; i < n_idxs; ++i)
-    {
-      MURXLA_TEST(res_indices[i] == std::to_string(params[i]));
-    }
+    /* We can't check if the resulting indices match the given indices, due to
+     * rewriting. This is only a problem when a solver does not create a node
+     * as it was given, but returns its rewritten form. Which is the case for
+     * Bitwuzla and Boolector (but not for cvc5). We therefore have to test
+     * this in the solver implementation, if possible. */
   }
 
   d_smgr.add_term(res, sort_kind, args);
