@@ -113,28 +113,8 @@ TransitionCreateSorts::run()
 
 /* -------------------------------------------------------------------------- */
 
-std::vector<uint64_t>
-ActionTermGetSort::untrace(const std::vector<std::string>& tokens)
-{
-  MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-  Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
-  MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
-  return _run(t);
-}
-
-std::vector<uint64_t>
-ActionTermGetSort::_run(Term term)
-{
-  MURXLA_TRACE << get_kind() << " " << term;
-  Sort res = term->get_sort();
-  MURXLA_TRACE_RETURN << res;
-  return {res->get_id()};
-}
-
-/* -------------------------------------------------------------------------- */
-
 bool
-ActionTermCheck::run()
+ActionTermCheckSort::run()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.has_term()) return false;
@@ -144,7 +124,7 @@ ActionTermCheck::run()
 }
 
 std::vector<uint64_t>
-ActionTermCheck::untrace(const std::vector<std::string>& tokens)
+ActionTermCheckSort::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
@@ -154,12 +134,11 @@ ActionTermCheck::untrace(const std::vector<std::string>& tokens)
 }
 
 void
-ActionTermCheck::_run(Term term)
+ActionTermCheckSort::_run(Term term)
 {
   MURXLA_TRACE << get_kind() << " " << term;
   Sort sort = term->get_sort();
 
-  /* Check sort. */
   if (sort->is_array())
   {
     MURXLA_TEST(term->is_array());
@@ -219,6 +198,34 @@ ActionTermCheck::_run(Term term)
   {
     assert(false);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+
+bool
+ActionTermGetChildren::run()
+{
+  assert(d_solver.is_initialized());
+  if (!d_smgr.has_term()) return false;
+  Term term = d_smgr.pick_term();
+  _run(term);
+  return true;
+}
+
+std::vector<uint64_t>
+ActionTermGetChildren::untrace(const std::vector<std::string>& tokens)
+{
+  MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+  Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+  MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
+  _run(t);
+  return {};
+}
+
+void
+ActionTermGetChildren::_run(Term term)
+{
+  MURXLA_TRACE << get_kind() << " " << term;
 
   /* Call Term::get_kind(). */
   Op::Kind kind = term->get_kind();
@@ -264,6 +271,26 @@ ActionTermCheck::_run(Term term)
       }
     }
   }
+}
+
+/* -------------------------------------------------------------------------- */
+
+std::vector<uint64_t>
+ActionTermGetSort::untrace(const std::vector<std::string>& tokens)
+{
+  MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+  Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+  MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
+  return _run(t);
+}
+
+std::vector<uint64_t>
+ActionTermGetSort::_run(Term term)
+{
+  MURXLA_TRACE << get_kind() << " " << term;
+  Sort res = term->get_sort();
+  MURXLA_TRACE_RETURN << res;
+  return {res->get_id()};
 }
 
 /* -------------------------------------------------------------------------- */
