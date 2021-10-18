@@ -1627,7 +1627,7 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
 
         is_not_funs.push_back(bitwuzla_term_is_bv_value_one);
         is_not_funs.push_back(bitwuzla_term_is_bv_value_ones);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
+        is_not_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
       }
     }
     if (d_rng.flip_coin())
