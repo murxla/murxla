@@ -184,9 +184,9 @@ Smt2Term::equals(const Term& other) const
 {
   const Smt2Term* smt2_term     = static_cast<const Smt2Term*>(other.get());
   const std::vector<Term>& args = smt2_term->get_args();
-  const std::vector<uint32_t>& params = smt2_term->get_params();
+  const std::vector<uint32_t>& params = smt2_term->get_indices_uint32();
   bool res = d_kind == smt2_term->get_kind() && d_args.size() == args.size()
-             && d_params.size() == params.size();
+             && d_indices.size() == params.size();
   if (res)
   {
     for (size_t i = 0, n = args.size(); i < n; ++i)
@@ -203,7 +203,7 @@ Smt2Term::equals(const Term& other) const
   {
     for (size_t i = 0, n = params.size(); i < n; ++i)
     {
-      if (d_params[i] != params[i])
+      if (d_indices[i] != params[i])
       {
         res = false;
         break;
@@ -292,9 +292,9 @@ Smt2Term::get_args() const
 }
 
 const std::vector<uint32_t>&
-Smt2Term::get_params() const
+Smt2Term::get_indices_uint32() const
 {
-  return d_params;
+  return d_indices;
 }
 
 const Smt2Term*
@@ -359,7 +359,7 @@ Smt2Term::get_repr() const
       }
       else
       {
-        if (cur->d_params.empty())
+        if (cur->d_indices.empty())
         {
           res << "(" << d_op_kind_to_str.at(cur->d_kind);
           if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS)
@@ -387,7 +387,7 @@ Smt2Term::get_repr() const
         else
         {
           res << "((_ " << d_op_kind_to_str.at(cur->d_kind);
-          for (uint32_t p : cur->d_params)
+          for (uint32_t p : cur->d_indices)
           {
             res << " " << p;
           }
@@ -1103,7 +1103,7 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
   assert(sort_kind != SORT_ANY);
   Smt2Term* smt2_term                 = static_cast<Smt2Term*>(term.get());
   const std::vector<Term>& args       = smt2_term->get_args();
-  const std::vector<uint32_t>& params = smt2_term->get_params();
+  const std::vector<uint32_t>& params = smt2_term->get_indices_uint32();
   const Op::Kind kind                 = smt2_term->get_kind();
   uint32_t bv_size                    = 0;
   uint32_t sig_size                   = 0;

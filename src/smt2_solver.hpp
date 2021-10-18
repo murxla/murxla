@@ -74,7 +74,7 @@ class Smt2Term : public AbsTerm
            std::string repr)
       : d_kind(kind),
         d_args(args),
-        d_params(params),
+        d_indices(params),
         d_leaf_kind(leaf_kind),
         d_repr(repr)
   {
@@ -96,13 +96,13 @@ class Smt2Term : public AbsTerm
 
   const std::string& get_kind() const override;
   const std::vector<Term>& get_args() const;
-  const std::vector<uint32_t>& get_params() const;
+  const std::vector<uint32_t>& get_indices_uint32() const;
   const std::string get_repr() const;
 
  private:
   Op::Kind d_kind;
   std::vector<Term> d_args;
-  std::vector<uint32_t> d_params;
+  std::vector<uint32_t> d_indices;
   LeafKind d_leaf_kind = LeafKind::NONE;
   std::string d_repr;
 
