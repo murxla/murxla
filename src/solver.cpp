@@ -115,6 +115,54 @@ operator<<(std::ostream& out, const Sort s)
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
+bool
+AbsTerm::is_bool_value() const
+{
+  return is_value() && is_bool();
+}
+
+bool
+AbsTerm::is_bv_value() const
+{
+  return is_value() && is_bv();
+}
+
+bool
+AbsTerm::is_fp_value() const
+{
+  return is_value() && is_fp();
+}
+
+bool
+AbsTerm::is_int_value() const
+{
+  return is_value() && is_int();
+}
+
+bool
+AbsTerm::is_real_value() const
+{
+  return is_value() && is_real();
+}
+
+bool
+AbsTerm::is_reglan_value() const
+{
+  return is_value() && is_reglan();
+}
+
+bool
+AbsTerm::is_rm_value() const
+{
+  return is_value() && is_rm();
+}
+
+bool
+AbsTerm::is_string_value() const
+{
+  return is_value() && is_string();
+}
+
 const Op::Kind&
 AbsTerm::get_kind() const
 {
@@ -152,7 +200,7 @@ AbsTerm::set_is_value(bool is_value)
 }
 
 bool
-AbsTerm::is_value()
+AbsTerm::is_value() const
 {
   return d_is_value;
 }

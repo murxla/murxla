@@ -329,6 +329,18 @@ BtorTerm::is_reglan() const
   return get_sort()->is_reglan();
 }
 
+bool
+BtorTerm::is_bool_value() const
+{
+  return is_bool() && boolector_is_const(d_solver, d_term);
+}
+
+bool
+BtorTerm::is_bv_value() const
+{
+  return boolector_is_const(d_solver, d_term);
+}
+
 uint32_t
 BtorTerm::get_bv_size() const
 {

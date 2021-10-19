@@ -779,6 +779,42 @@ Cvc5Term::is_reglan() const
   return get_sort()->is_reglan();
 }
 
+bool
+Cvc5Term::is_bool_value() const
+{
+  return d_term.isBooleanValue();
+}
+
+bool
+Cvc5Term::is_bv_value() const
+{
+  return d_term.isBitVectorValue();
+}
+
+bool
+Cvc5Term::is_fp_value() const
+{
+  return d_term.isFloatingPointValue();
+}
+
+bool
+Cvc5Term::is_int_value() const
+{
+  return d_term.isIntegerValue();
+}
+
+bool
+Cvc5Term::is_real_value() const
+{
+  return d_term.isRealValue();
+}
+
+bool
+Cvc5Term::is_string_value() const
+{
+  return d_term.isStringValue();
+}
+
 const Op::Kind&
 Cvc5Term::get_kind() const
 {

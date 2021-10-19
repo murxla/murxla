@@ -1403,6 +1403,7 @@ ActionMkValue::_run(Sort sort, bool val)
   MURXLA_TRACE << get_kind() << " " << sort << " " << (val ? "true" : "false");
   Term res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
+  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -1414,6 +1415,7 @@ ActionMkValue::_run(Sort sort, std::string val)
   Term res;
   res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
+  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -1429,6 +1431,7 @@ ActionMkValue::_run(Sort sort, std::string val, size_t len)
     assert(sort->is_string());
     d_smgr.add_string_char_value(res);
   }
+  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -1440,6 +1443,7 @@ ActionMkValue::_run(Sort sort, std::string v0, std::string v1)
                << " \"" << v1 << "\"";
   Term res = d_solver.mk_value(sort, v0, v1);
   d_smgr.add_value(res, sort, sort->get_kind());
+  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -1451,8 +1455,54 @@ ActionMkValue::_run(Sort sort, std::string val, Solver::Base base)
                << " " << base;
   Term res = d_solver.mk_value(sort, val, base);
   d_smgr.add_value(res, sort, sort->get_kind());
+  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
+}
+
+void
+ActionMkValue::check_value(RNGenerator& rng, Term term)
+{
+  assert(term->is_value());
+
+  if (rng.pick_with_prob(900)) return;
+
+  if (term->is_bool())
+  {
+    MURXLA_TEST(term->is_bool_value());
+  }
+  else if (term->is_bv())
+  {
+    MURXLA_TEST(term->is_bv());
+  }
+  else if (term->is_fp())
+  {
+    MURXLA_TEST(term->is_fp_value());
+  }
+  else if (term->is_int())
+  {
+    MURXLA_TEST(term->is_int_value());
+  }
+  else if (term->is_real())
+  {
+    MURXLA_TEST(term->is_real_value());
+  }
+  else if (term->is_rm())
+  {
+    MURXLA_TEST(term->is_rm_value());
+  }
+  else if (term->is_string())
+  {
+    MURXLA_TEST(term->is_string_value());
+  }
+  else if (term->is_reglan())
+  {
+    MURXLA_TEST(term->is_reglan_value());
+  }
+  else
+  {
+    assert(false);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1502,6 +1552,7 @@ ActionMkSpecialValue::_run(Sort sort, const Solver::SpecialValueKind& val)
   Term res;
   res = d_solver.mk_special_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
+  ActionMkValue::check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }

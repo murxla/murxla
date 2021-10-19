@@ -135,6 +135,23 @@ class AbsTerm
   /** Return true if this term is a RegLan term. */
   virtual bool is_reglan() const = 0;
 
+  /** Return true if this term is a Boolean value. */
+  virtual bool is_bool_value() const;
+  /** Return true if this term is a bit-vector value. */
+  virtual bool is_bv_value() const;
+  /** Return true if this term is a floating-point value. */
+  virtual bool is_fp_value() const;
+  /** Return true if this term is an integer value. */
+  virtual bool is_int_value() const;
+  /** Return true if this term is a real value. */
+  virtual bool is_real_value() const;
+  /** Return true if this term is a RegLan value. */
+  virtual bool is_reglan_value() const;
+  /** Return true if this term is a rounding mode value. */
+  virtual bool is_rm_value() const;
+  /** Return true if this term is a string value. */
+  virtual bool is_string_value() const;
+
   /**
    * Return the kind of the current term.
    * This kind is not a kind we cache on creation, but the kind that the
@@ -157,32 +174,73 @@ class AbsTerm
   /** Get the indices of a term with an indexed operator kind. */
   virtual std::vector<std::string> get_indices() const;
 
+  /** Set the id of this term. */
   void set_id(uint64_t id);
+  /** Get the id of this term. */
   uint64_t get_id() const;
 
+  /** Set the sort of this term. */
   virtual void set_sort(Sort sort);
+  /** Get the sort of this term. */
   Sort get_sort() const;
 
+  /**
+   * Get the bit width of this term.
+   * Asserts that it is a bit-vector term.
+   */
   virtual uint32_t get_bv_size() const;
+  /**
+   * Get the exponent bit width of this term.
+   * Asserts that it is a floating-point term.
+   */
   virtual uint32_t get_fp_exp_size() const;
+  /**
+   * Get the significand bit width of this term.
+   * Asserts that it is a floating-point term.
+   */
   virtual uint32_t get_fp_sig_size() const;
+  /**
+   * Get the array index sort of this term.
+   * Asserts that it is an array term.
+   */
   virtual Sort get_array_index_sort() const;
+  /**
+   * Get the array element sort of this term.
+   * Asserts that it is an array term.
+   */
   virtual Sort get_array_element_sort() const;
+  /**
+   * Get the function arity of this term.
+   * Asserts that it is an function term.
+   */
   virtual uint32_t get_fun_arity() const;
+  /**
+   * Get the function codomain sort of this term.
+   * Asserts that it is an function term.
+   */
   virtual Sort get_fun_codomain_sort() const;
+  /**
+   * Get the function domain sorts of this term.
+   * Asserts that it is an function term.
+   */
   virtual std::vector<Sort> get_fun_domain_sorts() const;
 
   void set_levels(const std::vector<uint64_t>& levels);
   const std::vector<uint64_t>& get_levels() const;
 
+  /** Set d_is_value to true if this term is a value, and to false otherwise. */
   void set_is_value(bool is_value);
-  bool is_value();
+  /** Return true if this term is a value. */
+  bool is_value() const;
 
  protected:
+  /** The id of this term. */
   uint64_t d_id = 0u;
+  /** The sort of this term. */
   Sort d_sort = nullptr;
 
  private:
+  /** True if this term is a value. */
   bool d_is_value                = false;
   std::vector<uint64_t> d_levels = {};
 };

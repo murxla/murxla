@@ -599,6 +599,30 @@ BzlaTerm::is_reglan() const
   return get_sort()->is_reglan();
 }
 
+bool
+BzlaTerm::is_bool_value() const
+{
+  return is_bool() && bitwuzla_term_is_bv_value(d_term);
+}
+
+bool
+BzlaTerm::is_bv_value() const
+{
+  return bitwuzla_term_is_bv_value(d_term);
+}
+
+bool
+BzlaTerm::is_fp_value() const
+{
+  return bitwuzla_term_is_fp_value(d_term);
+}
+
+bool
+BzlaTerm::is_rm_value() const
+{
+  return bitwuzla_term_is_rm_value(d_term);
+}
+
 const Op::Kind&
 BzlaTerm::get_kind() const
 {

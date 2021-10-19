@@ -427,6 +427,8 @@ class ActionMkVar : public Action
 class ActionMkValue : public Action
 {
  public:
+  /** Perform checks on created value. */
+  static void check_value(RNGenerator& rng, Term term);
   ActionMkValue(SolverManager& smgr) : Action(smgr, MK_VALUE, ID) {}
   bool run() override;
   std::vector<uint64_t> untrace(

@@ -116,6 +116,10 @@ class BzlaTerm : public AbsTerm
   bool is_rm() const override;
   bool is_string() const override;
   bool is_reglan() const override;
+  bool is_bool_value() const override;
+  bool is_bv_value() const override;
+  bool is_fp_value() const override;
+  bool is_rm_value() const override;
   const Op::Kind& get_kind() const override;
   std::vector<Term> get_children() const override;
   size_t get_num_indices() const override;
