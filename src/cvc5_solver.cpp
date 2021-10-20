@@ -956,7 +956,7 @@ Cvc5Solver::get_unsupported_array_element_sort_kinds() const
 SortKindSet
 Cvc5Solver::get_unsupported_fun_domain_sort_kinds() const
 {
-  return {SORT_REGLAN};
+  return {SORT_FUN, SORT_REGLAN};
 }
 
 Cvc5Solver::~Cvc5Solver()
