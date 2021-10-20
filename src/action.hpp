@@ -284,22 +284,6 @@ class UntraceAction : public Action
 
 /* -------------------------------------------------------------------------- */
 
-class ActionTermGetChildren : public UntraceAction
-{
- public:
-  ActionTermGetChildren(SolverManager& smgr)
-      : UntraceAction(smgr, TERM_GET_CHILDREN, ID)
-  {
-  }
-
-  bool run() override;
-  std::vector<uint64_t> untrace(
-      const std::vector<std::string>& tokens) override;
-
- private:
-  void _run(Term term);
-};
-
 class ActionTermGetSort : public UntraceAction
 {
  public:
@@ -597,6 +581,22 @@ class ActionPrintModel : public Action
 
  private:
   void _run();
+};
+
+class ActionTermGetChildren : public Action
+{
+ public:
+  ActionTermGetChildren(SolverManager& smgr)
+      : Action(smgr, TERM_GET_CHILDREN, NONE)
+  {
+  }
+
+  bool run() override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
+
+ private:
+  void _run(Term term);
 };
 
 /* -------------------------------------------------------------------------- */
