@@ -57,6 +57,11 @@ class SolverManager
    */
   void clear();
 
+  /**
+   * Reset op caches used by pick_op_kind;
+   */
+  void reset_op_cache();
+
   /** Get solver. */
   Solver& get_solver();
 
@@ -530,13 +535,13 @@ class SolverManager
   std::unordered_map<uint64_t, Sort> d_untraced_sorts;
 
   /**
-   * Cache used by pick_from_term_map. Caches operator kinds that are currently
+   * Cache used by pick_op_kind. Caches operator kinds that are currently
    * safe to pick since the required terms to create an operator already exist.
    */
   std::unordered_map<TheoryId, OpKindSet> d_enabled_op_kinds;
 
   /**
-   * Cache used by pick_from_term_map. Caches available operator kinds reported
+   * Cache used by pick_op_kind. Caches available operator kinds reported
    * by opmgr, but cannot be constructed yet due to missing terms.
    */
   OpKindMap d_available_op_kinds;

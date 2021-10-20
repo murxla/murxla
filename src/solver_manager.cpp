@@ -45,9 +45,7 @@ SolverManager::SolverManager(Solver* solver,
                                   d_mbt_stats));
   solver->configure_smgr(this);
   solver->configure_opmgr(d_opmgr.get());
-
-  const auto& kinds = d_opmgr->get_op_kinds();
-  d_available_op_kinds.insert(kinds.begin(), kinds.end());
+  reset_op_cache();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -64,6 +62,12 @@ SolverManager::clear()
   d_string_char_values.clear();
   d_untraced_terms.clear();
   d_untraced_sorts.clear();
+  reset_op_cache();
+}
+
+void
+SolverManager::reset_op_cache()
+{
   const auto& kinds = d_opmgr->get_op_kinds();
   d_available_op_kinds.insert(kinds.begin(), kinds.end());
   d_enabled_op_kinds.clear();
@@ -450,7 +454,8 @@ SolverManager::pick_var()
 void
 SolverManager::remove_var(Term& var)
 {
-  return d_term_db.remove_var(var);
+  d_term_db.remove_var(var);
+  reset_op_cache();
 }
 
 Term
