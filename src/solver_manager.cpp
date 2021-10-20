@@ -58,7 +58,6 @@ SolverManager::clear()
   d_used_solver_options.clear();
   d_sorts.clear();
   d_sort_kind_to_sorts.clear();
-  d_pending_get_sorts.clear();
   d_n_sort_terms.clear();
   d_assumptions.clear();
   d_term_db.clear();
@@ -90,14 +89,6 @@ RNGenerator&
 SolverManager::get_rng() const
 {
   return d_rng;
-}
-
-/* -------------------------------------------------------------------------- */
-
-std::vector<Term>&
-SolverManager::get_pending_get_sorts()
-{
-  return d_pending_get_sorts;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -209,15 +200,9 @@ SolverManager::add_term(Term& term,
   Sort sort = d_solver->get_sort(term, sort_kind);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
-  bool unseen = lookup->get_kind() == SORT_ANY;
   d_term_db.add_term(term, lookup, sort_kind, args);
   assert(lookup->get_id());
   assert(lookup->get_kind() != SORT_ANY);
-  if (unseen)
-  {
-    /* yet unseen sort, record to be traced with term-get-sort */
-    d_pending_get_sorts.push_back(term);
-  }
 }
 
 void

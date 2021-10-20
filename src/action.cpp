@@ -57,18 +57,6 @@ Action::Action(SolverManager& smgr,
 }
 
 void
-Action::trace_get_sorts() const
-{
-  std::vector<Term>& pending = d_smgr.get_pending_get_sorts();
-  for (const auto& term : pending)
-  {
-    MURXLA_TRACE_GET_SORT << term;
-    MURXLA_TRACE_RETURN << term->get_sort();
-  }
-  pending.clear();
-}
-
-void
 Action::reset_sat()
 {
   d_smgr.reset_sat();
@@ -182,26 +170,6 @@ ActionTermGetChildren::_run(Term term)
       }
     }
   }
-}
-
-/* -------------------------------------------------------------------------- */
-
-std::vector<uint64_t>
-ActionTermGetSort::untrace(const std::vector<std::string>& tokens)
-{
-  MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-  Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
-  MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
-  return _run(t);
-}
-
-std::vector<uint64_t>
-ActionTermGetSort::_run(Term term)
-{
-  MURXLA_TRACE << get_kind() << " " << term;
-  Sort res = term->get_sort();
-  MURXLA_TRACE_RETURN << res;
-  return {res->get_id()};
 }
 
 /* -------------------------------------------------------------------------- */

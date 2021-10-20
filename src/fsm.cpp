@@ -57,14 +57,15 @@ State::run(RNGenerator& rng)
   /* record action statistics */
   ++d_mbt_stats->d_actions[atup.d_action->get_id()];
 
-  /* When adding terms of parameterized sort, e.g., bit-vectors or
-   * floating-points, or when creating terms with a Real operator, that is
-   * actually of sort Int, it can happen that the resulting term has yet unknown
-   * sort, i.e., a sort that has not previously been created via ActionMksort.
-   * In order to ensure that the untracer can map such sorts back correctly,
-   * we have to trace a "phantom" action (= an action, that is only executed
-   * when untracing) for new sorts. */
-  atup.d_action->trace_get_sorts();
+  ///* When adding terms of parameterized sort, e.g., bit-vectors or
+  // * floating-points, or when creating terms with a Real operator, that is
+  // * actually of sort Int, it can happen that the resulting term has yet
+  // unknown
+  // * sort, i.e., a sort that has not previously been created via ActionMksort.
+  // * In order to ensure that the untracer can map such sorts back correctly,
+  // * we have to trace a "phantom" action (= an action, that is only executed
+  // * when untracing) for new sorts. */
+  // atup.d_action->trace_get_sorts();
 
   if (atup.d_action->run()
       && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
@@ -290,7 +291,7 @@ FSM::configure()
   /* Actions                                                               */
   /* --------------------------------------------------------------------- */
 
-  (void) new_action<ActionTermGetSort>();  // not added to any state
+  //(void) new_action<ActionTermGetSort>();  // not added to any state
 
   auto a_new    = new_action<ActionNew>();
   auto a_delete = new_action<ActionDelete>();

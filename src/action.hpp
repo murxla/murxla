@@ -57,7 +57,6 @@ class Action
   inline static const Kind MK_TERM               = "mk-term";
   inline static const Kind TERM_CHECK_SORT       = "term-check-sort";
   inline static const Kind TERM_GET_CHILDREN     = "term-get-children";
-  inline static const Kind TERM_GET_SORT         = "term-get-sort";
   inline static const Kind ASSERT_FORMULA        = "assert-formula";
   inline static const Kind GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
   inline static const Kind GET_UNSAT_CORE        = "get-unsat-core";
@@ -146,19 +145,6 @@ class Action
    * performing any API calls.
    */
   bool empty() const { return d_is_empty; }
-
-  /**
-   * Trace a ("phantom") action 'get-sort' for given term.
-   *
-   * When adding terms of parameterized sort, e.g., bit-vectors or
-   * floating-points, or when creating terms with a Real operator, that is
-   * actually of sort Int, it can happen that the resulting term has yet unknown
-   * sort, i.e., a sort that has not previously been created via ActionMksort.
-   * In order to ensure that the untracer can map such sorts back correctly,
-   * we have to trace a "phantom" action (= an action, that is only executed
-   * when untracing) for new sorts.
-   */
-  void trace_get_sorts() const;
 
  protected:
   /**
@@ -260,46 +246,7 @@ class TransitionCreateSorts : public Transition
   bool run() override;
 };
 
-/* -------------------------------------------------------------------------- */
-/* Phantom Actions (untracing only)                                           */
-/* -------------------------------------------------------------------------- */
-
-/** "Phantom" action that is only used for untracing.  */
-class UntraceAction : public Action
-{
- public:
-  UntraceAction(SolverManager& smgr,
-                const Action::Kind& kind,
-                ReturnValue returns)
-      : Action(smgr, kind, returns)
-  {
-  }
-
-  bool run() override { assert(false); }  // not to be used
-  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
-  {
-    return {};
-  }
-};
-
-/* -------------------------------------------------------------------------- */
-
-class ActionTermGetSort : public UntraceAction
-{
- public:
-  ActionTermGetSort(SolverManager& smgr)
-      : UntraceAction(smgr, TERM_GET_SORT, ID)
-  {
-  }
-
-  std::vector<uint64_t> untrace(
-      const std::vector<std::string>& tokens) override;
-
- private:
-  std::vector<uint64_t> _run(Term term);
-};
-
-/* -------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 class ActionNew : public Action
 {
