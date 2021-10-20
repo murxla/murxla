@@ -171,6 +171,7 @@ set_sigint_handler_stats(void)
   "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
   "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
+  "  --check-uc [<solver>]      check unsat cores with <solver>\n"             \
   "  -y, --random-symbols       use random symbol names\n"                     \
   "  -T, --tmp-dir <dir>        write tmp files to given directory\n"          \
   "  -O, --out-dir <dir>        write output files to given directory\n"       \
@@ -237,6 +238,13 @@ check_solver(const SolverKind& solver_kind)
     MURXLA_EXIT_ERROR(true) << "Yices not configured";
 #endif
   }
+}
+
+bool
+is_valid_solver_str(const std::string& name)
+{
+  return name == SOLVER_BTOR || name == SOLVER_BZLA || name == SOLVER_CVC5
+         || name == SOLVER_YICES;
 }
 
 void
@@ -318,11 +326,23 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, argc);
       SolverKind solver = argv[i];
-      MURXLA_EXIT_ERROR(solver != SOLVER_BTOR && solver != SOLVER_BZLA
-                        && solver != SOLVER_CVC5 && solver != SOLVER_YICES)
+      MURXLA_EXIT_ERROR(!is_valid_solver_str(solver))
           << "invalid argument " << solver << " to option '" << arg << "'";
       check_solver(solver);
       options.cross_check = solver;
+    }
+    else if (arg == "--check-uc")
+    {
+      options.check_unsat_cores = true;
+      if (argc > i && is_valid_solver_str(argv[i + 1]))
+      {
+        options.check_unsat_cores_solver = argv[i + 1];
+        i += 1;
+      }
+    }
+    else if (arg == "--no-check-uc")
+    {
+      options.check_unsat_cores = false;
     }
     else if (arg == "-y" || arg == "--random-symbols")
     {
@@ -452,6 +472,19 @@ parse_options(Options& options, int argc, char* argv[])
   if (options.solver.empty())
   {
     options.solver = SOLVER_SMT2;
+  }
+
+  if (options.solver == SOLVER_SMT2)
+  {
+    options.check_unsat_cores        = false;
+    options.check_unsat_cores_solver = "";
+  }
+
+  /* Use an instance of the same solver for checking unsat cores if not
+   * otherwise specified. */
+  if (options.check_unsat_cores && options.check_unsat_cores_solver.empty())
+  {
+    options.check_unsat_cores_solver = options.solver;
   }
 }
 

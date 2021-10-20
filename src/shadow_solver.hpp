@@ -156,7 +156,15 @@ class ShadowSolver : public Solver
 
   void disable_unsupported_actions(FSM* fsm) const override;
 
- private:
+  static void get_sorts_helper(const std::vector<Sort>& sorts,
+                               std::vector<Sort>& sorts_orig,
+                               std::vector<Sort>& sorts_shadow);
+
+  static void get_terms_helper(const std::vector<Term>& terms,
+                               std::vector<Term>& terms_orig,
+                               std::vector<Term>& terms_shadow);
+
+ protected:
   /** The solver under test. */
   std::unique_ptr<Solver> d_solver;
   /** The solver used for checking. */

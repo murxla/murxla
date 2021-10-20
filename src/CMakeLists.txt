@@ -2,7 +2,7 @@ set(murxla_src_files
   action.cpp
   btor_solver.cpp
   bzla_solver.cpp
-  shadow_solver.cpp
+  check_solver.cpp
   cvc5_solver.cpp
   dd.cpp
   except.cpp
@@ -12,6 +12,7 @@ set(murxla_src_files
   op.cpp
   result.cpp
   rng.cpp
+  shadow_solver.cpp
   smt2_solver.cpp
   solver.cpp
   solver_manager.cpp

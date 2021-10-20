@@ -3,38 +3,6 @@
 namespace murxla {
 namespace shadow {
 
-namespace {
-
-void
-get_sorts_helper(const std::vector<Sort>& sorts,
-                 std::vector<Sort>& sorts_orig,
-                 std::vector<Sort>& sorts_shadow)
-{
-  for (auto s : sorts)
-  {
-    ShadowSort* sort = dynamic_cast<ShadowSort*>(s.get());
-    assert(sort);
-    sorts_orig.push_back(sort->get_sort());
-    sorts_shadow.push_back(sort->get_sort_shadow());
-  }
-}
-
-void
-get_terms_helper(const std::vector<Term>& terms,
-                 std::vector<Term>& terms_orig,
-                 std::vector<Term>& terms_shadow)
-{
-  for (auto t : terms)
-  {
-    ShadowTerm* term = dynamic_cast<ShadowTerm*>(t.get());
-    assert(term);
-    terms_orig.push_back(term->get_term());
-    terms_shadow.push_back(term->get_term_shadow());
-  }
-}
-
-}  // namespace
-
 ShadowSort::ShadowSort(Sort sort, Sort sort_shadow)
     : d_sort(sort), d_sort_shadow(sort_shadow)
 {
@@ -51,7 +19,8 @@ bool
 ShadowSort::equals(const Sort& other) const
 {
   ShadowSort* s_sort = dynamic_cast<ShadowSort*>(other.get());
-  return d_sort == s_sort->d_sort;
+  return d_sort->equals(s_sort->d_sort)
+         && d_sort_shadow->equals(s_sort->d_sort_shadow);
 }
 std::string
 ShadowSort::to_string() const
@@ -160,7 +129,7 @@ void
 ShadowSort::set_sorts(const std::vector<Sort>& sorts)
 {
   std::vector<Sort> sorts_orig, sorts_shadow;
-  get_sorts_helper(sorts, sorts_orig, sorts_shadow);
+  ShadowSolver::get_sorts_helper(sorts, sorts_orig, sorts_shadow);
   d_sort->set_sorts(sorts_orig);
   d_sort_shadow->set_sorts(sorts_shadow);
   d_sorts = sorts;
@@ -174,14 +143,15 @@ ShadowTerm::~ShadowTerm() {}
 size_t
 ShadowTerm::hash() const
 {
-  return d_term->hash();
+  return d_term->hash() + d_term_shadow->hash();
 }
 bool
 ShadowTerm::equals(const Term& other) const
 {
   ShadowTerm* s_term = dynamic_cast<ShadowTerm*>(other.get());
   assert(s_term);
-  return d_term == s_term->d_term;
+  return d_term->equals(s_term->d_term)
+         && d_term_shadow->equals(s_term->d_term_shadow);
 }
 std::string
 ShadowTerm::to_string() const
@@ -242,11 +212,11 @@ ShadowTerm::is_reglan() const
 void
 ShadowTerm::set_sort(Sort sort)
 {
+  AbsTerm::set_sort(sort);
   ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
   assert(s);
   d_term->set_sort(s->d_sort);
   d_term_shadow->set_sort(s->d_sort_shadow);
-  d_sort = sort;
 }
 
 ShadowSolver::ShadowSolver(RNGenerator& rng,
@@ -258,6 +228,34 @@ ShadowSolver::ShadowSolver(RNGenerator& rng,
       d_same_solver(solver->get_name() == solver_shadow->get_name()){};
 
 ShadowSolver::~ShadowSolver(){};
+
+void
+ShadowSolver::get_sorts_helper(const std::vector<Sort>& sorts,
+                               std::vector<Sort>& sorts_orig,
+                               std::vector<Sort>& sorts_shadow)
+{
+  for (auto s : sorts)
+  {
+    ShadowSort* sort = dynamic_cast<ShadowSort*>(s.get());
+    assert(sort);
+    sorts_orig.push_back(sort->get_sort());
+    sorts_shadow.push_back(sort->get_sort_shadow());
+  }
+}
+
+void
+ShadowSolver::get_terms_helper(const std::vector<Term>& terms,
+                               std::vector<Term>& terms_orig,
+                               std::vector<Term>& terms_shadow)
+{
+  for (auto t : terms)
+  {
+    ShadowTerm* term = dynamic_cast<ShadowTerm*>(t.get());
+    assert(term);
+    terms_orig.push_back(term->get_term());
+    terms_shadow.push_back(term->get_term_shadow());
+  }
+}
 
 void
 ShadowSolver::new_solver()

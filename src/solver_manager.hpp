@@ -185,11 +185,9 @@ class SolverManager
    */
   Term pick_quant_body();
 
-  /**
-   * Pick term of Bool SortKind SORT_BOOL and add it to asssumptions list.
-   * Requires that terms of SortKind SORT_BOOL exist.
-   */
-  Term pick_assumption();
+  /** Add assumption currently assumed. */
+  void add_assumption(Term t);
+
   /**
    * Pick assumption out of the assumed assumptions list.
    * Requires that d_assumptions is not empty.
@@ -237,9 +235,6 @@ class SolverManager
    * level.
    */
   bool has_quant_body() const;
-
-  /** Return true if given term has been previously assumed. */
-  bool is_assumed(Term term) const;
 
   /**
    * Return the Term in the Term database that wraps the same solver term

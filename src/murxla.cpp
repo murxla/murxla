@@ -12,6 +12,7 @@
 
 #include "btor_solver.hpp"
 #include "bzla_solver.hpp"
+#include "check_solver.hpp"
 #include "cvc5_solver.hpp"
 #include "dd.hpp"
 #include "except.hpp"
@@ -447,6 +448,13 @@ Solver*
 Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out) const
 {
   Solver* solver = new_solver(rng, d_options.solver, smt2_out);
+
+  /* If unsat core checking is enabled wrap solver with a CheckSolver. */
+  if (d_options.check_unsat_cores)
+  {
+    Solver* ref_solver = new_solver(rng, d_options.check_unsat_cores_solver);
+    solver             = new CheckSolver(rng, solver, ref_solver);
+  }
 
   if (!d_options.cross_check.empty())
   {

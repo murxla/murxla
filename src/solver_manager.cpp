@@ -459,13 +459,10 @@ SolverManager::pick_quant_body()
   return d_term_db.pick_quant_body();
 }
 
-Term
-SolverManager::pick_assumption()
+void
+SolverManager::add_assumption(Term t)
 {
-  assert(has_term(SORT_BOOL));
-  Term res = pick_term(SORT_BOOL, 0);
-  d_assumptions.insert(res);
-  return res;
+  d_assumptions.insert(t);
 }
 
 Term
@@ -568,12 +565,6 @@ bool
 SolverManager::has_quant_body() const
 {
   return d_term_db.has_quant_body();
-}
-
-bool
-SolverManager::is_assumed(Term term) const
-{
-  return d_assumptions.find(term) != d_assumptions.end();
 }
 
 Term

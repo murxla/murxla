@@ -85,6 +85,11 @@ struct Options
   /** The name of the solver to cross-check given solver with. */
   std::string cross_check;
 
+  /** The name of the solver to use for checking unsat cores. */
+  std::string check_unsat_cores_solver;
+  /** Whether unsat cores checking is enabled. */
+  bool check_unsat_cores = true;
+
   /** The name of the options file of the enabled solver. */
   std::string solver_options_file;
 

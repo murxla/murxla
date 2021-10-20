@@ -454,13 +454,13 @@ class ActionGetUnsatCore : public Action
 class ActionGetValue : public Action
 {
  public:
-  ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, ID_LIST) {}
+  ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, NONE) {}
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
 
  private:
-  std::vector<uint64_t> _run(std::vector<Term> terms);
+  void _run(std::vector<Term> terms);
 };
 
 class ActionPush : public Action

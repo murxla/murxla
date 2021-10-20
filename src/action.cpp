@@ -1587,7 +1587,7 @@ ActionCheckSatAssuming::run()
   std::vector<Term> assumptions;
   for (uint32_t i = 0; i < n_assumptions; ++i)
   {
-    assumptions.push_back(d_smgr.pick_assumption());
+    assumptions.push_back(d_smgr.pick_term(SORT_BOOL, 0));
   }
   _run(assumptions);
   return true;
@@ -1615,6 +1615,10 @@ ActionCheckSatAssuming::_run(std::vector<Term> assumptions)
 {
   MURXLA_TRACE << get_kind() << " " << assumptions.size() << assumptions;
   reset_sat();
+  for (const Term& t : assumptions)
+  {
+    d_smgr.add_assumption(t);
+  }
   d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
   d_smgr.d_sat_called = true;
   d_smgr.d_n_sat_calls += 1;
@@ -1648,20 +1652,8 @@ void
 ActionGetUnsatAssumptions::_run()
 {
   MURXLA_TRACE << get_kind();
-  /* Note: The Terms in this vector are solver terms wrapped into Term,
-   *       without sort information! */
-  std::vector<Term> res = d_solver.get_unsat_assumptions();
-  for (Term& fa : res)
-  {
-    Term t = d_smgr.find_term(fa, d_solver.get_sort(fa, SORT_BOOL), SORT_BOOL);
-    MURXLA_TEST(t != nullptr);
-    assert(d_smgr.is_assumed(t));
-    MURXLA_TEST(d_solver.is_unsat_assumption(t));
-  }
-  if (d_rng.flip_coin())
-  {
-    MURXLA_TEST(d_solver.check_sat_assuming(res) != Solver::Result::SAT);
-  }
+  /* Note: Unsat assumptions are checked in the checker solver. */
+  (void) d_solver.get_unsat_assumptions();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1733,45 +1725,17 @@ ActionGetValue::untrace(const std::vector<std::string>& tokens)
     MURXLA_CHECK_TRACE_TERM(t, id);
     terms.push_back(t);
   }
-  return _run(terms);
+  _run(terms);
+  return {};
 }
 
-std::vector<uint64_t>
+void
 ActionGetValue::_run(std::vector<Term> terms)
 {
   MURXLA_TRACE << get_kind() << " " << terms.size() << terms;
-  std::vector<uint64_t> res;
   /* Note: The Terms in this vector are solver terms wrapped into Term,
    *       without sort information! */
-  std::vector<Term> res_terms = d_solver.get_value(terms);
-  MURXLA_TEST(terms.size() == res_terms.size());
-  if (d_smgr.d_incremental)
-  {
-    /* assume assignment and check if result is still SAT */
-    std::vector<Term> assumptions;
-    for (size_t i = 0, n = terms.size(); i < n; ++i)
-    {
-      std::vector<Term> args = {terms[i], res_terms[i]};
-      std::vector<uint32_t> params;
-      assumptions.push_back(d_solver.mk_term(Op::EQUAL, args, params));
-    }
-    MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
-                != Solver::Result::UNSAT);
-  }
-  /* add values to term database */
-  std::stringstream ss;
-  for (size_t i = 0, n = terms.size(); i < n; ++i)
-  {
-    Sort sort = terms[i]->get_sort();
-    assert(sort != nullptr);
-    SortKind sort_kind = sort->get_kind();
-    assert(sort_kind != SORT_ANY);
-    d_smgr.add_term(res_terms[i], sort_kind);
-    ss << (i > 0 ? " " : "") << res_terms[i];
-    res.push_back(res_terms[i]->get_id());
-  }
-  MURXLA_TRACE_RETURN << ss.str();
-  return res;
+  (void) d_solver.get_value(terms);
 }
 
 /* -------------------------------------------------------------------------- */

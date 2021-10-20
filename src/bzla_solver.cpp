@@ -1367,7 +1367,7 @@ BzlaSolver::get_unsat_core()
 {
   size_t size;
   std::vector<Term> res;
-  BitwuzlaTerm** bzla_res = bitwuzla_get_unsat_assumptions(d_solver, &size);
+  BitwuzlaTerm** bzla_res = bitwuzla_get_unsat_core(d_solver, &size);
   for (uint32_t i = 0; i < size; ++i)
   {
     res.push_back(
