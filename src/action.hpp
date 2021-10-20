@@ -284,21 +284,6 @@ class UntraceAction : public Action
 
 /* -------------------------------------------------------------------------- */
 
-class ActionTermCheckSort : public Action
-{
- public:
-  ActionTermCheckSort(SolverManager& smgr) : Action(smgr, TERM_CHECK_SORT, NONE)
-  {
-  }
-
-  bool run() override;
-  std::vector<uint64_t> untrace(
-      const std::vector<std::string>& tokens) override;
-
- private:
-  void _run(Term term);
-};
-
 class ActionTermGetChildren : public UntraceAction
 {
  public:
@@ -388,6 +373,9 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
+  /** Perform checks on sort of created term. */
+  static void check_sort(RNGenerator& rng, Term term);
+
   ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID) {}
   bool run() override;
   std::vector<uint64_t> untrace(
@@ -429,6 +417,7 @@ class ActionMkValue : public Action
  public:
   /** Perform checks on created value. */
   static void check_value(RNGenerator& rng, Term term);
+
   ActionMkValue(SolverManager& smgr) : Action(smgr, MK_VALUE, ID) {}
   bool run() override;
   std::vector<uint64_t> untrace(

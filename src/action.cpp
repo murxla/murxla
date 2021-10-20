@@ -114,95 +114,6 @@ TransitionCreateSorts::run()
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionTermCheckSort::run()
-{
-  assert(d_solver.is_initialized());
-  if (!d_smgr.has_term()) return false;
-  Term term = d_smgr.pick_term();
-  _run(term);
-  return true;
-}
-
-std::vector<uint64_t>
-ActionTermCheckSort::untrace(const std::vector<std::string>& tokens)
-{
-  MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-  Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
-  MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
-  _run(t);
-  return {};
-}
-
-void
-ActionTermCheckSort::_run(Term term)
-{
-  MURXLA_TRACE << get_kind() << " " << term;
-  Sort sort = term->get_sort();
-
-  if (sort->is_array())
-  {
-    MURXLA_TEST(term->is_array());
-    MURXLA_TEST(sort->get_array_index_sort() == term->get_array_index_sort());
-    MURXLA_TEST(sort->get_array_element_sort()
-                == term->get_array_element_sort());
-  }
-  else if (sort->is_bool())
-  {
-    MURXLA_TEST(term->is_bool());
-  }
-  else if (sort->is_bv())
-  {
-    MURXLA_TEST(term->is_bv());
-    MURXLA_TEST(sort->get_bv_size() == term->get_bv_size());
-  }
-  else if (sort->is_fp())
-  {
-    MURXLA_TEST(term->is_fp());
-    MURXLA_TEST(sort->get_fp_exp_size() == term->get_fp_exp_size());
-    MURXLA_TEST(sort->get_fp_sig_size() == term->get_fp_sig_size());
-  }
-  else if (sort->is_fun())
-  {
-    MURXLA_TEST(term->is_fun());
-    MURXLA_TEST(sort->get_fun_arity() == term->get_fun_arity());
-    MURXLA_TEST(sort->get_fun_codomain_sort() == term->get_fun_codomain_sort());
-    std::vector<Sort> domain_sorts_expected = sort->get_fun_domain_sorts();
-    std::vector<Sort> domain_sorts          = term->get_fun_domain_sorts();
-    MURXLA_TEST(domain_sorts_expected.size() == domain_sorts.size());
-    for (size_t i = 0, n = domain_sorts_expected.size(); i < n; ++i)
-    {
-      MURXLA_TEST(domain_sorts_expected[i] == domain_sorts[i]);
-    }
-  }
-  else if (sort->is_int())
-  {
-    MURXLA_TEST(term->is_int());
-  }
-  else if (sort->is_real())
-  {
-    MURXLA_TEST(term->is_real());
-  }
-  else if (sort->is_rm())
-  {
-    MURXLA_TEST(term->is_rm());
-  }
-  else if (sort->is_string())
-  {
-    MURXLA_TEST(term->is_string());
-  }
-  else if (sort->is_reglan())
-  {
-    MURXLA_TEST(term->is_reglan());
-  }
-  else
-  {
-    assert(false);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-
-bool
 ActionTermGetChildren::run()
 {
   assert(d_solver.is_initialized());
@@ -1148,10 +1059,79 @@ ActionMkTerm::_run(Op::Kind kind,
   }
 
   d_smgr.add_term(res, sort_kind, args);
+  check_sort(d_rng, res);
   Sort res_sort = res->get_sort();
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;
   return {res->get_id(), res_sort->get_id()};
+}
+
+void
+ActionMkTerm::check_sort(RNGenerator& rng, Term term)
+{
+  if (rng.pick_with_prob(900)) return;
+
+  Sort sort = term->get_sort();
+
+  if (sort->is_array())
+  {
+    MURXLA_TEST(term->is_array());
+    MURXLA_TEST(sort->get_array_index_sort() == term->get_array_index_sort());
+    MURXLA_TEST(sort->get_array_element_sort()
+                == term->get_array_element_sort());
+  }
+  else if (sort->is_bool())
+  {
+    MURXLA_TEST(term->is_bool());
+  }
+  else if (sort->is_bv())
+  {
+    MURXLA_TEST(term->is_bv());
+    MURXLA_TEST(sort->get_bv_size() == term->get_bv_size());
+  }
+  else if (sort->is_fp())
+  {
+    MURXLA_TEST(term->is_fp());
+    MURXLA_TEST(sort->get_fp_exp_size() == term->get_fp_exp_size());
+    MURXLA_TEST(sort->get_fp_sig_size() == term->get_fp_sig_size());
+  }
+  else if (sort->is_fun())
+  {
+    MURXLA_TEST(term->is_fun());
+    MURXLA_TEST(sort->get_fun_arity() == term->get_fun_arity());
+    MURXLA_TEST(sort->get_fun_codomain_sort() == term->get_fun_codomain_sort());
+    std::vector<Sort> domain_sorts_expected = sort->get_fun_domain_sorts();
+    std::vector<Sort> domain_sorts          = term->get_fun_domain_sorts();
+    MURXLA_TEST(domain_sorts_expected.size() == domain_sorts.size());
+    for (size_t i = 0, n = domain_sorts_expected.size(); i < n; ++i)
+    {
+      MURXLA_TEST(domain_sorts_expected[i] == domain_sorts[i]);
+    }
+  }
+  else if (sort->is_int())
+  {
+    MURXLA_TEST(term->is_int());
+  }
+  else if (sort->is_real())
+  {
+    MURXLA_TEST(term->is_real());
+  }
+  else if (sort->is_rm())
+  {
+    MURXLA_TEST(term->is_rm());
+  }
+  else if (sort->is_string())
+  {
+    MURXLA_TEST(term->is_string());
+  }
+  else if (sort->is_reglan())
+  {
+    MURXLA_TEST(term->is_reglan());
+  }
+  else
+  {
+    assert(false);
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1191,6 +1171,7 @@ ActionMkConst::_run(Sort sort, std::string& symbol)
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_const(sort, symbol);
   d_smgr.add_input(res, sort, sort->get_kind());
+  ActionMkTerm::check_sort(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return {res->get_id()};
 }
@@ -1228,6 +1209,7 @@ ActionMkVar::_run(Sort sort, std::string& symbol)
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_var(sort, symbol);
   d_smgr.add_var(res, sort, sort->get_kind());
+  ActionMkTerm::check_sort(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return {res->get_id()};
 }
@@ -1466,6 +1448,8 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
   assert(term->is_value());
 
   if (rng.pick_with_prob(900)) return;
+
+  ActionMkTerm::check_sort(rng, term);
 
   if (term->is_bool())
   {
