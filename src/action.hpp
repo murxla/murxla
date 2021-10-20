@@ -69,6 +69,7 @@ class Action
   inline static const Kind RESET                 = "reset";
   inline static const Kind RESET_ASSERTIONS      = "reset-assertions";
   inline static const Kind SET_OPTION            = "set-option";
+  inline static const Kind SET_OPTION_REQ        = "set-option-req";
   inline static const Kind TRANS                 = "t_default";
   inline static const Kind TRANS_CREATE_INPUTS   = "t_inputs";
   inline static const Kind TRANS_CREATE_SORTS    = "t_sorts";
@@ -274,6 +275,8 @@ class ActionDelete : public Action
 
 class ActionSetOption : public Action
 {
+  friend class ActionSetOptionReq;
+
  public:
   ActionSetOption(SolverManager& smgr) : Action(smgr, SET_OPTION, NONE) {}
 
@@ -283,6 +286,26 @@ class ActionSetOption : public Action
 
  private:
   void _run(const std::string& opt, const std::string& value);
+};
+
+class ActionSetOptionReq : public Action
+{
+ public:
+  ActionSetOptionReq(SolverManager& smgr) : Action(smgr, SET_OPTION_REQ, NONE)
+  {
+  }
+
+  bool run() override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
+
+  void init(
+      const std::vector<std::pair<std::string, std::string>>& solver_options,
+      ActionSetOption* setoption);
+
+ private:
+  std::vector<std::pair<std::string, std::string>> d_solver_options;
+  ActionSetOption* d_setoption;
 };
 
 class ActionMkSort : public Action

@@ -186,6 +186,7 @@ set_sigint_handler_stats(void)
   "  --yices                    test Yices\n"                                  \
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
   "                             via stdout)\n"                                 \
+  "  -o \"name:value;...\"        solver options enabled by default\n"         \
   "\n"                                                                         \
   " enabling specific theories:\n"                                             \
   "  --arrays                   theory of arrays\n"                            \
@@ -404,6 +405,20 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, argc);
       options.smt2_file_name = argv[i];
+    }
+    else if (arg == "-o")
+    {
+      i += 1;
+      check_next_arg(arg, i, argc);
+      auto solver_options = split(argv[i], ';');
+      for (auto opt : solver_options)
+      {
+        auto split_opt = split(opt, ':');
+        MURXLA_EXIT_ERROR(split_opt.size() != 2)
+            << "invalid solver option format: '" << opt
+            << "', expected 'name:value'";
+        options.solver_options.emplace_back(split_opt[0], split_opt[1]);
+      }
     }
     else if (arg == "-S" || arg == "--trace-seeds")
     {

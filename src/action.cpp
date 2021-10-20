@@ -250,28 +250,28 @@ ActionSetOption::run()
   {
     std::tie(opt, value) =
         d_smgr.pick_option(d_solver.get_option_name_incremental(),
-                           d_smgr.d_incremental ? "false" : "true");
+                           d_rng.flip_coin() ? "true" : "false");
   }
-  else if (opt.empty() && d_rng.pick_with_prob(100))
+  if (opt.empty() && d_rng.pick_with_prob(100))
   {
     std::tie(opt, value) =
         d_smgr.pick_option(d_solver.get_option_name_model_gen(),
-                           d_smgr.d_model_gen ? "false" : "true");
+                           d_rng.flip_coin() ? "true" : "false");
   }
-  else if (opt.empty() && d_rng.pick_with_prob(100))
+  if (opt.empty() && d_rng.pick_with_prob(100))
   {
     std::tie(opt, value) =
         d_smgr.pick_option(d_solver.get_option_name_unsat_assumptions(),
-                           d_smgr.d_unsat_assumptions ? "false" : "true");
+                           d_rng.flip_coin() ? "true" : "false");
   }
-  else if (opt.empty() && d_rng.pick_with_prob(100))
+  if (opt.empty() && d_rng.pick_with_prob(100))
   {
     std::tie(opt, value) =
         d_smgr.pick_option(d_solver.get_option_name_unsat_cores(),
-                           d_smgr.d_unsat_cores ? "false" : "true");
+                           d_rng.flip_coin() ? "true" : "false");
   }
   /* Pick random options. */
-  else
+  if (opt.empty())
   {
     std::tie(opt, value) = d_smgr.pick_option();
   }
@@ -302,6 +302,35 @@ ActionSetOption::_run(const std::string& opt, const std::string& value)
   d_smgr.d_model_gen         = d_solver.option_model_gen_enabled();
   d_smgr.d_unsat_assumptions = d_solver.option_unsat_assumptions_enabled();
   d_smgr.d_unsat_cores       = d_solver.option_unsat_cores_enabled();
+  d_smgr.mark_option_used(opt);  // only set options once
+}
+
+/* -------------------------------------------------------------------------- */
+
+bool
+ActionSetOptionReq::run()
+{
+  for (const auto& [name, value] : d_solver_options)
+  {
+    d_setoption->_run(name, value);
+  }
+  return true;
+}
+
+std::vector<uint64_t>
+ActionSetOptionReq::untrace(const std::vector<std::string>& tokens)
+{
+  return {};
+}
+
+void
+ActionSetOptionReq::init(
+    const std::vector<std::pair<std::string, std::string>>& solver_options,
+    ActionSetOption* setoption)
+{
+  d_solver_options.insert(
+      d_solver_options.end(), solver_options.begin(), solver_options.end());
+  d_setoption = setoption;
 }
 
 /* -------------------------------------------------------------------------- */

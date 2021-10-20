@@ -110,6 +110,9 @@ double get_cur_wall_time();
 std::tuple<std::string, std::vector<std::string>> tokenize(
     const std::string& line);
 
+/** Split string 's' by character 'delim'. */
+std::vector<std::string> split(const std::string& s, const char delim);
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace murxla

@@ -93,7 +93,8 @@ FSM::FSM(RNGenerator& rng,
          bool simple_symbols,
          bool smt,
          statistics::Statistics* stats,
-         const TheoryIdVector& enabled_theories)
+         const TheoryIdVector& enabled_theories,
+         const std::vector<std::pair<std::string, std::string>> solver_options)
     : d_smgr(solver,
              rng,
              trace,
@@ -107,7 +108,8 @@ FSM::FSM(RNGenerator& rng,
       d_rng(rng),
       d_arith_linear(arith_linear),
       d_smt(smt),
-      d_mbt_stats(stats)
+      d_mbt_stats(stats),
+      d_solver_options(solver_options)
 {
   auto smgr_enabled_theories = d_smgr.get_enabled_theories();
   if (smgr_enabled_theories.find(THEORY_QUANT) != smgr_enabled_theories.end())
@@ -325,6 +327,8 @@ FSM::configure()
   auto a_reset_ass = new_action<ActionResetAssertions>();
 
   auto a_setoption = new_action<ActionSetOption>();
+  auto a_setoptionreq = new_action<ActionSetOptionReq>();
+  a_setoptionreq->init(d_solver_options, a_setoption);
 
   auto t_default = new_action<TransitionDefault>();
   auto t_inputs  = new_action<TransitionCreateInputs>();
@@ -334,10 +338,11 @@ FSM::configure()
   /* States                                                                */
   /* --------------------------------------------------------------------- */
 
-  auto s_new    = new_state(State::NEW);
-  auto s_opt    = new_state(State::OPT);
-  auto s_delete = new_state(State::DELETE);
-  auto s_final  = new_final_state(State::FINAL, nullptr);
+  auto s_new     = new_state(State::NEW);
+  auto s_opt     = new_state(State::OPT);
+  auto s_opt_req = new_state(State::OPT_REQ);
+  auto s_delete  = new_state(State::DELETE);
+  auto s_final   = new_final_state(State::FINAL, nullptr);
 
   auto s_sorts  = new_state(State::CREATE_SORTS);
   auto s_inputs = new_state(State::CREATE_INPUTS);
@@ -366,7 +371,10 @@ FSM::configure()
   /* --------------------------------------------------------------------- */
 
   /* State: new .......................................................... */
-  s_new->add_action(a_new, 1, s_opt);
+  s_new->add_action(a_new, 1, s_opt_req);
+
+  /* State: opt required ................................................. */
+  s_opt_req->add_action(a_setoptionreq, 1, s_opt);
 
   /* State: opt .......................................................... */
   s_opt->add_action(a_setoption, 1);
@@ -426,7 +434,8 @@ FSM::configure()
   s_push_pop->add_action(a_push, 1);
   s_push_pop->add_action(a_pop, 1);
   s_push_pop->add_action(t_default, 2, s_assert);
-  add_action_to_all_states_next(t_default, 1, s_push_pop, {State::OPT});
+  add_action_to_all_states_next(
+      t_default, 1, s_push_pop, {State::OPT, State::OPT_REQ});
 
   /* State: delete ....................................................... */
   s_delete->add_action(a_delete, 1, s_final);

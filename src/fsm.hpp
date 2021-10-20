@@ -38,6 +38,7 @@ class State
   inline static const Kind UNDEFINED     = "undefined";
   inline static const Kind NEW           = "new";
   inline static const Kind OPT           = "opt";
+  inline static const Kind OPT_REQ       = "opt_req";
   inline static const Kind DELETE        = "delete";
   inline static const Kind FINAL         = "final";
   inline static const Kind CREATE_SORTS  = "create_sorts";
@@ -159,7 +160,8 @@ class FSM
       bool simple_symbols,
       bool smt,
       statistics::Statistics* stats,
-      const TheoryIdVector& enabled_theories);
+      const TheoryIdVector& enabled_theories,
+      const std::vector<std::pair<std::string, std::string>> solver_options);
 
   /** Default constructor is disabled. */
   FSM() = delete;
@@ -338,6 +340,8 @@ class FSM
   bool d_smt = false;
 
   statistics::Statistics* d_mbt_stats;
+
+  std::vector<std::pair<std::string, std::string>> d_solver_options;
 };
 
 template <class T>

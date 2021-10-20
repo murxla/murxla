@@ -90,8 +90,8 @@ struct Options
   /** Whether unsat cores checking is enabled. */
   bool check_unsat_cores = true;
 
-  /** The name of the options file of the enabled solver. */
-  std::string solver_options_file;
+  /** Command line options that need to be set for enabled solver. */
+  std::vector<std::pair<std::string, std::string>> solver_options;
 
   /** The list of currently enabled theories. */
   TheoryIdVector enabled_theories;

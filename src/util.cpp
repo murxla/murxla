@@ -592,6 +592,19 @@ tokenize(const std::string& line)
   return std::make_tuple(action, tokens);
 }
 
+std::vector<std::string>
+split(const std::string& s, const char delim)
+{
+  std::stringstream ss(s);
+  std::string token;
+  std::vector<std::string> res;
+  while (std::getline(ss, token, delim))
+  {
+    res.push_back(token);
+  }
+  return res;
+}
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace murxla
