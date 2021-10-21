@@ -150,7 +150,7 @@ struct Op
   inline static const Kind RE_RANGE           = "OP_RE_RANGE";
   inline static const Kind RE_STAR            = "OP_RE_STAR";
   inline static const Kind RE_UNION           = "OP_RE_UNION";
-  inline static const Kind STR_AT             = "OP_STR_";
+  inline static const Kind STR_AT             = "OP_STR_AT";
   inline static const Kind STR_CONCAT         = "OP_STR_CONCAT";
   inline static const Kind STR_CONTAINS       = "OP_STR_CONTAINS";
   inline static const Kind STR_FROM_CODE      = "OP_STR_FROM_CODE";
@@ -158,7 +158,7 @@ struct Op
   inline static const Kind STR_INDEXOF        = "OP_STR_INDEXOF";
   inline static const Kind STR_IN_RE          = "OP_STR_IN_RE";
   inline static const Kind STR_IS_DIGIT       = "OP_STR_IS_DIGIT";
-  inline static const Kind STR_LE             = "OP_STR_";
+  inline static const Kind STR_LE             = "OP_STR_LE";
   inline static const Kind STR_LEN            = "OP_STR_LEN";
   inline static const Kind STR_LT             = "OP_STR_LT";
   inline static const Kind STR_PREFIXOF       = "OP_STR_PREFIXOF";
