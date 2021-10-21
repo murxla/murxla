@@ -163,8 +163,8 @@ SolverManager::add_value(Term& term, Sort& sort, SortKind sort_kind)
 {
   assert(term.get());
 
-  term->set_is_value(true);
   add_input(term, sort, sort_kind);
+  term->set_is_value(true);
 }
 
 void
