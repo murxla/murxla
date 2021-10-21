@@ -94,10 +94,19 @@ class TermDb
    */
   bool has_term(SortKind kind) const;
   /**
+   * Return true if term database has a term with any of the given sort kinds.
+   *
+   * Special case: if sort kind is SORT_REAL and the solver treats Int as a
+   *               subtype of Real, return true if term database has term of
+   *               kind SORT_INT or SORT_REAL.
+   */
+  bool has_term(const SortKindSet& kinds) const;
+  /**
    * Return true if term database has a term with sort.
    *
-   * Special case: if sort is of kind SORT_REAL, return true if term database
-   *               has term of kind SORT_INT or SORT_REAL.
+   * Special case: if sort is of kind SORT_REAL and the solver treats Int as a
+   *               subtype of Real, return true if term database has term of
+   *               kind SORT_INT or SORT_REAL.
    */
   bool has_term(Sort sort) const;
   /** Return true if term database contains any term. */
@@ -171,8 +180,14 @@ class TermDb
   /** Pick a sort kind. */
   SortKind pick_sort_kind() const;
 
+  /** Pick a sort kind (with terms) from any of the given sort kinds. */
+  SortKind pick_sort_kind(const SortKindSet& sort_kinds) const;
+
   /** Pick sort with given sort kind. */
   Sort pick_sort(SortKind sort_kind) const;
+
+  /** Pick sort with any of the given sort kinds. */
+  Sort pick_sort(const SortKindSet& sort_kinds) const;
 
  private:
   Term pick_from_term_map(TermMap& tmap);

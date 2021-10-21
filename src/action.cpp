@@ -353,16 +353,17 @@ ActionMkSort::run()
       SortKindSet exclude_element_sorts =
           d_solver.get_unsupported_array_element_sort_kinds();
 
-      if (!d_smgr.has_sort(exclude_index_sorts))
+      if (!d_smgr.has_sort_excluding(exclude_index_sorts))
       {
         return false;
       }
-      Sort index_sort = d_smgr.pick_sort(exclude_index_sorts, false);
-      if (!d_smgr.has_sort(exclude_element_sorts))
+      Sort index_sort = d_smgr.pick_sort_excluding(exclude_index_sorts, false);
+      if (!d_smgr.has_sort_excluding(exclude_element_sorts))
       {
         return false;
       }
-      Sort element_sort = d_smgr.pick_sort(exclude_element_sorts, false);
+      Sort element_sort =
+          d_smgr.pick_sort_excluding(exclude_element_sorts, false);
       _run(kind, {index_sort, element_sort});
       break;
     }
@@ -391,16 +392,16 @@ ActionMkSort::run()
       std::vector<Sort> sorts;
       SortKindSet exclude_sorts =
           d_solver.get_unsupported_fun_domain_sort_kinds();
-      if (!d_smgr.has_sort(exclude_sorts))
+      if (!d_smgr.has_sort_excluding(exclude_sorts))
       {
         return false;
       }
       uint32_t nsorts = d_rng.pick<uint32_t>(1, MURXLA_MK_TERM_N_ARGS_MAX);
       for (uint32_t i = 0; i < nsorts; ++i)
       {
-        sorts.push_back(d_smgr.pick_sort(exclude_sorts, false));
+        sorts.push_back(d_smgr.pick_sort_excluding(exclude_sorts, false));
       }
-      sorts.push_back(d_smgr.pick_sort(exclude_sorts, false));
+      sorts.push_back(d_smgr.pick_sort_excluding(exclude_sorts, false));
       _run(kind, sorts);
       break;
     }
@@ -614,7 +615,13 @@ ActionMkTerm::run()
   Op& op             = d_smgr.get_op(kind);
   int32_t arity      = op.d_arity;
   uint32_t n_params  = op.d_nparams;
-  SortKind sort_kind = op.d_sort_kind;
+
+  SortKind sort_kind     = SORT_ANY;
+  SortKindSet sort_kinds = op.d_sort_kinds;
+  if (sort_kinds.size() == 1)
+  {
+    sort_kind = *sort_kinds.begin();
+  }
 
   ++d_smgr.d_mbt_stats->d_ops[op.d_id];
 
@@ -793,8 +800,8 @@ ActionMkTerm::run()
     {
       /* creating relations over SORT_REGLAN not supported by any solver
        * right now. */
-      SortKindSet exclude = {SORT_REGLAN};
-      Sort sort           = d_smgr.pick_sort(exclude);
+      SortKindSet exclude_sorts = {SORT_REGLAN};
+      Sort sort                 = d_smgr.pick_sort_excluding(exclude_sorts);
       if (sort == nullptr)
       {
         return false;
@@ -809,11 +816,11 @@ ActionMkTerm::run()
     {
       /* Always pick the same sort for a given sort kind. */
       std::unordered_map<SortKind, Sort> sorts;
-      SortKind skind;
       for (int32_t i = 0; i < arity; ++i)
       {
-        skind = op.get_arg_sort_kind(i);
-        assert(d_smgr.has_term(skind));
+        SortKindSet skinds = op.get_arg_sort_kind(i);
+        assert(d_smgr.has_term(skinds));
+        SortKind skind = d_smgr.pick_sort_kind(skinds);
         auto it = sorts.find(skind);
         Sort sort;
         if (it == sorts.end())
@@ -1140,12 +1147,12 @@ ActionMkConst::run()
 
   /* Creating constants with SORT_REGLAN not supported by any solver right
    * now. */
-  SortKindSet exclude = {SORT_REGLAN};
+  SortKindSet exclude_sorts = {SORT_REGLAN};
 
   /* Pick sort of const. */
-  if (!d_smgr.has_sort(exclude)) return false;
+  if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
 
-  Sort sort          = d_smgr.pick_sort(exclude, false);
+  Sort sort          = d_smgr.pick_sort_excluding(exclude_sorts, false);
   std::string symbol = d_smgr.pick_symbol();
   /* Create const. */
   _run(sort, symbol);
@@ -1179,11 +1186,11 @@ bool
 ActionMkVar::run()
 {
   assert(d_solver.is_initialized());
-  SortKindSet exclude = d_solver.get_unsupported_var_sort_kinds();
+  SortKindSet exclude_sorts = d_solver.get_unsupported_var_sort_kinds();
 
   /* Pick sort of const. */
-  if (!d_smgr.has_sort(exclude)) return false;
-  Sort sort          = d_smgr.pick_sort(exclude, false);
+  if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+  Sort sort          = d_smgr.pick_sort_excluding(exclude_sorts, false);
   std::string symbol = d_smgr.pick_symbol();
   /* Create var. */
   _run(sort, symbol);

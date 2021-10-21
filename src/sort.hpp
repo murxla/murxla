@@ -10,7 +10,7 @@ namespace murxla {
 
 enum SortKind
 {
-  SORT_ARRAY,
+  SORT_ARRAY = 0,
   SORT_BV,
   SORT_BOOL,
   SORT_FP,
@@ -20,9 +20,9 @@ enum SortKind
   SORT_RM,
   SORT_REGLAN,
   SORT_STRING,
+  // must be last
   SORT_ANY,
 };
-
 }
 
 namespace std {
@@ -67,16 +67,17 @@ struct SortKindData
   TheoryId d_theory;
 };
 
+using SortKindVector = std::vector<SortKind>;
+using SortKindSet    = std::unordered_set<SortKind>;
+using SortKindMap    = std::unordered_map<SortKind, SortKindData>;
+using SortKinds      = std::unordered_map<TheoryId, SortKindVector>;
+
 std::ostream& operator<<(std::ostream& out, SortKind kind);
 
+SortKindSet get_all_sort_kinds_for_any();
 SortKind sort_kind_from_str(const std::string& s);
 
 bool operator==(const SortKindData& a, const SortKindData& b);
-
-using SortKindVector = std::vector<SortKind>;
-using SortKindMap    = std::unordered_map<SortKind, SortKindData>;
-using SortKinds   = std::unordered_map<TheoryId, SortKindVector>;
-using SortKindSet = std::unordered_set<SortKind>;
 
 }  // namespace murxla
 

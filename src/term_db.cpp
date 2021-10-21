@@ -244,6 +244,31 @@ TermDb::has_term(SortKind kind, size_t level) const
 }
 
 bool
+TermDb::has_term(const SortKindSet& kinds) const
+{
+  SortKindSet sk;
+  const SortKindSet* sort_kinds = &kinds;
+  if (d_smgr.d_arith_subtyping && kinds.find(SORT_REAL) != kinds.end()
+      && kinds.find(SORT_INT) == kinds.end())
+  {
+    sk = kinds;
+    sk.insert(SORT_INT);
+    sort_kinds = &sk;
+  }
+  for (const SortKind& k : *sort_kinds)
+  {
+    for (const auto& tmap : d_term_db)
+    {
+      if (tmap.find(k) != tmap.end())
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool
 TermDb::has_term(Sort sort) const
 {
   assert(sort != nullptr);
@@ -417,6 +442,22 @@ TermDb::pick_sort_kind() const
   return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
 }
 
+SortKind
+TermDb::pick_sort_kind(const SortKindSet& sort_kinds) const
+{
+  assert(has_term());
+
+  std::unordered_set<SortKind> kinds;
+  for (const auto& tmap : d_term_db)
+  {
+    for (const auto& p : tmap)
+    {
+      if (sort_kinds.find(p.first) != sort_kinds.end()) kinds.insert(p.first);
+    }
+  }
+  return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
+}
+
 Sort
 TermDb::pick_sort(SortKind sort_kind) const
 {
@@ -428,6 +469,13 @@ TermDb::pick_sort(SortKind sort_kind) const
   assert(res->get_id());
   assert(res->get_kind() != SORT_ANY);
   return res;
+}
+
+Sort
+TermDb::pick_sort(const SortKindSet& sort_kinds) const
+{
+  assert(has_term(sort_kinds));
+  return pick_sort(pick_sort_kind(sort_kinds));
 }
 
 Term

@@ -17,6 +17,17 @@ operator==(const SortKindData& a, const SortKindData& b)
           && a.d_theory == b.d_theory);
 }
 
+SortKindSet
+get_all_sort_kinds_for_any()
+{
+  SortKindSet res;
+  for (uint32_t i = 0; i < SORT_ANY; ++i)
+  {
+    res.insert(static_cast<SortKind>(i));
+  }
+  return res;
+}
+
 SortKind
 sort_kind_from_str(const std::string& s)
 {

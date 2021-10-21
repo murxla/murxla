@@ -16,16 +16,16 @@ Op::Op(uint64_t id,
        const Kind& kind,
        int32_t arity,
        uint32_t nparams,
-       SortKind sort_kind,
-       const std::vector<SortKind>& sort_kind_args,
+       SortKindSet sort_kinds,
+       const std::vector<SortKindSet>& sort_kinds_args,
        TheoryId theory)
     : d_id(id),
       d_kind(kind),
       d_arity(arity),
       d_nparams(nparams),
-      d_sort_kind(sort_kind),
+      d_sort_kinds(sort_kinds),
       d_theory(theory),
-      d_sort_kind_args(sort_kind_args)
+      d_sort_kinds_args(sort_kinds_args)
 {
   MURXLA_CHECK_CONFIG(kind.size() <= MURXLA_MAX_KIND_LEN)
       << "'" << kind
@@ -37,32 +37,33 @@ bool
 Op::operator==(const Op& other) const
 {
   if (d_kind != other.d_kind || d_arity != other.d_arity
-      || d_sort_kind != other.d_sort_kind)
+      || d_sort_kinds != other.d_sort_kinds)
     return false;
 
-  if (d_sort_kind_args.size() != other.d_sort_kind_args.size()) return false;
+  if (d_sort_kinds_args.size() != other.d_sort_kinds_args.size()) return false;
 
-  for (size_t i = 0, size = d_sort_kind_args.size(); i < size; ++i)
+  for (size_t i = 0, size = d_sort_kinds_args.size(); i < size; ++i)
   {
-    if (d_sort_kind_args[i] != other.d_sort_kind_args[i]) return false;
+    if (d_sort_kinds_args[i] != other.d_sort_kinds_args[i]) return false;
   }
   return true;
 }
 
-SortKind
+SortKindSet
 Op::get_arg_sort_kind(size_t i) const
 {
-  if (i >= d_sort_kind_args.size())
+  if (i >= d_sort_kinds_args.size())
   {
     /* All remaining arguments have the same sort, except for some operators in
      * theory of FP, where some FP operators have one RM and the remainder FP
      * arguments. All FP arguments have the same sort, and the RM argument
      * always comes first. */
-    assert(d_sort_kind_args[0] != SORT_RM || d_sort_kind_args.size() > 1);
-    return d_sort_kind_args[0] == SORT_RM ? d_sort_kind_args[1]
-                                          : d_sort_kind_args[0];
+    SortKindSet rm{SORT_RM};
+    assert(d_sort_kinds_args[0] != rm || d_sort_kinds_args.size() > 1);
+    return d_sort_kinds_args[0] == rm ? d_sort_kinds_args[1]
+                                      : d_sort_kinds_args[0];
   }
-  return d_sort_kind_args[i];
+  return d_sort_kinds_args[i];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -305,8 +306,32 @@ OpKindManager::add_op_kind(const Op::Kind& kind,
           "maximum number of operators exceeded, increase limit by adjusting "
           "value of macro MURXLA_MAX_N_OPS in config.hpp");
     }
+    SortKindSet sort_kinds;
+    if (sort_kind == SORT_ANY)
+    {
+      sort_kinds = get_all_sort_kinds_for_any();
+    }
+    else
+    {
+      sort_kinds.insert(sort_kind);
+    }
+    std::vector<SortKindSet> sort_kinds_args;
+    for (SortKind s : sort_kind_args)
+    {
+      SortKindSet sk;
+      if (s == SORT_ANY)
+      {
+        sk = get_all_sort_kinds_for_any();
+      }
+      else
+      {
+        sk.insert(s);
+      }
+      sort_kinds_args.push_back(sk);
+    }
     d_op_kinds.emplace(
-        kind, Op(id, kind, arity, nparams, sort_kind, sort_kind_args, theory));
+        kind,
+        Op(id, kind, arity, nparams, sort_kinds, sort_kinds_args, theory));
     strncpy(d_stats->d_op_kinds[id], kind.c_str(), kind.size());
   }
 }

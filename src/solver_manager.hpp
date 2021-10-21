@@ -118,6 +118,14 @@ class SolverManager
    * 'with_terms' is true.
    */
   SortKind pick_sort_kind(bool with_terms = true);
+  /**
+   * Pick sort kind of existing (= created) sort out of given set of sort
+   * kinds.  Asserts that a sort of any of the given kinds exists.
+   * Optionally restrict selection to sort kinds with terms only if
+   * 'with_terms' is true.
+   */
+  SortKind pick_sort_kind(const SortKindSet& sort_kinds,
+                          bool with_terms = true);
 
   /**
    * Pick enabled sort kind (and get its data).
@@ -229,6 +237,11 @@ class SolverManager
   bool has_term(SortKind sort_kind, size_t level) const;
   /** Return true if term database contains any term of given sort kind. */
   bool has_term(SortKind sort_kind) const;
+  /**
+   * Return true if term database contains any term of one of the given sort
+   * kinds.
+   */
+  bool has_term(const SortKindSet& sort_kinds) const;
   /** Return true if term database contains any term of given sort. */
   bool has_term(Sort sort) const;
   /** Return true if d_assumptions is not empty. */
@@ -281,10 +294,16 @@ class SolverManager
    */
   Sort pick_sort(SortKind sort_kind, bool with_terms = true);
   /**
+   * Pick sort of any of the given sort kinds. Optionally restrict selection to
+   * sorts with terms only if 'with_terms' is true.
+   */
+  Sort pick_sort(const SortKindSet& sort_kinds, bool with_terms = true);
+  /**
    * Pick sort, but exclude some of them.
    * It is not guaranteed that there exist terms of the returned sort.
    */
-  Sort pick_sort(const SortKindSet& exclude_sorts, bool with_terms = true);
+  Sort pick_sort_excluding(const SortKindSet& exclude_sorts,
+                           bool with_terms = true);
   /**
    * Pick bit-vector sort with given bit-width.  Optionally restrict
    * selection to sorts with terms only if 'with_terms' is true.
@@ -307,6 +326,11 @@ class SolverManager
    */
   bool has_sort(SortKind sort_kind) const;
   /**
+   * Return true if a sort of any of the given kinds exists.
+   * This does not guarantee that any terms of these sorts have been created.
+   */
+  bool has_sort(const SortKindSet& sort_kinds) const;
+  /**
    * Return true if given sort already exists.
    * This does not guarantee that any terms of this sort have been created.
    */
@@ -315,7 +339,8 @@ class SolverManager
    * Return true if sorts other than exclude_sorts have been created.
    * This does not guarantee that any terms have been created.
    */
-  bool has_sort(const std::unordered_set<SortKind>& exclude_sorts) const;
+  bool has_sort_excluding(
+      const std::unordered_set<SortKind>& exclude_sorts) const;
 
   /**
    * Return true if a bit-vector sort with given bit-width exists.

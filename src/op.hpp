@@ -178,13 +178,13 @@ struct Op
      const Kind& kind,
      int32_t arity,
      uint32_t nparams,
-     SortKind sort_kind,
-     const std::vector<SortKind>& sort_kind_args,
+     SortKindSet sort_kinds,
+     const std::vector<SortKindSet>& sort_kinds_args,
      TheoryId theory);
 
   bool operator==(const Op& other) const;
 
-  SortKind get_arg_sort_kind(size_t i) const;
+  SortKindSet get_arg_sort_kind(size_t i) const;
 
   /* Op id, assigned in the order they have been created. */
   uint64_t d_id = 0u;
@@ -195,13 +195,13 @@ struct Op
   /** The number of parameters if parameterized. */
   uint32_t d_nparams;
   /** The sort kind of a term of this kind. */
-  SortKind d_sort_kind;
+  SortKindSet d_sort_kinds;
   /** The theory to which the operator belongs to. */
   TheoryId d_theory;
 
  private:
   /** The sort kind of the term arguments of this kind. */
-  std::vector<SortKind> d_sort_kind_args;
+  std::vector<SortKindSet> d_sort_kinds_args;
 };
 
 /* -------------------------------------------------------------------------- */

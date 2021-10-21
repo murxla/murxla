@@ -280,6 +280,27 @@ SolverManager::pick_sort_kind(bool with_terms)
       d_sort_kind_to_sorts);
 }
 
+SortKind
+SolverManager::pick_sort_kind(const SortKindSet& sort_kinds, bool with_terms)
+{
+  assert(has_sort(sort_kinds));
+  if (with_terms)
+  {
+    return d_term_db.pick_sort_kind(sort_kinds);
+  }
+
+  if (sort_kinds.size() == 1)
+  {
+    return *sort_kinds.begin();
+  }
+  SortKindVector skinds;
+  for (SortKind sk : sort_kinds)
+  {
+    if (has_sort(sk)) skinds.push_back(sk);
+  }
+  return d_rng.pick_from_set<SortKindVector, SortKind>(skinds);
+}
+
 SortKindData&
 SolverManager::pick_sort_kind_data()
 {
@@ -549,6 +570,12 @@ SolverManager::has_term(SortKind sort_kind) const
 }
 
 bool
+SolverManager::has_term(const SortKindSet& sort_kinds) const
+{
+  return d_term_db.has_term(sort_kinds);
+}
+
+bool
 SolverManager::has_term(Sort sort) const
 {
   return d_term_db.has_term(sort);
@@ -674,7 +701,26 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
 }
 
 Sort
-SolverManager::pick_sort(const SortKindSet& exclude_sorts, bool with_terms)
+SolverManager::pick_sort(const SortKindSet& sort_kinds, bool with_terms)
+{
+  Sort res;
+  if (with_terms)
+  {
+    res = d_term_db.pick_sort(sort_kinds);
+  }
+  else
+  {
+    assert(has_sort(sort_kinds));
+    SortKind sk = pick_sort_kind(sort_kinds, with_terms);
+    res = d_rng.pick_from_set<SortSet, Sort>(d_sort_kind_to_sorts.at(sk));
+  }
+  assert(res->get_id());
+  return res;
+}
+
+Sort
+SolverManager::pick_sort_excluding(const SortKindSet& exclude_sorts,
+                                   bool with_terms)
 {
   SortSet sorts;
   for (const auto& s : d_sorts)
@@ -742,10 +788,28 @@ SolverManager::has_sort() const
 bool
 SolverManager::has_sort(SortKind sort_kind) const
 {
+  if (d_sort_kind_to_sorts.empty()) return false;
   if (sort_kind == SORT_ANY) return has_sort();
   if (d_sort_kinds.find(sort_kind) == d_sort_kinds.end()) return false;
   return d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end()
          && !d_sort_kind_to_sorts.at(sort_kind).empty();
+}
+
+bool
+SolverManager::has_sort(const SortKindSet& sort_kinds) const
+{
+  if (d_sort_kind_to_sorts.empty()) return false;
+
+  for (SortKind sort_kind : sort_kinds)
+  {
+    if (d_sort_kinds.find(sort_kind) != d_sort_kinds.end()
+        && d_sort_kind_to_sorts.find(sort_kind) != d_sort_kind_to_sorts.end()
+        && !d_sort_kind_to_sorts.at(sort_kind).empty())
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool
@@ -755,7 +819,8 @@ SolverManager::has_sort(Sort sort) const
 }
 
 bool
-SolverManager::has_sort(const std::unordered_set<SortKind>& exclude_sorts) const
+SolverManager::has_sort_excluding(
+    const std::unordered_set<SortKind>& exclude_sorts) const
 {
   for (const auto& s : d_sorts)
   {
