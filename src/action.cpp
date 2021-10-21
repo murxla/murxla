@@ -1363,10 +1363,6 @@ ActionMkValue::untrace(const std::vector<std::string>& tokens)
       {
         res = _run(sort, false);
       }
-      else if (sort->is_string())
-      {
-        res = _run(sort, tokens[1]);
-      }
       else
       {
         res = _run(sort, str_to_str(tokens[1]));
