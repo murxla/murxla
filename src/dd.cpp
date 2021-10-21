@@ -870,7 +870,7 @@ DD::minimize_line(Result golden_exit,
     /* we enable all theories for delta debugging */
     opmgr_enabled_theories.insert(static_cast<TheoryId>(t));
   }
-  OpKindManager opmgr(opmgr_enabled_theories, {}, false, &opmgr_stats);
+  OpKindManager opmgr(opmgr_enabled_theories, {}, {}, false, &opmgr_stats);
   {
     RNGenerator opmgr_rng;
     std::unique_ptr<Solver> opmgr_solver(d_murxla->create_solver(opmgr_rng));

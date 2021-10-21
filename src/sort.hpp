@@ -74,7 +74,7 @@ using SortKinds      = std::unordered_map<TheoryId, SortKindVector>;
 
 std::ostream& operator<<(std::ostream& out, SortKind kind);
 
-SortKindSet get_all_sort_kinds_for_any();
+SortKindSet get_all_sort_kinds_for_any(const SortKindSet& excluded_sorts = {});
 SortKind sort_kind_from_str(const std::string& s);
 
 bool operator==(const SortKindData& a, const SortKindData& b);

@@ -306,10 +306,18 @@ OpKindManager::add_op_kind(const Op::Kind& kind,
           "maximum number of operators exceeded, increase limit by adjusting "
           "value of macro MURXLA_MAX_N_OPS in config.hpp");
     }
+
+    SortKindSet exclude_sort_kinds;
+    const auto& it = d_unsupported_op_kind_sorts.find(kind);
+    if (it != d_unsupported_op_kind_sorts.end())
+    {
+      exclude_sort_kinds = it->second;
+    }
+
     SortKindSet sort_kinds;
     if (sort_kind == SORT_ANY)
     {
-      sort_kinds = get_all_sort_kinds_for_any();
+      sort_kinds = get_all_sort_kinds_for_any(exclude_sort_kinds);
     }
     else
     {
@@ -321,7 +329,7 @@ OpKindManager::add_op_kind(const Op::Kind& kind,
       SortKindSet sk;
       if (s == SORT_ANY)
       {
-        sk = get_all_sort_kinds_for_any();
+        sk = get_all_sort_kinds_for_any(exclude_sort_kinds);
       }
       else
       {

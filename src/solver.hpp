@@ -336,6 +336,17 @@ class Solver
   virtual TheoryIdVector get_unsupported_quant_theories() const;
   /** Get the set of unsupported operator kinds. */
   virtual OpKindSet get_unsupported_op_kinds() const;
+
+  /**
+   * Get operator sort restrictions.
+   * Maps operator kind to a set of excluded sort kinds. This is only relevant
+   * for operators that allow kind SORT_ANY.
+   * By default, this is configured to exclude sorts to not generate higher
+   * order terms.
+   */
+  virtual std::unordered_map<Op::Kind, SortKindSet>
+  get_unsupported_op_sort_kinds() const;
+
   /**
    * Get the set of sorts that are unsupported for quantified variables.
    * Note: This is different from get_unsupported_quant_sort_kinds in that it
@@ -347,6 +358,10 @@ class Solver
    * Get the set of sort kinds that are unsupported as function domain sort.
    */
   virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;
+  /**
+   * Get the set of sort kinds that are unsupported as function codomain sort.
+   */
+  virtual SortKindSet get_unsupported_fun_codomain_sort_kinds() const;
   /**
    * Get the set of sort kinds that are unsupported as array index sort.
    */

@@ -377,6 +377,14 @@ Solver::get_unsupported_op_kinds() const
   return {};
 }
 
+std::unordered_map<Op::Kind, SortKindSet>
+Solver::get_unsupported_op_sort_kinds() const
+{
+  return {{Op::DISTINCT, {SORT_FUN}},
+          {Op::EQUAL, {SORT_FUN}},
+          {Op::ITE, {SORT_FUN}}};
+}
+
 SortKindSet
 Solver::get_unsupported_var_sort_kinds() const
 {
@@ -385,6 +393,12 @@ Solver::get_unsupported_var_sort_kinds() const
 
 SortKindSet
 Solver::get_unsupported_fun_domain_sort_kinds() const
+{
+  return {SORT_FUN};
+}
+
+SortKindSet
+Solver::get_unsupported_fun_codomain_sort_kinds() const
 {
   return {SORT_FUN};
 }

@@ -18,12 +18,16 @@ operator==(const SortKindData& a, const SortKindData& b)
 }
 
 SortKindSet
-get_all_sort_kinds_for_any()
+get_all_sort_kinds_for_any(const SortKindSet& excluded_sorts)
 {
   SortKindSet res;
   for (uint32_t i = 0; i < SORT_ANY; ++i)
   {
-    res.insert(static_cast<SortKind>(i));
+    SortKind sort_kind = static_cast<SortKind>(i);
+    if (excluded_sorts.find(sort_kind) == excluded_sorts.end())
+    {
+      res.insert(sort_kind);
+    }
   }
   return res;
 }

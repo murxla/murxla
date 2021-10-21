@@ -390,18 +390,23 @@ ActionMkSort::run()
     case SORT_FUN:
     {
       std::vector<Sort> sorts;
-      SortKindSet exclude_sorts =
+      SortKindSet exclude_domain_sorts =
           d_solver.get_unsupported_fun_domain_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_sorts))
+      SortKindSet exclude_codomain_sorts =
+          d_solver.get_unsupported_fun_codomain_sort_kinds();
+      if (!d_smgr.has_sort_excluding(exclude_domain_sorts)
+          || !d_smgr.has_sort_excluding(exclude_codomain_sorts))
       {
         return false;
       }
       uint32_t nsorts = d_rng.pick<uint32_t>(1, MURXLA_MK_TERM_N_ARGS_MAX);
       for (uint32_t i = 0; i < nsorts; ++i)
       {
-        sorts.push_back(d_smgr.pick_sort_excluding(exclude_sorts, false));
+        sorts.push_back(
+            d_smgr.pick_sort_excluding(exclude_domain_sorts, false));
       }
-      sorts.push_back(d_smgr.pick_sort_excluding(exclude_sorts, false));
+      sorts.push_back(
+          d_smgr.pick_sort_excluding(exclude_codomain_sorts, false));
       _run(kind, sorts);
       break;
     }

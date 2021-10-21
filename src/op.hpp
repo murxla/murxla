@@ -225,10 +225,13 @@ class OpKindManager
   /** Constructor. */
   OpKindManager(const TheoryIdSet& enabled_theories,
                 const OpKindSet& disabled_op_kinds,
+                const std::unordered_map<Op::Kind, SortKindSet>&
+                    unsupported_op_kind_sorts,
                 bool arith_linear,
                 statistics::Statistics* stats)
       : d_enabled_theories(enabled_theories),
         d_disabled_op_kinds(disabled_op_kinds),
+        d_unsupported_op_kind_sorts(unsupported_op_kind_sorts),
         d_arith_linear(arith_linear),
         d_stats(stats)
   {
@@ -269,6 +272,8 @@ class OpKindManager
   TheoryIdSet d_enabled_theories;
   /** The set of disabled operator kinds. */
   OpKindSet d_disabled_op_kinds;
+  /** The map of unsupported sorts for operator kinds. */
+  std::unordered_map<Op::Kind, SortKindSet> d_unsupported_op_kind_sorts;
   /** True to restrict arithmetic operators to linear fragment. */
   bool d_arith_linear = false;
   /** Statistics. */

@@ -360,6 +360,18 @@ ShadowSolver::get_unsupported_fun_domain_sort_kinds() const
 }
 
 SortKindSet
+ShadowSolver::get_unsupported_fun_codomain_sort_kinds() const
+{
+  SortKindSet unsupported;
+  auto unsupported_orig = d_solver->get_unsupported_fun_codomain_sort_kinds();
+  auto unsupported_shadow =
+      d_solver_shadow->get_unsupported_fun_codomain_sort_kinds();
+  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
+  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
+  return unsupported;
+}
+
+SortKindSet
 ShadowSolver::get_unsupported_array_index_sort_kinds() const
 {
   SortKindSet unsupported;
