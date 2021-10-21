@@ -450,10 +450,10 @@ Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out) const
   Solver* solver = new_solver(rng, d_options.solver, smt2_out);
 
   /* If unsat core checking is enabled wrap solver with a CheckSolver. */
-  if (d_options.check_unsat_cores)
+  if (d_options.check_solver)
   {
-    Solver* ref_solver = new_solver(rng, d_options.check_unsat_cores_solver);
-    solver             = new CheckSolver(rng, solver, ref_solver);
+    Solver* reference_solver = new_solver(rng, d_options.check_solver_name);
+    solver                   = new CheckSolver(rng, solver, reference_solver);
   }
 
   if (!d_options.cross_check.empty())

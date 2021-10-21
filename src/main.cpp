@@ -171,7 +171,8 @@ set_sigint_handler_stats(void)
   "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
   "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
-  "  --check-uc [<solver>]      check unsat cores with <solver>\n"             \
+  "  --check [<solver>]         check unsat cores/assumptions and model\n"     \
+  "                             model values with <solver>\n"                  \
   "  -y, --random-symbols       use random symbol names\n"                     \
   "  -T, --tmp-dir <dir>        write tmp files to given directory\n"          \
   "  -O, --out-dir <dir>        write output files to given directory\n"       \
@@ -332,18 +333,18 @@ parse_options(Options& options, int argc, char* argv[])
       check_solver(solver);
       options.cross_check = solver;
     }
-    else if (arg == "--check-uc")
+    else if (arg == "--check")
     {
-      options.check_unsat_cores = true;
+      options.check_solver = true;
       if (argc > i && is_valid_solver_str(argv[i + 1]))
       {
-        options.check_unsat_cores_solver = argv[i + 1];
+        options.check_solver_name = argv[i + 1];
         i += 1;
       }
     }
-    else if (arg == "--no-check-uc")
+    else if (arg == "--no-check")
     {
-      options.check_unsat_cores = false;
+      options.check_solver = false;
     }
     else if (arg == "-y" || arg == "--random-symbols")
     {
@@ -491,15 +492,15 @@ parse_options(Options& options, int argc, char* argv[])
 
   if (options.solver == SOLVER_SMT2)
   {
-    options.check_unsat_cores        = false;
-    options.check_unsat_cores_solver = "";
+    options.check_solver      = false;
+    options.check_solver_name = "";
   }
 
   /* Use an instance of the same solver for checking unsat cores if not
    * otherwise specified. */
-  if (options.check_unsat_cores && options.check_unsat_cores_solver.empty())
+  if (options.check_solver && options.check_solver_name.empty())
   {
-    options.check_unsat_cores_solver = options.solver;
+    options.check_solver_name = options.solver;
   }
 }
 
