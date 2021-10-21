@@ -315,13 +315,18 @@ class Solver
   Solver() = delete;
   virtual ~Solver() = default;
 
+  /** Create and initialize wrapped solver. */
   virtual void new_solver() = 0;
+  /** Delete wrapped solver. */
   virtual void delete_solver() = 0;
+  /** Return true if wrapped solver is initialized. */
   virtual bool is_initialized() const = 0;
   /** Return solver name. */
   virtual const std::string get_name() const = 0;
 
+  /** Return true if solver supports given theory. */
   bool supports_theory(TheoryId theory) const;
+  /** Get the set of supported theories. */
   virtual TheoryIdVector get_supported_theories() const;
   /**
    * Get the set of theories that are unsupported when THEORY_QUANT is selected.
@@ -329,6 +334,7 @@ class Solver
    * enabled theories.
    */
   virtual TheoryIdVector get_unsupported_quant_theories() const;
+  /** Get the set of unsupported operator kinds. */
   virtual OpKindSet get_unsupported_op_kinds() const;
   /**
    * Get the set of sorts that are unsupported for quantified variables.
@@ -337,8 +343,17 @@ class Solver
    *       that sort may occur in quantified formulas.
    */
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
+  /**
+   * Get the set of sort kinds that are unsupported as function domain sort.
+   */
   virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;
+  /**
+   * Get the set of sort kinds that are unsupported as array index sort.
+   */
   virtual SortKindSet get_unsupported_array_index_sort_kinds() const;
+  /**
+   * Get the set of sort kinds that are unsupported as array element sort.
+   */
   virtual SortKindSet get_unsupported_array_element_sort_kinds() const;
 
   virtual void configure_fsm(FSM* fsm) const;
