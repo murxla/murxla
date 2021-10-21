@@ -135,6 +135,13 @@ CheckSolver::get_value(std::vector<Term>& terms)
 }
 
 void
+CheckSolver::reset()
+{
+  ShadowSolver::reset();
+  d_incremental = false;
+}
+
+void
 CheckSolver::disable_unsupported_actions(FSM* fsm) const
 {
   d_solver->disable_unsupported_actions(fsm);

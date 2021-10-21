@@ -27,6 +27,8 @@ class CheckSolver : public shadow::ShadowSolver
 
   std::vector<Term> get_value(std::vector<Term>& terms) override;
 
+  void reset() override;
+
   void disable_unsupported_actions(FSM* fsm) const override;
 
  private:
