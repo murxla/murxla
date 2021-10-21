@@ -110,7 +110,7 @@ uint32_t
 Cvc5Sort::get_bv_size() const
 {
   assert(is_bv());
-  uint32_t res = d_sort.getBVSize();
+  uint32_t res = d_sort.getBitVectorSize();
   MURXLA_TEST(res);
   return res;
 }
@@ -119,7 +119,7 @@ uint32_t
 Cvc5Sort::get_fp_exp_size() const
 {
   assert(is_fp());
-  uint32_t res = d_sort.getFPExponentSize();
+  uint32_t res = d_sort.getFloatingPointExponentSize();
   MURXLA_TEST(res);
   return res;
 }
@@ -128,7 +128,7 @@ uint32_t
 Cvc5Sort::get_fp_sig_size() const
 {
   assert(is_fp());
-  uint32_t res = d_sort.getFPSignificandSize();
+  uint32_t res = d_sort.getFloatingPointSignificandSize();
   MURXLA_TEST(res);
   return res;
 }
@@ -873,21 +873,21 @@ uint32_t
 Cvc5Term::get_bv_size() const
 {
   assert(is_bv());
-  return d_term.getSort().getBVSize();
+  return d_term.getSort().getBitVectorSize();
 }
 
 uint32_t
 Cvc5Term::get_fp_exp_size() const
 {
   assert(is_fp());
-  return d_term.getSort().getFPExponentSize();
+  return d_term.getSort().getFloatingPointExponentSize();
 }
 
 uint32_t
 Cvc5Term::get_fp_sig_size() const
 {
   assert(is_fp());
-  return d_term.getSort().getFPSignificandSize();
+  return d_term.getSort().getFloatingPointSignificandSize();
 }
 
 Sort
