@@ -377,7 +377,7 @@ Solver::get_unsupported_op_kinds() const
   return {};
 }
 
-std::unordered_map<Op::Kind, SortKindSet>
+Solver::OpKindSortKindMap
 Solver::get_unsupported_op_sort_kinds() const
 {
   /* Exclude sorts that would create higher order terms. Further, creating

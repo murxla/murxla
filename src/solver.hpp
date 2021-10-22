@@ -287,6 +287,7 @@ class Solver
   };
 
   using SpecialValueKind = std::string;
+  using OpKindSortKindMap = std::unordered_map<Op::Kind, SortKindSet>;
 
   /** Special BV values. */
   static const SpecialValueKind SPECIAL_VALUE_BV_ZERO;
@@ -344,8 +345,7 @@ class Solver
    * By default, this is configured to exclude sorts to not generate higher
    * order terms.
    */
-  virtual std::unordered_map<Op::Kind, SortKindSet>
-  get_unsupported_op_sort_kinds() const;
+  virtual OpKindSortKindMap get_unsupported_op_sort_kinds() const;
 
   /**
    * Get the set of sorts that are unsupported for quantified variables.

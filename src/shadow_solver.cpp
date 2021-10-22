@@ -336,6 +336,17 @@ ShadowSolver::get_unsupported_op_kinds() const
   return unsupported;
 }
 
+Solver::OpKindSortKindMap
+ShadowSolver::get_unsupported_op_sort_kinds() const
+{
+  OpKindSortKindMap unsupported;
+  auto unsupported_orig   = d_solver->get_unsupported_op_sort_kinds();
+  auto unsupported_shadow = d_solver_shadow->get_unsupported_op_sort_kinds();
+  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
+  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
+  return unsupported;
+}
+
 SortKindSet
 ShadowSolver::get_unsupported_var_sort_kinds() const
 {

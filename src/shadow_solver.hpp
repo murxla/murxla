@@ -93,6 +93,7 @@ class ShadowSolver : public Solver
   TheoryIdVector get_supported_theories() const override;
   TheoryIdVector get_unsupported_quant_theories() const override;
   OpKindSet get_unsupported_op_kinds() const override;
+  OpKindSortKindMap get_unsupported_op_sort_kinds() const override;
   SortKindSet get_unsupported_var_sort_kinds() const override;
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;

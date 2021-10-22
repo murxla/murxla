@@ -940,19 +940,42 @@ Cvc5Solver::get_unsupported_op_kinds() const
   return {Op::IFF};
 }
 
+Solver::OpKindSortKindMap
+Cvc5Solver::get_unsupported_op_sort_kinds() const
+{
+  std::unordered_map<Op::Kind, SortKindSet> res =
+      Solver::get_unsupported_op_sort_kinds();
+  /* Disallow ITE over REGLAN terms. */
+  const auto& it = res.find(Op::ITE);
+  if (it == res.end())
+  {
+    res[Op::ITE] = {SORT_REGLAN};
+  }
+  else
+  {
+    it->second.insert(SORT_REGLAN);
+  }
+  return res;
+}
+
+SortKindSet
+Cvc5Solver::get_unsupported_var_sort_kinds() const
+{
+  return {SORT_FUN};
+}
+
 SortKindSet
 Cvc5Solver::get_unsupported_array_index_sort_kinds() const
 {
-  return {SORT_REGLAN};
+  return {SORT_ARRAY, SORT_FUN, SORT_REGLAN};
 }
 
 SortKindSet
 Cvc5Solver::get_unsupported_array_element_sort_kinds() const
 {
-  return {SORT_REGLAN};
+  return {SORT_FUN, SORT_REGLAN};
 }
 
-// TODO: check why SORT_REGLAN is not allowed in cvc5
 SortKindSet
 Cvc5Solver::get_unsupported_fun_domain_sort_kinds() const
 {
@@ -1839,6 +1862,7 @@ Cvc5Solver::option_unsat_cores_enabled() const
 void
 Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
 {
+  /* Add solver-specific operators. */
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
