@@ -122,7 +122,7 @@ print_error_summary()
       {
         std::string err(p.second.first);
         const auto& seeds = p.second.second;
-        std::cout << "murxla:" << seeds.size() << ",";
+        std::cout << "murxla:csv:" << seeds.size() << ",";
         std::cout << "\"" << escape_csv(err) << "\",";
         for (auto seed : seeds)
         {
