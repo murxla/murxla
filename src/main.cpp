@@ -90,13 +90,15 @@ print_error_summary()
 {
   if (g_errors.size())
   {
+    Terminal term;
     std::cout << "\nError statistics (" << g_errors.size() << " in total):\n"
               << std::endl;
     for (const auto& p : g_errors)
     {
       const auto& err   = p.second.first;
       const auto& seeds = p.second.second;
-      std::cout << COLOR_RED << seeds.size() << " errors: " << COLOR_DEFAULT;
+      std::cout << term.red() << seeds.size()
+                << " errors: " << term.defaultcolor();
       for (size_t i = 0; i < std::min<size_t>(seeds.size(), 10); ++i)
       {
         if (i > 0)

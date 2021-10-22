@@ -1,10 +1,12 @@
 #include "util.hpp"
 
 #include <sys/time.h>
+#include <unistd.h>
 
 #include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <iomanip>
 #include <limits>
 #include <sstream>
 #include <unordered_map>
@@ -393,6 +395,57 @@ operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
 
 /* -------------------------------------------------------------------------- */
 
+Terminal::Terminal() : d_is_terminal(isatty(fileno(stdout))) {}
+
+bool
+Terminal::is_term() const
+{
+  return d_is_terminal;
+}
+
+const std::string
+Terminal::cr() const
+{
+  return code("\r");
+}
+
+void
+Terminal::erase(std::ostream& out) const
+{
+  if (d_is_terminal)
+  {
+    out << "\33[2K" << cr() << std::flush;
+  }
+}
+const std::string
+Terminal::blue() const
+{
+  return code("\33[94m");
+}
+const std::string
+Terminal::defaultcolor() const
+{
+  return code("\33[39m");
+}
+const std::string
+Terminal::green() const
+{
+  return code("\33[92m");
+}
+const std::string
+Terminal::red() const
+{
+  return code("\33[91m");
+}
+
+const std::string
+Terminal::code(const std::string color) const
+{
+  return d_is_terminal ? color : "";
+}
+
+/* -------------------------------------------------------------------------- */
+
 std::string
 get_tmp_file_path(const std::string& filename, const std::string& directory)
 {
@@ -495,35 +548,37 @@ diff_files(std::ostream& out,
   std::ifstream file2 = open_input_file(file_name2, is_forked);
   std::string line1, line2;
 
+  Terminal term;
+
   while (std::getline(file1, line1))
   {
     if (std::getline(file2, line2))
     {
       if (line1 == line2)
       {
-        out << COLOR_DEFAULT << "  ";
+        out << term.defaultcolor() << "  ";
       }
       else
       {
-        out << COLOR_RED << "x ";
+        out << term.red() << "x ";
       }
       out << std::left << std::setw(9) << line1;
       out << std::left << std::setw(9) << line2;
     }
     else
     {
-      out << COLOR_RED << "x ";
+      out << term.red() << "x ";
       out << std::left << std::setw(9) << line1;
     }
     out << std::endl;
   }
   while (std::getline(file2, line2))
   {
-    out << COLOR_RED << "x ";
+    out << term.red() << "x ";
     out << std::left << std::setw(9) << " ";
     out << std::left << std::setw(9) << line2 << std::endl;
   }
-  out << COLOR_DEFAULT << std::flush;
+  out << term.defaultcolor() << std::flush;
   file1.close();
   file2.close();
 }

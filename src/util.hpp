@@ -67,11 +67,30 @@ std::ostream& operator<<(std::ostream& out,
 
 /* -------------------------------------------------------------------------- */
 
-const std::string DEVNULL       = "/dev/null";
-const std::string COLOR_BLUE    = "\33[94m";
-const std::string COLOR_DEFAULT = "\33[39m";
-const std::string COLOR_GREEN   = "\33[92m";
-const std::string COLOR_RED     = "\33[91m";
+const std::string DEVNULL = "/dev/null";
+
+/* -------------------------------------------------------------------------- */
+
+class Terminal
+{
+ public:
+  Terminal();
+
+  bool is_term() const;
+
+  const std::string cr() const;
+  void erase(std::ostream& out) const;
+  const std::string blue() const;
+  const std::string defaultcolor() const;
+  const std::string green() const;
+  const std::string red() const;
+
+ private:
+  const std::string code(const std::string color) const;
+  bool d_is_terminal;
+};
+
+/* -------------------------------------------------------------------------- */
 
 std::string get_tmp_file_path(const std::string& filename,
                               const std::string& directory);

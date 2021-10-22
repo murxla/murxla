@@ -247,6 +247,7 @@ Murxla::test()
   SeedGenerator sg(d_options.seed);
 
   std::string err_file_name = get_tmp_file_path("tmp.err", d_tmp_dir);
+  Terminal term;
 
   do
   {
@@ -255,7 +256,7 @@ Murxla::test()
     uint32_t seed = sg.next();
 
     std::cout << std::setw(10) << seed;
-    std::cout << " " << std::setw(5) << num_runs++ << " runs";
+    std::cout << " " << std::setw(5) << num_runs << " runs";
     std::cout << " " << std::setw(8);
     std::cout << std::setprecision(2) << std::fixed;
     std::cout << num_runs / (cur_time - start_time) << " r/s";
@@ -266,6 +267,7 @@ Murxla::test()
     std::cout << " " << std::setw(4);
     std::cout << d_errors->size() << " errors";
     std::cout << std::flush;
+    num_runs++;
 
     /* Note: If the selected solver is SOLVER_SMT2 and no online solver is
      *       configured, we'll never run into the error case below and replay
@@ -305,7 +307,14 @@ Murxla::test()
     /* report status */
     if (res == RESULT_OK)
     {
-      std::cout << "\33[2K\r" << std::flush;
+      if (term.is_term())
+      {
+        term.erase(std::cout);
+      }
+      else
+      {
+        std::cout << std::endl;
+      }
     }
     else
     {
@@ -326,7 +335,7 @@ Murxla::test()
         }
         else if (res == RESULT_ERROR_CONFIG)
         {
-          std::cout << "\33[2K\r" << std::flush;
+          term.erase(std::cout);
           MURXLA_CHECK_CONFIG(false) << errmsg << " " << d_error_msg;
         }
         else
@@ -343,19 +352,19 @@ Murxla::test()
         case RESULT_ERROR:
           if (duplicate)
           {
-            info << COLOR_GREEN << "duplicate";
+            info << term.green() << "duplicate";
           }
           else
           {
-            info << COLOR_RED << "error";
+            info << term.red() << "error";
           }
           break;
-        case RESULT_ERROR_CONFIG: info << COLOR_RED << "config error"; break;
-        case RESULT_ERROR_UNTRACE: info << COLOR_RED << "untrace error"; break;
-        case RESULT_TIMEOUT: info << COLOR_BLUE << "timeout"; break;
+        case RESULT_ERROR_CONFIG: info << term.red() << "config error"; break;
+        case RESULT_ERROR_UNTRACE: info << term.red() << "untrace error"; break;
+        case RESULT_TIMEOUT: info << term.blue() << "timeout"; break;
         default: assert(res == RESULT_UNKNOWN); info << "unknown";
       }
-      info << COLOR_DEFAULT << "]";
+      info << term.defaultcolor() << "]";
 
       std::cout << info.str() << std::flush;
       if (res == RESULT_ERROR)
@@ -378,7 +387,7 @@ Murxla::test()
                                  d_options.untrace_file_name);
       assert(res == res_replay);
     }
-    std::cout << "\r" << std::flush;
+    std::cout << term.cr() << std::flush;
   } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
 }
 
