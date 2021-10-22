@@ -59,8 +59,16 @@ CheckSolver::get_unsat_core()
   d_solver_shadow->push(1);
   for (const Term& t : unsat_core)
   {
-    assert(d_assertions.find(t) != d_assertions.end());
-    d_solver_shadow->assert_formula(d_assertions.at(t));
+    if (d_assertions.find(t) != d_assertions.end())
+    {
+      d_solver_shadow->assert_formula(d_assertions.at(t));
+    }
+    else
+    {
+      /* cvc5 returns assumptions in the unsat core. */
+      assert(d_assumptions.find(t) != d_assumptions.end());
+      d_solver_shadow->assert_formula(d_assumptions.at(t));
+    }
   }
   Result res = d_solver_shadow->check_sat_assuming(d_assumptions_shadow);
   MURXLA_TEST(res == Result::UNSAT);
