@@ -27,6 +27,13 @@ set(murxla_src_files
 
 add_executable(murxla ${murxla_src_files})
 
+include(CheckIncludeFileCXX)
+# Workaround to support compilation with gcc7.
+check_include_file_cxx(<filesystem> HAVE_FILESYSTEM_INCLUDE)
+if(NOT HAVE_FILESYSTEM_INCLUDE)
+  target_link_libraries(murxla stdc++fs)
+endif()
+
 if(Boolector_FOUND)
   target_link_libraries(murxla Boolector::boolector)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_BOOLECTOR)
