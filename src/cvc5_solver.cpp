@@ -945,15 +945,41 @@ Cvc5Solver::get_unsupported_op_sort_kinds() const
 {
   std::unordered_map<Op::Kind, SortKindSet> res =
       Solver::get_unsupported_op_sort_kinds();
-  /* Disallow ITE over REGLAN terms. */
-  const auto& it = res.find(Op::ITE);
-  if (it == res.end())
+  /* Disallow DISTINCT over REGLAN terms. */
   {
-    res[Op::ITE] = {SORT_REGLAN};
+    const auto& it = res.find(Op::DISTINCT);
+    if (it == res.end())
+    {
+      res[Op::DISTINCT] = {SORT_REGLAN};
+    }
+    else
+    {
+      it->second.insert(SORT_REGLAN);
+    }
   }
-  else
+  /* Disallow EQUAL over REGLAN terms. */
   {
-    it->second.insert(SORT_REGLAN);
+    const auto& it = res.find(Op::EQUAL);
+    if (it == res.end())
+    {
+      res[Op::EQUAL] = {SORT_REGLAN};
+    }
+    else
+    {
+      it->second.insert(SORT_REGLAN);
+    }
+  }
+  /* Disallow ITE over REGLAN terms. */
+  {
+    const auto& it = res.find(Op::ITE);
+    if (it == res.end())
+    {
+      res[Op::ITE] = {SORT_REGLAN};
+    }
+    else
+    {
+      it->second.insert(SORT_REGLAN);
+    }
   }
   return res;
 }
