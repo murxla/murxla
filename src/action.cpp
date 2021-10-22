@@ -801,45 +801,38 @@ ActionMkTerm::run()
                                    MURXLA_MK_TERM_N_ARGS_MAX);
     }
 
-    if (kind == Op::EQUAL || kind == Op::DISTINCT)
+    /* Always pick the same sort for a given sort kind. */
+    std::unordered_map<SortKind, Sort> sorts;
+    for (int32_t i = 0; i < arity; ++i)
     {
-      /* creating relations over SORT_REGLAN not supported by any solver
-       * right now. */
-      SortKindSet exclude_sorts = {SORT_REGLAN};
-      Sort sort                 = d_smgr.pick_sort_excluding(exclude_sorts);
-      if (sort == nullptr)
+      SortKindSet skinds = op.get_arg_sort_kind(i);
+      assert(d_smgr.has_term(skinds));
+      std::unordered_map<SortKind, Sort>::iterator it;
+      Sort sort;
+      /* We have to ensure that we pick the same sort for all arguments
+       * if more than one sort kind is allowed (can only be the case for
+       * operators that allow SORT_ANY). */
+      SortKind skind = SORT_ANY, skind_map = SORT_ANY;
+      if (skinds.size() == 1)
       {
-        return false;
+        skind     = *skinds.begin();
+        skind_map = skind;
       }
-      for (int32_t i = 0; i < arity; ++i)
+      it = sorts.find(skind_map);
+      if (it == sorts.end())
       {
-        assert(d_smgr.has_term(sort));
-        args.push_back(d_smgr.pick_term(sort));
+        if (skind == SORT_ANY) skind = d_smgr.pick_sort_kind(skinds);
+        sort = d_smgr.pick_sort(skind);
+        sorts.emplace(skind_map, sort);
       }
-    }
-    else
-    {
-      /* Always pick the same sort for a given sort kind. */
-      std::unordered_map<SortKind, Sort> sorts;
-      for (int32_t i = 0; i < arity; ++i)
+      else
       {
-        SortKindSet skinds = op.get_arg_sort_kind(i);
-        assert(d_smgr.has_term(skinds));
-        SortKind skind = d_smgr.pick_sort_kind(skinds);
-        auto it = sorts.find(skind);
-        Sort sort;
-        if (it == sorts.end())
-        {
-          sort = d_smgr.pick_sort(skind);
-          sorts.emplace(skind, sort);
-        }
-        else
-        {
-          sort = it->second;
-        }
-        assert(d_smgr.has_term(sort));
-        args.push_back(d_smgr.pick_term(sort));
+        sort = it->second;
       }
+      it = sorts.find(skind_map);
+      assert(it != sorts.end());
+      assert(d_smgr.has_term(sort));
+      args.push_back(d_smgr.pick_term(sort));
     }
 
     /* Numeral arguments for indexed operators. */

@@ -380,8 +380,10 @@ Solver::get_unsupported_op_kinds() const
 std::unordered_map<Op::Kind, SortKindSet>
 Solver::get_unsupported_op_sort_kinds() const
 {
+  /* Exclude sorts that would create higher order terms. Further, creating
+   * relations over SORT_REGLAN not supported by any solver right now. */
   return {{Op::DISTINCT, {SORT_FUN}},
-          {Op::EQUAL, {SORT_FUN}},
+          {Op::EQUAL, {SORT_FUN, SORT_REGLAN}},
           {Op::ITE, {SORT_FUN}}};
 }
 

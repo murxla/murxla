@@ -202,6 +202,7 @@ struct Op
  private:
   /** The sort kind of the term arguments of this kind. */
   std::vector<SortKindSet> d_sort_kinds_args;
+
 };
 
 /* -------------------------------------------------------------------------- */
