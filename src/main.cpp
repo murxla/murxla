@@ -33,6 +33,7 @@ static std::string TMP_DIR = "";
 
 /** Map normalized error message to pair (original error message, seeds). */
 static Murxla::ErrorMap g_errors;
+static bool g_errors_print_csv = false;
 
 /* -------------------------------------------------------------------------- */
 
@@ -85,29 +86,70 @@ create_tmp_directory(const std::string& tmp_dir)
   TMP_DIR = p.string();
 }
 
+std::string
+escape_csv(const std::string& str)
+{
+  std::vector<std::pair<std::string, std::string>> escape;
+  escape.emplace_back("\n", "\\n");
+  escape.emplace_back("\"", "\"\"");
+
+  std::string s(str);
+
+  for (const auto& [search, replace] : escape)
+  {
+    size_t pos = s.find(search);
+    while (pos != std::string::npos)
+    {
+      s.replace(pos, search.size(), replace);
+      pos = s.find(search, pos + replace.size());
+    }
+  }
+
+  return s;
+}
+
 void
 print_error_summary()
 {
   if (g_errors.size())
   {
-    Terminal term;
     std::cout << "\nError statistics (" << g_errors.size() << " in total):\n"
               << std::endl;
-    for (const auto& p : g_errors)
+
+    if (g_errors_print_csv)
     {
-      const auto& err   = p.second.first;
-      const auto& seeds = p.second.second;
-      std::cout << term.red() << seeds.size()
-                << " errors: " << term.defaultcolor();
-      for (size_t i = 0; i < std::min<size_t>(seeds.size(), 10); ++i)
+      for (const auto& p : g_errors)
       {
-        if (i > 0)
+        std::string err(p.second.first);
+        const auto& seeds = p.second.second;
+        std::cout << "murxla:" << seeds.size() << ",";
+        std::cout << "\"" << escape_csv(err) << "\",";
+        for (auto seed : seeds)
         {
-          std::cout << " ";
+          std::cout << seed << " ";
         }
-        std::cout << seeds[i];
+        std::cout << std::endl;
       }
-      std::cout << "\n" << err << "\n" << std::endl;
+    }
+    else
+    {
+      Terminal term;
+      for (const auto& p : g_errors)
+      {
+        const auto& err   = p.second.first;
+        const auto& seeds = p.second.second;
+        std::cout << term.red() << seeds.size()
+                  << " errors: " << term.defaultcolor();
+        for (size_t i = 0; i < std::min<size_t>(seeds.size(), 10); ++i)
+        {
+          if (i > 0)
+          {
+            std::cout << " ";
+          }
+          std::cout << seeds[i];
+        }
+        std::cout << "\n" << err << "\n" << std::endl;
+      }
     }
   }
 }
@@ -182,6 +224,7 @@ set_sigint_handler_stats(void)
   "  --print-fsm                print FSM configuration, may be combined\n"    \
   "                             with solver option to show config for "        \
   "solver\n"                                                                   \
+  "  --csv                      print error summary in csv format\n"           \
   "\n"                                                                         \
   "  --btor                     test Boolector\n"                              \
   "  --bzla                     test Bitwuzla\n"                               \
@@ -434,6 +477,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--print-fsm")
     {
       options.print_fsm = true;
+    }
+    else if (arg == "--csv")
+    {
+      g_errors_print_csv = true;
     }
     else if (arg == "-m" || arg == "--max-runs")
     {
