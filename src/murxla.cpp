@@ -304,6 +304,8 @@ Murxla::test()
             // for the SMT2 offline mode we want to store all SMT2 files
             smt2_offline ? TO_FILE : NONE);
 
+    std::string errmsg;
+    bool duplicate = false;
     /* report status */
     if (res == RESULT_OK)
     {
@@ -319,12 +321,11 @@ Murxla::test()
     else
     {
       /* Read error file and check if we already encounterd the same error. */
-      bool duplicate = false;
       if (res == RESULT_ERROR || res == RESULT_ERROR_CONFIG
           || res == RESULT_ERROR_UNTRACE)
       {
         std::ifstream errs = open_input_file(err_file_name, false);
-        std::string errmsg, line;
+        std::string line;
         while (std::getline(errs, line))
         {
           errmsg += line + "\n";
@@ -388,6 +389,12 @@ Murxla::test()
       assert(res == res_replay);
     }
     std::cout << term.cr() << std::flush;
+    /* Print new error message after it was found. */
+    if (res == RESULT_ERROR && !duplicate)
+    {
+      std::cout << std::endl;
+      std::cout << errmsg << std::endl;
+    }
   } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
 }
 
