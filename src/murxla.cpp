@@ -5,7 +5,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <regex>
@@ -16,6 +15,7 @@
 #include "cvc5_solver.hpp"
 #include "dd.hpp"
 #include "except.hpp"
+#include "fs.hpp"
 #include "fsm.hpp"
 #include "shadow_solver.hpp"
 #include "smt2_solver.hpp"
@@ -189,10 +189,10 @@ Murxla::run(uint32_t seed,
         }
       }
       std::string tmp_smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
-      assert(std::filesystem::exists(tmp_smt2_file_name));
-      std::filesystem::copy(tmp_smt2_file_name,
-                            smt2_file_name,
-                            std::filesystem::copy_options::overwrite_existing);
+      assert(filesystem::exists(tmp_smt2_file_name));
+      filesystem::copy(tmp_smt2_file_name,
+                       smt2_file_name,
+                       filesystem::copy_options::overwrite_existing);
       if (!d_options.dd)
       {
         if (res != RESULT_OK && res != RESULT_TIMEOUT)
@@ -204,13 +204,12 @@ Murxla::run(uint32_t seed,
     /* For all other solvers, we write the trace file. */
     else if (api_trace_file_name != DEVNULL)
     {
-      assert(std::filesystem::exists(tmp_api_trace_file_name));
+      assert(filesystem::exists(tmp_api_trace_file_name));
       if (tmp_api_trace_file_name != api_trace_file_name)
       {
-        std::filesystem::copy(
-            tmp_api_trace_file_name,
-            api_trace_file_name,
-            std::filesystem::copy_options::overwrite_existing);
+        filesystem::copy(tmp_api_trace_file_name,
+                         api_trace_file_name,
+                         filesystem::copy_options::overwrite_existing);
       }
       if (!d_options.dd)
       {

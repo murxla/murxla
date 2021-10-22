@@ -4,13 +4,13 @@
 
 #include <algorithm>
 #include <cassert>
-#include <filesystem>
 #include <fstream>
 #include <limits>
 #include <sstream>
 #include <unordered_map>
 
 #include "except.hpp"
+#include "fs.hpp"
 
 namespace murxla {
 
@@ -396,7 +396,7 @@ operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
 std::string
 get_tmp_file_path(const std::string& filename, const std::string& directory)
 {
-  std::filesystem::path p(directory);
+  filesystem::path p(directory);
   p /= filename;
   return p.string();
 }
@@ -404,7 +404,7 @@ get_tmp_file_path(const std::string& filename, const std::string& directory)
 std::string
 prepend_path(const std::string& prefix, const std::string& file_name)
 {
-  std::filesystem::path p(prefix);
+  filesystem::path p(prefix);
   p /= file_name;
   return p.string();
 }
@@ -438,7 +438,7 @@ get_smt2_file_name(uint32_t seed, const std::string& untrace_file_name)
   }
   else
   {
-    auto path = std::filesystem::path(untrace_file_name);
+    auto path = filesystem::path(untrace_file_name);
     ss << path.replace_extension(".smt2").c_str();
   }
   return ss.str();
