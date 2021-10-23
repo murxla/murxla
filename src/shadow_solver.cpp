@@ -149,9 +149,12 @@ bool
 ShadowTerm::equals(const Term& other) const
 {
   ShadowTerm* s_term = dynamic_cast<ShadowTerm*>(other.get());
-  assert(s_term);
-  return d_term->equals(s_term->d_term)
-         && d_term_shadow->equals(s_term->d_term_shadow);
+  if (s_term)
+  {
+    return d_term->equals(s_term->d_term)
+           && d_term_shadow->equals(s_term->d_term_shadow);
+  }
+  return false;
 }
 std::string
 ShadowTerm::to_string() const

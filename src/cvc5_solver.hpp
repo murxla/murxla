@@ -33,6 +33,7 @@ class Cvc5Sort : public AbsSort
   ~Cvc5Sort() override {}
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  bool not_equals(const Sort& other) const override;
   std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;

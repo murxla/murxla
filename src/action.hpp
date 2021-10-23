@@ -329,6 +329,8 @@ class ActionMkTerm : public Action
  public:
   /** Perform checks on sort of created term. */
   static void check_sort(RNGenerator& rng, Term term);
+  /** Perform checks on the created term. */
+  static void check_term(RNGenerator& rng, Term term);
 
   ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID) {}
   bool run() override;

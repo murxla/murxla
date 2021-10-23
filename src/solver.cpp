@@ -96,11 +96,25 @@ AbsSort::get_fun_domain_sorts() const
 }
 
 bool
+AbsSort::not_equals(const std::shared_ptr<AbsSort>& other) const
+{
+  return !equals(other);
+}
+
+bool
 operator==(const Sort& a, const Sort& b)
 {
   if (a == nullptr) return b == nullptr;
   if (b == nullptr) return a == nullptr;
   return a->equals(b) && a->get_kind() == b->get_kind();
+}
+
+bool
+operator!=(const Sort& a, const Sort& b)
+{
+  if (a == nullptr) return b != nullptr;
+  if (b == nullptr) return a != nullptr;
+  return a->not_equals(b) || a->get_kind() != b->get_kind();
 }
 
 std::ostream&
@@ -298,11 +312,30 @@ AbsTerm::get_levels() const
 }
 
 bool
+AbsTerm::not_equals(const std::shared_ptr<AbsTerm>& other) const
+{
+  return !equals(other);
+}
+
+bool
 operator==(const Term& a, const Term& b)
 {
+  if (a == nullptr) return b == nullptr;
+  if (b == nullptr) return a == nullptr;
   bool res = a->equals(b) && a->get_sort() == b->get_sort();
   assert(!res || a->get_id() == 0 || b->get_id() == 0
          || a->get_id() == b->get_id());
+  return res;
+}
+
+bool
+operator!=(const Term& a, const Term& b)
+{
+  if (a == nullptr) return b != nullptr;
+  if (b == nullptr) return a != nullptr;
+  bool res = a->not_equals(b) || a->get_sort() != b->get_sort();
+  assert(!res || (a->get_id() != 0 && b->get_id() != 0)
+         || a->get_id() != b->get_id());
   return res;
 }
 

@@ -32,9 +32,14 @@ class AbsSort
  public:
   virtual ~AbsSort(){};
 
+  /** Get the hash value of this sort. */
   virtual size_t hash() const                                      = 0;
-  virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
+  /** Get a string representation of this sort. */
   virtual std::string to_string() const                            = 0;
+  /** Return true if this sort is equal to the other sort. */
+  virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
+  /** Return true if this sort is not equal to the other sort. */
+  virtual bool not_equals(const std::shared_ptr<AbsSort>& other) const;
 
   /** Return true if this sort is an Array sort. */
   virtual bool is_array() const = 0;
@@ -86,6 +91,7 @@ class AbsSort
 };
 
 bool operator==(const Sort& a, const Sort& b);
+bool operator!=(const Sort& a, const Sort& b);
 
 /**
  * Serialize a Sort to given stream.
@@ -106,9 +112,14 @@ class AbsTerm
   AbsTerm(){};
   virtual ~AbsTerm(){};
 
+  /** Get the hash value of this term. */
   virtual size_t hash() const                                      = 0;
-  virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
+  /** Get a string representation of this term. */
   virtual std::string to_string() const                            = 0;
+  /** Return true if this term is equal to the other term. */
+  virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
+  /** Return true if this term is not equal to the other term. */
+  virtual bool not_equals(const std::shared_ptr<AbsTerm>& other) const;
 
   /** Return true if this term is an Array term. */
   virtual bool is_array() const = 0;
@@ -248,6 +259,7 @@ class AbsTerm
 using Term = std::shared_ptr<AbsTerm>;
 
 bool operator==(const Term& a, const Term& b);
+bool operator!=(const Term& a, const Term& b);
 
 /**
  * Serialize a Term to given stream.
