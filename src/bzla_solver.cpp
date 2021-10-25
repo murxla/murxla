@@ -950,10 +950,6 @@ BzlaSolver::mk_const(Sort sort, const std::string& name)
 
   bzla_res = bitwuzla_mk_const(d_solver, BzlaSort::get_bzla_sort(sort), cname);
   MURXLA_TEST(bzla_res);
-  if (d_rng.pick_with_prob(1))
-  {
-    MURXLA_TEST(bitwuzla_term_is_equal_sort(bzla_res, bzla_res));
-  }
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
@@ -2207,6 +2203,52 @@ class BzlaActionTermSetSymbol : public Action
   }
 };
 
+class BzlaActionTermIsEqualSort : public Action
+{
+ public:
+  BzlaActionTermIsEqualSort(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_TERM_IS_EQUAL_SORT, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term()) return false;
+    Term term0 = d_smgr.pick_term();
+    Term term1 = d_smgr.pick_term();
+    _run(term0, term1);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
+    Term term0 = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+    Term term1 = d_smgr.get_term(untrace_str_to_id(tokens[1]));
+    MURXLA_CHECK_TRACE_TERM(term0, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(term1, tokens[1]);
+    _run(term0, term1);
+    return {};
+  }
+
+ private:
+  void _run(Term term0, Term term1)
+  {
+    MURXLA_TRACE << get_kind() << " " << term0 << " " << term1;
+    const BitwuzlaTerm* bzla_term0 = BzlaTerm::get_bzla_term(term0);
+    const BitwuzlaTerm* bzla_term1 = BzlaTerm::get_bzla_term(term1);
+    if (term0->get_sort()->equals(term1->get_sort()))
+    {
+      MURXLA_TEST(bitwuzla_term_is_equal_sort(bzla_term0, bzla_term1));
+    }
+    else
+    {
+      MURXLA_TEST(!bitwuzla_term_is_equal_sort(bzla_term0, bzla_term1));
+    }
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -2282,7 +2324,11 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   s_unsat->add_action(a_simplify, 10000, s_assert);
   // bitwuzla_term_set_symbol
   auto a_set_symbol = fsm->new_action<BzlaActionTermSetSymbol>();
-  fsm->add_action_to_all_states(a_set_symbol, 100);
+  fsm->add_action_to_all_states(a_set_symbol, 1000);
+  // bitwuzla_term_is_equal_sort
+  auto a_term_is_equal_sort = fsm->new_action<BzlaActionTermIsEqualSort>();
+  s_create_inputs->add_action(a_term_is_equal_sort, 1000);
+  s_create_terms->add_action(a_term_is_equal_sort, 1000);
 
   /* Configure solver-specific states. */
   s_unknown->add_action(t_default, 1, s_check_sat);

@@ -161,6 +161,8 @@ class BzlaSolver : public Solver
   inline static const Action::Kind ACTION_SIMPLIFY = "bzla-simplify";
   inline static const Action::Kind ACTION_TERM_SET_SYMBOL =
       "bzla-term-set-symbol";
+  inline static const Action::Kind ACTION_TERM_IS_EQUAL_SORT =
+      "bzla-term-is-equal-sort";
   /* Solver-specific states. */
   inline static const State::Kind STATE_FIX_RESET_ASSUMPTIONS =
       "bzla-fix-reset-assumptions";
