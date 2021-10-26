@@ -111,6 +111,7 @@ class AbsTerm
  public:
   using SpecialValueKind = std::string;
 
+  static const SpecialValueKind SPECIAL_VALUE_NONE;
   /** Special BV values. */
   static const SpecialValueKind SPECIAL_VALUE_BV_ZERO;
   static const SpecialValueKind SPECIAL_VALUE_BV_ONE;
@@ -124,8 +125,8 @@ class AbsTerm
   static const SpecialValueKind SPECIAL_VALUE_FP_POS_ZERO;
   static const SpecialValueKind SPECIAL_VALUE_FP_NEG_ZERO;
   /** Special RM values. */
-  static const SpecialValueKind SPECIAL_VALUE_RM_RNE;
   static const SpecialValueKind SPECIAL_VALUE_RM_RNA;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RNE;
   static const SpecialValueKind SPECIAL_VALUE_RM_RTN;
   static const SpecialValueKind SPECIAL_VALUE_RM_RTP;
   static const SpecialValueKind SPECIAL_VALUE_RM_RTZ;
@@ -187,6 +188,9 @@ class AbsTerm
   virtual bool is_rm_value() const;
   /** Return true if this term is a string value. */
   virtual bool is_string_value() const;
+
+  /** Return true if this term is a special value of given kind. */
+  virtual bool is_special_value(const SpecialValueKind& kind) const;
 
   /**
    * Return the kind of the current term.
@@ -266,6 +270,11 @@ class AbsTerm
 
   /** Set d_is_value to true if this term is a value, and to false otherwise. */
   void set_is_value(bool is_value);
+  /**
+   * Set special value kind.
+   * SPECIAL_VALUE_NONE if not a value or no special value.
+   */
+  void set_special_value_kind(const SpecialValueKind& value_kind);
   /** Return true if this term is a value. */
   bool is_value() const;
 
@@ -278,6 +287,11 @@ class AbsTerm
  private:
   /** True if this term is a value. */
   bool d_is_value                = false;
+  /**
+   * Special value kind.
+   * SPECIAL_VALUE_NONE if not a value or no special value.
+   */
+  SpecialValueKind d_value_kind;
   std::vector<uint64_t> d_levels = {};
 };
 

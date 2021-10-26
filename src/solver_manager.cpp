@@ -160,12 +160,16 @@ SolverManager::get_n_terms(SortKind sort_kind)
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::add_value(Term& term, Sort& sort, SortKind sort_kind)
+SolverManager::add_value(Term& term,
+                         Sort& sort,
+                         SortKind sort_kind,
+                         const AbsTerm::SpecialValueKind& value_kind)
 {
   assert(term.get());
 
   add_input(term, sort, sort_kind);
   term->set_is_value(true);
+  term->set_special_value_kind(value_kind);
 }
 
 void

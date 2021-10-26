@@ -623,6 +623,52 @@ BzlaTerm::is_rm_value() const
   return bitwuzla_term_is_rm_value(d_term);
 }
 
+bool
+BzlaTerm::is_special_value(const AbsTerm::SpecialValueKind& kind) const
+{
+  if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
+  {
+    return bitwuzla_term_is_bv_value_zero(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_BV_ONE)
+  {
+    return bitwuzla_term_is_bv_value_one(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_BV_ONES)
+  {
+    return bitwuzla_term_is_bv_value_ones(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_BV_MIN_SIGNED)
+  {
+    return bitwuzla_term_is_bv_value_min_signed(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_BV_MAX_SIGNED)
+  {
+    return bitwuzla_term_is_bv_value_max_signed(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_FP_NAN)
+  {
+    return bitwuzla_term_is_fp_value_nan(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_FP_POS_INF)
+  {
+    return bitwuzla_term_is_fp_value_nan(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_FP_NEG_INF)
+  {
+    return bitwuzla_term_is_fp_value_neg_inf(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_FP_POS_ZERO)
+  {
+    return bitwuzla_term_is_fp_value_pos_zero(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_FP_NEG_ZERO)
+  {
+    return bitwuzla_term_is_fp_value_neg_zero(d_term);
+  }
+  return AbsTerm::is_special_value(kind);
+}
+
 const Op::Kind&
 BzlaTerm::get_kind() const
 {
@@ -971,17 +1017,6 @@ BzlaSolver::mk_value(Sort sort, bool value)
   BitwuzlaTerm* bzla_res =
       value ? bitwuzla_mk_true(d_solver) : bitwuzla_mk_false(d_solver);
   MURXLA_TEST(bzla_res);
-  if (d_rng.pick_with_prob(10))
-  {
-    if (value)
-    {
-      check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ONE, bzla_res);
-    }
-    else
-    {
-      check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ZERO, bzla_res);
-    }
-  }
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
   return res;
@@ -1082,7 +1117,6 @@ BzlaSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
   BitwuzlaTerm* bzla_res  = 0;
   const BitwuzlaSort* bzla_sort = BzlaSort::get_bzla_sort(sort);
-  bool check              = d_rng.pick_with_prob(10);
   std::string str;
 
   switch (sort->get_kind())
@@ -1091,30 +1125,23 @@ BzlaSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       if (value == AbsTerm::SPECIAL_VALUE_BV_ZERO)
       {
         bzla_res = bitwuzla_mk_bv_zero(d_solver, bzla_sort);
-        if (check) check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ZERO, bzla_res);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_BV_ONE)
       {
         bzla_res = bitwuzla_mk_bv_one(d_solver, bzla_sort);
-        if (check) check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ONE, bzla_res);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_BV_ONES)
       {
         bzla_res = bitwuzla_mk_bv_ones(d_solver, bzla_sort);
-        if (check) check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ONES, bzla_res);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
       {
         bzla_res = bitwuzla_mk_bv_min_signed(d_solver, bzla_sort);
-        if (check)
-          check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED, bzla_res);
       }
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
         bzla_res = bitwuzla_mk_bv_max_signed(d_solver, bzla_sort);
-        if (check)
-          check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED, bzla_res);
       }
       break;
 
@@ -1527,153 +1554,6 @@ bool
 BzlaSolver::option_unsat_cores_enabled() const
 {
   return bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_UNSAT_CORES) > 0;
-}
-
-/* -------------------------------------------------------------------------- */
-
-BzlaSolver::BzlaTermFunBoolUnary
-BzlaSolver::pick_fun_bool_unary(BzlaTermFunBoolUnaryVector& funs) const
-{
-  return d_rng.pick_from_set<BzlaTermFunBoolUnaryVector, BzlaTermFunBoolUnary>(
-      funs);
-}
-
-BzlaSolver::BzlaTermFunBoolUnary
-BzlaSolver::pick_fun_is_bv_const() const
-{
-  BzlaTermFunBoolUnaryVector funs = {bitwuzla_term_is_bv_value_zero,
-                                     bitwuzla_term_is_bv_value_one,
-                                     bitwuzla_term_is_bv_value_ones,
-                                     bitwuzla_term_is_bv_value_max_signed,
-                                     bitwuzla_term_is_bv_value_min_signed};
-  return pick_fun_bool_unary(funs);
-}
-
-void
-BzlaSolver::check_is_bv_value(const AbsTerm::SpecialValueKind& kind,
-                              BitwuzlaTerm* node) const
-{
-  uint32_t bw              = bitwuzla_term_bv_get_size(node);
-  RNGenerator::Choice pick = d_rng.pick_one_of_three();
-
-  if (pick == RNGenerator::Choice::FIRST)
-  {
-    BzlaTermFunBoolUnaryVector is_funs;
-    BzlaTermFunBoolUnaryVector is_not_funs;
-    if (kind == AbsTerm::SPECIAL_VALUE_BV_ONE)
-    {
-      is_funs.push_back(bitwuzla_term_is_bv_value_one);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_zero);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_ones);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-      }
-      else
-      {
-        is_funs.push_back(bitwuzla_term_is_bv_value_ones);
-        is_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_zero);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-      }
-    }
-    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ONES)
-    {
-      is_funs.push_back(bitwuzla_term_is_bv_value_ones);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_one);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_zero);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-      }
-      else
-      {
-        is_funs.push_back(bitwuzla_term_is_bv_value_one);
-        is_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_zero);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-      }
-    }
-    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
-    {
-      is_funs.push_back(bitwuzla_term_is_bv_value_zero);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_one);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_ones);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-      }
-      else
-      {
-        is_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_one);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_ones);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-      }
-    }
-    else if (kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
-    {
-      is_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_zero);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_one);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_ones);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-      }
-      else
-      {
-        is_funs.push_back(bitwuzla_term_is_bv_value_one);
-        is_funs.push_back(bitwuzla_term_is_bv_value_ones);
-
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_zero);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-      }
-    }
-    else
-    {
-      assert(kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
-      is_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_zero);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_one);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_ones);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-      }
-      else
-      {
-        is_funs.push_back(bitwuzla_term_is_bv_value_zero);
-
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_one);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_ones);
-        is_not_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
-      }
-    }
-    if (d_rng.flip_coin())
-    {
-      MURXLA_TEST(pick_fun_bool_unary(is_funs)(node));
-    }
-    else
-    {
-      MURXLA_TEST(!pick_fun_bool_unary(is_not_funs)(node));
-    }
-  }
-  else if (pick == RNGenerator::Choice::SECOND)
-  {
-    MURXLA_TEST(bitwuzla_term_is_bv_value(node));
-  }
-  else
-  {
-    MURXLA_TEST(pick == RNGenerator::Choice::THIRD);
-    MURXLA_TEST(!bitwuzla_term_is_const(node));
-  }
 }
 
 /* -------------------------------------------------------------------------- */

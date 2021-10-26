@@ -1572,10 +1572,102 @@ ActionMkSpecialValue::_run(Sort sort, const AbsTerm::SpecialValueKind& val)
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
   Term res;
   res = d_solver.mk_special_value(sort, val);
-  d_smgr.add_value(res, sort, sort->get_kind());
-  ActionMkValue::check_value(d_rng, res);
+  d_smgr.add_value(res, sort, sort->get_kind(), val);
+  check_special_value(d_rng, res, val);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
+}
+
+void
+ActionMkSpecialValue::check_special_value(RNGenerator& rng,
+                                          Term term,
+                                          const AbsTerm::SpecialValueKind& kind)
+{
+  assert(term->is_value());
+
+  if (rng.pick_with_prob(999)) return;
+
+  ActionMkValue::check_value(rng, term);
+
+  MURXLA_TEST(term->is_special_value(kind));
+
+  if (term->is_bv())
+  {
+    uint32_t size                 = term->get_bv_size();
+    const auto& special_bv_values = d_solver.get_special_values(SORT_BV);
+    const auto& special_bv_value_kind =
+        d_rng.pick_from_set<const std::unordered_set<AbsTerm::SpecialValueKind>,
+                            AbsTerm::SpecialValueKind>(special_bv_values);
+    if (kind != special_bv_value_kind)
+    {
+      if (size == 1)
+      {
+        if (kind == AbsTerm::SPECIAL_VALUE_BV_ONE)
+        {
+          if (special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_ONES
+              || special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
+          {
+            MURXLA_TEST(term->is_special_value(special_bv_value_kind));
+          }
+          else
+          {
+            MURXLA_TEST(!term->is_special_value(special_bv_value_kind));
+          }
+        }
+        else if (kind == AbsTerm::SPECIAL_VALUE_BV_ONES)
+        {
+          if (special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_ONE
+              || special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
+          {
+            MURXLA_TEST(term->is_special_value(special_bv_value_kind));
+          }
+          else
+          {
+            MURXLA_TEST(!term->is_special_value(special_bv_value_kind));
+          }
+        }
+        else if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
+        {
+          if (special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED)
+          {
+            MURXLA_TEST(term->is_special_value(special_bv_value_kind));
+          }
+          else
+          {
+            MURXLA_TEST(!term->is_special_value(special_bv_value_kind));
+          }
+        }
+        else if (kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
+        {
+          if (special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_ONE
+              || special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_ONES)
+          {
+            MURXLA_TEST(term->is_special_value(special_bv_value_kind));
+          }
+          else
+          {
+            MURXLA_TEST(!term->is_special_value(special_bv_value_kind));
+          }
+        }
+        else
+        {
+          assert(kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
+          if (special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
+          {
+            MURXLA_TEST(term->is_special_value(special_bv_value_kind));
+          }
+          else
+          {
+            MURXLA_TEST(!term->is_special_value(special_bv_value_kind));
+          }
+        }
+      }
+      else
+      {
+        MURXLA_TEST(!term->is_special_value(special_bv_value_kind));
+      }
+    }
+  }
 }
 
 /* -------------------------------------------------------------------------- */

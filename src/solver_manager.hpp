@@ -97,7 +97,11 @@ class SolverManager
   /** Add sort to sort databse. */
   void add_sort(Sort& sort, SortKind sort_kind);
   /** Add value to term database. */
-  void add_value(Term& term, Sort& sort, SortKind sort_kind);
+  void add_value(Term& term,
+                 Sort& sort,
+                 SortKind sort_kind,
+                 const AbsTerm::SpecialValueKind& value_kind =
+                     AbsTerm::SPECIAL_VALUE_NONE);
   /** Add string value of lenght 1. */
   void add_string_char_value(Term& term);
   /** Add input to term database. */

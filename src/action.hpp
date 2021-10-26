@@ -399,6 +399,11 @@ class ActionMkSpecialValue : public Action
       const std::vector<std::string>& tokens) override;
 
  private:
+  /** Perform checks on created special value. */
+  void check_special_value(RNGenerator& rng,
+                           Term term,
+                           const AbsTerm::SpecialValueKind& kind);
+
   uint64_t _run(Sort sort, const AbsTerm::SpecialValueKind& val);
 };
 

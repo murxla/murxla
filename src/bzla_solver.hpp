@@ -120,6 +120,7 @@ class BzlaTerm : public AbsTerm
   bool is_bv_value() const override;
   bool is_fp_value() const override;
   bool is_rm_value() const override;
+  bool is_special_value(const SpecialValueKind& kind) const override;
   const Op::Kind& get_kind() const override;
   std::vector<Term> get_children() const override;
   size_t get_num_indices() const override;
@@ -267,15 +268,6 @@ class BzlaSolver : public Solver
   //
   //
  private:
-  using BzlaTermFunBoolUnary       = std::function<bool(BitwuzlaTerm*)>;
-  using BzlaTermFunBoolUnaryVector = std::vector<BzlaTermFunBoolUnary>;
-
-  BzlaTermFunBoolUnary pick_fun_bool_unary(
-      BzlaTermFunBoolUnaryVector& funs) const;
-  BzlaTermFunBoolUnary pick_fun_is_bv_const() const;
-  void check_is_bv_value(const AbsTerm::SpecialValueKind& kind,
-                         BitwuzlaTerm* node) const;
-
   BitwuzlaTerm* mk_value_bv_uint64(Sort sort, uint64_t value);
 
   Bitwuzla* d_solver;

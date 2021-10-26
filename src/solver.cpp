@@ -129,6 +129,8 @@ operator<<(std::ostream& out, const Sort s)
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_NONE =
+    "not-a-special-value";
 const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ZERO = "bv-zero";
 const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ONE  = "bv-one";
 const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ONES = "bv-ones";
@@ -200,6 +202,47 @@ bool
 AbsTerm::is_string_value() const
 {
   return is_value() && is_string();
+}
+
+void
+AbsTerm::set_special_value_kind(const AbsTerm::SpecialValueKind& kind)
+{
+  d_value_kind = kind;
+}
+
+bool
+AbsTerm::is_special_value(const AbsTerm::SpecialValueKind& kind) const
+{
+  assert(d_is_value || d_value_kind == SPECIAL_VALUE_NONE);
+  bool res = d_value_kind == kind;
+  if (!res && is_bv() && get_bv_size() == 1)
+  {
+    if (kind == AbsTerm::SPECIAL_VALUE_BV_ONE)
+    {
+      return kind == AbsTerm::SPECIAL_VALUE_BV_ONES
+             || kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED;
+    }
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ONES)
+    {
+      return kind == AbsTerm::SPECIAL_VALUE_BV_ONE
+             || kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED;
+    }
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
+    {
+      return kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED;
+    }
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
+    {
+      return kind == AbsTerm::SPECIAL_VALUE_BV_ONE
+             || kind == AbsTerm::SPECIAL_VALUE_BV_ONES;
+    }
+    else
+    {
+      assert(kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
+      return kind == AbsTerm::SPECIAL_VALUE_BV_ZERO;
+    }
+  }
+  return res;
 }
 
 const Op::Kind&
