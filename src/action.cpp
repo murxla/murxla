@@ -1494,7 +1494,7 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
   }
   else if (term->is_bv())
   {
-    MURXLA_TEST(term->is_bv());
+    MURXLA_TEST(term->is_bv_value());
   }
   else if (term->is_fp())
   {
