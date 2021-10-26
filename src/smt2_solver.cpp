@@ -838,7 +838,7 @@ Smt2Solver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-Smt2Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
+Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
   std::stringstream val;
 
@@ -847,25 +847,25 @@ Smt2Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
     case SORT_BV:
     {
       uint32_t bw = sort->get_bv_size();
-      if (value == SPECIAL_VALUE_BV_ZERO)
+      if (value == AbsTerm::SPECIAL_VALUE_BV_ZERO)
       {
         val << "#b" << bv_special_value_zero_str(bw);
       }
-      else if (value == SPECIAL_VALUE_BV_ONE)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_ONE)
       {
         val << "#b" << bv_special_value_one_str(bw);
       }
-      else if (value == SPECIAL_VALUE_BV_ONES)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_ONES)
       {
         val << "#b" << bv_special_value_ones_str(bw);
       }
-      else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
       {
         val << "#b" << bv_special_value_min_signed_str(bw);
       }
       else
       {
-        assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+        assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
         val << "#b" << bv_special_value_zero_str(bw);
       }
     }
@@ -873,25 +873,25 @@ Smt2Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
 
     case SORT_FP:
     {
-      if (value == SPECIAL_VALUE_FP_POS_INF)
+      if (value == AbsTerm::SPECIAL_VALUE_FP_POS_INF)
       {
         val << "(_ +oo ";
       }
-      else if (value == SPECIAL_VALUE_FP_NEG_INF)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_INF)
       {
         val << "(_ -oo ";
       }
-      else if (value == SPECIAL_VALUE_FP_POS_ZERO)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_POS_ZERO)
       {
         val << "(_ +zero ";
       }
-      else if (value == SPECIAL_VALUE_FP_NEG_ZERO)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_ZERO)
       {
         val << "(_ -zero ";
       }
       else
       {
-        assert(value == SPECIAL_VALUE_FP_NAN);
+        assert(value == AbsTerm::SPECIAL_VALUE_FP_NAN);
         val << "(_ NaN ";
       }
       val << sort->get_fp_exp_size() << " " << sort->get_fp_sig_size() << ")";
@@ -899,41 +899,41 @@ Smt2Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
     break;
 
     case SORT_RM:
-      if (value == SPECIAL_VALUE_RM_RNE)
+      if (value == AbsTerm::SPECIAL_VALUE_RM_RNE)
       {
         val << (d_rng.flip_coin() ? "RNE" : "roundNearestTiesToEven");
       }
-      else if (value == SPECIAL_VALUE_RM_RNA)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RNA)
       {
         val << (d_rng.flip_coin() ? "RNA" : "roundNearestTiesToAway");
       }
-      else if (value == SPECIAL_VALUE_RM_RTN)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RTN)
       {
         val << (d_rng.flip_coin() ? "RTN" : "roundTowardNegative");
       }
-      else if (value == SPECIAL_VALUE_RM_RTP)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RTP)
       {
         val << (d_rng.flip_coin() ? "RTP" : "roundTowardPositive");
       }
       else
       {
-        assert(value == SPECIAL_VALUE_RM_RTZ);
+        assert(value == AbsTerm::SPECIAL_VALUE_RM_RTZ);
         val << (d_rng.flip_coin() ? "RTZ" : "roundTowardZero");
       }
       break;
 
     case SORT_REGLAN:
-      if (value == SPECIAL_VALUE_RE_NONE)
+      if (value == AbsTerm::SPECIAL_VALUE_RE_NONE)
       {
         val << "re.none";
       }
-      else if (value == SPECIAL_VALUE_RE_ALL)
+      else if (value == AbsTerm::SPECIAL_VALUE_RE_ALL)
       {
         val << "re.all";
       }
       else
       {
-        assert(value == SPECIAL_VALUE_RE_ALLCHAR);
+        assert(value == AbsTerm::SPECIAL_VALUE_RE_ALLCHAR);
         val << "re.allchar";
       }
       break;

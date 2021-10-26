@@ -674,11 +674,11 @@ BtorSolver::mk_value(Sort sort, bool value)
   {
     if (value)
     {
-      check_is_bv_const(Solver::SPECIAL_VALUE_BV_ONE, btor_res);
+      check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ONE, btor_res);
     }
     else
     {
-      check_is_bv_const(Solver::SPECIAL_VALUE_BV_ZERO, btor_res);
+      check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ZERO, btor_res);
     }
   }
   if (d_rng.pick_with_prob(10))
@@ -818,7 +818,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
+BtorSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
   MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
@@ -832,19 +832,19 @@ BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
   bool check_bits         = bw <= 64 && d_rng.pick_with_prob(10);
   std::string str;
 
-  if (value == SPECIAL_VALUE_BV_ZERO)
+  if (value == AbsTerm::SPECIAL_VALUE_BV_ZERO)
   {
     btor_res = boolector_zero(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_ZERO, btor_res);
+    if (check) check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ZERO, btor_res);
     if (check_bits)
     {
       str = std::string(bw, '0');
     }
   }
-  else if (value == SPECIAL_VALUE_BV_ONE)
+  else if (value == AbsTerm::SPECIAL_VALUE_BV_ONE)
   {
     btor_res = boolector_one(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_ONE, btor_res);
+    if (check) check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ONE, btor_res);
     if (check_bits)
     {
       std::stringstream ss;
@@ -856,23 +856,25 @@ BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
       str = ss.str();
     }
   }
-  else if (value == SPECIAL_VALUE_BV_ONES)
+  else if (value == AbsTerm::SPECIAL_VALUE_BV_ONES)
   {
     btor_res = boolector_ones(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_ONES, btor_res);
+    if (check) check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ONES, btor_res);
     if (check_bits) str = std::string(bw, '1');
   }
-  else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+  else if (value == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
   {
     btor_res = boolector_min_signed(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_MIN_SIGNED, btor_res);
+    if (check)
+      check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED, btor_res);
     if (check_bits) str = bv_special_value_min_signed_str(bw);
   }
   else
   {
-    assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+    assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
     btor_res = boolector_max_signed(d_solver, btor_sort);
-    if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_MAX_SIGNED, btor_res);
+    if (check)
+      check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED, btor_res);
     if (check_bits) str = bv_special_value_max_signed_str(bw);
   }
   MURXLA_TEST(btor_res);
@@ -1614,7 +1616,7 @@ BtorSolver::pick_fun_is_bv_const() const
 }
 
 void
-BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
+BtorSolver::check_is_bv_const(const AbsTerm::SpecialValueKind& kind,
                               BoolectorNode* node) const
 {
   uint32_t bw              = boolector_get_width(d_solver, node);
@@ -1624,7 +1626,7 @@ BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
   {
     BtorFunBoolUnaryVector is_funs;
     BtorFunBoolUnaryVector is_not_funs;
-    if (kind == Solver::SPECIAL_VALUE_BV_ONE)
+    if (kind == AbsTerm::SPECIAL_VALUE_BV_ONE)
     {
       is_funs.push_back(boolector_is_bv_const_one);
       if (bw > 1)
@@ -1643,7 +1645,7 @@ BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
         is_not_funs.push_back(boolector_is_bv_const_max_signed);
       }
     }
-    else if (kind == Solver::SPECIAL_VALUE_BV_ONES)
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ONES)
     {
       is_funs.push_back(boolector_is_bv_const_ones);
       if (bw > 1)
@@ -1662,7 +1664,7 @@ BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
         is_not_funs.push_back(boolector_is_bv_const_max_signed);
       }
     }
-    else if (kind == Solver::SPECIAL_VALUE_BV_ZERO)
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
     {
       is_funs.push_back(boolector_is_bv_const_zero);
       if (bw > 1)
@@ -1681,7 +1683,7 @@ BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
         is_not_funs.push_back(boolector_is_bv_const_min_signed);
       }
     }
-    else if (kind == Solver::SPECIAL_VALUE_BV_MIN_SIGNED)
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
     {
       is_funs.push_back(boolector_is_bv_const_min_signed);
       if (bw > 1)
@@ -1702,7 +1704,7 @@ BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
     }
     else
     {
-      assert(kind == Solver::SPECIAL_VALUE_BV_MAX_SIGNED);
+      assert(kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
       is_funs.push_back(boolector_is_bv_const_max_signed);
       if (bw > 1)
       {

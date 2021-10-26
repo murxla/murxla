@@ -1042,7 +1042,7 @@ Cvc5Solver::new_solver()
   d_solver->setOption("fp-exp", "true");
   d_solver->setOption("strings-exp", "true");
 
-  add_special_value(SORT_REAL, SPECIAL_VALUE_PI);
+  add_special_value(SORT_REAL, Cvc5Term::SPECIAL_VALUE_PI);
 }
 
 void
@@ -1380,7 +1380,7 @@ Cvc5Solver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
+Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
   ::cvc5::api::Term cvc5_res;
 
@@ -1389,7 +1389,7 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
     case SORT_BV:
     {
       uint32_t bw = sort->get_bv_size();
-      if (value == SPECIAL_VALUE_BV_ZERO)
+      if (value == AbsTerm::SPECIAL_VALUE_BV_ZERO)
       {
         cvc5_res =
             d_rng.flip_coin()
@@ -1397,7 +1397,7 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
                 : d_solver->mkBitVector(
                     bw, bv_special_value_zero_str(bw).c_str(), 2);
       }
-      else if (value == SPECIAL_VALUE_BV_ONE)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_ONE)
       {
         cvc5_res =
             d_rng.flip_coin()
@@ -1405,7 +1405,7 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
                 : d_solver->mkBitVector(
                     bw, bv_special_value_one_str(bw).c_str(), 2);
       }
-      else if (value == SPECIAL_VALUE_BV_ONES)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_ONES)
       {
         cvc5_res =
             d_rng.flip_coin()
@@ -1413,7 +1413,7 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
                 : d_solver->mkBitVector(
                     bw, bv_special_value_ones_str(bw).c_str(), 2);
       }
-      else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
       {
         cvc5_res = d_rng.flip_coin()
                        ? d_solver->mkBitVector(
@@ -1423,7 +1423,7 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
       }
       else
       {
-        assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+        assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
         cvc5_res = d_rng.flip_coin()
                        ? d_solver->mkBitVector(
                            bw, bv_special_value_max_signed_str(bw), 2)
@@ -1437,77 +1437,77 @@ Cvc5Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
     {
       uint32_t ew = sort->get_fp_exp_size();
       uint32_t sw = sort->get_fp_sig_size();
-      if (value == SPECIAL_VALUE_FP_POS_INF)
+      if (value == AbsTerm::SPECIAL_VALUE_FP_POS_INF)
       {
         cvc5_res = d_solver->mkPosInf(ew, sw);
       }
-      else if (value == SPECIAL_VALUE_FP_NEG_INF)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_INF)
       {
         cvc5_res = d_solver->mkNegInf(ew, sw);
       }
-      else if (value == SPECIAL_VALUE_FP_POS_ZERO)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_POS_ZERO)
       {
         cvc5_res = d_solver->mkPosZero(ew, sw);
       }
-      else if (value == SPECIAL_VALUE_FP_NEG_ZERO)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_ZERO)
       {
         cvc5_res = d_solver->mkNegZero(ew, sw);
       }
       else
       {
-        assert(value == SPECIAL_VALUE_FP_NAN);
+        assert(value == AbsTerm::SPECIAL_VALUE_FP_NAN);
         cvc5_res = d_solver->mkNaN(ew, sw);
       }
     }
     break;
 
     case SORT_RM:
-      if (value == SPECIAL_VALUE_RM_RNE)
+      if (value == AbsTerm::SPECIAL_VALUE_RM_RNE)
       {
         cvc5_res = d_solver->mkRoundingMode(
             ::cvc5::api::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
       }
-      else if (value == SPECIAL_VALUE_RM_RNA)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RNA)
       {
         cvc5_res = d_solver->mkRoundingMode(
             ::cvc5::api::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
       }
-      else if (value == SPECIAL_VALUE_RM_RTN)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RTN)
       {
         cvc5_res = d_solver->mkRoundingMode(
             ::cvc5::api::RoundingMode::ROUND_TOWARD_NEGATIVE);
       }
-      else if (value == SPECIAL_VALUE_RM_RTP)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RTP)
       {
         cvc5_res = d_solver->mkRoundingMode(
             ::cvc5::api::RoundingMode::ROUND_TOWARD_POSITIVE);
       }
       else
       {
-        assert(value == SPECIAL_VALUE_RM_RTZ);
+        assert(value == AbsTerm::SPECIAL_VALUE_RM_RTZ);
         cvc5_res = d_solver->mkRoundingMode(
             ::cvc5::api::RoundingMode::ROUND_TOWARD_ZERO);
       }
       break;
 
     case SORT_REAL:
-      assert(value == SPECIAL_VALUE_PI);
+      assert(value == Cvc5Term::SPECIAL_VALUE_PI);
       cvc5_res = d_solver->mkPi();
       break;
 
     case SORT_REGLAN:
-      if (value == SPECIAL_VALUE_RE_NONE)
+      if (value == AbsTerm::SPECIAL_VALUE_RE_NONE)
       {
         cvc5_res = d_solver->mkRegexpEmpty();
       }
-      else if (value == SPECIAL_VALUE_RE_ALL)
+      else if (value == AbsTerm::SPECIAL_VALUE_RE_ALL)
       {
         cvc5_res = d_solver->mkTerm(::cvc5::api::REGEXP_STAR,
                                     d_solver->mkRegexpSigma());
       }
       else
       {
-        assert(value == SPECIAL_VALUE_RE_ALLCHAR);
+        assert(value == AbsTerm::SPECIAL_VALUE_RE_ALLCHAR);
         cvc5_res = d_solver->mkRegexpSigma();
       }
       break;

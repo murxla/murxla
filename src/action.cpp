@@ -1539,8 +1539,8 @@ ActionMkSpecialValue::run()
   const auto& special_values = d_solver.get_special_values(sort_kind);
   if (special_values.empty()) return false;
   _run(sort,
-       d_rng.pick_from_set<std::unordered_set<Solver::SpecialValueKind>,
-                           Solver::SpecialValueKind>(special_values));
+       d_rng.pick_from_set<std::unordered_set<AbsTerm::SpecialValueKind>,
+                           AbsTerm::SpecialValueKind>(special_values));
 
   return true;
 }
@@ -1567,7 +1567,7 @@ ActionMkSpecialValue::untrace(const std::vector<std::string>& tokens)
 }
 
 uint64_t
-ActionMkSpecialValue::_run(Sort sort, const Solver::SpecialValueKind& val)
+ActionMkSpecialValue::_run(Sort sort, const AbsTerm::SpecialValueKind& val)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
   Term res;

@@ -81,6 +81,9 @@ class Cvc5Term : public AbsTerm
   /** Map Bitwuzla operator kinds to operator kinds. */
   static std::unordered_map<::cvc5::api::Kind, Op::Kind> s_cvc5_kinds_to_kinds;
 
+  /** Solver-specific special values. */
+  inline static const SpecialValueKind SPECIAL_VALUE_PI = "cvc5-pi";
+
   /** Solver-specific operators. */
   // BV
   inline static const Op::Kind OP_BV_REDAND = "cvc5-OP_BV_REDAND";
@@ -94,9 +97,9 @@ class Cvc5Term : public AbsTerm
   /** Special value kinds that have its own node kind in cvc5, only used
    * for getKind(). */
   inline static const Op::Kind OP_REAL_PI      = "cvc5-OP_REAL_PI";
-  inline static const Op::Kind OP_REGEXP_EMPTY = "cvc5=OP_REGEXP_EMPTY";
-  inline static const Op::Kind OP_REGEXP_SIGMA = "cvc5=OP_REGEXP_SIGMA";
-  inline static const Op::Kind OP_REGEXP_STAR  = "cvc5=OP_REGEXP_STAR";
+  inline static const Op::Kind OP_REGEXP_EMPTY = "cvc5-OP_REGEXP_EMPTY";
+  inline static const Op::Kind OP_REGEXP_SIGMA = "cvc5-OP_REGEXP_SIGMA";
+  inline static const Op::Kind OP_REGEXP_STAR  = "cvc5-OP_REGEXP_STAR";
 
   Cvc5Term(::cvc5::api::Solver* cvc5, ::cvc5::api::Term term)
       : d_solver(cvc5), d_term(term)
@@ -154,9 +157,6 @@ class Cvc5Solver : public Solver
       "cvc5-check-entailed";
   inline static const Action::Kind ACTION_SIMPLIFY = "cvc5-simplify";
 
-  /** Solver-specific special values. */
-  inline static const SpecialValueKind SPECIAL_VALUE_PI = "cvc5-pi";
-
   /** Constructor. */
   Cvc5Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
   /** Destructor. */
@@ -207,7 +207,8 @@ class Cvc5Solver : public Solver
   Term mk_value(Sort sort, std::string num, std::string den) override;
   Term mk_value(Sort sort, std::string value, Base base) override;
 
-  Term mk_special_value(Sort sort, const SpecialValueKind& value) override;
+  Term mk_special_value(Sort sort,
+                        const AbsTerm::SpecialValueKind& value) override;
 
   Sort mk_sort(const std::string name, uint32_t arity) override
   {  // TODO:

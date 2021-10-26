@@ -399,7 +399,7 @@ class ActionMkSpecialValue : public Action
       const std::vector<std::string>& tokens) override;
 
  private:
-  uint64_t _run(Sort sort, const Solver::SpecialValueKind& val);
+  uint64_t _run(Sort sort, const AbsTerm::SpecialValueKind& val);
 };
 
 class ActionAssertFormula : public Action

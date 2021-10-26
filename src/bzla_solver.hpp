@@ -223,7 +223,8 @@ class BzlaSolver : public Solver
   Term mk_value(Sort sort, std::string value) override;
   Term mk_value(Sort sort, std::string value, Base base) override;
 
-  Term mk_special_value(Sort sort, const SpecialValueKind& value) override;
+  Term mk_special_value(Sort sort,
+                        const AbsTerm::SpecialValueKind& value) override;
 
   Sort mk_sort(const std::string name, uint32_t arity) override
   {  // TODO:
@@ -272,7 +273,7 @@ class BzlaSolver : public Solver
   BzlaTermFunBoolUnary pick_fun_bool_unary(
       BzlaTermFunBoolUnaryVector& funs) const;
   BzlaTermFunBoolUnary pick_fun_is_bv_const() const;
-  void check_is_bv_value(const SpecialValueKind& kind,
+  void check_is_bv_value(const AbsTerm::SpecialValueKind& kind,
                          BitwuzlaTerm* node) const;
 
   BitwuzlaTerm* mk_value_bv_uint64(Sort sort, uint64_t value);

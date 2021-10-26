@@ -487,7 +487,8 @@ ShadowSolver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-ShadowSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
+ShadowSolver::mk_special_value(Sort sort,
+                               const AbsTerm::SpecialValueKind& value)
 {
   ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
   assert(s);

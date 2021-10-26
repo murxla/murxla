@@ -975,11 +975,11 @@ BzlaSolver::mk_value(Sort sort, bool value)
   {
     if (value)
     {
-      check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONE, bzla_res);
+      check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ONE, bzla_res);
     }
     else
     {
-      check_is_bv_value(Solver::SPECIAL_VALUE_BV_ZERO, bzla_res);
+      check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ZERO, bzla_res);
     }
   }
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
@@ -1078,7 +1078,7 @@ BzlaSolver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-BzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
+BzlaSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
   BitwuzlaTerm* bzla_res  = 0;
   const BitwuzlaSort* bzla_sort = BzlaSort::get_bzla_sort(sort);
@@ -1088,82 +1088,82 @@ BzlaSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
   switch (sort->get_kind())
   {
     case SORT_BV:
-      if (value == SPECIAL_VALUE_BV_ZERO)
+      if (value == AbsTerm::SPECIAL_VALUE_BV_ZERO)
       {
         bzla_res = bitwuzla_mk_bv_zero(d_solver, bzla_sort);
-        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ZERO, bzla_res);
+        if (check) check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ZERO, bzla_res);
       }
-      else if (value == SPECIAL_VALUE_BV_ONE)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_ONE)
       {
         bzla_res = bitwuzla_mk_bv_one(d_solver, bzla_sort);
-        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONE, bzla_res);
+        if (check) check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ONE, bzla_res);
       }
-      else if (value == SPECIAL_VALUE_BV_ONES)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_ONES)
       {
         bzla_res = bitwuzla_mk_bv_ones(d_solver, bzla_sort);
-        if (check) check_is_bv_value(Solver::SPECIAL_VALUE_BV_ONES, bzla_res);
+        if (check) check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_ONES, bzla_res);
       }
-      else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+      else if (value == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
       {
         bzla_res = bitwuzla_mk_bv_min_signed(d_solver, bzla_sort);
         if (check)
-          check_is_bv_value(Solver::SPECIAL_VALUE_BV_MIN_SIGNED, bzla_res);
+          check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED, bzla_res);
       }
       else
       {
-        assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+        assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
         bzla_res = bitwuzla_mk_bv_max_signed(d_solver, bzla_sort);
         if (check)
-          check_is_bv_value(Solver::SPECIAL_VALUE_BV_MAX_SIGNED, bzla_res);
+          check_is_bv_value(AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED, bzla_res);
       }
       break;
 
     case SORT_FP:
     {
-      if (value == SPECIAL_VALUE_FP_POS_INF)
+      if (value == AbsTerm::SPECIAL_VALUE_FP_POS_INF)
       {
         bzla_res = bitwuzla_mk_fp_pos_inf(d_solver, bzla_sort);
       }
-      else if (value == SPECIAL_VALUE_FP_NEG_INF)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_INF)
       {
         bzla_res = bitwuzla_mk_fp_neg_inf(d_solver, bzla_sort);
       }
-      else if (value == SPECIAL_VALUE_FP_POS_ZERO)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_POS_ZERO)
       {
         bzla_res = bitwuzla_mk_fp_pos_zero(d_solver, bzla_sort);
       }
-      else if (value == SPECIAL_VALUE_FP_NEG_ZERO)
+      else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_ZERO)
       {
         bzla_res = bitwuzla_mk_fp_neg_zero(d_solver, bzla_sort);
       }
       else
       {
-        assert(value == SPECIAL_VALUE_FP_NAN);
+        assert(value == AbsTerm::SPECIAL_VALUE_FP_NAN);
         bzla_res = bitwuzla_mk_fp_nan(d_solver, bzla_sort);
       }
     }
     break;
 
     case SORT_RM:
-      if (value == SPECIAL_VALUE_RM_RNA)
+      if (value == AbsTerm::SPECIAL_VALUE_RM_RNA)
       {
         bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RNA);
       }
-      else if (value == SPECIAL_VALUE_RM_RNE)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RNE)
       {
         bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RNE);
       }
-      else if (value == SPECIAL_VALUE_RM_RTN)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RTN)
       {
         bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTN);
       }
-      else if (value == SPECIAL_VALUE_RM_RTP)
+      else if (value == AbsTerm::SPECIAL_VALUE_RM_RTP)
       {
         bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTP);
       }
       else
       {
-        assert(value == SPECIAL_VALUE_RM_RTZ);
+        assert(value == AbsTerm::SPECIAL_VALUE_RM_RTZ);
         bzla_res = bitwuzla_mk_rm_value(d_solver, BITWUZLA_RM_RTZ);
       }
       break;
@@ -1550,7 +1550,7 @@ BzlaSolver::pick_fun_is_bv_const() const
 }
 
 void
-BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
+BzlaSolver::check_is_bv_value(const AbsTerm::SpecialValueKind& kind,
                               BitwuzlaTerm* node) const
 {
   uint32_t bw              = bitwuzla_term_bv_get_size(node);
@@ -1560,7 +1560,7 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
   {
     BzlaTermFunBoolUnaryVector is_funs;
     BzlaTermFunBoolUnaryVector is_not_funs;
-    if (kind == Solver::SPECIAL_VALUE_BV_ONE)
+    if (kind == AbsTerm::SPECIAL_VALUE_BV_ONE)
     {
       is_funs.push_back(bitwuzla_term_is_bv_value_one);
       if (bw > 1)
@@ -1579,7 +1579,7 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
         is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
       }
     }
-    else if (kind == Solver::SPECIAL_VALUE_BV_ONES)
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ONES)
     {
       is_funs.push_back(bitwuzla_term_is_bv_value_ones);
       if (bw > 1)
@@ -1598,7 +1598,7 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
         is_not_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
       }
     }
-    else if (kind == Solver::SPECIAL_VALUE_BV_ZERO)
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
     {
       is_funs.push_back(bitwuzla_term_is_bv_value_zero);
       if (bw > 1)
@@ -1617,7 +1617,7 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
         is_not_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
       }
     }
-    else if (kind == Solver::SPECIAL_VALUE_BV_MIN_SIGNED)
+    else if (kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
     {
       is_funs.push_back(bitwuzla_term_is_bv_value_min_signed);
       if (bw > 1)
@@ -1638,7 +1638,7 @@ BzlaSolver::check_is_bv_value(const Solver::SpecialValueKind& kind,
     }
     else
     {
-      assert(kind == Solver::SPECIAL_VALUE_BV_MAX_SIGNED);
+      assert(kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
       is_funs.push_back(bitwuzla_term_is_bv_value_max_signed);
       if (bw > 1)
       {
@@ -2003,27 +2003,27 @@ class BzlaActionGetRmValue : public Action
     std::string rm_val(bitwuzla_get_rm_value(bzla, bzla_term));
     if (d_smgr.d_incremental)
     {
-      Solver::SpecialValueKind value;
+      AbsTerm::SpecialValueKind value;
       if (rm_val == "RNA")
       {
-        value = Solver::SPECIAL_VALUE_RM_RNA;
+        value = AbsTerm::SPECIAL_VALUE_RM_RNA;
       }
       else if (rm_val == "RNE")
       {
-        value = Solver::SPECIAL_VALUE_RM_RNE;
+        value = AbsTerm::SPECIAL_VALUE_RM_RNE;
       }
       else if (rm_val == "RTN")
       {
-        value = Solver::SPECIAL_VALUE_RM_RTN;
+        value = AbsTerm::SPECIAL_VALUE_RM_RTN;
       }
       else if (rm_val == "RTP")
       {
-        value = Solver::SPECIAL_VALUE_RM_RTP;
+        value = AbsTerm::SPECIAL_VALUE_RM_RTP;
       }
       else
       {
         assert(rm_val == "RTZ");
-        value = Solver::SPECIAL_VALUE_RM_RTZ;
+        value = AbsTerm::SPECIAL_VALUE_RM_RTZ;
       }
       /* assume assignment and check if result is still SAT */
       Term term_rm_val = d_solver.mk_special_value(term->get_sort(), value);

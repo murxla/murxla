@@ -824,7 +824,7 @@ YicesSolver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-YicesSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
+YicesSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
   MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
@@ -836,7 +836,7 @@ YicesSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
   bool chkbits = bw <= 64 && d_rng.pick_with_prob(10);
   std::string str;
 
-  if (value == SPECIAL_VALUE_BV_ZERO)
+  if (value == AbsTerm::SPECIAL_VALUE_BV_ZERO)
   {
     yices_res = yices_bvconst_zero(bw);
     if (chkbits)
@@ -844,7 +844,7 @@ YicesSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
       str = bv_special_value_zero_str(bw);
     }
   }
-  else if (value == SPECIAL_VALUE_BV_ONE)
+  else if (value == AbsTerm::SPECIAL_VALUE_BV_ONE)
   {
     yices_res = yices_bvconst_one(bw);
     if (chkbits)
@@ -852,19 +852,19 @@ YicesSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
       str = bv_special_value_one_str(bw);
     }
   }
-  else if (value == SPECIAL_VALUE_BV_ONES)
+  else if (value == AbsTerm::SPECIAL_VALUE_BV_ONES)
   {
     yices_res = yices_bvconst_minus_one(bw);
     if (chkbits) str = bv_special_value_ones_str(bw);
   }
-  else if (value == SPECIAL_VALUE_BV_MIN_SIGNED)
+  else if (value == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
   {
     yices_res = yices_parse_bvbin(bv_special_value_min_signed_str(bw).c_str());
     if (chkbits) str = bv_special_value_min_signed_str(bw);
   }
   else
   {
-    assert(value == SPECIAL_VALUE_BV_MAX_SIGNED);
+    assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
     yices_res = yices_parse_bvbin(bv_special_value_max_signed_str(bw).c_str());
     if (chkbits) str = bv_special_value_max_signed_str(bw);
   }

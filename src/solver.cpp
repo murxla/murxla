@@ -129,6 +129,31 @@ operator<<(std::ostream& out, const Sort s)
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ZERO = "bv-zero";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ONE  = "bv-one";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ONES = "bv-ones";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED =
+    "bv-min-signed";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED =
+    "bv-max-signed";
+
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_NAN      = "nan";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_POS_INF  = "+oo";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_NEG_INF  = "-oo";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_POS_ZERO = "+zero";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_NEG_ZERO = "-zero";
+
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RNE = "rne";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RNA = "rna";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RTN = "rtn";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RTP = "rtp";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RTZ = "rtz";
+
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RE_NONE = "re.none";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RE_ALL  = "re.all";
+const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RE_ALLCHAR =
+    "re.allchar";
+
 bool
 AbsTerm::is_bool_value() const
 {
@@ -358,30 +383,6 @@ operator<<(std::ostream& out, const std::vector<Term>& vector)
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_ZERO = "bv-zero";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_ONE  = "bv-one";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_ONES = "bv-ones";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_MIN_SIGNED =
-    "bv-min-signed";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_BV_MAX_SIGNED =
-    "bv-max-signed";
-
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_NAN      = "nan";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_POS_INF  = "+oo";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_NEG_INF  = "-oo";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_POS_ZERO = "+zero";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_FP_NEG_ZERO = "-zero";
-
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RNE = "rne";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RNA = "rna";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RTN = "rtn";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RTP = "rtp";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RM_RTZ = "rtz";
-
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RE_NONE    = "re.none";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RE_ALL     = "re.all";
-const Solver::SpecialValueKind Solver::SPECIAL_VALUE_RE_ALLCHAR = "re.allchar";
-
 bool
 Solver::supports_theory(TheoryId theory) const
 {
@@ -474,7 +475,8 @@ Solver::configure_opmgr(OpKindManager* opmgr) const
 }
 
 void
-Solver::add_special_value(SortKind sort_kind, const SpecialValueKind& kind)
+Solver::add_special_value(SortKind sort_kind,
+                          const AbsTerm::SpecialValueKind& kind)
 {
   if (d_special_values.find(sort_kind) == d_special_values.end())
   {
@@ -499,7 +501,7 @@ Solver::get_bases() const
   return d_bases;
 }
 
-const std::unordered_set<Solver::SpecialValueKind>&
+const std::unordered_set<AbsTerm::SpecialValueKind>&
 Solver::get_special_values(SortKind sort_kind) const
 {
   if (d_special_values.find(sort_kind) == d_special_values.end())
@@ -528,7 +530,7 @@ Solver::mk_value(Sort sort, std::string value, Base base)
 }
 
 Term
-Solver::mk_special_value(Sort sort, const SpecialValueKind& value)
+Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
   return Term();
 }

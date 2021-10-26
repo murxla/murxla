@@ -202,7 +202,8 @@ class BtorSolver : public Solver
   Term mk_value(Sort sort, bool value) override;
   Term mk_value(Sort sort, std::string value, Base base) override;
 
-  Term mk_special_value(Sort sort, const SpecialValueKind& value) override;
+  Term mk_special_value(Sort sort,
+                        const AbsTerm::SpecialValueKind& value) override;
 
   Sort mk_sort(const std::string name, uint32_t arity) override
   {  // TODO:
@@ -253,7 +254,7 @@ class BtorSolver : public Solver
 
   BtorFunBoolUnary pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const;
   BtorFunBoolUnary pick_fun_is_bv_const() const;
-  void check_is_bv_const(const SpecialValueKind& kind,
+  void check_is_bv_const(const AbsTerm::SpecialValueKind& kind,
                          BoolectorNode* node) const;
 
   BoolectorSort get_btor_sort(Sort sort) const;

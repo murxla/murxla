@@ -109,6 +109,31 @@ std::ostream& operator<<(std::ostream& out, const Sort s);
 class AbsTerm
 {
  public:
+  using SpecialValueKind = std::string;
+
+  /** Special BV values. */
+  static const SpecialValueKind SPECIAL_VALUE_BV_ZERO;
+  static const SpecialValueKind SPECIAL_VALUE_BV_ONE;
+  static const SpecialValueKind SPECIAL_VALUE_BV_ONES;
+  static const SpecialValueKind SPECIAL_VALUE_BV_MIN_SIGNED;
+  static const SpecialValueKind SPECIAL_VALUE_BV_MAX_SIGNED;
+  /** Special FP values. */
+  static const SpecialValueKind SPECIAL_VALUE_FP_NAN;
+  static const SpecialValueKind SPECIAL_VALUE_FP_POS_INF;
+  static const SpecialValueKind SPECIAL_VALUE_FP_NEG_INF;
+  static const SpecialValueKind SPECIAL_VALUE_FP_POS_ZERO;
+  static const SpecialValueKind SPECIAL_VALUE_FP_NEG_ZERO;
+  /** Special RM values. */
+  static const SpecialValueKind SPECIAL_VALUE_RM_RNE;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RNA;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RTN;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RTP;
+  static const SpecialValueKind SPECIAL_VALUE_RM_RTZ;
+  /** Special String values. */
+  static const SpecialValueKind SPECIAL_VALUE_RE_NONE;
+  static const SpecialValueKind SPECIAL_VALUE_RE_ALL;
+  static const SpecialValueKind SPECIAL_VALUE_RE_ALLCHAR;
+
   AbsTerm(){};
   virtual ~AbsTerm(){};
 
@@ -298,31 +323,7 @@ class Solver
     HEX = 16,
   };
 
-  using SpecialValueKind = std::string;
   using OpKindSortKindMap = std::unordered_map<Op::Kind, SortKindSet>;
-
-  /** Special BV values. */
-  static const SpecialValueKind SPECIAL_VALUE_BV_ZERO;
-  static const SpecialValueKind SPECIAL_VALUE_BV_ONE;
-  static const SpecialValueKind SPECIAL_VALUE_BV_ONES;
-  static const SpecialValueKind SPECIAL_VALUE_BV_MIN_SIGNED;
-  static const SpecialValueKind SPECIAL_VALUE_BV_MAX_SIGNED;
-  /** Special FP values. */
-  static const SpecialValueKind SPECIAL_VALUE_FP_NAN;
-  static const SpecialValueKind SPECIAL_VALUE_FP_POS_INF;
-  static const SpecialValueKind SPECIAL_VALUE_FP_NEG_INF;
-  static const SpecialValueKind SPECIAL_VALUE_FP_POS_ZERO;
-  static const SpecialValueKind SPECIAL_VALUE_FP_NEG_ZERO;
-  /** Special RM values. */
-  static const SpecialValueKind SPECIAL_VALUE_RM_RNE;
-  static const SpecialValueKind SPECIAL_VALUE_RM_RNA;
-  static const SpecialValueKind SPECIAL_VALUE_RM_RTN;
-  static const SpecialValueKind SPECIAL_VALUE_RM_RTP;
-  static const SpecialValueKind SPECIAL_VALUE_RM_RTZ;
-  /** Special String values. */
-  static const SpecialValueKind SPECIAL_VALUE_RE_NONE;
-  static const SpecialValueKind SPECIAL_VALUE_RE_ALL;
-  static const SpecialValueKind SPECIAL_VALUE_RE_ALLCHAR;
 
   Solver(RNGenerator& rng) : d_rng(rng) {}
   Solver() = delete;
@@ -388,7 +389,8 @@ class Solver
   virtual void configure_smgr(SolverManager* smgr) const;
   virtual void configure_opmgr(OpKindManager* opmgr) const;
   virtual void configure_options(SolverManager* smgr) const {};
-  void add_special_value(SortKind sort_kind, const SpecialValueKind& kind);
+  void add_special_value(SortKind sort_kind,
+                         const AbsTerm::SpecialValueKind& kind);
 
   /** Reset solver.  */
   virtual void reset() = 0;
@@ -418,7 +420,8 @@ class Solver
    * Make special value (as defined in SMT-LIB, or as added as solver-specific
    * special values).
    */
-  virtual Term mk_special_value(Sort sort, const SpecialValueKind& value);
+  virtual Term mk_special_value(Sort sort,
+                                const AbsTerm::SpecialValueKind& value);
 
   virtual Sort mk_sort(const std::string name, uint32_t arity) = 0;
   virtual Sort mk_sort(SortKind kind)                          = 0;
@@ -455,7 +458,7 @@ class Solver
    * Return special values for given sort kind.
    * If not special values are defined, return empty set.
    */
-  const std::unordered_set<SpecialValueKind>& get_special_values(
+  const std::unordered_set<AbsTerm::SpecialValueKind>& get_special_values(
       SortKind sort_kind) const;
 
   virtual std::string get_option_name_incremental() const       = 0;
@@ -523,32 +526,32 @@ class Solver
    *
    * This map can be extended with solver-specific special values.
    */
-  std::unordered_map<SortKind, std::unordered_set<SpecialValueKind>>
+  std::unordered_map<SortKind, std::unordered_set<AbsTerm::SpecialValueKind>>
       d_special_values = {
           {SORT_BV,
-           {SPECIAL_VALUE_BV_ZERO,
-            SPECIAL_VALUE_BV_ONE,
-            SPECIAL_VALUE_BV_ONES,
-            SPECIAL_VALUE_BV_MIN_SIGNED,
-            SPECIAL_VALUE_BV_MAX_SIGNED}},
+           {AbsTerm::SPECIAL_VALUE_BV_ZERO,
+            AbsTerm::SPECIAL_VALUE_BV_ONE,
+            AbsTerm::SPECIAL_VALUE_BV_ONES,
+            AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED,
+            AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED}},
           {SORT_FP,
            {
-               SPECIAL_VALUE_FP_NAN,
-               SPECIAL_VALUE_FP_POS_INF,
-               SPECIAL_VALUE_FP_NEG_INF,
-               SPECIAL_VALUE_FP_POS_ZERO,
-               SPECIAL_VALUE_FP_NEG_ZERO,
+               AbsTerm::SPECIAL_VALUE_FP_NAN,
+               AbsTerm::SPECIAL_VALUE_FP_POS_INF,
+               AbsTerm::SPECIAL_VALUE_FP_NEG_INF,
+               AbsTerm::SPECIAL_VALUE_FP_POS_ZERO,
+               AbsTerm::SPECIAL_VALUE_FP_NEG_ZERO,
            }},
           {SORT_RM,
-           {SPECIAL_VALUE_RM_RNE,
-            SPECIAL_VALUE_RM_RNA,
-            SPECIAL_VALUE_RM_RTN,
-            SPECIAL_VALUE_RM_RTP,
-            SPECIAL_VALUE_RM_RTZ}},
+           {AbsTerm::SPECIAL_VALUE_RM_RNE,
+            AbsTerm::SPECIAL_VALUE_RM_RNA,
+            AbsTerm::SPECIAL_VALUE_RM_RTN,
+            AbsTerm::SPECIAL_VALUE_RM_RTP,
+            AbsTerm::SPECIAL_VALUE_RM_RTZ}},
           {SORT_REGLAN,
-           {SPECIAL_VALUE_RE_NONE,
-            SPECIAL_VALUE_RE_ALL,
-            SPECIAL_VALUE_RE_ALLCHAR}},
+           {AbsTerm::SPECIAL_VALUE_RE_NONE,
+            AbsTerm::SPECIAL_VALUE_RE_ALL,
+            AbsTerm::SPECIAL_VALUE_RE_ALLCHAR}},
           {SORT_ANY, {}},
   };
 };
