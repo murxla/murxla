@@ -55,7 +55,6 @@ class Action
   inline static const Kind MK_CONST              = "mk-const";
   inline static const Kind MK_VAR                = "mk-var";
   inline static const Kind MK_TERM               = "mk-term";
-  inline static const Kind TERM_CHECK_SORT       = "term-check-sort";
   inline static const Kind TERM_GET_CHILDREN     = "term-get-children";
   inline static const Kind ASSERT_FORMULA        = "assert-formula";
   inline static const Kind GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
@@ -327,8 +326,6 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
-  /** Perform checks on sort of created term. */
-  static void check_sort(RNGenerator& rng, Term term);
   /** Perform checks on the created term. */
   static void check_term(RNGenerator& rng, Term term);
 

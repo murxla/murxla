@@ -1061,7 +1061,6 @@ ActionMkTerm::_run(Op::Kind kind,
   }
 
   d_smgr.add_term(res, sort_kind, args);
-  check_sort(d_rng, res);
   check_term(d_rng, res);
   Sort res_sort = res->get_sort();
 
@@ -1070,12 +1069,12 @@ ActionMkTerm::_run(Op::Kind kind,
 }
 
 void
-ActionMkTerm::check_sort(RNGenerator& rng, Term term)
+ActionMkTerm::check_term(RNGenerator& rng, Term term)
 {
   if (rng.pick_with_prob(999)) return;
 
+  /* check sort */
   Sort sort = term->get_sort();
-
   if (sort->is_array())
   {
     MURXLA_TEST(term->is_array());
@@ -1159,13 +1158,8 @@ ActionMkTerm::check_sort(RNGenerator& rng, Term term)
   {
     assert(false);
   }
-}
 
-void
-ActionMkTerm::check_term(RNGenerator& rng, Term term)
-{
-  if (rng.pick_with_prob(999)) return;
-
+  /* check term */
   MURXLA_TEST(term == term);
   MURXLA_TEST(!(term != term));
   MURXLA_TEST(!(term == Term()));
@@ -1209,7 +1203,6 @@ ActionMkConst::_run(Sort sort, std::string& symbol)
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_const(sort, symbol);
   d_smgr.add_input(res, sort, sort->get_kind());
-  ActionMkTerm::check_sort(d_rng, res);
   ActionMkTerm::check_term(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return {res->get_id()};
@@ -1248,7 +1241,6 @@ ActionMkVar::_run(Sort sort, std::string& symbol)
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_var(sort, symbol);
   d_smgr.add_var(res, sort, sort->get_kind());
-  ActionMkTerm::check_sort(d_rng, res);
   ActionMkTerm::check_term(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return {res->get_id()};
@@ -1485,7 +1477,6 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
 
   if (rng.pick_with_prob(999)) return;
 
-  ActionMkTerm::check_sort(rng, term);
   ActionMkTerm::check_term(rng, term);
 
   if (term->is_bool())
