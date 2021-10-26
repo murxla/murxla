@@ -823,6 +823,12 @@ BzlaSolver::get_unsupported_fun_domain_sort_kinds() const
   return {SORT_ARRAY, SORT_FUN};
 }
 
+SortKindSet
+BzlaSolver::get_unsupported_fun_codomain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
 Sort
 BzlaSolver::mk_sort(SortKind kind)
 {

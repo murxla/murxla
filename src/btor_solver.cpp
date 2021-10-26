@@ -495,6 +495,12 @@ BtorSolver::get_unsupported_fun_domain_sort_kinds() const
   return {SORT_ARRAY, SORT_FUN};
 }
 
+SortKindSet
+BtorSolver::get_unsupported_fun_codomain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
 Sort
 BtorSolver::mk_sort(SortKind kind)
 {

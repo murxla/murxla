@@ -147,6 +147,7 @@ class YicesSolver : public Solver
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
   SortKindSet get_unsupported_array_element_sort_kinds() const override;
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
+  SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
 
   void configure_fsm(FSM* fsm) const override;
   void configure_opmgr(OpKindManager* opmgr) const override;
