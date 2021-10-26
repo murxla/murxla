@@ -77,7 +77,7 @@ BtorSort::to_string() const
     return "(Array " + bv_sort_to_string(d_domain[0]) + " "
            + bv_sort_to_string(d_domain[1]) + ")";
   }
-  assert(boolector_is_fun_sort(d_solver, d_sort));
+  MURXLA_TEST(boolector_is_fun_sort(d_solver, d_sort));
   std::stringstream ss;
   ss << "(-> ";
   for (BoolectorSort s : d_domain) ss << " " << bv_sort_to_string(s);
@@ -153,7 +153,7 @@ BtorSort::get_bv_size() const
 {
   assert(is_bv());
   uint32_t res = boolector_bitvec_sort_get_width(d_solver, d_sort);
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -430,7 +430,7 @@ void
 BtorSolver::delete_solver()
 {
   assert(d_solver != nullptr);
-  assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) == 0);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) == 0);
   boolector_delete(d_solver);
   d_solver = nullptr;
 }
@@ -620,30 +620,32 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
   {
     btor_res = boolector_var(d_solver, get_btor_sort(sort), cname);
   }
-  assert(btor_res);
+  MURXLA_TEST(btor_res);
   if (d_rng.pick_with_prob(10))
   {
     RNGenerator::Choice pick = d_rng.pick_one_of_three();
     switch (pick)
     {
       case RNGenerator::Choice::FIRST:
-        assert(!pick_fun_is_bv_const()(d_solver, btor_res));
+        MURXLA_TEST(!pick_fun_is_bv_const()(d_solver, btor_res));
         break;
       case RNGenerator::Choice::SECOND:
-        assert(!boolector_is_const(d_solver, btor_res));
+        MURXLA_TEST(!boolector_is_const(d_solver, btor_res));
         break;
       default:
         assert(pick == RNGenerator::Choice::THIRD);
-        assert(sort->get_kind() == SORT_ARRAY || sort->get_kind() == SORT_FUN
-               || boolector_is_var(d_solver, btor_res));
-        assert(sort->get_kind() != SORT_ARRAY || sort->get_kind() != SORT_FUN
-               || boolector_is_array_var(d_solver, btor_res)
-               || boolector_is_uf(d_solver, btor_res));
+        MURXLA_TEST(sort->get_kind() == SORT_ARRAY
+                    || sort->get_kind() == SORT_FUN
+                    || boolector_is_var(d_solver, btor_res));
+        MURXLA_TEST(sort->get_kind() != SORT_ARRAY
+                    || sort->get_kind() != SORT_FUN
+                    || boolector_is_array_var(d_solver, btor_res)
+                    || boolector_is_uf(d_solver, btor_res));
     }
   }
   if (d_rng.pick_with_prob(1))
   {
-    assert(boolector_is_equal_sort(d_solver, btor_res, btor_res));
+    MURXLA_TEST(boolector_is_equal_sort(d_solver, btor_res, btor_res));
   }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
@@ -660,8 +662,8 @@ BtorSolver::mk_value(Sort sort, bool value)
 
   BoolectorNode* btor_res =
       value ? boolector_true(d_solver) : boolector_false(d_solver);
-  assert(btor_res);
-  assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
+  MURXLA_TEST(btor_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
   if (d_rng.pick_with_prob(10))
   {
     if (value)
@@ -676,7 +678,7 @@ BtorSolver::mk_value(Sort sort, bool value)
   if (d_rng.pick_with_prob(10))
   {
     const char* bits = boolector_get_bits(d_solver, btor_res);
-    assert(std::string(bits) == (value ? "1" : "0"));
+    MURXLA_TEST(std::string(bits) == (value ? "1" : "0"));
     boolector_free_bits(d_solver, bits);
   }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
@@ -726,11 +728,11 @@ BtorSolver::mk_value_bv_uint32(Sort sort, uint32_t value)
   {
     const char* bits = boolector_get_bits(d_solver, btor_res);
     assert(!str.empty());
-    assert(std::string(bits) == str);
+    MURXLA_TEST(std::string(bits) == str);
     boolector_free_bits(d_solver, bits);
   }
-  assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
-  assert(btor_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
+  MURXLA_TEST(btor_res);
   return btor_res;
 }
 
@@ -759,7 +761,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
         if (d_rng.pick_with_prob(10))
         {
           const char* bits = boolector_get_bits(d_solver, btor_res);
-          assert(str_bin_to_hex(bits) == value);
+          MURXLA_TEST(str_bin_to_hex(bits) == value);
           boolector_free_bits(d_solver, bits);
         }
       }
@@ -777,7 +779,7 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
         if (d_rng.pick_with_prob(10))
         {
           const char* bits = boolector_get_bits(d_solver, btor_res);
-          assert(str_bin_to_dec(bits) == value);
+          MURXLA_TEST(str_bin_to_dec(bits) == value);
           boolector_free_bits(d_solver, bits);
         }
       }
@@ -796,13 +798,13 @@ BtorSolver::mk_value(Sort sort, std::string value, Base base)
         if (d_rng.pick_with_prob(10))
         {
           const char* bits = boolector_get_bits(d_solver, btor_res);
-          assert(bits == value);
+          MURXLA_TEST(bits == value);
           boolector_free_bits(d_solver, bits);
         }
       }
   }
-  assert(btor_res);
-  assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
+  MURXLA_TEST(btor_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
@@ -867,13 +869,13 @@ BtorSolver::mk_special_value(Sort sort, const SpecialValueKind& value)
     if (check) check_is_bv_const(Solver::SPECIAL_VALUE_BV_MAX_SIGNED, btor_res);
     if (check_bits) str = bv_special_value_max_signed_str(bw);
   }
-  assert(btor_res);
-  assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
+  MURXLA_TEST(btor_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
   if (check_bits)
   {
     const char* bits = boolector_get_bits(d_solver, btor_res);
     assert(!str.empty());
-    assert(std::string(bits) == str);
+    MURXLA_TEST(std::string(bits) == str);
     boolector_free_bits(d_solver, bits);
   }
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
@@ -1230,8 +1232,8 @@ BtorSolver::mk_term(const Op::Kind& kind,
           << "BtorSolver: operator kind '" << kind << "' not configured";
     }
   }
-  assert(btor_res);
-  assert(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
+  MURXLA_TEST(btor_res);
+  MURXLA_TEST(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
@@ -1258,7 +1260,7 @@ BtorSolver::check_sat()
   int32_t res = boolector_sat(d_solver);
   if (res == BOOLECTOR_SAT) return Result::SAT;
   if (res == BOOLECTOR_UNSAT) return Result::UNSAT;
-  assert(res == BOOLECTOR_UNKNOWN);
+  MURXLA_TEST(res == BOOLECTOR_UNKNOWN);
   return Result::UNKNOWN;
 }
 
@@ -1273,7 +1275,7 @@ BtorSolver::check_sat_assuming(std::vector<Term>& assumptions)
   res = boolector_sat(d_solver);
   if (res == BOOLECTOR_SAT) return Result::SAT;
   if (res == BOOLECTOR_UNSAT) return Result::UNSAT;
-  assert(res == BOOLECTOR_UNKNOWN);
+  MURXLA_TEST(res == BOOLECTOR_UNKNOWN);
   return Result::UNKNOWN;
 }
 
@@ -1391,7 +1393,7 @@ BtorSolver::mk_term_left_assoc(std::vector<BoolectorNode*>& args,
     boolector_release(d_solver, res);
     res = tmp;
   }
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -1411,7 +1413,7 @@ BtorSolver::mk_term_right_assoc(std::vector<BoolectorNode*>& args,
     boolector_release(d_solver, res);
     res = tmp;
   }
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -1443,7 +1445,7 @@ BtorSolver::mk_term_pairwise(std::vector<BoolectorNode*>& args,
       }
     }
   }
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -1472,7 +1474,7 @@ BtorSolver::mk_term_chained(std::vector<BoolectorNode*>& args,
       res = tmp;
     }
   }
-  assert(res);
+  MURXLA_TEST(res);
   return res;
 }
 
@@ -1503,13 +1505,13 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value)
     val = std::stoul(value);
   }
   BtorOption btor_opt = d_option_name_to_enum.at(opt);
-  assert(val >= boolector_get_opt_min(d_solver, btor_opt));
-  assert(val <= boolector_get_opt_max(d_solver, btor_opt));
+  MURXLA_TEST(val >= boolector_get_opt_min(d_solver, btor_opt));
+  MURXLA_TEST(val <= boolector_get_opt_max(d_solver, btor_opt));
   boolector_set_opt(d_solver, btor_opt, val);
-  assert(val == boolector_get_opt(d_solver, btor_opt));
-  assert(val != boolector_get_opt_dflt(d_solver, btor_opt)
-         || boolector_get_opt(d_solver, btor_opt)
-                == boolector_get_opt_dflt(d_solver, btor_opt));
+  MURXLA_TEST(val == boolector_get_opt(d_solver, btor_opt));
+  MURXLA_TEST(val != boolector_get_opt_dflt(d_solver, btor_opt)
+              || boolector_get_opt(d_solver, btor_opt)
+                     == boolector_get_opt_dflt(d_solver, btor_opt));
 }
 
 std::string
@@ -1714,21 +1716,21 @@ BtorSolver::check_is_bv_const(const Solver::SpecialValueKind& kind,
     }
     if (d_rng.flip_coin())
     {
-      assert(pick_fun_bool_unary(is_funs)(d_solver, node));
+      MURXLA_TEST(pick_fun_bool_unary(is_funs)(d_solver, node));
     }
     else
     {
-      assert(!pick_fun_bool_unary(is_not_funs)(d_solver, node));
+      MURXLA_TEST(!pick_fun_bool_unary(is_not_funs)(d_solver, node));
     }
   }
   else if (pick == RNGenerator::Choice::SECOND)
   {
-    assert(boolector_is_const(d_solver, node));
+    MURXLA_TEST(boolector_is_const(d_solver, node));
   }
   else
   {
     assert(pick == RNGenerator::Choice::THIRD);
-    assert(!boolector_is_var(d_solver, node));
+    MURXLA_TEST(!boolector_is_var(d_solver, node));
   }
 }
 
@@ -1867,7 +1869,7 @@ class BtorActionClone : public Action
         std::string symbol;
 
         t_btor = solver.get_btor_term(t);
-        assert(boolector_get_btor(t_btor) == btor);
+        MURXLA_TEST(boolector_get_btor(t_btor) == btor);
         id     = boolector_get_node_id(btor, t_btor);
         sort   = boolector_get_sort(btor, t_btor);
         s      = boolector_get_symbol(btor, t_btor);
@@ -1875,36 +1877,36 @@ class BtorActionClone : public Action
 
         /* first, test boolector_match_node */
         t_clone = boolector_match_node(clone, t_btor);
-        assert(boolector_get_btor(t_clone) == clone);
-        assert(id == boolector_get_node_id(clone, t_clone));
-        assert(sort == boolector_get_sort(clone, t_clone));
+        MURXLA_TEST(boolector_get_btor(t_clone) == clone);
+        MURXLA_TEST(id == boolector_get_node_id(clone, t_clone));
+        MURXLA_TEST(sort == boolector_get_sort(clone, t_clone));
         s = boolector_get_symbol(clone, t_clone);
-        assert(symbol.empty() || s);
-        assert(!s || symbol == s);
+        MURXLA_TEST(symbol.empty() || s);
+        MURXLA_TEST(!s || symbol == s);
         if (boolector_is_fun(btor, t_btor))
         {
-          assert(boolector_is_fun(clone, t_clone));
-          assert(boolector_fun_get_domain_sort(btor, t_btor)
-                 == boolector_fun_get_domain_sort(clone, t_clone));
-          assert(boolector_fun_get_codomain_sort(btor, t_btor)
-                 == boolector_fun_get_codomain_sort(clone, t_clone));
+          MURXLA_TEST(boolector_is_fun(clone, t_clone));
+          MURXLA_TEST(boolector_fun_get_domain_sort(btor, t_btor)
+                      == boolector_fun_get_domain_sort(clone, t_clone));
+          MURXLA_TEST(boolector_fun_get_codomain_sort(btor, t_btor)
+                      == boolector_fun_get_codomain_sort(clone, t_clone));
         }
         boolector_release(clone, t_clone);
 
         /* second, test boolector_match_node_by_id */
         t_clone = boolector_match_node_by_id(clone, id < 0 ? -id : id);
-        assert(boolector_get_btor(t_clone) == clone);
-        assert(sort == boolector_get_sort(clone, t_clone));
+        MURXLA_TEST(boolector_get_btor(t_clone) == clone);
+        MURXLA_TEST(sort == boolector_get_sort(clone, t_clone));
         s = boolector_get_symbol(clone, t_clone);
-        assert(symbol.empty() || s);
-        assert(!s || symbol == s);
+        MURXLA_TEST(symbol.empty() || s);
+        MURXLA_TEST(!s || symbol == s);
         if (boolector_is_fun(btor, t_btor))
         {
-          assert(boolector_is_fun(clone, t_clone));
-          assert(boolector_fun_get_domain_sort(btor, t_btor)
-                 == boolector_fun_get_domain_sort(clone, t_clone));
-          assert(boolector_fun_get_codomain_sort(btor, t_btor)
-                 == boolector_fun_get_codomain_sort(clone, t_clone));
+          MURXLA_TEST(boolector_is_fun(clone, t_clone));
+          MURXLA_TEST(boolector_fun_get_domain_sort(btor, t_btor)
+                      == boolector_fun_get_domain_sort(clone, t_clone));
+          MURXLA_TEST(boolector_fun_get_codomain_sort(btor, t_btor)
+                      == boolector_fun_get_codomain_sort(clone, t_clone));
         }
         boolector_release(clone, t_clone);
 
@@ -1912,16 +1914,16 @@ class BtorActionClone : public Action
         if (!symbol.empty())
         {
           t_clone = boolector_match_node_by_symbol(clone, symbol.c_str());
-          assert(boolector_get_btor(t_clone) == clone);
-          assert(id == boolector_get_node_id(clone, t_clone));
-          assert(sort == boolector_get_sort(clone, t_clone));
+          MURXLA_TEST(boolector_get_btor(t_clone) == clone);
+          MURXLA_TEST(id == boolector_get_node_id(clone, t_clone));
+          MURXLA_TEST(sort == boolector_get_sort(clone, t_clone));
           if (boolector_is_fun(btor, t_btor))
           {
-            assert(boolector_is_fun(clone, t_clone));
-            assert(boolector_fun_get_domain_sort(btor, t_btor)
-                   == boolector_fun_get_domain_sort(clone, t_clone));
-            assert(boolector_fun_get_codomain_sort(btor, t_btor)
-                   == boolector_fun_get_codomain_sort(clone, t_clone));
+            MURXLA_TEST(boolector_is_fun(clone, t_clone));
+            MURXLA_TEST(boolector_fun_get_domain_sort(btor, t_btor)
+                        == boolector_fun_get_domain_sort(clone, t_clone));
+            MURXLA_TEST(boolector_fun_get_codomain_sort(btor, t_btor)
+                        == boolector_fun_get_codomain_sort(clone, t_clone));
           }
           boolector_release(clone, t_clone);
         }
@@ -2033,25 +2035,27 @@ class BtorActionOptIterator : public Action
     for (BtorOption opt = boolector_first_opt(btor); opt < BTOR_OPT_NUM_OPTS;
          opt            = boolector_next_opt(btor, opt))
     {
-      assert(boolector_has_opt(btor, opt));
-      assert(boolector_get_opt(btor, opt) >= boolector_get_opt_min(btor, opt));
-      assert(boolector_get_opt(btor, opt) <= boolector_get_opt_max(btor, opt));
-      assert(boolector_get_opt_min(btor, opt)
-             <= boolector_get_opt_max(btor, opt));
-      assert(boolector_get_opt_dflt(btor, opt)
-             >= boolector_get_opt_min(btor, opt));
-      assert(boolector_get_opt_dflt(btor, opt)
-             <= boolector_get_opt_max(btor, opt));
+      MURXLA_TEST(boolector_has_opt(btor, opt));
+      MURXLA_TEST(boolector_get_opt(btor, opt)
+                  >= boolector_get_opt_min(btor, opt));
+      MURXLA_TEST(boolector_get_opt(btor, opt)
+                  <= boolector_get_opt_max(btor, opt));
+      MURXLA_TEST(boolector_get_opt_min(btor, opt)
+                  <= boolector_get_opt_max(btor, opt));
+      MURXLA_TEST(boolector_get_opt_dflt(btor, opt)
+                  >= boolector_get_opt_min(btor, opt));
+      MURXLA_TEST(boolector_get_opt_dflt(btor, opt)
+                  <= boolector_get_opt_max(btor, opt));
       std::string lng = boolector_get_opt_lng(btor, opt);
       const char* s   = boolector_get_opt_shrt(btor, opt);
       if (s != nullptr)
       {
         std::string shrt(s);
-        assert(shrt.size() <= lng.size());
+        MURXLA_TEST(shrt.size() <= lng.size());
       }
       (void) boolector_get_opt_desc(btor, opt);
     }
-    assert(!boolector_has_opt(
+    MURXLA_TEST(!boolector_has_opt(
         btor,
         (BtorOption) d_rng.pick<uint32_t>(BTOR_OPT_NUM_OPTS, UINT32_MAX)));
   }
