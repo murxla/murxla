@@ -2228,7 +2228,7 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 5);
   s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
   fsm->add_action_to_all_states_next(
-      t_default, 2, s_fix_reset_assumptions, {State::OPT});
+      t_default, 2, s_fix_reset_assumptions, {State::OPT_REQ, State::OPT});
   // bitwuzla_simplify
   auto a_simplify = fsm->new_action<BzlaActionSimplify>();
   s_assert->add_action(a_simplify, 10000);
