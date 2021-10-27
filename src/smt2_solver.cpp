@@ -285,6 +285,12 @@ Smt2Term::get_kind() const
   return d_kind;
 }
 
+std::vector<Term>
+Smt2Term::get_children() const
+{
+  return d_args;
+}
+
 const std::vector<Term>&
 Smt2Term::get_args() const
 {
@@ -1100,7 +1106,15 @@ Smt2Solver::mk_term(const Op::Kind& kind,
 Sort
 Smt2Solver::get_sort(Term term, SortKind sort_kind) const
 {
+  /* Already computed sort for `term`.*/
+  if (term->get_sort() != nullptr)
+  {
+    return term->get_sort();
+  }
+
   assert(sort_kind != SORT_ANY);
+
+  /* Compute sort for `term`. */
   Smt2Term* smt2_term                 = static_cast<Smt2Term*>(term.get());
   const std::vector<Term>& args       = smt2_term->get_args();
   const std::vector<uint32_t>& params = smt2_term->get_indices_uint32();
