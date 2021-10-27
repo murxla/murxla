@@ -350,6 +350,8 @@ class ActionMkConst : public Action
       const std::vector<std::string>& tokens) override;
 
  private:
+  /** Perform checks on the created (first-order) constant. */
+  void check_const(RNGenerator& rng, Term term);
   std::vector<uint64_t> _run(Sort sort, std::string& symbol);
 };
 

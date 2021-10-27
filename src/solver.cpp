@@ -245,6 +245,12 @@ AbsTerm::is_special_value(const AbsTerm::SpecialValueKind& kind) const
   return res;
 }
 
+bool
+AbsTerm::is_const() const
+{
+  return d_leaf_kind == LeafKind::CONSTANT;
+}
+
 const Op::Kind&
 AbsTerm::get_kind() const
 {

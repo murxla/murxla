@@ -266,6 +266,12 @@ ShadowTerm::is_special_value(const SpecialValueKind& kind) const
   return d_term->is_special_value(kind);
 }
 
+bool
+ShadowTerm::is_const() const
+{
+  return d_term->is_const();
+}
+
 void
 ShadowTerm::set_sort(Sort sort)
 {

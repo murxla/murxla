@@ -669,6 +669,12 @@ BzlaTerm::is_special_value(const AbsTerm::SpecialValueKind& kind) const
   return AbsTerm::is_special_value(kind);
 }
 
+bool
+BzlaTerm::is_const() const
+{
+  return bitwuzla_term_is_const(d_term);
+}
+
 const Op::Kind&
 BzlaTerm::get_kind() const
 {

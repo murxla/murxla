@@ -367,6 +367,13 @@ BtorTerm::is_special_value(const SpecialValueKind& kind) const
   return AbsTerm::is_special_value(kind);
 }
 
+bool
+BtorTerm::is_const() const
+{
+  return boolector_is_var(d_solver, d_term)
+         || boolector_is_uf(d_solver, d_term);
+}
+
 uint32_t
 BtorTerm::get_bv_size() const
 {

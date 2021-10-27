@@ -200,6 +200,9 @@ class AbsTerm
   /** Return true if this term is a special value of given kind. */
   virtual bool is_special_value(const SpecialValueKind& kind) const;
 
+  /** Return true if this term is a first-order constant. */
+  virtual bool is_const() const;
+
   /**
    * Return the kind of the current term.
    * This kind is not a kind we cache on creation, but the kind that the
