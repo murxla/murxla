@@ -212,6 +212,60 @@ ShadowTerm::is_reglan() const
   return d_term->is_reglan();
 }
 
+bool
+ShadowTerm::is_bool_value() const
+{
+  return d_term->is_bool_value();
+}
+
+bool
+ShadowTerm::is_bv_value() const
+{
+  return d_term->is_bv_value();
+}
+
+bool
+ShadowTerm::is_fp_value() const
+{
+  return d_term->is_fp_value();
+}
+
+bool
+ShadowTerm::is_int_value() const
+{
+  return d_term->is_int_value();
+}
+
+bool
+ShadowTerm::is_real_value() const
+{
+  return d_term->is_real_value();
+}
+
+bool
+ShadowTerm::is_reglan_value() const
+{
+  return d_term->is_reglan_value();
+}
+
+bool
+ShadowTerm::is_rm_value() const
+{
+  return d_term->is_rm_value();
+}
+
+bool
+ShadowTerm::is_string_value() const
+{
+  return d_term->is_string_value();
+}
+
+bool
+ShadowTerm::is_special_value(const SpecialValueKind& kind) const
+{
+  return d_term->is_special_value(kind);
+}
+
 void
 ShadowTerm::set_sort(Sort sort)
 {

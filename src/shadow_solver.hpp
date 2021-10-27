@@ -69,6 +69,15 @@ class ShadowTerm : public AbsTerm
   bool is_rm() const override;
   bool is_string() const override;
   bool is_reglan() const override;
+  bool is_bool_value() const override;
+  bool is_bv_value() const override;
+  bool is_fp_value() const override;
+  bool is_int_value() const override;
+  bool is_real_value() const override;
+  bool is_reglan_value() const override;
+  bool is_rm_value() const override;
+  bool is_string_value() const override;
+  bool is_special_value(const SpecialValueKind& kind) const override;
   void set_sort(Sort sort) override;
 
   Term get_term() const { return d_term; }
