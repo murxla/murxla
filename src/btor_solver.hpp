@@ -92,6 +92,7 @@ class BtorTerm : public AbsTerm
   bool is_reglan() const override;
   bool is_bool_value() const override;
   bool is_bv_value() const override;
+  bool is_special_value(const SpecialValueKind& kind) const override;
   uint32_t get_bv_size() const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;
@@ -254,8 +255,6 @@ class BtorSolver : public Solver
 
   BtorFunBoolUnary pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const;
   BtorFunBoolUnary pick_fun_is_bv_const() const;
-  void check_is_bv_const(const AbsTerm::SpecialValueKind& kind,
-                         BoolectorNode* node) const;
 
   BoolectorSort get_btor_sort(Sort sort) const;
   BoolectorNode* mk_value_bv_uint32(Sort sort, uint32_t value);

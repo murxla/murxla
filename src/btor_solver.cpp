@@ -341,6 +341,32 @@ BtorTerm::is_bv_value() const
   return boolector_is_const(d_solver, d_term);
 }
 
+bool
+BtorTerm::is_special_value(const SpecialValueKind& kind) const
+{
+  if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
+  {
+    return boolector_is_bv_const_zero(d_solver, d_term);
+  }
+  else if (kind == SPECIAL_VALUE_BV_ONE)
+  {
+    return boolector_is_bv_const_one(d_solver, d_term);
+  }
+  else if (kind == SPECIAL_VALUE_BV_ONES)
+  {
+    return boolector_is_bv_const_ones(d_solver, d_term);
+  }
+  else if (kind == SPECIAL_VALUE_BV_MIN_SIGNED)
+  {
+    return boolector_is_bv_const_min_signed(d_solver, d_term);
+  }
+  else if (kind == SPECIAL_VALUE_BV_MAX_SIGNED)
+  {
+    return boolector_is_bv_const_max_signed(d_solver, d_term);
+  }
+  return AbsTerm::is_special_value(kind);
+}
+
 uint32_t
 BtorTerm::get_bv_size() const
 {
@@ -672,17 +698,6 @@ BtorSolver::mk_value(Sort sort, bool value)
   MURXLA_TEST(!d_rng.pick_with_prob(1) || boolector_get_refs(d_solver) > 0);
   if (d_rng.pick_with_prob(10))
   {
-    if (value)
-    {
-      check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ONE, btor_res);
-    }
-    else
-    {
-      check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ZERO, btor_res);
-    }
-  }
-  if (d_rng.pick_with_prob(10))
-  {
     const char* bits = boolector_get_bits(d_solver, btor_res);
     MURXLA_TEST(std::string(bits) == (value ? "1" : "0"));
     boolector_free_bits(d_solver, bits);
@@ -828,14 +843,12 @@ BtorSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
   BoolectorNode* btor_res = 0;
   BoolectorSort btor_sort = get_btor_sort(sort);
   uint32_t bw             = sort->get_bv_size();
-  bool check              = d_rng.pick_with_prob(10);
   bool check_bits         = bw <= 64 && d_rng.pick_with_prob(10);
   std::string str;
 
   if (value == AbsTerm::SPECIAL_VALUE_BV_ZERO)
   {
     btor_res = boolector_zero(d_solver, btor_sort);
-    if (check) check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ZERO, btor_res);
     if (check_bits)
     {
       str = std::string(bw, '0');
@@ -844,7 +857,6 @@ BtorSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
   else if (value == AbsTerm::SPECIAL_VALUE_BV_ONE)
   {
     btor_res = boolector_one(d_solver, btor_sort);
-    if (check) check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ONE, btor_res);
     if (check_bits)
     {
       std::stringstream ss;
@@ -859,22 +871,17 @@ BtorSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
   else if (value == AbsTerm::SPECIAL_VALUE_BV_ONES)
   {
     btor_res = boolector_ones(d_solver, btor_sort);
-    if (check) check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_ONES, btor_res);
     if (check_bits) str = std::string(bw, '1');
   }
   else if (value == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
   {
     btor_res = boolector_min_signed(d_solver, btor_sort);
-    if (check)
-      check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED, btor_res);
     if (check_bits) str = bv_special_value_min_signed_str(bw);
   }
   else
   {
     assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
     btor_res = boolector_max_signed(d_solver, btor_sort);
-    if (check)
-      check_is_bv_const(AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED, btor_res);
     if (check_bits) str = bv_special_value_max_signed_str(bw);
   }
   MURXLA_TEST(btor_res);
@@ -1613,133 +1620,6 @@ BtorSolver::pick_fun_is_bv_const() const
                                  boolector_is_bv_const_max_signed,
                                  boolector_is_bv_const_min_signed};
   return pick_fun_bool_unary(funs);
-}
-
-void
-BtorSolver::check_is_bv_const(const AbsTerm::SpecialValueKind& kind,
-                              BoolectorNode* node) const
-{
-  uint32_t bw              = boolector_get_width(d_solver, node);
-  RNGenerator::Choice pick = d_rng.pick_one_of_three();
-
-  if (pick == RNGenerator::Choice::FIRST)
-  {
-    BtorFunBoolUnaryVector is_funs;
-    BtorFunBoolUnaryVector is_not_funs;
-    if (kind == AbsTerm::SPECIAL_VALUE_BV_ONE)
-    {
-      is_funs.push_back(boolector_is_bv_const_one);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(boolector_is_bv_const_zero);
-        is_not_funs.push_back(boolector_is_bv_const_ones);
-        is_not_funs.push_back(boolector_is_bv_const_min_signed);
-        is_not_funs.push_back(boolector_is_bv_const_max_signed);
-      }
-      else
-      {
-        is_funs.push_back(boolector_is_bv_const_ones);
-        is_funs.push_back(boolector_is_bv_const_min_signed);
-
-        is_not_funs.push_back(boolector_is_bv_const_zero);
-        is_not_funs.push_back(boolector_is_bv_const_max_signed);
-      }
-    }
-    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ONES)
-    {
-      is_funs.push_back(boolector_is_bv_const_ones);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(boolector_is_bv_const_one);
-        is_not_funs.push_back(boolector_is_bv_const_zero);
-        is_not_funs.push_back(boolector_is_bv_const_min_signed);
-        is_not_funs.push_back(boolector_is_bv_const_max_signed);
-      }
-      else
-      {
-        is_funs.push_back(boolector_is_bv_const_one);
-        is_funs.push_back(boolector_is_bv_const_min_signed);
-
-        is_not_funs.push_back(boolector_is_bv_const_zero);
-        is_not_funs.push_back(boolector_is_bv_const_max_signed);
-      }
-    }
-    else if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
-    {
-      is_funs.push_back(boolector_is_bv_const_zero);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(boolector_is_bv_const_one);
-        is_not_funs.push_back(boolector_is_bv_const_ones);
-        is_not_funs.push_back(boolector_is_bv_const_min_signed);
-        is_not_funs.push_back(boolector_is_bv_const_max_signed);
-      }
-      else
-      {
-        is_funs.push_back(boolector_is_bv_const_max_signed);
-
-        is_not_funs.push_back(boolector_is_bv_const_one);
-        is_not_funs.push_back(boolector_is_bv_const_ones);
-        is_not_funs.push_back(boolector_is_bv_const_min_signed);
-      }
-    }
-    else if (kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
-    {
-      is_funs.push_back(boolector_is_bv_const_min_signed);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(boolector_is_bv_const_zero);
-        is_not_funs.push_back(boolector_is_bv_const_one);
-        is_not_funs.push_back(boolector_is_bv_const_ones);
-        is_not_funs.push_back(boolector_is_bv_const_max_signed);
-      }
-      else
-      {
-        is_funs.push_back(boolector_is_bv_const_one);
-        is_funs.push_back(boolector_is_bv_const_ones);
-
-        is_not_funs.push_back(boolector_is_bv_const_zero);
-        is_not_funs.push_back(boolector_is_bv_const_max_signed);
-      }
-    }
-    else
-    {
-      assert(kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
-      is_funs.push_back(boolector_is_bv_const_max_signed);
-      if (bw > 1)
-      {
-        is_not_funs.push_back(boolector_is_bv_const_zero);
-        is_not_funs.push_back(boolector_is_bv_const_one);
-        is_not_funs.push_back(boolector_is_bv_const_ones);
-        is_not_funs.push_back(boolector_is_bv_const_min_signed);
-      }
-      else
-      {
-        is_funs.push_back(boolector_is_bv_const_zero);
-
-        is_not_funs.push_back(boolector_is_bv_const_one);
-        is_not_funs.push_back(boolector_is_bv_const_ones);
-        is_not_funs.push_back(boolector_is_bv_const_max_signed);
-      }
-    }
-    if (d_rng.flip_coin())
-    {
-      MURXLA_TEST(pick_fun_bool_unary(is_funs)(d_solver, node));
-    }
-    else
-    {
-      MURXLA_TEST(!pick_fun_bool_unary(is_not_funs)(d_solver, node));
-    }
-  }
-  else if (pick == RNGenerator::Choice::SECOND)
-  {
-    MURXLA_TEST(boolector_is_const(d_solver, node));
-  }
-  else
-  {
-    assert(pick == RNGenerator::Choice::THIRD);
-    MURXLA_TEST(!boolector_is_var(d_solver, node));
-  }
 }
 
 /* -------------------------------------------------------------------------- */
