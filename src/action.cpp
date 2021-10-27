@@ -757,12 +757,13 @@ ActionMkTerm::run()
       if (picked_non_const)
       {
         args.push_back(d_smgr.pick_value(sort));
-        assert(args.back()->is_value_leaf_kind());
+        assert(args.back()->get_leaf_kind() == AbsTerm::LeafKind::VALUE);
       }
       else
       {
         args.push_back(d_smgr.pick_term(sort));
-        if (!args.back()->is_value_leaf_kind()) picked_non_const = true;
+        if (args.back()->get_leaf_kind() != AbsTerm::LeafKind::VALUE)
+          picked_non_const = true;
       }
     }
   }
@@ -1482,7 +1483,7 @@ ActionMkValue::_run(Sort sort, std::string val, Solver::Base base)
 void
 ActionMkValue::check_value(RNGenerator& rng, Term term)
 {
-  assert(term->is_value_leaf_kind());
+  assert(term->get_leaf_kind() == AbsTerm::LeafKind::VALUE);
 
   if (rng.pick_with_prob(990)) return;
 
@@ -1585,7 +1586,7 @@ ActionMkSpecialValue::check_special_value(RNGenerator& rng,
                                           Term term,
                                           const AbsTerm::SpecialValueKind& kind)
 {
-  assert(term->is_value_leaf_kind());
+  assert(term->get_leaf_kind() == AbsTerm::LeafKind::VALUE);
 
   if (rng.pick_with_prob(990)) return;
 

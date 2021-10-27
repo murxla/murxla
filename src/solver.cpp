@@ -159,49 +159,49 @@ const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RE_ALLCHAR =
 bool
 AbsTerm::is_bool_value() const
 {
-  return is_value_leaf_kind() && is_bool();
+  return get_leaf_kind() == LeafKind::VALUE && is_bool();
 }
 
 bool
 AbsTerm::is_bv_value() const
 {
-  return is_value_leaf_kind() && is_bv();
+  return get_leaf_kind() == LeafKind::VALUE && is_bv();
 }
 
 bool
 AbsTerm::is_fp_value() const
 {
-  return is_value_leaf_kind() && is_fp();
+  return get_leaf_kind() == LeafKind::VALUE && is_fp();
 }
 
 bool
 AbsTerm::is_int_value() const
 {
-  return is_value_leaf_kind() && is_int();
+  return get_leaf_kind() == LeafKind::VALUE && is_int();
 }
 
 bool
 AbsTerm::is_real_value() const
 {
-  return is_value_leaf_kind() && is_real();
+  return get_leaf_kind() == LeafKind::VALUE && is_real();
 }
 
 bool
 AbsTerm::is_reglan_value() const
 {
-  return is_value_leaf_kind() && is_reglan();
+  return get_leaf_kind() == LeafKind::VALUE && is_reglan();
 }
 
 bool
 AbsTerm::is_rm_value() const
 {
-  return is_value_leaf_kind() && is_rm();
+  return get_leaf_kind() == LeafKind::VALUE && is_rm();
 }
 
 bool
 AbsTerm::is_string_value() const
 {
-  return is_value_leaf_kind() && is_string();
+  return get_leaf_kind() == LeafKind::VALUE && is_string();
 }
 
 void
@@ -213,7 +213,8 @@ AbsTerm::set_special_value_kind(const AbsTerm::SpecialValueKind& kind)
 bool
 AbsTerm::is_special_value(const AbsTerm::SpecialValueKind& kind) const
 {
-  assert(is_value_leaf_kind() || d_value_kind == SPECIAL_VALUE_NONE);
+  assert(get_leaf_kind() == LeafKind::VALUE
+         || d_value_kind == SPECIAL_VALUE_NONE);
   bool res = d_value_kind == kind;
   if (!res && is_bv() && get_bv_size() == 1)
   {
@@ -287,10 +288,10 @@ AbsTerm::set_leaf_kind(LeafKind kind)
   d_leaf_kind = kind;
 }
 
-bool
-AbsTerm::is_value_leaf_kind() const
+AbsTerm::LeafKind
+AbsTerm::get_leaf_kind() const
 {
-  return d_leaf_kind == LeafKind::VALUE;
+  return d_leaf_kind;
 }
 
 Sort

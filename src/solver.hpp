@@ -300,11 +300,13 @@ class AbsTerm
    */
   virtual void set_special_value_kind(const SpecialValueKind& value_kind);
   /**
-   * Return true if this term's leaf kind is LeafKind::VALUE.
+   * Return leaf kind of this term.
+   * Kind is LeafKind::NONE if this term is not a leaf.
+   *
    * This is for Murxla level maintenance and not to be overriden with
-   * solver-specific implementations of "is value".
+   * solver-specific implementations.
    */
-  bool is_value_leaf_kind() const;
+  LeafKind get_leaf_kind() const;
 
  protected:
   /** The id of this term. */
