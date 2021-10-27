@@ -1071,7 +1071,7 @@ ActionMkTerm::_run(Op::Kind kind,
 void
 ActionMkTerm::check_term(RNGenerator& rng, Term term)
 {
-  if (rng.pick_with_prob(999)) return;
+  if (rng.pick_with_prob(990)) return;
 
   /* check sort */
   Sort sort = term->get_sort();
@@ -1211,7 +1211,7 @@ ActionMkConst::_run(Sort sort, std::string& symbol)
 void
 ActionMkConst::check_const(RNGenerator& rng, Term term)
 {
-  if (rng.pick_with_prob(999)) return;
+  if (rng.pick_with_prob(990)) return;
 
   ActionMkTerm::check_term(rng, term);
   MURXLA_TEST(term->is_const());
@@ -1484,7 +1484,7 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
 {
   assert(term->is_value_leaf_kind());
 
-  if (rng.pick_with_prob(999)) return;
+  if (rng.pick_with_prob(990)) return;
 
   ActionMkTerm::check_term(rng, term);
 
@@ -1587,7 +1587,7 @@ ActionMkSpecialValue::check_special_value(RNGenerator& rng,
 {
   assert(term->is_value_leaf_kind());
 
-  if (rng.pick_with_prob(999)) return;
+  if (rng.pick_with_prob(990)) return;
 
   ActionMkValue::check_value(rng, term);
 
