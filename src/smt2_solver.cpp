@@ -1217,6 +1217,20 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
         sig_size = params[1];
         sort     = get_fp_sort_string(bv_size, sig_size);
       }
+      else if (kind == Op::FP_FP)
+      {
+        assert(args.size() == 3);
+        Term sign        = args[0];
+        Term exp         = args[1];
+        Term significand = args[2];
+        assert(sign->get_sort()->is_bv());
+        assert(exp->get_sort()->is_bv());
+        assert(significand->get_sort()->is_bv());
+        bv_size  = exp->get_sort()->get_bv_size();
+        sig_size = sign->get_sort()->get_bv_size()
+                   + significand->get_sort()->get_bv_size();
+        sort = get_fp_sort_string(bv_size, sig_size);
+      }
       else
       {
         assert(args.size() > 0);
