@@ -421,14 +421,18 @@ FSM::configure()
   s_decide_sat_unsat->add_action(t_default, 1, s_unsat);
 
   /* State: unsat ........................................................ */
-  s_unsat->add_action(a_getunsatass, 2);
-  s_unsat->add_action(a_getunsatcore, 2);
-  s_unsat->add_action(t_default, 1, s_check_sat);
+  s_unsat->add_action(a_getunsatass, 1);
+  s_unsat->add_action(a_getunsatcore, 1);
+  s_unsat->add_action(t_default, 2, s_check_sat);
+  s_unsat->add_action(t_default, 2, s_push_pop);
+  s_unsat->add_action(t_default, 200, s_delete);
 
   /* State: sat .......................................................... */
   s_sat->add_action(a_printmodel, 1);
   s_sat->add_action(a_getvalue, 1);
   s_sat->add_action(t_default, 2, s_check_sat);
+  s_sat->add_action(t_default, 2, s_push_pop);
+  s_sat->add_action(t_default, 200, s_delete);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
