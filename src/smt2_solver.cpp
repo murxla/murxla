@@ -328,6 +328,11 @@ Smt2Term::get_repr() const
     if (it == cache.end())
     {
       cache.emplace(cur, "");
+      /* Do not go below quantifiers. */
+      if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS)
+      {
+        continue;
+      }
       for (const auto& arg : cur->d_args)
       {
         visit.push_back(to_smt2_term(arg));
