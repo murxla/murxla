@@ -666,6 +666,26 @@ BzlaTerm::is_special_value(const AbsTerm::SpecialValueKind& kind) const
   {
     return bitwuzla_term_is_fp_value_neg_zero(d_term);
   }
+  else if (kind == SPECIAL_VALUE_RM_RNA)
+  {
+    return bitwuzla_term_is_rm_value_rna(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_RM_RNE)
+  {
+    return bitwuzla_term_is_rm_value_rne(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_RM_RTN)
+  {
+    return bitwuzla_term_is_rm_value_rtn(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_RM_RTP)
+  {
+    return bitwuzla_term_is_rm_value_rtp(d_term);
+  }
+  else if (kind == SPECIAL_VALUE_RM_RTZ)
+  {
+    return bitwuzla_term_is_rm_value_rtz(d_term);
+  }
   return AbsTerm::is_special_value(kind);
 }
 

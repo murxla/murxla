@@ -466,8 +466,21 @@ class Solver
                                 const AbsTerm::SpecialValueKind& value);
 
   virtual Sort mk_sort(const std::string name, uint32_t arity) = 0;
+  /**
+   * Create sort of given sort kind with no additional arguments.
+   * Examples are sorts of kind SORT_BOOL, SORT_INT, SORT_REAL, SORT_RM,
+   * SORT_REGLAN, and SORT_STRING.
+   */
   virtual Sort mk_sort(SortKind kind)                          = 0;
+  /**
+   * Create sort of given kind with given size argument.
+   * This is mainly for creating bit-vector sorts.
+   */
   virtual Sort mk_sort(SortKind kind, uint32_t size);
+  /**
+   * Create sort of given kind with given size arguments.
+   * This is mainly for creating floating-point sorts.
+   */
   virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize);
   /**
    * Create sort with given sort arguments.
