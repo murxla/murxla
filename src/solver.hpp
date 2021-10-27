@@ -202,6 +202,8 @@ class AbsTerm
 
   /** Return true if this term is a first-order constant. */
   virtual bool is_const() const;
+  /** Return true if this term is a value. */
+  virtual bool is_value() const;
 
   /**
    * Return the kind of the current term.

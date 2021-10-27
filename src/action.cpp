@@ -1216,6 +1216,7 @@ ActionMkConst::check_const(RNGenerator& rng, Term term)
 
   ActionMkTerm::check_term(rng, term);
   MURXLA_TEST(term->is_const());
+  MURXLA_TEST(!term->is_value());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1489,6 +1490,7 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
 
   ActionMkTerm::check_term(rng, term);
 
+  MURXLA_TEST(term->is_value());
   MURXLA_TEST(!term->is_const());
 
   if (term->is_bool())

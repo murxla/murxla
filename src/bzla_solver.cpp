@@ -695,6 +695,12 @@ BzlaTerm::is_const() const
   return bitwuzla_term_is_const(d_term);
 }
 
+bool
+BzlaTerm::is_value() const
+{
+  return bitwuzla_term_is_value(d_term);
+}
+
 const Op::Kind&
 BzlaTerm::get_kind() const
 {
