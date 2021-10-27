@@ -230,7 +230,12 @@ class AbsTerm
   /** Get the id of this term. */
   uint64_t get_id() const;
 
-  /** Set the sort of this term. */
+  /**
+   * Set the sort of this term.
+   *
+   * This is not to be overriden by any solver implementations except the
+   * shadow solver.
+   */
   virtual void set_sort(Sort sort);
   /** Get the sort of this term. */
   Sort get_sort() const;
@@ -279,11 +284,19 @@ class AbsTerm
   void set_levels(const std::vector<uint64_t>& levels);
   const std::vector<uint64_t>& get_levels() const;
 
-  /** Set leaf kind. Set to LeafKind::NONE if this term is not a leaf. */
+  /**
+   * Set leaf kind. Set to LeafKind::NONE if this term is not a leaf.
+   *
+   * This is not to be overriden by any solver implementations except the
+   * shadow solver.
+   */
   virtual void set_leaf_kind(LeafKind kind);
   /**
    * Set special value kind.
    * SPECIAL_VALUE_NONE if not a value or no special value.
+   *
+   * This is not to be overriden by any solver implementations except the
+   * shadow solver.
    */
   virtual void set_special_value_kind(const SpecialValueKind& value_kind);
   /**
