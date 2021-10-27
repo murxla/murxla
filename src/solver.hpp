@@ -277,12 +277,12 @@ class AbsTerm
   const std::vector<uint64_t>& get_levels() const;
 
   /** Set leaf kind. Set to LeafKind::NONE if this term is not a leaf. */
-  void set_leaf_kind(LeafKind kind);
+  virtual void set_leaf_kind(LeafKind kind);
   /**
    * Set special value kind.
    * SPECIAL_VALUE_NONE if not a value or no special value.
    */
-  void set_special_value_kind(const SpecialValueKind& value_kind);
+  virtual void set_special_value_kind(const SpecialValueKind& value_kind);
   /**
    * Return true if this term's leaf kind is LeafKind::VALUE.
    * This is for Murxla level maintenance and not to be overriden with
@@ -303,7 +303,7 @@ class AbsTerm
    * Special value kind.
    * SPECIAL_VALUE_NONE if not a value or no special value.
    */
-  SpecialValueKind d_value_kind;
+  SpecialValueKind d_value_kind  = SPECIAL_VALUE_NONE;
   std::vector<uint64_t> d_levels = {};
 };
 

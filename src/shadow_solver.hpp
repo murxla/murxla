@@ -80,6 +80,9 @@ class ShadowTerm : public AbsTerm
   bool is_special_value(const SpecialValueKind& kind) const override;
   void set_sort(Sort sort) override;
 
+  void set_special_value_kind(const SpecialValueKind& value_kind) override;
+  void set_leaf_kind(LeafKind kind) override;
+
   Term get_term() const { return d_term; }
   Term get_term_shadow() const { return d_term_shadow; }
 

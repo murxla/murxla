@@ -276,6 +276,22 @@ ShadowTerm::set_sort(Sort sort)
   d_term_shadow->set_sort(s->d_sort_shadow);
 }
 
+void
+ShadowTerm::set_special_value_kind(const SpecialValueKind& value_kind)
+{
+  AbsTerm::set_special_value_kind(value_kind);
+  d_term->set_special_value_kind(value_kind);
+  d_term_shadow->set_special_value_kind(value_kind);
+}
+
+void
+ShadowTerm::set_leaf_kind(LeafKind kind)
+{
+  AbsTerm::set_leaf_kind(kind);
+  d_term->set_leaf_kind(kind);
+  d_term_shadow->set_leaf_kind(kind);
+}
+
 ShadowSolver::ShadowSolver(RNGenerator& rng,
                            Solver* solver,
                            Solver* solver_shadow)
