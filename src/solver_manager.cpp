@@ -168,7 +168,7 @@ SolverManager::add_value(Term& term,
   assert(term.get());
 
   add_input(term, sort, sort_kind);
-  term->set_is_value(true);
+  term->set_leaf_kind(AbsTerm::LeafKind::VALUE);
   term->set_special_value_kind(value_kind);
 }
 

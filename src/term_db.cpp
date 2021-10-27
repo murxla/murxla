@@ -197,7 +197,7 @@ TermDb::has_value(Sort sort) const
       const TermMap& terms = level.at(s_kind).at(s);
       for (const auto& p : terms)
       {
-        if (p.first->is_value()) return true;
+        if (p.first->is_value_leaf_kind()) return true;
       }
     }
   }
@@ -329,7 +329,7 @@ TermDb::pick_value(Sort sort) const
       const TermMap& terms = level.at(s_kind).at(s);
       for (auto& p : terms)
       {
-        if (p.first->is_value()) values.push_back(p.first);
+        if (p.first->is_value_leaf_kind()) values.push_back(p.first);
       }
     }
   }

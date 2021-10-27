@@ -135,6 +135,14 @@ class AbsTerm
   static const SpecialValueKind SPECIAL_VALUE_RE_ALL;
   static const SpecialValueKind SPECIAL_VALUE_RE_ALLCHAR;
 
+  enum LeafKind
+  {
+    NONE,
+    CONSTANT,
+    VALUE,
+    VARIABLE,
+  };
+
   AbsTerm(){};
   virtual ~AbsTerm(){};
 
@@ -268,15 +276,19 @@ class AbsTerm
   void set_levels(const std::vector<uint64_t>& levels);
   const std::vector<uint64_t>& get_levels() const;
 
-  /** Set d_is_value to true if this term is a value, and to false otherwise. */
-  void set_is_value(bool is_value);
+  /** Set leaf kind. Set to LeafKind::NONE if this term is not a leaf. */
+  void set_leaf_kind(LeafKind kind);
   /**
    * Set special value kind.
    * SPECIAL_VALUE_NONE if not a value or no special value.
    */
   void set_special_value_kind(const SpecialValueKind& value_kind);
-  /** Return true if this term is a value. */
-  bool is_value() const;
+  /**
+   * Return true if this term's leaf kind is LeafKind::VALUE.
+   * This is for Murxla level maintenance and not to be overriden with
+   * solver-specific implementations of "is value".
+   */
+  bool is_value_leaf_kind() const;
 
  protected:
   /** The id of this term. */
@@ -286,7 +298,7 @@ class AbsTerm
 
  private:
   /** True if this term is a value. */
-  bool d_is_value                = false;
+  LeafKind d_leaf_kind = LeafKind::NONE;
   /**
    * Special value kind.
    * SPECIAL_VALUE_NONE if not a value or no special value.
