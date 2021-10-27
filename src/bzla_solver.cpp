@@ -652,7 +652,7 @@ BzlaTerm::is_special_value(const AbsTerm::SpecialValueKind& kind) const
   }
   else if (kind == SPECIAL_VALUE_FP_POS_INF)
   {
-    return bitwuzla_term_is_fp_value_nan(d_term);
+    return bitwuzla_term_is_fp_value_pos_inf(d_term);
   }
   else if (kind == SPECIAL_VALUE_FP_NEG_INF)
   {
