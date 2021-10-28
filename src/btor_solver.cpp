@@ -374,6 +374,12 @@ BtorTerm::is_const() const
          || boolector_is_uf(d_solver, d_term);
 }
 
+bool
+BtorTerm::is_var() const
+{
+  return boolector_is_param(d_solver, d_term);
+}
+
 uint32_t
 BtorTerm::get_bv_size() const
 {

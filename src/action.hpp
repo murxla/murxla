@@ -364,6 +364,8 @@ class ActionMkVar : public Action
       const std::vector<std::string>& tokens) override;
 
  private:
+  /** Perform checks on the created variable. */
+  void check_variable(RNGenerator& rng, Term term);
   std::vector<uint64_t> _run(Sort sort, std::string& symbol);
 };
 

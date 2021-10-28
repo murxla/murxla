@@ -195,6 +195,7 @@ SolverManager::add_var(Term& term, Sort& sort, SortKind sort_kind)
 
   d_stats.vars += 1;
   d_term_db.add_var(term, sort, sort_kind);
+  term->set_leaf_kind(AbsTerm::LeafKind::VARIABLE);
 }
 
 void

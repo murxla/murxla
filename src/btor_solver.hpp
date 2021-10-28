@@ -94,6 +94,7 @@ class BtorTerm : public AbsTerm
   bool is_bv_value() const override;
   bool is_special_value(const SpecialValueKind& kind) const override;
   bool is_const() const override;
+  bool is_var() const override;
   uint32_t get_bv_size() const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;

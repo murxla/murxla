@@ -1217,6 +1217,7 @@ ActionMkConst::check_const(RNGenerator& rng, Term term)
   ActionMkTerm::check_term(rng, term);
   MURXLA_TEST(term->is_const());
   MURXLA_TEST(!term->is_value());
+  MURXLA_TEST(!term->is_var());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1252,9 +1253,21 @@ ActionMkVar::_run(Sort sort, std::string& symbol)
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_var(sort, symbol);
   d_smgr.add_var(res, sort, sort->get_kind());
-  ActionMkTerm::check_term(d_rng, res);
+  check_variable(d_rng, res);
   MURXLA_TRACE_RETURN << res;
   return {res->get_id()};
+}
+
+void
+ActionMkVar::check_variable(RNGenerator& rng, Term term)
+{
+  if (rng.pick_with_prob(999)) return;
+
+  ActionMkTerm::check_term(rng, term);
+
+  MURXLA_TEST(term->is_var());
+  MURXLA_TEST(!term->is_value());
+  MURXLA_TEST(!term->is_const());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1492,6 +1505,7 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
 
   MURXLA_TEST(term->is_value());
   MURXLA_TEST(!term->is_const());
+  MURXLA_TEST(!term->is_var());
 
   if (term->is_bool())
   {

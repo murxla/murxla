@@ -258,6 +258,12 @@ AbsTerm::is_value() const
   return d_leaf_kind == LeafKind::VALUE;
 }
 
+bool
+AbsTerm::is_var() const
+{
+  return d_leaf_kind == LeafKind::VARIABLE;
+}
+
 const Op::Kind&
 AbsTerm::get_kind() const
 {

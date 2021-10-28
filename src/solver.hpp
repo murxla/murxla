@@ -204,6 +204,8 @@ class AbsTerm
   virtual bool is_const() const;
   /** Return true if this term is a value. */
   virtual bool is_value() const;
+  /** Return true if this term is a variable. */
+  virtual bool is_var() const;
 
   /**
    * Return the kind of the current term.
