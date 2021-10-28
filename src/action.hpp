@@ -2,6 +2,7 @@
 #define __MURXLA__ACTION_H
 
 #include <cassert>
+#include <iomanip>
 #include <string>
 #include <vector>
 
@@ -9,16 +10,19 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define MURXLA_TRACE                         \
-  OstreamVoider()                            \
-      & Action::TraceStream(d_smgr).stream() \
-            << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "")
+#define MURXLA_TRACE                                                \
+  OstreamVoider()                                                   \
+      & Action::TraceStream(d_smgr).stream()                        \
+            << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "")    \
+            << std::setw(5)                                         \
+            << (d_sng.is_untrace_mode() ? d_sng.seed()              \
+                                        : d_sng.next_solver_seed()) \
+            << " "
 
-#define MURXLA_TRACE_RETURN \
-  OstreamVoider() & Action::TraceStream(d_smgr).stream() << "return "
-
-#define MURXLA_TRACE_GET_SORT \
-  OstreamVoider() & Action::TraceStream(d_smgr).stream() << TERM_GET_SORT << " "
+#define MURXLA_TRACE_RETURN                                         \
+  OstreamVoider()                                                   \
+      & Action::TraceStream(d_smgr).stream() << std::setw(6) << " " \
+                                             << "return "
 
 /* -------------------------------------------------------------------------- */
 
@@ -161,6 +165,8 @@ class Action
 
   /** The random number generator associated with this action. */
   RNGenerator& d_rng;
+  /** The seed generator for the RNG of the solver. */
+  SeedGenerator& d_sng;
   /** The solver associated with this action. */
   Solver& d_solver;
   /** The solver manager associated with this action. */

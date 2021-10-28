@@ -96,6 +96,12 @@ SolverManager::get_rng() const
   return d_rng;
 }
 
+SeedGenerator&
+SolverManager::get_sng()
+{
+  return d_sng;
+}
+
 /* -------------------------------------------------------------------------- */
 
 std::string

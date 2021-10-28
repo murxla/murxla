@@ -607,13 +607,13 @@ get_cur_wall_time()
 
 /* -------------------------------------------------------------------------- */
 
-std::tuple<std::string, std::vector<std::string>>
+std::tuple<uint32_t, std::string, std::vector<std::string>>
 tokenize(const std::string& line)
 {
   std::stringstream ss;
   std::string token;
   std::stringstream tokenstream(line);
-  std::string action;
+  std::string seed, action;
   std::vector<std::string> tokens;
   bool open_str = false;
 
@@ -621,7 +621,16 @@ tokenize(const std::string& line)
    *       spaces, e.g., "|a b|". We join these together again. */
   while (std::getline(tokenstream, token, ' '))
   {
-    if (action.empty())
+    if (token.empty()) continue;
+    if (seed.empty() && (token[0] < '0' || token[0] > '9'))
+    {
+      seed = "undefined";
+    }
+    if (seed.empty())
+    {
+      seed = token;
+    }
+    else if (action.empty())
     {
       action = token;
     }
@@ -644,7 +653,8 @@ tokenize(const std::string& line)
       tokens.push_back(token);
     }
   }
-  return std::make_tuple(action, tokens);
+  return std::make_tuple(
+      seed == "undefined" ? 0 : std::stoul(seed), action, tokens);
 }
 
 std::vector<std::string>

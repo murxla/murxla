@@ -14,12 +14,28 @@ namespace murxla {
 class SeedGenerator
 {
  public:
+  /** Default Constructor. Starts from seed 0. */
   SeedGenerator() { next(); }
+  /** Default Constructor. Starts from given seed. */
   explicit SeedGenerator(uint32_t s) : d_seed(s) {}
+  /** Generate and return the next seed. */
   uint32_t next();
+  /** Generate and return the next seed for the solver RNG. */
+  uint32_t next_solver_seed();
+  /** Get the current seed. */
+  uint32_t seed() const { return d_seed; }
+  /** Set the current seed. */
+  void set_seed(uint32_t s) { d_seed = s; }
+  /** Set to true if we are currently untracing. */
+  void set_untrace_mode(bool b) { d_is_untrace_mode = b; }
+  /** Return true if we are currently untracing. */
+  bool is_untrace_mode() { return d_is_untrace_mode; }
 
  private:
+  /** The current seed. */
   uint32_t d_seed = 0;
+  /** True if we are currently untracing. */
+  bool d_is_untrace_mode = false;
 };
 
 /* -------------------------------------------------------------------------- */

@@ -34,6 +34,12 @@ SeedGenerator::next()
   return cur_seed;
 }
 
+uint32_t
+SeedGenerator::next_solver_seed()
+{
+  return next() % 100000;
+}
+
 /* -------------------------------------------------------------------------- */
 
 RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)

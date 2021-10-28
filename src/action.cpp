@@ -43,6 +43,7 @@ Action::Action(SolverManager& smgr,
                ReturnValue returns,
                bool empty)
     : d_rng(smgr.get_rng()),
+      d_sng(smgr.get_sng()),
       d_solver(smgr.get_solver()),
       d_smgr(smgr),
       d_returns(returns),
@@ -373,19 +374,39 @@ ActionMkSort::run()
       break;
 
     case SORT_FP:
+    {
       // TODO: support arbitrary formats (for now we only support Float16,
       //       Float32, Float64, Float128
       pick = d_rng.pick_one_of_four();
+      uint32_t ew, sw;
       switch (pick)
       {
-        case RNGenerator::Choice::FIRST: _run(kind, 5, 11); break;
-        case RNGenerator::Choice::SECOND: _run(kind, 8, 24); break;
-        case RNGenerator::Choice::THIRD: _run(kind, 11, 53); break;
+        case RNGenerator::Choice::FIRST:
+          ew = 5;
+          sw = 11;
+          break;
+        case RNGenerator::Choice::SECOND:
+          ew = 8;
+          sw = 24;
+          break;
+        case RNGenerator::Choice::THIRD:
+          ew = 11;
+          sw = 53;
+          break;
         default:
           assert(pick == RNGenerator::Choice::FOURTH);
-          _run(kind, 15, 113);
+          ew = 15;
+          sw = 113;
       }
-      break;
+      _run(kind, ew, sw);
+      /* Operator fp expects three bit-vector terms of size 1, ew and sw - 1 as
+       * arguments. To increase the probability that terms of these sizes are
+       * available, we also generate the corresponding bit-vector sorts. */
+      _run(SORT_BV, 1);
+      _run(SORT_BV, ew);
+      _run(SORT_BV, sw - 1);
+    }
+    break;
 
     case SORT_FUN:
     {
@@ -573,12 +594,6 @@ ActionMkSort::_run(SortKind kind, uint32_t ew, uint32_t sw)
   MURXLA_TEST(res->get_fp_sig_size() == sw);
   d_smgr.add_sort(res, kind);
   MURXLA_TRACE_RETURN << res;
-  /* Operator fp expects three bit-vector terms of size 1, ew and sw - 1 as
-   * arguments. To increase the probability that terms of these sizes are
-   * available, we also generate the corresponding bit-vector sorts. */
-  _run(SORT_BV, 1);
-  _run(SORT_BV, ew);
-  _run(SORT_BV, sw - 1);
   return res->get_id();
 }
 

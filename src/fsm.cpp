@@ -602,6 +602,11 @@ FSM::untrace(const std::string& trace_file_name)
   Action* ret_action;
   std::string line;
   std::ifstream trace;
+  bool sng_untrace_mode = d_smgr.get_sng().is_untrace_mode();
+
+  /* Set mode to untracing. We keep the untraced solver seeds when untracing
+   * and do not generate new solver seeds. */
+  d_smgr.get_sng().set_untrace_mode(true);
 
   trace.open(trace_file_name);
   MURXLA_CHECK_CONFIG(trace.is_open())
@@ -615,7 +620,8 @@ FSM::untrace(const std::string& trace_file_name)
       if (line.empty()) continue;
       if (line[0] == '#') continue;
 
-      const auto& [id, tokens] = tokenize(line);
+      const auto& [seed, id, tokens] = tokenize(line);
+      d_smgr.get_sng().set_seed(seed);
 
       if (id == "return")
       {
@@ -664,7 +670,8 @@ FSM::untrace(const std::string& trace_file_name)
           {
             nline += 1;
 
-            const auto& [next_id, next_tokens] = tokenize(line);
+            const auto& [seed, next_id, next_tokens] = tokenize(line);
+            d_smgr.get_sng().set_seed(seed);
 
             if (next_id != "return")
             {
@@ -743,6 +750,9 @@ FSM::untrace(const std::string& trace_file_name)
     throw MurxlaUntraceException(trace_file_name, nline, e.get_msg());
   }
   if (trace.is_open()) trace.close();
+
+  /* reset to previous mode */
+  d_smgr.get_sng().set_untrace_mode(sng_untrace_mode);
 }
 
 /* ========================================================================== */

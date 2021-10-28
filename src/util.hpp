@@ -126,7 +126,11 @@ double get_cur_wall_time();
 
 /* -------------------------------------------------------------------------- */
 
-std::tuple<std::string, std::vector<std::string>> tokenize(
+/**
+ * Tokenize untrace line.
+ * Return a tuple of solver seed, action and vector of tokens.
+ */
+std::tuple<uint32_t, std::string, std::vector<std::string>> tokenize(
     const std::string& line);
 
 /** Split string 's' by character 'delim'. */
