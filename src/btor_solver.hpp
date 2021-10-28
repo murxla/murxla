@@ -255,9 +255,6 @@ class BtorSolver : public Solver
   std::vector<BoolectorNode*> terms_to_btor_terms(
       const std::vector<Term>& terms) const;
 
-  BtorFunBoolUnary pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const;
-  BtorFunBoolUnary pick_fun_is_bv_const() const;
-
   BoolectorSort get_btor_sort(Sort sort) const;
   BoolectorNode* mk_value_bv_uint32(Sort sort, uint32_t value);
   BoolectorNode* mk_term_left_assoc(

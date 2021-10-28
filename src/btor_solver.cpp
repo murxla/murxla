@@ -371,6 +371,7 @@ bool
 BtorTerm::is_const() const
 {
   return boolector_is_var(d_solver, d_term)
+         || boolector_is_array_var(d_solver, d_term)
          || boolector_is_uf(d_solver, d_term);
 }
 
@@ -666,28 +667,6 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
     btor_res = boolector_var(d_solver, get_btor_sort(sort), cname);
   }
   MURXLA_TEST(btor_res);
-  if (d_rng.pick_with_prob(10))
-  {
-    RNGenerator::Choice pick = d_rng.pick_one_of_three();
-    switch (pick)
-    {
-      case RNGenerator::Choice::FIRST:
-        MURXLA_TEST(!pick_fun_is_bv_const()(d_solver, btor_res));
-        break;
-      case RNGenerator::Choice::SECOND:
-        MURXLA_TEST(!boolector_is_const(d_solver, btor_res));
-        break;
-      default:
-        assert(pick == RNGenerator::Choice::THIRD);
-        MURXLA_TEST(sort->get_kind() == SORT_ARRAY
-                    || sort->get_kind() == SORT_FUN
-                    || boolector_is_var(d_solver, btor_res));
-        MURXLA_TEST(sort->get_kind() != SORT_ARRAY
-                    || sort->get_kind() != SORT_FUN
-                    || boolector_is_array_var(d_solver, btor_res)
-                    || boolector_is_uf(d_solver, btor_res));
-    }
-  }
   if (d_rng.pick_with_prob(1))
   {
     MURXLA_TEST(boolector_is_equal_sort(d_solver, btor_res, btor_res));
@@ -1616,23 +1595,6 @@ BtorSolver::terms_to_btor_terms(const std::vector<Term>& terms) const
     res.push_back(get_btor_term(t));
   }
   return res;
-}
-
-BtorSolver::BtorFunBoolUnary
-BtorSolver::pick_fun_bool_unary(BtorFunBoolUnaryVector& funs) const
-{
-  return d_rng.pick_from_set<BtorFunBoolUnaryVector, BtorFunBoolUnary>(funs);
-}
-
-BtorSolver::BtorFunBoolUnary
-BtorSolver::pick_fun_is_bv_const() const
-{
-  BtorFunBoolUnaryVector funs = {boolector_is_bv_const_zero,
-                                 boolector_is_bv_const_one,
-                                 boolector_is_bv_const_ones,
-                                 boolector_is_bv_const_max_signed,
-                                 boolector_is_bv_const_min_signed};
-  return pick_fun_bool_unary(funs);
 }
 
 /* -------------------------------------------------------------------------- */
