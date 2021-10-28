@@ -11,6 +11,8 @@ class CheckSolver : public shadow::ShadowSolver
   CheckSolver(RNGenerator& rng, Solver* solver, Solver* solver_check);
   ~CheckSolver() override;
 
+  void delete_solver() override;
+
   bool option_unsat_cores_enabled() const override;
 
   void assert_formula(const Term& t) override;

@@ -9,7 +9,17 @@ CheckSolver::CheckSolver(RNGenerator& rng, Solver* solver, Solver* solver_check)
 {
   d_same_solver = false;
 }
+
 CheckSolver::~CheckSolver() {}
+
+void
+CheckSolver::delete_solver()
+{
+  d_assertions.clear();
+  d_assumptions.clear();
+  d_assumptions_shadow.clear();
+  ShadowSolver::delete_solver();
+}
 
 bool
 CheckSolver::option_unsat_cores_enabled() const
@@ -145,8 +155,11 @@ CheckSolver::get_value(std::vector<Term>& terms)
 void
 CheckSolver::reset()
 {
-  ShadowSolver::reset();
+  d_assertions.clear();
+  d_assumptions.clear();
+  d_assumptions_shadow.clear();
   d_incremental = false;
+  ShadowSolver::reset();
 }
 
 void
