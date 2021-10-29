@@ -72,7 +72,9 @@ class Cvc5Term : public AbsTerm
   static ::cvc5::api::Term& get_cvc5_term(Term term);
   /** Convert vector of cvc5 terms to vector of Murxla terms. */
   static std::vector<Term> cvc5_terms_to_terms(
-      ::cvc5::api::Solver* cvc5, const std::vector<::cvc5::api::Term>& terms);
+      RNGenerator& rng,
+      ::cvc5::api::Solver* cvc5,
+      const std::vector<::cvc5::api::Term>& terms);
   /** Convert vector of Murxla terms to vector of cvc5 terms. */
   static std::vector<::cvc5::api::Term> terms_to_cvc5_terms(
       const std::vector<Term>& terms);
@@ -101,8 +103,8 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_REGEXP_SIGMA = "cvc5-OP_REGEXP_SIGMA";
   inline static const Op::Kind OP_REGEXP_STAR  = "cvc5-OP_REGEXP_STAR";
 
-  Cvc5Term(::cvc5::api::Solver* cvc5, ::cvc5::api::Term term)
-      : d_solver(cvc5), d_term(term)
+  Cvc5Term(RNGenerator& rng, ::cvc5::api::Solver* cvc5, ::cvc5::api::Term term)
+      : d_rng(rng), d_solver(cvc5), d_term(term)
   {
   }
 
@@ -141,7 +143,11 @@ class Cvc5Term : public AbsTerm
   std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
+  /** The associated solver RNG. */
+  RNGenerator& d_rng;
+  /** The associated cvc5 solver instance. */
   ::cvc5::api::Solver* d_solver = nullptr;
+  /** The wrapped cvc5 term. */
   ::cvc5::api::Term d_term;
 };
 

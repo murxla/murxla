@@ -688,13 +688,14 @@ Cvc5Term::get_cvc5_term(Term term)
 }
 
 std::vector<Term>
-Cvc5Term::cvc5_terms_to_terms(::cvc5::api::Solver* cvc5,
+Cvc5Term::cvc5_terms_to_terms(RNGenerator& rng,
+                              ::cvc5::api::Solver* cvc5,
                               const std::vector<::cvc5::api::Term>& terms)
 {
   std::vector<Term> res;
   for (auto& t : terms)
   {
-    res.push_back(std::shared_ptr<Cvc5Term>(new Cvc5Term(cvc5, t)));
+    res.push_back(std::shared_ptr<Cvc5Term>(new Cvc5Term(rng, cvc5, t)));
   }
   return res;
 }
@@ -839,7 +840,7 @@ Cvc5Term::get_children() const
   std::vector<Term> res;
   for (const auto& c : d_term)
   {
-    res.emplace_back(new Cvc5Term(d_solver, c));
+    res.emplace_back(new Cvc5Term(d_rng, d_solver, c));
   }
   return res;
 }
@@ -863,19 +864,42 @@ Cvc5Term::get_indices() const
   std::vector<std::string> res;
   Op::Kind kind = get_kind();
   size_t n_idxs = get_num_indices();
-  if (kind == Op::INT_IS_DIV)
+  if (d_rng.flip_coin())
   {
-    res.push_back(d_term.getOp().getIndices<std::string>());
-  }
-  else if (n_idxs == 2)
-  {
-    auto cvc5_res = d_term.getOp().getIndices<std::pair<uint32_t, uint32_t>>();
-    res.push_back(std::to_string(cvc5_res.first));
-    res.push_back(std::to_string(cvc5_res.second));
+    if (kind == Op::INT_IS_DIV)
+    {
+      res.push_back(d_term.getOp().getIndices<std::string>());
+    }
+    else if (n_idxs == 2)
+    {
+      auto cvc5_res =
+          d_term.getOp().getIndices<std::pair<uint32_t, uint32_t>>();
+      res.push_back(std::to_string(cvc5_res.first));
+      res.push_back(std::to_string(cvc5_res.second));
+    }
+    else
+    {
+      MURXLA_TEST(n_idxs == 1);
+      res.push_back(std::to_string(d_term.getOp().getIndices<uint32_t>()));
+    }
   }
   else
   {
-    res.push_back(std::to_string(d_term.getOp().getIndices<uint32_t>()));
+    auto cvc5_res = d_term.getOp().getIndices<std::vector<::cvc5::api::Term>>();
+    if (kind == Op::INT_IS_DIV)
+    {
+      MURXLA_TEST(cvc5_res.size() == 1);
+      MURXLA_TEST(cvc5_res[0].isIntegerValue());
+      res.push_back(cvc5_res[0].getIntegerValue());
+    }
+    else
+    {
+      for (auto& t : cvc5_res)
+      {
+        MURXLA_TEST(t.isIntegerValue());
+        res.push_back(t.getIntegerValue());
+      }
+    }
   }
   return res;
 }
@@ -1172,7 +1196,7 @@ Cvc5Solver::mk_const(Sort sort, const std::string& name)
   ::cvc5::api::Term cvc5_res =
       d_solver->mkConst(Cvc5Sort::get_cvc5_sort(sort), name);
   MURXLA_TEST(!cvc5_res.isNull());
-  return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
 }
 
 Term
@@ -1181,7 +1205,7 @@ Cvc5Solver::mk_var(Sort sort, const std::string& name)
   ::cvc5::api::Term cvc5_res =
       d_solver->mkVar(Cvc5Sort::get_cvc5_sort(sort), name);
   MURXLA_TEST(!cvc5_res.isNull());
-  return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
 }
 
 Term
@@ -1203,7 +1227,7 @@ Cvc5Solver::mk_value(Sort sort, bool value)
     cvc5_res = d_solver->mkBoolean(value);
   }
   MURXLA_TEST(!cvc5_res.isNull());
-  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_rng, d_solver, cvc5_res));
   assert(res);
   return res;
 }
@@ -1293,7 +1317,7 @@ Cvc5Solver::mk_value(Sort sort, std::string value)
              "sort ";
   }
   MURXLA_TEST(!cvc5_res.isNull());
-  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_rng, d_solver, cvc5_res));
   assert(res);
   return res;
 }
@@ -1312,7 +1336,7 @@ Cvc5Solver::mk_value(Sort sort, std::string num, std::string den)
       static_cast<int64_t>(strtoull(num.c_str(), nullptr, 10)),
       static_cast<int64_t>(strtoull(den.c_str(), nullptr, 10)));
   MURXLA_TEST(!cvc5_res.isNull());
-  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_rng, d_solver, cvc5_res));
   assert(res);
   return res;
 }
@@ -1374,7 +1398,7 @@ Cvc5Solver::mk_value(Sort sort, std::string value, Base base)
       }
   }
   MURXLA_TEST(!cvc5_res.isNull());
-  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_rng, d_solver, cvc5_res));
   assert(res);
   return res;
 }
@@ -1520,7 +1544,7 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
              "floating-point, "
              "RoundingMode, Real or Reglan sort";
   }
-  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_rng, d_solver, cvc5_res));
   assert(res);
   return res;
 }
@@ -1684,7 +1708,7 @@ DONE:
   MURXLA_TEST(cvc5_kind == cvc5_res.getKind()
               || (cvc5_res.getSort().isBoolean()
                   && cvc5_res.getKind() == ::cvc5::api::Kind::AND));
-  return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
 }
 
 Sort
@@ -1749,7 +1773,7 @@ Cvc5Solver::get_unsat_assumptions()
 {
   std::vector<Term> res;
   std::vector<::cvc5::api::Term> cvc5_res = d_solver->getUnsatAssumptions();
-  return Cvc5Term::cvc5_terms_to_terms(d_solver, cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_rng, d_solver, cvc5_res);
 }
 
 std::vector<Term>
@@ -1757,7 +1781,7 @@ Cvc5Solver::get_unsat_core()
 {
   std::vector<Term> res;
   std::vector<::cvc5::api::Term> cvc5_res = d_solver->getUnsatCore();
-  return Cvc5Term::cvc5_terms_to_terms(d_solver, cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_rng, d_solver, cvc5_res);
 }
 
 std::vector<Term>
@@ -1779,7 +1803,7 @@ Cvc5Solver::get_value(std::vector<Term>& terms)
       cvc5_res.push_back(d_solver->getValue(t));
     }
   }
-  return Cvc5Term::cvc5_terms_to_terms(d_solver, cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_rng, d_solver, cvc5_res);
 }
 
 void
@@ -2078,7 +2102,7 @@ class Cvc5ActionSimplify : public Action
     ::cvc5::api::Solver* cvc5  = solver.get_solver();
     ::cvc5::api::Term cvc5_res = cvc5->simplify(Cvc5Term::get_cvc5_term(term));
     MURXLA_TEST(!cvc5_res.isNull());
-    Term res  = std::make_shared<Cvc5Term>(cvc5, cvc5_res);
+    Term res  = std::make_shared<Cvc5Term>(solver.get_rng(), cvc5, cvc5_res);
     Sort sort = term->get_sort();
     assert (sort != nullptr);
     /* Note: The simplified term 'res' may or may not be already in the term
