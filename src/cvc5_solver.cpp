@@ -1050,6 +1050,12 @@ Cvc5Solver::get_unsupported_fun_codomain_sort_kinds() const
   return {SORT_FUN, SORT_REGLAN};
 }
 
+SortKindSet
+Cvc5Solver::get_unsupported_get_value_sort_kinds() const
+{
+  return {SORT_REGLAN};
+}
+
 Cvc5Solver::~Cvc5Solver()
 {
   if (d_solver)

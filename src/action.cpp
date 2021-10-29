@@ -1909,9 +1909,11 @@ ActionGetValue::run()
 
   uint32_t n_terms = d_rng.pick<uint32_t>(1, MURXLA_MAX_N_TERMS_GET_VALUE);
   std::vector<Term> terms;
+  auto exclude_sorts = d_solver.get_unsupported_get_value_sort_kinds();
   for (uint32_t i = 0; i < n_terms; ++i)
   {
-    terms.push_back(d_smgr.pick_term(0));
+    Sort s = d_smgr.pick_sort_excluding(exclude_sorts, true);
+    terms.push_back(d_smgr.pick_term(s->get_kind(), 0));
   }
   _run(terms);
   return true;

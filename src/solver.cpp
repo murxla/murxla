@@ -485,6 +485,12 @@ Solver::get_unsupported_array_element_sort_kinds() const
   return {};
 }
 
+SortKindSet
+Solver::get_unsupported_get_value_sort_kinds() const
+{
+  return {};
+}
+
 void
 Solver::configure_fsm(FSM* fsm) const
 {

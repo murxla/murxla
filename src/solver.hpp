@@ -437,6 +437,11 @@ class Solver
    * Get the set of sort kinds that are unsupported as array element sort.
    */
   virtual SortKindSet get_unsupported_array_element_sort_kinds() const;
+  /**
+   * Get the set of sort kinds that are unsupported for get-value.
+   */
+  virtual SortKindSet get_unsupported_get_value_sort_kinds() const;
+
 
   virtual void configure_fsm(FSM* fsm) const;
   virtual void disable_unsupported_actions(FSM* fsm) const;
