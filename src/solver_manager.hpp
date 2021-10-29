@@ -71,7 +71,7 @@ class SolverManager
   RNGenerator& get_rng() const;
 
   /** Get the solver seed generator. */
-  SeedGenerator& get_sng();
+  SolverSeedGenerator& get_sng();
 
   /** Get the list of terms for which tracing with get-sort is pending. */
   std::vector<Term>& get_pending_get_sorts();
@@ -516,7 +516,7 @@ class SolverManager
    * Responsible for generating seeds to be used to seed the random generator
    * of the solver.
    */
-  SeedGenerator d_sng;
+  SolverSeedGenerator d_sng;
 
   /** The stream to capture the API trace. */
   std::ostream& d_trace;

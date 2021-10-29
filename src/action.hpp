@@ -166,7 +166,7 @@ class Action
   /** The random number generator associated with this action. */
   RNGenerator& d_rng;
   /** The seed generator for the RNG of the solver. */
-  SeedGenerator& d_sng;
+  SolverSeedGenerator& d_sng;
   /** The solver associated with this action. */
   Solver& d_solver;
   /** The solver manager associated with this action. */

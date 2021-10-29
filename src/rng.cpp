@@ -34,12 +34,6 @@ SeedGenerator::next()
   return cur_seed;
 }
 
-uint32_t
-SeedGenerator::next_solver_seed()
-{
-  return next() % 100000;
-}
-
 /* -------------------------------------------------------------------------- */
 
 RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
@@ -64,12 +58,6 @@ RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
   /* 0-9 */
   i = 48;
   std::generate_n(std::back_inserter(d_hex_chars), 10, [&i]() { return i++; });
-}
-
-std::mt19937&
-RNGenerator::get_engine()
-{
-  return d_rng;
 }
 
 bool
@@ -389,6 +377,14 @@ RNGenerator::pick_string_literal(uint32_t len)
   }
 
   return ss.str();
+}
+
+/* -------------------------------------------------------------------------- */
+
+uint32_t
+SolverSeedGenerator::next_solver_seed()
+{
+  return pick<uint32_t>() % 100000;
 }
 
 /* -------------------------------------------------------------------------- */

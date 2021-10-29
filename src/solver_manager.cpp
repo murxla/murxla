@@ -30,6 +30,7 @@ SolverManager::SolverManager(Solver* solver,
       d_simple_symbols(simple_symbols),
       d_solver(solver),
       d_rng(rng),
+      d_sng(rng.get_seed()),
       d_trace(trace),
       d_solver_options(options),
       d_used_solver_options(),
@@ -96,7 +97,7 @@ SolverManager::get_rng() const
   return d_rng;
 }
 
-SeedGenerator&
+SolverSeedGenerator&
 SolverManager::get_sng()
 {
   return d_sng;

@@ -20,22 +20,10 @@ class SeedGenerator
   explicit SeedGenerator(uint32_t s) : d_seed(s) {}
   /** Generate and return the next seed. */
   uint32_t next();
-  /** Generate and return the next seed for the solver RNG. */
-  uint32_t next_solver_seed();
-  /** Get the current seed. */
-  uint32_t seed() const { return d_seed; }
-  /** Set the current seed. */
-  void set_seed(uint32_t s) { d_seed = s; }
-  /** Set to true if we are currently untracing. */
-  void set_untrace_mode(bool b) { d_is_untrace_mode = b; }
-  /** Return true if we are currently untracing. */
-  bool is_untrace_mode() { return d_is_untrace_mode; }
 
  private:
   /** The current seed. */
   uint32_t d_seed = 0;
-  /** True if we are currently untracing. */
-  bool d_is_untrace_mode = false;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -59,8 +47,10 @@ class RNGenerator
   /** Constructor. */
   explicit RNGenerator(uint32_t seed = 0);
 
+  /** Get the seed used for seeding the RNG on construction. */
+  uint32_t get_seed() const { return d_seed; }
   /** Get the RNG Mersenne Twister engine. */
-  std::mt19937& get_engine();
+  std::mt19937& get_engine() { return d_rng; }
 
   /** Pick an integral number with type T. */
   template <typename T,
@@ -181,6 +171,35 @@ class RNGenerator
   std::vector<char> d_printable_chars;
   /** The set of hexadecimal characters */
   std::vector<char> d_hex_chars;
+};
+
+/* -------------------------------------------------------------------------- */
+
+class SolverSeedGenerator : public RNGenerator
+{
+ public:
+  /** Constructor. */
+  SolverSeedGenerator(uint32_t seed) : RNGenerator(seed) {}
+  /** Generate and return the next seed for the solver RNG. */
+  uint32_t next_solver_seed();
+  /** Get the current seed. */
+  uint32_t seed() const { return d_cur_seed; }
+  /** Set the current seed. */
+  void set_seed(uint32_t s) { d_cur_seed = s; }
+  /** Set to true if we are currently untracing. */
+  void set_untrace_mode(bool b) { d_is_untrace_mode = b; }
+  /** Return true if we are currently untracing. */
+  bool is_untrace_mode() { return d_is_untrace_mode; }
+
+ private:
+  /**
+   * The current (generated) seed.
+   * Not to be confused with the seed used for seeding the generator on
+   * construction (which is RnGenerator::d_seed).
+   */
+  uint32_t d_cur_seed = 0;
+  /** True if we are currently untracing. */
+  bool d_is_untrace_mode = false;
 };
 
 /* -------------------------------------------------------------------------- */
