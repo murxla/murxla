@@ -173,7 +173,7 @@ class BzlaSolver : public Solver
   inline static const State::Kind STATE_UNKNOWN = "bzla-unknown";
 
   /** Constructor. */
-  BzlaSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  BzlaSolver(SolverSeedGenerator& sng) : Solver(sng), d_solver(nullptr) {}
   /** Destructor. */
   ~BzlaSolver() override;
 

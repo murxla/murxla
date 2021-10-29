@@ -15,6 +15,7 @@ namespace murxla {
 
 SolverManager::SolverManager(Solver* solver,
                              RNGenerator& rng,
+                             SolverSeedGenerator& sng,
                              std::ostream& trace,
                              SolverOptions& options,
                              bool arith_subtyping,
@@ -30,7 +31,7 @@ SolverManager::SolverManager(Solver* solver,
       d_simple_symbols(simple_symbols),
       d_solver(solver),
       d_rng(rng),
-      d_sng(rng.get_seed()),
+      d_sng(sng),
       d_trace(trace),
       d_solver_options(options),
       d_used_solver_options(),
@@ -84,12 +85,6 @@ SolverManager::get_solver()
 }
 
 /* -------------------------------------------------------------------------- */
-
-void
-SolverManager::set_rng(RNGenerator& rng)
-{
-  d_rng = rng;
-}
 
 RNGenerator&
 SolverManager::get_rng() const

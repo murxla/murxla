@@ -298,10 +298,10 @@ ShadowTerm::set_leaf_kind(LeafKind kind)
   d_term_shadow->set_leaf_kind(kind);
 }
 
-ShadowSolver::ShadowSolver(RNGenerator& rng,
+ShadowSolver::ShadowSolver(SolverSeedGenerator& sng,
                            Solver* solver,
                            Solver* solver_shadow)
-    : Solver(rng),
+    : Solver(sng),
       d_solver(solver),
       d_solver_shadow(solver_shadow),
       d_same_solver(solver->get_name() == solver_shadow->get_name()){};

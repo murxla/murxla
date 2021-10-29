@@ -10,14 +10,11 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define MURXLA_TRACE                                                \
-  OstreamVoider()                                                   \
-      & Action::TraceStream(d_smgr).stream()                        \
-            << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "")    \
-            << std::setw(5)                                         \
-            << (d_sng.is_untrace_mode() ? d_sng.seed()              \
-                                        : d_sng.next_solver_seed()) \
-            << " "
+#define MURXLA_TRACE                                             \
+  OstreamVoider()                                                \
+      & Action::TraceStream(d_smgr).stream()                     \
+            << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "") \
+            << std::setw(5) << d_sng.seed() << " "
 
 #define MURXLA_TRACE_RETURN                                         \
   OstreamVoider()                                                   \
@@ -109,9 +106,6 @@ class Action
     SolverManager& d_smgr;
   };
 
-  /** Get Action kind from string representation. */
-  const Kind& get_kind() { return d_kind; };
-
   /** Disallow default constructor. */
   Action() = delete;
   /** Constructor. */
@@ -149,6 +143,12 @@ class Action
    * performing any API calls.
    */
   bool empty() const { return d_is_empty; }
+
+  /**
+   * Generate next seed and seed solver RNG.
+   * This should never be called when untracing.
+   */
+  void seed_solver_rng() const;
 
  protected:
   /**

@@ -591,10 +591,10 @@ Smt2Solver::dump_smt2(std::string s, ResponseKind expected)
   if (d_online) push_to_external(s, expected);
 }
 
-Smt2Solver::Smt2Solver(RNGenerator& rng,
+Smt2Solver::Smt2Solver(SolverSeedGenerator& sng,
                        std::ostream& out,
                        const std::string& solver_binary)
-    : Solver(rng),
+    : Solver(sng),
       d_out(out),
       d_online(!solver_binary.empty()),
       d_file_to(nullptr),

@@ -38,6 +38,7 @@ class SolverManager
 
   SolverManager(Solver* solver,
                 RNGenerator& rng,
+                SolverSeedGenerator& sng,
                 std::ostream& trace,
                 SolverOptions& options,
                 bool arith_subtyping,
@@ -65,12 +66,10 @@ class SolverManager
   /** Get solver. */
   Solver& get_solver();
 
-  /** Set random number generator. */
-  void set_rng(RNGenerator& rng);
-  /** Get random number generator. */
+  /** Get the associated global random number generator. */
   RNGenerator& get_rng() const;
 
-  /** Get the solver seed generator. */
+  /** Get the associated solver seed generator. */
   SolverSeedGenerator& get_sng();
 
   /** Get the list of terms for which tracing with get-sort is pending. */
@@ -508,15 +507,19 @@ class SolverManager
    */
   std::unique_ptr<Solver> d_solver;
 
-  /** The random number generator. */
+  /**
+   * The associated global random number generator.
+   * Not to be confused with the RNG maintained and used by the solver, which
+   * is independent from the global RNG.
+   */
   RNGenerator& d_rng;
 
   /**
-   * The solver seed generator.
+   * The associated solver seed generator.
    * Responsible for generating seeds to be used to seed the random generator
    * of the solver.
    */
-  SolverSeedGenerator d_sng;
+  SolverSeedGenerator& d_sng;
 
   /** The stream to capture the API trace. */
   std::ostream& d_trace;

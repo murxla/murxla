@@ -4,8 +4,10 @@ namespace murxla {
 
 using namespace shadow;
 
-CheckSolver::CheckSolver(RNGenerator& rng, Solver* solver, Solver* solver_check)
-    : ShadowSolver(rng, solver, solver_check)
+CheckSolver::CheckSolver(SolverSeedGenerator& sng,
+                         Solver* solver,
+                         Solver* solver_check)
+    : ShadowSolver(sng, solver, solver_check)
 {
   d_same_solver = false;
 }

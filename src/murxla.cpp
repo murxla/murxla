@@ -423,58 +423,58 @@ Murxla::replay(uint32_t seed,
 }
 
 Solver*
-Murxla::new_solver(RNGenerator& rng,
+Murxla::new_solver(SolverSeedGenerator& sng,
                    const SolverKind& solver_kind,
                    std::ostream& smt2_out) const
 {
   if (solver_kind == SOLVER_BTOR)
   {
 #if MURXLA_USE_BOOLECTOR
-    return new btor::BtorSolver(rng);
+    return new btor::BtorSolver(sng);
 #endif
   }
   else if (solver_kind == SOLVER_BZLA)
   {
 #if MURXLA_USE_BITWUZLA
-    return new bzla::BzlaSolver(rng);
+    return new bzla::BzlaSolver(sng);
 #endif
   }
   else if (solver_kind == SOLVER_CVC5)
   {
 #if MURXLA_USE_CVC5
-    return new cvc5::Cvc5Solver(rng);
+    return new cvc5::Cvc5Solver(sng);
 #endif
   }
   else if (solver_kind == SOLVER_YICES)
   {
 #if MURXLA_USE_YICES
-    return new yices::YicesSolver(rng);
+    return new yices::YicesSolver(sng);
 #endif
   }
   else if (solver_kind == SOLVER_SMT2)
   {
-    return new smt2::Smt2Solver(rng, smt2_out, d_options.solver_binary);
+    return new smt2::Smt2Solver(sng, smt2_out, d_options.solver_binary);
   }
   MURXLA_CHECK(true) << "no solver created";
   return nullptr;
 }
 
 Solver*
-Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out) const
+Murxla::create_solver(SolverSeedGenerator& sng, std::ostream& smt2_out) const
 {
-  Solver* solver = new_solver(rng, d_options.solver, smt2_out);
+  Solver* solver = new_solver(sng, d_options.solver, smt2_out);
 
   /* If unsat core checking is enabled wrap solver with a CheckSolver. */
   if (d_options.check_solver)
   {
-    Solver* reference_solver = new_solver(rng, d_options.check_solver_name);
-    solver                   = new CheckSolver(rng, solver, reference_solver);
+    Solver* reference_solver = new_solver(sng, d_options.check_solver_name);
+    solver                   = new CheckSolver(sng, solver, reference_solver);
   }
 
   if (!d_options.cross_check.empty())
   {
-    Solver* reference_solver = new_solver(rng, d_options.cross_check);
-    solver = new shadow::ShadowSolver(rng, solver, reference_solver);
+    Solver* reference_solver = new_solver(sng, d_options.cross_check);
+    solver = new shadow::ShadowSolver(sng, solver, reference_solver);
   }
 
   return solver;
@@ -482,6 +482,7 @@ Murxla::create_solver(RNGenerator& rng, std::ostream& smt2_out) const
 
 FSM
 Murxla::create_fsm(RNGenerator& rng,
+                   SolverSeedGenerator& sng,
                    std::ostream& trace,
                    std::ostream& smt2_out,
                    bool record_stats) const
@@ -496,7 +497,7 @@ Murxla::create_fsm(RNGenerator& rng,
   {
     /* We need a solver instance for the check (will not be passed to FSM
      * in order to have a fresh instance for the actual run). */
-    Solver* solver = create_solver(rng, smt2_out);
+    Solver* solver = create_solver(sng, smt2_out);
     if (solver->supports_theory(THEORY_INT))
     {
       solver->new_solver();
@@ -507,7 +508,8 @@ Murxla::create_fsm(RNGenerator& rng,
   }
 
   return FSM(rng,
-             create_solver(rng, smt2_out),
+             sng,
+             create_solver(sng, smt2_out),
              trace,
              *d_solver_options,
              arith_subtyping,
@@ -523,11 +525,12 @@ Murxla::create_fsm(RNGenerator& rng,
 void
 Murxla::print_fsm() const
 {
-  RNGenerator rng;
+  RNGenerator rng(0);
+  SolverSeedGenerator sng(0);
   std::ofstream file_smt2_out = open_output_file(DEVNULL, false);
   std::ostream smt2_out(std::cout.rdbuf());
   smt2_out.rdbuf(file_smt2_out.rdbuf());
-  FSM fsm = create_fsm(rng, std::cout, smt2_out, false);
+  FSM fsm = create_fsm(rng, sng, std::cout, smt2_out, false);
   fsm.configure();
   fsm.print();
 }
@@ -590,7 +593,14 @@ Murxla::run_aux(uint32_t seed,
     }
   }
 
+  /* The global random number generator. Used everywhere, except for in the
+   * solvers, which maintain their own RNG, seed with seeds from the solver
+   * seed generator. This guarantees that runs can be reproduced even when
+   * solvers use the RNG in their API wrapper functions. */
   RNGenerator rng(seed);
+  /* The solver seed generator.  Responsible for generating seeds to be used to
+   * seed the random generator of the solver. */
+  SolverSeedGenerator sng(seed);
 
   result = RESULT_UNKNOWN;
 
@@ -694,7 +704,7 @@ Murxla::run_aux(uint32_t seed,
 
     try
     {
-      FSM fsm = create_fsm(rng, trace, smt2_out, record_stats);
+      FSM fsm = create_fsm(rng, sng, trace, smt2_out, record_stats);
 
       fsm.configure();
 

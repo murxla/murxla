@@ -148,7 +148,7 @@ class BtorSolver : public Solver
       "btor-fix-reset-assumptions";
 
   /** Constructor. */
-  BtorSolver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  BtorSolver(SolverSeedGenerator& sng) : Solver(sng), d_solver(nullptr) {}
   /** Destructor. */
   ~BtorSolver() override;
 

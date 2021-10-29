@@ -38,6 +38,7 @@ class Murxla
   inline static const std::string API_TRACE = "tmp-api.trace";
   inline static const std::string SMT2_FILE = "tmp-smt2.smt2";
 
+  /** Constructor. */
   Murxla(statistics::Statistics* stats,
          const Options& options,
          SolverOptions* solver_options,
@@ -75,15 +76,27 @@ class Murxla
              bool record_stats,
              TraceMode trace_mode);
 
+  /** Continuous test run. */
   void test();
 
   /** Print the current configuration of the FSM to stdout. */
   void print_fsm() const;
 
-  Solver* create_solver(RNGenerator& rng,
+  /**
+   * Create solver.
+   *
+   * This creates an instance of a solver of the kind configured in d_options.
+   *
+   * sng        : The associated solver seed generator.
+   * smt2_out   : The output stream for the SMT-LIB output in case of
+   *              SOLVER_SMT2.
+   */
+  Solver* create_solver(SolverSeedGenerator& sng,
                         std::ostream& smt2_out = std::cout) const;
 
+  /** The set of configuration options. */
   const Options& d_options;
+  /** The set of configured solver options. */
   SolverOptions* d_solver_options;
   /** The directory for temp files. */
   std::string d_tmp_dir;
@@ -96,22 +109,29 @@ class Murxla
  private:
   /**
    * Create solver.
-   * rng        : The associated random number generator.
+   *
+   * This creates an instance of one of the base solvers, that is, a solver
+   * that does not wrap other solver instances.
+   *
+   * sng        : The associated solver seed generator.
    * solver_kind: The kind of the solver to be created.
    * smt2_out   : The output stream for the SMT-LIB output in case of
    *              SOLVER_SMT2.
    */
-  Solver* new_solver(RNGenerator& rng,
+  Solver* new_solver(SolverSeedGenerator& sng,
                      const SolverKind& solver_kind,
                      std::ostream& smt2_out = std::cout) const;
 
   /**
    * Create FSM.
+   * rng         : The global random number generator.
+   * sng         : The solver seed generator.
    * trace       : The outputstream for the API trace.
    * smt2_out    : The output stream for SMT-LIB output, if enabled.
    * record_stats: True to record statistics.
    */
   FSM create_fsm(RNGenerator& rng,
+                 SolverSeedGenerator& sng,
                  std::ostream& trace,
                  std::ostream& smt2_out,
                  bool record_stats) const;
@@ -149,16 +169,28 @@ class Murxla
                  TraceMode trace_mode,
                  std::string& error_msg);
 
+  /**
+   * Replay a single test run.
+   *
+   * seed               : The current seed for the RNG.
+   * out_file_name      : The name of the file to write stdout output to.
+   * err_file_name      : The name of the file to write stderr output to.
+   * api_trace_file_name: The name of the file to write the API trace to.
+   * untrace_file_name  : The name of the trace file to replay.
+   *
+   * Returns a result that indicates the status of the test run.
+   */
   Result replay(uint32_t seed,
                 const std::string& out_file_name,
                 const std::string& err_file_name,
                 const std::string& api_trace_file_name,
                 const std::string& untrace_file_name);
 
+  /** Register error to d_errors. */
   bool add_error(const std::string& err, uint32_t seed);
 
+  /** Statistics of current test run(s). */
   statistics::Statistics* d_stats;
-
   /** Map normalized error message to pair (original error message, seeds). */
   ErrorMap* d_errors;
 };

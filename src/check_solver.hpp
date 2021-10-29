@@ -8,7 +8,7 @@ namespace murxla {
 class CheckSolver : public shadow::ShadowSolver
 {
  public:
-  CheckSolver(RNGenerator& rng, Solver* solver, Solver* solver_check);
+  CheckSolver(SolverSeedGenerator& sng, Solver* solver, Solver* solver_check);
   ~CheckSolver() override;
 
   void delete_solver() override;

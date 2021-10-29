@@ -158,7 +158,7 @@ class Cvc5Solver : public Solver
   inline static const Action::Kind ACTION_SIMPLIFY = "cvc5-simplify";
 
   /** Constructor. */
-  Cvc5Solver(RNGenerator& rng) : Solver(rng), d_solver(nullptr) {}
+  Cvc5Solver(SolverSeedGenerator& sng) : Solver(sng), d_solver(nullptr) {}
   /** Destructor. */
   ~Cvc5Solver() override;
 

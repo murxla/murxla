@@ -60,6 +60,13 @@ RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
   std::generate_n(std::back_inserter(d_hex_chars), 10, [&i]() { return i++; });
 }
 
+void
+RNGenerator::reseed(uint32_t seed)
+{
+  d_rng.seed(seed);
+  d_seed = seed;
+}
+
 bool
 RNGenerator::pick_with_prob(uint32_t prob)
 {
@@ -384,7 +391,8 @@ RNGenerator::pick_string_literal(uint32_t len)
 uint32_t
 SolverSeedGenerator::next_solver_seed()
 {
-  return pick<uint32_t>() % 100000;
+  d_cur_seed = pick<uint32_t>() % 100000;
+  return d_cur_seed;
 }
 
 /* -------------------------------------------------------------------------- */

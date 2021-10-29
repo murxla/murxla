@@ -275,7 +275,7 @@ class Smt2Term : public AbsTerm
 class Smt2Solver : public Solver
 {
  public:
-  Smt2Solver(RNGenerator& rng,
+  Smt2Solver(SolverSeedGenerator& sng,
              std::ostream& out,
              const std::string& solver_binary);
   ~Smt2Solver() override;

@@ -373,7 +373,7 @@ class Solver
 
   using OpKindSortKindMap = std::unordered_map<Op::Kind, SortKindSet>;
 
-  Solver(RNGenerator& rng) : d_rng(rng) {}
+  Solver(SolverSeedGenerator& sng) : d_rng(sng.seed()) {}
   Solver() = delete;
   virtual ~Solver() = default;
 
@@ -385,6 +385,9 @@ class Solver
   virtual bool is_initialized() const = 0;
   /** Return solver name. */
   virtual const std::string get_name() const = 0;
+
+  /** Get the RNG of this solver. */
+  RNGenerator& get_rng() { return d_rng; }
 
   /** Return true if solver supports given theory. */
   bool supports_theory(TheoryId theory) const;
@@ -569,7 +572,7 @@ class Solver
   //
 
  protected:
-  RNGenerator& d_rng;
+  RNGenerator d_rng;
 
   std::vector<Base> d_bases = {Base::BIN, Base::DEC, Base::HEX};
 

@@ -95,7 +95,7 @@ class ShadowTerm : public AbsTerm
 class ShadowSolver : public Solver
 {
  public:
-  ShadowSolver(RNGenerator& rng, Solver* solver, Solver* solver_shadow);
+  ShadowSolver(SolverSeedGenerator& sng, Solver* solver, Solver* solver_shadow);
   ~ShadowSolver() override;
 
   void new_solver() override;

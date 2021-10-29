@@ -151,6 +151,7 @@ class FSM
  public:
   /** Constructor. */
   FSM(RNGenerator& rng,
+      SolverSeedGenerator& sng,
       Solver* solver,
       std::ostream& trace,
       SolverOptions& options,

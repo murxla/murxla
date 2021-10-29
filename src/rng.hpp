@@ -49,6 +49,8 @@ class RNGenerator
 
   /** Get the seed used for seeding the RNG on construction. */
   uint32_t get_seed() const { return d_seed; }
+  /** Seed RNG with new seed. */
+  void reseed(uint32_t seed);
   /** Get the RNG Mersenne Twister engine. */
   std::mt19937& get_engine() { return d_rng; }
 
@@ -175,6 +177,10 @@ class RNGenerator
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * The seed generator for seeds for the RNG of the solver.
+ * We cannot use SeedGenerator here since it is non-deterministic.
+ */
 class SolverSeedGenerator : public RNGenerator
 {
  public:

@@ -135,7 +135,7 @@ class YicesTerm : public AbsTerm
 class YicesSolver : public Solver
 {
  public:
-  YicesSolver(RNGenerator& rng) : Solver(rng) {}
+  YicesSolver(SolverSeedGenerator& sng) : Solver(sng) {}
   ~YicesSolver() override;
 
   void new_solver() override;

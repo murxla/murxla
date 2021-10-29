@@ -57,16 +57,8 @@ State::run(RNGenerator& rng)
   /* record action statistics */
   ++d_mbt_stats->d_actions[atup.d_action->get_id()];
 
-  ///* When adding terms of parameterized sort, e.g., bit-vectors or
-  // * floating-points, or when creating terms with a Real operator, that is
-  // * actually of sort Int, it can happen that the resulting term has yet
-  // unknown
-  // * sort, i.e., a sort that has not previously been created via ActionMksort.
-  // * In order to ensure that the untracer can map such sorts back correctly,
-  // * we have to trace a "phantom" action (= an action, that is only executed
-  // * when untracing) for new sorts. */
-  // atup.d_action->trace_get_sorts();
-
+  /* run action */
+  atup.d_action->seed_solver_rng();
   if (atup.d_action->run()
       && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
   {
@@ -84,6 +76,7 @@ State::run(RNGenerator& rng)
 /* -------------------------------------------------------------------------- */
 
 FSM::FSM(RNGenerator& rng,
+         SolverSeedGenerator& sng,
          Solver* solver,
          std::ostream& trace,
          SolverOptions& options,
@@ -97,6 +90,7 @@ FSM::FSM(RNGenerator& rng,
          const std::vector<std::pair<std::string, std::string>> solver_options)
     : d_smgr(solver,
              rng,
+             sng,
              trace,
              options,
              arith_subtyping,

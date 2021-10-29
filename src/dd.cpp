@@ -876,8 +876,8 @@ DD::minimize_line(Result golden_exit,
   }
   OpKindManager opmgr(opmgr_enabled_theories, {}, {}, false, &opmgr_stats);
   {
-    RNGenerator opmgr_rng;
-    std::unique_ptr<Solver> opmgr_solver(d_murxla->create_solver(opmgr_rng));
+    SolverSeedGenerator opmgr_sng(0);
+    std::unique_ptr<Solver> opmgr_solver(d_murxla->create_solver(opmgr_sng));
     opmgr_solver->configure_opmgr(&opmgr);
   }
 
