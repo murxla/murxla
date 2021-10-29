@@ -408,11 +408,13 @@ ActionMkSort::run()
       }
       _run(kind, ew, sw);
       /* Operator fp expects three bit-vector terms of size 1, ew and sw - 1 as
-       * arguments. To increase the probability that terms of these sizes are
+       * arguments. Operator to_fp from IEEE BV expects a bit-vector of size
+       * ew + sw. To increase the probability that terms of these sizes are
        * available, we also generate the corresponding bit-vector sorts. */
       _run(SORT_BV, 1);
       _run(SORT_BV, ew);
       _run(SORT_BV, sw - 1);
+      _run(SORT_BV, ew + sw);
     }
     break;
 
