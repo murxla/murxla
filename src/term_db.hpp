@@ -1,6 +1,9 @@
 #ifndef __MURXLA__TERM_DB_H
 #define __MURXLA__TERM_DB_H
 
+#include <cstddef>
+#include <iterator>
+
 #include "solver.hpp"
 
 namespace murxla {
@@ -8,11 +11,83 @@ namespace murxla {
 class SolverManager;
 class RNGenerator;
 
+/**
+ * This class manages term references and random picking of terms based on
+ * the number of references where terms with higher reference counts have lower
+ * probability to be picked.
+ */
+class TermRefs
+{
+ public:
+  /** Add term. */
+  void add(const Term& t);
+  /** Check if term was already added. */
+  bool contains(const Term& t) const;
+  /** Get stored term. */
+  Term get(const Term& t) const;
+  /**
+   * Pick random term based on reference counts.
+   * Terms with higher reference count have lower probability to be picked.
+   */
+  Term pick(RNGenerator& rng);
+  /** Return number of stored terms. */
+  size_t size() const;
+
+  /** Iterator that wraps the d_idx iterator to return terms only. */
+  struct Iterator
+  {
+    using iterator_category = std::forward_iterator_tag;
+
+    Iterator(std::unordered_map<Term, size_t>::const_iterator it) : d_it(it) {}
+
+    const Term operator*() { return d_it->first; }
+    const Term operator->() { return d_it->first; }
+
+    Iterator& operator++()
+    {
+      d_it++;
+      return *this;
+    }
+    Iterator operator++(int)
+    {
+      Iterator tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+
+    friend bool operator==(const Iterator& a, const Iterator& b)
+    {
+      return a.d_it == b.d_it;
+    }
+    friend bool operator!=(const Iterator& a, const Iterator& b)
+    {
+      return a.d_it != b.d_it;
+    }
+
+   private:
+    std::unordered_map<Term, size_t>::const_iterator d_it;
+  };
+
+  Iterator begin() const { return Iterator(d_idx.cbegin()); }
+  Iterator end() const { return Iterator(d_idx.cend()); }
+
+ private:
+  /** Map term to term index. */
+  std::unordered_map<Term, size_t> d_idx;
+  /** Maps term index to term. */
+  std::vector<Term> d_terms;
+  /** Maps term index to references. */
+  std::vector<size_t> d_refs;
+  /** Maps term index to pick weight (used by pick()). */
+  std::vector<size_t> d_weights;
+  /** Sum of all references d_refs, used to compute weights in pick(). */
+  size_t d_refs_sum = 0;
+};
+
 class TermDb
 {
  public:
-  using TermMap     = std::unordered_map<Term, size_t>;
-  using SortMap     = std::unordered_map<Sort, TermMap>;
+  using SortMap     = std::unordered_map<Sort, TermRefs>;
   using SortSet     = std::unordered_set<Sort>;
   using SortKindSet = std::unordered_set<SortKind>;
   using SortTermMap = std::unordered_map<SortKind, SortMap>;
@@ -198,8 +273,6 @@ class TermDb
   Sort pick_sort(const SortKindSet& sort_kinds) const;
 
  private:
-  Term pick_from_term_map(TermMap& tmap);
-
   /** Open new scope with given variable. */
   void push(Term& var);
   /** Close current scope with given variable. */

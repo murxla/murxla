@@ -7,6 +7,61 @@
 
 namespace murxla {
 
+void
+TermRefs::add(const Term& t)
+{
+  if (d_idx.find(t) == d_idx.end())
+  {
+    d_idx.emplace(t, d_refs.size());
+    d_terms.push_back(t);
+    d_refs.push_back(0);
+    d_weights.push_back(0);
+  }
+}
+
+bool
+TermRefs::contains(const Term& t) const
+{
+  return d_idx.find(t) != d_idx.end();
+}
+
+Term
+TermRefs::get(const Term& t) const
+{
+  auto it = d_idx.find(t);
+  if (it == d_idx.end())
+  {
+    return nullptr;
+  }
+  return it->first;
+}
+
+Term
+TermRefs::pick(RNGenerator& rng)
+{
+  /* Terms with higher reference count have lower probability to be picked. */
+  if (d_refs_sum % 100 == 25)
+  {
+    assert(d_weights.size() == d_refs.size());
+    for (size_t i = 0; i < d_weights.size(); ++i)
+    {
+      d_weights[i] = d_refs_sum - d_refs[i] + 1;
+    }
+  }
+
+  size_t idx = rng.pick_weighted(d_weights);
+  Term t     = d_terms[idx];
+  d_refs[idx] += 1;  // increment reference count
+  d_refs_sum += 1;
+  return t;
+}
+
+size_t
+TermRefs::size() const
+{
+  return d_idx.size();
+}
+
 TermDb::TermDb(SolverManager& smgr, RNGenerator& rng) : d_smgr(smgr), d_rng(rng)
 {
   d_term_db.emplace_back();
@@ -89,32 +144,29 @@ TermDb::add_term(Term& term,
   d_smgr.add_sort(sort, sort_kind);
   assert(sort->get_id());
   assert(sort->get_kind() != SORT_ANY);
-  TermMap& tmap = map[sort];
+  TermRefs& trefs = map[sort];
 
   /* Sort may not be set since term is a fresh term. */
   term->set_sort(sort);
 
-  if (tmap.find(term) == tmap.end())
+  if (!trefs.contains(term))
   {
     term->set_id(d_terms.size() + 1);
     term->set_levels(levels);
-    tmap.emplace(term, 0);
+    trefs.add(term);
 
-    // TODO:
-    // d_stats.terms += 1;
     d_terms.emplace(term->get_id(), term);
     d_term_sorts.insert(sort);
   }
   else
   {
-    term = tmap.find(term)->first;
+    term = trefs.get(term);
     assert(term->get_id());
     assert(term->get_levels().empty() || term->get_levels().back() == level);
     assert(!term->get_levels().empty() || level == 0);
   }
   assert(term->get_sort()->get_id());
   assert(term->get_sort()->get_kind() != SORT_ANY);
-  // tmap.at(term) += 1;
 }
 
 void
@@ -155,8 +207,8 @@ TermDb::find(Term term, Sort sort, SortKind sort_kind) const
     const SortMap& map = stmap.at(sort_kind);
     if (map.find(sort) != map.end())
     {
-      auto it = map.at(sort).find(term);
-      if (it != map.at(sort).end()) return it->first;
+      auto t = map.at(sort).get(term);
+      if (t != nullptr) return t;
     }
   }
   return nullptr;
@@ -194,10 +246,10 @@ TermDb::has_value(Sort sort) const
     {
       assert(level.find(s_kind) != level.end());
       assert(level.at(s_kind).find(s) != level.at(s_kind).end());
-      const TermMap& terms = level.at(s_kind).at(s);
-      for (const auto& p : terms)
+      const TermRefs& terms = level.at(s_kind).at(s);
+      for (const auto& t : terms)
       {
-        if (p.first->get_leaf_kind() == AbsTerm::LeafKind::VALUE)
+        if (t->get_leaf_kind() == AbsTerm::LeafKind::VALUE)
         {
           return true;
         }
@@ -329,12 +381,12 @@ TermDb::pick_value(Sort sort) const
     {
       assert(level.find(s_kind) != level.end());
       assert(level.at(s_kind).find(s) != level.at(s_kind).end());
-      const TermMap& terms = level.at(s_kind).at(s);
-      for (auto& p : terms)
+      const TermRefs& terms = level.at(s_kind).at(s);
+      for (auto& t : terms)
       {
-        if (p.first->get_leaf_kind() == AbsTerm::LeafKind::VALUE)
+        if (t->get_leaf_kind() == AbsTerm::LeafKind::VALUE)
         {
-          values.push_back(p.first);
+          values.push_back(t);
         }
       }
     }
@@ -390,7 +442,7 @@ TermDb::pick_term(Sort sort)
   assert(d_term_db[level].find(s_kind) != d_term_db[level].end());
   SortMap& smap = d_term_db[level].at(s_kind);
   assert(smap.find(s) != smap.end());
-  return pick_from_term_map(smap.at(s));
+  return smap.at(s).pick(d_rng);
 }
 
 Term
@@ -412,7 +464,7 @@ TermDb::pick_term(SortKind sort_kind, size_t level)
 
   SortMap& smap = d_term_db[level].at(sort_kind);
   Sort sort     = d_rng.pick_from_map<SortMap, Sort>(smap);
-  return pick_from_term_map(smap.at(sort));
+  return smap.at(sort).pick(d_rng);
 }
 
 Term
@@ -588,34 +640,6 @@ TermDb::pick_level(Sort sort) const
     }
   }
   return d_rng.pick_weighted<size_t>(levels);
-}
-
-Term
-TermDb::pick_from_term_map(TermMap& tmap)
-{
-  std::vector<size_t> weights;
-  size_t sum = 0;
-
-  for (const auto& p : tmap)
-  {
-    sum += p.second;
-    weights.push_back(p.second);
-  }
-
-  /* Terms with higher reference count have lower probability to be picked. */
-  for (size_t i = 0; i < weights.size(); ++i)
-  {
-    weights[i] = sum - weights[i] + 1;
-  }
-
-  size_t idx = d_rng.pick_weighted(weights);
-
-  auto it = tmap.begin();
-  std::advance(it, idx);
-  Term t = it->first;
-
-  tmap.at(t) += 1;  // increment reference count
-  return t;
 }
 
 void
