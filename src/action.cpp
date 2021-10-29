@@ -1062,10 +1062,10 @@ ActionMkTerm::_run(Op::Kind kind,
   }
 
   d_smgr.add_term(res, sort_kind, args);
-  check_term(d_rng, res);
   Sort res_sort = res->get_sort();
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;
+  check_term(d_rng, res);
   return {res->get_id(), res_sort->get_id()};
 }
 
@@ -1204,8 +1204,8 @@ ActionMkConst::_run(Sort sort, std::string& symbol)
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_const(sort, symbol);
   d_smgr.add_input(res, sort, sort->get_kind());
-  check_const(d_rng, res);
   MURXLA_TRACE_RETURN << res;
+  check_const(d_rng, res);
   return {res->get_id()};
 }
 
@@ -1253,8 +1253,8 @@ ActionMkVar::_run(Sort sort, std::string& symbol)
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_var(sort, symbol);
   d_smgr.add_var(res, sort, sort->get_kind());
-  check_variable(d_rng, res);
   MURXLA_TRACE_RETURN << res;
+  check_variable(d_rng, res);
   return {res->get_id()};
 }
 
@@ -1437,8 +1437,8 @@ ActionMkValue::_run(Sort sort, bool val)
   MURXLA_TRACE << get_kind() << " " << sort << " " << (val ? "true" : "false");
   Term res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
-  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
+  check_value(d_rng, res);
   return res->get_id();
 }
 
@@ -1449,8 +1449,8 @@ ActionMkValue::_run(Sort sort, std::string val)
   Term res;
   res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
-  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
+  check_value(d_rng, res);
   return res->get_id();
 }
 
@@ -1465,8 +1465,8 @@ ActionMkValue::_run(Sort sort, std::string val, size_t len)
     assert(sort->is_string());
     d_smgr.add_string_char_value(res);
   }
-  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
+  check_value(d_rng, res);
   return res->get_id();
 }
 
@@ -1477,8 +1477,8 @@ ActionMkValue::_run(Sort sort, std::string v0, std::string v1)
                << " \"" << v1 << "\"";
   Term res = d_solver.mk_value(sort, v0, v1);
   d_smgr.add_value(res, sort, sort->get_kind());
-  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
+  check_value(d_rng, res);
   return res->get_id();
 }
 
@@ -1489,8 +1489,8 @@ ActionMkValue::_run(Sort sort, std::string val, Solver::Base base)
                << " " << base;
   Term res = d_solver.mk_value(sort, val, base);
   d_smgr.add_value(res, sort, sort->get_kind());
-  check_value(d_rng, res);
   MURXLA_TRACE_RETURN << res;
+  check_value(d_rng, res);
   return res->get_id();
 }
 
@@ -1592,8 +1592,8 @@ ActionMkSpecialValue::_run(Sort sort, const AbsTerm::SpecialValueKind& val)
   Term res;
   res = d_solver.mk_special_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind(), val);
-  check_special_value(d_rng, res, val);
   MURXLA_TRACE_RETURN << res;
+  check_special_value(d_rng, res, val);
   return res->get_id();
 }
 
