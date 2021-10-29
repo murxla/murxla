@@ -111,29 +111,32 @@ class AbsTerm
  public:
   using SpecialValueKind = std::string;
 
-  static const SpecialValueKind SPECIAL_VALUE_NONE;
+  inline static const SpecialValueKind SPECIAL_VALUE_NONE =
+      "not-a-special-value";
   /** Special BV values. */
-  static const SpecialValueKind SPECIAL_VALUE_BV_ZERO;
-  static const SpecialValueKind SPECIAL_VALUE_BV_ONE;
-  static const SpecialValueKind SPECIAL_VALUE_BV_ONES;
-  static const SpecialValueKind SPECIAL_VALUE_BV_MIN_SIGNED;
-  static const SpecialValueKind SPECIAL_VALUE_BV_MAX_SIGNED;
+  inline static const SpecialValueKind SPECIAL_VALUE_BV_ZERO = "bv-zero";
+  inline static const SpecialValueKind SPECIAL_VALUE_BV_ONE  = "bv-one";
+  inline static const SpecialValueKind SPECIAL_VALUE_BV_ONES = "bv-ones";
+  inline static const SpecialValueKind SPECIAL_VALUE_BV_MIN_SIGNED =
+      "bv-min-signed";
+  inline static const SpecialValueKind SPECIAL_VALUE_BV_MAX_SIGNED =
+      "bv-max-signed";
   /** Special FP values. */
-  static const SpecialValueKind SPECIAL_VALUE_FP_NAN;
-  static const SpecialValueKind SPECIAL_VALUE_FP_POS_INF;
-  static const SpecialValueKind SPECIAL_VALUE_FP_NEG_INF;
-  static const SpecialValueKind SPECIAL_VALUE_FP_POS_ZERO;
-  static const SpecialValueKind SPECIAL_VALUE_FP_NEG_ZERO;
+  inline static const SpecialValueKind SPECIAL_VALUE_FP_NAN      = "nan";
+  inline static const SpecialValueKind SPECIAL_VALUE_FP_POS_INF  = "+oo";
+  inline static const SpecialValueKind SPECIAL_VALUE_FP_NEG_INF  = "-oo";
+  inline static const SpecialValueKind SPECIAL_VALUE_FP_POS_ZERO = "+zero";
+  inline static const SpecialValueKind SPECIAL_VALUE_FP_NEG_ZERO = "-zero";
   /** Special RM values. */
-  static const SpecialValueKind SPECIAL_VALUE_RM_RNA;
-  static const SpecialValueKind SPECIAL_VALUE_RM_RNE;
-  static const SpecialValueKind SPECIAL_VALUE_RM_RTN;
-  static const SpecialValueKind SPECIAL_VALUE_RM_RTP;
-  static const SpecialValueKind SPECIAL_VALUE_RM_RTZ;
+  inline static const SpecialValueKind SPECIAL_VALUE_RM_RNA = "rna";
+  inline static const SpecialValueKind SPECIAL_VALUE_RM_RNE = "rne";
+  inline static const SpecialValueKind SPECIAL_VALUE_RM_RTN = "rtn";
+  inline static const SpecialValueKind SPECIAL_VALUE_RM_RTP = "rtp";
+  inline static const SpecialValueKind SPECIAL_VALUE_RM_RTZ = "rtz";
   /** Special String values. */
-  static const SpecialValueKind SPECIAL_VALUE_RE_NONE;
-  static const SpecialValueKind SPECIAL_VALUE_RE_ALL;
-  static const SpecialValueKind SPECIAL_VALUE_RE_ALLCHAR;
+  inline static const SpecialValueKind SPECIAL_VALUE_RE_NONE    = "re.none";
+  inline static const SpecialValueKind SPECIAL_VALUE_RE_ALL     = "re.all";
+  inline static const SpecialValueKind SPECIAL_VALUE_RE_ALLCHAR = "re.allchar";
 
   enum LeafKind
   {

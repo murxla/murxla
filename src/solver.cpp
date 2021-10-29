@@ -129,33 +129,6 @@ operator<<(std::ostream& out, const Sort s)
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_NONE =
-    "not-a-special-value";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ZERO = "bv-zero";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ONE  = "bv-one";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_ONES = "bv-ones";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED =
-    "bv-min-signed";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED =
-    "bv-max-signed";
-
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_NAN      = "nan";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_POS_INF  = "+oo";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_NEG_INF  = "-oo";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_POS_ZERO = "+zero";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_FP_NEG_ZERO = "-zero";
-
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RNE = "rne";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RNA = "rna";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RTN = "rtn";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RTP = "rtp";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RM_RTZ = "rtz";
-
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RE_NONE = "re.none";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RE_ALL  = "re.all";
-const AbsTerm::SpecialValueKind AbsTerm::SPECIAL_VALUE_RE_ALLCHAR =
-    "re.allchar";
-
 bool
 AbsTerm::is_bool_value() const
 {
