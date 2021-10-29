@@ -204,11 +204,14 @@ TermDb::find(Term term, Sort sort, SortKind sort_kind) const
 
   for (const auto& stmap : d_term_db)
   {
-    const SortMap& map = stmap.at(sort_kind);
-    if (map.find(sort) != map.end())
+    if (stmap.find(sort_kind) != stmap.end())
     {
-      auto t = map.at(sort).get(term);
-      if (t != nullptr) return t;
+      const SortMap& map = stmap.at(sort_kind);
+      if (map.find(sort) != map.end())
+      {
+        auto t = map.at(sort).get(term);
+        if (t != nullptr) return t;
+      }
     }
   }
   return nullptr;
