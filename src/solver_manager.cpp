@@ -483,6 +483,12 @@ SolverManager::pick_term()
 }
 
 Term
+SolverManager::pick_term(size_t level)
+{
+  return d_term_db.pick_term(level);
+}
+
+Term
 SolverManager::pick_var()
 {
   return d_term_db.pick_var();

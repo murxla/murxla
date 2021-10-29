@@ -161,6 +161,11 @@ class TermDb
    * Requires that a term exists.
    */
   Term pick_term();
+  /**
+   * Pick any term from given level.
+   * Requires that a term exists.
+   */
+  Term pick_term(size_t level);
 
   /**
    * Pick variable from current scope.
@@ -179,6 +184,9 @@ class TermDb
 
   /** Pick a sort kind. */
   SortKind pick_sort_kind() const;
+
+  /** Pick a sort kind from given level. */
+  SortKind pick_sort_kind(size_t level) const;
 
   /** Pick a sort kind (with terms) from any of the given sort kinds. */
   SortKind pick_sort_kind(const SortKindSet& sort_kinds) const;

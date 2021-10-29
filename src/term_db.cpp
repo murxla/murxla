@@ -432,6 +432,13 @@ TermDb::pick_term()
   return pick_term(pick_sort_kind());
 }
 
+Term
+TermDb::pick_term(size_t level)
+{
+  assert(has_term());
+  return pick_term(pick_sort_kind(level), level);
+}
+
 SortKind
 TermDb::pick_sort_kind() const
 {
@@ -444,6 +451,19 @@ TermDb::pick_sort_kind() const
     {
       kinds.insert(p.first);
     }
+  }
+  return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
+}
+
+SortKind
+TermDb::pick_sort_kind(size_t level) const
+{
+  assert(has_term());
+
+  std::unordered_set<SortKind> kinds;
+  for (const auto& p : d_term_db[level])
+  {
+    kinds.insert(p.first);
   }
   return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
 }

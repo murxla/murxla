@@ -188,6 +188,11 @@ class SolverManager
    * Requires that terms of any sort kind exist.
    */
   Term pick_term();
+  /**
+   * Pick any term from given level.
+   * Requires that terms of any sort kind exist.
+   */
+  Term pick_term(size_t level);
 
   /**
    * Pick variable from current scope level.
