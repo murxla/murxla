@@ -199,6 +199,16 @@ SolverManager::add_var(Term& term, Sort& sort, SortKind sort_kind)
 }
 
 void
+SolverManager::add_const(Term& term, Sort& sort, SortKind sort_kind)
+{
+  assert(term.get());
+
+  d_stats.vars += 1;
+  d_term_db.add_input(term, sort, sort_kind);
+  term->set_leaf_kind(AbsTerm::LeafKind::CONSTANT);
+}
+
+void
 SolverManager::add_term(Term& term,
                         SortKind sort_kind,
                         const std::vector<Term>& args)

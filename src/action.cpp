@@ -1203,7 +1203,7 @@ ActionMkConst::_run(Sort sort, std::string& symbol)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_const(sort, symbol);
-  d_smgr.add_input(res, sort, sort->get_kind());
+  d_smgr.add_const(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
   check_const(d_rng, res);
   return {res->get_id()};

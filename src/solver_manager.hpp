@@ -108,6 +108,8 @@ class SolverManager
   void add_input(Term& term, Sort& sort, SortKind sort_kind);
   /** Add var to term database. */
   void add_var(Term& term, Sort& sort, SortKind sort_kind);
+  /** Add const to term database. */
+  void add_const(Term& term, Sort& sort, SortKind sort_kind);
   /** Add non-input term to term database. */
   void add_term(Term& term,
                 SortKind sort_kind,
