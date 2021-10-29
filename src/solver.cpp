@@ -220,27 +220,27 @@ AbsTerm::is_special_value(const AbsTerm::SpecialValueKind& kind) const
   {
     if (kind == AbsTerm::SPECIAL_VALUE_BV_ONE)
     {
-      return kind == AbsTerm::SPECIAL_VALUE_BV_ONES
-             || kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED;
+      return d_value_kind == AbsTerm::SPECIAL_VALUE_BV_ONES
+             || d_value_kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED;
     }
     else if (kind == AbsTerm::SPECIAL_VALUE_BV_ONES)
     {
-      return kind == AbsTerm::SPECIAL_VALUE_BV_ONE
-             || kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED;
+      return d_value_kind == AbsTerm::SPECIAL_VALUE_BV_ONE
+             || d_value_kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED;
     }
     else if (kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)
     {
-      return kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED;
+      return d_value_kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED;
     }
     else if (kind == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
     {
-      return kind == AbsTerm::SPECIAL_VALUE_BV_ONE
-             || kind == AbsTerm::SPECIAL_VALUE_BV_ONES;
+      return d_value_kind == AbsTerm::SPECIAL_VALUE_BV_ONE
+             || d_value_kind == AbsTerm::SPECIAL_VALUE_BV_ONES;
     }
     else
     {
       assert(kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
-      return kind == AbsTerm::SPECIAL_VALUE_BV_ZERO;
+      return d_value_kind == AbsTerm::SPECIAL_VALUE_BV_ZERO;
     }
   }
   return res;
