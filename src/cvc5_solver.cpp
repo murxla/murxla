@@ -594,6 +594,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
          Op::FP_TO_FP_FROM_UBV},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_REAL, Op::FP_TO_FP_FROM_REAL},
+        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC, Op::UNDEFINED},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_REAL, Op::FP_TO_REAL},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_SBV, Op::FP_TO_SBV},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_UBV, Op::FP_TO_UBV},
@@ -1587,6 +1588,16 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     ::cvc5::api::Term body = Cvc5Term::get_cvc5_term(args.back());
     cvc5_res               = d_solver->mkTerm(cvc5_kind, bvl, body);
     goto DONE;
+  }
+
+  if ((kind == Op::FP_TO_FP_FROM_BV
+      || kind == Op::FP_TO_FP_FROM_FP
+      || kind == Op::FP_TO_FP_FROM_SBV
+      || kind == Op::FP_TO_FP_FROM_UBV
+      || kind == Op::FP_TO_FP_FROM_REAL)
+      && d_rng.flip_coin())
+  {
+    cvc5_kind = ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC;
   }
 
   /* create Op for indexed operators */
