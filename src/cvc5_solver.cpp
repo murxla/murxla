@@ -490,6 +490,7 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
 
 std::unordered_map<::cvc5::api::Kind, Op::Kind>
     Cvc5Term::s_cvc5_kinds_to_kinds = {
+        {::cvc5::api::Kind::INTERNAL_KIND, Op::UNDEFINED},
         /* Leaf Kinds */
         {::cvc5::api::Kind::CONSTANT, Op::CONSTANT},
         {::cvc5::api::Kind::CONST_ARRAY, Op::CONST_ARRAY},
