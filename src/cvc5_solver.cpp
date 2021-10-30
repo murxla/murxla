@@ -472,9 +472,10 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {OP_BV_ULTBV, ::cvc5::api::Kind::BITVECTOR_ULTBV},
         {OP_BV_SLTBV, ::cvc5::api::Kind::BITVECTOR_SLTBV},
         {OP_BV_ITE, ::cvc5::api::Kind::BITVECTOR_ITE},
-        {OP_IAND, ::cvc5::api::Kind::IAND},
-        {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
         {OP_BV_TO_NAT, ::cvc5::api::Kind::BITVECTOR_TO_NAT},
+        {OP_INT_IAND, ::cvc5::api::Kind::IAND},
+        {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
+        {OP_INT_POW2, ::cvc5::api::Kind::POW2},
         {OP_STRING_UPDATE, ::cvc5::api::Kind::STRING_UPDATE},
         {OP_STRING_TOLOWER, ::cvc5::api::Kind::STRING_TOLOWER},
         {OP_STRING_TOUPPER, ::cvc5::api::Kind::STRING_TOUPPER},
@@ -666,9 +667,10 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::BITVECTOR_ULTBV, OP_BV_ULTBV},
         {::cvc5::api::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
         {::cvc5::api::Kind::BITVECTOR_ITE, OP_BV_ITE},
-        {::cvc5::api::Kind::IAND, OP_IAND},
-        {::cvc5::api::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
         {::cvc5::api::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
+        {::cvc5::api::Kind::IAND, OP_INT_IAND},
+        {::cvc5::api::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
+        {::cvc5::api::Kind::POW2, OP_INT_POW2},
         {::cvc5::api::Kind::STRING_UPDATE, OP_STRING_UPDATE},
         {::cvc5::api::Kind::STRING_TOLOWER, OP_STRING_TOLOWER},
         {::cvc5::api::Kind::STRING_TOUPPER, OP_STRING_TOUPPER},
@@ -1619,7 +1621,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     case 1:
     {
-      if (kind == Cvc5Term::OP_IAND || kind == Cvc5Term::OP_INT_TO_BV)
+      if (kind == Cvc5Term::OP_INT_IAND || kind == Cvc5Term::OP_INT_TO_BV)
       {
         pparams[0] = uint32_to_value_in_range(pparams[0], 1, MURXLA_BW_MAX);
       }
@@ -1955,12 +1957,15 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_SLTBV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(Cvc5Term::OP_BV_ITE, 3, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-
-  opmgr->add_op_kind(Cvc5Term::OP_IAND, 2, 1, SORT_INT, {SORT_INT}, THEORY_INT);
   opmgr->add_op_kind(
       Cvc5Term::OP_INT_TO_BV, 1, 1, SORT_BV, {SORT_INT}, THEORY_BV);
+
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_TO_NAT, 1, 0, SORT_INT, {SORT_BV}, THEORY_INT);
+  opmgr->add_op_kind(
+      Cvc5Term::OP_INT_IAND, 2, 1, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      Cvc5Term::OP_INT_POW2, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
 
   opmgr->add_op_kind(Cvc5Term::OP_STRING_UPDATE,
                      3,
