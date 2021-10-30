@@ -1623,7 +1623,14 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       {
         pparams[0] = uint32_to_value_in_range(pparams[0], 1, MURXLA_BW_MAX);
       }
-      cvc5_opterm = d_solver->mkOp(cvc5_kind, pparams[0]);
+      if (kind == Op::INT_IS_DIV && d_rng.flip_coin())
+      {
+        cvc5_opterm = d_solver->mkOp(cvc5_kind, std::to_string(pparams[0]));
+      }
+      else
+      {
+        cvc5_opterm = d_solver->mkOp(cvc5_kind, pparams[0]);
+      }
       MURXLA_TEST(!cvc5_opterm.isNull());
       MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
       MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
