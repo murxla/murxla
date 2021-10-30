@@ -90,6 +90,14 @@ class Cvc5Term : public AbsTerm
   // BV
   inline static const Op::Kind OP_BV_REDAND = "cvc5-OP_BV_REDAND";
   inline static const Op::Kind OP_BV_REDOR  = "cvc5-OP_BV_REDOR";
+  inline static const Op::Kind OP_BV_ULTBV  = "cvc5-OP_BV_ULTBV";
+  inline static const Op::Kind OP_BV_SLTBV  = "cvc5-OP_BV_SLTBV";
+  inline static const Op::Kind OP_BV_ITE    = "cvc5-OP_BV_ITE";
+  // Int
+  inline static const Op::Kind OP_BV_TO_NAT = "cvc5-OP_BV_TO_NAT";
+  inline static const Op::Kind OP_IAND      = "cvc5-OP_IAND";
+  inline static const Op::Kind OP_INT_TO_BV = "cvc5-OP_INT_TO_BV";
+
   //  Strings
   inline static const Op::Kind OP_STRING_UPDATE  = "cvc5-OP_STRING_UPDATE";
   inline static const Op::Kind OP_STRING_TOLOWER = "cvc5-OP_STRING_TOLOWER";

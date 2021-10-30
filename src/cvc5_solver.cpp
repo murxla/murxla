@@ -214,9 +214,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  CARDINALITY_VALUE,
 //  HO_APPLY,
 
-//  ## Ints
-//  IAND,
-
 //  ## Arithmetic
 //  POW,
 //  EXPONENTIAL,
@@ -237,16 +234,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  ARCSECANT,
 //  ARCCOTANGENT,
 //  SQRT,
-
-//  ## Bit-Vectors
-//  BITVECTOR_ULTBV,
-//  BITVECTOR_SLTBV,
-//  BITVECTOR_ITE,
-//  INT_TO_BITVECTOR,
-//  BITVECTOR_TO_NAT,
-
-//  ## Floating-Points
-//  FLOATINGPOINT_TO_FP_GENERIC,
 
 // ## Arrays
 //  EQ_RANGE,
@@ -482,6 +469,12 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         /* Solver-specific operators */
         {OP_BV_REDOR, ::cvc5::api::Kind::BITVECTOR_REDOR},
         {OP_BV_REDAND, ::cvc5::api::Kind::BITVECTOR_REDAND},
+        {OP_BV_ULTBV, ::cvc5::api::Kind::BITVECTOR_ULTBV},
+        {OP_BV_SLTBV, ::cvc5::api::Kind::BITVECTOR_SLTBV},
+        {OP_BV_ITE, ::cvc5::api::Kind::BITVECTOR_ITE},
+        {OP_IAND, ::cvc5::api::Kind::IAND},
+        {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
+        {OP_BV_TO_NAT, ::cvc5::api::Kind::BITVECTOR_TO_NAT},
         {OP_STRING_UPDATE, ::cvc5::api::Kind::STRING_UPDATE},
         {OP_STRING_TOLOWER, ::cvc5::api::Kind::STRING_TOLOWER},
         {OP_STRING_TOUPPER, ::cvc5::api::Kind::STRING_TOUPPER},
@@ -670,6 +663,12 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         /* Solver-specific operators */
         {::cvc5::api::Kind::BITVECTOR_REDOR, OP_BV_REDOR},
         {::cvc5::api::Kind::BITVECTOR_REDAND, OP_BV_REDAND},
+        {::cvc5::api::Kind::BITVECTOR_ULTBV, OP_BV_ULTBV},
+        {::cvc5::api::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
+        {::cvc5::api::Kind::BITVECTOR_ITE, OP_BV_ITE},
+        {::cvc5::api::Kind::IAND, OP_IAND},
+        {::cvc5::api::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
+        {::cvc5::api::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
         {::cvc5::api::Kind::STRING_UPDATE, OP_STRING_UPDATE},
         {::cvc5::api::Kind::STRING_TOLOWER, OP_STRING_TOLOWER},
         {::cvc5::api::Kind::STRING_TOUPPER, OP_STRING_TOUPPER},
@@ -1572,6 +1571,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   std::vector<::cvc5::api::Term> cvc5_args =
       Cvc5Term::terms_to_cvc5_terms(args);
 
+  std::vector<uint32_t> pparams = params;  // copy to modify
   int32_t n_args    = args.size();
   uint32_t n_params = params.size();
 
@@ -1599,13 +1599,31 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     cvc5_kind = ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC;
   }
+  else if (kind == Cvc5Term::OP_BV_ITE)
+  {
+    uint32_t size = cvc5_args[0].getSort().getBitVectorSize();
+    /* if the first argument is of size greater than 1, slice random
+     * bit out of it */
+    if (size > 1)
+    {
+      uint32_t hi = d_rng.pick<uint32_t>(0, size - 1);
+      uint32_t lo = hi;
+      ::cvc5::api::Op op =
+          d_solver->mkOp(::cvc5::api::Kind::BITVECTOR_EXTRACT, hi, lo);
+      cvc5_args[0] = d_solver->mkTerm(op, cvc5_args[0]);
+    }
+  }
 
   /* create Op for indexed operators */
   switch (n_params)
   {
     case 1:
     {
-      cvc5_opterm = d_solver->mkOp(cvc5_kind, params[0]);
+      if (kind == Cvc5Term::OP_IAND || kind == Cvc5Term::OP_INT_TO_BV)
+      {
+        pparams[0] = uint32_to_value_in_range(pparams[0], 1, MURXLA_BW_MAX);
+      }
+      cvc5_opterm = d_solver->mkOp(cvc5_kind, pparams[0]);
       MURXLA_TEST(!cvc5_opterm.isNull());
       MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
       MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
@@ -1622,12 +1640,12 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       {
         idx = cvc5_opterm.getIndices<uint32_t>();
       }
-      MURXLA_TEST(idx == params[0]);
+      MURXLA_TEST(idx == pparams[0]);
       break;
     }
     case 2:
     {
-      cvc5_opterm = d_solver->mkOp(cvc5_kind, params[0], params[1]);
+      cvc5_opterm = d_solver->mkOp(cvc5_kind, pparams[0], pparams[1]);
       MURXLA_TEST(!cvc5_opterm.isNull());
       MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
       MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
@@ -1635,8 +1653,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       MURXLA_TEST(cvc5_opterm.getKind() == cvc5_kind);
       std::pair<uint32_t, uint32_t> indices =
           cvc5_opterm.getIndices<std::pair<uint32_t, uint32_t>>();
-      MURXLA_TEST(indices.first == params[0]);
-      MURXLA_TEST(indices.second == params[1]);
+      MURXLA_TEST(indices.first == pparams[0]);
+      MURXLA_TEST(indices.second == pparams[1]);
       break;
     }
     default: assert(n_params == 0);
@@ -1924,6 +1942,18 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
       Cvc5Term::OP_BV_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+
+  opmgr->add_op_kind(
+      Cvc5Term::OP_BV_ULTBV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      Cvc5Term::OP_BV_SLTBV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(Cvc5Term::OP_BV_ITE, 3, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+
+  opmgr->add_op_kind(Cvc5Term::OP_IAND, 2, 1, SORT_INT, {SORT_INT}, THEORY_INT);
+  opmgr->add_op_kind(
+      Cvc5Term::OP_INT_TO_BV, 1, 1, SORT_BV, {SORT_INT}, THEORY_BV);
+  opmgr->add_op_kind(
+      Cvc5Term::OP_BV_TO_NAT, 1, 0, SORT_INT, {SORT_BV}, THEORY_INT);
 
   opmgr->add_op_kind(Cvc5Term::OP_STRING_UPDATE,
                      3,
