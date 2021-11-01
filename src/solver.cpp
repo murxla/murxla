@@ -130,6 +130,66 @@ operator<<(std::ostream& out, const Sort s)
 /* -------------------------------------------------------------------------- */
 
 bool
+AbsTerm::is_array() const
+{
+  return get_sort()->is_array();
+}
+
+bool
+AbsTerm::is_bool() const
+{
+  return get_sort()->is_bool();
+}
+
+bool
+AbsTerm::is_bv() const
+{
+  return get_sort()->is_bv();
+}
+
+bool
+AbsTerm::is_fp() const
+{
+  return get_sort()->is_fp();
+}
+
+bool
+AbsTerm::is_fun() const
+{
+  return get_sort()->is_fp();
+}
+
+bool
+AbsTerm::is_int() const
+{
+  return get_sort()->is_int();
+}
+
+bool
+AbsTerm::is_real() const
+{
+  return get_sort()->is_real();
+}
+
+bool
+AbsTerm::is_rm() const
+{
+  return get_sort()->is_rm();
+}
+
+bool
+AbsTerm::is_string() const
+{
+  return get_sort()->is_string();
+}
+
+bool
+AbsTerm::is_reglan() const
+{
+  return get_sort()->is_reglan();
+}
+
+bool
 AbsTerm::is_bool_value() const
 {
   return get_leaf_kind() == LeafKind::VALUE && is_bool();

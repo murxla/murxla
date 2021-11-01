@@ -221,12 +221,6 @@ YicesTerm::is_bv() const
 }
 
 bool
-YicesTerm::is_fp() const
-{
-  return false;
-}
-
-bool
 YicesTerm::is_fun() const
 {
   return yices_term_is_function(d_term);
@@ -246,24 +240,6 @@ YicesTerm::is_real() const
   bool res = yices_term_is_arithmetic(d_term);
   MURXLA_TEST(!res || yices_term_is_int(d_term) || yices_term_is_real(d_term));
   return res;
-}
-
-bool
-YicesTerm::is_reglan() const
-{
-  return false;
-}
-
-bool
-YicesTerm::is_rm() const
-{
-  return false;
-}
-
-bool
-YicesTerm::is_string() const
-{
-  return false;
 }
 
 uint32_t

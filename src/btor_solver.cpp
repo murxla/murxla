@@ -270,66 +270,6 @@ BtorTerm::to_string() const
 }
 
 bool
-BtorTerm::is_array() const
-{
-  return get_sort()->is_array();
-}
-
-bool
-BtorTerm::is_bool() const
-{
-  return get_sort()->is_bool();
-}
-
-bool
-BtorTerm::is_bv() const
-{
-  return get_sort()->is_bv();
-}
-
-bool
-BtorTerm::is_fp() const
-{
-  return get_sort()->is_fp();
-}
-
-bool
-BtorTerm::is_fun() const
-{
-  return get_sort()->is_fun();
-}
-
-bool
-BtorTerm::is_int() const
-{
-  return get_sort()->is_int();
-}
-
-bool
-BtorTerm::is_real() const
-{
-  return get_sort()->is_real();
-}
-
-bool
-BtorTerm::is_rm() const
-{
-  return get_sort()->is_rm();
-}
-
-bool
-BtorTerm::is_string() const
-{
-  return get_sort()->is_string();
-}
-
-bool
-BtorTerm::is_reglan() const
-{
-  return get_sort()->is_reglan();
-}
-
-bool
 BtorTerm::is_bool_value() const
 {
   return is_bool() && boolector_is_const(d_solver, d_term);

@@ -159,29 +159,25 @@ class AbsTerm
   virtual bool not_equals(const std::shared_ptr<AbsTerm>& other) const;
 
   /** Return true if this term is an Array term. */
-  virtual bool is_array() const = 0;
+  virtual bool is_array() const;
   /** Return true if this term is a Boolean term. */
-  virtual bool is_bool() const = 0;
+  virtual bool is_bool() const;
   /** Return true if this term is a bit-vector term. */
-  virtual bool is_bv() const = 0;
+  virtual bool is_bv() const;
   /** Return true if this term is a floating-point term. */
-  virtual bool is_fp() const = 0;
+  virtual bool is_fp() const;
   /** Return true if this term is a function term. */
-  virtual bool is_fun() const = 0;
+  virtual bool is_fun() const;
   /** Return true if this term is an Int term. */
-  virtual bool is_int() const = 0;
-  /**
-   * Return true if this term is a Real term.
-   * Note: We consider sort Int as a subtype of sort Real. Hence, this must
-   *       return true for Int terms.
-   */
-  virtual bool is_real() const = 0;
+  virtual bool is_int() const;
+  /** Return true if this term is a Real term. */
+  virtual bool is_real() const;
   /** Return true if this term is a RoundingMode term. */
-  virtual bool is_rm() const = 0;
+  virtual bool is_rm() const;
   /** Return true if this term is a String term. */
-  virtual bool is_string() const = 0;
+  virtual bool is_string() const;
   /** Return true if this term is a RegLan term. */
-  virtual bool is_reglan() const = 0;
+  virtual bool is_reglan() const;
 
   /** Return true if this term is a Boolean value. */
   virtual bool is_bool_value() const;

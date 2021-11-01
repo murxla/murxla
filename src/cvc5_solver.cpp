@@ -735,66 +735,6 @@ Cvc5Term::to_string() const
 }
 
 bool
-Cvc5Term::is_array() const
-{
-  return get_sort()->is_array();
-}
-
-bool
-Cvc5Term::is_bool() const
-{
-  return get_sort()->is_bool();
-}
-
-bool
-Cvc5Term::is_bv() const
-{
-  return get_sort()->is_bv();
-}
-
-bool
-Cvc5Term::is_fp() const
-{
-  return get_sort()->is_fp();
-}
-
-bool
-Cvc5Term::is_fun() const
-{
-  return get_sort()->is_fun();
-}
-
-bool
-Cvc5Term::is_int() const
-{
-  return get_sort()->is_int();
-}
-
-bool
-Cvc5Term::is_real() const
-{
-  return get_sort()->is_real();
-}
-
-bool
-Cvc5Term::is_rm() const
-{
-  return get_sort()->is_rm();
-}
-
-bool
-Cvc5Term::is_string() const
-{
-  return get_sort()->is_string();
-}
-
-bool
-Cvc5Term::is_reglan() const
-{
-  return get_sort()->is_reglan();
-}
-
-bool
 Cvc5Term::is_bool_value() const
 {
   return d_term.isBooleanValue();

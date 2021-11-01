@@ -546,12 +546,6 @@ BzlaTerm::is_array() const
 }
 
 bool
-BzlaTerm::is_bool() const
-{
-  return get_sort()->is_bool();
-}
-
-bool
 BzlaTerm::is_bv() const
 {
   return bitwuzla_term_is_bv(d_term);
@@ -570,33 +564,9 @@ BzlaTerm::is_fun() const
 }
 
 bool
-BzlaTerm::is_int() const
-{
-  return get_sort()->is_int();
-}
-
-bool
-BzlaTerm::is_real() const
-{
-  return get_sort()->is_real();
-}
-
-bool
 BzlaTerm::is_rm() const
 {
   return bitwuzla_term_is_rm(d_term);
-}
-
-bool
-BzlaTerm::is_string() const
-{
-  return get_sort()->is_string();
-}
-
-bool
-BzlaTerm::is_reglan() const
-{
-  return get_sort()->is_reglan();
 }
 
 bool
