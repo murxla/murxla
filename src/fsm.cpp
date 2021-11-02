@@ -613,6 +613,7 @@ FSM::untrace(const std::string& trace_file_name)
       nline += 1;
       if (line.empty()) continue;
       if (line[0] == '#') continue;
+      if (line.rfind("set-murxla-options", 0) == 0) continue;
 
       const auto& [seed, id, tokens] = tokenize(line);
       d_smgr.get_sng().set_seed(seed);

@@ -507,6 +507,11 @@ Murxla::create_fsm(RNGenerator& rng,
     delete solver;
   }
 
+  if (!d_options.cmd_line_trace.empty())
+  {
+    trace << d_options.cmd_line_trace << std::endl;
+  }
+
   return FSM(rng,
              sng,
              create_solver(sng, smt2_out),

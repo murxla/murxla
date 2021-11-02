@@ -95,6 +95,9 @@ struct Options
 
   /** The list of currently enabled theories. */
   TheoryIdVector enabled_theories;
+
+  /** Command line options to be traced. */
+  std::string cmd_line_trace;
 };
 }  // namespace murxla
 #endif

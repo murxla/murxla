@@ -190,13 +190,18 @@ DD::run(const std::string& input_trace_file_name,
    * elements: the statement and the return statement.
    */
 
-  std::string line;
+  std::string line, murxla_options_line;
   std::vector<std::vector<std::string>> lines;
   std::ifstream trace_file = open_input_file(tmp_input_trace_file_name, false);
   while (std::getline(trace_file, line))
   {
     std::string token;
     if (line[0] == '#') continue;
+    if (line.rfind("set-murxla-options", 0) == 0)
+    {
+      murxla_options_line = line;
+      continue;
+    }
     if (std::getline(
             std::stringstream(line.erase(0, line.find_first_not_of(' '))),
             token,
@@ -263,9 +268,16 @@ DD::run(const std::string& input_trace_file_name,
 
   if (filesystem::exists(d_tmp_trace_file_name))
   {
-    filesystem::copy(d_tmp_trace_file_name,
-                     reduced_trace_file_name,
-                     filesystem::copy_options::overwrite_existing);
+    std::ofstream outfile(reduced_trace_file_name);
+    std::ifstream infile(d_tmp_trace_file_name);
+    if (!murxla_options_line.empty())
+    {
+      outfile << murxla_options_line << std::endl;
+    }
+    outfile << infile.rdbuf();
+    outfile.close();
+    infile.close();
+
     MURXLA_MESSAGE_DD << "written to: " << reduced_trace_file_name.c_str();
     MURXLA_MESSAGE_DD << "file reduced to "
                       << ((double) filesystem::file_size(

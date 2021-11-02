@@ -252,7 +252,7 @@ set_sigint_handler_stats(void)
 /* -------------------------------------------------------------------------- */
 
 void
-check_next_arg(std::string& option, int i, int argc)
+check_next_arg(const std::string& option, size_t i, size_t argc)
 {
   MURXLA_EXIT_ERROR(i >= argc)
       << "missing argument to option '" << option << "'";
@@ -295,11 +295,52 @@ is_valid_solver_str(const std::string& name)
 }
 
 void
+get_options(Options& options,
+            int argc,
+            char* argv[],
+            std::vector<std::string>& args)
+{
+  /* Check if a trace file was specified. */
+  std::string trace_file_name;
+  for (int32_t i = 1; i < argc; i++)
+  {
+    std::string arg(argv[i]);
+    if (arg == "-u" || arg == "--untrace")
+    {
+      i += 1;
+      check_next_arg(args.back(), i, argc);
+      options.untrace_file_name = argv[i];
+      continue;
+    }
+    args.push_back(arg);
+  }
+
+  if (!options.untrace_file_name.empty())
+  {
+    std::vector<std::string> opts;
+    std::ifstream trace(options.untrace_file_name);
+    if (trace.good())
+    {
+      std::string line;
+      std::getline(trace, line);
+      if (line.rfind("set-murxla-options", 0) == 0)
+      {
+        opts = split(line, ' ');
+        args.insert(args.begin(), opts.begin() + 1, opts.end());
+      }
+    }
+  }
+}
+
+void
 parse_options(Options& options, int argc, char* argv[])
 {
-  for (int i = 1; i < argc; i++)
+  std::vector<std::string> args;
+  get_options(options, argc, argv, args);
+
+  for (size_t i = 0, size = args.size(); i < size; ++i)
   {
-    std::string arg = argv[i];
+    std::string arg = args[i];
     if (arg == "-h" || arg == "--help")
     {
       std::cout << MURXLA_USAGE << std::endl;
@@ -309,18 +350,18 @@ parse_options(Options& options, int argc, char* argv[])
     {
       std::stringstream ss;
       i += 1;
-      check_next_arg(arg, i, argc);
-      ss << argv[i];
+      check_next_arg(arg, i, size);
+      ss << args[i];
       MURXLA_EXIT_ERROR(ss.str().find('-') != std::string::npos)
-          << "invalid argument to option '" << argv[i - 1] << "': " << ss.str();
+          << "invalid argument to option '" << arg << "': " << ss.str();
       ss >> options.seed;
       options.is_seeded = true;
     }
     else if (arg == "-t" || arg == "--time")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      options.time = std::atof(argv[i]);
+      check_next_arg(arg, i, size);
+      options.time = std::atof(args[i].c_str());
     }
     else if (arg == "-v" || arg == "--verbosity")
     {
@@ -329,8 +370,8 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-a" || arg == "--api-trace")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      options.api_trace_file_name = argv[i];
+      check_next_arg(arg, i, size);
+      options.api_trace_file_name = args[i];
     }
     else if (arg == "-d" || arg == "--dd")
     {
@@ -339,14 +380,14 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--dd-match-out")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      options.dd_match_out = argv[i];
+      check_next_arg(arg, i, size);
+      options.dd_match_out = args[i];
     }
     else if (arg == "--dd-match-err")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      options.dd_match_err = argv[i];
+      check_next_arg(arg, i, size);
+      options.dd_match_err = args[i];
     }
     else if (arg == "--dd-ignore-out")
     {
@@ -359,20 +400,20 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-D" || arg == "--dd-trace")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      options.dd_trace_file_name = argv[i];
+      check_next_arg(arg, i, size);
+      options.dd_trace_file_name = args[i];
     }
     else if (arg == "-u" || arg == "--untrace")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      options.untrace_file_name = argv[i];
+      check_next_arg(arg, i, size);
+      options.untrace_file_name = args[i];
     }
     else if (arg == "-c" || arg == "--cross-check")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      SolverKind solver = argv[i];
+      check_next_arg(arg, i, size);
+      SolverKind solver = args[i];
       MURXLA_EXIT_ERROR(!is_valid_solver_str(solver))
           << "invalid argument " << solver << " to option '" << arg << "'";
       check_solver(solver);
@@ -381,9 +422,9 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--check")
     {
       options.check_solver = true;
-      if (argc > i && is_valid_solver_str(argv[i + 1]))
+      if (size > i && is_valid_solver_str(args[i + 1]))
       {
-        options.check_solver_name = argv[i + 1];
+        options.check_solver_name = args[i + 1];
         i += 1;
       }
     }
@@ -398,65 +439,61 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-T" || arg == "--tmp-dir")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      MURXLA_EXIT_ERROR(!path_is_dir(argv[i]))
-          << "given path is not a directory '" << argv[i] << "'";
-      options.tmp_dir = argv[i];
+      check_next_arg(arg, i, size);
+      MURXLA_EXIT_ERROR(!path_is_dir(args[i]))
+          << "given path is not a directory '" << args[i] << "'";
+      options.tmp_dir = args[i];
     }
     else if (arg == "-O" || arg == "--out-dir")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      MURXLA_EXIT_ERROR(!path_is_dir(argv[i]))
-          << "given path is not a directory '" << argv[i] << "'";
-      options.out_dir = argv[i];
+      check_next_arg(arg, i, size);
+      MURXLA_EXIT_ERROR(!path_is_dir(args[i]))
+          << "given path is not a directory '" << args[i] << "'";
+      options.out_dir = args[i];
     }
     else if (arg == "--btor")
     {
       check_solver(SOLVER_BTOR);
-      MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = SOLVER_BTOR;
     }
     else if (arg == "--bzla")
     {
       check_solver(SOLVER_BZLA);
-      MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = SOLVER_BZLA;
     }
     else if (arg == "--cvc5")
     {
       check_solver(SOLVER_CVC5);
-      MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = SOLVER_CVC5;
     }
     else if (arg == "--yices")
     {
       check_solver(SOLVER_YICES);
-      MURXLA_EXIT_ERROR(!options.solver.empty()) << "multiple solvers defined";
       options.solver = SOLVER_YICES;
     }
     else if (arg == "--smt2")
     {
-      if (i + 1 < argc && argv[i + 1][0] != '-')
+      if (i + 1 < size && args[i + 1][0] != '-')
       {
         MURXLA_EXIT_ERROR(!options.solver.empty())
             << "multiple solvers defined";
         i += 1;
-        options.solver_binary = argv[i];
+        options.solver_binary = args[i];
       }
       options.solver = SOLVER_SMT2;
     }
     else if (arg == "-f" || arg == "--smt2-file")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      options.smt2_file_name = argv[i];
+      check_next_arg(arg, i, size);
+      options.smt2_file_name = args[i];
     }
     else if (arg == "-o")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      auto solver_options = split(argv[i], ',');
+      check_next_arg(arg, i, size);
+      auto solver_options = split(args[i], ',');
       for (auto opt : solver_options)
       {
         auto split_opt = split(opt, '=');
@@ -486,8 +523,8 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-m" || arg == "--max-runs")
     {
       i += 1;
-      check_next_arg(arg, i, argc);
-      options.max_runs = std::stoi(argv[i]);
+      check_next_arg(arg, i, size);
+      options.max_runs = std::stoi(args[i]);
     }
     else if (arg == "-l" || arg == "--smt-lib")
     {
@@ -552,6 +589,26 @@ parse_options(Options& options, int argc, char* argv[])
   {
     options.check_solver_name = options.solver;
   }
+
+  /* Record command line options for tracing. */
+  std::stringstream ss;
+  ss << "set-murxla-options";
+  for (size_t i = 0; i < args.size(); ++i)
+  {
+    assert(args[i] != "-u");
+    assert(args[i] != "--untrace");
+    if (args[i] == "-s" || args[i] == "--seed")
+    {
+      ++i;
+      continue;
+    }
+    else if (args[i] == "-d" || args[i] == "--dd")
+    {
+      continue;
+    }
+    ss << " " << args[i];
+  }
+  options.cmd_line_trace = ss.str();
 }
 
 /* ========================================================================== */
