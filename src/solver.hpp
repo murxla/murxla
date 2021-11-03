@@ -65,6 +65,8 @@ class AbsSort
   virtual bool is_string() const = 0;
   /** Return true if this sort is a RegLan sort. */
   virtual bool is_reglan() const = 0;
+  /** Return true if this sort is a Sequence sort. */
+  virtual bool is_seq() const = 0;
 
   virtual uint32_t get_bv_size() const;
   virtual uint32_t get_fp_exp_size() const;
@@ -74,6 +76,14 @@ class AbsSort
   virtual uint32_t get_fun_arity() const;
   virtual Sort get_fun_codomain_sort() const;
   virtual std::vector<Sort> get_fun_domain_sorts() const;
+  /**
+   * Get the sequence element sort of this sort.
+   *
+   * This is pure virtual because it must be overriden if the solver supports
+   * the theory of sequences in order to handle sorts that are implicitly
+   * created via SEQ_UNIT correctly.
+   */
+  virtual Sort get_seq_element_sort() const = 0;
 
   void set_id(uint64_t id);
   uint64_t get_id() const;
@@ -137,6 +147,8 @@ class AbsTerm
   inline static const SpecialValueKind SPECIAL_VALUE_RE_NONE    = "re.none";
   inline static const SpecialValueKind SPECIAL_VALUE_RE_ALL     = "re.all";
   inline static const SpecialValueKind SPECIAL_VALUE_RE_ALLCHAR = "re.allchar";
+  /** Special Sequence values. */
+  inline static const SpecialValueKind SPECIAL_VALUE_SEQ_EMPTY = "seq-empty";
 
   enum LeafKind
   {
@@ -178,6 +190,8 @@ class AbsTerm
   virtual bool is_string() const;
   /** Return true if this term is a RegLan term. */
   virtual bool is_reglan() const;
+  /** Return true if this term is a Sequence term. */
+  virtual bool is_seq() const;
 
   /** Return true if this term is a Boolean value. */
   virtual bool is_bool_value() const;
@@ -193,6 +207,8 @@ class AbsTerm
   virtual bool is_reglan_value() const;
   /** Return true if this term is a rounding mode value. */
   virtual bool is_rm_value() const;
+  /** Return true if this term is a Sequence value. */
+  virtual bool is_seq_value() const;
   /** Return true if this term is a string value. */
   virtual bool is_string_value() const;
 
@@ -208,8 +224,13 @@ class AbsTerm
 
   /**
    * Return the kind of the current term.
+   *
    * This kind is not a kind we cache on creation, but the kind that the
    * solver reports. May be Op::UNDEFINED.
+   *
+   * Must be overriden and may not return Op::UNDEFINED if the solver supports
+   * the theory of sequences (required for properly initializing sequence sorts
+   * for Op::SEQ_UNIT).
    */
   virtual const Op::Kind& get_kind() const;
 
@@ -433,6 +454,10 @@ class Solver
    * Get the set of sort kinds that are unsupported as array element sort.
    */
   virtual SortKindSet get_unsupported_array_element_sort_kinds() const;
+  /**
+   * Get the set of sort kinds that are unsupported as sequence element sort.
+   */
+  virtual SortKindSet get_unsupported_seq_element_sort_kinds() const;
   /**
    * Get the set of sort kinds that are unsupported for get-value.
    */

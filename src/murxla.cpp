@@ -524,6 +524,7 @@ Murxla::create_fsm(RNGenerator& rng,
              d_options.smt,
              record_stats ? d_stats : &dummy_stats,
              d_options.enabled_theories,
+             d_options.disabled_theories,
              d_options.solver_options);
 }
 

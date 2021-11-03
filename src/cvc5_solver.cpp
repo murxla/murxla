@@ -117,6 +117,12 @@ Cvc5Sort::is_reglan() const
   return d_sort.isRegExp();
 }
 
+bool
+Cvc5Sort::is_seq() const
+{
+  return d_sort.isSequence();
+}
+
 uint32_t
 Cvc5Sort::get_bv_size() const
 {
@@ -187,6 +193,15 @@ Cvc5Sort::get_fun_domain_sorts() const
   assert(is_fun());
   std::vector<::cvc5::api::Sort> cvc5_res = d_sort.getFunctionDomainSorts();
   return cvc5_sorts_to_sorts(d_solver, cvc5_res);
+}
+
+Sort
+Cvc5Sort::get_seq_element_sort() const
+{
+  ::cvc5::api::Sort cvc5_res = d_sort.getSequenceElementSort();
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
+  MURXLA_TEST(res);
+  return res;
 }
 
 std::vector<Sort>
@@ -277,22 +292,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  COMPREHENSION,
 //  CHOOSE,
 //  IS_SINGLETON,
-
-//  ## Sequences
-//  SEQ_CONCAT,
-//  SEQ_LENGTH,
-//  SEQ_EXTRACT,
-//  SEQ_UPDATE,
-//  SEQ_AT,
-//  SEQ_CONTAINS,
-//  SEQ_INDEXOF,
-//  SEQ_REPLACE,
-//  SEQ_REPLACE_ALL,
-//  SEQ_REV,
-//  SEQ_PREFIX,
-//  SEQ_SUFFIX,
-//  SEQ_UNIT,
-//  SEQ_NTH,
 
 //  ## Quantifiers
 //  INST_CLOSURE,
@@ -467,15 +466,33 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::UF_APPLY, ::cvc5::api::Kind::APPLY_UF},
 
         /* Solver-specific operators */
+        // BV
         {OP_BV_REDOR, ::cvc5::api::Kind::BITVECTOR_REDOR},
         {OP_BV_REDAND, ::cvc5::api::Kind::BITVECTOR_REDAND},
         {OP_BV_ULTBV, ::cvc5::api::Kind::BITVECTOR_ULTBV},
         {OP_BV_SLTBV, ::cvc5::api::Kind::BITVECTOR_SLTBV},
         {OP_BV_ITE, ::cvc5::api::Kind::BITVECTOR_ITE},
+        // Int
         {OP_BV_TO_NAT, ::cvc5::api::Kind::BITVECTOR_TO_NAT},
         {OP_INT_IAND, ::cvc5::api::Kind::IAND},
         {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
         {OP_INT_POW2, ::cvc5::api::Kind::POW2},
+        // Sequences
+        {Op::SEQ_CONCAT, ::cvc5::api::Kind::SEQ_CONCAT},
+        {Op::SEQ_LENGTH, ::cvc5::api::Kind::SEQ_LENGTH},
+        {Op::SEQ_EXTRACT, ::cvc5::api::Kind::SEQ_EXTRACT},
+        {Op::SEQ_UPDATE, ::cvc5::api::Kind::SEQ_UPDATE},
+        {Op::SEQ_AT, ::cvc5::api::Kind::SEQ_AT},
+        {Op::SEQ_CONTAINS, ::cvc5::api::Kind::SEQ_CONTAINS},
+        {Op::SEQ_INDEXOF, ::cvc5::api::Kind::SEQ_INDEXOF},
+        {Op::SEQ_REPLACE, ::cvc5::api::Kind::SEQ_REPLACE},
+        {Op::SEQ_REPLACE_ALL, ::cvc5::api::Kind::SEQ_REPLACE_ALL},
+        {Op::SEQ_REV, ::cvc5::api::Kind::SEQ_REV},
+        {Op::SEQ_PREFIX, ::cvc5::api::Kind::SEQ_PREFIX},
+        {Op::SEQ_SUFFIX, ::cvc5::api::Kind::SEQ_SUFFIX},
+        {Op::SEQ_UNIT, ::cvc5::api::Kind::SEQ_UNIT},
+        {Op::SEQ_NTH, ::cvc5::api::Kind::SEQ_NTH},
+        // Strings
         {OP_STRING_UPDATE, ::cvc5::api::Kind::STRING_UPDATE},
         {OP_STRING_TOLOWER, ::cvc5::api::Kind::STRING_TOLOWER},
         {OP_STRING_TOUPPER, ::cvc5::api::Kind::STRING_TOUPPER},
@@ -663,14 +680,32 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
 
         /* Solver-specific operators */
         {::cvc5::api::Kind::BITVECTOR_REDOR, OP_BV_REDOR},
+        // BV
         {::cvc5::api::Kind::BITVECTOR_REDAND, OP_BV_REDAND},
         {::cvc5::api::Kind::BITVECTOR_ULTBV, OP_BV_ULTBV},
         {::cvc5::api::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
         {::cvc5::api::Kind::BITVECTOR_ITE, OP_BV_ITE},
+        // Int
         {::cvc5::api::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
         {::cvc5::api::Kind::IAND, OP_INT_IAND},
         {::cvc5::api::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
         {::cvc5::api::Kind::POW2, OP_INT_POW2},
+        // Sequences
+        {::cvc5::api::Kind::SEQ_CONCAT, Op::SEQ_CONCAT},
+        {::cvc5::api::Kind::SEQ_LENGTH, Op::SEQ_LENGTH},
+        {::cvc5::api::Kind::SEQ_EXTRACT, Op::SEQ_EXTRACT},
+        {::cvc5::api::Kind::SEQ_UPDATE, Op::SEQ_UPDATE},
+        {::cvc5::api::Kind::SEQ_AT, Op::SEQ_AT},
+        {::cvc5::api::Kind::SEQ_CONTAINS, Op::SEQ_CONTAINS},
+        {::cvc5::api::Kind::SEQ_INDEXOF, Op::SEQ_INDEXOF},
+        {::cvc5::api::Kind::SEQ_REPLACE, Op::SEQ_REPLACE},
+        {::cvc5::api::Kind::SEQ_REPLACE_ALL, Op::SEQ_REPLACE_ALL},
+        {::cvc5::api::Kind::SEQ_REV, Op::SEQ_REV},
+        {::cvc5::api::Kind::SEQ_PREFIX, Op::SEQ_PREFIX},
+        {::cvc5::api::Kind::SEQ_SUFFIX, Op::SEQ_SUFFIX},
+        {::cvc5::api::Kind::SEQ_UNIT, Op::SEQ_UNIT},
+        {::cvc5::api::Kind::SEQ_NTH, Op::SEQ_NTH},
+        // Strings
         {::cvc5::api::Kind::STRING_UPDATE, OP_STRING_UPDATE},
         {::cvc5::api::Kind::STRING_TOLOWER, OP_STRING_TOLOWER},
         {::cvc5::api::Kind::STRING_TOUPPER, OP_STRING_TOUPPER},
@@ -765,6 +800,12 @@ Cvc5Term::is_real_value() const
 }
 
 bool
+Cvc5Term::is_seq_value() const
+{
+  return d_term.isSequenceValue();
+}
+
+bool
 Cvc5Term::is_string_value() const
 {
   return d_term.isStringValue();
@@ -774,6 +815,18 @@ const Op::Kind&
 Cvc5Term::get_kind() const
 {
   ::cvc5::api::Kind cvc5_kind = d_term.getKind();
+  if (cvc5_kind == ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC)
+  {
+    if (d_term.getNumChildren() == 1)
+    {
+      return Op::FP_TO_FP_FROM_BV;
+    }
+    if (d_term[1].getSort().isFloatingPoint())
+    {
+      return Op::FP_TO_FP_FROM_FP;
+    }
+    return Op::FP_TO_FP_FROM_SBV;
+  }
   return s_cvc5_kinds_to_kinds.at(cvc5_kind);
 }
 
@@ -981,6 +1034,12 @@ Cvc5Solver::get_unsupported_array_element_sort_kinds() const
 }
 
 SortKindSet
+Cvc5Solver::get_unsupported_seq_element_sort_kinds() const
+{
+  return {SORT_FUN, SORT_REGLAN};
+}
+
+SortKindSet
 Cvc5Solver::get_unsupported_fun_domain_sort_kinds() const
 {
   return {SORT_FUN, SORT_REGLAN};
@@ -1015,7 +1074,8 @@ Cvc5Solver::new_solver()
   d_solver->setOption("fp-exp", "true");
   d_solver->setOption("strings-exp", "true");
 
-  add_special_value(SORT_REAL, Cvc5Term::SPECIAL_VALUE_PI);
+  add_special_value(SORT_REAL, Cvc5Term::SPECIAL_VALUE_REAL_PI);
+  add_special_value(SORT_SEQ, Cvc5Term::SPECIAL_VALUE_SEQ_EMPTY);
 }
 
 void
@@ -1110,6 +1170,7 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   switch (kind)
   {
     case SORT_ARRAY:
+      assert(sorts.size() == 2);
       cvc5_res = d_solver->mkArraySort(Cvc5Sort::get_cvc5_sort(sorts[0]),
                                        Cvc5Sort::get_cvc5_sort(sorts[1]));
       break;
@@ -1126,6 +1187,11 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       cvc5_res = d_solver->mkFunctionSort(domain, codomain);
       break;
     }
+
+    case SORT_SEQ:
+      assert(sorts.size() == 1);
+      cvc5_res = d_solver->mkSequenceSort(Cvc5Sort::get_cvc5_sort(sorts[0]));
+      break;
 
     default:
       MURXLA_CHECK_CONFIG(false) << "unsupported sort kind '" << kind
@@ -1464,7 +1530,7 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       break;
 
     case SORT_REAL:
-      assert(value == Cvc5Term::SPECIAL_VALUE_PI);
+      assert(value == Cvc5Term::SPECIAL_VALUE_REAL_PI);
       cvc5_res = d_solver->mkPi();
       break;
 
@@ -1485,13 +1551,24 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       }
       break;
 
+    case SORT_SEQ:
+    {
+      assert(value == AbsTerm::SPECIAL_VALUE_SEQ_EMPTY);
+      const std::vector<Sort>& sorts = sort->get_sorts();
+      assert(sorts.size() == 1);
+      Sort element_sort = sorts[0];
+      cvc5_res =
+          d_solver->mkEmptySequence(Cvc5Sort::get_cvc5_sort(element_sort));
+    }
+    break;
+
     default:
       MURXLA_CHECK_CONFIG(sort->is_bv())
           << "unexpected sort of kind '" << sort->get_kind()
           << "' as argument to "
              "Cvc5Solver::mk_special_value, expected bit-vector, "
              "floating-point, "
-             "RoundingMode, Real or Reglan sort";
+             "RoundingMode, Real, Reglan or Sequence sort";
   }
   std::shared_ptr<Cvc5Term> res(new Cvc5Term(d_rng, d_solver, cvc5_res));
   assert(res);
@@ -1887,26 +1964,26 @@ void
 Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
 {
   /* Add solver-specific operators. */
+  // BV
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
-
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_ULTBV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_SLTBV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(Cvc5Term::OP_BV_ITE, 3, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
-      Cvc5Term::OP_INT_TO_BV, 1, 1, SORT_BV, {SORT_INT}, THEORY_BV);
-
+      Cvc5Term::OP_BV_TO_NAT, 1, 0, SORT_INT, {SORT_BV}, THEORY_BV);
+  // Int
   opmgr->add_op_kind(
-      Cvc5Term::OP_BV_TO_NAT, 1, 0, SORT_INT, {SORT_BV}, THEORY_INT);
+      Cvc5Term::OP_INT_TO_BV, 1, 1, SORT_BV, {SORT_INT}, THEORY_INT);
   opmgr->add_op_kind(
       Cvc5Term::OP_INT_IAND, 2, 1, SORT_INT, {SORT_INT}, THEORY_INT);
   opmgr->add_op_kind(
       Cvc5Term::OP_INT_POW2, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-
+  // Strings
   opmgr->add_op_kind(Cvc5Term::OP_STRING_UPDATE,
                      3,
                      0,

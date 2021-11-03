@@ -117,6 +117,12 @@ YicesSort::is_rm() const
 }
 
 bool
+YicesSort::is_seq() const
+{
+  return false;
+}
+
+bool
 YicesSort::is_string() const
 {
   return false;
@@ -129,6 +135,12 @@ YicesSort::get_bv_size() const
   uint32_t res = yices_bvtype_size(d_sort);
   MURXLA_TEST(res);
   return res;
+}
+
+Sort
+YicesSort::get_seq_element_sort() const
+{
+  return nullptr;
 }
 
 /* -------------------------------------------------------------------------- */

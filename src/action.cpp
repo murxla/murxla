@@ -140,42 +140,46 @@ ActionTermGetChildren::_run(Term term)
   /* Call Term::get_children(). */
   std::vector<Term> children = term->get_children();
   /* Perform some checks based on term kind */
-  if (kind == Op::ARRAY_SELECT)
+  if (!children.empty())
   {
-    assert(children.size() == 2);
-    Sort array_sort            = d_solver.get_sort(children[0], SORT_ANY);
-    Sort index_sort_expected   = array_sort->get_array_index_sort();
-    Sort element_sort_expected = array_sort->get_array_element_sort();
-    Sort index_sort            = d_solver.get_sort(children[1], SORT_ANY);
-    MURXLA_TEST(index_sort_expected->equals(index_sort));
-    MURXLA_TEST(element_sort_expected->equals(term->get_sort()));
-  }
-  else if (kind == Op::ARRAY_STORE)
-  {
-    assert(children.size() == 3);
-    Sort array_sort            = d_solver.get_sort(children[0], SORT_ANY);
-    Sort index_sort_expected   = array_sort->get_array_index_sort();
-    Sort element_sort_expected = array_sort->get_array_element_sort();
-    Sort index_sort            = d_solver.get_sort(children[1], SORT_ANY);
-    Sort element_sort          = d_solver.get_sort(children[2], SORT_ANY);
-    MURXLA_TEST(index_sort_expected->equals(index_sort));
-    MURXLA_TEST(element_sort_expected->equals(element_sort));
-  }
-  else if (kind == Op::UF_APPLY)
-  {
-    assert(children.size() >= 1);
-    Sort fun_sort               = d_solver.get_sort(children[0], SORT_ANY);
-    Sort codomain_sort_expected = fun_sort->get_fun_codomain_sort();
-    std::vector<Sort> domain_sorts_expected = fun_sort->get_fun_domain_sorts();
-    MURXLA_TEST(domain_sorts_expected.size() == children.size() - 1);
-    MURXLA_TEST(codomain_sort_expected->equals(term->get_sort()));
-    if (!domain_sorts_expected.empty())
+    if (kind == Op::ARRAY_SELECT)
     {
-      MURXLA_TEST(domain_sorts_expected.size() == fun_sort->get_fun_arity());
-      for (size_t i = 0, size = domain_sorts_expected.size(); i < size; ++i)
+      assert(children.size() == 2);
+      Sort array_sort            = d_solver.get_sort(children[0], SORT_ANY);
+      Sort index_sort_expected   = array_sort->get_array_index_sort();
+      Sort element_sort_expected = array_sort->get_array_element_sort();
+      Sort index_sort            = d_solver.get_sort(children[1], SORT_ANY);
+      MURXLA_TEST(index_sort_expected->equals(index_sort));
+      MURXLA_TEST(element_sort_expected->equals(term->get_sort()));
+    }
+    else if (kind == Op::ARRAY_STORE)
+    {
+      assert(children.size() == 3);
+      Sort array_sort            = d_solver.get_sort(children[0], SORT_ANY);
+      Sort index_sort_expected   = array_sort->get_array_index_sort();
+      Sort element_sort_expected = array_sort->get_array_element_sort();
+      Sort index_sort            = d_solver.get_sort(children[1], SORT_ANY);
+      Sort element_sort          = d_solver.get_sort(children[2], SORT_ANY);
+      MURXLA_TEST(index_sort_expected->equals(index_sort));
+      MURXLA_TEST(element_sort_expected->equals(element_sort));
+    }
+    else if (kind == Op::UF_APPLY)
+    {
+      assert(children.size() >= 1);
+      Sort fun_sort               = d_solver.get_sort(children[0], SORT_ANY);
+      Sort codomain_sort_expected = fun_sort->get_fun_codomain_sort();
+      std::vector<Sort> domain_sorts_expected =
+          fun_sort->get_fun_domain_sorts();
+      MURXLA_TEST(domain_sorts_expected.size() == children.size() - 1);
+      MURXLA_TEST(codomain_sort_expected->equals(term->get_sort()));
+      if (!domain_sorts_expected.empty())
       {
-        MURXLA_TEST(domain_sorts_expected[i]->equals(
-            d_solver.get_sort(children[i + 1], SORT_ANY)));
+        MURXLA_TEST(domain_sorts_expected.size() == fun_sort->get_fun_arity());
+        for (size_t i = 0, size = domain_sorts_expected.size(); i < size; ++i)
+        {
+          MURXLA_TEST(domain_sorts_expected[i]->equals(
+              d_solver.get_sort(children[i + 1], SORT_ANY)));
+        }
       }
     }
   }
@@ -439,8 +443,18 @@ ActionMkSort::run()
       sorts.push_back(
           d_smgr.pick_sort_excluding(exclude_codomain_sorts, false));
       _run(kind, sorts);
-      break;
     }
+    break;
+
+    case SORT_SEQ:
+    {
+      SortKindSet exclude_sorts =
+          d_solver.get_unsupported_seq_element_sort_kinds();
+      if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+      auto sort = d_smgr.pick_sort_excluding(exclude_sorts, false);
+      _run(kind, {sort});
+    }
+    break;
 
     case SORT_STRING:
     case SORT_REGLAN:
@@ -557,6 +571,14 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
           << "solver does not support theory of bit-vectors";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
       res = _run(kind, str_to_uint32(tokens[1]));
+      break;
+
+    case SORT_SEQ:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                         || theories.find(THEORY_SEQ) != theories.end())
+          << "solver does not support theory of sequences";
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
+      res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
       break;
 
     case SORT_FP:
@@ -818,6 +840,20 @@ ActionMkTerm::run()
       args.push_back(d_smgr.pick_term(*it));
     }
     sort_kind = sorts.back()->get_kind();
+  }
+  else if (kind == Op::SEQ_NTH)
+  {
+    assert(!n_params);
+    Sort seq_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+    const std::vector<Sort>& sorts = seq_sort->get_sorts();
+    assert(sorts.size() == 1);
+    Sort element_sort = sorts[0];
+    assert(d_smgr.has_term(seq_sort));
+    assert(d_smgr.has_term(SORT_INT));
+    args.push_back(d_smgr.pick_term(seq_sort));
+    args.push_back(d_smgr.pick_term(SORT_INT));
+    sort_kind = element_sort->get_kind();
+    assert(sort_kind != SORT_ANY);
   }
   else
   {
@@ -1180,6 +1216,10 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
   {
     MURXLA_TEST(term->is_reglan());
   }
+  else if (sort->is_seq())
+  {
+    MURXLA_TEST(term->is_seq());
+  }
   else
   {
     assert(false);
@@ -1386,6 +1426,7 @@ ActionMkValue::run()
       }
       break;
 
+    case SORT_SEQ:
     case SORT_RM: return false;
 
     case SORT_STRING:
@@ -1524,7 +1565,7 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
 {
   assert(term->get_leaf_kind() == AbsTerm::LeafKind::VALUE);
 
-  if (rng.pick_with_prob(990)) return;
+  if (rng.pick_with_prob(0)) return;
 
   ActionMkTerm::check_term(rng, term);
 

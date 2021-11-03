@@ -45,6 +45,7 @@ class Cvc5Sort : public AbsSort
   bool is_rm() const override;
   bool is_string() const override;
   bool is_reglan() const override;
+  bool is_seq() const override;
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
@@ -53,6 +54,7 @@ class Cvc5Sort : public AbsSort
   uint32_t get_fun_arity() const override;
   Sort get_fun_codomain_sort() const override;
   std::vector<Sort> get_fun_domain_sorts() const override;
+  Sort get_seq_element_sort() const override;
 
  private:
   ::cvc5::api::Solver* d_solver;
@@ -84,7 +86,7 @@ class Cvc5Term : public AbsTerm
   static std::unordered_map<::cvc5::api::Kind, Op::Kind> s_cvc5_kinds_to_kinds;
 
   /** Solver-specific special values. */
-  inline static const SpecialValueKind SPECIAL_VALUE_PI = "cvc5-pi";
+  inline static const SpecialValueKind SPECIAL_VALUE_REAL_PI = "cvc5-real_pi";
 
   /** Solver-specific operators. */
   // BV
@@ -104,7 +106,7 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_STRING_TOUPPER = "cvc5-OP_STRING_TOUPPER";
   inline static const Op::Kind OP_STRING_REV     = "cvc5-OP_STRING_REV";
 
-  /** Special value kinds that have its own node kind in cvc5, only used
+  /* Special value kinds that have its own node kind in cvc5, only used
    * for getKind(). */
   inline static const Op::Kind OP_REAL_PI      = "cvc5-OP_REAL_PI";
   inline static const Op::Kind OP_REGEXP_EMPTY = "cvc5-OP_REGEXP_EMPTY";
@@ -125,6 +127,7 @@ class Cvc5Term : public AbsTerm
   bool is_fp_value() const override;
   bool is_int_value() const override;
   bool is_real_value() const override;
+  bool is_seq_value() const override;
   bool is_string_value() const override;
   const Op::Kind& get_kind() const override;
   std::vector<Term> get_children() const override;
@@ -171,6 +174,7 @@ class Cvc5Solver : public Solver
   SortKindSet get_unsupported_var_sort_kinds() const override;
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
   SortKindSet get_unsupported_array_element_sort_kinds() const override;
+  SortKindSet get_unsupported_seq_element_sort_kinds() const override;
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
   SortKindSet get_unsupported_get_value_sort_kinds() const override;

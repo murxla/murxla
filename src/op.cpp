@@ -101,6 +101,8 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::NOT, 1, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
   add_op_kind(Op::XOR, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
   add_op_kind(Op::IMPLIES, n, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+
+  /* Quantifiers */
   add_op_kind(Op::FORALL, 2, 0, SORT_BOOL, {SORT_ANY, SORT_BOOL}, THEORY_QUANT);
   add_op_kind(Op::EXISTS, 2, 0, SORT_BOOL, {SORT_ANY, SORT_BOOL}, THEORY_QUANT);
 
@@ -254,7 +256,6 @@ OpKindManager::add_op_kinds()
               {SORT_STRING, SORT_STRING, SORT_INT},
               THEORY_STRING);
   add_op_kind(Op::STR_REPLACE, 3, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
-  add_op_kind(Op::STR_REPLACE, 3, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
   add_op_kind(
       Op::STR_REPLACE_ALL, 3, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
   add_op_kind(Op::STR_REPLACE_RE,
@@ -285,6 +286,43 @@ OpKindManager::add_op_kinds()
 
   /* UF */
   add_op_kind(Op::UF_APPLY, n, 0, SORT_ANY, {SORT_FUN, SORT_ANY}, THEORY_UF);
+
+  /* Operators of non-standardized theories. */
+  // Sequences
+  add_op_kind(Op::SEQ_CONCAT,
+              MURXLA_MK_TERM_N_ARGS_BIN,
+              0,
+              SORT_SEQ,
+              {SORT_SEQ},
+              THEORY_SEQ);
+  add_op_kind(Op::SEQ_LENGTH, 1, 0, SORT_INT, {SORT_SEQ}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_EXTRACT,
+              3,
+              0,
+              SORT_SEQ,
+              {SORT_SEQ, SORT_INT, SORT_INT},
+              THEORY_SEQ);
+  add_op_kind(Op::SEQ_UPDATE,
+              3,
+              0,
+              SORT_SEQ,
+              {SORT_SEQ, SORT_INT, SORT_SEQ},
+              THEORY_SEQ);
+  add_op_kind(Op::SEQ_AT, 2, 0, SORT_SEQ, {SORT_SEQ, SORT_INT}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_CONTAINS, 2, 0, SORT_BOOL, {SORT_SEQ}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_INDEXOF,
+              3,
+              0,
+              SORT_INT,
+              {SORT_SEQ, SORT_SEQ, SORT_INT},
+              THEORY_INT);
+  add_op_kind(Op::SEQ_REPLACE, 3, 0, SORT_SEQ, {SORT_SEQ}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_REPLACE_ALL, 3, 0, SORT_SEQ, {SORT_SEQ}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_REV, 1, 0, SORT_SEQ, {SORT_SEQ}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_PREFIX, 2, 0, SORT_BOOL, {SORT_SEQ}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_SUFFIX, 2, 0, SORT_BOOL, {SORT_SEQ}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_UNIT, 1, 0, SORT_SEQ, {SORT_ANY}, THEORY_SEQ);
+  add_op_kind(Op::SEQ_NTH, 2, 0, SORT_ANY, {SORT_SEQ, SORT_INT}, THEORY_SEQ);
 }
 
 void

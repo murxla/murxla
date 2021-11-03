@@ -190,6 +190,12 @@ AbsTerm::is_reglan() const
 }
 
 bool
+AbsTerm::is_seq() const
+{
+  return get_sort()->is_seq();
+}
+
+bool
 AbsTerm::is_bool_value() const
 {
   return get_leaf_kind() == LeafKind::VALUE && is_bool();
@@ -229,6 +235,12 @@ bool
 AbsTerm::is_rm_value() const
 {
   return get_leaf_kind() == LeafKind::VALUE && is_rm();
+}
+
+bool
+AbsTerm::is_seq_value() const
+{
+  return get_leaf_kind() == LeafKind::VALUE && is_seq();
 }
 
 bool
@@ -541,6 +553,12 @@ Solver::get_unsupported_array_index_sort_kinds() const
 
 SortKindSet
 Solver::get_unsupported_array_element_sort_kinds() const
+{
+  return {};
+}
+
+SortKindSet
+Solver::get_unsupported_seq_element_sort_kinds() const
 {
   return {};
 }

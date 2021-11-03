@@ -23,7 +23,8 @@ SolverManager::SolverManager(Solver* solver,
                              bool trace_seeds,
                              bool simple_symbols,
                              statistics::Statistics* stats,
-                             const TheoryIdVector& enabled_theories)
+                             const TheoryIdVector& enabled_theories,
+                             const TheoryIdSet& disabled_theories)
     : d_mbt_stats(stats),
       d_arith_subtyping(arith_subtyping),
       d_arith_linear(arith_linear),
@@ -39,7 +40,7 @@ SolverManager::SolverManager(Solver* solver,
       d_untraced_terms(),
       d_untraced_sorts()
 {
-  add_enabled_theories(enabled_theories);
+  add_enabled_theories(enabled_theories, disabled_theories);
   add_sort_kinds();  // adds only sort kinds of enabled theories
   d_opmgr.reset(new OpKindManager(d_enabled_theories,
                                   d_solver->get_unsupported_op_kinds(),
@@ -222,9 +223,24 @@ SolverManager::add_term(Term& term,
   Sort sort = d_solver->get_sort(term, sort_kind);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
+  /* Operator SEQ_UNIT may implicitly create a new sequence sort. In that case
+   * we have to populate Sort::d_sorts with the element sort. */
+  assert(d_enabled_theories.find(THEORY_SEQ) == d_enabled_theories.end()
+         || term->get_kind() != Op::UNDEFINED);
+  if (term->get_kind() == Op::SEQ_UNIT && args.size() > 0)
+  {
+    auto sorts = lookup->get_sorts();
+    if (sorts.size() == 0)
+    {
+      lookup->set_sorts({args[0]->get_sort()});
+    }
+  }
   d_term_db.add_term(term, lookup, sort_kind, args);
   assert(lookup->get_id());
   assert(lookup->get_kind() != SORT_ANY);
+  assert(sort_kind != SORT_SEQ
+         || (lookup->get_sorts().size() == 1
+             && lookup->get_sorts()[0]->get_kind() != SORT_ANY));
 }
 
 void
@@ -274,8 +290,12 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
                && sort->get_sorts().size() == 2)
            || sort->get_kind() == sort_kind);
   }
+  assert(sort->get_kind() != SORT_ANY);
+  assert(sort_kind != SORT_ARRAY
+         || (sort->get_sorts().size() == 2
+             && sort->get_sorts()[0]->get_kind() != SORT_ANY
+             && sort->get_sorts()[1]->get_kind() != SORT_ANY));
   assert(sort->get_id());
-  assert(sort_kind != SORT_ARRAY || !sort->get_sorts().empty());
 
   auto& sorts = d_sort_kind_to_sorts[sort_kind];
   if (sorts.find(sort) == sorts.end())
@@ -721,6 +741,7 @@ SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
         d_rng.pick_from_set<SortSet, Sort>(d_sort_kind_to_sorts.at(sort_kind));
   }
   assert(res->get_id());
+  assert(res->get_kind() != SORT_ANY);
   return res;
 }
 
@@ -746,6 +767,7 @@ Sort
 SolverManager::pick_sort_excluding(const SortKindSet& exclude_sorts,
                                    bool with_terms)
 {
+  assert(has_sort_excluding(exclude_sorts));
   SortSet sorts;
   for (const auto& s : d_sorts)
   {
@@ -757,10 +779,7 @@ SolverManager::pick_sort_excluding(const SortKindSet& exclude_sorts,
       }
     }
   }
-  if (sorts.empty())
-  {
-    return nullptr;
-  }
+  assert(!sorts.empty());
   Sort res = d_rng.pick_from_set<SortSet, Sort>(sorts);
   assert(res->get_id());
   return res;
@@ -979,7 +998,8 @@ SolverManager::pick_option(std::string name, std::string val)
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories)
+SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
+                                    const TheoryIdSet& disabled_theories)
 {
   /* Get theories supported by enabled solver. */
   TheoryIdVector solver_theories = d_solver->get_supported_theories();
@@ -1014,6 +1034,11 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories)
   /* Resize to intersection size. */
   tmp.resize(it - tmp.begin());
   d_enabled_theories = TheoryIdSet(tmp.begin(), tmp.end());
+  /* Remove disabled theories. */
+  for (auto t : disabled_theories)
+  {
+    disable_theory(t);
+  }
 }
 
 void
@@ -1049,6 +1074,10 @@ SolverManager::add_sort_kinds()
         break;
 
       case THEORY_QUANT: break;
+
+      case THEORY_SEQ:
+        d_sort_kinds.emplace(SORT_SEQ, SortKindData(SORT_SEQ, 0, THEORY_SEQ));
+        break;
 
       case THEORY_STRING:
         d_sort_kinds.emplace(SORT_STRING,

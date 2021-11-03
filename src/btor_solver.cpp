@@ -137,6 +137,12 @@ BtorSort::is_rm() const
 }
 
 bool
+BtorSort::is_seq() const
+{
+  return false;
+}
+
+bool
 BtorSort::is_string() const
 {
   return false;
@@ -208,6 +214,12 @@ BtorSort::get_fun_codomain_sort() const
   assert(res);
   boolector_release(d_solver, n);
   return res;
+}
+
+Sort
+BtorSort::get_seq_element_sort() const
+{
+  return nullptr;
 }
 
 /* -------------------------------------------------------------------------- */

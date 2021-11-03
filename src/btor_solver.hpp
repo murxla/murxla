@@ -35,6 +35,7 @@ class BtorSort : public AbsSort
   bool is_int() const override;
   bool is_real() const override;
   bool is_rm() const override;
+  bool is_seq() const override;
   bool is_string() const override;
   bool is_reglan() const override;
   uint32_t get_bv_size() const override;
@@ -42,6 +43,7 @@ class BtorSort : public AbsSort
   Sort get_array_element_sort() const override;
   uint32_t get_fun_arity() const override;
   Sort get_fun_codomain_sort() const override;
+  Sort get_seq_element_sort() const override;
 
  private:
   /** Return a string representation of a bit-vector sort. */

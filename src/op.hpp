@@ -173,6 +173,22 @@ struct Op
   inline static const Kind STR_TO_RE          = "OP_STR_TO_RE";
   /* UF */
   inline static const Kind UF_APPLY = "OP_UF_APPLY";
+  /* Operators of non-standardized theories. */
+  // Sequences
+  inline static const Kind SEQ_CONCAT      = "OP_SEQ_CONCAT";
+  inline static const Kind SEQ_LENGTH      = "OP_SEQ_LENGTH";
+  inline static const Kind SEQ_EXTRACT     = "OP_SEQ_EXTRACT";
+  inline static const Kind SEQ_UPDATE      = "OP_SEQ_UPDATE";
+  inline static const Kind SEQ_AT          = "OP_SEQ_AT";
+  inline static const Kind SEQ_CONTAINS    = "OP_SEQ_CONTAINS";
+  inline static const Kind SEQ_INDEXOF     = "OP_SEQ_INDEXOF";
+  inline static const Kind SEQ_REPLACE     = "OP_SEQ_REPLACE";
+  inline static const Kind SEQ_REPLACE_ALL = "OP_SEQ_REPLACE_ALL";
+  inline static const Kind SEQ_REV         = "OP_SEQ_REV";
+  inline static const Kind SEQ_PREFIX      = "OP_SEQ_PREFIX";
+  inline static const Kind SEQ_SUFFIX      = "OP_SEQ_SUFFIX";
+  inline static const Kind SEQ_UNIT        = "OP_SEQ_UNIT";
+  inline static const Kind SEQ_NTH         = "OP_SEQ_NTH";
 
   Op(uint64_t id,
      const Kind& kind,
@@ -186,7 +202,7 @@ struct Op
 
   SortKindSet get_arg_sort_kind(size_t i) const;
 
-  /* Op id, assigned in the order they have been created. */
+  /** Op id, assigned in the order they have been created. */
   uint64_t d_id = 0u;
   /** The Kind. */
   const Kind& d_kind = UNDEFINED;

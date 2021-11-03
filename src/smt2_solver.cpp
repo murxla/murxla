@@ -84,6 +84,12 @@ Smt2Sort::is_rm() const
 }
 
 bool
+Smt2Sort::is_seq() const
+{
+  return d_kind == SORT_SEQ;
+}
+
+bool
 Smt2Sort::is_string() const
 {
   return d_kind == SORT_STRING;
@@ -167,6 +173,13 @@ Smt2Sort::get_fun_domain_sorts() const
     res.emplace_back(new Smt2Sort(smt2_domain_sort->get_repr()));
   }
   return res;
+}
+
+Sort
+Smt2Sort::get_seq_element_sort() const
+{
+  // TODO
+  return nullptr;
 }
 
 /* -------------------------------------------------------------------------- */

@@ -133,6 +133,12 @@ BzlaSort::is_rm() const
 }
 
 bool
+BzlaSort::is_seq() const
+{
+  return false;
+}
+
+bool
 BzlaSort::is_string() const
 {
   return false;
@@ -219,6 +225,12 @@ BzlaSort::get_fun_domain_sorts() const
   const BitwuzlaSort** bzla_res =
       bitwuzla_sort_fun_get_domain_sorts(d_sort, &size);
   return bzla_sorts_to_sorts(d_solver, bzla_res, size);
+}
+
+Sort
+BzlaSort::get_seq_element_sort() const
+{
+  return nullptr;
 }
 
 /* -------------------------------------------------------------------------- */

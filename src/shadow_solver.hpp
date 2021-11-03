@@ -27,6 +27,7 @@ class ShadowSort : public AbsSort
   bool is_int() const override;
   bool is_real() const override;
   bool is_rm() const override;
+  bool is_seq() const override;
   bool is_string() const override;
   bool is_reglan() const override;
   uint32_t get_bv_size() const override;
@@ -37,6 +38,7 @@ class ShadowSort : public AbsSort
   uint32_t get_fun_arity() const override;
   Sort get_fun_codomain_sort() const override;
   std::vector<Sort> get_fun_domain_sorts() const override;
+  Sort get_seq_element_sort() const override;
 
   void set_kind(SortKind sort_kind) override;
   void set_sorts(const std::vector<Sort>& sorts) override;
@@ -59,6 +61,7 @@ class ShadowTerm : public AbsTerm
   size_t hash() const override;
   bool equals(const Term& other) const override;
   std::string to_string() const override;
+  const Op::Kind& get_kind() const override;
   bool is_array() const override;
   bool is_bool() const override;
   bool is_bv() const override;

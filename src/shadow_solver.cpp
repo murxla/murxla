@@ -68,6 +68,11 @@ ShadowSort::is_rm() const
   return d_sort->is_rm();
 }
 bool
+ShadowSort::is_seq() const
+{
+  return d_sort->is_seq();
+}
+bool
 ShadowSort::is_string() const
 {
   return d_sort->is_string();
@@ -117,6 +122,11 @@ ShadowSort::get_fun_domain_sorts() const
 {
   return d_sort->get_fun_domain_sorts();
 }
+Sort
+ShadowSort::get_seq_element_sort() const
+{
+  return d_sort->get_seq_element_sort();
+}
 void
 ShadowSort::set_kind(SortKind sort_kind)
 {
@@ -161,6 +171,13 @@ ShadowTerm::to_string() const
 {
   return d_term->to_string();
 }
+
+const Op::Kind&
+ShadowTerm::get_kind() const
+{
+  return d_term->get_kind();
+}
+
 bool
 ShadowTerm::is_array() const
 {

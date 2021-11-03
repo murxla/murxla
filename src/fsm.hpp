@@ -162,6 +162,7 @@ class FSM
       bool smt,
       statistics::Statistics* stats,
       const TheoryIdVector& enabled_theories,
+      const TheoryIdSet& disabled_theories,
       const std::vector<std::pair<std::string, std::string>> solver_options);
 
   /** Default constructor is disabled. */

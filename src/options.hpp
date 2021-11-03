@@ -95,6 +95,11 @@ struct Options
 
   /** The list of currently enabled theories. */
   TheoryIdVector enabled_theories;
+  /**
+   * The list of currently explicitly disabled theories.
+   * By default, only non-standardized theories are disabled.
+   */
+  TheoryIdSet disabled_theories = {THEORY_SEQ};
 
   /** Command line options to be traced. */
   std::string cmd_line_trace;
