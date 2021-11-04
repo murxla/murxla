@@ -942,12 +942,6 @@ get_rm_sort_string()
 }
 
 static std::string
-get_seq_sort_string()
-{
-  return "Seq";
-}
-
-static std::string
 get_string_sort_string()
 {
   return "String";
@@ -1003,6 +997,17 @@ get_fun_sort_string(const std::vector<Sort>& sorts)
   }
   sort << ") ";
   sort << static_cast<const Smt2Sort*>(sorts.back().get())->get_repr();
+  return sort.str();
+}
+
+static std::string
+get_seq_sort_string(const std::vector<Sort>& sorts)
+{
+  assert(sorts.size() == 1);
+  std::stringstream sort;
+  sort << "(Seq";
+  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
+  sort << ") ";
   return sort.str();
 }
 
@@ -1062,6 +1067,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   {
     case SORT_ARRAY: sort = get_array_sort_string(sorts); break;
     case SORT_FUN: sort = get_fun_sort_string(sorts); break;
+    case SORT_SEQ: sort = get_seq_sort_string(sorts); break;
     default: assert(false);
   }
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));
@@ -1116,6 +1122,14 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     return args[0]->get_sort()->get_sorts().back();
   }
 
+  if (kind == Op::SEQ_NTH)
+  {
+    assert(args.size() == 2);
+    assert(args[0]->get_sort()->get_kind() == SORT_SEQ);
+    assert(args[0]->get_sort()->get_sorts().size() == 1);
+    return args[0]->get_sort()->get_sorts()[0];
+  }
+
   switch (sort_kind)
   {
     case SORT_BOOL: sort = get_bool_sort_string(); break;
@@ -1125,8 +1139,6 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     case SORT_REAL: sort = get_real_sort_string(); break;
 
     case SORT_RM: sort = get_rm_sort_string(); break;
-
-    case SORT_SEQ: sort = get_seq_sort_string(); break;
 
     case SORT_STRING: sort = get_string_sort_string(); break;
 
@@ -1227,6 +1239,12 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
         assert(args[idx]->get_sort()->is_fp());
         return args[idx]->get_sort();
       }
+      break;
+
+    case SORT_SEQ:
+      assert(kind == Op::SEQ_UNIT);
+      assert(args.size() >= 1);
+      sort = get_seq_sort_string({args[0]->get_sort()});
       break;
 
     default: assert(false);

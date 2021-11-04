@@ -221,6 +221,22 @@ class Smt2Term : public AbsTerm
       {Op::FORALL, "forall"},
       {Op::EXISTS, "exists"},
 
+      /* Sequences */
+      {Op::SEQ_CONCAT, "seq.++"},
+      {Op::SEQ_LENGTH, "seq.len"},
+      {Op::SEQ_EXTRACT, "seq.extract"},
+      {Op::SEQ_UPDATE, "seq.update"},
+      {Op::SEQ_AT, "seq.at"},
+      {Op::SEQ_CONTAINS, "seq.contains"},
+      {Op::SEQ_INDEXOF, "seq.indexof"},
+      {Op::SEQ_REPLACE, "seq.replace"},
+      {Op::SEQ_REPLACE_ALL, "seq.replace_all"},
+      {Op::SEQ_REV, "seq.rev"},
+      {Op::SEQ_PREFIX, "seq.prefix"},
+      {Op::SEQ_SUFFIX, "seq.suffix"},
+      {Op::SEQ_UNIT, "seq.unit"},
+      {Op::SEQ_NTH, "seq.nth"},
+
       /* Strings */
       {Op::STR_CONCAT, "str.++"},
       {Op::STR_LEN, "str.len"},
