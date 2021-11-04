@@ -325,7 +325,16 @@ Smt2Term::get_repr() const
       {
         if (cur->d_indices.empty())
         {
-          res << "(" << d_op_kind_to_str.at(cur->d_kind);
+          res << "(";
+          if (cur->d_kind == Op::UF_APPLY)
+          {
+            res << to_smt2_term(cur->d_args[0])->get_repr();
+            i += 1;
+          }
+          else
+          {
+            res << d_op_kind_to_str.at(cur->d_kind);
+          }
           if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS)
           {
             assert(cur->d_args.size() > 1);
@@ -933,6 +942,12 @@ get_rm_sort_string()
 }
 
 static std::string
+get_seq_sort_string()
+{
+  return "Seq";
+}
+
+static std::string
 get_string_sort_string()
 {
   return "String";
@@ -1110,6 +1125,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     case SORT_REAL: sort = get_real_sort_string(); break;
 
     case SORT_RM: sort = get_rm_sort_string(); break;
+
+    case SORT_SEQ: sort = get_seq_sort_string(); break;
 
     case SORT_STRING: sort = get_string_sort_string(); break;
 
