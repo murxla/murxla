@@ -1616,6 +1616,10 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
   {
     MURXLA_TEST(term->is_reglan_value());
   }
+  else if (term->is_seq())
+  {
+    MURXLA_TEST(term->is_seq_value());
+  }
   else
   {
     assert(false);
