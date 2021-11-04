@@ -351,10 +351,11 @@ class SolverManager
   bool has_sort(Sort sort) const;
   /**
    * Return true if sorts other than exclude_sorts have been created.
-   * This does not guarantee that any terms have been created.
+   * Optionally restrict selection to sorts with terms only if 'with_terms' is
+   * true.
    */
-  bool has_sort_excluding(
-      const std::unordered_set<SortKind>& exclude_sorts) const;
+  bool has_sort_excluding(const std::unordered_set<SortKind>& exclude_sorts,
+                          bool with_terms = true) const;
 
   /**
    * Return true if a bit-vector sort with given bit-width exists.

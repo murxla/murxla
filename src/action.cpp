@@ -366,12 +366,12 @@ ActionMkSort::run()
       SortKindSet exclude_element_sorts =
           d_solver.get_unsupported_array_element_sort_kinds();
 
-      if (!d_smgr.has_sort_excluding(exclude_index_sorts))
+      if (!d_smgr.has_sort_excluding(exclude_index_sorts, false))
       {
         return false;
       }
       Sort index_sort = d_smgr.pick_sort_excluding(exclude_index_sorts, false);
-      if (!d_smgr.has_sort_excluding(exclude_element_sorts))
+      if (!d_smgr.has_sort_excluding(exclude_element_sorts, false))
       {
         return false;
       }
@@ -429,8 +429,8 @@ ActionMkSort::run()
           d_solver.get_unsupported_fun_domain_sort_kinds();
       SortKindSet exclude_codomain_sorts =
           d_solver.get_unsupported_fun_codomain_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_domain_sorts)
-          || !d_smgr.has_sort_excluding(exclude_codomain_sorts))
+      if (!d_smgr.has_sort_excluding(exclude_domain_sorts, false)
+          || !d_smgr.has_sort_excluding(exclude_codomain_sorts, false))
       {
         return false;
       }
@@ -450,7 +450,7 @@ ActionMkSort::run()
     {
       SortKindSet exclude_sorts =
           d_solver.get_unsupported_seq_element_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+      if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
       auto sort = d_smgr.pick_sort_excluding(exclude_sorts, false);
       _run(kind, {sort});
     }
@@ -855,6 +855,17 @@ ActionMkTerm::run()
     sort_kind = element_sort->get_kind();
     assert(sort_kind != SORT_ANY);
   }
+  else if (kind == Op::SEQ_UNIT)
+  {
+    assert(!n_params);
+    SortKindSet exclude_sorts =
+        d_solver.get_unsupported_seq_element_sort_kinds();
+    if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+    Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
+    assert(exclude_sorts.find(element_sort->get_kind()) == exclude_sorts.end());
+    args.push_back(d_smgr.pick_term(element_sort));
+    sort_kind = SORT_SEQ;
+  }
   else
   {
     if (arity == MURXLA_MK_TERM_N_ARGS || arity == MURXLA_MK_TERM_N_ARGS_BIN)
@@ -1244,7 +1255,7 @@ ActionMkConst::run()
   SortKindSet exclude_sorts = {SORT_REGLAN};
 
   /* Pick sort of const. */
-  if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+  if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
 
   Sort sort          = d_smgr.pick_sort_excluding(exclude_sorts, false);
   std::string symbol = d_smgr.pick_symbol();
@@ -1294,7 +1305,7 @@ ActionMkVar::run()
   SortKindSet exclude_sorts = d_solver.get_unsupported_var_sort_kinds();
 
   /* Pick sort of const. */
-  if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+  if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
   Sort sort          = d_smgr.pick_sort_excluding(exclude_sorts, false);
   std::string symbol = d_smgr.pick_symbol();
   /* Create var. */

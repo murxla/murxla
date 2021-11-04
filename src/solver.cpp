@@ -156,7 +156,7 @@ AbsTerm::is_fp() const
 bool
 AbsTerm::is_fun() const
 {
-  return get_sort()->is_fp();
+  return get_sort()->is_fun();
 }
 
 bool
