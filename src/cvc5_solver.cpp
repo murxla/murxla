@@ -501,7 +501,7 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
 
 std::unordered_map<::cvc5::api::Kind, Op::Kind>
     Cvc5Term::s_cvc5_kinds_to_kinds = {
-        {::cvc5::api::Kind::INTERNAL_KIND, Op::UNDEFINED},
+        {::cvc5::api::Kind::INTERNAL_KIND, Op::INTERNAL},
         /* Leaf Kinds */
         {::cvc5::api::Kind::CONSTANT, Op::CONSTANT},
         {::cvc5::api::Kind::CONST_ARRAY, Op::CONST_ARRAY},
@@ -605,7 +605,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
          Op::FP_TO_FP_FROM_UBV},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_REAL, Op::FP_TO_FP_FROM_REAL},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC, Op::UNDEFINED},
+        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC, Op::INTERNAL},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_REAL, Op::FP_TO_REAL},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_SBV, Op::FP_TO_SBV},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_UBV, Op::FP_TO_UBV},

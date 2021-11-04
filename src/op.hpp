@@ -21,6 +21,7 @@ struct Op
   using Kind = std::string;
 
   inline static const Kind UNDEFINED = "OP_UNDEFINED";
+  inline static const Kind INTERNAL = "OP_INTERNAL";
   /* Leaf kinds (only needed for Term::get_kind) */
   inline static const Kind CONSTANT    = "OP_CONSTANT";
   inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
