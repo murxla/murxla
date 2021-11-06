@@ -1966,6 +1966,7 @@ ActionGetValue::run()
   uint32_t n_terms = d_rng.pick<uint32_t>(1, MURXLA_MAX_N_TERMS_GET_VALUE);
   std::vector<Term> terms;
   auto exclude_sorts = d_solver.get_unsupported_get_value_sort_kinds();
+  if (!d_smgr.has_sort_excluding(exclude_sorts, true)) return false;
   for (uint32_t i = 0; i < n_terms; ++i)
   {
     Sort s = d_smgr.pick_sort_excluding(exclude_sorts, true);
