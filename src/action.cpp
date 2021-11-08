@@ -1112,8 +1112,8 @@ ActionMkTerm::_run(Op::Kind kind,
 
   Term res = d_solver.mk_term(kind, args, params);
 
-  if ((args.size() > 1 || !args[0]->equals(res)) && res->is_indexed()
-      && params.size())
+  if ((args.size() > 1 || (args.size() == 1 && !args[0]->equals(res)))
+      && res->is_indexed() && params.size())
   {
     /* We have to guard against the case where an op is rewritten to itself,
      * which can for example happen for a repeat operator with index 1.

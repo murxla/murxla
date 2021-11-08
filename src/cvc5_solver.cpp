@@ -477,6 +477,8 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {OP_INT_IAND, ::cvc5::api::Kind::IAND},
         {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
         {OP_INT_POW2, ::cvc5::api::Kind::POW2},
+        // Real
+        {OP_REAL_PI, ::cvc5::api::Kind::PI},
         // Sequences
         {Op::SEQ_CONCAT, ::cvc5::api::Kind::SEQ_CONCAT},
         {Op::SEQ_LENGTH, ::cvc5::api::Kind::SEQ_LENGTH},
@@ -1073,9 +1075,6 @@ Cvc5Solver::new_solver()
   d_solver = new ::cvc5::api::Solver();
   d_solver->setOption("fp-exp", "true");
   d_solver->setOption("strings-exp", "true");
-
-  add_special_value(SORT_REAL, Cvc5Term::SPECIAL_VALUE_REAL_PI);
-  add_special_value(SORT_SEQ, Cvc5Term::SPECIAL_VALUE_SEQ_EMPTY);
 }
 
 void
@@ -1529,11 +1528,6 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       }
       break;
 
-    case SORT_REAL:
-      assert(value == Cvc5Term::SPECIAL_VALUE_REAL_PI);
-      cvc5_res = d_solver->mkPi();
-      break;
-
     case SORT_REGLAN:
       if (value == AbsTerm::SPECIAL_VALUE_RE_NONE)
       {
@@ -1606,6 +1600,19 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
         d_solver->mkTerm(::cvc5::api::Kind::BOUND_VAR_LIST, vars);
     ::cvc5::api::Term body = Cvc5Term::get_cvc5_term(args.back());
     cvc5_res               = d_solver->mkTerm(cvc5_kind, bvl, body);
+    goto DONE;
+  }
+
+  if (kind == Cvc5Term::OP_REAL_PI)
+  {
+    if (d_rng.flip_coin())
+    {
+      cvc5_res = d_solver->mkPi();
+    }
+    else
+    {
+      cvc5_res = d_solver->mkTerm(::cvc5::api::Kind::PI);
+    }
     goto DONE;
   }
 
@@ -1983,6 +1990,9 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
       Cvc5Term::OP_INT_IAND, 2, 1, SORT_INT, {SORT_INT}, THEORY_INT);
   opmgr->add_op_kind(
       Cvc5Term::OP_INT_POW2, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
+  // Real
+  opmgr->add_op_kind(
+      Cvc5Term::OP_REAL_PI, 0, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   // Strings
   opmgr->add_op_kind(Cvc5Term::OP_STRING_UPDATE,
                      3,
@@ -2004,9 +2014,6 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
                      THEORY_STRING);
   opmgr->add_op_kind(
       Cvc5Term::OP_STRING_REV, 1, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
-
-  /* We don't add special value kinds here (e.g., OP_REAL_PI), they have only
-   * been defined for get_kind(). */
 }
 
 /* -------------------------------------------------------------------------- */

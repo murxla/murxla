@@ -85,9 +85,6 @@ class Cvc5Term : public AbsTerm
   /** Map Bitwuzla operator kinds to operator kinds. */
   static std::unordered_map<::cvc5::api::Kind, Op::Kind> s_cvc5_kinds_to_kinds;
 
-  /** Solver-specific special values. */
-  inline static const SpecialValueKind SPECIAL_VALUE_REAL_PI = "cvc5-real_pi";
-
   /** Solver-specific operators. */
   // BV
   inline static const Op::Kind OP_BV_REDAND = "cvc5-OP_BV_REDAND";
@@ -100,6 +97,8 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_BV_TO_NAT = "cvc5-OP_BV_TO_NAT";
   inline static const Op::Kind OP_INT_IAND  = "cvc5-OP_INT_IAND";
   inline static const Op::Kind OP_INT_POW2  = "cvc5-OP_INT_POW2";
+  // Real
+  inline static const Op::Kind OP_REAL_PI = "cvc5-OP_REAL_PI";
   //  Strings
   inline static const Op::Kind OP_STRING_UPDATE  = "cvc5-OP_STRING_UPDATE";
   inline static const Op::Kind OP_STRING_TOLOWER = "cvc5-OP_STRING_TOLOWER";
@@ -108,7 +107,6 @@ class Cvc5Term : public AbsTerm
 
   /* Special value kinds that have its own node kind in cvc5, only used
    * for getKind(). */
-  inline static const Op::Kind OP_REAL_PI      = "cvc5-OP_REAL_PI";
   inline static const Op::Kind OP_REGEXP_EMPTY = "cvc5-OP_REGEXP_EMPTY";
   inline static const Op::Kind OP_REGEXP_SIGMA = "cvc5-OP_REGEXP_SIGMA";
   inline static const Op::Kind OP_REGEXP_STAR  = "cvc5-OP_REGEXP_STAR";
