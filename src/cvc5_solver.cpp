@@ -449,8 +449,10 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::STR_REPLACE_ALL, ::cvc5::api::Kind::STRING_REPLACE_ALL},
         {Op::STR_REPLACE_RE, ::cvc5::api::Kind::STRING_REPLACE_RE},
         {Op::STR_REPLACE_RE_ALL, ::cvc5::api::Kind::STRING_REPLACE_RE_ALL},
+        {Op::RE_ALLCHAR, ::cvc5::api::Kind::REGEXP_SIGMA},
         {Op::RE_COMP, ::cvc5::api::Kind::REGEXP_COMPLEMENT},
         {Op::RE_DIFF, ::cvc5::api::Kind::REGEXP_DIFF},
+        {Op::RE_NONE, ::cvc5::api::Kind::REGEXP_EMPTY},
         {Op::RE_PLUS, ::cvc5::api::Kind::REGEXP_PLUS},
         {Op::RE_OPT, ::cvc5::api::Kind::REGEXP_OPT},
         {Op::RE_RANGE, ::cvc5::api::Kind::REGEXP_RANGE},
@@ -649,10 +651,6 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::STRING_LT, Op::STR_LT},
         {::cvc5::api::Kind::STRING_TO_REGEXP, Op::STR_TO_RE},
         {::cvc5::api::Kind::STRING_IN_REGEXP, Op::STR_IN_RE},
-        {::cvc5::api::Kind::REGEXP_CONCAT, Op::RE_CONCAT},
-        {::cvc5::api::Kind::REGEXP_UNION, Op::RE_UNION},
-        {::cvc5::api::Kind::REGEXP_INTER, Op::RE_INTER},
-        {::cvc5::api::Kind::REGEXP_STAR, Op::RE_STAR},
         {::cvc5::api::Kind::STRING_LEQ, Op::STR_LE},
         {::cvc5::api::Kind::STRING_CHARAT, Op::STR_AT},
         {::cvc5::api::Kind::STRING_SUBSTR, Op::STR_SUBSTR},
@@ -664,18 +662,24 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::STRING_REPLACE_ALL, Op::STR_REPLACE_ALL},
         {::cvc5::api::Kind::STRING_REPLACE_RE, Op::STR_REPLACE_RE},
         {::cvc5::api::Kind::STRING_REPLACE_RE_ALL, Op::STR_REPLACE_RE_ALL},
-        {::cvc5::api::Kind::REGEXP_COMPLEMENT, Op::RE_COMP},
-        {::cvc5::api::Kind::REGEXP_DIFF, Op::RE_DIFF},
-        {::cvc5::api::Kind::REGEXP_PLUS, Op::RE_PLUS},
-        {::cvc5::api::Kind::REGEXP_OPT, Op::RE_OPT},
-        {::cvc5::api::Kind::REGEXP_RANGE, Op::RE_RANGE},
-        {::cvc5::api::Kind::REGEXP_REPEAT, Op::RE_POW},
-        {::cvc5::api::Kind::REGEXP_LOOP, Op::RE_LOOP},
         {::cvc5::api::Kind::STRING_IS_DIGIT, Op::STR_IS_DIGIT},
         {::cvc5::api::Kind::STRING_TO_CODE, Op::STR_TO_CODE},
         {::cvc5::api::Kind::STRING_FROM_CODE, Op::STR_FROM_CODE},
         {::cvc5::api::Kind::STRING_TO_INT, Op::STR_TO_INT},
         {::cvc5::api::Kind::STRING_FROM_INT, Op::STR_FROM_INT},
+        {::cvc5::api::Kind::REGEXP_COMPLEMENT, Op::RE_COMP},
+        {::cvc5::api::Kind::REGEXP_CONCAT, Op::RE_CONCAT},
+        {::cvc5::api::Kind::REGEXP_DIFF, Op::RE_DIFF},
+        {::cvc5::api::Kind::REGEXP_EMPTY, Op::RE_NONE},
+        {::cvc5::api::Kind::REGEXP_INTER, Op::RE_INTER},
+        {::cvc5::api::Kind::REGEXP_LOOP, Op::RE_LOOP},
+        {::cvc5::api::Kind::REGEXP_OPT, Op::RE_OPT},
+        {::cvc5::api::Kind::REGEXP_PLUS, Op::RE_PLUS},
+        {::cvc5::api::Kind::REGEXP_RANGE, Op::RE_RANGE},
+        {::cvc5::api::Kind::REGEXP_REPEAT, Op::RE_POW},
+        {::cvc5::api::Kind::REGEXP_SIGMA, Op::RE_ALLCHAR},
+        {::cvc5::api::Kind::REGEXP_STAR, Op::RE_STAR},
+        {::cvc5::api::Kind::REGEXP_UNION, Op::RE_UNION},
 
         /* UF */
         {::cvc5::api::Kind::APPLY_UF, Op::UF_APPLY},
@@ -1528,23 +1532,6 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       }
       break;
 
-    case SORT_REGLAN:
-      if (value == AbsTerm::SPECIAL_VALUE_RE_NONE)
-      {
-        cvc5_res = d_solver->mkRegexpEmpty();
-      }
-      else if (value == AbsTerm::SPECIAL_VALUE_RE_ALL)
-      {
-        cvc5_res = d_solver->mkTerm(::cvc5::api::REGEXP_STAR,
-                                    d_solver->mkRegexpSigma());
-      }
-      else
-      {
-        assert(value == AbsTerm::SPECIAL_VALUE_RE_ALLCHAR);
-        cvc5_res = d_solver->mkRegexpSigma();
-      }
-      break;
-
     case SORT_SEQ:
     {
       assert(value == AbsTerm::SPECIAL_VALUE_SEQ_EMPTY);
@@ -1614,6 +1601,37 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       cvc5_res = d_solver->mkTerm(::cvc5::api::Kind::PI);
     }
     goto DONE;
+  }
+
+  if (kind == Op::RE_ALL)
+  {
+    cvc5_res =
+        d_solver->mkTerm(::cvc5::api::REGEXP_STAR, d_solver->mkRegexpSigma());
+    goto DONE;
+  }
+
+  if (kind == Op::RE_ALLCHAR)
+  {
+    if (d_rng.flip_coin())
+    {
+      cvc5_res = d_solver->mkRegexpSigma();
+    }
+    else
+    {
+      cvc5_res = d_solver->mkTerm(::cvc5::api::Kind::REGEXP_SIGMA);
+    }
+  }
+
+  if (kind == Op::RE_NONE)
+  {
+    if (d_rng.flip_coin())
+    {
+      cvc5_res = d_solver->mkRegexpEmpty();
+    }
+    else
+    {
+      cvc5_res = d_solver->mkTerm(::cvc5::api::Kind::REGEXP_EMPTY);
+    }
   }
 
   if ((kind == Op::FP_TO_FP_FROM_BV

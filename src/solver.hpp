@@ -143,10 +143,6 @@ class AbsTerm
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RTN = "rtn";
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RTP = "rtp";
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RTZ = "rtz";
-  /** Special String values. */
-  inline static const SpecialValueKind SPECIAL_VALUE_RE_NONE    = "re.none";
-  inline static const SpecialValueKind SPECIAL_VALUE_RE_ALL     = "re.all";
-  inline static const SpecialValueKind SPECIAL_VALUE_RE_ALLCHAR = "re.allchar";
   /** Special Sequence values. */
   inline static const SpecialValueKind SPECIAL_VALUE_SEQ_EMPTY = "seq-empty";
 
@@ -641,10 +637,6 @@ class Solver
             AbsTerm::SPECIAL_VALUE_RM_RTN,
             AbsTerm::SPECIAL_VALUE_RM_RTP,
             AbsTerm::SPECIAL_VALUE_RM_RTZ}},
-          {SORT_REGLAN,
-           {AbsTerm::SPECIAL_VALUE_RE_NONE,
-            AbsTerm::SPECIAL_VALUE_RE_ALL,
-            AbsTerm::SPECIAL_VALUE_RE_ALLCHAR}},
           {SORT_ANY, {}},
   };
 };

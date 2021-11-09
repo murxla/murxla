@@ -895,22 +895,6 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       }
       break;
 
-    case SORT_REGLAN:
-      if (value == AbsTerm::SPECIAL_VALUE_RE_NONE)
-      {
-        val << "re.none";
-      }
-      else if (value == AbsTerm::SPECIAL_VALUE_RE_ALL)
-      {
-        val << "re.all";
-      }
-      else
-      {
-        assert(value == AbsTerm::SPECIAL_VALUE_RE_ALLCHAR);
-        val << "re.allchar";
-      }
-      break;
-
     default: assert(false);
   }
   return std::shared_ptr<Smt2Term>(new Smt2Term(

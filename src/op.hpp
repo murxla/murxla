@@ -140,9 +140,12 @@ struct Op
   inline static const Kind FORALL = "OP_FORALL";
   inline static const Kind EXISTS = "OP_EXISTS";
   /* Strings */
+  inline static const Kind RE_ALL             = "OP_RE_ALL";
+  inline static const Kind RE_ALLCHAR         = "OP_RE_ALLCHAR";
   inline static const Kind RE_COMP            = "OP_RE_COMP";
   inline static const Kind RE_CONCAT          = "OP_RE_CONCAT";
   inline static const Kind RE_DIFF            = "OP_RE_DIFF";
+  inline static const Kind RE_NONE            = "OP_RE_NONE";
   inline static const Kind RE_INTER           = "OP_RE_INTER";
   inline static const Kind RE_LOOP            = "OP_RE_LOOP";
   inline static const Kind RE_OPT             = "OP_RE_OPT";
