@@ -233,10 +233,6 @@ OpKindManager::add_op_kinds()
               SORT_BOOL,
               {SORT_STRING, SORT_REGLAN},
               THEORY_STRING);
-  add_op_kind(Op::RE_CONCAT, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
-  add_op_kind(Op::RE_UNION, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
-  add_op_kind(Op::RE_INTER, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
-  add_op_kind(Op::RE_STAR, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
   add_op_kind(Op::STR_LE, 2, 0, SORT_BOOL, {SORT_STRING}, THEORY_STRING);
   add_op_kind(
       Op::STR_AT, 2, 0, SORT_STRING, {SORT_STRING, SORT_INT}, THEORY_STRING);
@@ -270,16 +266,23 @@ OpKindManager::add_op_kinds()
               SORT_STRING,
               {SORT_STRING, SORT_REGLAN, SORT_STRING},
               THEORY_STRING);
-  add_op_kind(Op::RE_COMP, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
-  add_op_kind(Op::RE_DIFF, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
-  add_op_kind(Op::RE_PLUS, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
-  add_op_kind(Op::RE_OPT, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
-  add_op_kind(Op::RE_RANGE, 2, 0, SORT_REGLAN, {SORT_STRING}, THEORY_STRING);
   add_op_kind(Op::STR_IS_DIGIT, 1, 0, SORT_BOOL, {SORT_STRING}, THEORY_STRING);
   add_op_kind(Op::STR_TO_CODE, 1, 0, SORT_INT, {SORT_STRING}, THEORY_STRING);
   add_op_kind(Op::STR_FROM_CODE, 1, 0, SORT_STRING, {SORT_INT}, THEORY_STRING);
   add_op_kind(Op::STR_TO_INT, 1, 0, SORT_INT, {SORT_STRING}, THEORY_STRING);
   add_op_kind(Op::STR_FROM_INT, 1, 0, SORT_STRING, {SORT_INT}, THEORY_STRING);
+  add_op_kind(Op::RE_ALL, 0, 0, SORT_REGLAN, {}, THEORY_STRING);
+  add_op_kind(Op::RE_ALLCHAR, 0, 0, SORT_REGLAN, {}, THEORY_STRING);
+  add_op_kind(Op::RE_COMP, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+  add_op_kind(Op::RE_CONCAT, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+  add_op_kind(Op::RE_DIFF, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+  add_op_kind(Op::RE_INTER, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+  add_op_kind(Op::RE_NONE, 0, 0, SORT_REGLAN, {}, THEORY_STRING);
+  add_op_kind(Op::RE_OPT, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+  add_op_kind(Op::RE_PLUS, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+  add_op_kind(Op::RE_RANGE, 2, 0, SORT_REGLAN, {SORT_STRING}, THEORY_STRING);
+  add_op_kind(Op::RE_STAR, 1, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
+  add_op_kind(Op::RE_UNION, n, 0, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
   // indexed
   add_op_kind(Op::RE_POW, 1, 1, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
   add_op_kind(Op::RE_LOOP, 1, 2, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
