@@ -95,6 +95,12 @@ AbsSort::get_fun_domain_sorts() const
   return std::vector<Sort>();
 }
 
+Sort
+AbsSort::get_seq_element_sort() const
+{
+  return nullptr;
+}
+
 bool
 AbsSort::not_equals(const std::shared_ptr<AbsSort>& other) const
 {

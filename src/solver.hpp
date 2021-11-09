@@ -68,22 +68,51 @@ class AbsSort
   /** Return true if this sort is a Sequence sort. */
   virtual bool is_seq() const = 0;
 
+  /**
+   * Get the bit-vector size of this sort.
+   * Returns 0 by default.
+   */
   virtual uint32_t get_bv_size() const;
+  /**
+   * Get the floating-point exponent size of this sort.
+   * Returns 0 by default.
+   */
   virtual uint32_t get_fp_exp_size() const;
+  /**
+   * Get the floating-point significand size of this sort.
+   * Returns 0 by default.
+   */
   virtual uint32_t get_fp_sig_size() const;
+  /**
+   * Get the array index sort of this sort.
+   * Returns nullptr by default.
+   */
   virtual Sort get_array_index_sort() const;
+  /**
+   * Get the array element sort of this sort.
+   * Returns nullptr by default.
+   */
   virtual Sort get_array_element_sort() const;
+  /**
+   * Get the function arity of this sort.
+   * Returns 0 by default.
+   */
   virtual uint32_t get_fun_arity() const;
+  /**
+   * Get the function codomain sort of this sort.
+   * Returns nullptr by default.
+   */
   virtual Sort get_fun_codomain_sort() const;
+  /**
+   * Get the function domain sorts of this sort.
+   * Returns an empty vector by default.
+   */
   virtual std::vector<Sort> get_fun_domain_sorts() const;
   /**
    * Get the sequence element sort of this sort.
-   *
-   * This is pure virtual because it must be overriden if the solver supports
-   * the theory of sequences in order to handle sorts that are implicitly
-   * created via SEQ_UNIT correctly.
+   * Returns nullptr by default.
    */
-  virtual Sort get_seq_element_sort() const = 0;
+  virtual Sort get_seq_element_sort() const;
 
   void set_id(uint64_t id);
   uint64_t get_id() const;

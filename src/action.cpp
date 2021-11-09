@@ -1230,6 +1230,12 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
   else if (sort->is_seq())
   {
     MURXLA_TEST(term->is_seq());
+    Sort elem_sort = sort->get_seq_element_sort();
+    // we can't use operator== here since elem_sort is a sort returned by the
+    // solver, thus is has kind SORT_ANY (and operator== checks for equality
+    // of sort kind, too)
+    MURXLA_TEST(elem_sort == nullptr
+                || elem_sort->equals(sort->get_sorts()[0]));
   }
   else
   {

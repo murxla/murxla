@@ -43,7 +43,6 @@ class BtorSort : public AbsSort
   Sort get_array_element_sort() const override;
   uint32_t get_fun_arity() const override;
   Sort get_fun_codomain_sort() const override;
-  Sort get_seq_element_sort() const override;
 
  private:
   /** Return a string representation of a bit-vector sort. */

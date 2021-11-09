@@ -175,13 +175,6 @@ Smt2Sort::get_fun_domain_sorts() const
   return res;
 }
 
-Sort
-Smt2Sort::get_seq_element_sort() const
-{
-  // TODO
-  return nullptr;
-}
-
 /* -------------------------------------------------------------------------- */
 /* Smt2Term                                                                   */
 /* -------------------------------------------------------------------------- */

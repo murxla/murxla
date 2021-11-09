@@ -216,12 +216,6 @@ BtorSort::get_fun_codomain_sort() const
   return res;
 }
 
-Sort
-BtorSort::get_seq_element_sort() const
-{
-  return nullptr;
-}
-
 /* -------------------------------------------------------------------------- */
 /* BtorTerm                                                                   */
 /* -------------------------------------------------------------------------- */

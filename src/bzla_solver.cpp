@@ -227,12 +227,6 @@ BzlaSort::get_fun_domain_sorts() const
   return bzla_sorts_to_sorts(d_solver, bzla_res, size);
 }
 
-Sort
-BzlaSort::get_seq_element_sort() const
-{
-  return nullptr;
-}
-
 /* -------------------------------------------------------------------------- */
 /* BzlaTerm                                                                   */
 /* -------------------------------------------------------------------------- */

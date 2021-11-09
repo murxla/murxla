@@ -137,12 +137,6 @@ YicesSort::get_bv_size() const
   return res;
 }
 
-Sort
-YicesSort::get_seq_element_sort() const
-{
-  return nullptr;
-}
-
 /* -------------------------------------------------------------------------- */
 /* YicesTerm                                                                  */
 /* -------------------------------------------------------------------------- */
