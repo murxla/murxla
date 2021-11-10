@@ -444,13 +444,13 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::STR_TO_INT, ::cvc5::api::Kind::STRING_TO_INT},
         {Op::STR_FROM_INT, ::cvc5::api::Kind::STRING_FROM_INT},
         {Op::RE_ALL, ::cvc5::api::Kind::REGEXP_STAR},
-        {Op::RE_ALLCHAR, ::cvc5::api::Kind::REGEXP_SIGMA},
+        {Op::RE_ALLCHAR, ::cvc5::api::Kind::REGEXP_ALLCHAR},
         {Op::RE_COMP, ::cvc5::api::Kind::REGEXP_COMPLEMENT},
         {Op::RE_CONCAT, ::cvc5::api::Kind::REGEXP_CONCAT},
         {Op::RE_DIFF, ::cvc5::api::Kind::REGEXP_DIFF},
         {Op::RE_INTER, ::cvc5::api::Kind::REGEXP_INTER},
         {Op::RE_LOOP, ::cvc5::api::Kind::REGEXP_LOOP},
-        {Op::RE_NONE, ::cvc5::api::Kind::REGEXP_EMPTY},
+        {Op::RE_NONE, ::cvc5::api::Kind::REGEXP_NONE},
         {Op::RE_OPT, ::cvc5::api::Kind::REGEXP_OPT},
         {Op::RE_PLUS, ::cvc5::api::Kind::REGEXP_PLUS},
         {Op::RE_POW, ::cvc5::api::Kind::REGEXP_REPEAT},
@@ -482,7 +482,7 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::SET_COMPLEMENT, ::cvc5::api::Kind::SET_COMPLEMENT},
         {Op::SET_COMPREHENSION, ::cvc5::api::Kind::SET_COMPREHENSION},
         {Op::SET_CHOOSE, ::cvc5::api::Kind::SET_CHOOSE},
-        {Op::SET_INTERSECTION, ::cvc5::api::Kind::SET_INTERSECTION},
+        {Op::SET_INTERSECTION, ::cvc5::api::Kind::SET_INTER},
         {Op::SET_INSERT, ::cvc5::api::Kind::SET_INSERT},
         {Op::SET_IS_SINGLETON, ::cvc5::api::Kind::SET_IS_SINGLETON},
         {Op::SET_UNION, ::cvc5::api::Kind::SET_UNION},
@@ -682,17 +682,17 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::STRING_FROM_CODE, Op::STR_FROM_CODE},
         {::cvc5::api::Kind::STRING_TO_INT, Op::STR_TO_INT},
         {::cvc5::api::Kind::STRING_FROM_INT, Op::STR_FROM_INT},
+        {::cvc5::api::Kind::REGEXP_ALLCHAR, Op::RE_ALLCHAR},
         {::cvc5::api::Kind::REGEXP_COMPLEMENT, Op::RE_COMP},
         {::cvc5::api::Kind::REGEXP_CONCAT, Op::RE_CONCAT},
         {::cvc5::api::Kind::REGEXP_DIFF, Op::RE_DIFF},
-        {::cvc5::api::Kind::REGEXP_EMPTY, Op::RE_NONE},
         {::cvc5::api::Kind::REGEXP_INTER, Op::RE_INTER},
         {::cvc5::api::Kind::REGEXP_LOOP, Op::RE_LOOP},
+        {::cvc5::api::Kind::REGEXP_NONE, Op::RE_NONE},
         {::cvc5::api::Kind::REGEXP_OPT, Op::RE_OPT},
         {::cvc5::api::Kind::REGEXP_PLUS, Op::RE_PLUS},
         {::cvc5::api::Kind::REGEXP_RANGE, Op::RE_RANGE},
         {::cvc5::api::Kind::REGEXP_REPEAT, Op::RE_POW},
-        {::cvc5::api::Kind::REGEXP_SIGMA, Op::RE_ALLCHAR},
         {::cvc5::api::Kind::REGEXP_STAR, Op::RE_STAR},
         {::cvc5::api::Kind::REGEXP_UNION, Op::RE_UNION},
 
@@ -720,7 +720,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::SET_COMPLEMENT, Op::SET_COMPLEMENT},
         {::cvc5::api::Kind::SET_COMPREHENSION, Op::SET_COMPREHENSION},
         {::cvc5::api::Kind::SET_CHOOSE, Op::SET_CHOOSE},
-        {::cvc5::api::Kind::SET_INTERSECTION, Op::SET_INTERSECTION},
+        {::cvc5::api::Kind::SET_INTER, Op::SET_INTERSECTION},
         {::cvc5::api::Kind::SET_INSERT, Op::SET_INSERT},
         {::cvc5::api::Kind::SET_IS_SINGLETON, Op::SET_IS_SINGLETON},
         {::cvc5::api::Kind::SET_UNION, Op::SET_UNION},
@@ -756,8 +756,6 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         /* Special value kinds that cvc5 introduces its own node kind for,
          * only used for getKind(). */
         {::cvc5::api::Kind::PI, OP_REAL_PI},
-        {::cvc5::api::Kind::REGEXP_EMPTY, OP_REGEXP_EMPTY},
-        {::cvc5::api::Kind::REGEXP_SIGMA, OP_REGEXP_SIGMA},
         {::cvc5::api::Kind::REGEXP_STAR, OP_REGEXP_STAR},
         {::cvc5::api::Kind::SET_EMPTY, OP_SET_EMPTY},
         {::cvc5::api::Kind::SET_UNIVERSE, OP_SET_UNIVERSE},
@@ -1666,8 +1664,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
 
   if (kind == Op::RE_ALL)
   {
-    cvc5_res =
-        d_solver->mkTerm(::cvc5::api::REGEXP_STAR, d_solver->mkRegexpSigma());
+    cvc5_res = d_solver->mkRegexpAll();
     goto DONE;
   }
 
@@ -1675,11 +1672,11 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     if (d_rng.flip_coin())
     {
-      cvc5_res = d_solver->mkRegexpSigma();
+      cvc5_res = d_solver->mkRegexpAllchar();
     }
     else
     {
-      cvc5_res = d_solver->mkTerm(::cvc5::api::Kind::REGEXP_SIGMA);
+      cvc5_res = d_solver->mkTerm(cvc5_kind);
     }
     goto DONE;
   }
@@ -1688,11 +1685,11 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     if (d_rng.flip_coin())
     {
-      cvc5_res = d_solver->mkRegexpEmpty();
+      cvc5_res = d_solver->mkRegexpNone();
     }
     else
     {
-      cvc5_res = d_solver->mkTerm(::cvc5::api::Kind::REGEXP_EMPTY);
+      cvc5_res = d_solver->mkTerm(cvc5_kind);
     }
     goto DONE;
   }
