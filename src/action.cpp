@@ -915,8 +915,9 @@ ActionMkTerm::run()
     Sort set_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
     const std::vector<Sort>& sorts = set_sort->get_sorts();
     assert(sorts.size() == 1);
-    Sort element_sort = sorts[0];
     assert(d_smgr.has_term(set_sort));
+    Sort element_sort = sorts[0];
+    if (!d_smgr.has_term(element_sort)) return false;
     args.push_back(d_smgr.pick_term(set_sort));
     assert(sort_kind != SORT_ANY);
     for (int32_t i = 0; i < arity; ++i)
