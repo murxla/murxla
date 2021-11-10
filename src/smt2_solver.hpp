@@ -34,6 +34,7 @@ class Smt2Sort : public AbsSort
   bool is_real() const override;
   bool is_rm() const override;
   bool is_seq() const override;
+  bool is_set() const override;
   bool is_string() const override;
   bool is_reglan() const override;
   uint32_t get_bv_size() const override;
@@ -236,6 +237,19 @@ class Smt2Term : public AbsTerm
       {Op::SEQ_UNIT, "seq.unit"},
       {Op::SEQ_NTH, "seq.nth"},
 
+      /* Sets */
+      {Op::SET_CARD, "set.card"},
+      {Op::SET_COMPLEMENT, "set.complement"},
+      {Op::SET_COMPREHENSION, "set.comprehension"},
+      {Op::SET_CHOOSE, "set.choose"},
+      {Op::SET_INTERSECTION, "set.inter"},
+      {Op::SET_INSERT, "set.insert"},
+      {Op::SET_IS_SINGLETON, "set.is_singleton"},
+      {Op::SET_UNION, "set.union"},
+      {Op::SET_MEMBER, "set.member"},
+      {Op::SET_MINUS, "set.minus"},
+      {Op::SET_SINGLETON, "set.singleton"},
+      {Op::SET_SUBSET, "set.subset"},
       /* Strings */
       {Op::STR_CONCAT, "str.++"},
       {Op::STR_LEN, "str.len"},

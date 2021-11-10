@@ -101,6 +101,12 @@ AbsSort::get_seq_element_sort() const
   return nullptr;
 }
 
+Sort
+AbsSort::get_set_element_sort() const
+{
+  return nullptr;
+}
+
 bool
 AbsSort::not_equals(const std::shared_ptr<AbsSort>& other) const
 {
@@ -202,6 +208,12 @@ AbsTerm::is_seq() const
 }
 
 bool
+AbsTerm::is_set() const
+{
+  return get_sort()->is_set();
+}
+
+bool
 AbsTerm::is_bool_value() const
 {
   return get_leaf_kind() == LeafKind::VALUE && is_bool();
@@ -247,6 +259,12 @@ bool
 AbsTerm::is_seq_value() const
 {
   return get_leaf_kind() == LeafKind::VALUE && is_seq();
+}
+
+bool
+AbsTerm::is_set_value() const
+{
+  return get_leaf_kind() == LeafKind::VALUE && is_set();
 }
 
 bool
@@ -565,6 +583,12 @@ Solver::get_unsupported_array_element_sort_kinds() const
 
 SortKindSet
 Solver::get_unsupported_seq_element_sort_kinds() const
+{
+  return {};
+}
+
+SortKindSet
+Solver::get_unsupported_set_element_sort_kinds() const
 {
   return {};
 }

@@ -326,6 +326,28 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::SEQ_SUFFIX, 2, 0, SORT_BOOL, {SORT_SEQ}, THEORY_SEQ);
   add_op_kind(Op::SEQ_UNIT, 1, 0, SORT_SEQ, {SORT_ANY}, THEORY_SEQ);
   add_op_kind(Op::SEQ_NTH, 2, 0, SORT_ANY, {SORT_SEQ, SORT_INT}, THEORY_SEQ);
+  // Sets
+  add_op_kind(Op::SET_CARD, 1, 0, SORT_INT, {SORT_SET}, THEORY_SET);
+  add_op_kind(Op::SET_CHOOSE, 1, 0, SORT_ANY, {SORT_SET}, THEORY_SET);
+  add_op_kind(Op::SET_COMPLEMENT, 1, 0, SORT_SET, {SORT_SET}, THEORY_SET);
+  // add_op_kind(Op::SET_COMPREHENSION, 3, 0, ??
+  add_op_kind(Op::SET_INSERT, n, 0, SORT_SET, {SORT_SET, SORT_ANY}, THEORY_SET);
+  add_op_kind(Op::SET_INTERSECTION, 2, 0, SORT_SET, {SORT_SET}, THEORY_SET);
+  add_op_kind(Op::SET_IS_SINGLETON, 1, 0, SORT_BOOL, {SORT_SET}, THEORY_SET);
+  // add_op_kind(
+  //    Op::SET_MEMBER, 2, 0, SORT_BOOL, {SORT_SET, SORT_ANY}, THEORY_SET);
+  add_op_kind(Op::SET_MINUS, 2, 0, SORT_SET, {SORT_SET}, THEORY_SET);
+  add_op_kind(Op::SET_UNION, 2, 0, SORT_SET, {SORT_SET}, THEORY_SET);
+  add_op_kind(Op::SET_SUBSET, 2, 0, SORT_BOOL, {SORT_SET}, THEORY_SET);
+  add_op_kind(Op::SET_SINGLETON, 1, 0, SORT_SET, {SORT_ANY}, THEORY_SET);
+  //// Relations
+  // add_op_kind(Op::REL_IDEN, 1, 0, SORT_SET, {SORT_SET}, THEORY_SET);
+  // add_op_kind(Op::REL_JOIN, 2, 0, SORT_SET, {SORT_ANY}, THEORY_SET);
+  // add_op_kind(Op::REL_JOIN_IMAGE, 2, 0, SORT_SET, {SORT_SET, SORT_ANY},
+  // THEORY_SET); add_op_kind(Op::REL_PRODUCT, 2, 0, SORT_SET, {SORT_ANY},
+  // THEORY_SET); add_op_kind(Op::REL_TCLOSURE, 1, 0, SORT_SET, {SORT_SET},
+  // THEORY_SET); add_op_kind(Op::REL_TRANSPOSE, 1, 0, SORT_SET, {SORT_SET},
+  // THEORY_SET);
 }
 
 void

@@ -28,6 +28,7 @@ class ShadowSort : public AbsSort
   bool is_real() const override;
   bool is_rm() const override;
   bool is_seq() const override;
+  bool is_set() const override;
   bool is_string() const override;
   bool is_reglan() const override;
   uint32_t get_bv_size() const override;
@@ -39,6 +40,7 @@ class ShadowSort : public AbsSort
   Sort get_fun_codomain_sort() const override;
   std::vector<Sort> get_fun_domain_sorts() const override;
   Sort get_seq_element_sort() const override;
+  Sort get_set_element_sort() const override;
 
   void set_kind(SortKind sort_kind) override;
   void set_sorts(const std::vector<Sort>& sorts) override;

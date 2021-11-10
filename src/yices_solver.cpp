@@ -123,6 +123,12 @@ YicesSort::is_seq() const
 }
 
 bool
+YicesSort::is_set() const
+{
+  return false;
+}
+
+bool
 YicesSort::is_string() const
 {
   return false;

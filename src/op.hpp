@@ -193,6 +193,26 @@ struct Op
   inline static const Kind SEQ_SUFFIX      = "OP_SEQ_SUFFIX";
   inline static const Kind SEQ_UNIT        = "OP_SEQ_UNIT";
   inline static const Kind SEQ_NTH         = "OP_SEQ_NTH";
+  // Sets
+  inline static const Kind SET_CARD          = "OP_SET_CARD";
+  inline static const Kind SET_COMPLEMENT    = "OP_SET_COMPLEMENT";
+  inline static const Kind SET_COMPREHENSION = "OP_SET_COMPREHENSION";
+  inline static const Kind SET_CHOOSE        = "OP_SET_CHOOSE";
+  inline static const Kind SET_INTERSECTION  = "OP_SET_INTERSECTION";
+  inline static const Kind SET_INSERT        = "OP_SET_INSERT";
+  inline static const Kind SET_IS_SINGLETON  = "OP_SET_IS_SINGLETON";
+  inline static const Kind SET_UNION         = "OP_SET_UNION";
+  inline static const Kind SET_MEMBER        = "OP_SET_MEMBER";
+  inline static const Kind SET_MINUS         = "OP_SET_MINUS";
+  inline static const Kind SET_SINGLETON     = "OP_SET_SINGLETON";
+  inline static const Kind SET_SUBSET        = "OP_SET_SUBSET";
+  // Relations
+  inline static const Kind REL_JOIN       = "OP_REL_JOIN";
+  inline static const Kind REL_JOIN_IMAGE = "OP_REL_JOIN_IMAGE";
+  inline static const Kind REL_IDEN       = "OP_REL_IDEN";
+  inline static const Kind REL_PRODUCT    = "OP_REL_PRODUCT";
+  inline static const Kind REL_TCLOSURE   = "OP_REL_TCLOSURE";
+  inline static const Kind REL_TRANSPOSE  = "OP_REL_TRANSPOSE";
 
   Op(uint64_t id,
      const Kind& kind,

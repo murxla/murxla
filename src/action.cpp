@@ -456,6 +456,16 @@ ActionMkSort::run()
     }
     break;
 
+    case SORT_SET:
+    {
+      SortKindSet exclude_sorts =
+          d_solver.get_unsupported_set_element_sort_kinds();
+      if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
+      auto sort = d_smgr.pick_sort_excluding(exclude_sorts, false);
+      _run(kind, {sort});
+    }
+    break;
+
     case SORT_STRING:
     case SORT_REGLAN:
     case SORT_BOOL:
@@ -581,6 +591,14 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
       break;
 
+    case SORT_SET:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                         || theories.find(THEORY_SET) != theories.end())
+          << "solver does not support theory of sets";
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
+      res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
+      break;
+
     case SORT_FP:
       MURXLA_CHECK_TRACE(theories.find(THEORY_FP) != theories.end()
                          || theories.find(THEORY_FP) != theories.end())
@@ -679,6 +697,12 @@ ActionMkTerm::run()
 
   std::vector<Term> args;
   std::vector<uint32_t> params;
+
+  if (arity == MURXLA_MK_TERM_N_ARGS || arity == MURXLA_MK_TERM_N_ARGS_BIN)
+  {
+    arity = d_rng.pick<uint32_t>(MURXLA_MK_TERM_N_ARGS_MIN(arity),
+                                 MURXLA_MK_TERM_N_ARGS_MAX);
+  }
 
   /* Pick term arguments. */
   if (kind == Op::BV_CONCAT)
@@ -792,10 +816,6 @@ ActionMkTerm::run()
     assert(d_smgr.has_sort(sort_kind));
     Sort sort = d_smgr.pick_sort(sort_kind);
     if (!d_smgr.has_value(sort)) return false;
-    assert(arity == MURXLA_MK_TERM_N_ARGS);
-    arity = d_rng.pick<uint32_t>(MURXLA_MK_TERM_N_ARGS_MIN(arity),
-                                 MURXLA_MK_TERM_N_ARGS_MAX);
-
     bool picked_non_const = false;
     /* pick arguments */
     for (int32_t i = 0; i < arity; ++i)
@@ -866,14 +886,47 @@ ActionMkTerm::run()
     args.push_back(d_smgr.pick_term(element_sort));
     sort_kind = SORT_SEQ;
   }
+  else if (kind == Op::SET_CHOOSE)
+  {
+    assert(!n_params);
+    Sort set_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+    const std::vector<Sort>& sorts = set_sort->get_sorts();
+    assert(sorts.size() == 1);
+    Sort element_sort = sorts[0];
+    assert(d_smgr.has_term(set_sort));
+    args.push_back(d_smgr.pick_term(set_sort));
+    sort_kind = element_sort->get_kind();
+    assert(sort_kind != SORT_ANY);
+  }
+  else if (kind == Op::SET_SINGLETON)
+  {
+    assert(!n_params);
+    SortKindSet exclude_sorts =
+        d_solver.get_unsupported_set_element_sort_kinds();
+    if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+    Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
+    assert(exclude_sorts.find(element_sort->get_kind()) == exclude_sorts.end());
+    args.push_back(d_smgr.pick_term(element_sort));
+    sort_kind = SORT_SET;
+  }
+  else if (kind == Op::SET_INSERT)
+  {
+    assert(!n_params);
+    Sort set_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+    const std::vector<Sort>& sorts = set_sort->get_sorts();
+    assert(sorts.size() == 1);
+    Sort element_sort = sorts[0];
+    assert(d_smgr.has_term(set_sort));
+    args.push_back(d_smgr.pick_term(set_sort));
+    assert(sort_kind != SORT_ANY);
+    for (int32_t i = 0; i < arity; ++i)
+    {
+      args.push_back(d_smgr.pick_term(element_sort));
+    }
+    sort_kind = SORT_SET;
+  }
   else
   {
-    if (arity == MURXLA_MK_TERM_N_ARGS || arity == MURXLA_MK_TERM_N_ARGS_BIN)
-    {
-      arity = d_rng.pick<uint32_t>(MURXLA_MK_TERM_N_ARGS_MIN(arity),
-                                   MURXLA_MK_TERM_N_ARGS_MAX);
-    }
-
     /* Always pick the same sort for a given sort kind. */
     std::unordered_map<SortKind, Sort> sorts;
     for (int32_t i = 0; i < arity; ++i)
@@ -1237,6 +1290,20 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
     MURXLA_TEST(elem_sort == nullptr
                 || elem_sort->equals(sort->get_sorts()[0]));
   }
+  else if (sort->is_seq())
+  {
+    MURXLA_TEST(term->is_set());
+    Sort elem_sort = sort->get_set_element_sort();
+    // we can't use operator== here since elem_sort is a sort returned by the
+    // solver, thus is has kind SORT_ANY (and operator== checks for equality
+    // of sort kind, too)
+    MURXLA_TEST(elem_sort == nullptr
+                || elem_sort->equals(sort->get_sorts()[0]));
+  }
+  else if (sort->is_set())
+  {
+    MURXLA_TEST(term->is_set());
+  }
   else
   {
     assert(false);
@@ -1444,6 +1511,7 @@ ActionMkValue::run()
       break;
 
     case SORT_SEQ:
+    case SORT_SET:
     case SORT_RM: return false;
 
     case SORT_STRING:
@@ -1625,6 +1693,10 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
   else if (term->is_seq())
   {
     MURXLA_TEST(term->is_seq_value());
+  }
+  else if (term->is_set())
+  {
+    MURXLA_TEST(term->is_set_value());
   }
   else
   {

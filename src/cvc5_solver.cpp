@@ -123,6 +123,12 @@ Cvc5Sort::is_seq() const
   return d_sort.isSequence();
 }
 
+bool
+Cvc5Sort::is_set() const
+{
+  return d_sort.isSet();
+}
+
 uint32_t
 Cvc5Sort::get_bv_size() const
 {
@@ -204,6 +210,15 @@ Cvc5Sort::get_seq_element_sort() const
   return res;
 }
 
+Sort
+Cvc5Sort::get_set_element_sort() const
+{
+  ::cvc5::api::Sort cvc5_res = d_sort.getSetElementSort();
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
+  MURXLA_TEST(res);
+  return res;
+}
+
 std::vector<Sort>
 Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
                               const std::vector<::cvc5::api::Sort>& sorts)
@@ -270,28 +285,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  SEP_PTO,
 //  SEP_STAR,
 //  SEP_WAND,
-
-//  ## Sets
-//  EMPTYSET,
-//  UNION,
-//  INTERSECTION,
-//  SETMINUS,
-//  SUBSET,
-//  MEMBER,
-//  SINGLETON,
-//  INSERT,
-//  CARD,
-//  COMPLEMENT,
-//  UNIVERSE_SET,
-//  JOIN,
-//  PRODUCT,
-//  TRANSPOSE,
-//  TCLOSURE,
-//  JOIN_IMAGE,
-//  IDEN,
-//  COMPREHENSION,
-//  CHOOSE,
-//  IS_SINGLETON,
 
 //  ## Quantifiers
 //  INST_CLOSURE,
@@ -468,20 +461,7 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         /* UF */
         {Op::UF_APPLY, ::cvc5::api::Kind::APPLY_UF},
 
-        /* Solver-specific operators */
-        // BV
-        {OP_BV_REDOR, ::cvc5::api::Kind::BITVECTOR_REDOR},
-        {OP_BV_REDAND, ::cvc5::api::Kind::BITVECTOR_REDAND},
-        {OP_BV_ULTBV, ::cvc5::api::Kind::BITVECTOR_ULTBV},
-        {OP_BV_SLTBV, ::cvc5::api::Kind::BITVECTOR_SLTBV},
-        {OP_BV_ITE, ::cvc5::api::Kind::BITVECTOR_ITE},
-        // Int
-        {OP_BV_TO_NAT, ::cvc5::api::Kind::BITVECTOR_TO_NAT},
-        {OP_INT_IAND, ::cvc5::api::Kind::IAND},
-        {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
-        {OP_INT_POW2, ::cvc5::api::Kind::POW2},
-        // Real
-        {OP_REAL_PI, ::cvc5::api::Kind::PI},
+        /* Non-standardized theories */
         // Sequences
         {Op::SEQ_CONCAT, ::cvc5::api::Kind::SEQ_CONCAT},
         {Op::SEQ_LENGTH, ::cvc5::api::Kind::SEQ_LENGTH},
@@ -497,6 +477,40 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::SEQ_SUFFIX, ::cvc5::api::Kind::SEQ_SUFFIX},
         {Op::SEQ_UNIT, ::cvc5::api::Kind::SEQ_UNIT},
         {Op::SEQ_NTH, ::cvc5::api::Kind::SEQ_NTH},
+        // Sets
+        {Op::SET_CARD, ::cvc5::api::Kind::SET_CARD},
+        {Op::SET_COMPLEMENT, ::cvc5::api::Kind::SET_COMPLEMENT},
+        {Op::SET_COMPREHENSION, ::cvc5::api::Kind::SET_COMPREHENSION},
+        {Op::SET_CHOOSE, ::cvc5::api::Kind::SET_CHOOSE},
+        {Op::SET_INTERSECTION, ::cvc5::api::Kind::SET_INTERSECTION},
+        {Op::SET_INSERT, ::cvc5::api::Kind::SET_INSERT},
+        {Op::SET_IS_SINGLETON, ::cvc5::api::Kind::SET_IS_SINGLETON},
+        {Op::SET_UNION, ::cvc5::api::Kind::SET_UNION},
+        {Op::SET_MEMBER, ::cvc5::api::Kind::SET_MEMBER},
+        {Op::SET_MINUS, ::cvc5::api::Kind::SET_MINUS},
+        {Op::SET_SINGLETON, ::cvc5::api::Kind::SET_SINGLETON},
+        {Op::SET_SUBSET, ::cvc5::api::Kind::SET_SUBSET},
+        {Op::REL_JOIN, ::cvc5::api::Kind::RELATION_JOIN},
+        {Op::REL_JOIN_IMAGE, ::cvc5::api::Kind::RELATION_JOIN_IMAGE},
+        {Op::REL_IDEN, ::cvc5::api::Kind::RELATION_IDEN},
+        {Op::REL_PRODUCT, ::cvc5::api::Kind::RELATION_PRODUCT},
+        {Op::REL_TCLOSURE, ::cvc5::api::Kind::RELATION_TCLOSURE},
+        {Op::REL_TRANSPOSE, ::cvc5::api::Kind::RELATION_TRANSPOSE},
+
+        /* Solver-specific operators */
+        // BV
+        {OP_BV_REDOR, ::cvc5::api::Kind::BITVECTOR_REDOR},
+        {OP_BV_REDAND, ::cvc5::api::Kind::BITVECTOR_REDAND},
+        {OP_BV_ULTBV, ::cvc5::api::Kind::BITVECTOR_ULTBV},
+        {OP_BV_SLTBV, ::cvc5::api::Kind::BITVECTOR_SLTBV},
+        {OP_BV_ITE, ::cvc5::api::Kind::BITVECTOR_ITE},
+        // Int
+        {OP_BV_TO_NAT, ::cvc5::api::Kind::BITVECTOR_TO_NAT},
+        {OP_INT_IAND, ::cvc5::api::Kind::IAND},
+        {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
+        {OP_INT_POW2, ::cvc5::api::Kind::POW2},
+        // Real
+        {OP_REAL_PI, ::cvc5::api::Kind::PI},
         // Strings
         {OP_STRING_UPDATE, ::cvc5::api::Kind::STRING_UPDATE},
         {OP_STRING_TOLOWER, ::cvc5::api::Kind::STRING_TOLOWER},
@@ -685,18 +699,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         /* UF */
         {::cvc5::api::Kind::APPLY_UF, Op::UF_APPLY},
 
-        /* Solver-specific operators */
-        {::cvc5::api::Kind::BITVECTOR_REDOR, OP_BV_REDOR},
-        // BV
-        {::cvc5::api::Kind::BITVECTOR_REDAND, OP_BV_REDAND},
-        {::cvc5::api::Kind::BITVECTOR_ULTBV, OP_BV_ULTBV},
-        {::cvc5::api::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
-        {::cvc5::api::Kind::BITVECTOR_ITE, OP_BV_ITE},
-        // Int
-        {::cvc5::api::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
-        {::cvc5::api::Kind::IAND, OP_INT_IAND},
-        {::cvc5::api::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
-        {::cvc5::api::Kind::POW2, OP_INT_POW2},
+        /* Non-standardized theories */
         // Sequences
         {::cvc5::api::Kind::SEQ_CONCAT, Op::SEQ_CONCAT},
         {::cvc5::api::Kind::SEQ_LENGTH, Op::SEQ_LENGTH},
@@ -712,6 +715,38 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::SEQ_SUFFIX, Op::SEQ_SUFFIX},
         {::cvc5::api::Kind::SEQ_UNIT, Op::SEQ_UNIT},
         {::cvc5::api::Kind::SEQ_NTH, Op::SEQ_NTH},
+        // Sets
+        {::cvc5::api::Kind::SET_CARD, Op::SET_CARD},
+        {::cvc5::api::Kind::SET_COMPLEMENT, Op::SET_COMPLEMENT},
+        {::cvc5::api::Kind::SET_COMPREHENSION, Op::SET_COMPREHENSION},
+        {::cvc5::api::Kind::SET_CHOOSE, Op::SET_CHOOSE},
+        {::cvc5::api::Kind::SET_INTERSECTION, Op::SET_INTERSECTION},
+        {::cvc5::api::Kind::SET_INSERT, Op::SET_INSERT},
+        {::cvc5::api::Kind::SET_IS_SINGLETON, Op::SET_IS_SINGLETON},
+        {::cvc5::api::Kind::SET_UNION, Op::SET_UNION},
+        {::cvc5::api::Kind::SET_MEMBER, Op::SET_MEMBER},
+        {::cvc5::api::Kind::SET_MINUS, Op::SET_MINUS},
+        {::cvc5::api::Kind::SET_SINGLETON, Op::SET_SINGLETON},
+        {::cvc5::api::Kind::SET_SUBSET, Op::SET_SUBSET},
+        {::cvc5::api::Kind::RELATION_JOIN, Op::REL_JOIN},
+        {::cvc5::api::Kind::RELATION_JOIN_IMAGE, Op::REL_JOIN_IMAGE},
+        {::cvc5::api::Kind::RELATION_IDEN, Op::REL_IDEN},
+        {::cvc5::api::Kind::RELATION_PRODUCT, Op::REL_PRODUCT},
+        {::cvc5::api::Kind::RELATION_TCLOSURE, Op::REL_TCLOSURE},
+        {::cvc5::api::Kind::RELATION_TRANSPOSE, Op::REL_TRANSPOSE},
+
+        /* Solver-specific operators */
+        {::cvc5::api::Kind::BITVECTOR_REDOR, OP_BV_REDOR},
+        // BV
+        {::cvc5::api::Kind::BITVECTOR_REDAND, OP_BV_REDAND},
+        {::cvc5::api::Kind::BITVECTOR_ULTBV, OP_BV_ULTBV},
+        {::cvc5::api::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
+        {::cvc5::api::Kind::BITVECTOR_ITE, OP_BV_ITE},
+        // Int
+        {::cvc5::api::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
+        {::cvc5::api::Kind::IAND, OP_INT_IAND},
+        {::cvc5::api::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
+        {::cvc5::api::Kind::POW2, OP_INT_POW2},
         // Strings
         {::cvc5::api::Kind::STRING_UPDATE, OP_STRING_UPDATE},
         {::cvc5::api::Kind::STRING_TOLOWER, OP_STRING_TOLOWER},
@@ -724,6 +759,8 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::REGEXP_EMPTY, OP_REGEXP_EMPTY},
         {::cvc5::api::Kind::REGEXP_SIGMA, OP_REGEXP_SIGMA},
         {::cvc5::api::Kind::REGEXP_STAR, OP_REGEXP_STAR},
+        {::cvc5::api::Kind::SET_EMPTY, OP_SET_EMPTY},
+        {::cvc5::api::Kind::SET_UNIVERSE, OP_SET_UNIVERSE},
 };
 
 ::cvc5::api::Term&
@@ -1080,6 +1117,7 @@ Cvc5Solver::new_solver()
   d_solver = new ::cvc5::api::Solver();
   d_solver->setOption("fp-exp", "true");
   d_solver->setOption("strings-exp", "true");
+  d_solver->setOption("sets-ext", "true");
 }
 
 void
@@ -1195,6 +1233,11 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     case SORT_SEQ:
       assert(sorts.size() == 1);
       cvc5_res = d_solver->mkSequenceSort(Cvc5Sort::get_cvc5_sort(sorts[0]));
+      break;
+
+    case SORT_SET:
+      assert(sorts.size() == 1);
+      cvc5_res = d_solver->mkSetSort(Cvc5Sort::get_cvc5_sort(sorts[0]));
       break;
 
     default:
@@ -1544,6 +1587,23 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
     }
     break;
 
+    case SORT_SET:
+    {
+      const std::vector<Sort>& sorts = sort->get_sorts();
+      assert(sorts.size() == 1);
+      Sort element_sort = sorts[0];
+      if (value == AbsTerm::SPECIAL_VALUE_SET_EMPTY)
+      {
+        cvc5_res = d_solver->mkEmptySet(Cvc5Sort::get_cvc5_sort(sort));
+      }
+      else
+      {
+        assert(value == AbsTerm::SPECIAL_VALUE_SET_UNIVERSE);
+        cvc5_res = d_solver->mkUniverseSet(Cvc5Sort::get_cvc5_sort(sort));
+      }
+    }
+    break;
+
     default:
       MURXLA_CHECK_CONFIG(sort->is_bv())
           << "unexpected sort of kind '" << sort->get_kind()
@@ -1621,6 +1681,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       cvc5_res = d_solver->mkTerm(::cvc5::api::Kind::REGEXP_SIGMA);
     }
+    goto DONE;
   }
 
   if (kind == Op::RE_NONE)
@@ -1633,6 +1694,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       cvc5_res = d_solver->mkTerm(::cvc5::api::Kind::REGEXP_EMPTY);
     }
+    goto DONE;
   }
 
   if ((kind == Op::FP_TO_FP_FROM_BV
@@ -1657,6 +1719,16 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
           d_solver->mkOp(::cvc5::api::Kind::BITVECTOR_EXTRACT, hi, lo);
       cvc5_args[0] = d_solver->mkTerm(op, cvc5_args[0]);
     }
+  }
+
+  if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
+  {
+    /* cvc5 uses order <elem>+ <set> for the arguments
+     * (is given as <set> <elem>+) */
+    ::cvc5::api::Term set = cvc5_args[0];
+    size_t n              = cvc5_args.size() - 1;
+    cvc5_args[0]          = cvc5_args[n];
+    cvc5_args[n]          = set;
   }
 
   /* create Op for indexed operators */

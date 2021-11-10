@@ -20,6 +20,7 @@ enum SortKind
   SORT_RM,
   SORT_REGLAN,
   SORT_SEQ,
+  SORT_SET,
   SORT_STRING,
   // must be last
   SORT_ANY,
@@ -48,6 +49,7 @@ static std::unordered_map<SortKind, std::string> sort_kinds_to_str{
     {SORT_REAL, "SORT_REAL"},
     {SORT_RM, "SORT_RM"},
     {SORT_SEQ, "SORT_SEQ"},
+    {SORT_SET, "SORT_SET"},
     {SORT_STRING, "SORT_STRING"},
     {SORT_REGLAN, "SORT_REGLAN"},
     {SORT_ANY, "SORT_ANY"}};

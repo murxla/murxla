@@ -15,6 +15,7 @@ ShadowSort::hash() const
 {
   return d_sort->hash();
 }
+
 bool
 ShadowSort::equals(const Sort& other) const
 {
@@ -22,111 +23,145 @@ ShadowSort::equals(const Sort& other) const
   return d_sort->equals(s_sort->d_sort)
          && d_sort_shadow->equals(s_sort->d_sort_shadow);
 }
+
 std::string
 ShadowSort::to_string() const
 {
   return d_sort->to_string();
 }
+
 bool
 ShadowSort::is_array() const
 {
   return d_sort->is_array();
 }
+
 bool
 ShadowSort::is_bool() const
 {
   return d_sort->is_bool();
 }
+
 bool
 ShadowSort::is_bv() const
 {
   return d_sort->is_bv();
 }
+
 bool
 ShadowSort::is_fp() const
 {
   return d_sort->is_fp();
 }
+
 bool
 ShadowSort::is_fun() const
 {
   return d_sort->is_fun();
 }
+
 bool
 ShadowSort::is_int() const
 {
   return d_sort->is_int();
 }
+
 bool
 ShadowSort::is_real() const
 {
   return d_sort->is_real();
 }
+
 bool
 ShadowSort::is_rm() const
 {
   return d_sort->is_rm();
 }
+
 bool
 ShadowSort::is_seq() const
 {
   return d_sort->is_seq();
 }
+
+bool
+ShadowSort::is_set() const
+{
+  return d_sort->is_set();
+}
+
 bool
 ShadowSort::is_string() const
 {
   return d_sort->is_string();
 }
+
 bool
 ShadowSort::is_reglan() const
 {
   return d_sort->is_reglan();
 }
+
 uint32_t
 ShadowSort::get_bv_size() const
 {
   return d_sort->get_bv_size();
 }
+
 uint32_t
 ShadowSort::get_fp_exp_size() const
 {
   return d_sort->get_fp_exp_size();
 }
+
 uint32_t
 ShadowSort::get_fp_sig_size() const
 {
   return d_sort->get_fp_sig_size();
 }
+
 Sort
 ShadowSort::get_array_index_sort() const
 {
   return d_sort->get_array_index_sort();
 }
+
 Sort
 ShadowSort::get_array_element_sort() const
 {
   return d_sort->get_array_element_sort();
 }
+
 uint32_t
 ShadowSort::get_fun_arity() const
 {
   return d_sort->get_fun_arity();
 }
+
 Sort
 ShadowSort::get_fun_codomain_sort() const
 {
   return d_sort->get_fun_codomain_sort();
 }
+
 std::vector<Sort>
 ShadowSort::get_fun_domain_sorts() const
 {
   return d_sort->get_fun_domain_sorts();
 }
+
 Sort
 ShadowSort::get_seq_element_sort() const
 {
   return d_sort->get_seq_element_sort();
 }
+
+Sort
+ShadowSort::get_set_element_sort() const
+{
+  return d_sort->get_set_element_sort();
+}
+
 void
 ShadowSort::set_kind(SortKind sort_kind)
 {

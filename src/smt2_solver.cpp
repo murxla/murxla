@@ -90,6 +90,12 @@ Smt2Sort::is_seq() const
 }
 
 bool
+Smt2Sort::is_set() const
+{
+  return d_kind == SORT_SET;
+}
+
+bool
 Smt2Sort::is_string() const
 {
   return d_kind == SORT_STRING;
@@ -888,6 +894,23 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       }
       break;
 
+    case SORT_SEQ:
+      assert(value == AbsTerm::SPECIAL_VALUE_SEQ_EMPTY);
+      val << "seq.empty";
+      break;
+
+    case SORT_SET:
+      if (value == AbsTerm::SPECIAL_VALUE_SET_EMPTY)
+      {
+        val << "set.empty";
+      }
+      else
+      {
+        assert(value == AbsTerm::SPECIAL_VALUE_SET_UNIVERSE);
+        val << "set.universe";
+      }
+      break;
+
     default: assert(false);
   }
   return std::shared_ptr<Smt2Term>(new Smt2Term(
@@ -988,6 +1011,17 @@ get_seq_sort_string(const std::vector<Sort>& sorts)
   return sort.str();
 }
 
+static std::string
+get_set_sort_string(const std::vector<Sort>& sorts)
+{
+  assert(sorts.size() == 1);
+  std::stringstream sort;
+  sort << "(Set";
+  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
+  sort << ") ";
+  return sort.str();
+}
+
 Sort
 Smt2Solver::mk_sort(const std::string name, uint32_t arity)
 {
@@ -1045,6 +1079,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     case SORT_ARRAY: sort = get_array_sort_string(sorts); break;
     case SORT_FUN: sort = get_fun_sort_string(sorts); break;
     case SORT_SEQ: sort = get_seq_sort_string(sorts); break;
+    case SORT_SET: sort = get_set_sort_string(sorts); break;
     default: assert(false);
   }
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));

@@ -43,6 +43,7 @@ class YicesSort : public AbsSort
   bool is_reglan() const override;
   bool is_rm() const override;
   bool is_seq() const override;
+  bool is_set() const override;
   bool is_string() const override;
   uint32_t get_bv_size() const override;
 

@@ -61,12 +61,14 @@ class AbsSort
   virtual bool is_real() const = 0;
   /** Return true if this sort is a RoundingMode sort. */
   virtual bool is_rm() const   = 0;
-  /** Return true if this sort is a String sort. */
-  virtual bool is_string() const = 0;
   /** Return true if this sort is a RegLan sort. */
   virtual bool is_reglan() const = 0;
   /** Return true if this sort is a Sequence sort. */
   virtual bool is_seq() const = 0;
+  /** Return true if this sort is a Set sort. */
+  virtual bool is_set() const = 0;
+  /** Return true if this sort is a String sort. */
+  virtual bool is_string() const = 0;
 
   /**
    * Get the bit-vector size of this sort.
@@ -113,6 +115,11 @@ class AbsSort
    * Returns nullptr by default.
    */
   virtual Sort get_seq_element_sort() const;
+  /**
+   * Get the set element sort of this sort.
+   * Returns nullptr by default.
+   */
+  virtual Sort get_set_element_sort() const;
 
   void set_id(uint64_t id);
   uint64_t get_id() const;
@@ -153,9 +160,9 @@ class AbsTerm
   inline static const SpecialValueKind SPECIAL_VALUE_NONE =
       "not-a-special-value";
   /** Special BV values. */
-  inline static const SpecialValueKind SPECIAL_VALUE_BV_ZERO = "bv-zero";
-  inline static const SpecialValueKind SPECIAL_VALUE_BV_ONE  = "bv-one";
-  inline static const SpecialValueKind SPECIAL_VALUE_BV_ONES = "bv-ones";
+  inline static const SpecialValueKind SPECIAL_VALUE_BV_ZERO = "bv.zero";
+  inline static const SpecialValueKind SPECIAL_VALUE_BV_ONE  = "bv.one";
+  inline static const SpecialValueKind SPECIAL_VALUE_BV_ONES = "bv.ones";
   inline static const SpecialValueKind SPECIAL_VALUE_BV_MIN_SIGNED =
       "bv-min-signed";
   inline static const SpecialValueKind SPECIAL_VALUE_BV_MAX_SIGNED =
@@ -173,7 +180,11 @@ class AbsTerm
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RTP = "rtp";
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RTZ = "rtz";
   /** Special Sequence values. */
-  inline static const SpecialValueKind SPECIAL_VALUE_SEQ_EMPTY = "seq-empty";
+  inline static const SpecialValueKind SPECIAL_VALUE_SEQ_EMPTY = "seq.empty";
+  /** Special Sets values. */
+  inline static const SpecialValueKind SPECIAL_VALUE_SET_EMPTY = "set.empty";
+  inline static const SpecialValueKind SPECIAL_VALUE_SET_UNIVERSE =
+      "set.universe";
 
   enum LeafKind
   {
@@ -211,12 +222,14 @@ class AbsTerm
   virtual bool is_real() const;
   /** Return true if this term is a RoundingMode term. */
   virtual bool is_rm() const;
-  /** Return true if this term is a String term. */
-  virtual bool is_string() const;
   /** Return true if this term is a RegLan term. */
   virtual bool is_reglan() const;
   /** Return true if this term is a Sequence term. */
   virtual bool is_seq() const;
+  /** Return true if this term is a Set term. */
+  virtual bool is_set() const;
+  /** Return true if this term is a String term. */
+  virtual bool is_string() const;
 
   /** Return true if this term is a Boolean value. */
   virtual bool is_bool_value() const;
@@ -234,6 +247,8 @@ class AbsTerm
   virtual bool is_rm_value() const;
   /** Return true if this term is a Sequence value. */
   virtual bool is_seq_value() const;
+  /** Return true if this term is a Sequence value. */
+  virtual bool is_set_value() const;
   /** Return true if this term is a string value. */
   virtual bool is_string_value() const;
 
@@ -484,6 +499,10 @@ class Solver
    */
   virtual SortKindSet get_unsupported_seq_element_sort_kinds() const;
   /**
+   * Get the set of sort kinds that are unsupported as set element sort.
+   */
+  virtual SortKindSet get_unsupported_set_element_sort_kinds() const;
+  /**
    * Get the set of sort kinds that are unsupported for get-value.
    */
   virtual SortKindSet get_unsupported_get_value_sort_kinds() const;
@@ -666,6 +685,10 @@ class Solver
             AbsTerm::SPECIAL_VALUE_RM_RTN,
             AbsTerm::SPECIAL_VALUE_RM_RTP,
             AbsTerm::SPECIAL_VALUE_RM_RTZ}},
+          {SORT_SEQ, {AbsTerm::SPECIAL_VALUE_SEQ_EMPTY}},
+          {SORT_SET,
+           {AbsTerm::SPECIAL_VALUE_SET_EMPTY,
+            AbsTerm::SPECIAL_VALUE_SET_UNIVERSE}},
           {SORT_ANY, {}},
   };
 };

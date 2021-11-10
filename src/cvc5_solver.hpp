@@ -42,10 +42,11 @@ class Cvc5Sort : public AbsSort
   bool is_fun() const override;
   bool is_int() const override;
   bool is_real() const override;
-  bool is_rm() const override;
-  bool is_string() const override;
   bool is_reglan() const override;
+  bool is_rm() const override;
   bool is_seq() const override;
+  bool is_set() const override;
+  bool is_string() const override;
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
@@ -55,6 +56,7 @@ class Cvc5Sort : public AbsSort
   Sort get_fun_codomain_sort() const override;
   std::vector<Sort> get_fun_domain_sorts() const override;
   Sort get_seq_element_sort() const override;
+  Sort get_set_element_sort() const override;
 
  private:
   ::cvc5::api::Solver* d_solver;
@@ -110,6 +112,8 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_REGEXP_EMPTY = "cvc5-OP_REGEXP_EMPTY";
   inline static const Op::Kind OP_REGEXP_SIGMA = "cvc5-OP_REGEXP_SIGMA";
   inline static const Op::Kind OP_REGEXP_STAR  = "cvc5-OP_REGEXP_STAR";
+  inline static const Op::Kind OP_SET_EMPTY    = "cvc5-OP_SET_EMPTY";
+  inline static const Op::Kind OP_SET_UNIVERSE = "cvc5-OP_SET_UNIVERSE";
 
   Cvc5Term(RNGenerator& rng, ::cvc5::api::Solver* cvc5, ::cvc5::api::Term term)
       : d_rng(rng), d_solver(cvc5), d_term(term)

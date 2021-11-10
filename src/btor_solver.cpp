@@ -143,6 +143,12 @@ BtorSort::is_seq() const
 }
 
 bool
+BtorSort::is_set() const
+{
+  return false;
+}
+
+bool
 BtorSort::is_string() const
 {
   return false;

@@ -139,6 +139,12 @@ BzlaSort::is_seq() const
 }
 
 bool
+BzlaSort::is_set() const
+{
+  return false;
+}
+
+bool
 BzlaSort::is_string() const
 {
   return false;

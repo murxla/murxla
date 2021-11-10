@@ -223,11 +223,14 @@ SolverManager::add_term(Term& term,
   Sort sort = d_solver->get_sort(term, sort_kind);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
+  assert(lookup->equals(sort));
+  assert(lookup->to_string() == sort->to_string());
   /* Operator SEQ_UNIT may implicitly create a new sequence sort. In that case
    * we have to populate Sort::d_sorts with the element sort. */
   assert(d_enabled_theories.find(THEORY_SEQ) == d_enabled_theories.end()
          || term->get_kind() != Op::UNDEFINED);
-  if (term->get_kind() == Op::SEQ_UNIT && args.size() > 0)
+  const Op::Kind kind = term->get_kind();
+  if ((kind == Op::SEQ_UNIT || kind == Op::SET_SINGLETON) && args.size() > 0)
   {
     auto sorts = lookup->get_sorts();
     if (sorts.size() == 0)
@@ -239,6 +242,9 @@ SolverManager::add_term(Term& term,
   assert(lookup->get_id());
   assert(lookup->get_kind() != SORT_ANY);
   assert(sort_kind != SORT_SEQ
+         || (lookup->get_sorts().size() == 1
+             && lookup->get_sorts()[0]->get_kind() != SORT_ANY));
+  assert(sort_kind != SORT_SET
          || (lookup->get_sorts().size() == 1
              && lookup->get_sorts()[0]->get_kind() != SORT_ANY));
 }
@@ -1078,6 +1084,10 @@ SolverManager::add_sort_kinds()
 
       case THEORY_SEQ:
         d_sort_kinds.emplace(SORT_SEQ, SortKindData(SORT_SEQ, 0, THEORY_SEQ));
+        break;
+
+      case THEORY_SET:
+        d_sort_kinds.emplace(SORT_SET, SortKindData(SORT_SET, 0, THEORY_SET));
         break;
 
       case THEORY_STRING:

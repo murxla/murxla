@@ -237,6 +237,9 @@ set_sigint_handler_stats(void)
   "  --add-seq                  enable theory of sequences in addition to \n"  \
   "                             the default set of enabled theories (non-\n"   \
   "                             standard theories are disabled by default)\n"  \
+  "  --add-sets                 enable theory of sets in addition to \n"       \
+  "                             the default set of enabled theories (non-\n"   \
+  "                             standard theories are disabled by default)\n"  \
   "\n"                                                                         \
   " enabling specific theories:\n"                                             \
   "  --arrays                   theory of arrays\n"                            \
@@ -247,6 +250,7 @@ set_sigint_handler_stats(void)
   "  --reals                    theory of reals\n"                             \
   "  --strings                  theory of strings\n"                           \
   "  --seq                      theory of sequences (default: disabled)\n"     \
+  "  --sets                     theory of sets (default: disabled)\n"          \
   "\n"                                                                         \
   " constraining/extending features based for enabled theories:\n"             \
   "  --linear                   restrict arithmetic to linear fragment\n"      \
@@ -572,6 +576,15 @@ parse_options(Options& options, int argc, char* argv[])
         options.disabled_theories.erase(it);
       }
     }
+    else if (arg == "--sets")
+    {
+      options.enabled_theories.push_back(THEORY_SET);
+      auto it = options.disabled_theories.find(THEORY_SET);
+      if (it != options.disabled_theories.end())
+      {
+        options.disabled_theories.erase(it);
+      }
+    }
     else if (arg == "--strings")
     {
       options.enabled_theories.push_back(THEORY_STRING);
@@ -583,6 +596,14 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--add-seq")
     {
       auto it = options.disabled_theories.find(THEORY_SEQ);
+      if (it != options.disabled_theories.end())
+      {
+        options.disabled_theories.erase(it);
+      }
+    }
+    else if (arg == "--add-sets")
+    {
+      auto it = options.disabled_theories.find(THEORY_SET);
       if (it != options.disabled_theories.end())
       {
         options.disabled_theories.erase(it);
