@@ -105,61 +105,89 @@ ShadowSort::is_reglan() const
 uint32_t
 ShadowSort::get_bv_size() const
 {
-  return d_sort->get_bv_size();
+  uint32_t res = d_sort->get_bv_size();
+  MURXLA_TEST(res == d_sort_shadow->get_bv_size());
+  return res;
 }
 
 uint32_t
 ShadowSort::get_fp_exp_size() const
 {
-  return d_sort->get_fp_exp_size();
+  uint32_t res = d_sort->get_fp_exp_size();
+  MURXLA_TEST(res == d_sort_shadow->get_fp_exp_size());
+  return res;
 }
 
 uint32_t
 ShadowSort::get_fp_sig_size() const
 {
-  return d_sort->get_fp_sig_size();
+  uint32_t res = d_sort->get_fp_sig_size();
+  MURXLA_TEST(res == d_sort_shadow->get_fp_sig_size());
+  return res;
 }
 
 Sort
 ShadowSort::get_array_index_sort() const
 {
-  return d_sort->get_array_index_sort();
+  std::shared_ptr<ShadowSort> res(new ShadowSort(
+      d_sort->get_array_index_sort(), d_sort_shadow->get_array_index_sort()));
+  return res;
 }
 
 Sort
 ShadowSort::get_array_element_sort() const
 {
-  return d_sort->get_array_element_sort();
+  std::shared_ptr<ShadowSort> res(
+      new ShadowSort(d_sort->get_array_element_sort(),
+                     d_sort_shadow->get_array_element_sort()));
+  return res;
 }
 
 uint32_t
 ShadowSort::get_fun_arity() const
 {
-  return d_sort->get_fun_arity();
+  uint32_t res = d_sort->get_fun_arity();
+  MURXLA_TEST(res == d_sort_shadow->get_fun_arity());
+  return res;
 }
 
 Sort
 ShadowSort::get_fun_codomain_sort() const
 {
-  return d_sort->get_fun_codomain_sort();
+  std::shared_ptr<ShadowSort> res(new ShadowSort(
+      d_sort->get_fun_codomain_sort(), d_sort_shadow->get_fun_codomain_sort()));
+  return res;
 }
 
 std::vector<Sort>
 ShadowSort::get_fun_domain_sorts() const
 {
-  return d_sort->get_fun_domain_sorts();
+  std::vector<Sort> sorts        = d_sort->get_fun_domain_sorts();
+  std::vector<Sort> sorts_shadow = d_sort_shadow->get_fun_domain_sorts();
+  MURXLA_TEST(sorts.size() == sorts_shadow.size());
+  std::vector<Sort> res;
+  for (size_t i = 0, n = sorts.size(); i < n; ++i)
+  {
+    res.push_back(
+        std::shared_ptr<ShadowSort>(new ShadowSort(sorts[i], sorts_shadow[i])));
+  }
+  return res;
 }
 
 Sort
 ShadowSort::get_seq_element_sort() const
 {
-  return d_sort->get_seq_element_sort();
+  std::shared_ptr<ShadowSort> res(new ShadowSort(
+      d_sort->get_seq_element_sort(), d_sort_shadow->get_seq_element_sort()));
+  return res;
 }
 
 Sort
 ShadowSort::get_set_element_sort() const
 {
-  return d_sort->get_set_element_sort();
+  std::shared_ptr<ShadowSort> res(new ShadowSort(
+      d_sort->get_set_element_sort(), d_sort_shadow->get_set_element_sort()));
+  return res;
 }
 
 void
