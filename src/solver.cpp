@@ -590,7 +590,7 @@ Solver::get_unsupported_seq_element_sort_kinds() const
 SortKindSet
 Solver::get_unsupported_set_element_sort_kinds() const
 {
-  return {};
+  return {SORT_FUN};
 }
 
 SortKindSet
