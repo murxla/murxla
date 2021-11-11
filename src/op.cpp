@@ -334,8 +334,8 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::SET_INSERT, n, 0, SORT_SET, {SORT_SET, SORT_ANY}, THEORY_SET);
   add_op_kind(Op::SET_INTERSECTION, 2, 0, SORT_SET, {SORT_SET}, THEORY_SET);
   add_op_kind(Op::SET_IS_SINGLETON, 1, 0, SORT_BOOL, {SORT_SET}, THEORY_SET);
-  // add_op_kind(
-  //    Op::SET_MEMBER, 2, 0, SORT_BOOL, {SORT_SET, SORT_ANY}, THEORY_SET);
+  add_op_kind(
+      Op::SET_MEMBER, 2, 0, SORT_BOOL, {SORT_SET, SORT_ANY}, THEORY_SET);
   add_op_kind(Op::SET_MINUS, 2, 0, SORT_SET, {SORT_SET}, THEORY_SET);
   add_op_kind(Op::SET_UNION, 2, 0, SORT_SET, {SORT_SET}, THEORY_SET);
   add_op_kind(Op::SET_SUBSET, 2, 0, SORT_BOOL, {SORT_SET}, THEORY_SET);

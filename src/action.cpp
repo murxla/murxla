@@ -893,7 +893,7 @@ ActionMkTerm::run()
     const std::vector<Sort>& sorts = set_sort->get_sorts();
     assert(sorts.size() == 1);
     Sort element_sort = sorts[0];
-    assert(d_smgr.has_term(set_sort));
+    if (!d_smgr.has_term(element_sort)) return false;
     args.push_back(d_smgr.pick_term(set_sort));
     sort_kind = element_sort->get_kind();
     assert(sort_kind != SORT_ANY);
@@ -925,6 +925,18 @@ ActionMkTerm::run()
       args.push_back(d_smgr.pick_term(element_sort));
     }
     sort_kind = SORT_SET;
+  }
+  else if (kind == Op::SET_MEMBER)
+  {
+    assert(!n_params);
+    Sort set_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+    const std::vector<Sort>& sorts = set_sort->get_sorts();
+    assert(sorts.size() == 1);
+    Sort element_sort = sorts[0];
+    if (!d_smgr.has_term(element_sort)) return false;
+    args.push_back(d_smgr.pick_term(set_sort));
+    args.push_back(d_smgr.pick_term(element_sort));
+    sort_kind = SORT_BOOL;
   }
   else
   {
