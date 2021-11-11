@@ -38,18 +38,28 @@
  */
 #define MURXLA_MAX_KIND_LEN 100
 
+/** Minimum bit-width for bit-vector terms. */
 #define MURXLA_BW_MIN 1
+/** Maximum bit-width for bit-vector terms. */
 #define MURXLA_BW_MAX 128
 
+/** Maximum length for strings representing integer values. */
 #define MURXLA_INT_LEN_MAX 50
+/** Maximum length for strings representing real values. */
 #define MURXLA_REAL_LEN_MAX 50
+/** Maximum length for strings representing rational values. */
 #define MURXLA_RATIONAL_LEN_MAX 10
+/** Maximum length for strings representing string values. */
 #define MURXLA_STR_LEN_MAX 100
 
+/** Maximum length for symbols. */
 #define MURXLA_SYMBOL_LEN_MAX 128
 
+/** Maximum number of assumptions in check-sat-assuming calls. */
 #define MURXLA_MAX_N_ASSUMPTIONS_CHECK_SAT 5
+/** Maximum number of context levels for push commands. */
 #define MURXLA_MAX_N_PUSH_LEVELS 5
+/** Maximum number of argument terms for get-value commands. */
 #define MURXLA_MAX_N_TERMS_GET_VALUE 5
 
 /* mk_term: at least one argument */
