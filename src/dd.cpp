@@ -354,6 +354,7 @@ namespace {
  * Generate a minimized action trace line from the given original tokens and
  * the terms to include.
  *
+ * seed         : The line seed.
  * action_kind  : The kind of the action.
  * tokens       : The tokens of the original action line (does not include the
  *                action kind).
@@ -371,7 +372,8 @@ namespace {
  *                the domain sort for an action that creates a function sort.
  */
 std::string
-generate_minimized_line(Action::Kind action_kind,
+generate_minimized_line(uint32_t seed,
+                        Action::Kind action_kind,
                         const std::vector<std::string>& tokens,
                         const std::vector<size_t>& included_args,
                         size_t idx,
@@ -379,7 +381,7 @@ generate_minimized_line(Action::Kind action_kind,
                         const std::vector<std::string>& post)
 {
   std::stringstream ss;
-  ss << action_kind;
+  ss << seed << " " << action_kind;
   for (size_t i = 0, n = idx - pre.size(); i < n; ++i)
   {
     ss << " " << tokens[i];
@@ -408,31 +410,35 @@ generate_minimized_line(Action::Kind action_kind,
  *                 trace.  A line is represented as a vector of strings with at
  *                 most 2 elements.
  * included_args: The indices of the arguments to minimize that are considered.
- * to_update    : Map line number of the line to update to
- *                - its action kind
- *                - its original tokens
- *                - the arguments to include
- *                - the start index of the arguments to minimize
+ * to_update    : A vector of tuples that represent a line to update and
+ *                contain its
+ *                - seed
+ *                - line index
+ *                - action kind
+ *                - original tokens
+ *                - the start index (in the tokens) of the arguments to minimize
  *
  * return: The previous state of the updated lines as a map from line index to
  *         action line string.
  */
 std::unordered_map<size_t, std::string>
-update_lines(
-    std::vector<std::vector<std::string>>& lines,
-    const std::vector<size_t>& included_args,
-    const std::vector<
-        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
-        to_update)
+update_lines(std::vector<std::vector<std::string>>& lines,
+             const std::vector<size_t>& included_args,
+             const std::vector<std::tuple<uint32_t,
+                                          size_t,
+                                          Action::Kind,
+                                          std::vector<std::string>,
+                                          size_t>>& to_update)
 {
   std::unordered_map<size_t, std::string> updated_lines_prev;
 
   for (const auto& t : to_update)
   {
-    size_t line_idx    = std::get<0>(t);
-    Action::Kind kind  = std::get<1>(t);
-    const auto& tokens = std::get<2>(t);
-    size_t idx         = std::get<3>(t);
+    uint32_t seed      = std::get<0>(t);
+    size_t line_idx    = std::get<1>(t);
+    Action::Kind kind  = std::get<2>(t);
+    const auto& tokens = std::get<3>(t);
+    size_t idx         = std::get<4>(t);
 
     /* save current state of line in case we need to revert */
     updated_lines_prev[line_idx] = lines[line_idx][0];
@@ -455,8 +461,8 @@ update_lines(
       pre = {std::to_string((included_args.size()))};
     }
     /* update line */
-    lines[line_idx][0] =
-        generate_minimized_line(kind, tokens, included_args, idx, pre, post);
+    lines[line_idx][0] = generate_minimized_line(
+        seed, kind, tokens, included_args, idx, pre, post);
   }
   return updated_lines_prev;
 }
@@ -469,32 +475,35 @@ update_lines(
  *                 trace.  A line is represented as a vector of strings with at
  *                 most 2 elements.
  * included_lines: The current set of considered lines.
+ * seed          : The line seed.
  * line_idx      : The line index (in 'lines') of the line creating the sort.
  * line_tokens   : The tokenized line at 'line_idx'.
  * term_id       : The id of the term.
  * to_minimize   : The resulting collected lines, given as a vector of tuples
- *                 of line id, action kind, line tokens and the index of the
- *                 first argument of the set of to minimize arguments.
+ *                 of seed, line id, action kind, line tokens and the index of
+ *                 the first argument of the set of to minimize arguments.
  */
 void
 collect_to_minimize_lines_sort_fun(
     const std::vector<std::vector<std::string>>& lines,
     const std::vector<size_t>& included_lines,
+    uint32_t seed,
     size_t line_idx,
     const std::vector<std::string>& line_tokens,
-    std::vector<
-        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
-        to_minimize)
+    std::vector<std::tuple<uint32_t,
+                           size_t,
+                           Action::Kind,
+                           std::vector<std::string>,
+                           size_t>>& to_minimize)
 {
   /* Add function sort trace line. */
   to_minimize.emplace_back(
-      std::make_tuple(line_idx, Action::MK_SORT, line_tokens, 1));
+      std::make_tuple(seed, line_idx, Action::MK_SORT, line_tokens, 1));
 
   /* Collect all function terms that can occur as an argument to apply
    * (MK_CONST of the function sort 'sort_id' and ITE over function
    * constants of that sort). Further, collect all applies that need to be
-   * updated
-   * simultaneously, together with the update of the function sort. */
+   * updated simultaneously, together with the update of the function sort. */
 
   /* Retrieve sort id. */
   std::string sort_id;
@@ -546,7 +555,7 @@ collect_to_minimize_lines_sort_fun(
                && funs.find(tokens[3]) != funs.end())
       {
         assert(tokens.size() == line_tokens.size() + 2);
-        to_minimize.emplace_back(_line_idx, action_kind, tokens, 4);
+        to_minimize.emplace_back(seed, _line_idx, action_kind, tokens, 4);
       }
     }
   }
@@ -779,15 +788,16 @@ DD::substitute_terms(Result golden_exit,
 }
 
 bool
-DD::minimize_line_aux(
-    Result golden_exit,
-    std::vector<std::vector<std::string>>& lines,
-    const std::vector<size_t>& included_lines,
-    const std::string& input_trace_file_name,
-    size_t n_args,
-    const std::vector<
-        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
-        to_minimize)
+DD::minimize_line_aux(Result golden_exit,
+                      std::vector<std::vector<std::string>>& lines,
+                      const std::vector<size_t>& included_lines,
+                      const std::string& input_trace_file_name,
+                      size_t n_args,
+                      const std::vector<std::tuple<uint32_t,
+                                                   size_t,
+                                                   Action::Kind,
+                                                   std::vector<std::string>,
+                                                   size_t>>& to_minimize)
 {
   assert(to_minimize.size() >= 1);
 
@@ -796,9 +806,9 @@ DD::minimize_line_aux(
   /* We minimize based on the first line of the lines to update. For example,
    * when minimizing function sorts, that would be the line to create the sort
    * with MK_SORT. */
-  size_t line_idx_first   = std::get<0>(to_minimize[0]);
-  Action::Kind kind_first = std::get<1>(to_minimize[0]);
-  auto tokens_first       = std::get<2>(to_minimize[0]);
+  size_t line_idx_first   = std::get<1>(to_minimize[0]);
+  Action::Kind kind_first = std::get<2>(to_minimize[0]);
+  auto tokens_first       = std::get<3>(to_minimize[0]);
   assert(tokens_first.size() >= n_args + 1);
 
   size_t line_size = lines[line_idx_first][0].size();
@@ -915,8 +925,11 @@ DD::minimize_line(Result golden_exit,
      * We have to record the original tokens here -- we can't retokenize these
      * lines on the fly while delta debugging, the set of tokens has to match
      * the indices of the included_args set. */
-    std::vector<
-        std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>
+    std::vector<std::tuple<uint32_t,
+                           size_t,
+                           Action::Kind,
+                           std::vector<std::string>,
+                           size_t>>
         to_minimize;
 
     if (action == Action::MK_SORT)
@@ -927,7 +940,7 @@ DD::minimize_line(Result golden_exit,
                         << (line_number - lines[line_idx].size() + 1) << " ...";
       n_args = n_tokens - 2;
       collect_to_minimize_lines_sort_fun(
-          lines, included_lines, line_idx, tokens, to_minimize);
+          lines, included_lines, seed, line_idx, tokens, to_minimize);
     }
     else
     {
@@ -956,7 +969,7 @@ DD::minimize_line(Result golden_exit,
         }
       }
       to_minimize.emplace_back(
-          std::make_tuple(line_idx, action_kind, tokens, idx));
+          std::make_tuple(seed, line_idx, action_kind, tokens, idx));
     }
 
     if (n_args > 0)

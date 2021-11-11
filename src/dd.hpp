@@ -50,15 +50,16 @@ class DD
                      const std::vector<size_t>& included_lines,
                      const std::string& input_trace_file_name);
 
-  bool minimize_line_aux(
-      Result golden_exit,
-      std::vector<std::vector<std::string>>& lines,
-      const std::vector<size_t>& included_lines,
-      const std::string& input_trace_file_name,
-      size_t n_args,
-      const std::vector<
-          std::tuple<size_t, Action::Kind, std::vector<std::string>, size_t>>&
-          to_minimize);
+  bool minimize_line_aux(Result golden_exit,
+                         std::vector<std::vector<std::string>>& lines,
+                         const std::vector<size_t>& included_lines,
+                         const std::string& input_trace_file_name,
+                         size_t n_args,
+                         const std::vector<std::tuple<uint32_t,
+                                                      size_t,
+                                                      Action::Kind,
+                                                      std::vector<std::string>,
+                                                      size_t>>& to_minimize);
 
   bool substitute_terms(Result golden_exit,
                         std::vector<std::vector<std::string>>& lines,
