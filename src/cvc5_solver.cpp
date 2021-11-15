@@ -1717,8 +1717,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       cvc5_args[0] = d_solver->mkTerm(op, cvc5_args[0]);
     }
   }
-
-  if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
+  else if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
   {
     /* cvc5 uses order <elem>+ <set> for the arguments
      * (is given as <set> <elem>+) */
@@ -1726,6 +1725,20 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     size_t n              = cvc5_args.size() - 1;
     cvc5_args[0]          = cvc5_args[n];
     cvc5_args[n]          = set;
+  }
+  else if (kind == Op::SET_COMPREHENSION)
+  {
+    /* cvc5 uses order <var_list> <predicate> <term> for the arguments
+     * (is given as <predicate> <term> <var>+) */
+    assert(args.size() >= 3);
+    std::vector<::cvc5::api::Term> vars;
+    for (size_t i = 2; i < args.size(); ++i)
+    {
+      vars.push_back(cvc5_args[i]);
+    }
+    cvc5_args = {d_solver->mkTerm(::cvc5::api::Kind::BOUND_VAR_LIST, vars),
+                 cvc5_args[0],
+                 cvc5_args[1]};
   }
 
   /* create Op for indexed operators */

@@ -212,6 +212,11 @@ class SolverManager
    */
   Term pick_quant_body();
 
+  /**
+   * Pick term of any sort from current scope level.
+   */
+  Term pick_quant_term();
+
   /** Add assumption currently assumed. */
   void add_assumption(Term t);
 
@@ -263,10 +268,15 @@ class SolverManager
   /** Return true if term database contains a variable. */
   bool has_var() const;
   /**
-   * Return true if term database contains a Boolean term in the current scope
-   * level.
+   * Return true if term database contains a variable and a Boolean term in the
+   * current scope level.
    */
   bool has_quant_body() const;
+  /**
+   * Return true if term database contains a variable and a term of any sort in
+   * the current scope level.
+   */
+  bool has_quant_term() const;
 
   /**
    * Return the Term in the Term database that wraps the same solver term

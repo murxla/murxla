@@ -873,7 +873,6 @@ ActionMkTerm::run()
     args.push_back(d_smgr.pick_term(seq_sort));
     args.push_back(d_smgr.pick_term(SORT_INT));
     sort_kind = element_sort->get_kind();
-    assert(sort_kind != SORT_ANY);
   }
   else if (kind == Op::SEQ_UNIT)
   {
@@ -896,7 +895,6 @@ ActionMkTerm::run()
     if (!d_smgr.has_term(element_sort)) return false;
     args.push_back(d_smgr.pick_term(set_sort));
     sort_kind = element_sort->get_kind();
-    assert(sort_kind != SORT_ANY);
   }
   else if (kind == Op::SET_SINGLETON)
   {
@@ -937,6 +935,20 @@ ActionMkTerm::run()
     args.push_back(d_smgr.pick_term(set_sort));
     args.push_back(d_smgr.pick_term(element_sort));
     sort_kind = SORT_BOOL;
+  }
+  else if (kind == Op::SET_COMPREHENSION)
+  {
+    assert(!n_params);
+    if (!d_smgr.has_var()) return false;
+    if (!d_smgr.has_quant_term()) return false;
+    if (!d_smgr.has_quant_body()) return false;
+    Term var  = d_smgr.pick_var();
+    Term body = d_smgr.pick_quant_body();
+    Term term = d_smgr.pick_quant_term();
+    args.push_back(body);
+    args.push_back(term);
+    args.push_back(var);
+    sort_kind = SORT_SET;
   }
   else
   {

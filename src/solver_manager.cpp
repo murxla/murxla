@@ -225,17 +225,27 @@ SolverManager::add_term(Term& term,
   Sort lookup = find_sort(sort);
   assert(lookup->equals(sort));
   assert(lookup->to_string() == sort->to_string());
-  /* Operator SEQ_UNIT may implicitly create a new sequence sort. In that case
-   * we have to populate Sort::d_sorts with the element sort. */
+  /* Operators SEQ_UNIT, SET_UNIT and SET_COMPREHENSION may implicitly create a
+   * new sequence sort. In that case we have to populate Sort::d_sorts with the
+   * element sort. */
   assert(d_enabled_theories.find(THEORY_SEQ) == d_enabled_theories.end()
          || term->get_kind() != Op::UNDEFINED);
   const Op::Kind kind = term->get_kind();
-  if ((kind == Op::SEQ_UNIT || kind == Op::SET_SINGLETON) && args.size() > 0)
+  if ((kind == Op::SEQ_UNIT || kind == Op::SET_SINGLETON
+       || kind == Op::SET_COMPREHENSION)
+      && args.size() > 0)
   {
     auto sorts = lookup->get_sorts();
     if (sorts.size() == 0)
     {
-      lookup->set_sorts({args[0]->get_sort()});
+      if (kind == Op::SET_COMPREHENSION)
+      {
+        lookup->set_sorts({args[1]->get_sort()});
+      }
+      else
+      {
+        lookup->set_sorts({args[0]->get_sort()});
+      }
     }
   }
   d_term_db.add_term(term, lookup, sort_kind, args);
@@ -535,6 +545,12 @@ SolverManager::pick_quant_body()
   return d_term_db.pick_quant_body();
 }
 
+Term
+SolverManager::pick_quant_term()
+{
+  return d_term_db.pick_quant_term();
+}
+
 void
 SolverManager::add_assumption(Term t)
 {
@@ -647,6 +663,12 @@ bool
 SolverManager::has_quant_body() const
 {
   return d_term_db.has_quant_body();
+}
+
+bool
+SolverManager::has_quant_term() const
+{
+  return d_term_db.has_quant_term();
 }
 
 Term

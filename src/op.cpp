@@ -330,7 +330,8 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::SET_CARD, 1, 0, SORT_INT, {SORT_SET}, THEORY_SET);
   add_op_kind(Op::SET_CHOOSE, 1, 0, SORT_ANY, {SORT_SET}, THEORY_SET);
   add_op_kind(Op::SET_COMPLEMENT, 1, 0, SORT_SET, {SORT_SET}, THEORY_SET);
-  // add_op_kind(Op::SET_COMPREHENSION, 3, 0, ??
+  add_op_kind(
+      Op::SET_COMPREHENSION, 3, 0, SORT_SET, {SORT_BOOL, SORT_ANY}, THEORY_SET);
   add_op_kind(Op::SET_INSERT, n, 0, SORT_SET, {SORT_SET, SORT_ANY}, THEORY_SET);
   add_op_kind(Op::SET_INTERSECTION, 2, 0, SORT_SET, {SORT_SET}, THEORY_SET);
   add_op_kind(Op::SET_IS_SINGLETON, 1, 0, SORT_BOOL, {SORT_SET}, THEORY_SET);

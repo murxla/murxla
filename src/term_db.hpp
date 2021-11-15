@@ -189,10 +189,15 @@ class TermDb
   /** Return true if term database contains a variable. */
   bool has_var() const;
   /**
-   * Return true if term database contains a Boolena term in the curren scope
-   * level.
+   * Return true if term database contains a variable and a Boolena term in the
+   * current scope level.
    */
   bool has_quant_body() const;
+  /**
+   * Return true if term database contains a variable and a term (of any sort)
+   * in the current scope level.
+   */
+  bool has_quant_term() const;
 
   /**
    * Pick a value of given sort.
@@ -252,6 +257,11 @@ class TermDb
    * Requires that a Boolean term exists at the current scope level.
    */
   Term pick_quant_body();
+  /**
+   * Pick term of any sort from current scope.
+   * Requires that a term exists at the current scope level.
+   */
+  Term pick_quant_term();
   /**
    * Remove variable from current scope and close scope.
    */

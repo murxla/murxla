@@ -288,7 +288,7 @@ bool
 TermDb::has_term(SortKind kind, size_t level) const
 {
   if (d_term_db.empty()) return false;
-  if (kind == SORT_ANY) return has_term();
+  if (kind == SORT_ANY) return !d_term_db[level].empty();
   std::vector<SortKind> sort_kinds = {kind};
   if (d_smgr.d_arith_subtyping && kind == SORT_REAL)
   {
@@ -361,6 +361,14 @@ TermDb::has_quant_body() const
   if (!has_var()) return false;
   size_t max_level = d_vars.size() - 1;
   return has_term(SORT_BOOL, max_level);
+}
+
+bool
+TermDb::has_quant_term() const
+{
+  if (!has_var()) return false;
+  size_t max_level = d_vars.size() - 1;
+  return has_term(SORT_ANY, max_level);
 }
 
 Term
@@ -578,15 +586,19 @@ TermDb::remove_var(Term& var)
 Term
 TermDb::pick_quant_body()
 {
-  assert(has_var());
-  assert(d_term_db.size() > 1);
+  assert(has_quant_body());
   size_t max_level = d_vars.size() - 1;
-  assert(has_term(SORT_BOOL, max_level));
   return pick_term(SORT_BOOL, max_level);
 }
 
-//  void remove_vars(const std::vector<Term>& vars);
-//
+Term
+TermDb::pick_quant_term()
+{
+  assert(has_quant_term());
+  size_t max_level   = d_vars.size() - 1;
+  SortKind sort_kind = pick_sort_kind(max_level);
+  return pick_term(sort_kind, max_level);
+}
 
 size_t
 TermDb::pick_level() const
