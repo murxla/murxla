@@ -1060,7 +1060,7 @@ Cvc5Solver::get_unsupported_op_sort_kinds() const
 SortKindSet
 Cvc5Solver::get_unsupported_var_sort_kinds() const
 {
-  return {SORT_FUN};
+  return {SORT_FUN, SORT_REGLAN};
 }
 
 SortKindSet
