@@ -71,7 +71,7 @@ class BzlaTerm : public AbsTerm
   static const BitwuzlaTerm* get_bzla_term(Term term);
   /** Convert vector of Bitwuzla terms to vector of Murxla terms. */
   static std::vector<Term> bzla_terms_to_terms(
-      const std::vector<BitwuzlaTerm*>& terms);
+      const std::vector<const BitwuzlaTerm*>& terms);
   /** Convert array of Bitwuzla terms to vector of Murxla terms. */
   static std::vector<Term> bzla_terms_to_terms(const BitwuzlaTerm** terms,
                                                size_t size);
@@ -268,7 +268,7 @@ class BzlaSolver : public Solver
   //
   //
  private:
-  BitwuzlaTerm* mk_value_bv_uint64(Sort sort, uint64_t value);
+  const BitwuzlaTerm* mk_value_bv_uint64(Sort sort, uint64_t value);
 
   Bitwuzla* d_solver;
   std::unordered_map<std::string, BitwuzlaOption> d_option_name_to_enum;
