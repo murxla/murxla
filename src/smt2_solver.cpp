@@ -181,6 +181,15 @@ Smt2Sort::get_fun_domain_sorts() const
   return res;
 }
 
+Sort
+Smt2Sort::get_seq_element_sort() const
+{
+  assert(is_fun());
+  const Smt2Sort* smt2_element_sort =
+      static_cast<const Smt2Sort*>(d_sorts.back().get());
+  return std::shared_ptr<Smt2Sort>(new Smt2Sort(smt2_element_sort->get_repr()));
+}
+
 /* -------------------------------------------------------------------------- */
 /* Smt2Term                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -1134,12 +1143,34 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     return args[0]->get_sort()->get_sorts().back();
   }
 
+  if (kind == Op::SEQ_CONCAT || kind == Op::SEQ_EXTRACT
+      || kind == Op::SEQ_UPDATE || kind == Op::SEQ_AT || kind == Op::SEQ_REPLACE
+      || kind == Op::SEQ_REPLACE_ALL || kind == Op::SEQ_REV)
+  {
+    assert(args[0]->get_sort()->get_kind() == SORT_SEQ);
+    return args[0]->get_sort();
+  }
+
   if (kind == Op::SEQ_NTH)
   {
     assert(args.size() == 2);
     assert(args[0]->get_sort()->get_kind() == SORT_SEQ);
     assert(args[0]->get_sort()->get_sorts().size() == 1);
     return args[0]->get_sort()->get_sorts()[0];
+  }
+
+  if (kind == Op::SET_CHOOSE)
+  {
+    assert(args.size() == 1);
+    return args[0]->get_sort()->get_sorts()[0];
+  }
+
+  if (kind == Op::SET_COMPLEMENT || kind == Op::SET_INSERT
+      || kind == Op::SET_INTERSECTION || kind == Op::SET_MINUS
+      || kind == Op::SET_UNION)
+  {
+    assert(args.size() >= 1);
+    return args[0]->get_sort();
   }
 
   switch (sort_kind)
@@ -1254,9 +1285,39 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       break;
 
     case SORT_SEQ:
-      assert(kind == Op::SEQ_UNIT);
       assert(args.size() >= 1);
-      sort = get_seq_sort_string({args[0]->get_sort()});
+      if (kind == Op::SEQ_LENGTH || kind == Op::SEQ_INDEXOF)
+      {
+        sort = get_int_sort_string();
+      }
+      else if (kind == Op::SEQ_CONTAINS || kind == Op::SEQ_PREFIX
+               || kind == Op::SEQ_SUFFIX)
+      {
+        sort = get_bool_sort_string();
+      }
+      else
+      {
+        assert(kind == Op::SEQ_UNIT);
+        sort = get_seq_sort_string({args[0]->get_sort()});
+      }
+      break;
+
+    case SORT_SET:
+      assert(args.size() >= 1);
+      if (kind == Op::SET_CARD)
+      {
+        sort = get_int_sort_string();
+      }
+      else if (kind == Op::SET_IS_SINGLETON || kind == Op::SET_MEMBER
+               || kind == Op::SET_SUBSET)
+      {
+        sort = get_bool_sort_string();
+      }
+      else
+      {
+        assert(kind == Op::SET_SINGLETON);
+        sort = get_set_sort_string({args[0]->get_sort()});
+      }
       break;
 
     default: assert(false);

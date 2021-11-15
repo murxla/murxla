@@ -45,6 +45,7 @@ class Smt2Sort : public AbsSort
   uint32_t get_fun_arity() const override;
   Sort get_fun_codomain_sort() const override;
   std::vector<Sort> get_fun_domain_sorts() const override;
+  Sort get_seq_element_sort() const override;
 
   const std::string& get_repr() const;
 
@@ -232,7 +233,7 @@ class Smt2Term : public AbsTerm
       {Op::SEQ_REPLACE, "seq.replace"},
       {Op::SEQ_REPLACE_ALL, "seq.replace_all"},
       {Op::SEQ_REV, "seq.rev"},
-      {Op::SEQ_PREFIX, "seq.prefix"},
+      {Op::SEQ_PREFIX, "seq.prefixof"},
       {Op::SEQ_SUFFIX, "seq.suffix"},
       {Op::SEQ_UNIT, "seq.unit"},
       {Op::SEQ_NTH, "seq.nth"},
