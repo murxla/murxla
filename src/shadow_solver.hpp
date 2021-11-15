@@ -118,6 +118,7 @@ class ShadowSolver : public Solver
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
   SortKindSet get_unsupported_array_element_sort_kinds() const override;
   SortKindSet get_unsupported_seq_element_sort_kinds() const override;
+  SortKindSet get_unsupported_set_element_sort_kinds() const override;
 
   Term mk_var(Sort sort, const std::string& name) override;
   Term mk_const(Sort sort, const std::string& name) override;

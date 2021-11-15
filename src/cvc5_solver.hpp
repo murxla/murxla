@@ -177,6 +177,7 @@ class Cvc5Solver : public Solver
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
   SortKindSet get_unsupported_array_element_sort_kinds() const override;
   SortKindSet get_unsupported_seq_element_sort_kinds() const override;
+  SortKindSet get_unsupported_set_element_sort_kinds() const override;
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
   SortKindSet get_unsupported_get_value_sort_kinds() const override;
