@@ -1061,7 +1061,11 @@ Cvc5Term::get_fun_domain_sorts() const
 OpKindSet
 Cvc5Solver::get_unsupported_op_kinds() const
 {
-  return {Op::BAG_FROM_SET, Op::BAG_TO_SET, Op::IFF};
+  return {Op::BAG_CARD,
+          Op::BAG_FROM_SET,
+          Op::BAG_TO_SET,
+          Op::BAG_IS_SINGLETON,
+          Op::IFF};
 }
 
 Solver::OpKindSortKindMap
