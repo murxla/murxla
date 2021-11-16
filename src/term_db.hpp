@@ -186,6 +186,11 @@ class TermDb
   bool has_term(Sort sort) const;
   /** Return true if term database contains any term. */
   bool has_term() const;
+  /**
+   * Return true if term database contains a function term with given domain
+   * sorts.
+   */
+  bool has_fun(const std::vector<Sort>& domain_sorts) const;
   /** Return true if term database contains a variable. */
   bool has_var() const;
   /**
@@ -246,6 +251,12 @@ class TermDb
    * Requires that a term exists.
    */
   Term pick_term(size_t level);
+
+  /**
+   * Pick function term with given domain sorts.
+   * Requires that such terms exist.
+   */
+  Term pick_fun(const std::vector<Sort>& domain_sorts);
 
   /**
    * Pick variable from current scope.
@@ -326,6 +337,9 @@ class TermDb
 
   /** Maps term ids to terms. */
   std::unordered_map<uint64_t, Term> d_terms;
+
+  /** Maps function term arity to function terms. */
+  std::unordered_map<uint32_t, std::unordered_set<Term>> d_funs;
 
   /** Maps scope level to variable that opened the scope. */
   std::vector<Term> d_vars;

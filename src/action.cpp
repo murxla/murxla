@@ -444,7 +444,7 @@ ActionMkSort::run()
       {
         return false;
       }
-      uint32_t nsorts = d_rng.pick<uint32_t>(1, MURXLA_MK_TERM_N_ARGS_MAX);
+      uint32_t nsorts = d_rng.pick<uint32_t>(1, MURXLA_MK_TERM_N_ARGS_MAX - 1);
       for (uint32_t i = 0; i < nsorts; ++i)
       {
         sorts.push_back(
@@ -971,14 +971,27 @@ ActionMkTerm::run()
   else if (kind == Op::BAG_COUNT)
   {
     assert(!n_params);
-    Sort sort                      = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = sort->get_sorts();
+    Sort bag_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+    const std::vector<Sort>& sorts = bag_sort->get_sorts();
     assert(sorts.size() == 1);
     Sort element_sort = sorts[0];
     if (!d_smgr.has_term(element_sort)) return false;
-    args.push_back(d_smgr.pick_term(sort));
+    args.push_back(d_smgr.pick_term(bag_sort));
     args.push_back(d_smgr.pick_term(element_sort));
     sort_kind = SORT_INT;
+  }
+  else if (kind == Op::BAG_MAP)
+  {
+    assert(!n_params);
+    Sort bag_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+    const std::vector<Sort>& sorts = bag_sort->get_sorts();
+    assert(sorts.size() == 1);
+    Sort element_sort = sorts[0];
+    if (!d_smgr.has_term(element_sort)) return false;
+    if (!d_smgr.has_fun({element_sort})) return false;
+    args.push_back(d_smgr.pick_term(bag_sort));
+    args.push_back(d_smgr.pick_fun({element_sort}));
+    sort_kind = SORT_BAG;
   }
   else
   {

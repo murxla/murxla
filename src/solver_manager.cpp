@@ -231,7 +231,7 @@ SolverManager::add_term(Term& term,
   assert(d_enabled_theories.find(THEORY_SEQ) == d_enabled_theories.end()
          || term->get_kind() != Op::UNDEFINED);
   const Op::Kind kind = term->get_kind();
-  if ((kind == Op::BAG_TO_SET || kind == Op::BAG_FROM_SET
+  if ((kind == Op::BAG_TO_SET || kind == Op::BAG_FROM_SET || kind == Op::BAG_MAP
        || kind == Op::SEQ_UNIT || kind == Op::SET_SINGLETON
        || kind == Op::SET_COMPREHENSION)
       && args.size() > 0)
@@ -245,7 +245,15 @@ SolverManager::add_term(Term& term,
       }
       else if (kind == Op::BAG_TO_SET || kind == Op::BAG_FROM_SET)
       {
-        lookup->set_sorts({args[0]->get_sort()->get_sorts()[0]});
+        const auto& s = args[0]->get_sort()->get_sorts();
+        assert(s.size() == 1);
+        lookup->set_sorts({s[0]});
+      }
+      else if (kind == Op::BAG_MAP)
+      {
+        const auto& s = args[1]->get_sort()->get_sorts();
+        assert(s.size() == 2);
+        lookup->set_sorts({s[1]});
       }
       else
       {
@@ -532,6 +540,12 @@ SolverManager::pick_term(size_t level)
 }
 
 Term
+SolverManager::pick_fun(const std::vector<Sort>& sorts)
+{
+  return d_term_db.pick_fun(sorts);
+}
+
+Term
 SolverManager::pick_var()
 {
   return d_term_db.pick_var();
@@ -656,6 +670,12 @@ bool
 SolverManager::has_assumed() const
 {
   return !d_assumptions.empty();
+}
+
+bool
+SolverManager::has_fun(const std::vector<Sort>& sorts) const
+{
+  return d_term_db.has_fun(sorts);
 }
 
 bool

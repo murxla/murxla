@@ -198,6 +198,12 @@ class SolverManager
   Term pick_term(size_t level);
 
   /**
+   * Pick function term with given domain sorts.
+   * Requires that such terms exist.
+   */
+  Term pick_fun(const std::vector<Sort>& domain_sorts);
+
+  /**
    * Pick variable from current scope level.
    */
   Term pick_var();
@@ -265,6 +271,11 @@ class SolverManager
   bool has_term(Sort sort) const;
   /** Return true if d_assumptions is not empty. */
   bool has_assumed() const;
+  /**
+   * Return true if term database contains a function term with given domain
+   * sorts.
+   */
+  bool has_fun(const std::vector<Sort>& domain_sorts) const;
   /** Return true if term database contains a variable. */
   bool has_var() const;
   /**

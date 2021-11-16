@@ -74,6 +74,7 @@ TermDb::clear()
   d_term_db.clear();
   d_terms.clear();
   d_term_sorts.clear();
+  d_funs.clear();
   d_vars.clear();
 }
 
@@ -167,6 +168,13 @@ TermDb::add_term(Term& term,
   }
   assert(term->get_sort()->get_id());
   assert(term->get_sort()->get_kind() != SORT_ANY);
+
+  if (sort_kind == SORT_FUN)
+  {
+    // last sort in get_sorts() is codomain sort
+    uint32_t arity = term->get_sort()->get_sorts().size() - 1;
+    d_funs[arity].insert(term);
+  }
 }
 
 void
@@ -350,6 +358,30 @@ TermDb::has_term() const
 }
 
 bool
+TermDb::has_fun(const std::vector<Sort>& domain_sorts) const
+{
+  uint32_t arity = domain_sorts.size();
+  if (d_funs.find(arity) == d_funs.end()) return false;
+  for (const auto& t : d_funs.at(arity))
+  {
+    const auto& dsorts = t->get_sort()->get_sorts();
+    // Last sort in dsorts is codomain sort
+    assert(domain_sorts.size() == dsorts.size() - 1);
+    bool match = true;
+    for (size_t i = 0, n = domain_sorts.size(); i < n; ++i)
+    {
+      if (dsorts[i] != domain_sorts[i])
+      {
+        match = false;
+        break;
+      }
+    }
+    if (match) return true;
+  }
+  return false;
+}
+
+bool
 TermDb::has_var() const
 {
   return d_vars.size() > 1;
@@ -500,6 +532,30 @@ TermDb::pick_term(size_t level)
 {
   assert(has_term());
   return pick_term(pick_sort_kind(level), level);
+}
+
+Term
+TermDb::pick_fun(const std::vector<Sort>& domain_sorts)
+{
+  assert(has_fun(domain_sorts));
+  uint32_t arity = domain_sorts.size();
+  std::vector<Term> funs;
+  for (const auto& t : d_funs.at(arity))
+  {
+    const auto& dsorts = t->get_sort()->get_sorts();
+    // Last sort in dsorts is codomain sort
+    bool match = true;
+    for (size_t i = 0, n = domain_sorts.size(); i < n; ++i)
+    {
+      if (dsorts[i] != domain_sorts[i])
+      {
+        match = false;
+        break;
+      }
+    }
+    if (match) funs.push_back(t);
+  }
+  return d_rng.pick_from_set<std::vector<Term>, Term>(funs);
 }
 
 SortKind
