@@ -1105,11 +1105,11 @@ SolverManager::add_sort_kinds()
       case THEORY_QUANT: break;
 
       case THEORY_SEQ:
-        d_sort_kinds.emplace(SORT_SEQ, SortKindData(SORT_SEQ, 0, THEORY_SEQ));
+        d_sort_kinds.emplace(SORT_SEQ, SortKindData(SORT_SEQ, 1, THEORY_SEQ));
         break;
 
       case THEORY_SET:
-        d_sort_kinds.emplace(SORT_SET, SortKindData(SORT_SET, 0, THEORY_SET));
+        d_sort_kinds.emplace(SORT_SET, SortKindData(SORT_SET, 1, THEORY_SET));
         break;
 
       case THEORY_STRING:
