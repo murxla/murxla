@@ -178,6 +178,24 @@ struct Op
   /* UF */
   inline static const Kind UF_APPLY = "OP_UF_APPLY";
   /* Operators of non-standardized theories. */
+  // Bags
+  inline static const Kind BAG_UNION_MAX        = "OP_BAG_UNION_MAX";
+  inline static const Kind BAG_UNION_DISJOINT   = "OP_BAG_UNION_DISJOINT";
+  inline static const Kind BAG_INTERSECTION_MIN = "OP_BAG_INTERSECTION_MIN";
+  inline static const Kind BAG_DIFFERENCE_SUBTRACT =
+      "OP_BAG_DIFFERENCE_SUBTRACT";
+  inline static const Kind BAG_DIFFERENCE_REMOVE = "OP_BAG_DIFFERENCE_REMOVE";
+  inline static const Kind BAG_SUBBAG            = "OP_BAG_SUBBAG";
+  inline static const Kind BAG_COUNT             = "OP_BAG_COUNT";
+  inline static const Kind BAG_DUPLICATE_REMOVAL = "OP_BAG_DUPLICATE_REMOVAL";
+  inline static const Kind BAG_MAKE              = "OP_BAG_MAKE";
+  inline static const Kind BAG_EMPTY             = "OP_BAG_EMPTY";
+  inline static const Kind BAG_CARD              = "OP_BAG_CARD";
+  inline static const Kind BAG_CHOOSE            = "OP_BAG_CHOOSE";
+  inline static const Kind BAG_IS_SINGLETON      = "OP_BAG_IS_SINGLETON";
+  inline static const Kind BAG_FROM_SET          = "OP_BAG_FROM_SET";
+  inline static const Kind BAG_TO_SET            = "OP_BAG_TO_SET";
+  inline static const Kind BAG_MAP               = "OP_BAG_MAP";
   // Sequences
   inline static const Kind SEQ_CONCAT      = "OP_SEQ_CONCAT";
   inline static const Kind SEQ_LENGTH      = "OP_SEQ_LENGTH";

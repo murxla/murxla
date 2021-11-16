@@ -234,6 +234,9 @@ set_sigint_handler_stats(void)
   "                             via stdout)\n"                                 \
   "  -o name=value,...          solver options enabled by default\n"           \
   "\n"                                                                         \
+  "  --add-bags                 enable theory of bags in addition to \n"       \
+  "                             the default set of enabled theories (non-\n"   \
+  "                             standard theories are disabled by default)\n"  \
   "  --add-seq                  enable theory of sequences in addition to \n"  \
   "                             the default set of enabled theories (non-\n"   \
   "                             standard theories are disabled by default)\n"  \
@@ -243,6 +246,7 @@ set_sigint_handler_stats(void)
   "\n"                                                                         \
   " enabling specific theories:\n"                                             \
   "  --arrays                   theory of arrays\n"                            \
+  "  --bags                     theory of bags (default: disabled)\n"          \
   "  --bv                       theory of bit-vectors\n"                       \
   "  --fp                       theory of floating-points\n"                   \
   "  --ints                     theory of integers\n"                          \
@@ -543,6 +547,15 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.enabled_theories.push_back(THEORY_ARRAY);
     }
+    else if (arg == "--bags")
+    {
+      options.enabled_theories.push_back(THEORY_BAG);
+      auto it = options.disabled_theories.find(THEORY_BAG);
+      if (it != options.disabled_theories.end())
+      {
+        options.disabled_theories.erase(it);
+      }
+    }
     else if (arg == "--bv")
     {
       options.enabled_theories.push_back(THEORY_BV);
@@ -592,6 +605,14 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--uf")
     {
       options.enabled_theories.push_back(THEORY_UF);
+    }
+    else if (arg == "--add-bags")
+    {
+      auto it = options.disabled_theories.find(THEORY_BAG);
+      if (it != options.disabled_theories.end())
+      {
+        options.disabled_theories.erase(it);
+      }
     }
     else if (arg == "--add-seq")
     {

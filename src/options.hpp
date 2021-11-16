@@ -99,7 +99,7 @@ struct Options
    * The list of currently explicitly disabled theories.
    * By default, only non-standardized theories are disabled.
    */
-  TheoryIdSet disabled_theories = {THEORY_SEQ, THEORY_SET};
+  TheoryIdSet disabled_theories = {THEORY_BAG, THEORY_SEQ, THEORY_SET};
 
   /** Command line options to be traced. */
   std::string cmd_line_trace;

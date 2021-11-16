@@ -77,61 +77,9 @@ YicesSort::is_bv() const
 }
 
 bool
-YicesSort::is_fp() const
-{
-  return false;
-}
-
-bool
 YicesSort::is_fun() const
 {
   return yices_type_is_function(d_sort);
-}
-
-bool
-YicesSort::is_int() const
-{
-  bool res = yices_type_is_int(d_sort);
-  MURXLA_TEST(!res || yices_type_is_arithmetic(d_sort));
-  return res;
-}
-
-bool
-YicesSort::is_real() const
-{
-  bool res = yices_type_is_arithmetic(d_sort);
-  MURXLA_TEST(!res || yices_type_is_int(d_sort) || yices_type_is_real(d_sort));
-  return res;
-}
-
-bool
-YicesSort::is_reglan() const
-{
-  return false;
-}
-
-bool
-YicesSort::is_rm() const
-{
-  return false;
-}
-
-bool
-YicesSort::is_seq() const
-{
-  return false;
-}
-
-bool
-YicesSort::is_set() const
-{
-  return false;
-}
-
-bool
-YicesSort::is_string() const
-{
-  return false;
 }
 
 uint32_t

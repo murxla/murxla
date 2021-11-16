@@ -37,6 +37,12 @@ ShadowSort::is_array() const
 }
 
 bool
+ShadowSort::is_bag() const
+{
+  return d_sort->is_bag();
+}
+
+bool
 ShadowSort::is_bool() const
 {
   return d_sort->is_bool();
@@ -140,6 +146,14 @@ ShadowSort::get_array_element_sort() const
   std::shared_ptr<ShadowSort> res(
       new ShadowSort(d_sort->get_array_element_sort(),
                      d_sort_shadow->get_array_element_sort()));
+  return res;
+}
+
+Sort
+ShadowSort::get_bag_element_sort() const
+{
+  std::shared_ptr<ShadowSort> res(new ShadowSort(
+      d_sort->get_bag_element_sort(), d_sort_shadow->get_bag_element_sort()));
   return res;
 }
 
@@ -560,6 +574,18 @@ ShadowSolver::get_unsupported_array_element_sort_kinds() const
   auto unsupported_orig = d_solver->get_unsupported_array_element_sort_kinds();
   auto unsupported_shadow =
       d_solver_shadow->get_unsupported_array_element_sort_kinds();
+  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
+  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
+  return unsupported;
+}
+
+SortKindSet
+ShadowSolver::get_unsupported_bag_element_sort_kinds() const
+{
+  SortKindSet unsupported;
+  auto unsupported_orig = d_solver->get_unsupported_bag_element_sort_kinds();
+  auto unsupported_shadow =
+      d_solver_shadow->get_unsupported_bag_element_sort_kinds();
   unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
   unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
   return unsupported;

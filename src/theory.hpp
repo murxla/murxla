@@ -10,6 +10,7 @@ namespace murxla {
 enum TheoryId
 {
   THEORY_ARRAY,
+  THEORY_BAG,
   THEORY_BOOL,
   THEORY_BV,
   THEORY_FP,

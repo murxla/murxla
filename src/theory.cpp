@@ -8,6 +8,7 @@ operator<<(std::ostream& out, TheoryId theory)
   switch (theory)
   {
     case THEORY_ARRAY: out << "THEORY_ARRAY"; break;
+    case THEORY_BAG: out << "THEORY_BAG"; break;
     case THEORY_BOOL: out << "THEORY_BOOL"; break;
     case THEORY_BV: out << "THEORY_BV"; break;
     case THEORY_FP: out << "THEORY_FP"; break;

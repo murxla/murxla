@@ -36,6 +36,7 @@ class Cvc5Sort : public AbsSort
   bool not_equals(const Sort& other) const override;
   std::string to_string() const override;
   bool is_array() const override;
+  bool is_bag() const override;
   bool is_bool() const override;
   bool is_bv() const override;
   bool is_fp() const override;
@@ -52,6 +53,7 @@ class Cvc5Sort : public AbsSort
   uint32_t get_fp_sig_size() const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;
+  Sort get_bag_element_sort() const override;
   uint32_t get_fun_arity() const override;
   Sort get_fun_codomain_sort() const override;
   std::vector<Sort> get_fun_domain_sorts() const override;
@@ -176,6 +178,7 @@ class Cvc5Solver : public Solver
   SortKindSet get_unsupported_var_sort_kinds() const override;
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
   SortKindSet get_unsupported_array_element_sort_kinds() const override;
+  SortKindSet get_unsupported_bag_element_sort_kinds() const override;
   SortKindSet get_unsupported_seq_element_sort_kinds() const override;
   SortKindSet get_unsupported_set_element_sort_kinds() const override;
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;

@@ -381,6 +381,16 @@ ActionMkSort::run()
       break;
     }
 
+    case SORT_BAG:
+    {
+      SortKindSet exclude_sorts =
+          d_solver.get_unsupported_bag_element_sort_kinds();
+      if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
+      auto sort = d_smgr.pick_sort_excluding(exclude_sorts, false);
+      _run(kind, {sort});
+    }
+    break;
+
     case SORT_BV:
       _run(kind, d_rng.pick<uint32_t>(MURXLA_BW_MIN, MURXLA_BW_MAX));
       break;
@@ -529,6 +539,14 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       res = _run(kind, sorts);
       break;
     }
+
+    case SORT_BAG:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                         || theories.find(THEORY_BAG) != theories.end())
+          << "solver does not support theory of bags";
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
+      res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
+      break;
 
     case SORT_BOOL:
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
@@ -885,15 +903,15 @@ ActionMkTerm::run()
     args.push_back(d_smgr.pick_term(element_sort));
     sort_kind = SORT_SEQ;
   }
-  else if (kind == Op::SET_CHOOSE)
+  else if (kind == Op::BAG_CHOOSE || kind == Op::SET_CHOOSE)
   {
     assert(!n_params);
-    Sort set_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = set_sort->get_sorts();
+    Sort sort                      = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+    const std::vector<Sort>& sorts = sort->get_sorts();
     assert(sorts.size() == 1);
     Sort element_sort = sorts[0];
     if (!d_smgr.has_term(element_sort)) return false;
-    args.push_back(d_smgr.pick_term(set_sort));
+    args.push_back(d_smgr.pick_term(sort));
     sort_kind = element_sort->get_kind();
   }
   else if (kind == Op::SET_SINGLETON)
@@ -949,6 +967,18 @@ ActionMkTerm::run()
     args.push_back(term);
     args.push_back(var);
     sort_kind = SORT_SET;
+  }
+  else if (kind == Op::BAG_COUNT)
+  {
+    assert(!n_params);
+    Sort sort                      = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+    const std::vector<Sort>& sorts = sort->get_sorts();
+    assert(sorts.size() == 1);
+    Sort element_sort = sorts[0];
+    if (!d_smgr.has_term(element_sort)) return false;
+    args.push_back(d_smgr.pick_term(sort));
+    args.push_back(d_smgr.pick_term(element_sort));
+    sort_kind = SORT_INT;
   }
   else
   {
@@ -1241,6 +1271,16 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
           !(sort->get_array_element_sort() != term->get_array_element_sort()));
     }
   }
+  else if (sort->is_bag())
+  {
+    MURXLA_TEST(term->is_bag());
+    Sort elem_sort = sort->get_bag_element_sort();
+    // we can't use operator== here since elem_sort is a sort returned by the
+    // solver, thus is has kind SORT_ANY (and operator== checks for equality
+    // of sort kind, too)
+    MURXLA_TEST(elem_sort == nullptr
+                || elem_sort->equals(sort->get_sorts()[0]));
+  }
   else if (sort->is_bool())
   {
     MURXLA_TEST(term->is_bool());
@@ -1315,7 +1355,7 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
     MURXLA_TEST(elem_sort == nullptr
                 || elem_sort->equals(sort->get_sorts()[0]));
   }
-  else if (sort->is_seq())
+  else if (sort->is_set())
   {
     MURXLA_TEST(term->is_set());
     Sort elem_sort = sort->get_set_element_sort();
@@ -1324,10 +1364,6 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
     // of sort kind, too)
     MURXLA_TEST(elem_sort == nullptr
                 || elem_sort->equals(sort->get_sorts()[0]));
-  }
-  else if (sort->is_set())
-  {
-    MURXLA_TEST(term->is_set());
   }
   else
   {
@@ -1535,6 +1571,7 @@ ActionMkValue::run()
       }
       break;
 
+    case SORT_BAG:
     case SORT_SEQ:
     case SORT_SET:
     case SORT_RM: return false;
@@ -1683,7 +1720,11 @@ ActionMkValue::check_value(RNGenerator& rng, Term term)
   MURXLA_TEST(!term->is_const());
   MURXLA_TEST(!term->is_var());
 
-  if (term->is_bool())
+  if (term->is_bag())
+  {
+    MURXLA_TEST(term->is_bag_value());
+  }
+  else if (term->is_bool())
   {
     MURXLA_TEST(term->is_bool_value());
   }

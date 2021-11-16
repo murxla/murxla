@@ -77,6 +77,12 @@ AbsSort::get_array_element_sort() const
   return nullptr;
 }
 
+Sort
+AbsSort::get_bag_element_sort() const
+{
+  return nullptr;
+}
+
 uint32_t
 AbsSort::get_fun_arity() const
 {
@@ -148,6 +154,12 @@ AbsTerm::is_array() const
 }
 
 bool
+AbsTerm::is_bag() const
+{
+  return get_sort()->is_bag();
+}
+
+bool
 AbsTerm::is_bool() const
 {
   return get_sort()->is_bool();
@@ -211,6 +223,12 @@ bool
 AbsTerm::is_set() const
 {
   return get_sort()->is_set();
+}
+
+bool
+AbsTerm::is_bag_value() const
+{
+  return get_leaf_kind() == LeafKind::VALUE && is_bag();
 }
 
 bool
@@ -577,6 +595,12 @@ Solver::get_unsupported_array_index_sort_kinds() const
 
 SortKindSet
 Solver::get_unsupported_array_element_sort_kinds() const
+{
+  return {};
+}
+
+SortKindSet
+Solver::get_unsupported_bag_element_sort_kinds() const
 {
   return {};
 }

@@ -115,45 +115,9 @@ BzlaSort::is_fun() const
 }
 
 bool
-BzlaSort::is_int() const
-{
-  return false;
-}
-
-bool
-BzlaSort::is_real() const
-{
-  return false;
-}
-
-bool
 BzlaSort::is_rm() const
 {
   return bitwuzla_sort_is_rm(d_sort);
-}
-
-bool
-BzlaSort::is_seq() const
-{
-  return false;
-}
-
-bool
-BzlaSort::is_set() const
-{
-  return false;
-}
-
-bool
-BzlaSort::is_string() const
-{
-  return false;
-}
-
-bool
-BzlaSort::is_reglan() const
-{
-  return false;
 }
 
 uint32_t

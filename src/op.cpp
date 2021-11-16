@@ -291,6 +291,25 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::UF_APPLY, n, 0, SORT_ANY, {SORT_FUN, SORT_ANY}, THEORY_UF);
 
   /* Operators of non-standardized theories. */
+  // Bags
+  add_op_kind(Op::BAG_UNION_MAX, 2, 0, SORT_BAG, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(Op::BAG_UNION_DISJOINT, 2, 0, SORT_BAG, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(Op::BAG_INTERSECTION_MIN, 2, 0, SORT_BAG, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(
+      Op::BAG_DIFFERENCE_SUBTRACT, 2, 0, SORT_BAG, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(
+      Op::BAG_DIFFERENCE_REMOVE, 2, 0, SORT_BAG, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(Op::BAG_SUBBAG, 2, 0, SORT_BOOL, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(Op::BAG_COUNT, 2, 0, SORT_INT, {SORT_BAG, SORT_ANY}, THEORY_BAG);
+  add_op_kind(
+      Op::BAG_DUPLICATE_REMOVAL, 1, 0, SORT_BAG, {SORT_BAG}, THEORY_BAG);
+  // add_op_kind(Op::BAG_MAKE,
+  add_op_kind(Op::BAG_CARD, 1, 0, SORT_INT, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(Op::BAG_CHOOSE, 1, 0, SORT_ANY, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(Op::BAG_IS_SINGLETON, 1, 0, SORT_BOOL, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(Op::BAG_FROM_SET, 1, 0, SORT_BAG, {SORT_SET}, THEORY_BAG);
+  add_op_kind(Op::BAG_TO_SET, 1, 0, SORT_SET, {SORT_BAG}, THEORY_BAG);
+  add_op_kind(Op::BAG_MAP, 2, 0, SORT_BAG, {SORT_BAG, SORT_FUN}, THEORY_BAG);
   // Sequences
   add_op_kind(Op::SEQ_CONCAT,
               MURXLA_MK_TERM_N_ARGS_BIN,

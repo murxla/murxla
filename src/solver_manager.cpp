@@ -231,8 +231,8 @@ SolverManager::add_term(Term& term,
   assert(d_enabled_theories.find(THEORY_SEQ) == d_enabled_theories.end()
          || term->get_kind() != Op::UNDEFINED);
   const Op::Kind kind = term->get_kind();
-  if ((kind == Op::SEQ_UNIT || kind == Op::SET_SINGLETON
-       || kind == Op::SET_COMPREHENSION)
+  if ((kind == Op::BAG_TO_SET || kind == Op::SEQ_UNIT
+       || kind == Op::SET_SINGLETON || kind == Op::SET_COMPREHENSION)
       && args.size() > 0)
   {
     auto sorts = lookup->get_sorts();
@@ -241,6 +241,10 @@ SolverManager::add_term(Term& term,
       if (kind == Op::SET_COMPREHENSION)
       {
         lookup->set_sorts({args[1]->get_sort()});
+      }
+      else if (kind == Op::BAG_TO_SET)
+      {
+        lookup->set_sorts({args[0]->get_sort()->get_sorts()[0]});
       }
       else
       {
@@ -1082,6 +1086,9 @@ SolverManager::add_sort_kinds()
       case THEORY_ARRAY:
         d_sort_kinds.emplace(SORT_ARRAY,
                              SortKindData(SORT_ARRAY, 2, THEORY_ARRAY));
+        break;
+      case THEORY_BAG:
+        d_sort_kinds.emplace(SORT_BAG, SortKindData(SORT_BAG, 1, THEORY_BAG));
         break;
       case THEORY_BOOL:
         d_sort_kinds.emplace(SORT_BOOL,

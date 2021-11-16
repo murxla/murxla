@@ -64,6 +64,12 @@ Cvc5Sort::is_array() const
 }
 
 bool
+Cvc5Sort::is_bag() const
+{
+  return d_sort.isBag();
+}
+
+bool
 Cvc5Sort::is_bool() const
 {
   return d_sort.isBoolean();
@@ -171,6 +177,15 @@ Cvc5Sort::get_array_element_sort() const
 {
   assert(is_array());
   ::cvc5::api::Sort cvc5_res = d_sort.getArrayElementSort();
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
+  MURXLA_TEST(res);
+  return res;
+}
+
+Sort
+Cvc5Sort::get_bag_element_sort() const
+{
+  ::cvc5::api::Sort cvc5_res = d_sort.getBagElementSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
   MURXLA_TEST(res);
   return res;
@@ -462,6 +477,24 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::UF_APPLY, ::cvc5::api::Kind::APPLY_UF},
 
         /* Non-standardized theories */
+        // Bag
+        {Op::BAG_UNION_MAX, ::cvc5::api::Kind::BAG_UNION_MAX},
+        {Op::BAG_UNION_DISJOINT, ::cvc5::api::Kind::BAG_UNION_DISJOINT},
+        {Op::BAG_INTERSECTION_MIN, ::cvc5::api::Kind::BAG_INTER_MIN},
+        {Op::BAG_DIFFERENCE_SUBTRACT,
+         ::cvc5::api::Kind::BAG_DIFFERENCE_SUBTRACT},
+        {Op::BAG_DIFFERENCE_REMOVE, ::cvc5::api::Kind::BAG_DIFFERENCE_REMOVE},
+        {Op::BAG_SUBBAG, ::cvc5::api::Kind::BAG_SUBBAG},
+        {Op::BAG_COUNT, ::cvc5::api::Kind::BAG_COUNT},
+        {Op::BAG_DUPLICATE_REMOVAL, ::cvc5::api::Kind::BAG_DUPLICATE_REMOVAL},
+        {Op::BAG_MAKE, ::cvc5::api::Kind::BAG_MAKE},
+        {Op::BAG_EMPTY, ::cvc5::api::Kind::BAG_EMPTY},
+        {Op::BAG_CARD, ::cvc5::api::Kind::BAG_CARD},
+        {Op::BAG_CHOOSE, ::cvc5::api::Kind::BAG_CHOOSE},
+        {Op::BAG_IS_SINGLETON, ::cvc5::api::Kind::BAG_IS_SINGLETON},
+        {Op::BAG_FROM_SET, ::cvc5::api::Kind::BAG_FROM_SET},
+        {Op::BAG_TO_SET, ::cvc5::api::Kind::BAG_TO_SET},
+        {Op::BAG_MAP, ::cvc5::api::Kind::BAG_MAP},
         // Sequences
         {Op::SEQ_CONCAT, ::cvc5::api::Kind::SEQ_CONCAT},
         {Op::SEQ_LENGTH, ::cvc5::api::Kind::SEQ_LENGTH},
@@ -700,6 +733,24 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::APPLY_UF, Op::UF_APPLY},
 
         /* Non-standardized theories */
+        // Bag
+        {::cvc5::api::Kind::BAG_UNION_MAX, Op::BAG_UNION_MAX},
+        {::cvc5::api::Kind::BAG_UNION_DISJOINT, Op::BAG_UNION_DISJOINT},
+        {::cvc5::api::Kind::BAG_INTER_MIN, Op::BAG_INTERSECTION_MIN},
+        {::cvc5::api::Kind::BAG_DIFFERENCE_SUBTRACT,
+         Op::BAG_DIFFERENCE_SUBTRACT},
+        {::cvc5::api::Kind::BAG_DIFFERENCE_REMOVE, Op::BAG_DIFFERENCE_REMOVE},
+        {::cvc5::api::Kind::BAG_SUBBAG, Op::BAG_SUBBAG},
+        {::cvc5::api::Kind::BAG_COUNT, Op::BAG_COUNT},
+        {::cvc5::api::Kind::BAG_DUPLICATE_REMOVAL, Op::BAG_DUPLICATE_REMOVAL},
+        {::cvc5::api::Kind::BAG_MAKE, Op::BAG_MAKE},
+        {::cvc5::api::Kind::BAG_EMPTY, Op::BAG_EMPTY},
+        {::cvc5::api::Kind::BAG_CARD, Op::BAG_CARD},
+        {::cvc5::api::Kind::BAG_CHOOSE, Op::BAG_CHOOSE},
+        {::cvc5::api::Kind::BAG_IS_SINGLETON, Op::BAG_IS_SINGLETON},
+        {::cvc5::api::Kind::BAG_FROM_SET, Op::BAG_FROM_SET},
+        {::cvc5::api::Kind::BAG_TO_SET, Op::BAG_TO_SET},
+        {::cvc5::api::Kind::BAG_MAP, Op::BAG_MAP},
         // Sequences
         {::cvc5::api::Kind::SEQ_CONCAT, Op::SEQ_CONCAT},
         {::cvc5::api::Kind::SEQ_LENGTH, Op::SEQ_LENGTH},
@@ -1076,6 +1127,12 @@ Cvc5Solver::get_unsupported_array_element_sort_kinds() const
 }
 
 SortKindSet
+Cvc5Solver::get_unsupported_bag_element_sort_kinds() const
+{
+  return {SORT_FUN, SORT_REGLAN};
+}
+
+SortKindSet
 Cvc5Solver::get_unsupported_seq_element_sort_kinds() const
 {
   return {SORT_FUN, SORT_REGLAN};
@@ -1219,6 +1276,11 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       assert(sorts.size() == 2);
       cvc5_res = d_solver->mkArraySort(Cvc5Sort::get_cvc5_sort(sorts[0]),
                                        Cvc5Sort::get_cvc5_sort(sorts[1]));
+      break;
+
+    case SORT_BAG:
+      assert(sorts.size() == 1);
+      cvc5_res = d_solver->mkBagSort(Cvc5Sort::get_cvc5_sort(sorts[0]));
       break;
 
     case SORT_FUN:
@@ -1476,6 +1538,16 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 
   switch (sort->get_kind())
   {
+    case SORT_BAG:
+    {
+      assert(value == AbsTerm::SPECIAL_VALUE_BAG_EMPTY);
+      const std::vector<Sort>& sorts = sort->get_sorts();
+      assert(sorts.size() == 1);
+      Sort element_sort = sorts[0];
+      cvc5_res          = d_solver->mkEmptyBag(Cvc5Sort::get_cvc5_sort(sort));
+    }
+    break;
+
     case SORT_BV:
     {
       uint32_t bw = sort->get_bv_size();
@@ -1745,6 +1817,13 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     cvc5_args = {d_solver->mkTerm(::cvc5::api::Kind::BOUND_VAR_LIST, vars),
                  cvc5_args[0],
                  cvc5_args[1]};
+  }
+  else if (kind == Op::BAG_COUNT || kind == Op::BAG_MAP)
+  {
+    /* cvc5 uses order <not bag> <bag> for the arguments (is given as <bag>
+     * <not bag> ) */
+    assert(args.size() == 2);
+    std::swap(cvc5_args[0], cvc5_args[1]);
   }
 
   /* create Op for indexed operators */

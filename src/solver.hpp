@@ -43,6 +43,8 @@ class AbsSort
 
   /** Return true if this sort is an Array sort. */
   virtual bool is_array() const = 0;
+  /** Return true if this sort is a Bag sort. */
+  virtual bool is_bag() const = 0;
   /** Return true if this sort is a Boolean sort. */
   virtual bool is_bool() const = 0;
   /** Return true if this sort is a bit-vector sort. */
@@ -95,6 +97,11 @@ class AbsSort
    * Returns nullptr by default.
    */
   virtual Sort get_array_element_sort() const;
+  /**
+   * Get the bag element sort of this sort.
+   * Returns nullptr by default.
+   */
+  virtual Sort get_bag_element_sort() const;
   /**
    * Get the function arity of this sort.
    * Returns 0 by default.
@@ -159,6 +166,8 @@ class AbsTerm
 
   inline static const SpecialValueKind SPECIAL_VALUE_NONE =
       "not-a-special-value";
+  /** Special Bag values. */
+  inline static const SpecialValueKind SPECIAL_VALUE_BAG_EMPTY = "bag.empty";
   /** Special BV values. */
   inline static const SpecialValueKind SPECIAL_VALUE_BV_ZERO = "bv.zero";
   inline static const SpecialValueKind SPECIAL_VALUE_BV_ONE  = "bv.one";
@@ -208,6 +217,8 @@ class AbsTerm
 
   /** Return true if this term is an Array term. */
   virtual bool is_array() const;
+  /** Return true if this term is a Bag term. */
+  virtual bool is_bag() const;
   /** Return true if this term is a Boolean term. */
   virtual bool is_bool() const;
   /** Return true if this term is a bit-vector term. */
@@ -231,6 +242,8 @@ class AbsTerm
   /** Return true if this term is a String term. */
   virtual bool is_string() const;
 
+  /** Return true if this term is a Bag value. */
+  virtual bool is_bag_value() const;
   /** Return true if this term is a Boolean value. */
   virtual bool is_bool_value() const;
   /** Return true if this term is a bit-vector value. */
@@ -495,6 +508,10 @@ class Solver
    */
   virtual SortKindSet get_unsupported_array_element_sort_kinds() const;
   /**
+   * Get the set of sort kinds that are unsupported as bag element sort.
+   */
+  virtual SortKindSet get_unsupported_bag_element_sort_kinds() const;
+  /**
    * Get the set of sort kinds that are unsupported as sequence element sort.
    */
   virtual SortKindSet get_unsupported_seq_element_sort_kinds() const;
@@ -665,6 +682,7 @@ class Solver
    */
   std::unordered_map<SortKind, std::unordered_set<AbsTerm::SpecialValueKind>>
       d_special_values = {
+          {SORT_BAG, {AbsTerm::SPECIAL_VALUE_BAG_EMPTY}},
           {SORT_BV,
            {AbsTerm::SPECIAL_VALUE_BV_ZERO,
             AbsTerm::SPECIAL_VALUE_BV_ONE,

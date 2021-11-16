@@ -42,6 +42,12 @@ Smt2Sort::is_array() const
 }
 
 bool
+Smt2Sort::is_bag() const
+{
+  return d_kind == SORT_BAG;
+}
+
+bool
 Smt2Sort::is_bool() const
 {
   return d_kind == SORT_BOOL;
@@ -182,9 +188,27 @@ Smt2Sort::get_fun_domain_sorts() const
 }
 
 Sort
+Smt2Sort::get_bag_element_sort() const
+{
+  assert(is_bag());
+  const Smt2Sort* smt2_element_sort =
+      static_cast<const Smt2Sort*>(d_sorts.back().get());
+  return std::shared_ptr<Smt2Sort>(new Smt2Sort(smt2_element_sort->get_repr()));
+}
+
+Sort
 Smt2Sort::get_seq_element_sort() const
 {
-  assert(is_fun());
+  assert(is_seq());
+  const Smt2Sort* smt2_element_sort =
+      static_cast<const Smt2Sort*>(d_sorts.back().get());
+  return std::shared_ptr<Smt2Sort>(new Smt2Sort(smt2_element_sort->get_repr()));
+}
+
+Sort
+Smt2Sort::get_set_element_sort() const
+{
+  assert(is_set());
   const Smt2Sort* smt2_element_sort =
       static_cast<const Smt2Sort*>(d_sorts.back().get());
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(smt2_element_sort->get_repr()));
@@ -825,6 +849,11 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 
   switch (sort->get_kind())
   {
+    case SORT_BAG:
+      assert(value == AbsTerm::SPECIAL_VALUE_BAG_EMPTY);
+      val << "bag.empty";
+      break;
+
     case SORT_BV:
     {
       uint32_t bw = sort->get_bv_size();
@@ -992,6 +1021,17 @@ get_array_sort_string(const std::vector<Sort>& sorts)
 }
 
 static std::string
+get_bag_sort_string(const std::vector<Sort>& sorts)
+{
+  assert(sorts.size() == 1);
+  std::stringstream sort;
+  sort << "(Bag";
+  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
+  sort << ") ";
+  return sort.str();
+}
+
+static std::string
 get_fun_sort_string(const std::vector<Sort>& sorts)
 {
   std::stringstream sort;
@@ -1086,6 +1126,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   switch (kind)
   {
     case SORT_ARRAY: sort = get_array_sort_string(sorts); break;
+    case SORT_BAG: sort = get_bag_sort_string(sorts); break;
     case SORT_FUN: sort = get_fun_sort_string(sorts); break;
     case SORT_SEQ: sort = get_seq_sort_string(sorts); break;
     case SORT_SET: sort = get_set_sort_string(sorts); break;
@@ -1159,15 +1200,18 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     return args[0]->get_sort()->get_sorts()[0];
   }
 
-  if (kind == Op::SET_CHOOSE)
+  if (kind == Op::BAG_CHOOSE || kind == Op::SET_CHOOSE)
   {
     assert(args.size() == 1);
     return args[0]->get_sort()->get_sorts()[0];
   }
 
-  if (kind == Op::SET_COMPLEMENT || kind == Op::SET_INSERT
-      || kind == Op::SET_INTERSECTION || kind == Op::SET_MINUS
-      || kind == Op::SET_UNION)
+  if (kind == Op::BAG_UNION_MAX || kind == Op::BAG_UNION_DISJOINT
+      || kind == Op::BAG_INTERSECTION_MIN || kind == Op::BAG_DIFFERENCE_REMOVE
+      || kind == Op::BAG_DIFFERENCE_SUBTRACT
+      || kind == Op::BAG_DUPLICATE_REMOVAL || kind == Op::SET_COMPLEMENT
+      || kind == Op::SET_INSERT || kind == Op::SET_INTERSECTION
+      || kind == Op::SET_MINUS || kind == Op::SET_UNION)
   {
     assert(args.size() >= 1);
     return args[0]->get_sort();
@@ -1302,16 +1346,22 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       }
       break;
 
+    case SORT_BAG:
     case SORT_SET:
       assert(args.size() >= 1);
-      if (kind == Op::SET_CARD)
+      if (kind == Op::BAG_CARD || kind == Op::BAG_COUNT || kind == Op::SET_CARD)
       {
         sort = get_int_sort_string();
       }
-      else if (kind == Op::SET_IS_SINGLETON || kind == Op::SET_MEMBER
+      else if (kind == Op::BAG_IS_SINGLETON || kind == Op::BAG_SUBBAG
+               || kind == Op::SET_IS_SINGLETON || kind == Op::SET_MEMBER
                || kind == Op::SET_SUBSET)
       {
         sort = get_bool_sort_string();
+      }
+      else if (kind == Op::BAG_TO_SET || kind == Op::BAG_FROM_SET)
+      {
+        sort = get_bag_sort_string({args[0]->get_sort()->get_sorts()[0]});
       }
       else
       {

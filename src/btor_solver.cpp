@@ -107,57 +107,9 @@ BtorSort::is_bv() const
 }
 
 bool
-BtorSort::is_fp() const
-{
-  return false;
-}
-
-bool
 BtorSort::is_fun() const
 {
   return boolector_is_fun_sort(d_solver, d_sort);
-}
-
-bool
-BtorSort::is_int() const
-{
-  return false;
-}
-
-bool
-BtorSort::is_real() const
-{
-  return false;
-}
-
-bool
-BtorSort::is_rm() const
-{
-  return false;
-}
-
-bool
-BtorSort::is_seq() const
-{
-  return false;
-}
-
-bool
-BtorSort::is_set() const
-{
-  return false;
-}
-
-bool
-BtorSort::is_string() const
-{
-  return false;
-}
-
-bool
-BtorSort::is_reglan() const
-{
-  return false;
 }
 
 uint32_t

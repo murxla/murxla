@@ -26,6 +26,7 @@ class Smt2Sort : public AbsSort
   bool equals(const Sort& other) const override;
   std::string to_string() const override;
   bool is_array() const override;
+  bool is_bag() const override;
   bool is_bool() const override;
   bool is_bv() const override;
   bool is_fp() const override;
@@ -45,7 +46,9 @@ class Smt2Sort : public AbsSort
   uint32_t get_fun_arity() const override;
   Sort get_fun_codomain_sort() const override;
   std::vector<Sort> get_fun_domain_sorts() const override;
+  Sort get_bag_element_sort() const override;
   Sort get_seq_element_sort() const override;
+  Sort get_set_element_sort() const override;
 
   const std::string& get_repr() const;
 
@@ -116,6 +119,24 @@ class Smt2Term : public AbsTerm
       /* Arrays */
       {Op::ARRAY_SELECT, "select"},
       {Op::ARRAY_STORE, "store"},
+
+      /* Bags */
+      {Op::BAG_UNION_MAX, "bag.union_max"},
+      {Op::BAG_UNION_DISJOINT, "bag.union_disjoint"},
+      {Op::BAG_INTERSECTION_MIN, "bag.inter_min"},
+      {Op::BAG_DIFFERENCE_SUBTRACT, "bag.difference_subtract"},
+      {Op::BAG_DIFFERENCE_REMOVE, "bag.difference_remove"},
+      {Op::BAG_SUBBAG, "bag.subbag"},
+      {Op::BAG_COUNT, "bag.count"},
+      {Op::BAG_DUPLICATE_REMOVAL, "bag.duplicate_removal"},
+      {Op::BAG_MAKE, "bag"},
+      {Op::BAG_EMPTY, "bag.empty"},
+      {Op::BAG_CARD, "bag.card"},
+      {Op::BAG_CHOOSE, "bag.choose"},
+      {Op::BAG_IS_SINGLETON, "bag.is_singleton"},
+      {Op::BAG_FROM_SET, "bag.from_set"},
+      {Op::BAG_TO_SET, "bag.to_set"},
+      {Op::BAG_MAP, "bag.map"},
 
       /* BV */
       {Op::BV_EXTRACT, "extract"},
