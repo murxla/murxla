@@ -2058,6 +2058,21 @@ BtorSolver::configure_fsm(FSM* fsm) const
 }
 
 void
+BtorSolver::configure_options(SolverManager* smgr) const
+{
+  Btor* slv = boolector_new();
+  for (auto o = boolector_first_opt(slv); boolector_has_opt(slv, o);
+       o      = boolector_next_opt(slv, o))
+  {
+    smgr->add_option(
+        new SolverOptionNum<uint32_t>(boolector_get_opt_lng(slv, o),
+                                      boolector_get_opt_min(slv, o),
+                                      boolector_get_opt_max(slv, o)));
+  }
+  boolector_delete(slv);
+}
+
+void
 BtorSolver::disable_unsupported_actions(FSM* fsm) const
 {
   fsm->disable_action(Action::RESET_ASSERTIONS);

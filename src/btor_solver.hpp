@@ -167,6 +167,7 @@ class BtorSolver : public Solver
   void configure_fsm(FSM* fsm) const override;
   void disable_unsupported_actions(FSM* fsm) const override;
   void configure_opmgr(OpKindManager* opmgr) const override;
+  void configure_options(SolverManager* smgr) const override;
 
   void set_opt(const std::string& opt, const std::string& value) override;
 
