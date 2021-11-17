@@ -1370,6 +1370,10 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       {
         sort = get_bag_sort_string({args[0]->get_sort()->get_sorts()[0]});
       }
+      else if (kind == Op::BAG_MAP)
+      {
+        sort = get_bag_sort_string({args[1]->get_sort()->get_sorts()[1]});
+      }
       else
       {
         assert(kind == Op::SET_SINGLETON);
