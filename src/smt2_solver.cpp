@@ -357,7 +357,10 @@ Smt2Term::get_repr() const
       {
         if (cur->d_indices.empty())
         {
-          res << "(";
+          if (!cur->d_args.empty())
+          {
+            res << "(";
+          }
           if (cur->d_kind == Op::UF_APPLY)
           {
             res << to_smt2_term(cur->d_args[0])->get_repr();
@@ -419,7 +422,10 @@ Smt2Term::get_repr() const
           assert(!itt->second.empty());
           res << " " << itt->second;
         }
-        res << ")";
+        if (!cur->d_args.empty())
+        {
+          res << ")";
+        }
       }
 
       if (it->second.empty())
