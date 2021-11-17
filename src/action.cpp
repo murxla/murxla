@@ -2126,8 +2126,8 @@ ActionGetValue::run()
   if (!d_smgr.has_sort_excluding(exclude_sorts, true)) return false;
   for (uint32_t i = 0; i < n_terms; ++i)
   {
-    Sort s = d_smgr.pick_sort_excluding(exclude_sorts, true);
-    terms.push_back(d_smgr.pick_term(s->get_kind(), 0));
+    SortKind sort_kind = d_smgr.pick_sort_kind(0, exclude_sorts);
+    terms.push_back(d_smgr.pick_term(sort_kind, 0));
   }
   _run(terms);
   return true;

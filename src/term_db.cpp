@@ -575,14 +575,18 @@ TermDb::pick_sort_kind() const
 }
 
 SortKind
-TermDb::pick_sort_kind(size_t level) const
+TermDb::pick_sort_kind(size_t level,
+                       const SortKindSet& exclude_sort_kinds) const
 {
   assert(has_term());
 
   std::unordered_set<SortKind> kinds;
   for (const auto& p : d_term_db[level])
   {
-    kinds.insert(p.first);
+    if (exclude_sort_kinds.find(p.first) == exclude_sort_kinds.end())
+    {
+      kinds.insert(p.first);
+    }
   }
   return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
 }

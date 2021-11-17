@@ -368,6 +368,13 @@ SolverManager::pick_sort_kind(const SortKindSet& sort_kinds, bool with_terms)
   return d_rng.pick_from_set<SortKindVector, SortKind>(skinds);
 }
 
+SortKind
+SolverManager::pick_sort_kind(uint32_t level,
+                              const SortKindSet& exclude_sort_kinds)
+{
+  return d_term_db.pick_sort_kind(level, exclude_sort_kinds);
+}
+
 SortKindData&
 SolverManager::pick_sort_kind_data()
 {
@@ -817,14 +824,14 @@ SolverManager::pick_sort(const SortKindSet& sort_kinds, bool with_terms)
 }
 
 Sort
-SolverManager::pick_sort_excluding(const SortKindSet& exclude_sorts,
+SolverManager::pick_sort_excluding(const SortKindSet& exclude_sort_kinds,
                                    bool with_terms)
 {
-  assert(has_sort_excluding(exclude_sorts, false));
+  assert(has_sort_excluding(exclude_sort_kinds, false));
   SortSet sorts;
   for (const auto& s : d_sorts)
   {
-    if (exclude_sorts.find(s->get_kind()) == exclude_sorts.end())
+    if (exclude_sort_kinds.find(s->get_kind()) == exclude_sort_kinds.end())
     {
       if (!with_terms || d_term_db.has_term(s))
       {
@@ -916,12 +923,13 @@ SolverManager::has_sort(Sort sort) const
 
 bool
 SolverManager::has_sort_excluding(
-    const std::unordered_set<SortKind>& exclude_sorts, bool with_terms) const
+    const std::unordered_set<SortKind>& exclude_sort_kinds,
+    bool with_terms) const
 {
   const SortSet& sorts = with_terms ? d_term_db.get_sorts() : d_sorts;
   for (const auto& s : sorts)
   {
-    if (exclude_sorts.find(s->get_kind()) == exclude_sorts.end())
+    if (exclude_sort_kinds.find(s->get_kind()) == exclude_sort_kinds.end())
     {
       return true;
     }
