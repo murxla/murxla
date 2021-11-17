@@ -543,6 +543,10 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.smt = true;
     }
+    else if (arg == "--fuzz-opts")
+    {
+      options.fuzz_options = true;
+    }
     else if (arg == "--arrays")
     {
       options.enabled_theories.push_back(THEORY_ARRAY);

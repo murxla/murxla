@@ -365,7 +365,14 @@ Smt2Term::get_repr() const
           }
           else
           {
-            res << d_op_kind_to_str.at(cur->d_kind);
+            if (d_op_kind_to_str.find(cur->d_kind) != d_op_kind_to_str.end())
+            {
+              res << d_op_kind_to_str.at(cur->d_kind);
+            }
+            else
+            {
+              res << cur->d_kind;
+            }
           }
           if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS)
           {

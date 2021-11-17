@@ -160,6 +160,7 @@ class FSM
       bool trace_seeds,
       bool simple_symbols,
       bool smt,
+      bool fuzz_options,
       statistics::Statistics* stats,
       const TheoryIdVector& enabled_theories,
       const TheoryIdSet& disabled_theories,
@@ -340,6 +341,8 @@ class FSM
   bool d_arith_linear = false;
   /** True to generate SMT-LIB compliant traces only. */
   bool d_smt = false;
+  /** True to enable option fuzzing. */
+  bool d_fuzz_options = false;
 
   statistics::Statistics* d_mbt_stats;
 

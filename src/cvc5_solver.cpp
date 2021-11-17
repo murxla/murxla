@@ -6,6 +6,7 @@
 
 #include "action.hpp"
 #include "config.hpp"
+#include "solver_option.hpp"
 #include "theory.hpp"
 
 namespace murxla {
@@ -1725,7 +1726,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       vars.push_back(cvc5_args[i]);
     }
     ::cvc5::api::Term bvl =
-        d_solver->mkTerm(::cvc5::api::Kind::BOUND_VAR_LIST, vars);
+        d_solver->mkTerm(::cvc5::api::Kind::VARIABLE_LIST, vars);
     ::cvc5::api::Term body = Cvc5Term::get_cvc5_term(args.back());
     cvc5_res               = d_solver->mkTerm(cvc5_kind, bvl, body);
     goto DONE;
@@ -1818,7 +1819,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       vars.push_back(cvc5_args[i]);
     }
-    cvc5_args = {d_solver->mkTerm(::cvc5::api::Kind::BOUND_VAR_LIST, vars),
+    cvc5_args = {d_solver->mkTerm(::cvc5::api::Kind::VARIABLE_LIST, vars),
                  cvc5_args[0],
                  cvc5_args[1]};
   }
@@ -2409,6 +2410,56 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   s_sat->add_action(a_check_entailed, 1);
 }
 /* -------------------------------------------------------------------------- */
+
+void
+Cvc5Solver::configure_options(SolverManager* smgr) const
+{
+  using namespace ::cvc5::api;
+
+  ::cvc5::api::Solver slv;
+
+  for (const auto& option : slv.getOptionNames())
+  {
+    auto info = slv.getOptionInfo(option);
+    if (std::holds_alternative<OptionInfo::ValueInfo<bool>>(info.valueInfo))
+    {
+      smgr->add_option(new SolverOptionBool(option));
+    }
+    else if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
+                 info.valueInfo))
+    {
+      auto num_info = std::get<OptionInfo::NumberInfo<int64_t>>(info.valueInfo);
+      smgr->add_option(new SolverOptionNum<int64_t>(
+          option,
+          num_info.minimum.value_or(std::numeric_limits<int64_t>::min()),
+          num_info.maximum.value_or(std::numeric_limits<int64_t>::max())));
+    }
+    else if (std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
+                 info.valueInfo))
+    {
+      auto num_info =
+          std::get<OptionInfo::NumberInfo<uint64_t>>(info.valueInfo);
+      smgr->add_option(new SolverOptionNum<uint64_t>(
+          option,
+          num_info.minimum.value_or(std::numeric_limits<uint64_t>::min()),
+          num_info.maximum.value_or(std::numeric_limits<uint64_t>::max())));
+    }
+    else if (std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo))
+    {
+      auto mode_info = std::get<OptionInfo::ModeInfo>(info.valueInfo);
+      smgr->add_option(new SolverOptionList(option, mode_info.modes));
+    }
+    else if (std::holds_alternative<OptionInfo::NumberInfo<double>>(
+                 info.valueInfo))
+    {
+      auto num_info = std::get<OptionInfo::NumberInfo<double>>(info.valueInfo);
+      smgr->add_option(new SolverOptionNum<double>(
+          option,
+          num_info.minimum.value_or(std::numeric_limits<double>::min()),
+          num_info.maximum.value_or(std::numeric_limits<double>::max())));
+    }
+  }
+}
 
 }  // namespace cvc5
 }  // namespace murxla

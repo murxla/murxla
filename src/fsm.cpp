@@ -85,6 +85,7 @@ FSM::FSM(RNGenerator& rng,
          bool trace_seeds,
          bool simple_symbols,
          bool smt,
+         bool fuzz_options,
          statistics::Statistics* stats,
          const TheoryIdVector& enabled_theories,
          const TheoryIdSet& disabled_theories,
@@ -104,6 +105,7 @@ FSM::FSM(RNGenerator& rng,
       d_rng(rng),
       d_arith_linear(arith_linear),
       d_smt(smt),
+      d_fuzz_options(fuzz_options),
       d_mbt_stats(stats),
       d_solver_options(solver_options)
 {
@@ -457,7 +459,10 @@ FSM::configure()
   if (!d_smt)
   {
     d_smgr.get_solver().configure_fsm(this);
-    d_smgr.get_solver().configure_options(&d_smgr);
+    if (d_fuzz_options)
+    {
+      d_smgr.get_solver().configure_options(&d_smgr);
+    }
   }
 
   /* --------------------------------------------------------------------- */

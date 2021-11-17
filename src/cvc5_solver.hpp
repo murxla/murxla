@@ -197,6 +197,7 @@ class Cvc5Solver : public Solver
 
   void configure_fsm(FSM* fsm) const override;
   void configure_opmgr(OpKindManager* opmgr) const override;
+  void configure_options(SolverManager* smgr) const override;
 
   bool is_unsat_assumption(const Term& t) const override;
 

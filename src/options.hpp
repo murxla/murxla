@@ -40,6 +40,8 @@ struct Options
   bool print_fsm = false;
   /** Restrict arithmetic operators to linear fragment. */
   bool arith_linear = false;
+  /** True to enable option fuzzing. */
+  bool fuzz_options = false;
 
   /** The directory for tmp files (default: current). */
   std::string tmp_dir = "/tmp";
