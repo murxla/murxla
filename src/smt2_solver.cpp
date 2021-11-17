@@ -374,12 +374,19 @@ Smt2Term::get_repr() const
               res << cur->d_kind;
             }
           }
-          if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS)
+          if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS
+              || cur->d_kind == Op::SET_COMPREHENSION)
           {
             assert(cur->d_args.size() > 1);
+            size_t size = cur->d_args.size() - 1;
+            if (cur->d_kind == Op::SET_COMPREHENSION)
+            {
+              assert(size >= 1);
+              size -= 1;
+            }
             /* print bound variables, body is last argument term in d_args */
             res << " (";
-            for (size_t size = cur->d_args.size() - 1; i < size; ++i)
+            for (; i < size; ++i)
             {
               if (i > 0) res << " ";
               const Smt2Term* smt2_term = to_smt2_term(cur->d_args[i]);
@@ -1147,6 +1154,36 @@ Smt2Solver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
                     const std::vector<uint32_t>& params)
 {
+  if (kind == Op::BAG_COUNT || kind == Op::BAG_MAP)
+  {
+    /* given as { bag, element } resp. { bag, function } but we print it in
+     * reversed order, i.e., bag comes last */
+    auto aargs = args;
+    assert(aargs.size() == 2);
+    std::swap(aargs[0], aargs[1]);
+    return std::shared_ptr<Smt2Term>(
+        new Smt2Term(kind, aargs, params, Smt2Term::LeafKind::NONE, ""));
+  }
+  else if (kind == Op::SET_COMPREHENSION)
+  {
+    /* given as { predicate, term, var_1, ..., var_n } but we print it as
+     * ((var_1 sort_1) ... (var_n sort_n)) predicate term  */
+    std::vector<Term> aargs{args.begin() + 2, args.end()};
+    aargs.push_back(args[0]);
+    aargs.push_back(args[1]);
+    return std::shared_ptr<Smt2Term>(
+        new Smt2Term(kind, aargs, params, Smt2Term::LeafKind::NONE, ""));
+  }
+  else if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
+  {
+    /* given as { set, elem_1, ..., elem_n } but we print it as
+     * { elem_1, ..., elem_n, set }  */
+    std::vector<Term> aargs{args.begin() + 1, args.end()};
+    aargs.push_back(args[0]);
+    return std::shared_ptr<Smt2Term>(
+        new Smt2Term(kind, aargs, params, Smt2Term::LeafKind::NONE, ""));
+  }
+
   return std::shared_ptr<Smt2Term>(
       new Smt2Term(kind, args, params, Smt2Term::LeafKind::NONE, ""));
 }
@@ -1373,6 +1410,10 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       else if (kind == Op::BAG_MAP)
       {
         sort = get_bag_sort_string({args[1]->get_sort()->get_sorts()[1]});
+      }
+      else if (kind == Op::SET_COMPREHENSION)
+      {
+        sort = get_set_sort_string({args[1]->get_sort()});
       }
       else
       {

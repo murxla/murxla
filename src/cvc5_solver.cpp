@@ -1184,6 +1184,7 @@ Cvc5Solver::new_solver()
   d_solver->setOption("fp-exp", "true");
   d_solver->setOption("strings-exp", "true");
   d_solver->setOption("sets-ext", "true");
+  d_solver->setLogic("HO_ALL");
 }
 
 void
