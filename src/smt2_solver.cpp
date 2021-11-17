@@ -871,7 +871,8 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
   {
     case SORT_BAG:
       assert(value == AbsTerm::SPECIAL_VALUE_BAG_EMPTY);
-      val << "bag.empty";
+      val << "(as bag.empty"
+          << static_cast<const Smt2Sort*>(sort.get())->get_repr() << ")";
       break;
 
     case SORT_BV:
