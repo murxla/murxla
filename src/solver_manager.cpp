@@ -1126,6 +1126,9 @@ SolverManager::add_sort_kinds()
       case THEORY_BV:
         d_sort_kinds.emplace(SORT_BV, SortKindData(SORT_BV, 0, THEORY_BV));
         break;
+      case THEORY_DT:
+        d_sort_kinds.emplace(SORT_DT, SortKindData(SORT_DT, 0, THEORY_DT));
+        break;
       case THEORY_INT:
         d_sort_kinds.emplace(SORT_INT, SortKindData(SORT_INT, 0, THEORY_INT));
         break;

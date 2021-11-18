@@ -49,6 +49,8 @@ class AbsSort
   virtual bool is_bool() const = 0;
   /** Return true if this sort is a bit-vector sort. */
   virtual bool is_bv() const   = 0;
+  /** Return true if this sort is a datatype sort. */
+  virtual bool is_dt() const = 0;
   /** Return true if this sort is a floating-point sort. */
   virtual bool is_fp() const   = 0;
   /** Return true if this sort is a function sort. */
@@ -223,6 +225,8 @@ class AbsTerm
   virtual bool is_bool() const;
   /** Return true if this term is a bit-vector term. */
   virtual bool is_bv() const;
+  /** Return true if this term is a datatype term. */
+  virtual bool is_dt() const;
   /** Return true if this term is a floating-point term. */
   virtual bool is_fp() const;
   /** Return true if this term is a function term. */
@@ -248,6 +252,8 @@ class AbsTerm
   virtual bool is_bool_value() const;
   /** Return true if this term is a bit-vector value. */
   virtual bool is_bv_value() const;
+  /** Return true if this term is a datatype value. */
+  virtual bool is_dt_value() const;
   /** Return true if this term is a floating-point value. */
   virtual bool is_fp_value() const;
   /** Return true if this term is an integer value. */
@@ -590,6 +596,21 @@ class Solver
    *           codomain.
    */
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
+
+  /**
+   * Create datatype sort.
+   *
+   * name: The name of the datatype.
+   * ctors: The list of datatype constructors, given as a map of constructor
+   *        name to vector of selectors (which are given as a pair of name and
+   *        sort).
+   */
+  virtual Sort mk_sort(
+      SortKind kind,
+      const std::string& name,
+      const std::unordered_map<std::string,
+                               std::vector<std::pair<std::string, Sort>>>&
+          ctors);
 
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,

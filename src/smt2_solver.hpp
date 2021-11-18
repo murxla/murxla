@@ -29,6 +29,7 @@ class Smt2Sort : public AbsSort
   bool is_bag() const override;
   bool is_bool() const override;
   bool is_bv() const override;
+  bool is_dt() const override;
   bool is_fp() const override;
   bool is_fun() const override;
   bool is_int() const override;

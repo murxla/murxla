@@ -60,6 +60,12 @@ Smt2Sort::is_bv() const
 }
 
 bool
+Smt2Sort::is_dt() const
+{
+  return d_kind == SORT_DT;
+}
+
+bool
 Smt2Sort::is_int() const
 {
   return d_kind == SORT_INT;

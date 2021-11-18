@@ -172,6 +172,12 @@ AbsTerm::is_bv() const
 }
 
 bool
+AbsTerm::is_dt() const
+{
+  return get_sort()->is_dt();
+}
+
+bool
 AbsTerm::is_fp() const
 {
   return get_sort()->is_fp();
@@ -241,6 +247,12 @@ bool
 AbsTerm::is_bv_value() const
 {
   return get_leaf_kind() == LeafKind::VALUE && is_bv();
+}
+
+bool
+AbsTerm::is_dt_value() const
+{
+  return get_leaf_kind() == LeafKind::VALUE && is_dt();
 }
 
 bool
@@ -716,6 +728,16 @@ Solver::mk_sort(SortKind kind, uint32_t size)
 
 Sort
 Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
+{
+  return Sort();
+}
+
+Sort
+Solver::mk_sort(
+    SortKind kind,
+    const std::string& name,
+    const std::unordered_map<std::string,
+                             std::vector<std::pair<std::string, Sort>>>& ctors)
 {
   return Sort();
 }

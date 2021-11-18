@@ -83,6 +83,12 @@ Cvc5Sort::is_bv() const
 }
 
 bool
+Cvc5Sort::is_dt() const
+{
+  return d_sort.isDatatype();
+}
+
+bool
 Cvc5Sort::is_fp() const
 {
   return d_sort.isFloatingPoint();
@@ -1317,6 +1323,40 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
                                     "expected '"
                                  << SORT_ARRAY << "' or '" << SORT_FUN << "'";
   }
+  MURXLA_TEST(!cvc5_res.isNull());
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
+  assert(res);
+  return res;
+}
+
+Sort
+Cvc5Solver::mk_sort(
+    SortKind kind,
+    const std::string& name,
+    const std::unordered_map<std::string,
+                             std::vector<std::pair<std::string, Sort>>>& ctors)
+{
+  ::cvc5::api::DatatypeDecl cvc5_dtypedecl = d_solver->mkDatatypeDecl(name);
+
+  std::vector<::cvc5::api::DatatypeConstructorDecl> cvc5_ctors;
+  for (const auto& c : ctors)
+  {
+    const auto& cname = c.first;
+    const auto& sels  = c.second;
+
+    ::cvc5::api::DatatypeConstructorDecl cvc5_cdecl =
+        d_solver->mkDatatypeConstructorDecl(cname);
+
+    for (const auto& s : sels)
+    {
+      const auto& sname = s.first;
+      const auto& ssort = s.second;
+      cvc5_cdecl.addSelector(sname, Cvc5Sort::get_cvc5_sort(ssort));
+    }
+
+    cvc5_dtypedecl.addConstructor(cvc5_cdecl);
+  }
+  ::cvc5::api::Sort cvc5_res = d_solver->mkDatatypeSort(cvc5_dtypedecl);
   MURXLA_TEST(!cvc5_res.isNull());
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
   assert(res);

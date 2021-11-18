@@ -327,6 +327,12 @@ class ActionMkSort : public Action
   uint64_t _run(SortKind kind, uint32_t bw);
   uint64_t _run(SortKind kind, uint32_t ew, uint32_t sw);
   uint64_t _run(SortKind kind, const std::vector<Sort>& sorts);
+  uint64_t _run(
+      SortKind kind,
+      const std::string& name,
+      const std::unordered_map<std::string,
+                               std::vector<std::pair<std::string, Sort>>>&
+          ctors);
 };
 
 class ActionMkTerm : public Action

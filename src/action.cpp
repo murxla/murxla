@@ -395,6 +395,46 @@ ActionMkSort::run()
       _run(kind, d_rng.pick<uint32_t>(MURXLA_BW_MIN, MURXLA_BW_MAX));
       break;
 
+    case SORT_DT:
+    {
+      if (!d_smgr.has_sort()) return false;
+
+      std::string dt_name = d_smgr.pick_symbol();
+      std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
+          ctors;
+
+      uint32_t n_cons =
+          d_rng.pick<uint32_t>(MURXLA_DT_CON_MIN, MURXLA_DT_CON_MAX);
+
+      for (uint32_t i = 0; i < n_cons; ++i)
+      {
+        uint32_t n_sels =
+            d_rng.pick<uint32_t>(MURXLA_DT_SEL_MIN, MURXLA_DT_SEL_MAX);
+        std::vector<std::pair<std::string, Sort>> sels;
+        std::unordered_set<std::string> sel_names;
+        for (uint32_t j = 0; j < n_sels; ++j)
+        {
+          std::string sname;
+          do
+          {
+            sname = d_smgr.pick_symbol();
+          } while (sel_names.find(sname) != sel_names.end());
+          sel_names.insert(sname);
+          Sort s = d_smgr.pick_sort();
+          sels.emplace_back(sname, s);
+        }
+
+        std::string cname;
+        do
+        {
+          cname = d_smgr.pick_symbol();
+        } while (ctors.find(cname) != ctors.end());
+        ctors[cname] = sels;
+      }
+      _run(kind, dt_name, ctors);
+    }
+    break;
+
     case SORT_FP:
     {
       // TODO: support arbitrary formats (for now we only support Float16,
@@ -523,6 +563,61 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       break;
     }
 
+    case SORT_BAG:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                         || theories.find(THEORY_BAG) != theories.end())
+          << "solver does not support theory of bags";
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
+      res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
+      break;
+
+    case SORT_BOOL:
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
+      res = _run(kind);
+      break;
+
+    case SORT_BV:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                         || theories.find(THEORY_BV) != theories.end())
+          << "solver does not support theory of bit-vectors";
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
+      res = _run(kind, str_to_uint32(tokens[1]));
+      break;
+
+    case SORT_DT:
+    {
+      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                         || theories.find(THEORY_DT) != theories.end())
+          << "solver does not support theory of datatypes";
+      MURXLA_CHECK_TRACE_NTOKENS_MIN(4, "", n_tokens);
+      std::string name = str_to_str(tokens[1]);
+      uint32_t n_ctors = str_to_uint32(tokens[2]);
+      std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
+          ctors;
+      for (uint32_t i = 0, idx = 3; i < n_ctors; ++i)
+      {
+        std::string cname = str_to_str(tokens[idx++]);
+        ctors[cname]      = {};
+        uint32_t n_sels   = str_to_uint32(tokens[idx++]);
+        for (uint32_t j = 0; j < n_sels; ++j)
+        {
+          std::string sname = str_to_str(tokens[idx++]);
+          Sort ssort        = d_smgr.get_sort(untrace_str_to_id(tokens[idx++]));
+          ctors[cname].emplace_back(sname, ssort);
+        }
+      }
+      res = _run(kind, name, ctors);
+    }
+    break;
+
+    case SORT_FP:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_FP) != theories.end()
+                         || theories.find(THEORY_FP) != theories.end())
+          << "solver does not support theory of floating-point arithmetic";
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
+      res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
+      break;
+
     case SORT_FUN:
     {
       MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
@@ -539,19 +634,6 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       res = _run(kind, sorts);
       break;
     }
-
-    case SORT_BAG:
-      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
-                         || theories.find(THEORY_BAG) != theories.end())
-          << "solver does not support theory of bags";
-      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
-      break;
-
-    case SORT_BOOL:
-      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
-      res = _run(kind);
-      break;
 
     case SORT_INT:
       MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
@@ -585,22 +667,6 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       res = _run(kind);
       break;
 
-    case SORT_STRING:
-      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
-                         || theories.find(THEORY_STRING) != theories.end())
-          << "solver does not support theory of strings";
-      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
-      res = _run(kind);
-      break;
-
-    case SORT_BV:
-      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
-                         || theories.find(THEORY_BV) != theories.end())
-          << "solver does not support theory of bit-vectors";
-      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, str_to_uint32(tokens[1]));
-      break;
-
     case SORT_SEQ:
       MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
                          || theories.find(THEORY_SEQ) != theories.end())
@@ -617,12 +683,12 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
       break;
 
-    case SORT_FP:
-      MURXLA_CHECK_TRACE(theories.find(THEORY_FP) != theories.end()
-                         || theories.find(THEORY_FP) != theories.end())
-          << "solver does not support theory of floating-point arithmetic";
-      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
-      res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
+    case SORT_STRING:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                         || theories.find(THEORY_STRING) != theories.end())
+          << "solver does not support theory of strings";
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
+      res = _run(kind);
       break;
 
     default: MURXLA_CHECK_TRACE(false) << "unknown sort kind " << tokens[0];
@@ -678,6 +744,35 @@ ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
   res->set_sorts(sorts);
   d_smgr.add_sort(res, kind);
   MURXLA_TEST(res->get_sorts().size() == sorts.size());
+  MURXLA_TRACE_RETURN << res;
+  return res->get_id();
+}
+
+uint64_t
+ActionMkSort::_run(
+    SortKind kind,
+    const std::string& name,
+    const std::unordered_map<std::string,
+                             std::vector<std::pair<std::string, Sort>>>& ctors)
+{
+  std::stringstream ss;
+  ss << " " << ctors.size();
+  for (const auto& c : ctors)
+  {
+    const auto& cname = c.first;
+    const auto& sels  = c.second;
+    ss << " \"" << cname << "\" " << sels.size();
+    for (const auto& s : sels)
+    {
+      const auto& sname = s.first;
+      const auto& ssort = s.second;
+      ss << " \"" << sname << "\" " << ssort;
+    }
+  }
+  MURXLA_TRACE << get_kind() << " " << kind << " \"" << name << "\""
+               << ss.str();
+  Sort res = d_solver.mk_sort(kind, name, ctors);
+  d_smgr.add_sort(res, kind);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -1314,6 +1409,10 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
     MURXLA_TEST(term->is_bv());
     MURXLA_TEST(sort->get_bv_size() == term->get_bv_size());
   }
+  else if (sort->is_dt())
+  {
+    MURXLA_TEST(term->is_dt());
+  }
   else if (sort->is_fp())
   {
     MURXLA_TEST(term->is_fp());
@@ -1596,6 +1695,7 @@ ActionMkValue::run()
       break;
 
     case SORT_BAG:
+    case SORT_DT:
     case SORT_SEQ:
     case SORT_SET:
     case SORT_RM: return false;

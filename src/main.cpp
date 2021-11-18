@@ -248,6 +248,7 @@ set_sigint_handler_stats(void)
   "  --arrays                   theory of arrays\n"                            \
   "  --bags                     theory of bags (default: disabled)\n"          \
   "  --bv                       theory of bit-vectors\n"                       \
+  "  --dt                       theory of datatypes\n"                         \
   "  --fp                       theory of floating-points\n"                   \
   "  --ints                     theory of integers\n"                          \
   "  --quant                    quantifiers\n"                                 \
@@ -563,6 +564,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--bv")
     {
       options.enabled_theories.push_back(THEORY_BV);
+    }
+    else if (arg == "--dt")
+    {
+      options.enabled_theories.push_back(THEORY_DT);
     }
     else if (arg == "--fp")
     {

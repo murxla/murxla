@@ -39,6 +39,7 @@ class Cvc5Sort : public AbsSort
   bool is_bag() const override;
   bool is_bool() const override;
   bool is_bv() const override;
+  bool is_dt() const override;
   bool is_fp() const override;
   bool is_fun() const override;
   bool is_int() const override;
@@ -235,6 +236,12 @@ class Cvc5Solver : public Solver
   Sort mk_sort(SortKind kind, uint32_t size) override;
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
+  Sort mk_sort(
+      SortKind kind,
+      const std::string& name,
+      const std::unordered_map<std::string,
+                               std::vector<std::pair<std::string, Sort>>>&
+          ctors) override;
 
   Term mk_const(Sort sort, const std::string& name) override;
   Term mk_term(const Op::Kind& kind,

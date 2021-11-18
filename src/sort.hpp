@@ -12,8 +12,9 @@ enum SortKind
 {
   SORT_ARRAY = 0,
   SORT_BAG,
-  SORT_BV,
   SORT_BOOL,
+  SORT_BV,
+  SORT_DT,
   SORT_FP,
   SORT_FUN,
   SORT_INT,
@@ -43,8 +44,9 @@ namespace murxla {
 static std::unordered_map<SortKind, std::string> sort_kinds_to_str{
     {SORT_ARRAY, "SORT_ARRAY"},
     {SORT_BAG, "SORT_BAG"},
-    {SORT_BV, "SORT_BV"},
     {SORT_BOOL, "SORT_BOOL"},
+    {SORT_BV, "SORT_BV"},
+    {SORT_DT, "SORT_DT"},
     {SORT_FP, "SORT_FP"},
     {SORT_FUN, "SORT_FUN"},
     {SORT_INT, "SORT_INT"},

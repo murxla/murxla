@@ -55,6 +55,12 @@ ShadowSort::is_bv() const
 }
 
 bool
+ShadowSort::is_dt() const
+{
+  return d_sort->is_dt();
+}
+
+bool
 ShadowSort::is_fp() const
 {
   return d_sort->is_fp();
@@ -747,6 +753,41 @@ ShadowSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   get_sorts_helper(sorts, sorts_orig, sorts_shadow);
   Sort s        = d_solver->mk_sort(kind, sorts_orig);
   Sort s_shadow = d_solver_shadow->mk_sort(kind, sorts_shadow);
+  std::shared_ptr<ShadowSort> res(new ShadowSort(s, s_shadow));
+  return res;
+}
+
+Sort
+ShadowSolver::mk_sort(
+    SortKind kind,
+    const std::string& name,
+    const std::unordered_map<std::string,
+                             std::vector<std::pair<std::string, Sort>>>& ctors)
+{
+  std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
+      ctors_orig;
+  std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
+      ctors_shadow;
+
+  for (const auto& c : ctors)
+  {
+    const auto& cname   = c.first;
+    const auto& sels    = c.second;
+    ctors_orig[cname]   = {};
+    ctors_shadow[cname] = {};
+
+    for (const auto& s : sels)
+    {
+      const auto& sname = s.first;
+      auto& ssort       = s.second;
+      ShadowSort* sort  = dynamic_cast<ShadowSort*>(ssort.get());
+      ctors_orig[cname].emplace_back(sname, sort->get_sort());
+      ctors_shadow[cname].emplace_back(sname, sort->get_sort_shadow());
+    }
+  }
+
+  Sort s        = d_solver->mk_sort(kind, name, ctors_orig);
+  Sort s_shadow = d_solver_shadow->mk_sort(kind, name, ctors_shadow);
   std::shared_ptr<ShadowSort> res(new ShadowSort(s, s_shadow));
   return res;
 }
