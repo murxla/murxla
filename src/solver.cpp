@@ -54,6 +54,12 @@ AbsSort::get_bv_size() const
   return 0;
 }
 
+std::string
+AbsSort::get_dt_name() const
+{
+  return "";
+}
+
 uint32_t
 AbsSort::get_fp_exp_size() const
 {

@@ -333,6 +333,14 @@ class ActionMkSort : public Action
       const std::unordered_map<std::string,
                                std::vector<std::pair<std::string, Sort>>>&
           ctors);
+
+  /** Perform checks on the created sort. */
+  void check_sort(
+      Sort sort,
+      const std::string& name,
+      const std::unordered_map<std::string,
+                               std::vector<std::pair<std::string, Sort>>>&
+          ctors) const;
 };
 
 class ActionMkTerm : public Action

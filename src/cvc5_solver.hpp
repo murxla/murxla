@@ -52,6 +52,7 @@ class Cvc5Sort : public AbsSort
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
+  std::string get_dt_name() const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;
   Sort get_bag_element_sort() const override;

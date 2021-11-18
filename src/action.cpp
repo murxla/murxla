@@ -772,9 +772,23 @@ ActionMkSort::_run(
   MURXLA_TRACE << get_kind() << " " << kind << " \"" << name << "\""
                << ss.str();
   Sort res = d_solver.mk_sort(kind, name, ctors);
+  check_sort(res, name, ctors);
   d_smgr.add_sort(res, kind);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
+}
+
+void
+ActionMkSort::check_sort(
+    Sort sort,
+    const std::string& name,
+    const std::unordered_map<std::string,
+                             std::vector<std::pair<std::string, Sort>>>& ctors)
+    const
+{
+  if (d_rng.pick_with_prob(990)) return;
+
+  MURXLA_TEST(sort->get_dt_name() == name);
 }
 
 /* -------------------------------------------------------------------------- */

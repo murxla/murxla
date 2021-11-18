@@ -75,21 +75,6 @@ class AbsSort
   virtual bool is_string() const = 0;
 
   /**
-   * Get the bit-vector size of this sort.
-   * Returns 0 by default.
-   */
-  virtual uint32_t get_bv_size() const;
-  /**
-   * Get the floating-point exponent size of this sort.
-   * Returns 0 by default.
-   */
-  virtual uint32_t get_fp_exp_size() const;
-  /**
-   * Get the floating-point significand size of this sort.
-   * Returns 0 by default.
-   */
-  virtual uint32_t get_fp_sig_size() const;
-  /**
    * Get the array index sort of this sort.
    * Returns nullptr by default.
    */
@@ -104,6 +89,26 @@ class AbsSort
    * Returns nullptr by default.
    */
   virtual Sort get_bag_element_sort() const;
+  /**
+   * Get the bit-vector size of this sort.
+   * Returns 0 by default.
+   */
+  virtual uint32_t get_bv_size() const;
+  /**
+   * Get the datatype name of this sort.
+   * Returns an empty string by default.
+   */
+  virtual std::string get_dt_name() const;
+  /**
+   * Get the floating-point exponent size of this sort.
+   * Returns 0 by default.
+   */
+  virtual uint32_t get_fp_exp_size() const;
+  /**
+   * Get the floating-point significand size of this sort.
+   * Returns 0 by default.
+   */
+  virtual uint32_t get_fp_sig_size() const;
   /**
    * Get the function arity of this sort.
    * Returns 0 by default.

@@ -169,6 +169,13 @@ Cvc5Sort::get_fp_sig_size() const
   return res;
 }
 
+std::string
+Cvc5Sort::get_dt_name() const
+{
+  assert(is_dt());
+  return d_sort.getDatatype().getName();
+}
+
 Sort
 Cvc5Sort::get_array_index_sort() const
 {

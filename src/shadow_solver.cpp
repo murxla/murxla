@@ -138,6 +138,14 @@ ShadowSort::get_fp_sig_size() const
   return res;
 }
 
+std::string
+ShadowSort::get_dt_name() const
+{
+  std::string res = d_sort->get_dt_name();
+  MURXLA_TEST(res == d_sort_shadow->get_dt_name());
+  return res;
+}
+
 Sort
 ShadowSort::get_array_index_sort() const
 {
