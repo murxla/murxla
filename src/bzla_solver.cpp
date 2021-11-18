@@ -783,7 +783,18 @@ BzlaSolver::new_solver()
 {
   assert(d_solver == nullptr);
   d_solver = bitwuzla_new();
-  // TODO: initialize options
+
+  /* Initialize Bitwuzla options */
+  if (d_option_name_to_enum.empty())
+  {
+    for (int32_t i = 0; i < BITWUZLA_OPT_NUM_OPTS; ++i)
+    {
+      BitwuzlaOption opt = static_cast<BitwuzlaOption>(i);
+      BitwuzlaOptionInfo info;
+      bitwuzla_get_option_info(d_solver, opt, &info);
+      d_option_name_to_enum.emplace(info.lng, opt);
+    }
+  }
 }
 
 void
@@ -1457,15 +1468,7 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
     return;
   }
 
-  // TODO reenable after option fuzzing for bitwuzla is configured
-  // assert(d_option_name_to_enum.find(opt) != d_option_name_to_enum.end());
-
-  /* Bitwuzla options are all integer values */
-  uint32_t val = 0;
   BitwuzlaOption bzla_opt;
-
-  val = value == "true" ? 1 : (value == "false" ? 0 : std::stoul(value));
-  // TODO support all options
   if (opt == "produce-models")
   {
     bzla_opt = BITWUZLA_OPT_PRODUCE_MODELS;
@@ -1474,20 +1477,44 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   {
     bzla_opt = BITWUZLA_OPT_PRODUCE_UNSAT_CORES;
   }
-  else if (opt == "incremental")
+  else
   {
-    if (!val && bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_UNSAT_CORES))
+    auto it = d_option_name_to_enum.find(opt);
+    assert(it != d_option_name_to_enum.end());
+    bzla_opt = it->second;
+  }
+
+  BitwuzlaOptionInfo info;
+  bitwuzla_get_option_info(d_solver, bzla_opt, &info);
+
+  if (info.is_numeric)
+  {
+    uint32_t val =
+        value == "true" ? 1 : (value == "false" ? 0 : std::stoul(value));
+
+    if (bzla_opt == BITWUZLA_OPT_INCREMENTAL)
     {
-      return;
+      if (!val
+          && bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_UNSAT_CORES))
+      {
+        return;
+      }
     }
-    bzla_opt = BITWUZLA_OPT_INCREMENTAL;
+    bitwuzla_set_option(d_solver, bzla_opt, val);
+    MURXLA_TEST(val == bitwuzla_get_option(d_solver, bzla_opt));
   }
   else
   {
-    return;
+    bitwuzla_set_option_str(d_solver, bzla_opt, value.c_str());
+    // Note: When Bitwuzla is not built with all supported SAT solver, we'll
+    // get a different value back if we want to enable a solver that is not
+    // compiled in.
+    if (bzla_opt != BITWUZLA_OPT_SAT_ENGINE)
+    {
+      MURXLA_TEST(
+          !strcmp(value.c_str(), bitwuzla_get_option_str(d_solver, bzla_opt)));
+    }
   }
-  bitwuzla_set_option(d_solver, bzla_opt, val);
-  MURXLA_TEST(val == bitwuzla_get_option(d_solver, bzla_opt));
 }
 
 std::string
@@ -1598,7 +1625,28 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
 void
 BzlaSolver::configure_options(SolverManager* smgr) const
 {
-  smgr->add_option(new SolverOptionNum<uint32_t>("incremental", 0, 1));
+  Bitwuzla* bzla = bitwuzla_new();
+  BitwuzlaOptionInfo info;
+  for (int32_t i = 0; i < BITWUZLA_OPT_NUM_OPTS; ++i)
+  {
+    BitwuzlaOption opt = static_cast<BitwuzlaOption>(i);
+    bitwuzla_get_option_info(bzla, opt, &info);
+    if (info.is_numeric)
+    {
+      smgr->add_option(new SolverOptionNum<uint32_t>(
+          info.lng, info.numeric.min_val, info.numeric.max_val));
+    }
+    else
+    {
+      std::vector<std::string> values;
+      for (size_t j = 0; j < info.string.num_values; ++j)
+      {
+        values.emplace_back(info.string.values[j]);
+      }
+      smgr->add_option(new SolverOptionList(info.lng, values));
+    }
+  }
+  bitwuzla_delete(bzla);
 }
 
 /* -------------------------------------------------------------------------- */
