@@ -299,7 +299,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  MATCH,
 //  MATCH_CASE,
 //  MATCH_BIND_CASE,
-//  DT_SIZE,
 
 //  ## Separation Logic
 //  SEP_NIL,
@@ -372,6 +371,9 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::BV_SLE, ::cvc5::api::Kind::BITVECTOR_SLE},
         {Op::BV_SGT, ::cvc5::api::Kind::BITVECTOR_SGT},
         {Op::BV_SGE, ::cvc5::api::Kind::BITVECTOR_SGE},
+
+        /* Datatypes */
+        {Op::DT_SIZE, ::cvc5::api::Kind::DT_SIZE},
 
         /* FP */
         {Op::FP_ABS, ::cvc5::api::Kind::FLOATINGPOINT_ABS},
@@ -627,6 +629,9 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::BITVECTOR_SLE, Op::BV_SLE},
         {::cvc5::api::Kind::BITVECTOR_SGT, Op::BV_SGT},
         {::cvc5::api::Kind::BITVECTOR_SGE, Op::BV_SGE},
+
+        /* Datatypes */
+        {::cvc5::api::Kind::DT_SIZE, Op::DT_SIZE},
 
         /* FP */
         {::cvc5::api::Kind::FLOATINGPOINT_ABS, Op::FP_ABS},

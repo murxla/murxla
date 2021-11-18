@@ -144,6 +144,17 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::BV_SIGN_EXTEND, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
   add_op_kind(Op::BV_ZERO_EXTEND, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
 
+  /* Datatypes */
+  // add_op_kind(Op::DT_APPLY_CONS, n, 0,
+  // add_op_kind(Op::DT_APPLY_SEL, 2, 0,
+  // add_op_kind(Op::DT_APPLY_TESTER, 2, 0,
+  // add_op_kind(Op::DT_APPLY_UPDATER, 3, 0,
+  // add_op_kind(Op::DT_MATCH, n, 0,
+  // add_op_kind(Op::DT_MATCH_CASE, 2, 0,
+  // add_op_kind(Op::DT_MATCH_BIND_CASE, 3, 0,
+  // add_op_kind(Op::DT_TUPLE_PROJECT, 1, 0,
+  add_op_kind(Op::DT_SIZE, 1, 0, SORT_INT, {SORT_DT}, THEORY_DT);
+
   /* FP */
   add_op_kind(Op::FP_ABS, 1, 0, SORT_FP, {SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_ADD, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);

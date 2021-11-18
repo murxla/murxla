@@ -77,6 +77,16 @@ struct Op
   inline static const Kind BV_UREM         = "OP_BV_UREM";
   inline static const Kind BV_XNOR         = "OP_BV_XNOR";
   inline static const Kind BV_XOR          = "OP_BV_XOR";
+  /* Datatypes */
+  inline static const Kind DT_APPLY_CONS      = "OP_DT_APPLY_CONS";
+  inline static const Kind DT_APPLY_SEL       = "OP_DT_APPLY_SEL";
+  inline static const Kind DT_APPLY_TESTER    = "OP_DT_APPLY_TESTER";
+  inline static const Kind DT_APPLY_UPDATER   = "OP_DT_APPLY_UPDATER";
+  inline static const Kind DT_MATCH           = "OP_DT_MATCH";
+  inline static const Kind DT_MATCH_CASE      = "OP_DT_MATCH_CASE";
+  inline static const Kind DT_MATCH_BIND_CASE = "OP_DT_MATCH_BIND_CASE";
+  inline static const Kind DT_TUPLE_PROJECT   = "OP_DT_TUPLE_PROJECT";
+  inline static const Kind DT_SIZE            = "OP_DT_SIZE";
   /* FP */
   inline static const Kind FP_TO_FP_FROM_BV   = "OP_FP_TO_FP_FROM_BV";
   inline static const Kind FP_TO_FP_FROM_SBV  = "OP_FP_TO_FP_FROM_SBV";
