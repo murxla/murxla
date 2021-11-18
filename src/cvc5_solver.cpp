@@ -489,7 +489,6 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::BAG_COUNT, ::cvc5::api::Kind::BAG_COUNT},
         {Op::BAG_DUPLICATE_REMOVAL, ::cvc5::api::Kind::BAG_DUPLICATE_REMOVAL},
         {Op::BAG_MAKE, ::cvc5::api::Kind::BAG_MAKE},
-        {Op::BAG_EMPTY, ::cvc5::api::Kind::BAG_EMPTY},
         {Op::BAG_CARD, ::cvc5::api::Kind::BAG_CARD},
         {Op::BAG_CHOOSE, ::cvc5::api::Kind::BAG_CHOOSE},
         {Op::BAG_IS_SINGLETON, ::cvc5::api::Kind::BAG_IS_SINGLETON},

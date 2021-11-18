@@ -303,7 +303,7 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::BAG_COUNT, 2, 0, SORT_INT, {SORT_BAG, SORT_ANY}, THEORY_BAG);
   add_op_kind(
       Op::BAG_DUPLICATE_REMOVAL, 1, 0, SORT_BAG, {SORT_BAG}, THEORY_BAG);
-  // add_op_kind(Op::BAG_MAKE,
+  add_op_kind(Op::BAG_MAKE, 2, 0, SORT_BAG, {SORT_ANY, SORT_INT}, THEORY_BAG);
   add_op_kind(Op::BAG_CARD, 1, 0, SORT_INT, {SORT_BAG}, THEORY_BAG);
   add_op_kind(Op::BAG_CHOOSE, 1, 0, SORT_ANY, {SORT_BAG}, THEORY_BAG);
   add_op_kind(Op::BAG_IS_SINGLETON, 1, 0, SORT_BOOL, {SORT_BAG}, THEORY_BAG);

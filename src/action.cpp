@@ -910,7 +910,6 @@ ActionMkTerm::run()
     const std::vector<Sort>& sorts = sort->get_sorts();
     assert(sorts.size() == 1);
     Sort element_sort = sorts[0];
-    if (!d_smgr.has_term(element_sort)) return false;
     args.push_back(d_smgr.pick_term(sort));
     sort_kind = element_sort->get_kind();
   }
@@ -991,6 +990,18 @@ ActionMkTerm::run()
     if (!d_smgr.has_fun({element_sort})) return false;
     args.push_back(d_smgr.pick_term(bag_sort));
     args.push_back(d_smgr.pick_fun({element_sort}));
+    sort_kind = SORT_BAG;
+  }
+  else if (kind == Op::BAG_MAKE)
+  {
+    assert(!n_params);
+    const auto& exclude_sorts =
+        d_solver.get_unsupported_bag_element_sort_kinds();
+    if (!d_smgr.has_term(SORT_INT)) return false;
+    if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+    Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
+    args.push_back(d_smgr.pick_term(element_sort));
+    args.push_back(d_smgr.pick_term(SORT_INT));
     sort_kind = SORT_BAG;
   }
   else
