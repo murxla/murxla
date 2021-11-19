@@ -46,7 +46,7 @@ CheckSolver::check_sat()
 }
 
 Solver::Result
-CheckSolver::check_sat_assuming(std::vector<Term>& assumptions)
+CheckSolver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
   d_assumptions_shadow.clear();
   d_assumptions.clear();
@@ -133,7 +133,7 @@ CheckSolver::set_opt(const std::string& opt, const std::string& value)
 }
 
 std::vector<Term>
-CheckSolver::get_value(std::vector<Term>& terms)
+CheckSolver::get_value(const std::vector<Term>& terms)
 {
   std::vector<Term> res, terms_orig, terms_shadow;
   get_terms_helper(terms, terms_orig, terms_shadow);

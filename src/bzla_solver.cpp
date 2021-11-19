@@ -1031,7 +1031,7 @@ BzlaSolver::mk_value_bv_uint64(Sort sort, uint64_t value)
 }
 
 Term
-BzlaSolver::mk_value(Sort sort, std::string value)
+BzlaSolver::mk_value(Sort sort, const std::string& value)
 {
   MURXLA_CHECK_CONFIG(sort->is_fp())
       << "unexpected sort of kind '" << sort->get_kind()
@@ -1063,7 +1063,7 @@ BzlaSolver::mk_value(Sort sort, std::string value)
 }
 
 Term
-BzlaSolver::mk_value(Sort sort, std::string value, Base base)
+BzlaSolver::mk_value(Sort sort, const std::string& value, Base base)
 {
   MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
@@ -1206,7 +1206,7 @@ BzlaSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 Term
 BzlaSolver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
-                    const std::vector<uint32_t>& params)
+                    const std::vector<uint32_t>& indices)
 {
   MURXLA_CHECK_CONFIG(BzlaTerm::s_kinds_to_bzla_kinds.find(kind)
                       != BzlaTerm::s_kinds_to_bzla_kinds.end())
@@ -1214,36 +1214,36 @@ BzlaSolver::mk_term(const Op::Kind& kind,
 
   const BitwuzlaTerm* bzla_res = nullptr;
   size_t n_args          = args.size();
-  size_t n_params        = params.size();
+  size_t n_indices             = indices.size();
   BitwuzlaKind bzla_kind = BzlaTerm::s_kinds_to_bzla_kinds.at(kind);
   std::vector<BitwuzlaTerm*> vars;
   std::vector<const BitwuzlaTerm*> bzla_args =
       BzlaTerm::terms_to_bzla_terms(args);
 
-  if (n_params)
+  if (n_indices)
   {
-    if (n_args < 3 && n_params < 3 && d_rng.flip_coin())
+    if (n_args < 3 && n_indices < 3 && d_rng.flip_coin())
     {
       switch (n_args)
       {
         case 1:
-          if (n_params == 1)
+          if (n_indices == 1)
           {
             bzla_res = bitwuzla_mk_term1_indexed1(
-                d_solver, bzla_kind, bzla_args[0], params[0]);
+                d_solver, bzla_kind, bzla_args[0], indices[0]);
           }
           else
           {
             bzla_res = bitwuzla_mk_term1_indexed2(
-                d_solver, bzla_kind, bzla_args[0], params[0], params[1]);
+                d_solver, bzla_kind, bzla_args[0], indices[0], indices[1]);
           }
           break;
         default:
           assert(n_args == 2);
-          if (n_params == 1)
+          if (n_indices == 1)
           {
             bzla_res = bitwuzla_mk_term2_indexed1(
-                d_solver, bzla_kind, bzla_args[0], bzla_args[1], params[0]);
+                d_solver, bzla_kind, bzla_args[0], bzla_args[1], indices[0]);
           }
           else
           {
@@ -1251,8 +1251,8 @@ BzlaSolver::mk_term(const Op::Kind& kind,
                                                   bzla_kind,
                                                   bzla_args[0],
                                                   bzla_args[1],
-                                                  params[0],
-                                                  params[1]);
+                                                  indices[0],
+                                                  indices[1]);
           }
           break;
       }
@@ -1263,8 +1263,8 @@ BzlaSolver::mk_term(const Op::Kind& kind,
                                           bzla_kind,
                                           n_args,
                                           bzla_args.data(),
-                                          n_params,
-                                          params.data());
+                                          n_indices,
+                                          indices.data());
     }
   }
   else
@@ -1357,7 +1357,7 @@ BzlaSolver::check_sat()
 }
 
 Solver::Result
-BzlaSolver::check_sat_assuming(std::vector<Term>& assumptions)
+BzlaSolver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
   int32_t res;
   for (const Term& t : assumptions)
@@ -1401,7 +1401,7 @@ BzlaSolver::get_unsat_core()
 }
 
 std::vector<Term>
-BzlaSolver::get_value(std::vector<Term>& terms)
+BzlaSolver::get_value(const std::vector<Term>& terms)
 {
   std::vector<Term> res;
   std::vector<const BitwuzlaTerm*> bzla_res;

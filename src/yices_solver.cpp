@@ -466,7 +466,7 @@ YicesSolver::mk_value(Sort sort, bool value)
 }
 
 Term
-YicesSolver::mk_value(Sort sort, std::string value)
+YicesSolver::mk_value(Sort sort, const std::string& value)
 {
   term_t yices_res = -1;
 
@@ -550,7 +550,7 @@ YicesSolver::mk_value(Sort sort, std::string value)
 }
 
 Term
-YicesSolver::mk_value(Sort sort, std::string num, std::string den)
+YicesSolver::mk_value(Sort sort, const std::string& num, const std::string& den)
 {
   MURXLA_CHECK_CONFIG(sort->is_real())
       << "unexpected sort of kind '" << sort->get_kind()
@@ -623,7 +623,7 @@ YicesSolver::bin_str_to_int_array(std::string s) const
 }
 
 Term
-YicesSolver::mk_value(Sort sort, std::string value, Base base)
+YicesSolver::mk_value(Sort sort, const std::string& value, Base base)
 {
   assert(sort->is_bv());
 
@@ -909,11 +909,11 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 Term
 YicesSolver::mk_term(const std::string& kind,
                      const std::vector<Term>& args,
-                     const std::vector<uint32_t>& params)
+                     const std::vector<uint32_t>& indices)
 {
   term_t yices_res               = -1;
   size_t n_args                  = args.size();
-  size_t n_params                = params.size();
+  size_t n_indices               = indices.size();
   std::vector<term_t> yices_args = YicesTerm::terms_to_yices_terms(args);
   std::vector<term_t> vars;
 
@@ -1106,38 +1106,38 @@ YicesSolver::mk_term(const std::string& kind,
   else if (kind == Op::BV_EXTRACT)
   {
     assert(n_args == 1);
-    assert(n_params == 2);
-    yices_res = yices_bvextract(yices_args[0], params[1], params[0]);
+    assert(n_indices == 2);
+    yices_res = yices_bvextract(yices_args[0], indices[1], indices[0]);
   }
   else if (kind == Op::BV_REPEAT)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
-    yices_res = yices_bvrepeat(yices_args[0], params[0]);
+    assert(n_indices == 1);
+    yices_res = yices_bvrepeat(yices_args[0], indices[0]);
   }
   else if (kind == Op::BV_ROTATE_LEFT)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
-    yices_res = yices_rotate_left(yices_args[0], params[0]);
+    assert(n_indices == 1);
+    yices_res = yices_rotate_left(yices_args[0], indices[0]);
   }
   else if (kind == Op::BV_ROTATE_RIGHT)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
-    yices_res = yices_rotate_right(yices_args[0], params[0]);
+    assert(n_indices == 1);
+    yices_res = yices_rotate_right(yices_args[0], indices[0]);
   }
   else if (kind == Op::BV_SIGN_EXTEND)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
-    yices_res = yices_sign_extend(yices_args[0], params[0]);
+    assert(n_indices == 1);
+    yices_res = yices_sign_extend(yices_args[0], indices[0]);
   }
   else if (kind == Op::BV_ZERO_EXTEND)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
-    yices_res = yices_zero_extend(yices_args[0], params[0]);
+    assert(n_indices == 1);
+    yices_res = yices_zero_extend(yices_args[0], indices[0]);
   }
   else if (kind == Op::BV_ADD)
   {
@@ -1465,9 +1465,9 @@ YicesSolver::mk_term(const std::string& kind,
   else if (kind == Op::INT_IS_DIV)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
+    assert(n_indices == 1);
     std::stringstream ss;
-    ss << params[0];
+    ss << indices[0];
     term_t c = yices_parse_rational(ss.str().c_str());
     MURXLA_TEST(is_valid_term(c));
     yices_res = yices_divides_atom(c, yices_args[0]);
@@ -1556,65 +1556,65 @@ YicesSolver::mk_term(const std::string& kind,
     else if (kind == YicesTerm::OP_BVPOWER)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
+      assert(n_indices == 1);
       yices_res =
           yices_bvpower(yices_args[0],
                         uint32_to_value_in_range(
-                            params[0], 0, args[0]->get_sort()->get_bv_size()));
+                            indices[0], 0, args[0]->get_sort()->get_bv_size()));
     }
     else if (kind == YicesTerm::OP_SHIFT_LEFT0)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
+      assert(n_indices == 1);
       yices_res = yices_shift_left0(
           yices_args[0],
           uint32_to_value_in_range(
-              params[0], 0, args[0]->get_sort()->get_bv_size()));
+              indices[0], 0, args[0]->get_sort()->get_bv_size()));
     }
     else if (kind == YicesTerm::OP_SHIFT_LEFT1)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
+      assert(n_indices == 1);
       yices_res = yices_shift_left1(
           yices_args[0],
           uint32_to_value_in_range(
-              params[0], 0, args[0]->get_sort()->get_bv_size()));
+              indices[0], 0, args[0]->get_sort()->get_bv_size()));
     }
     else if (kind == YicesTerm::OP_SHIFT_RIGHT0)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
+      assert(n_indices == 1);
       yices_res = yices_shift_right0(
           yices_args[0],
           uint32_to_value_in_range(
-              params[0], 0, args[0]->get_sort()->get_bv_size()));
+              indices[0], 0, args[0]->get_sort()->get_bv_size()));
     }
     else if (kind == YicesTerm::OP_SHIFT_RIGHT1)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
+      assert(n_indices == 1);
       yices_res = yices_shift_right1(
           yices_args[0],
           uint32_to_value_in_range(
-              params[0], 0, args[0]->get_sort()->get_bv_size()));
+              indices[0], 0, args[0]->get_sort()->get_bv_size()));
     }
     else if (kind == YicesTerm::OP_ASHIFT_RIGHT)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
+      assert(n_indices == 1);
       yices_res = yices_ashift_right(
           yices_args[0],
           uint32_to_value_in_range(
-              params[0], 0, args[0]->get_sort()->get_bv_size()));
+              indices[0], 0, args[0]->get_sort()->get_bv_size()));
     }
     else if (kind == YicesTerm::OP_BITEXTRACT)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
+      assert(n_indices == 1);
       yices_res = yices_bitextract(
           yices_args[0],
           uint32_to_value_in_range(
-              params[0], 0, args[0]->get_sort()->get_bv_size() - 1));
+              indices[0], 0, args[0]->get_sort()->get_bv_size() - 1));
     }
     else if (kind == YicesTerm::OP_BVARRAY)
     {
@@ -1656,10 +1656,10 @@ YicesSolver::mk_term(const std::string& kind,
              || kind == YicesTerm::OP_REAL_POWER)
     {
       assert(n_args == 1);
-      assert(n_params == 1);
+      assert(n_indices == 1);
       yices_res = yices_power(
           yices_args[0],
-          uint32_to_value_in_range(params[0], 0, MURXLA_YICES_MAX_DEGREE));
+          uint32_to_value_in_range(indices[0], 0, MURXLA_YICES_MAX_DEGREE));
     }
     else if (kind == YicesTerm::OP_INT_SQUARE
              || kind == YicesTerm::OP_REAL_SQUARE)
@@ -1767,7 +1767,7 @@ YicesSolver::check_sat()
 }
 
 Solver::Result
-YicesSolver::check_sat_assuming(std::vector<Term>& assumptions)
+YicesSolver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
   if (!d_context) d_context = yices_new_context(d_config);
   // TODO parameters?
@@ -1803,7 +1803,7 @@ YicesSolver::get_unsat_core()
 }
 
 std::vector<Term>
-YicesSolver::get_value(std::vector<Term>& terms)
+YicesSolver::get_value(const std::vector<Term>& terms)
 {
   if (!d_context) d_context = yices_new_context(d_config);
 

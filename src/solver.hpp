@@ -629,9 +629,11 @@ class Solver
   virtual Term mk_fun(Sort sort, const std::string& name)   = 0;
 
   virtual Term mk_value(Sort sort, bool value) = 0;
-  virtual Term mk_value(Sort sort, std::string value);
-  virtual Term mk_value(Sort sort, std::string num, std::string den);
-  virtual Term mk_value(Sort sort, std::string value, Base base);
+  virtual Term mk_value(Sort sort, const std::string& value);
+  virtual Term mk_value(Sort sort,
+                        const std::string& num,
+                        const std::string& den);
+  virtual Term mk_value(Sort sort, const std::string& value, Base base);
 
   /**
    * Make special value (as defined in SMT-LIB, or as added as solver-specific
@@ -718,7 +720,7 @@ class Solver
   virtual void assert_formula(const Term& t) = 0;
 
   virtual Result check_sat()                                        = 0;
-  virtual Result check_sat_assuming(std::vector<Term>& assumptions) = 0;
+  virtual Result check_sat_assuming(const std::vector<Term>& assumptions) = 0;
 
   virtual std::vector<Term> get_unsat_assumptions() = 0;
 
@@ -745,7 +747,7 @@ class Solver
    */
   virtual void set_opt(const std::string& opt, const std::string& value) = 0;
 
-  virtual std::vector<Term> get_value(std::vector<Term>& terms) = 0;
+  virtual std::vector<Term> get_value(const std::vector<Term>& terms) = 0;
 
   //
   // get_model()

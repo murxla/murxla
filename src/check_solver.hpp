@@ -18,7 +18,7 @@ class CheckSolver : public shadow::ShadowSolver
   void assert_formula(const Term& t) override;
 
   Solver::Result check_sat() override;
-  Result check_sat_assuming(std::vector<Term>& assumptions) override;
+  Result check_sat_assuming(const std::vector<Term>& assumptions) override;
 
   std::vector<Term> get_unsat_core() override;
   std::vector<Term> get_unsat_assumptions() override;
@@ -27,7 +27,7 @@ class CheckSolver : public shadow::ShadowSolver
 
   void set_opt(const std::string& opt, const std::string& value) override;
 
-  std::vector<Term> get_value(std::vector<Term>& terms) override;
+  std::vector<Term> get_value(const std::vector<Term>& terms) override;
 
   void reset() override;
 

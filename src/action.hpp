@@ -349,8 +349,8 @@ class ActionMkTerm : public Action
  private:
   std::vector<uint64_t> _run(Op::Kind kind,
                              SortKind sort_kind,
-                             std::vector<Term> args,
-                             std::vector<uint32_t> params);
+                             std::vector<Term>& args,
+                             const std::vector<uint32_t>& indices);
 };
 
 class ActionMkConst : public Action
@@ -364,7 +364,7 @@ class ActionMkConst : public Action
  private:
   /** Perform checks on the created (first-order) constant. */
   void check_const(RNGenerator& rng, Term term);
-  std::vector<uint64_t> _run(Sort sort, std::string& symbol);
+  std::vector<uint64_t> _run(Sort sort, const std::string& symbol);
 };
 
 class ActionMkVar : public Action
@@ -378,7 +378,7 @@ class ActionMkVar : public Action
  private:
   /** Perform checks on the created variable. */
   void check_variable(RNGenerator& rng, Term term);
-  std::vector<uint64_t> _run(Sort sort, std::string& symbol);
+  std::vector<uint64_t> _run(Sort sort, const std::string& symbol);
 };
 
 class ActionMkValue : public Action
@@ -394,10 +394,10 @@ class ActionMkValue : public Action
 
  private:
   uint64_t _run(Sort sort, bool val);
-  uint64_t _run(Sort sort, std::string val);
-  uint64_t _run(Sort sort, std::string val, size_t len);
-  uint64_t _run(Sort sort, std::string v0, std::string v1);
-  uint64_t _run(Sort sort, std::string val, Solver::Base base);
+  uint64_t _run(Sort sort, const std::string& val);
+  uint64_t _run(Sort sort, const std::string& val, size_t len);
+  uint64_t _run(Sort sort, const std::string& v0, const std::string& v1);
+  uint64_t _run(Sort sort, const std::string& val, Solver::Base base);
 };
 
 class ActionMkSpecialValue : public Action
@@ -460,7 +460,7 @@ class ActionCheckSatAssuming : public Action
       const std::vector<std::string>& tokens) override;
 
  private:
-  void _run(std::vector<Term> assumptions);
+  void _run(const std::vector<Term>& assumptions);
 };
 
 class ActionGetUnsatAssumptions : public Action
@@ -503,7 +503,7 @@ class ActionGetValue : public Action
       const std::vector<std::string>& tokens) override;
 
  private:
-  void _run(std::vector<Term> terms);
+  void _run(const std::vector<Term>& terms);
 };
 
 class ActionPush : public Action

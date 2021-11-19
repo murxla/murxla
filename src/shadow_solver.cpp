@@ -732,7 +732,7 @@ ShadowSolver::mk_value(Sort sort, bool value)
 }
 
 Term
-ShadowSolver::mk_value(Sort sort, std::string value)
+ShadowSolver::mk_value(Sort sort, const std::string& value)
 {
   ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
   assert(s);
@@ -743,7 +743,9 @@ ShadowSolver::mk_value(Sort sort, std::string value)
 }
 
 Term
-ShadowSolver::mk_value(Sort sort, std::string num, std::string den)
+ShadowSolver::mk_value(Sort sort,
+                       const std::string& num,
+                       const std::string& den)
 {
   ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
   assert(s);
@@ -754,7 +756,7 @@ ShadowSolver::mk_value(Sort sort, std::string num, std::string den)
 }
 
 Term
-ShadowSolver::mk_value(Sort sort, std::string value, Base base)
+ShadowSolver::mk_value(Sort sort, const std::string& value, Base base)
 {
   ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
   assert(s);
@@ -861,12 +863,12 @@ ShadowSolver::mk_sort(
 Term
 ShadowSolver::mk_term(const Op::Kind& kind,
                       const std::vector<Term>& args,
-                      const std::vector<uint32_t>& params)
+                      const std::vector<uint32_t>& indices)
 {
   std::vector<Term> terms_orig, terms_shadow;
   get_terms_helper(args, terms_orig, terms_shadow);
-  Term t        = d_solver->mk_term(kind, terms_orig, params);
-  Term t_shadow = d_solver_shadow->mk_term(kind, terms_shadow, params);
+  Term t        = d_solver->mk_term(kind, terms_orig, indices);
+  Term t_shadow = d_solver_shadow->mk_term(kind, terms_shadow, indices);
   std::shared_ptr<ShadowTerm> res(new ShadowTerm(t, t_shadow));
   return res;
 }
@@ -967,7 +969,7 @@ ShadowSolver::check_sat()
 }
 
 Solver::Result
-ShadowSolver::check_sat_assuming(std::vector<Term>& assumptions)
+ShadowSolver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
   std::vector<Term> assumptions_orig, assumptions_shadow;
   get_terms_helper(assumptions, assumptions_orig, assumptions_shadow);
@@ -1064,7 +1066,7 @@ ShadowSolver::set_opt(const std::string& opt, const std::string& value)
 }
 
 std::vector<Term>
-ShadowSolver::get_value(std::vector<Term>& terms)
+ShadowSolver::get_value(const std::vector<Term>& terms)
 {
   assert(d_same_solver);
   std::vector<Term> res, terms_orig, terms_shadow;

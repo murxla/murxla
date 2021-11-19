@@ -336,9 +336,11 @@ class Smt2Solver : public Solver
   Term mk_fun(Sort sort, const std::string& name) override;
 
   Term mk_value(Sort sort, bool value) override;
-  Term mk_value(Sort sort, std::string value) override;
-  Term mk_value(Sort sort, std::string num, std::string den) override;
-  Term mk_value(Sort sort, std::string value, Base base) override;
+  Term mk_value(Sort sort, const std::string& value) override;
+  Term mk_value(Sort sort,
+                const std::string& num,
+                const std::string& den) override;
+  Term mk_value(Sort sort, const std::string& value, Base base) override;
 
   Term mk_special_value(Sort sort,
                         const AbsTerm::SpecialValueKind& value) override;
@@ -369,7 +371,7 @@ class Smt2Solver : public Solver
   void assert_formula(const Term& t) override;
 
   Result check_sat() override;
-  Result check_sat_assuming(std::vector<Term>& assumptions) override;
+  Result check_sat_assuming(const std::vector<Term>& assumptions) override;
 
   std::vector<Term> get_unsat_assumptions() override;
 
@@ -385,7 +387,7 @@ class Smt2Solver : public Solver
 
   void set_opt(const std::string& opt, const std::string& value) override;
 
-  std::vector<Term> get_value(std::vector<Term>& terms) override;
+  std::vector<Term> get_value(const std::vector<Term>& terms) override;
 
  private:
   enum ResponseKind

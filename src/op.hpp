@@ -245,7 +245,7 @@ struct Op
   Op(uint64_t id,
      const Kind& kind,
      int32_t arity,
-     uint32_t nparams,
+     uint32_t nidxs,
      SortKindSet sort_kinds,
      const std::vector<SortKindSet>& sort_kinds_args,
      TheoryId theory);
@@ -261,7 +261,7 @@ struct Op
   /** The arity of this kind. */
   int32_t d_arity;
   /** The number of parameters if parameterized. */
-  uint32_t d_nparams;
+  uint32_t d_nidxs;
   /** The sort kind of a term of this kind. */
   SortKindSet d_sort_kinds;
   /** The theory to which the operator belongs to. */

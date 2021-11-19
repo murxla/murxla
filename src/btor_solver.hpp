@@ -198,7 +198,7 @@ class BtorSolver : public Solver
   }
 
   Term mk_value(Sort sort, bool value) override;
-  Term mk_value(Sort sort, std::string value, Base base) override;
+  Term mk_value(Sort sort, const std::string& value, Base base) override;
 
   Term mk_special_value(Sort sort,
                         const AbsTerm::SpecialValueKind& value) override;
@@ -215,18 +215,18 @@ class BtorSolver : public Solver
 
   Term mk_term(const Op::Kind& kind,
                const std::vector<Term>& args,
-               const std::vector<uint32_t>& params) override;
+               const std::vector<uint32_t>& indices) override;
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
   void assert_formula(const Term& t) override;
 
   Result check_sat() override;
-  Result check_sat_assuming(std::vector<Term>& assumptions) override;
+  Result check_sat_assuming(const std::vector<Term>& assumptions) override;
 
   std::vector<Term> get_unsat_assumptions() override;
 
-  std::vector<Term> get_value(std::vector<Term>& terms) override;
+  std::vector<Term> get_value(const std::vector<Term>& terms) override;
 
   void push(uint32_t n_levels) override;
   void pop(uint32_t n_levels) override;

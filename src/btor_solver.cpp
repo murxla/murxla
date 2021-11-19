@@ -654,7 +654,7 @@ BtorSolver::mk_value_bv_uint32(Sort sort, uint32_t value)
 }
 
 Term
-BtorSolver::mk_value(Sort sort, std::string value, Base base)
+BtorSolver::mk_value(Sort sort, const std::string& value, Base base)
 {
   MURXLA_CHECK_CONFIG(sort->is_bv())
       << "unexpected sort of kind '" << sort->get_kind()
@@ -798,11 +798,11 @@ BtorSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 Term
 BtorSolver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
-                    const std::vector<uint32_t>& params)
+                    const std::vector<uint32_t>& indices)
 {
   BoolectorNode* btor_res = nullptr;
   size_t n_args           = args.size();
-  size_t n_params         = params.size();
+  size_t n_indices        = indices.size();
   std::vector<BoolectorNode*> vars;
   std::vector<BoolectorNode*> btor_args = terms_to_btor_terms(args);
 
@@ -840,19 +840,19 @@ BtorSolver::mk_term(const Op::Kind& kind,
   else if (kind == Op::BV_EXTRACT)
   {
     assert(n_args == 1);
-    assert(n_params == 2);
-    btor_res = boolector_slice(d_solver, btor_args[0], params[0], params[1]);
+    assert(n_indices == 2);
+    btor_res = boolector_slice(d_solver, btor_args[0], indices[0], indices[1]);
   }
   else if (kind == Op::BV_REPEAT)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
-    btor_res = boolector_repeat(d_solver, btor_args[0], params[0]);
+    assert(n_indices == 1);
+    btor_res = boolector_repeat(d_solver, btor_args[0], indices[0]);
   }
   else if (kind == Op::BV_ROTATE_LEFT || kind == Op::BV_ROTATE_RIGHT)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
+    assert(n_indices == 1);
     BoolectorNode* arg = btor_args[0];
     BoolectorSort s    = boolector_get_sort(d_solver, arg);
     uint32_t bw        = boolector_bitvec_sort_get_width(d_solver, s);
@@ -861,8 +861,8 @@ BtorSolver::mk_term(const Op::Kind& kind,
     if (d_rng.flip_coin())
     {
       btor_res = (kind == Op::BV_ROTATE_LEFT)
-                     ? boolector_roli(d_solver, arg, params[0])
-                     : boolector_rori(d_solver, arg, params[0]);
+                     ? boolector_roli(d_solver, arg, indices[0])
+                     : boolector_rori(d_solver, arg, indices[0]);
     }
     else
     {
@@ -874,14 +874,14 @@ BtorSolver::mk_term(const Op::Kind& kind,
         /* arg has bw that is power of 2, nbits argument with log2 bw */
         uint32_t bw2     = static_cast<uint32_t>(log2(bw));
         BoolectorSort s2 = boolector_bitvec_sort(d_solver, bw2);
-        uint32_t nbits   = params[0] % bw;
+        uint32_t nbits   = indices[0] % bw;
         tmp              = boolector_unsigned_int(d_solver, nbits, s2);
         boolector_release_sort(d_solver, s2);
       }
       else
       {
         /* arg and nbits argument with same bw */
-        tmp = boolector_unsigned_int(d_solver, params[0], s);
+        tmp = boolector_unsigned_int(d_solver, indices[0], s);
       }
       btor_res = (kind == Op::BV_ROTATE_LEFT)
                      ? boolector_rol(d_solver, arg, tmp)
@@ -892,14 +892,14 @@ BtorSolver::mk_term(const Op::Kind& kind,
   else if (kind == Op::BV_SIGN_EXTEND)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
-    btor_res = boolector_sext(d_solver, btor_args[0], params[0]);
+    assert(n_indices == 1);
+    btor_res = boolector_sext(d_solver, btor_args[0], indices[0]);
   }
   else if (kind == Op::BV_ZERO_EXTEND)
   {
     assert(n_args == 1);
-    assert(n_params == 1);
-    btor_res = boolector_uext(d_solver, btor_args[0], params[0]);
+    assert(n_indices == 1);
+    btor_res = boolector_uext(d_solver, btor_args[0], indices[0]);
   }
   else if (kind == Op::BV_CONCAT)
   {
@@ -1176,7 +1176,7 @@ BtorSolver::check_sat()
 }
 
 Solver::Result
-BtorSolver::check_sat_assuming(std::vector<Term>& assumptions)
+BtorSolver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
   int32_t res;
   for (const Term& t : assumptions)
@@ -1204,7 +1204,7 @@ BtorSolver::get_unsat_assumptions()
 }
 
 std::vector<Term>
-BtorSolver::get_value(std::vector<Term>& terms)
+BtorSolver::get_value(const std::vector<Term>& terms)
 {
   std::vector<Term> res;
   std::vector<BoolectorNode*> btor_res;

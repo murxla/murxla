@@ -739,19 +739,19 @@ Solver::get_special_values(SortKind sort_kind) const
 }
 
 Term
-Solver::mk_value(Sort sort, std::string value)
+Solver::mk_value(Sort sort, const std::string& value)
 {
   return Term();
 }
 
 Term
-Solver::mk_value(Sort sort, std::string num, std::string den)
+Solver::mk_value(Sort sort, const std::string& num, const std::string& den)
 {
   return Term();
 }
 
 Term
-Solver::mk_value(Sort sort, std::string value, Base base)
+Solver::mk_value(Sort sort, const std::string& value, Base base)
 {
   return Term();
 }

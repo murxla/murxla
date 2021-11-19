@@ -15,14 +15,14 @@ namespace murxla {
 Op::Op(uint64_t id,
        const Kind& kind,
        int32_t arity,
-       uint32_t nparams,
+       uint32_t nidxs,
        SortKindSet sort_kinds,
        const std::vector<SortKindSet>& sort_kinds_args,
        TheoryId theory)
     : d_id(id),
       d_kind(kind),
       d_arity(arity),
-      d_nparams(nparams),
+      d_nidxs(nidxs),
       d_sort_kinds(sort_kinds),
       d_theory(theory),
       d_sort_kinds_args(sort_kinds_args)
@@ -384,7 +384,7 @@ OpKindManager::add_op_kinds()
 void
 OpKindManager::add_op_kind(const Op::Kind& kind,
                            int32_t arity,
-                           uint32_t nparams,
+                           uint32_t nidxs,
                            SortKind sort_kind,
                            const std::vector<SortKind>& sort_kind_args,
                            TheoryId theory)
@@ -432,8 +432,7 @@ OpKindManager::add_op_kind(const Op::Kind& kind,
       sort_kinds_args.push_back(sk);
     }
     d_op_kinds.emplace(
-        kind,
-        Op(id, kind, arity, nparams, sort_kinds, sort_kinds_args, theory));
+        kind, Op(id, kind, arity, nidxs, sort_kinds, sort_kinds_args, theory));
     strncpy(d_stats->d_op_kinds[id], kind.c_str(), kind.size());
   }
 }

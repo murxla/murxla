@@ -779,7 +779,7 @@ Smt2Solver::mk_value(Sort sort, bool value)
 }
 
 Term
-Smt2Solver::mk_value(Sort sort, std::string value)
+Smt2Solver::mk_value(Sort sort, const std::string& value)
 {
   SortKind sort_kind = sort->get_kind();
   std::stringstream val;
@@ -832,7 +832,7 @@ Smt2Solver::mk_value(Sort sort, std::string value)
 }
 
 Term
-Smt2Solver::mk_value(Sort sort, std::string num, std::string den)
+Smt2Solver::mk_value(Sort sort, const std::string& num, const std::string& den)
 {
   assert(sort->is_real());
   std::stringstream val;
@@ -842,7 +842,7 @@ Smt2Solver::mk_value(Sort sort, std::string num, std::string den)
 }
 
 Term
-Smt2Solver::mk_value(Sort sort, std::string value, Base base)
+Smt2Solver::mk_value(Sort sort, const std::string& value, Base base)
 {
   assert(sort->is_bv());
   std::stringstream val;
@@ -1458,7 +1458,7 @@ Smt2Solver::check_sat()
 }
 
 Solver::Result
-Smt2Solver::check_sat_assuming(std::vector<Term>& assumptions)
+Smt2Solver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
   std::stringstream smt2;
   smt2 << "(check-sat-assuming ( ";
@@ -1600,7 +1600,7 @@ Smt2Solver::is_unsat_assumption(const Term& t) const
 }
 
 std::vector<Term>
-Smt2Solver::get_value(std::vector<Term>& terms)
+Smt2Solver::get_value(const std::vector<Term>& terms)
 {
   std::stringstream smt2;
   smt2 << "(get-value (";
