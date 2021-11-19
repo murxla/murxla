@@ -1389,6 +1389,14 @@ BtorSolver::mk_term_chained(std::vector<BoolectorNode*>& args,
   return res;
 }
 
+namespace {
+void
+btor_throw(const char* msg)
+{
+  throw MurxlaSolverOptionException(msg);
+}
+}  // namespace
+
 void
 BtorSolver::set_opt(const std::string& opt, const std::string& value)
 {
@@ -1418,7 +1426,9 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value)
   BtorOption btor_opt = d_option_name_to_enum.at(opt);
   MURXLA_TEST(val >= boolector_get_opt_min(d_solver, btor_opt));
   MURXLA_TEST(val <= boolector_get_opt_max(d_solver, btor_opt));
+  boolector_set_abort(btor_throw);
   boolector_set_opt(d_solver, btor_opt, val);
+  boolector_set_abort(nullptr);
   MURXLA_TEST(val == boolector_get_opt(d_solver, btor_opt));
   MURXLA_TEST(val != boolector_get_opt_dflt(d_solver, btor_opt)
               || boolector_get_opt(d_solver, btor_opt)
