@@ -30,7 +30,14 @@ using Sort = std::shared_ptr<AbsSort>;
 class AbsSort
 {
  public:
+  using DatatypeConstructorMap =
+      std::unordered_map<std::string,
+                         std::vector<std::pair<std::string, Sort>>>;
+
   virtual ~AbsSort(){};
+
+  /* To be overriden, for testing the solver.                               */
+  /* ---------------------------------------------------------------------- */
 
   /** Get the hash value of this sort. */
   virtual size_t hash() const                                      = 0;
@@ -156,22 +163,59 @@ class AbsSort
    */
   virtual Sort get_set_element_sort() const;
 
+  /* Only to be overriden in shadow solver, murxla level.                   */
+  /* ---------------------------------------------------------------------- */
+
+  /** Set the kind of this sort. */
+  virtual void set_kind(SortKind sort_kind);
+
+  /** Set the sort parameters of this sort. */
+  virtual void set_sorts(const std::vector<Sort>& sorts);
+
+  /** Set the datatype constructor map of this sort. */
+  virtual void set_dt_ctors(const DatatypeConstructorMap& ctors);
+
+  /* NOT to be overriden, murxla level.                                     */
+  /* ---------------------------------------------------------------------- */
+
+  /** Set the (unique) id of this sort */
   void set_id(uint64_t id);
+  /** Get the id of this sort. */
   uint64_t get_id() const;
 
-  virtual void set_kind(SortKind sort_kind);
-  SortKind get_kind();
+  /** Get the kind of this sort. */
+  SortKind get_kind() const;
 
-  virtual void set_sorts(const std::vector<Sort>& sorts);
+  /** Get the sort parameters of this sort. */
   const std::vector<Sort>& get_sorts() const;
 
+  /** Get the datatype constructor map of this sort. */
+  const DatatypeConstructorMap& get_dt_ctors() const;
+
  protected:
-  uint64_t d_id   = 0u;
+  /** The (unique) id of this sort. */
+  uint64_t d_id = 0u;
+  /** The kind of this sort. */
   SortKind d_kind = SORT_ANY;
+  /**
+   * The sort parameters for sorts parameterized over sorts (e.g., Array, Bag
+   * Sequence, and Set sorts).
+   * Note: For datatype sorts, this set is empty.
+   */
   std::vector<Sort> d_sorts;
+  /**
+   * The datatype constructors of this sort.
+   * This is only used for datatype sorts and required for book keeping on
+   * the murxla level.
+   * Maps constructor names to vectors of selectors, which are represented
+   * as pairs of selector name and codomain sort.
+   */
+  DatatypeConstructorMap d_dt_ctors;
 };
 
+/** Operator overload for equality over Sorts. */
 bool operator==(const Sort& a, const Sort& b);
+/** Operator overload for disequality over Sorts. */
 bool operator!=(const Sort& a, const Sort& b);
 
 /**
@@ -631,12 +675,9 @@ class Solver
    *        name to vector of selectors (which are given as a pair of name and
    *        sort).
    */
-  virtual Sort mk_sort(
-      SortKind kind,
-      const std::string& name,
-      const std::unordered_map<std::string,
-                               std::vector<std::pair<std::string, Sort>>>&
-          ctors);
+  virtual Sort mk_sort(SortKind kind,
+                       const std::string& name,
+                       const AbsSort::DatatypeConstructorMap& ctors);
 
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,

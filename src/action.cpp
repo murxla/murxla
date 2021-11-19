@@ -757,11 +757,9 @@ ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
 }
 
 uint64_t
-ActionMkSort::_run(
-    SortKind kind,
-    const std::string& name,
-    const std::unordered_map<std::string,
-                             std::vector<std::pair<std::string, Sort>>>& ctors)
+ActionMkSort::_run(SortKind kind,
+                   const std::string& name,
+                   const AbsSort::DatatypeConstructorMap& ctors)
 {
   std::stringstream ss;
   ss << " " << ctors.size();
@@ -780,19 +778,15 @@ ActionMkSort::_run(
   MURXLA_TRACE << get_kind() << " " << kind << " \"" << name << "\""
                << ss.str();
   Sort res = d_solver.mk_sort(kind, name, ctors);
-  check_sort(res, name, ctors);
+  res->set_dt_ctors(ctors);
+  check_sort(res, name);
   d_smgr.add_sort(res, kind);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
 
 void
-ActionMkSort::check_sort(
-    Sort sort,
-    const std::string& name,
-    const std::unordered_map<std::string,
-                             std::vector<std::pair<std::string, Sort>>>& ctors)
-    const
+ActionMkSort::check_sort(Sort sort, const std::string& name) const
 {
   if (d_rng.pick_with_prob(990)) return;
 
@@ -800,6 +794,7 @@ ActionMkSort::check_sort(
 
   uint32_t n_cons = sort->get_dt_num_cons();
   auto cons_names = sort->get_dt_cons_names();
+  auto ctors      = sort->get_dt_ctors();
   MURXLA_TEST(n_cons == cons_names.size());
   for (const auto& n : cons_names)
   {

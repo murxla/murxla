@@ -268,6 +268,32 @@ ShadowSort::set_sorts(const std::vector<Sort>& sorts)
   d_sorts = sorts;
 }
 
+void
+ShadowSort::set_dt_ctors(const DatatypeConstructorMap& ctors)
+{
+  DatatypeConstructorMap ctors_orig, ctors_shadow;
+
+  for (const auto& c : ctors)
+  {
+    const auto& cname   = c.first;
+    ctors_orig[cname]   = {};
+    ctors_shadow[cname] = {};
+
+    const auto& sels = c.second;
+    for (const auto& s : sels)
+    {
+      const auto& sname = s.first;
+      const auto& ssort = s.second;
+      ShadowSort* sort  = dynamic_cast<ShadowSort*>(ssort.get());
+      ctors_orig.at(cname).emplace_back(sname, sort->get_sort());
+      ctors_shadow.at(cname).emplace_back(sname, sort->get_sort_shadow());
+    }
+  }
+  d_sort->set_dt_ctors(ctors_orig);
+  d_sort_shadow->set_dt_ctors(ctors_shadow);
+  d_dt_ctors = ctors;
+}
+
 ShadowTerm::ShadowTerm(Term term, Term term_shadow)
     : d_term(term), d_term_shadow(term_shadow){};
 

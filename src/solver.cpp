@@ -31,7 +31,7 @@ AbsSort::set_kind(SortKind sort_kind)
 }
 
 SortKind
-AbsSort::get_kind()
+AbsSort::get_kind() const
 {
   return d_kind;
 }
@@ -46,6 +46,18 @@ const std::vector<Sort>&
 AbsSort::get_sorts() const
 {
   return d_sorts;
+}
+
+void
+AbsSort::set_dt_ctors(const DatatypeConstructorMap& ctors)
+{
+  d_dt_ctors = ctors;
+}
+
+const AbsSort::DatatypeConstructorMap&
+AbsSort::get_dt_ctors() const
+{
+  return d_dt_ctors;
 }
 
 uint32_t
