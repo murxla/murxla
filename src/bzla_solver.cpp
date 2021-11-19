@@ -1459,6 +1459,14 @@ BzlaSolver::is_unsat_assumption(const Term& t) const
 
 /* -------------------------------------------------------------------------- */
 
+namespace {
+void
+bzla_throw(const char* msg)
+{
+  throw MurxlaException(msg);
+}
+}  // namespace
+
 void
 BzlaSolver::set_opt(const std::string& opt, const std::string& value)
 {
@@ -1487,33 +1495,44 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   BitwuzlaOptionInfo info;
   bitwuzla_get_option_info(d_solver, bzla_opt, &info);
 
-  if (info.is_numeric)
+  try
   {
-    uint32_t val =
-        value == "true" ? 1 : (value == "false" ? 0 : std::stoul(value));
-
-    if (bzla_opt == BITWUZLA_OPT_INCREMENTAL)
+    if (info.is_numeric)
     {
-      if (!val
-          && bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_UNSAT_CORES))
+      uint32_t val =
+          value == "true" ? 1 : (value == "false" ? 0 : std::stoul(value));
+
+      if (bzla_opt == BITWUZLA_OPT_INCREMENTAL)
       {
-        return;
+        if (!val
+            && bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_UNSAT_CORES))
+        {
+          return;
+        }
+      }
+      bitwuzla_set_abort_callback(bzla_throw);
+      bitwuzla_set_option(d_solver, bzla_opt, val);
+      bitwuzla_set_abort_callback(nullptr);
+      MURXLA_TEST(val == bitwuzla_get_option(d_solver, bzla_opt));
+    }
+    else
+    {
+      bitwuzla_set_abort_callback(bzla_throw);
+      bitwuzla_set_option_str(d_solver, bzla_opt, value.c_str());
+      bitwuzla_set_abort_callback(nullptr);
+      // Note: When Bitwuzla is not built with all supported SAT solver, we'll
+      // get a different value back if we want to enable a solver that is not
+      // compiled in.
+      if (bzla_opt != BITWUZLA_OPT_SAT_ENGINE)
+      {
+        MURXLA_TEST(!strcmp(value.c_str(),
+                            bitwuzla_get_option_str(d_solver, bzla_opt)));
       }
     }
-    bitwuzla_set_option(d_solver, bzla_opt, val);
-    MURXLA_TEST(val == bitwuzla_get_option(d_solver, bzla_opt));
   }
-  else
+  catch (const MurxlaException& e)
   {
-    bitwuzla_set_option_str(d_solver, bzla_opt, value.c_str());
-    // Note: When Bitwuzla is not built with all supported SAT solver, we'll
-    // get a different value back if we want to enable a solver that is not
-    // compiled in.
-    if (bzla_opt != BITWUZLA_OPT_SAT_ENGINE)
-    {
-      MURXLA_TEST(
-          !strcmp(value.c_str(), bitwuzla_get_option_str(d_solver, bzla_opt)));
-    }
+    throw MurxlaSolverOptionException(e.get_msg());
   }
 }
 
