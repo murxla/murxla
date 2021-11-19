@@ -310,12 +310,18 @@ void
 ActionSetOption::_run(const std::string& opt, const std::string& value)
 {
   MURXLA_TRACE << get_kind() << " " << opt << " " << value;
-  d_solver.set_opt(opt, value);
-  d_smgr.d_incremental       = d_solver.option_incremental_enabled();
-  d_smgr.d_model_gen         = d_solver.option_model_gen_enabled();
-  d_smgr.d_unsat_assumptions = d_solver.option_unsat_assumptions_enabled();
-  d_smgr.d_unsat_cores       = d_solver.option_unsat_cores_enabled();
-  d_smgr.mark_option_used(opt);  // only set options once
+  try
+  {
+    d_solver.set_opt(opt, value);
+    d_smgr.d_incremental       = d_solver.option_incremental_enabled();
+    d_smgr.d_model_gen         = d_solver.option_model_gen_enabled();
+    d_smgr.d_unsat_assumptions = d_solver.option_unsat_assumptions_enabled();
+    d_smgr.d_unsat_cores       = d_solver.option_unsat_cores_enabled();
+    d_smgr.mark_option_used(opt);  // only set options once
+  }
+  catch (const MurxlaSolverOptionException& e)
+  {
+  }
 }
 
 /* -------------------------------------------------------------------------- */

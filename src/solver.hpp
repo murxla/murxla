@@ -687,6 +687,10 @@ class Solver
 
   virtual void reset_assertions() = 0;
 
+  /**
+   * Should throw a MurxlaSolverOptionException if opt=value is not valid with
+   * the currently set options.
+   */
   virtual void set_opt(const std::string& opt, const std::string& value) = 0;
 
   virtual std::vector<Term> get_value(std::vector<Term>& terms) = 0;

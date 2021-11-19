@@ -281,6 +281,9 @@ class Cvc5Solver : public Solver
   //
  private:
   ::cvc5::api::Solver* d_solver;
+
+  /** Options set via set_opt(). */
+  std::vector<std::pair<std::string, std::string>> d_enabled_options;
 };
 
 }  // namespace cvc5

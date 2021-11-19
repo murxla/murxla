@@ -78,6 +78,16 @@ class MurxlaActionUntraceException : public MurxlaException
   }
 };
 
+class MurxlaSolverOptionException : public MurxlaException
+{
+ public:
+  MurxlaSolverOptionException(const std::string& msg) : MurxlaException(msg) {}
+  MurxlaSolverOptionException(const std::stringstream& stream)
+      : MurxlaException(stream)
+  {
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 class MessageStream

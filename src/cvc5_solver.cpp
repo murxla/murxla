@@ -6,6 +6,7 @@
 
 #include "action.hpp"
 #include "config.hpp"
+#include "except.hpp"
 #include "solver_option.hpp"
 #include "theory.hpp"
 
@@ -2173,7 +2174,25 @@ Cvc5Solver::reset_assertions()
 void
 Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
 {
+  // Check if opt=value conflicts with already enabled options.
+  ::cvc5::api::Solver check_opt_slv;
+  for (const auto& [o, v] : d_enabled_options)
+  {
+    check_opt_slv.setOption(o, v);
+  }
+
+  try
+  {
+    check_opt_slv.setOption(opt, value);
+    check_opt_slv.checkSat();  // Trigger option checks
+  }
+  catch (const ::cvc5::api::CVC5ApiOptionException& e)
+  {
+    throw MurxlaSolverOptionException("incompatible option");
+  }
+
   d_solver->setOption(opt, value);
+  d_enabled_options.emplace_back(opt, value);
 }
 
 /* -------------------------------------------------------------------------- */
