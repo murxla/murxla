@@ -789,6 +789,14 @@ ActionMkSort::check_sort(
   if (d_rng.pick_with_prob(990)) return;
 
   MURXLA_TEST(sort->get_dt_name() == name);
+
+  uint32_t n_cons = sort->get_dt_num_cons();
+  auto cons_names = sort->get_dt_cons_names();
+  MURXLA_TEST(n_cons == cons_names.size());
+  for (const auto& n : cons_names)
+  {
+    MURXLA_TEST(ctors.find(n) != ctors.end());
+  }
 }
 
 /* -------------------------------------------------------------------------- */

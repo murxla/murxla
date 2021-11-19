@@ -176,6 +176,26 @@ Cvc5Sort::get_dt_name() const
   return d_sort.getDatatype().getName();
 }
 
+uint32_t
+Cvc5Sort::get_dt_num_cons() const
+{
+  return d_sort.getDatatype().getNumConstructors();
+}
+
+std::vector<std::string>
+Cvc5Sort::get_dt_cons_names() const
+{
+  assert(is_dt());
+  std::vector<std::string> res;
+  ::cvc5::api::Datatype cvc5_dt = d_sort.getDatatype();
+  uint32_t n_ctors              = cvc5_dt.getNumConstructors();
+  for (uint32_t i = 0; i < n_ctors; ++i)
+  {
+    res.push_back(cvc5_dt[i].getName());
+  }
+  return res;
+}
+
 Sort
 Cvc5Sort::get_array_index_sort() const
 {

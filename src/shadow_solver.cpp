@@ -146,6 +146,22 @@ ShadowSort::get_dt_name() const
   return res;
 }
 
+uint32_t
+ShadowSort::get_dt_num_cons() const
+{
+  uint32_t res = d_sort->get_dt_num_cons();
+  MURXLA_TEST(res == d_sort_shadow->get_dt_num_cons());
+  return res;
+}
+
+std::vector<std::string>
+ShadowSort::get_dt_cons_names() const
+{
+  std::vector<std::string> res = d_sort->get_dt_cons_names();
+  MURXLA_TEST(res == d_sort_shadow->get_dt_cons_names());
+  return res;
+}
+
 Sort
 ShadowSort::get_array_index_sort() const
 {

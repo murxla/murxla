@@ -61,6 +61,18 @@ AbsSort::get_dt_name() const
 }
 
 uint32_t
+AbsSort::get_dt_num_cons() const
+{
+  return 0;
+}
+
+std::vector<std::string>
+AbsSort::get_dt_cons_names() const
+{
+  return {};
+}
+
+uint32_t
 AbsSort::get_fp_exp_size() const
 {
   return 0;

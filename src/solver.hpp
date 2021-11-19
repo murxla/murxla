@@ -95,10 +95,20 @@ class AbsSort
    */
   virtual uint32_t get_bv_size() const;
   /**
-   * Get the datatype name of this sort.
+   * Get the datatype constructor name of this sort.
    * Returns an empty string by default.
    */
   virtual std::string get_dt_name() const;
+  /**
+   * Get the number of datatype constructors of this sort.
+   * Returns 0 by default.
+   */
+  virtual uint32_t get_dt_num_cons() const;
+  /**
+   * Get the datatype constructor names of this sort.
+   * Returns an empty vector by default.
+   */
+  virtual std::vector<std::string> get_dt_cons_names() const;
   /**
    * Get the floating-point exponent size of this sort.
    * Returns 0 by default.
