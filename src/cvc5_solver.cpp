@@ -189,10 +189,34 @@ Cvc5Sort::get_dt_cons_names() const
   assert(is_dt());
   std::vector<std::string> res;
   ::cvc5::api::Datatype cvc5_dt = d_sort.getDatatype();
-  uint32_t n_ctors              = cvc5_dt.getNumConstructors();
+  uint32_t n_ctors              = get_dt_num_cons();
   for (uint32_t i = 0; i < n_ctors; ++i)
   {
     res.push_back(cvc5_dt[i].getName());
+  }
+  return res;
+}
+
+uint32_t
+Cvc5Sort::get_dt_cons_num_sels(const std::string& name) const
+{
+  assert(is_dt());
+  ::cvc5::api::DatatypeConstructor cvc5_cons =
+      d_sort.getDatatype().getConstructor(name);
+  return cvc5_cons.getNumSelectors();
+}
+
+std::vector<std::string>
+Cvc5Sort::get_dt_cons_sel_names(const std::string& name) const
+{
+  assert(is_dt());
+  std::vector<std::string> res;
+  ::cvc5::api::DatatypeConstructor cvc5_cons =
+      d_sort.getDatatype().getConstructor(name);
+  uint32_t n_sels = get_dt_cons_num_sels(name);
+  for (uint32_t i = 0; i < n_sels; ++i)
+  {
+    res.push_back(cvc5_cons[i].getName());
   }
   return res;
 }

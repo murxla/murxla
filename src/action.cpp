@@ -1,5 +1,7 @@
 #include "action.hpp"
 
+#include <algorithm>
+
 #include "config.hpp"
 #include "except.hpp"
 #include "solver_manager.hpp"
@@ -802,6 +804,14 @@ ActionMkSort::check_sort(
   for (const auto& n : cons_names)
   {
     MURXLA_TEST(ctors.find(n) != ctors.end());
+    uint32_t n_sels = sort->get_dt_cons_num_sels(n);
+    auto sel_names  = sort->get_dt_cons_sel_names(n);
+    MURXLA_TEST(n_sels == sel_names.size());
+    for (const auto& p : ctors.at(n))
+    {
+      MURXLA_TEST(std::find(sel_names.begin(), sel_names.end(), p.first)
+                  != sel_names.end());
+    }
   }
 }
 

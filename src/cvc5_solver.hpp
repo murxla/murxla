@@ -55,6 +55,9 @@ class Cvc5Sort : public AbsSort
   std::string get_dt_name() const override;
   uint32_t get_dt_num_cons() const override;
   std::vector<std::string> get_dt_cons_names() const override;
+  uint32_t get_dt_cons_num_sels(const std::string& name) const override;
+  std::vector<std::string> get_dt_cons_sel_names(
+      const std::string& name) const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;
   Sort get_bag_element_sort() const override;

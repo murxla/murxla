@@ -110,6 +110,17 @@ class AbsSort
    */
   virtual std::vector<std::string> get_dt_cons_names() const;
   /**
+   * Get the number of selectors of the given datatype constructor of this sort.
+   * Returns 0 by default.
+   */
+  virtual uint32_t get_dt_cons_num_sels(const std::string& name) const;
+  /**
+   * Get the selector names of the given datatype constructor of this sort.
+   * Returns an empty vector by default.
+   */
+  virtual std::vector<std::string> get_dt_cons_sel_names(
+      const std::string& name) const;
+  /**
    * Get the floating-point exponent size of this sort.
    * Returns 0 by default.
    */
