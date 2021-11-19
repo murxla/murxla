@@ -234,6 +234,7 @@ set_sigint_handler_stats(void)
   "                             via stdout)\n"                                 \
   "  -o name=value,...          solver options enabled by default\n"           \
   "\n"                                                                         \
+  " enable disabled theories:\n"                                               \
   "  --add-bags                 enable theory of bags in addition to \n"       \
   "                             the default set of enabled theories (non-\n"   \
   "                             standard theories are disabled by default)\n"  \
@@ -244,7 +245,17 @@ set_sigint_handler_stats(void)
   "                             the default set of enabled theories (non-\n"   \
   "                             standard theories are disabled by default)\n"  \
   "\n"                                                                         \
-  " enabling specific theories:\n"                                             \
+  " disable enabled theories:\n"                                               \
+  "  --no-arrays                disable theory of arrays\n"                    \
+  "  --no-bv                    disable theory of bit-vectors\n"               \
+  "  --no-dt                    disable theory of datatypes\n"                 \
+  "  --no-fp                    disable theory of floating-points\n"           \
+  "  --no-ints                  disable theory of integers\n"                  \
+  "  --no-quant                 disable quantifiers\n"                         \
+  "  --no-reals                 disable theory of reals\n"                     \
+  "  --no-strings               disable theory of strings\n"                   \
+  "\n"                                                                         \
+  " enable only specific theories:\n"                                          \
   "  --arrays                   theory of arrays\n"                            \
   "  --bags                     theory of bags (default: disabled)\n"          \
   "  --bv                       theory of bit-vectors\n"                       \
@@ -638,6 +649,38 @@ parse_options(Options& options, int argc, char* argv[])
       {
         options.disabled_theories.erase(it);
       }
+    }
+    else if (arg == "--no-arrays")
+    {
+      options.disabled_theories.insert(THEORY_ARRAY);
+    }
+    else if (arg == "--no-bv")
+    {
+      options.disabled_theories.insert(THEORY_BV);
+    }
+    else if (arg == "--no-dt")
+    {
+      options.disabled_theories.insert(THEORY_DT);
+    }
+    else if (arg == "--no-fp")
+    {
+      options.disabled_theories.insert(THEORY_FP);
+    }
+    else if (arg == "--no-ints")
+    {
+      options.disabled_theories.insert(THEORY_INT);
+    }
+    else if (arg == "--no-quant")
+    {
+      options.disabled_theories.insert(THEORY_QUANT);
+    }
+    else if (arg == "--no-reals")
+    {
+      options.disabled_theories.insert(THEORY_REAL);
+    }
+    else if (arg == "--no-strings")
+    {
+      options.disabled_theories.insert(THEORY_STRING);
     }
     else
     {
