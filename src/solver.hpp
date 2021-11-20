@@ -574,6 +574,11 @@ class Solver
    */
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
   /**
+   * Get the set of sort kinds that are unsupported as datatype
+   * selectorcodomain sort.
+   */
+  virtual SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const;
+  /**
    * Get the set of sort kinds that are unsupported as function domain sort.
    */
   virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;

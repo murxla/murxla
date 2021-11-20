@@ -123,6 +123,7 @@ class ShadowSolver : public Solver
   OpKindSet get_unsupported_op_kinds() const override;
   OpKindSortKindMap get_unsupported_op_sort_kinds() const override;
   SortKindSet get_unsupported_var_sort_kinds() const override;
+  SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
   SortKindSet get_unsupported_array_index_sort_kinds() const override;

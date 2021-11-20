@@ -668,6 +668,12 @@ Solver::get_unsupported_var_sort_kinds() const
 }
 
 SortKindSet
+Solver::get_unsupported_dt_sel_codomain_sort_kinds() const
+{
+  return {SORT_FUN};
+}
+
+SortKindSet
 Solver::get_unsupported_fun_domain_sort_kinds() const
 {
   return {SORT_FUN};

@@ -407,6 +407,10 @@ ActionMkSort::run()
     {
       if (!d_smgr.has_sort()) return false;
 
+      SortKindSet exclude_sorts =
+          d_solver.get_unsupported_dt_sel_codomain_sort_kinds();
+      bool no_sels = !d_smgr.has_sort_excluding(exclude_sorts, false);
+
       std::string dt_name = d_smgr.pick_symbol();
       std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
           ctors;
@@ -416,8 +420,9 @@ ActionMkSort::run()
 
       for (uint32_t i = 0; i < n_cons; ++i)
       {
-        uint32_t n_sels =
-            d_rng.pick<uint32_t>(MURXLA_DT_SEL_MIN, MURXLA_DT_SEL_MAX);
+        uint32_t n_sels = no_sels ? 0
+                                  : d_rng.pick<uint32_t>(MURXLA_DT_SEL_MIN,
+                                                         MURXLA_DT_SEL_MAX);
         std::vector<std::pair<std::string, Sort>> sels;
         std::unordered_set<std::string> sel_names;
         for (uint32_t j = 0; j < n_sels; ++j)
@@ -428,7 +433,7 @@ ActionMkSort::run()
             sname = d_smgr.pick_symbol();
           } while (sel_names.find(sname) != sel_names.end());
           sel_names.insert(sname);
-          Sort s = d_smgr.pick_sort();
+          Sort s = d_smgr.pick_sort_excluding(exclude_sorts, false);
           sels.emplace_back(sname, s);
         }
 
