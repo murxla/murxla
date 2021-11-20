@@ -841,467 +841,489 @@ ActionMkTerm::run()
 
   ++d_smgr.d_mbt_stats->d_ops[op.d_id];
 
-  std::vector<Term> args;
-  std::vector<uint32_t> indices;
-
-  if (arity == MURXLA_MK_TERM_N_ARGS || arity == MURXLA_MK_TERM_N_ARGS_BIN)
-  {
-    arity = d_rng.pick<uint32_t>(MURXLA_MK_TERM_N_ARGS_MIN(arity),
-                                 MURXLA_MK_TERM_N_ARGS_MAX);
-  }
-
-  /* Pick term arguments. */
-  if (kind == Op::BV_CONCAT)
+  if (kind == Op::DT_APPLY_SEL)
   {
     assert(!n_indices);
-    if (!d_smgr.has_sort_bv_max(MURXLA_BW_MAX - 1)) return false;
-    Sort sort   = d_smgr.pick_sort_bv_max(MURXLA_BW_MAX - 1);
-    uint32_t bw = MURXLA_BW_MAX - sort->get_bv_size();
-    if (!d_smgr.has_sort_bv_max(bw)) return false;
-    args.push_back(d_smgr.pick_term(sort));
-    do
-    {
-      sort = d_smgr.pick_sort_bv_max(bw);
-      args.push_back(d_smgr.pick_term(sort));
-      bw -= sort->get_bv_size();
-    } while (d_smgr.has_sort_bv_max(bw) && d_rng.pick_one_of_three());
-  }
-  else if (kind == Op::ITE)
-  {
-    assert(!n_indices);
-    assert(d_smgr.has_sort(SORT_BOOL));
-    assert(d_smgr.has_sort(op.get_arg_sort_kind(1)));
-    Sort sort = d_smgr.pick_sort(op.get_arg_sort_kind(1));
-    args.push_back(d_smgr.pick_term(SORT_BOOL));
-    args.push_back(d_smgr.pick_term(sort));
-    args.push_back(d_smgr.pick_term(sort));
-    sort_kind = sort->get_kind();
-  }
-  else if (kind == Op::ARRAY_SELECT)
-  {
-    assert(!n_indices);
-    Sort array_sort                = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = array_sort->get_sorts();
-    assert(sorts.size() == 2);
-    Sort index_sort   = sorts[0];
-    Sort element_sort = sorts[1];
-
-    assert(d_smgr.has_term(array_sort));
-    if (!d_smgr.has_term(index_sort)) return false;
-
-    args.push_back(d_smgr.pick_term(array_sort));
-    args.push_back(d_smgr.pick_term(index_sort));
-    sort_kind = element_sort->get_kind();
-  }
-  else if (kind == Op::ARRAY_STORE)
-  {
-    assert(!n_indices);
-    Sort array_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    assert(array_sort->is_array());
-    assert(array_sort->get_id());
-    const std::vector<Sort>& sorts = array_sort->get_sorts();
-    assert(sorts.size() == 2);
-    Sort index_sort   = sorts[0];
-    Sort element_sort = sorts[1];
-
-    assert(d_smgr.has_term(array_sort));
-    if (!d_smgr.has_term(index_sort)) return false;
-    if (!d_smgr.has_term(element_sort)) return false;
-
-    args.push_back(d_smgr.pick_term(array_sort));
-    args.push_back(d_smgr.pick_term(index_sort));
-    args.push_back(d_smgr.pick_term(element_sort));
-  }
-  else if (kind == Op::FP_FP)
-  {
-    assert(!n_indices);
-    /* we have to pick an FP sort first here, since we don't support
-     * arbitrary FP formats yet */
-    if (!d_smgr.has_sort(SORT_FP)) return false;
-    Sort sort   = d_smgr.pick_sort(SORT_FP, false);
-    uint32_t ew = sort->get_fp_exp_size();
-    uint32_t sw = sort->get_fp_sig_size();
-    if (!d_smgr.has_sort_bv(1)) return false;
-    if (!d_smgr.has_sort_bv(ew)) return false;
-    if (!d_smgr.has_sort_bv(sw - 1)) return false;
-    args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(1)));
-    args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(ew)));
-    args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(sw - 1)));
-  }
-  else if (kind == Op::FP_TO_FP_FROM_BV)
-  {
-    assert(n_indices == 2);
-    /* we have to pick an FP sort first here, since we don't support
-     * arbitrary FP formats yet */
-    if (!d_smgr.has_sort(SORT_FP)) return false;
-    Sort sort   = d_smgr.pick_sort(SORT_FP, false);
-    uint32_t ew = sort->get_fp_exp_size();
-    uint32_t sw = sort->get_fp_sig_size();
-    uint32_t bw = ew + sw;
-    if (!d_smgr.has_sort_bv(bw)) return false;
-    args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(bw)));
-
-    /* pick index parameters */
-    indices.push_back(ew);
-    indices.push_back(sw);
-  }
-  else if (kind == Op::FORALL || kind == Op::EXISTS)
-  {
-    assert(!n_indices);
-    assert(d_smgr.has_var());
-    assert(d_smgr.has_quant_body());
-    Term var  = d_smgr.pick_var();
-    Term body = d_smgr.pick_quant_body();
-    args.push_back(var);
-    args.push_back(body);
-  }
-  else if (d_smgr.d_arith_linear
-           && (kind == Op::INT_MUL || kind == Op::REAL_MUL))
-  {
-    assert(!n_indices);
-    assert(d_smgr.has_sort(sort_kind));
-    Sort sort = d_smgr.pick_sort(sort_kind);
-    if (!d_smgr.has_value(sort)) return false;
-    bool picked_non_const = false;
-    /* pick arguments */
-    for (int32_t i = 0; i < arity; ++i)
-    {
-      assert(d_smgr.has_term(sort));
-      if (picked_non_const)
-      {
-        args.push_back(d_smgr.pick_value(sort));
-        assert(args.back()->get_leaf_kind() == AbsTerm::LeafKind::VALUE);
-      }
-      else
-      {
-        args.push_back(d_smgr.pick_term(sort));
-        if (args.back()->get_leaf_kind() != AbsTerm::LeafKind::VALUE)
-          picked_non_const = true;
-      }
-    }
-  }
-  else if (kind == Op::RE_RANGE)
-  {
-    assert(!n_indices);
-    if (!d_smgr.has_string_char_value()) return false;
-    args.push_back(d_smgr.pick_string_char_value());
-    args.push_back(d_smgr.pick_string_char_value());
-  }
-  else if (kind == Op::UF_APPLY)
-  {
-    assert(!n_indices);
-    assert(d_smgr.has_term(SORT_FUN));
-
-    Sort fun_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    assert(fun_sort->is_fun());
-    assert(d_smgr.has_term(fun_sort));
-
-    args.push_back(d_smgr.pick_term(fun_sort));
-
-    const auto& sorts = fun_sort->get_sorts();
-    /* last sort is the codomain */
-    for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
-    {
-      if (!d_smgr.has_term(*it)) return false;
-      args.push_back(d_smgr.pick_term(*it));
-    }
-    sort_kind = sorts.back()->get_kind();
-  }
-  else if (kind == Op::SEQ_NTH)
-  {
-    assert(!n_indices);
-    Sort seq_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = seq_sort->get_sorts();
-    assert(sorts.size() == 1);
-    Sort element_sort = sorts[0];
-    assert(d_smgr.has_term(seq_sort));
-    assert(d_smgr.has_term(SORT_INT));
-    args.push_back(d_smgr.pick_term(seq_sort));
-    args.push_back(d_smgr.pick_term(SORT_INT));
-    sort_kind = element_sort->get_kind();
-  }
-  else if (kind == Op::SEQ_UNIT)
-  {
-    assert(!n_indices);
-    SortKindSet exclude_sorts =
-        d_solver.get_unsupported_seq_element_sort_kinds();
-    if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
-    Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
-    assert(exclude_sorts.find(element_sort->get_kind()) == exclude_sorts.end());
-    args.push_back(d_smgr.pick_term(element_sort));
-    sort_kind = SORT_SEQ;
-  }
-  else if (kind == Op::BAG_CHOOSE || kind == Op::SET_CHOOSE)
-  {
-    assert(!n_indices);
-    Sort sort                      = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = sort->get_sorts();
-    assert(sorts.size() == 1);
-    Sort element_sort = sorts[0];
-    args.push_back(d_smgr.pick_term(sort));
-    sort_kind = element_sort->get_kind();
-  }
-  else if (kind == Op::SET_SINGLETON)
-  {
-    assert(!n_indices);
-    SortKindSet exclude_sorts =
-        d_solver.get_unsupported_set_element_sort_kinds();
-    if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
-    Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
-    assert(exclude_sorts.find(element_sort->get_kind()) == exclude_sorts.end());
-    args.push_back(d_smgr.pick_term(element_sort));
-    sort_kind = SORT_SET;
-  }
-  else if (kind == Op::SET_INSERT)
-  {
-    assert(!n_indices);
-    Sort set_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = set_sort->get_sorts();
-    assert(sorts.size() == 1);
-    assert(d_smgr.has_term(set_sort));
-    Sort element_sort = sorts[0];
-    if (!d_smgr.has_term(element_sort)) return false;
-    args.push_back(d_smgr.pick_term(set_sort));
-    assert(sort_kind != SORT_ANY);
-    for (int32_t i = 0; i < arity; ++i)
-    {
-      args.push_back(d_smgr.pick_term(element_sort));
-    }
-    sort_kind = SORT_SET;
-  }
-  else if (kind == Op::SET_MEMBER)
-  {
-    assert(!n_indices);
-    Sort set_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = set_sort->get_sorts();
-    assert(sorts.size() == 1);
-    Sort element_sort = sorts[0];
-    if (!d_smgr.has_term(element_sort)) return false;
-    args.push_back(d_smgr.pick_term(set_sort));
-    args.push_back(d_smgr.pick_term(element_sort));
-    sort_kind = SORT_BOOL;
-  }
-  else if (kind == Op::SET_COMPREHENSION)
-  {
-    assert(!n_indices);
-    if (!d_smgr.has_var()) return false;
-    if (!d_smgr.has_quant_term()) return false;
-    if (!d_smgr.has_quant_body()) return false;
-    Term var  = d_smgr.pick_var();
-    Term body = d_smgr.pick_quant_body();
-    Term term = d_smgr.pick_quant_term();
-    args.push_back(body);
-    args.push_back(term);
-    args.push_back(var);
-    sort_kind = SORT_SET;
-  }
-  else if (kind == Op::BAG_COUNT)
-  {
-    assert(!n_indices);
-    Sort bag_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = bag_sort->get_sorts();
-    assert(sorts.size() == 1);
-    Sort element_sort = sorts[0];
-    if (!d_smgr.has_term(element_sort)) return false;
-    args.push_back(d_smgr.pick_term(bag_sort));
-    args.push_back(d_smgr.pick_term(element_sort));
-    sort_kind = SORT_INT;
-  }
-  else if (kind == Op::BAG_MAP)
-  {
-    assert(!n_indices);
-    Sort bag_sort                  = d_smgr.pick_sort(op.get_arg_sort_kind(0));
-    const std::vector<Sort>& sorts = bag_sort->get_sorts();
-    assert(sorts.size() == 1);
-    Sort element_sort = sorts[0];
-    if (!d_smgr.has_term(element_sort)) return false;
-    if (!d_smgr.has_fun({element_sort})) return false;
-    args.push_back(d_smgr.pick_term(bag_sort));
-    args.push_back(d_smgr.pick_fun({element_sort}));
-    sort_kind = SORT_BAG;
-  }
-  else if (kind == Op::BAG_MAKE)
-  {
-    assert(!n_indices);
-    const auto& exclude_sorts =
-        d_solver.get_unsupported_bag_element_sort_kinds();
-    if (!d_smgr.has_term(SORT_INT)) return false;
-    if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
-    Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
-    args.push_back(d_smgr.pick_term(element_sort));
-    args.push_back(d_smgr.pick_term(SORT_INT));
-    sort_kind = SORT_BAG;
+    if (!d_smgr.has_term(SORT_DT)) return false;
+    Term arg               = d_smgr.pick_term(SORT_DT);
+    Sort dt_sort           = arg->get_sort();
+    const auto& cons_names = dt_sort->get_dt_ctor_names();
+    const std::string& ctor =
+        d_rng.pick_from_set<std::vector<std::string>, std::string>(cons_names);
+    const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
+    if (sel_names.empty()) return false;
+    const std::string& sel =
+        d_rng.pick_from_set<std::vector<std::string>, std::string>(sel_names);
+    Sort codomain_sort = dt_sort->get_dt_sel_sort(ctor, sel);
+    sort_kind          = codomain_sort->get_kind();
+    _run(kind, sort_kind, {ctor, sel}, {arg});
   }
   else
   {
-    /* Always pick the same sort for a given sort kind. */
-    std::unordered_map<SortKind, Sort> sorts;
-    for (int32_t i = 0; i < arity; ++i)
+    std::vector<Term> args;
+    std::vector<uint32_t> indices;
+
+    if (arity == MURXLA_MK_TERM_N_ARGS || arity == MURXLA_MK_TERM_N_ARGS_BIN)
     {
-      SortKindSet skinds = op.get_arg_sort_kind(i);
-      assert(d_smgr.has_term(skinds));
-      std::unordered_map<SortKind, Sort>::iterator it;
-      Sort sort;
-      /* We have to ensure that we pick the same sort for all arguments
-       * if more than one sort kind is allowed (can only be the case for
-       * operators that allow SORT_ANY). */
-      SortKind skind = SORT_ANY, skind_map = SORT_ANY;
-      if (skinds.size() == 1)
-      {
-        skind     = *skinds.begin();
-        skind_map = skind;
-      }
-      it = sorts.find(skind_map);
-      if (it == sorts.end())
-      {
-        if (skind == SORT_ANY) skind = d_smgr.pick_sort_kind(skinds);
-        sort = d_smgr.pick_sort(skind);
-        sorts.emplace(skind_map, sort);
-      }
-      else
-      {
-        sort = it->second;
-      }
-      it = sorts.find(skind_map);
-      assert(it != sorts.end());
-      assert(d_smgr.has_term(sort));
-      args.push_back(d_smgr.pick_term(sort));
+      arity = d_rng.pick<uint32_t>(MURXLA_MK_TERM_N_ARGS_MIN(arity),
+                                   MURXLA_MK_TERM_N_ARGS_MAX);
     }
 
-    /* Numeral arguments for indexed operators. */
-    if (n_indices)
+    /* Pick term arguments. */
+    if (kind == Op::BV_CONCAT)
     {
-      if (kind == Op::BV_EXTRACT)
+      assert(!n_indices);
+      if (!d_smgr.has_sort_bv_max(MURXLA_BW_MAX - 1)) return false;
+      Sort sort   = d_smgr.pick_sort_bv_max(MURXLA_BW_MAX - 1);
+      uint32_t bw = MURXLA_BW_MAX - sort->get_bv_size();
+      if (!d_smgr.has_sort_bv_max(bw)) return false;
+      args.push_back(d_smgr.pick_term(sort));
+      do
       {
-        assert(n_indices == 2);
-        assert(args.size() == 1);
-        assert(args[0]->get_sort()->is_bv());
-        assert(sort_kind == SORT_BV);
-        uint32_t bw = args[0]->get_sort()->get_bv_size();
-        indices.push_back(d_rng.pick<uint32_t>(0, bw - 1));      // high
-        indices.push_back(d_rng.pick<uint32_t>(0, indices[0]));  // low
-      }
-      else if (kind == Op::BV_REPEAT)
+        sort = d_smgr.pick_sort_bv_max(bw);
+        args.push_back(d_smgr.pick_term(sort));
+        bw -= sort->get_bv_size();
+      } while (d_smgr.has_sort_bv_max(bw) && d_rng.pick_one_of_three());
+    }
+    else if (kind == Op::ITE)
+    {
+      assert(!n_indices);
+      assert(d_smgr.has_sort(SORT_BOOL));
+      assert(d_smgr.has_sort(op.get_arg_sort_kind(1)));
+      Sort sort = d_smgr.pick_sort(op.get_arg_sort_kind(1));
+      args.push_back(d_smgr.pick_term(SORT_BOOL));
+      args.push_back(d_smgr.pick_term(sort));
+      args.push_back(d_smgr.pick_term(sort));
+      sort_kind = sort->get_kind();
+    }
+    else if (kind == Op::ARRAY_SELECT)
+    {
+      assert(!n_indices);
+      Sort array_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = array_sort->get_sorts();
+      assert(sorts.size() == 2);
+      Sort index_sort   = sorts[0];
+      Sort element_sort = sorts[1];
+
+      assert(d_smgr.has_term(array_sort));
+      if (!d_smgr.has_term(index_sort)) return false;
+
+      args.push_back(d_smgr.pick_term(array_sort));
+      args.push_back(d_smgr.pick_term(index_sort));
+      sort_kind = element_sort->get_kind();
+    }
+    else if (kind == Op::ARRAY_STORE)
+    {
+      assert(!n_indices);
+      Sort array_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      assert(array_sort->is_array());
+      assert(array_sort->get_id());
+      const std::vector<Sort>& sorts = array_sort->get_sorts();
+      assert(sorts.size() == 2);
+      Sort index_sort   = sorts[0];
+      Sort element_sort = sorts[1];
+
+      assert(d_smgr.has_term(array_sort));
+      if (!d_smgr.has_term(index_sort)) return false;
+      if (!d_smgr.has_term(element_sort)) return false;
+
+      args.push_back(d_smgr.pick_term(array_sort));
+      args.push_back(d_smgr.pick_term(index_sort));
+      args.push_back(d_smgr.pick_term(element_sort));
+    }
+    else if (kind == Op::FP_FP)
+    {
+      assert(!n_indices);
+      /* we have to pick an FP sort first here, since we don't support
+       * arbitrary FP formats yet */
+      if (!d_smgr.has_sort(SORT_FP)) return false;
+      Sort sort   = d_smgr.pick_sort(SORT_FP, false);
+      uint32_t ew = sort->get_fp_exp_size();
+      uint32_t sw = sort->get_fp_sig_size();
+      if (!d_smgr.has_sort_bv(1)) return false;
+      if (!d_smgr.has_sort_bv(ew)) return false;
+      if (!d_smgr.has_sort_bv(sw - 1)) return false;
+      args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(1)));
+      args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(ew)));
+      args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(sw - 1)));
+    }
+    else if (kind == Op::FP_TO_FP_FROM_BV)
+    {
+      assert(n_indices == 2);
+      /* we have to pick an FP sort first here, since we don't support
+       * arbitrary FP formats yet */
+      if (!d_smgr.has_sort(SORT_FP)) return false;
+      Sort sort   = d_smgr.pick_sort(SORT_FP, false);
+      uint32_t ew = sort->get_fp_exp_size();
+      uint32_t sw = sort->get_fp_sig_size();
+      uint32_t bw = ew + sw;
+      if (!d_smgr.has_sort_bv(bw)) return false;
+      args.push_back(d_smgr.pick_term(d_smgr.pick_sort_bv(bw)));
+
+      /* pick index parameters */
+      indices.push_back(ew);
+      indices.push_back(sw);
+    }
+    else if (kind == Op::FORALL || kind == Op::EXISTS)
+    {
+      assert(!n_indices);
+      assert(d_smgr.has_var());
+      assert(d_smgr.has_quant_body());
+      Term var  = d_smgr.pick_var();
+      Term body = d_smgr.pick_quant_body();
+      args.push_back(var);
+      args.push_back(body);
+    }
+    else if (d_smgr.d_arith_linear
+             && (kind == Op::INT_MUL || kind == Op::REAL_MUL))
+    {
+      assert(!n_indices);
+      assert(d_smgr.has_sort(sort_kind));
+      Sort sort = d_smgr.pick_sort(sort_kind);
+      if (!d_smgr.has_value(sort)) return false;
+      bool picked_non_const = false;
+      /* pick arguments */
+      for (int32_t i = 0; i < arity; ++i)
       {
-        assert(n_indices == 1);
-        assert(args.size() == 1);
-        assert(args[0]->get_sort()->is_bv());
-        assert(sort_kind == SORT_BV);
-        uint32_t bw = args[0]->get_sort()->get_bv_size();
-        indices.push_back(
-            d_rng.pick<uint32_t>(1, std::max<uint32_t>(1, MURXLA_BW_MAX / bw)));
-      }
-      else if (kind == Op::BV_ROTATE_LEFT || kind == Op::BV_ROTATE_RIGHT)
-      {
-        assert(n_indices == 1);
-        assert(args.size() == 1);
-        assert(args[0]->get_sort()->is_bv());
-        assert(sort_kind == SORT_BV);
-        uint32_t bw = args[0]->get_sort()->get_bv_size();
-        indices.push_back(d_rng.pick<uint32_t>(0, bw));
-      }
-      else if (kind == Op::BV_SIGN_EXTEND || kind == Op::BV_ZERO_EXTEND)
-      {
-        assert(n_indices == 1);
-        assert(args.size() == 1);
-        assert(args[0]->get_sort()->is_bv());
-        assert(sort_kind == SORT_BV);
-        uint32_t bw = args[0]->get_sort()->get_bv_size();
-        indices.push_back(d_rng.pick<uint32_t>(0, MURXLA_BW_MAX - bw));
-      }
-      else if (kind == Op::FP_TO_FP_FROM_SBV || kind == Op::FP_TO_FP_FROM_UBV)
-      {
-        assert(n_indices == 2);
-        assert(args.size() == 2);
-        assert(args[0]->get_sort()->is_rm());
-        assert(args[1]->get_sort()->is_bv());
-        assert(sort_kind == SORT_FP);
-        /* term has FP sort, pick sort */
-        if (!d_smgr.has_sort(SORT_FP)) return false;
-        Sort sort = d_smgr.pick_sort(SORT_FP, false);
-        indices.push_back(sort->get_fp_exp_size());
-        indices.push_back(sort->get_fp_sig_size());
-      }
-      else if (kind == Op::FP_TO_FP_FROM_FP)
-      {
-        assert(n_indices == 2);
-        assert(args.size() == 2);
-        assert(args[0]->get_sort()->is_rm());
-        assert(args[1]->get_sort()->is_fp());
-        assert(sort_kind == SORT_FP);
-        /* term has new FP sort, pick sort */
-        if (!d_smgr.has_sort(SORT_FP)) return false;
-        Sort sort = d_smgr.pick_sort(SORT_FP, false);
-        indices.push_back(sort->get_fp_exp_size());
-        indices.push_back(sort->get_fp_sig_size());
-      }
-      else if (kind == Op::FP_TO_SBV || kind == Op::FP_TO_UBV)
-      {
-        assert(n_indices == 1);
-        assert(args.size() == 2);
-        assert(args[0]->get_sort()->is_rm());
-        assert(args[1]->get_sort()->is_fp());
-        assert(sort_kind == SORT_BV);
-        /* term has BV sort, pick bit-width */
-        indices.push_back(
-            d_rng.pick<uint32_t>(1, std::max<uint32_t>(1, MURXLA_BW_MAX)));
-      }
-      else if (kind == Op::FP_TO_FP_FROM_REAL)
-      {
-        assert(n_indices == 2);
-        assert(args.size() == 2);
-        assert(args[0]->get_sort()->is_rm());
-        assert(args[1]->get_sort()->is_real());
-        assert(sort_kind == SORT_FP);
-        /* term has FP sort, pick sort */
-        if (!d_smgr.has_sort(SORT_FP)) return false;
-        Sort sort = d_smgr.pick_sort(SORT_FP, false);
-        indices.push_back(sort->get_fp_exp_size());
-        indices.push_back(sort->get_fp_sig_size());
-      }
-      else if (kind == Op::INT_IS_DIV)
-      {
-        assert(n_indices == 1);
-        assert(args.size() == 1);
-        assert(args[0]->get_sort()->is_int());
-        assert(sort_kind == SORT_BOOL);
-        indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
-      }
-      else if (kind == Op::RE_LOOP)
-      {
-        assert(n_indices == 2);
-        assert(args.size() == 1);
-        assert(args[0]->get_sort()->is_reglan());
-        assert(sort_kind == SORT_REGLAN);
-        indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
-        indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
-      }
-      else if (kind == Op::RE_POW)
-      {
-        assert(n_indices == 1);
-        assert(args.size() == 1);
-        assert(args[0]->get_sort()->is_reglan());
-        assert(sort_kind == SORT_REGLAN);
-        indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
-      }
-      else
-      {
-        /* solver-specific op */
-        for (uint32_t i = 0; i < n_indices; ++i)
+        assert(d_smgr.has_term(sort));
+        if (picked_non_const)
         {
-          // Note: We select a generic parameter value > 0. If solver expects
-          //       a specific value range for param for given solver-specific
-          //       operator, modify value accordingly in Solver::mk_term.
-          //       See utils::uint32_to_value_in_range().
-          indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          args.push_back(d_smgr.pick_value(sort));
+          assert(args.back()->get_leaf_kind() == AbsTerm::LeafKind::VALUE);
+        }
+        else
+        {
+          args.push_back(d_smgr.pick_term(sort));
+          if (args.back()->get_leaf_kind() != AbsTerm::LeafKind::VALUE)
+            picked_non_const = true;
         }
       }
     }
-  }
+    else if (kind == Op::RE_RANGE)
+    {
+      assert(!n_indices);
+      if (!d_smgr.has_string_char_value()) return false;
+      args.push_back(d_smgr.pick_string_char_value());
+      args.push_back(d_smgr.pick_string_char_value());
+    }
+    else if (kind == Op::UF_APPLY)
+    {
+      assert(!n_indices);
+      assert(d_smgr.has_term(SORT_FUN));
 
-  /* Every OP with return sort SORT_ANY needs to set the kind above. */
-  assert(sort_kind != SORT_ANY);
-  _run(kind, sort_kind, args, indices);
+      Sort fun_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      assert(fun_sort->is_fun());
+      assert(d_smgr.has_term(fun_sort));
+
+      args.push_back(d_smgr.pick_term(fun_sort));
+
+      const auto& sorts = fun_sort->get_sorts();
+      /* last sort is the codomain */
+      for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
+      {
+        if (!d_smgr.has_term(*it)) return false;
+        args.push_back(d_smgr.pick_term(*it));
+      }
+      sort_kind = sorts.back()->get_kind();
+    }
+    else if (kind == Op::SEQ_NTH)
+    {
+      assert(!n_indices);
+      Sort seq_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = seq_sort->get_sorts();
+      assert(sorts.size() == 1);
+      Sort element_sort = sorts[0];
+      assert(d_smgr.has_term(seq_sort));
+      assert(d_smgr.has_term(SORT_INT));
+      args.push_back(d_smgr.pick_term(seq_sort));
+      args.push_back(d_smgr.pick_term(SORT_INT));
+      sort_kind = element_sort->get_kind();
+    }
+    else if (kind == Op::SEQ_UNIT)
+    {
+      assert(!n_indices);
+      SortKindSet exclude_sorts =
+          d_solver.get_unsupported_seq_element_sort_kinds();
+      if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+      Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
+      assert(exclude_sorts.find(element_sort->get_kind())
+             == exclude_sorts.end());
+      args.push_back(d_smgr.pick_term(element_sort));
+      sort_kind = SORT_SEQ;
+    }
+    else if (kind == Op::BAG_CHOOSE || kind == Op::SET_CHOOSE)
+    {
+      assert(!n_indices);
+      Sort sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = sort->get_sorts();
+      assert(sorts.size() == 1);
+      Sort element_sort = sorts[0];
+      args.push_back(d_smgr.pick_term(sort));
+      sort_kind = element_sort->get_kind();
+    }
+    else if (kind == Op::SET_SINGLETON)
+    {
+      assert(!n_indices);
+      SortKindSet exclude_sorts =
+          d_solver.get_unsupported_set_element_sort_kinds();
+      if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+      Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
+      assert(exclude_sorts.find(element_sort->get_kind())
+             == exclude_sorts.end());
+      args.push_back(d_smgr.pick_term(element_sort));
+      sort_kind = SORT_SET;
+    }
+    else if (kind == Op::SET_INSERT)
+    {
+      assert(!n_indices);
+      Sort set_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = set_sort->get_sorts();
+      assert(sorts.size() == 1);
+      assert(d_smgr.has_term(set_sort));
+      Sort element_sort = sorts[0];
+      if (!d_smgr.has_term(element_sort)) return false;
+      args.push_back(d_smgr.pick_term(set_sort));
+      assert(sort_kind != SORT_ANY);
+      for (int32_t i = 0; i < arity; ++i)
+      {
+        args.push_back(d_smgr.pick_term(element_sort));
+      }
+      sort_kind = SORT_SET;
+    }
+    else if (kind == Op::SET_MEMBER)
+    {
+      assert(!n_indices);
+      Sort set_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = set_sort->get_sorts();
+      assert(sorts.size() == 1);
+      Sort element_sort = sorts[0];
+      if (!d_smgr.has_term(element_sort)) return false;
+      args.push_back(d_smgr.pick_term(set_sort));
+      args.push_back(d_smgr.pick_term(element_sort));
+      sort_kind = SORT_BOOL;
+    }
+    else if (kind == Op::SET_COMPREHENSION)
+    {
+      assert(!n_indices);
+      if (!d_smgr.has_var()) return false;
+      if (!d_smgr.has_quant_term()) return false;
+      if (!d_smgr.has_quant_body()) return false;
+      Term var  = d_smgr.pick_var();
+      Term body = d_smgr.pick_quant_body();
+      Term term = d_smgr.pick_quant_term();
+      args.push_back(body);
+      args.push_back(term);
+      args.push_back(var);
+      sort_kind = SORT_SET;
+    }
+    else if (kind == Op::BAG_COUNT)
+    {
+      assert(!n_indices);
+      Sort bag_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = bag_sort->get_sorts();
+      assert(sorts.size() == 1);
+      Sort element_sort = sorts[0];
+      if (!d_smgr.has_term(element_sort)) return false;
+      args.push_back(d_smgr.pick_term(bag_sort));
+      args.push_back(d_smgr.pick_term(element_sort));
+      sort_kind = SORT_INT;
+    }
+    else if (kind == Op::BAG_MAP)
+    {
+      assert(!n_indices);
+      Sort bag_sort = d_smgr.pick_sort(op.get_arg_sort_kind(0));
+      const std::vector<Sort>& sorts = bag_sort->get_sorts();
+      assert(sorts.size() == 1);
+      Sort element_sort = sorts[0];
+      if (!d_smgr.has_term(element_sort)) return false;
+      if (!d_smgr.has_fun({element_sort})) return false;
+      args.push_back(d_smgr.pick_term(bag_sort));
+      args.push_back(d_smgr.pick_fun({element_sort}));
+      sort_kind = SORT_BAG;
+    }
+    else if (kind == Op::BAG_MAKE)
+    {
+      assert(!n_indices);
+      const auto& exclude_sorts =
+          d_solver.get_unsupported_bag_element_sort_kinds();
+      if (!d_smgr.has_term(SORT_INT)) return false;
+      if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+      Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
+      args.push_back(d_smgr.pick_term(element_sort));
+      args.push_back(d_smgr.pick_term(SORT_INT));
+      sort_kind = SORT_BAG;
+    }
+    else
+    {
+      /* Always pick the same sort for a given sort kind. */
+      std::unordered_map<SortKind, Sort> sorts;
+      for (int32_t i = 0; i < arity; ++i)
+      {
+        SortKindSet skinds = op.get_arg_sort_kind(i);
+        assert(d_smgr.has_term(skinds));
+        std::unordered_map<SortKind, Sort>::iterator it;
+        Sort sort;
+        /* We have to ensure that we pick the same sort for all arguments
+         * if more than one sort kind is allowed (can only be the case for
+         * operators that allow SORT_ANY). */
+        SortKind skind = SORT_ANY, skind_map = SORT_ANY;
+        if (skinds.size() == 1)
+        {
+          skind     = *skinds.begin();
+          skind_map = skind;
+        }
+        it = sorts.find(skind_map);
+        if (it == sorts.end())
+        {
+          if (skind == SORT_ANY) skind = d_smgr.pick_sort_kind(skinds);
+          sort = d_smgr.pick_sort(skind);
+          sorts.emplace(skind_map, sort);
+        }
+        else
+        {
+          sort = it->second;
+        }
+        it = sorts.find(skind_map);
+        assert(it != sorts.end());
+        assert(d_smgr.has_term(sort));
+        args.push_back(d_smgr.pick_term(sort));
+      }
+
+      /* Numeral arguments for indexed operators. */
+      if (n_indices)
+      {
+        if (kind == Op::BV_EXTRACT)
+        {
+          assert(n_indices == 2);
+          assert(args.size() == 1);
+          assert(args[0]->get_sort()->is_bv());
+          assert(sort_kind == SORT_BV);
+          uint32_t bw = args[0]->get_sort()->get_bv_size();
+          indices.push_back(d_rng.pick<uint32_t>(0, bw - 1));      // high
+          indices.push_back(d_rng.pick<uint32_t>(0, indices[0]));  // low
+        }
+        else if (kind == Op::BV_REPEAT)
+        {
+          assert(n_indices == 1);
+          assert(args.size() == 1);
+          assert(args[0]->get_sort()->is_bv());
+          assert(sort_kind == SORT_BV);
+          uint32_t bw = args[0]->get_sort()->get_bv_size();
+          indices.push_back(d_rng.pick<uint32_t>(
+              1, std::max<uint32_t>(1, MURXLA_BW_MAX / bw)));
+        }
+        else if (kind == Op::BV_ROTATE_LEFT || kind == Op::BV_ROTATE_RIGHT)
+        {
+          assert(n_indices == 1);
+          assert(args.size() == 1);
+          assert(args[0]->get_sort()->is_bv());
+          assert(sort_kind == SORT_BV);
+          uint32_t bw = args[0]->get_sort()->get_bv_size();
+          indices.push_back(d_rng.pick<uint32_t>(0, bw));
+        }
+        else if (kind == Op::BV_SIGN_EXTEND || kind == Op::BV_ZERO_EXTEND)
+        {
+          assert(n_indices == 1);
+          assert(args.size() == 1);
+          assert(args[0]->get_sort()->is_bv());
+          assert(sort_kind == SORT_BV);
+          uint32_t bw = args[0]->get_sort()->get_bv_size();
+          indices.push_back(d_rng.pick<uint32_t>(0, MURXLA_BW_MAX - bw));
+        }
+        else if (kind == Op::FP_TO_FP_FROM_SBV || kind == Op::FP_TO_FP_FROM_UBV)
+        {
+          assert(n_indices == 2);
+          assert(args.size() == 2);
+          assert(args[0]->get_sort()->is_rm());
+          assert(args[1]->get_sort()->is_bv());
+          assert(sort_kind == SORT_FP);
+          /* term has FP sort, pick sort */
+          if (!d_smgr.has_sort(SORT_FP)) return false;
+          Sort sort = d_smgr.pick_sort(SORT_FP, false);
+          indices.push_back(sort->get_fp_exp_size());
+          indices.push_back(sort->get_fp_sig_size());
+        }
+        else if (kind == Op::FP_TO_FP_FROM_FP)
+        {
+          assert(n_indices == 2);
+          assert(args.size() == 2);
+          assert(args[0]->get_sort()->is_rm());
+          assert(args[1]->get_sort()->is_fp());
+          assert(sort_kind == SORT_FP);
+          /* term has new FP sort, pick sort */
+          if (!d_smgr.has_sort(SORT_FP)) return false;
+          Sort sort = d_smgr.pick_sort(SORT_FP, false);
+          indices.push_back(sort->get_fp_exp_size());
+          indices.push_back(sort->get_fp_sig_size());
+        }
+        else if (kind == Op::FP_TO_SBV || kind == Op::FP_TO_UBV)
+        {
+          assert(n_indices == 1);
+          assert(args.size() == 2);
+          assert(args[0]->get_sort()->is_rm());
+          assert(args[1]->get_sort()->is_fp());
+          assert(sort_kind == SORT_BV);
+          /* term has BV sort, pick bit-width */
+          indices.push_back(
+              d_rng.pick<uint32_t>(1, std::max<uint32_t>(1, MURXLA_BW_MAX)));
+        }
+        else if (kind == Op::FP_TO_FP_FROM_REAL)
+        {
+          assert(n_indices == 2);
+          assert(args.size() == 2);
+          assert(args[0]->get_sort()->is_rm());
+          assert(args[1]->get_sort()->is_real());
+          assert(sort_kind == SORT_FP);
+          /* term has FP sort, pick sort */
+          if (!d_smgr.has_sort(SORT_FP)) return false;
+          Sort sort = d_smgr.pick_sort(SORT_FP, false);
+          indices.push_back(sort->get_fp_exp_size());
+          indices.push_back(sort->get_fp_sig_size());
+        }
+        else if (kind == Op::INT_IS_DIV)
+        {
+          assert(n_indices == 1);
+          assert(args.size() == 1);
+          assert(args[0]->get_sort()->is_int());
+          assert(sort_kind == SORT_BOOL);
+          indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+        }
+        else if (kind == Op::RE_LOOP)
+        {
+          assert(n_indices == 2);
+          assert(args.size() == 1);
+          assert(args[0]->get_sort()->is_reglan());
+          assert(sort_kind == SORT_REGLAN);
+          indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+        }
+        else if (kind == Op::RE_POW)
+        {
+          assert(n_indices == 1);
+          assert(args.size() == 1);
+          assert(args[0]->get_sort()->is_reglan());
+          assert(sort_kind == SORT_REGLAN);
+          indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+        }
+        else
+        {
+          /* solver-specific op */
+          for (uint32_t i = 0; i < n_indices; ++i)
+          {
+            // Note: We select a generic parameter value > 0. If solver expects
+            //       a specific value range for param for given solver-specific
+            //       operator, modify value accordingly in Solver::mk_term.
+            //       See utils::uint32_to_value_in_range().
+            indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          }
+        }
+      }
+    }
+
+    /* Every OP with return sort SORT_ANY needs to set the kind above. */
+    assert(sort_kind != SORT_ANY);
+    _run(kind, sort_kind, args, indices);
+  }
 
   ++d_smgr.d_mbt_stats->d_ops_ok[op.d_id];
 
@@ -1398,6 +1420,31 @@ ActionMkTerm::_run(Op::Kind kind,
   }
 
   d_smgr.add_term(res, sort_kind, aargs);
+  Sort res_sort = res->get_sort();
+
+  MURXLA_TRACE_RETURN << res << " " << res_sort;
+  check_term(d_rng, res);
+  return {res->get_id(), res_sort->get_id()};
+}
+
+std::vector<uint64_t>
+ActionMkTerm::_run(Op::Kind kind,
+                   SortKind sort_kind,
+                   const std::vector<std::string> str_args,
+                   const std::vector<Term>& args)
+{
+  std::stringstream trace_str;
+  trace_str << " " << kind << " " << sort_kind;
+  trace_str << " " << str_args.size();
+  for (const auto& s : str_args)
+  {
+    trace_str << " \"" << s << "\" ";
+  }
+  trace_str << " " << args.size() << args;
+  MURXLA_TRACE << get_kind() << trace_str.str();
+
+  Term res = d_solver.mk_term(kind, str_args, args);
+  d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;

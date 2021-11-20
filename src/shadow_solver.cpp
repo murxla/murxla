@@ -873,6 +873,19 @@ ShadowSolver::mk_term(const Op::Kind& kind,
   return res;
 }
 
+Term
+ShadowSolver::mk_term(const Op::Kind& kind,
+                      const std::vector<std::string>& str_args,
+                      const std::vector<Term>& args)
+{
+  std::vector<Term> terms_orig, terms_shadow;
+  get_terms_helper(args, terms_orig, terms_shadow);
+  Term t        = d_solver->mk_term(kind, str_args, terms_orig);
+  Term t_shadow = d_solver_shadow->mk_term(kind, str_args, terms_shadow);
+  std::shared_ptr<ShadowTerm> res(new ShadowTerm(t, t_shadow));
+  return res;
+}
+
 Sort
 ShadowSolver::get_sort(Term term, SortKind sort_kind) const
 {

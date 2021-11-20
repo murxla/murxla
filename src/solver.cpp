@@ -54,6 +54,44 @@ AbsSort::set_dt_ctors(const DatatypeConstructorMap& ctors)
   d_dt_ctors = ctors;
 }
 
+std::vector<std::string>
+AbsSort::get_dt_ctor_names() const
+{
+  std::vector<std::string> res(d_dt_ctors.size());
+  std::transform(
+      d_dt_ctors.begin(), d_dt_ctors.end(), res.begin(), [](const auto& pair) {
+        return pair.first;
+      });
+  return res;
+}
+
+std::vector<std::string>
+AbsSort::get_dt_sel_names(const std::string& ctor) const
+{
+  std::vector<std::string> res(d_dt_ctors.at(ctor).size());
+  std::transform(d_dt_ctors.at(ctor).begin(),
+                 d_dt_ctors.at(ctor).end(),
+                 res.begin(),
+                 [](const auto& pair) { return pair.first; });
+  return res;
+}
+
+Sort
+AbsSort::get_dt_sel_sort(const std::string& ctor, const std::string& sel) const
+{
+  const auto& sels = d_dt_ctors.at(ctor);
+  Sort res;
+  for (const auto& s : sels)
+  {
+    if (s.first == sel)
+    {
+      res = s.second;
+      break;
+    }
+  }
+  return res;
+}
+
 const AbsSort::DatatypeConstructorMap&
 AbsSort::get_dt_ctors() const
 {
@@ -775,13 +813,19 @@ Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 }
 
 Sort
-Solver::mk_sort(
-    SortKind kind,
-    const std::string& name,
-    const std::unordered_map<std::string,
-                             std::vector<std::pair<std::string, Sort>>>& ctors)
+Solver::mk_sort(SortKind kind,
+                const std::string& name,
+                const AbsSort::DatatypeConstructorMap& ctors)
 {
   return Sort();
+}
+
+Term
+Solver::mk_term(const Op::Kind& kind,
+                const std::vector<std::string>& str_args,
+                const std::vector<Term>& args)
+{
+  return Term();
 }
 
 std::vector<Term>

@@ -191,6 +191,12 @@ class AbsSort
 
   /** Get the datatype constructor map of this sort. */
   const DatatypeConstructorMap& get_dt_ctors() const;
+  /** Get the list of constructor names of this sort (murxla level). */
+  std::vector<std::string> get_dt_ctor_names() const;
+  /** Get the list of selector names of the given constructor (murxla level). */
+  std::vector<std::string> get_dt_sel_names(const std::string& ctor) const;
+  /** Get the sort of the selector of the given datatype constructor. */
+  Sort get_dt_sel_sort(const std::string& ctor, const std::string& sel) const;
 
  protected:
   /** The (unique) id of this sort. */
@@ -684,6 +690,10 @@ class Solver
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,
                        const std::vector<uint32_t>& params) = 0;
+
+  virtual Term mk_term(const Op::Kind& kind,
+                       const std::vector<std::string>& str_args,
+                       const std::vector<Term>& args);
 
   /**
    * Get a freshly wrapped solver sort of the given term.

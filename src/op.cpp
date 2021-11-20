@@ -146,7 +146,7 @@ OpKindManager::add_op_kinds()
 
   /* Datatypes */
   // add_op_kind(Op::DT_APPLY_CONS, n, 0,
-  // add_op_kind(Op::DT_APPLY_SEL, 2, 0,
+  add_op_kind(Op::DT_APPLY_SEL, 1, 0, SORT_ANY, {SORT_DT}, THEORY_DT);
   // add_op_kind(Op::DT_APPLY_TESTER, 2, 0,
   // add_op_kind(Op::DT_APPLY_UPDATER, 3, 0,
   // add_op_kind(Op::DT_MATCH, n, 0,

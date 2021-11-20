@@ -351,6 +351,10 @@ class ActionMkTerm : public Action
                              SortKind sort_kind,
                              std::vector<Term>& args,
                              const std::vector<uint32_t>& indices);
+  std::vector<uint64_t> _run(Op::Kind kind,
+                             SortKind sort_kind,
+                             const std::vector<std::string> str_args,
+                             const std::vector<Term>& args);
 };
 
 class ActionMkConst : public Action
