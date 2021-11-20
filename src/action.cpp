@@ -1346,8 +1346,23 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   uint32_t n_tokens  = tokens.size();
   Op::Kind op_kind   = tokens[0];
   SortKind sort_kind = get_sort_kind_from_str(tokens[1]);
-  uint32_t n_args    = str_to_uint32(tokens[2]);
-  uint32_t idx       = 3;
+
+  uint32_t n_args, n_str_args = 0, idx = 3;
+  std::vector<std::string> str_args;
+
+  if (op_kind == Op::DT_APPLY_SEL)
+  {
+    n_str_args = str_to_uint32(tokens[2]);
+    for (uint32_t i = 0; i < n_str_args; ++i, ++idx)
+    {
+      str_args.push_back(str_to_str(tokens[idx]));
+    }
+    n_args = str_to_uint32(tokens[idx++]);
+  }
+  else
+  {
+    n_args = str_to_uint32(tokens[2]);
+  }
 
   MURXLA_CHECK_TRACE(idx + n_args <= n_tokens)
       << "expected " << n_args << " term argument(s), got " << n_tokens - 3;
@@ -1372,6 +1387,12 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
       indices.push_back(param);
     }
   }
+
+  if (op_kind == Op::DT_APPLY_SEL)
+  {
+    return _run(op_kind, sort_kind, str_args, args);
+  }
+
   return _run(op_kind, sort_kind, args, indices);
 }
 
