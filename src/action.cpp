@@ -862,7 +862,7 @@ ActionMkTerm::run()
       if (!d_smgr.has_term(codomain_sort)) return false;
       args.push_back(d_smgr.pick_term(codomain_sort));
     }
-    sort_kind = SORT_DT;
+    assert(sort_kind != SORT_ANY);
     _run(kind, sort_kind, dt_sort, {ctor}, args);
   }
   else if (kind == Op::DT_APPLY_SEL)
@@ -880,7 +880,20 @@ ActionMkTerm::run()
         d_rng.pick_from_set<std::vector<std::string>, std::string>(sel_names);
     Sort codomain_sort = dt_sort->get_dt_sel_sort(ctor, sel);
     sort_kind          = codomain_sort->get_kind();
+    assert(sort_kind != SORT_ANY);
     _run(kind, sort_kind, {ctor, sel}, {arg});
+  }
+  else if (kind == Op::DT_APPLY_TESTER)
+  {
+    assert(!n_indices);
+    if (!d_smgr.has_term(SORT_DT)) return false;
+    Term arg               = d_smgr.pick_term(SORT_DT);
+    Sort dt_sort           = arg->get_sort();
+    const auto& cons_names = dt_sort->get_dt_ctor_names();
+    const std::string& ctor =
+        d_rng.pick_from_set<std::vector<std::string>, std::string>(cons_names);
+    assert(sort_kind != SORT_ANY);
+    _run(kind, sort_kind, {ctor}, {arg});
   }
   else
   {
@@ -1073,7 +1086,6 @@ ActionMkTerm::run()
       assert(exclude_sorts.find(element_sort->get_kind())
              == exclude_sorts.end());
       args.push_back(d_smgr.pick_term(element_sort));
-      sort_kind = SORT_SEQ;
     }
     else if (kind == Op::BAG_CHOOSE || kind == Op::SET_CHOOSE)
     {
@@ -1095,7 +1107,6 @@ ActionMkTerm::run()
       assert(exclude_sorts.find(element_sort->get_kind())
              == exclude_sorts.end());
       args.push_back(d_smgr.pick_term(element_sort));
-      sort_kind = SORT_SET;
     }
     else if (kind == Op::SET_INSERT)
     {
@@ -1112,7 +1123,6 @@ ActionMkTerm::run()
       {
         args.push_back(d_smgr.pick_term(element_sort));
       }
-      sort_kind = SORT_SET;
     }
     else if (kind == Op::SET_MEMBER)
     {
@@ -1124,7 +1134,6 @@ ActionMkTerm::run()
       if (!d_smgr.has_term(element_sort)) return false;
       args.push_back(d_smgr.pick_term(set_sort));
       args.push_back(d_smgr.pick_term(element_sort));
-      sort_kind = SORT_BOOL;
     }
     else if (kind == Op::SET_COMPREHENSION)
     {
@@ -1138,7 +1147,6 @@ ActionMkTerm::run()
       args.push_back(body);
       args.push_back(term);
       args.push_back(var);
-      sort_kind = SORT_SET;
     }
     else if (kind == Op::BAG_COUNT)
     {
@@ -1150,7 +1158,6 @@ ActionMkTerm::run()
       if (!d_smgr.has_term(element_sort)) return false;
       args.push_back(d_smgr.pick_term(bag_sort));
       args.push_back(d_smgr.pick_term(element_sort));
-      sort_kind = SORT_INT;
     }
     else if (kind == Op::BAG_MAP)
     {
@@ -1163,7 +1170,6 @@ ActionMkTerm::run()
       if (!d_smgr.has_fun({element_sort})) return false;
       args.push_back(d_smgr.pick_term(bag_sort));
       args.push_back(d_smgr.pick_fun({element_sort}));
-      sort_kind = SORT_BAG;
     }
     else if (kind == Op::BAG_MAKE)
     {
@@ -1175,7 +1181,6 @@ ActionMkTerm::run()
       Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
       args.push_back(d_smgr.pick_term(element_sort));
       args.push_back(d_smgr.pick_term(SORT_INT));
-      sort_kind = SORT_BAG;
     }
     else
     {

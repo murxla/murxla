@@ -364,8 +364,8 @@ class AbsTerm
    * solver reports. May be Op::UNDEFINED.
    *
    * Must be overriden and may not return Op::UNDEFINED if the solver supports
-   * the theory of sequences (required for properly initializing sequence sorts
-   * for Op::SEQ_UNIT).
+   * the theory of bags, sets and sequences (required for properly initializing
+   * sorts that are implicitly created, e.g., sequence sorts for Op::SEQ_UNIT).
    */
   virtual const Op::Kind& get_kind() const;
 
@@ -702,7 +702,7 @@ class Solver
 
   /**
    * Create term with given string and term arguments.
-   * This is mainly intended for Op::APPLY_SELECTOR.
+   * This is mainly intended for Op::APPLY_SELECTOR and Op::APPLY_TESTER.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<std::string>& str_args,
