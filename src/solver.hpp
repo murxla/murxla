@@ -692,11 +692,27 @@ class Solver
                        const std::string& name,
                        const AbsSort::DatatypeConstructorMap& ctors);
 
+  /**
+   * Create term with given term arguments and indices.
+   * This is mainly intende for Op::APPLY_SELECTOR.
+   */
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,
-                       const std::vector<uint32_t>& params) = 0;
+                       const std::vector<uint32_t>& indices) = 0;
 
+  /**
+   * Create term with given string and term arguments.
+   * This is mainly intended for Op::APPLY_SELECTOR.
+   */
   virtual Term mk_term(const Op::Kind& kind,
+                       const std::vector<std::string>& str_args,
+                       const std::vector<Term>& args);
+  /**
+   * Create term with given Sort, string and term arguments.
+   * This is mainly intended for Op::APPLY_CONSTRUCTOR.
+   */
+  virtual Term mk_term(const Op::Kind& kind,
+                       Sort sort,
                        const std::vector<std::string>& str_args,
                        const std::vector<Term>& args);
 

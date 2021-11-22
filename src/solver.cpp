@@ -834,6 +834,15 @@ Solver::mk_term(const Op::Kind& kind,
   return Term();
 }
 
+Term
+Solver::mk_term(const Op::Kind& kind,
+                Sort sort,
+                const std::vector<std::string>& str_args,
+                const std::vector<Term>& args)
+{
+  return Term();
+}
+
 std::vector<Term>
 Solver::get_unsat_core()
 {

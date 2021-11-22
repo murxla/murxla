@@ -258,6 +258,10 @@ class Cvc5Solver : public Solver
   Term mk_term(const Op::Kind& kind,
                const std::vector<std::string>& str_args,
                const std::vector<Term>& args) override;
+  Term mk_term(const Op::Kind& kind,
+               Sort sort,
+               const std::vector<std::string>& str_args,
+               const std::vector<Term>& args);
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 

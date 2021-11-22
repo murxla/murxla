@@ -343,8 +343,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  EQ_RANGE,
 
 //  ## Datatypes
-//  APPLY_CONSTRUCTOR,
-//  APPLY_SELECTOR,
 //  APPLY_TESTER,
 //  TUPLE_UPDATE,
 //  RECORD_UPDATE,
@@ -425,6 +423,7 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::BV_SGE, ::cvc5::api::Kind::BITVECTOR_SGE},
 
         /* Datatypes */
+        {Op::DT_APPLY_CONS, ::cvc5::api::Kind::APPLY_CONSTRUCTOR},
         {Op::DT_APPLY_SEL, ::cvc5::api::Kind::APPLY_SELECTOR},
         {Op::DT_SIZE, ::cvc5::api::Kind::DT_SIZE},
 
@@ -684,6 +683,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::BITVECTOR_SGE, Op::BV_SGE},
 
         /* Datatypes */
+        {::cvc5::api::Kind::APPLY_CONSTRUCTOR, Op::DT_APPLY_CONS},
         {::cvc5::api::Kind::APPLY_SELECTOR, Op::DT_APPLY_SEL},
         {::cvc5::api::Kind::DT_SIZE, Op::DT_SIZE},
 
@@ -2111,6 +2111,40 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   MURXLA_TEST(cvc5_kind == cvc5_res.getKind()
               || (cvc5_res.getSort().isBoolean()
                   && cvc5_res.getKind() == ::cvc5::api::Kind::AND));
+  return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
+}
+
+Term
+Cvc5Solver::mk_term(const Op::Kind& kind,
+                    Sort sort,
+                    const std::vector<std::string>& str_args,
+                    const std::vector<Term>& args)
+{
+  assert(kind == Op::DT_APPLY_CONS);
+  assert(sort->is_dt());
+  assert(str_args.size() == 1);
+
+  ::cvc5::api::Term cvc5_res;
+  ::cvc5::api::Kind cvc5_kind    = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
+  ::cvc5::api::Sort cvc5_dt_sort = Cvc5Sort::get_cvc5_sort(sort);
+  std::vector<::cvc5::api::Term> cvc5_args =
+      Cvc5Term::terms_to_cvc5_terms(args);
+
+  cvc5_args.insert(cvc5_args.begin(),
+                   cvc5_dt_sort.getDatatype().getConstructorTerm(str_args[0]));
+
+  if (d_rng.flip_coin())
+  {
+    ::cvc5::api::Op cvc5_opterm =
+        d_solver->mkOp(::cvc5::api::Kind::APPLY_CONSTRUCTOR);
+    cvc5_res = d_solver->mkTerm(cvc5_opterm, cvc5_args);
+  }
+  else
+  {
+    cvc5_res = d_solver->mkTerm(cvc5_kind, cvc5_args);
+  }
+  MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(cvc5_kind == cvc5_res.getKind());
   return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
 }
 

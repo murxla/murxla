@@ -899,6 +899,24 @@ ShadowSolver::mk_term(const Op::Kind& kind,
   return res;
 }
 
+Term
+ShadowSolver::mk_term(const Op::Kind& kind,
+                      Sort sort,
+                      const std::vector<std::string>& str_args,
+                      const std::vector<Term>& args)
+{
+  ShadowSort* s_sort = dynamic_cast<ShadowSort*>(sort.get());
+  Sort sort_orig     = s_sort->get_sort();
+  Sort sort_shadow   = s_sort->get_sort_shadow();
+  std::vector<Term> terms_orig, terms_shadow;
+  get_terms_helper(args, terms_orig, terms_shadow);
+  Term t = d_solver->mk_term(kind, sort_orig, str_args, terms_orig);
+  Term t_shadow =
+      d_solver_shadow->mk_term(kind, sort_shadow, str_args, terms_shadow);
+  std::shared_ptr<ShadowTerm> res(new ShadowTerm(t, t_shadow));
+  return res;
+}
+
 Sort
 ShadowSolver::get_sort(Term term, SortKind sort_kind) const
 {

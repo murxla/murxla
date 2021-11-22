@@ -846,7 +846,26 @@ ActionMkTerm::run()
 
   ++d_smgr.d_mbt_stats->d_ops[op.d_id];
 
-  if (kind == Op::DT_APPLY_SEL)
+  if (kind == Op::DT_APPLY_CONS)
+  {
+    assert(!n_indices);
+    if (!d_smgr.has_term(SORT_DT)) return false;
+    Sort dt_sort           = d_smgr.pick_sort(SORT_DT);
+    const auto& cons_names = dt_sort->get_dt_ctor_names();
+    const std::string& ctor =
+        d_rng.pick_from_set<std::vector<std::string>, std::string>(cons_names);
+    const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
+    std::vector<Term> args;
+    for (const auto& sel : sel_names)
+    {
+      Sort codomain_sort = dt_sort->get_dt_sel_sort(ctor, sel);
+      if (!d_smgr.has_term(codomain_sort)) return false;
+      args.push_back(d_smgr.pick_term(codomain_sort));
+    }
+    sort_kind = SORT_DT;
+    _run(kind, sort_kind, dt_sort, {ctor}, args);
+  }
+  else if (kind == Op::DT_APPLY_SEL)
   {
     assert(!n_indices);
     if (!d_smgr.has_term(SORT_DT)) return false;
@@ -1346,6 +1365,7 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   uint32_t n_tokens  = tokens.size();
   Op::Kind op_kind   = tokens[0];
   SortKind sort_kind = get_sort_kind_from_str(tokens[1]);
+  Sort sort;
 
   uint32_t n_args, n_str_args = 0, idx = 3;
   std::vector<std::string> str_args;
@@ -1353,6 +1373,17 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   if (op_kind == Op::DT_APPLY_SEL)
   {
     n_str_args = str_to_uint32(tokens[2]);
+    for (uint32_t i = 0; i < n_str_args; ++i, ++idx)
+    {
+      str_args.push_back(str_to_str(tokens[idx]));
+    }
+    n_args = str_to_uint32(tokens[idx++]);
+  }
+  else if (op_kind == Op::DT_APPLY_CONS)
+  {
+    uint32_t id = untrace_str_to_id(tokens[2]);
+    sort        = d_smgr.get_sort(id);
+    n_str_args  = str_to_uint32(tokens[idx++]);
     for (uint32_t i = 0; i < n_str_args; ++i, ++idx)
     {
       str_args.push_back(str_to_str(tokens[idx]));
@@ -1391,6 +1422,11 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   if (op_kind == Op::DT_APPLY_SEL)
   {
     return _run(op_kind, sort_kind, str_args, args);
+  }
+
+  if (op_kind == Op::DT_APPLY_CONS)
+  {
+    return _run(op_kind, sort_kind, sort, str_args, args);
   }
 
   return _run(op_kind, sort_kind, args, indices);
@@ -1470,6 +1506,32 @@ ActionMkTerm::_run(Op::Kind kind,
   MURXLA_TRACE << get_kind() << trace_str.str();
 
   Term res = d_solver.mk_term(kind, str_args, args);
+  d_smgr.add_term(res, sort_kind, args);
+  Sort res_sort = res->get_sort();
+
+  MURXLA_TRACE_RETURN << res << " " << res_sort;
+  check_term(d_rng, res);
+  return {res->get_id(), res_sort->get_id()};
+}
+
+std::vector<uint64_t>
+ActionMkTerm::_run(Op::Kind kind,
+                   SortKind sort_kind,
+                   Sort sort,
+                   const std::vector<std::string> str_args,
+                   const std::vector<Term>& args)
+{
+  std::stringstream trace_str;
+  trace_str << " " << kind << " " << sort_kind << " " << sort;
+  trace_str << " " << str_args.size();
+  for (const auto& s : str_args)
+  {
+    trace_str << " \"" << s << "\" ";
+  }
+  trace_str << " " << args.size() << args;
+  MURXLA_TRACE << get_kind() << trace_str.str();
+
+  Term res = d_solver.mk_term(kind, sort, str_args, args);
   d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
 

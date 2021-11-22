@@ -145,7 +145,7 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::BV_ZERO_EXTEND, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
 
   /* Datatypes */
-  // add_op_kind(Op::DT_APPLY_CONS, n, 0,
+  add_op_kind(Op::DT_APPLY_CONS, n, 0, SORT_DT, {SORT_DT}, THEORY_DT);
   add_op_kind(Op::DT_APPLY_SEL, 1, 0, SORT_ANY, {SORT_DT}, THEORY_DT);
   // add_op_kind(Op::DT_APPLY_TESTER, 2, 0,
   // add_op_kind(Op::DT_APPLY_UPDATER, 3, 0,
