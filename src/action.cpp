@@ -1394,7 +1394,8 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   uint32_t n_args, n_str_args = 0, idx = 3;
   std::vector<std::string> str_args;
 
-  if (op_kind == Op::DT_APPLY_SEL)
+  if (op_kind == Op::DT_APPLY_SEL || op_kind == Op::DT_APPLY_TESTER
+      || op_kind == Op::DT_APPLY_UPDATER)
   {
     n_str_args = str_to_uint32(tokens[2]);
     for (uint32_t i = 0; i < n_str_args; ++i, ++idx)
@@ -1443,7 +1444,8 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
     }
   }
 
-  if (op_kind == Op::DT_APPLY_SEL)
+  if (op_kind == Op::DT_APPLY_SEL || op_kind == Op::DT_APPLY_TESTER
+      || op_kind == Op::DT_APPLY_UPDATER)
   {
     return _run(op_kind, sort_kind, str_args, args);
   }
