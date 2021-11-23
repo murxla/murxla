@@ -895,6 +895,25 @@ ActionMkTerm::run()
     assert(sort_kind != SORT_ANY);
     _run(kind, sort_kind, {ctor}, {arg});
   }
+  else if (kind == Op::DT_APPLY_UPDATER)
+  {
+    assert(!n_indices);
+    if (!d_smgr.has_term(SORT_DT)) return false;
+    std::vector<Term> args;
+    args.push_back(d_smgr.pick_term(SORT_DT));
+    Sort dt_sort           = args[0]->get_sort();
+    const auto& cons_names = dt_sort->get_dt_ctor_names();
+    const std::string& ctor =
+        d_rng.pick_from_set<std::vector<std::string>, std::string>(cons_names);
+    const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
+    if (sel_names.empty()) return false;
+    const std::string& sel =
+        d_rng.pick_from_set<std::vector<std::string>, std::string>(sel_names);
+    Sort codomain_sort = dt_sort->get_dt_sel_sort(ctor, sel);
+    if (!d_smgr.has_term(codomain_sort)) return false;
+    args.push_back(d_smgr.pick_term(codomain_sort));
+    _run(kind, sort_kind, {ctor, sel}, args);
+  }
   else
   {
     std::vector<Term> args;

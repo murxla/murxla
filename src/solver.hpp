@@ -694,7 +694,6 @@ class Solver
 
   /**
    * Create term with given term arguments and indices.
-   * This is mainly intende for Op::APPLY_SELECTOR.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,
@@ -702,14 +701,15 @@ class Solver
 
   /**
    * Create term with given string and term arguments.
-   * This is mainly intended for Op::APPLY_SELECTOR and Op::APPLY_TESTER.
+   * This is mainly intended for Op::DT_APPLY_SEL, Op::DT_APPLY_TESTER and
+   * Op::DT_APPLY_UPDATER.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<std::string>& str_args,
                        const std::vector<Term>& args);
   /**
    * Create term with given Sort, string and term arguments.
-   * This is mainly intended for Op::APPLY_CONSTRUCTOR.
+   * This is mainly intended for Op::DT_APPLY_CONS.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        Sort sort,
