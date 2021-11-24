@@ -1025,8 +1025,11 @@ ActionMkTerm::run()
       assert(!n_indices);
       assert(d_smgr.has_var());
       assert(d_smgr.has_quant_body());
-      Term var  = d_smgr.pick_var();
+      /* First pick quant body, then pick variable.  pick_var() pops the
+       * variable scope level. */
       Term body = d_smgr.pick_quant_body();
+      /* Now pick variable, is picked from the top most level. */
+      Term var = d_smgr.pick_var();
       args.push_back(var);
       args.push_back(body);
     }
@@ -1160,9 +1163,12 @@ ActionMkTerm::run()
       if (!d_smgr.has_var()) return false;
       if (!d_smgr.has_quant_term()) return false;
       if (!d_smgr.has_quant_body()) return false;
-      Term var  = d_smgr.pick_var();
+      /* First pick quant body and quant term, then pick variable.
+       * pick_var() pops the variable scope level. */
       Term body = d_smgr.pick_quant_body();
       Term term = d_smgr.pick_quant_term();
+      /* Now pick variable, is picked from the top most level. */
+      Term var = d_smgr.pick_var();
       args.push_back(body);
       args.push_back(term);
       args.push_back(var);
