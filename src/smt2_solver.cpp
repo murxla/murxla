@@ -1162,6 +1162,29 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));
 }
 
+Sort
+Smt2Solver::mk_sort(SortKind kind,
+                    const std::string& name,
+                    const AbsSort::DatatypeConstructorMap& ctors)
+{
+  assert(kind == SORT_DT);
+  std::stringstream smt2;
+  smt2 << "(declare-datatype " << name << " (";
+  for (const auto& c : ctors)
+  {
+    smt2 << " (" << c.first;
+    for (const auto& s : c.second)
+    {
+      Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(s.second.get());
+      smt2 << " (" << s.first << " " << smt2_sort->get_repr() << ")";
+    }
+    smt2 << ")";
+  }
+  smt2 << "))";
+  dump_smt2(smt2.str());
+  return std::shared_ptr<Smt2Sort>(new Smt2Sort(name));
+}
+
 Term
 Smt2Solver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
