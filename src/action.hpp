@@ -120,6 +120,9 @@ class Action
   /** Execute the action. */
   virtual bool run() = 0;
 
+  /** Indicates whether action should be disabled after run() returns false. */
+  bool disable() const { return d_disable; }
+
   /**
    * Replay an action.
    *
@@ -175,6 +178,8 @@ class Action
   ReturnValue d_returns = NONE;
   /** True if this is an empty transition. */
   bool d_is_empty = false;
+
+  bool d_disable = false;
 
  private:
   /* Action kind. */

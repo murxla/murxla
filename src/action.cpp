@@ -2273,7 +2273,11 @@ bool
 ActionCheckSat::run()
 {
   assert(d_solver.is_initialized());
-  if (!d_smgr.d_incremental && d_smgr.d_n_sat_calls > 0) return false;
+  if (!d_smgr.d_incremental && d_smgr.d_n_sat_calls > 0)
+  {
+    d_disable = true;
+    return false;
+  }
   /* Only call action immediately again with low priority. */
   if (d_smgr.d_sat_called && d_rng.pick_with_prob(95)) return false;
   _run();
@@ -2305,7 +2309,11 @@ bool
 ActionCheckSatAssuming::run()
 {
   assert(d_solver.is_initialized());
-  if (!d_smgr.d_incremental) return false;
+  if (!d_smgr.d_incremental)
+  {
+    d_disable = true;
+    return false;
+  }
   if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
   /* Only call action immediately again with low priority. */
   if (d_smgr.d_sat_called && d_rng.pick_with_prob(95)) return false;
@@ -2358,10 +2366,18 @@ bool
 ActionGetUnsatAssumptions::run()
 {
   assert(d_solver.is_initialized());
-  if (!d_smgr.d_unsat_assumptions) return false;
+  if (!d_smgr.d_unsat_assumptions)
+  {
+    d_disable = true;
+    return false;
+  }
   if (!d_smgr.d_sat_called) return false;
   if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
-  if (!d_smgr.d_incremental) return false;
+  if (!d_smgr.d_incremental)
+  {
+    d_disable = true;
+    return false;
+  }
   if (!d_smgr.has_assumed()) return false;
   _run();
   return true;
@@ -2389,7 +2405,11 @@ bool
 ActionGetUnsatCore::run()
 {
   assert(d_solver.is_initialized());
-  if (!d_smgr.d_unsat_cores) return false;
+  if (!d_smgr.d_unsat_cores)
+  {
+    d_disable = true;
+    return false;
+  }
   if (!d_smgr.d_sat_called) return false;
   if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
   _run();
@@ -2425,7 +2445,11 @@ ActionGetValue::run()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.has_term()) return false;
-  if (!d_smgr.d_model_gen) return false;
+  if (!d_smgr.d_model_gen)
+  {
+    d_disable = true;
+    return false;
+  }
   if (!d_smgr.d_sat_called) return false;
   if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
 
@@ -2474,6 +2498,11 @@ bool
 ActionPush::run()
 {
   assert(d_solver.is_initialized());
+  if (!d_smgr.d_incremental)
+  {
+    d_disable = true;
+    return false;
+  }
   uint32_t n_levels = d_rng.pick<uint32_t>(1, MURXLA_MAX_N_PUSH_LEVELS);
   _run(n_levels);
   return true;
@@ -2503,6 +2532,11 @@ bool
 ActionPop::run()
 {
   assert(d_solver.is_initialized());
+  if (!d_smgr.d_incremental)
+  {
+    d_disable = true;
+    return false;
+  }
   if (d_smgr.d_n_push_levels == 0) return false;
   uint32_t n_levels = d_rng.pick<uint32_t>(1, d_smgr.d_n_push_levels);
   _run(n_levels);
@@ -2586,7 +2620,11 @@ bool
 ActionPrintModel::run()
 {
   assert(d_solver.is_initialized());
-  if (!d_smgr.d_model_gen) return false;
+  if (!d_smgr.d_model_gen)
+  {
+    d_disable = true;
+    return false;
+  }
   if (!d_smgr.d_sat_called) return false;
   if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
   _run();
