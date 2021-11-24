@@ -1807,17 +1807,25 @@ bool
 ActionMkValue::run()
 {
   assert(d_solver.is_initialized());
+  SortKindSet exclude = {
+      SORT_ARRAY,
+      SORT_FUN,
+      SORT_BAG,
+      SORT_DT,
+      SORT_SEQ,
+      SORT_SET,
+      SORT_RM,
+      SORT_REGLAN,
+  };
+
   /* Pick sort of value. */
-  if (!d_smgr.has_sort()) return false;
-  Sort sort          = d_smgr.pick_sort();
+  if (!d_smgr.has_sort_excluding(exclude)) return false;
+  Sort sort          = d_smgr.pick_sort_excluding(exclude);
   SortKind sort_kind = sort->get_kind();
 
   /* Pick value. */
   switch (sort_kind)
   {
-    case SORT_ARRAY:
-    case SORT_FUN: return false;
-
     case SORT_BOOL: _run(sort, d_rng.flip_coin()); break;
 
     case SORT_BV:
@@ -1892,12 +1900,6 @@ ActionMkValue::run()
       }
       break;
 
-    case SORT_BAG:
-    case SORT_DT:
-    case SORT_SEQ:
-    case SORT_SET:
-    case SORT_RM: return false;
-
     case SORT_STRING:
     {
       uint32_t len = d_rng.pick<uint32_t>(0, MURXLA_STR_LEN_MAX);
@@ -1909,8 +1911,6 @@ ActionMkValue::run()
       _run(sort, value);
     }
     break;
-
-    case SORT_REGLAN: return false;
 
     default: assert(false);
   }
