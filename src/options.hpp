@@ -90,7 +90,7 @@ struct Options
   /** The name of the solver to use for checking. */
   std::string check_solver_name;
   /** Whether unsat core/unsat assumptions/model checking is enabled. */
-  bool check_solver = true;
+  bool check_solver = false;
 
   /** Command line options that need to be set for enabled solver. */
   std::vector<std::pair<std::string, std::string>> solver_options;
