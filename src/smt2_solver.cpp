@@ -354,7 +354,7 @@ Smt2Term::get_repr() const
       std::stringstream res;
 
       size_t i = 0;
-      if (cur->d_leaf_kind != LeafKind::NONE)
+      if (cur->get_leaf_kind() != AbsTerm::LeafKind::NONE)
       {
         assert(!cur->d_repr.empty());
         res << cur->d_repr;
@@ -399,7 +399,7 @@ Smt2Term::get_repr() const
             {
               if (i > 0) res << " ";
               const Smt2Term* smt2_term = to_smt2_term(cur->d_args[i]);
-              assert(smt2_term->d_leaf_kind == LeafKind::VAR);
+              assert(smt2_term->get_leaf_kind() == AbsTerm::LeafKind::VARIABLE);
               Smt2Sort* smt2_sort =
                   static_cast<Smt2Sort*>(cur->d_args[i]->get_sort().get());
 
@@ -438,7 +438,7 @@ Smt2Term::get_repr() const
       {
         uint64_t nrefs = refs[cur];
 
-        if (nrefs > 1 && cur->d_leaf_kind == LeafKind::NONE)
+        if (nrefs > 1 && cur->get_leaf_kind() == AbsTerm::LeafKind::NONE)
         {
           std::stringstream let;
           let << "_let" << lets.size() / 2;
@@ -726,8 +726,7 @@ Smt2Solver::mk_var(Sort sort, const std::string& name)
     ss << "_v" << d_n_unnamed_vars++;
     symbol = ss.str();
   }
-  return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VAR, symbol));
+  return std::shared_ptr<Smt2Term>(new Smt2Term(Op::UNDEFINED, {}, {}, symbol));
 }
 
 Term
@@ -758,8 +757,7 @@ Smt2Solver::mk_const(Sort sort, const std::string& name)
     smt2 << "(declare-const " << symbol << " " << smt2_sort->get_repr() << ")";
   }
   dump_smt2(smt2.str());
-  return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::CONST, symbol));
+  return std::shared_ptr<Smt2Term>(new Smt2Term(Op::UNDEFINED, {}, {}, symbol));
 }
 
 Term
@@ -774,8 +772,7 @@ Smt2Solver::mk_value(Sort sort, bool value)
 {
   assert(sort->is_bool());
   std::string val = value ? "true" : "false";
-  return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val));
+  return std::shared_ptr<Smt2Term>(new Smt2Term(Op::UNDEFINED, {}, {}, val));
 }
 
 Term
@@ -827,8 +824,8 @@ Smt2Solver::mk_value(Sort sort, const std::string& value)
 
     default: assert(false);
   }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
 }
 
 Term
@@ -837,8 +834,8 @@ Smt2Solver::mk_value(Sort sort, const std::string& num, const std::string& den)
   assert(sort->is_real());
   std::stringstream val;
   val << "(/ " << num << " " << den << ")";
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
 }
 
 Term
@@ -864,8 +861,8 @@ Smt2Solver::mk_value(Sort sort, const std::string& value, Base base)
       val << "#b" << value;
       break;
   }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
 }
 
 Term
@@ -978,8 +975,8 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 
     default: assert(false);
   }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(
-      Op::UNDEFINED, {}, {}, Smt2Term::LeafKind::VALUE, val.str()));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
 }
 
 static std::string
@@ -1197,8 +1194,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     auto aargs = args;
     assert(aargs.size() == 2);
     std::swap(aargs[0], aargs[1]);
-    return std::shared_ptr<Smt2Term>(
-        new Smt2Term(kind, aargs, params, Smt2Term::LeafKind::NONE, ""));
+    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, aargs, params, ""));
   }
   else if (kind == Op::SET_COMPREHENSION)
   {
@@ -1207,8 +1203,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     std::vector<Term> aargs{args.begin() + 2, args.end()};
     aargs.push_back(args[0]);
     aargs.push_back(args[1]);
-    return std::shared_ptr<Smt2Term>(
-        new Smt2Term(kind, aargs, params, Smt2Term::LeafKind::NONE, ""));
+    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, aargs, params, ""));
   }
   else if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
   {
@@ -1216,12 +1211,10 @@ Smt2Solver::mk_term(const Op::Kind& kind,
      * { elem_1, ..., elem_n, set }  */
     std::vector<Term> aargs{args.begin() + 1, args.end()};
     aargs.push_back(args[0]);
-    return std::shared_ptr<Smt2Term>(
-        new Smt2Term(kind, aargs, params, Smt2Term::LeafKind::NONE, ""));
+    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, aargs, params, ""));
   }
 
-  return std::shared_ptr<Smt2Term>(
-      new Smt2Term(kind, args, params, Smt2Term::LeafKind::NONE, ""));
+  return std::shared_ptr<Smt2Term>(new Smt2Term(kind, args, params, ""));
 }
 
 Sort

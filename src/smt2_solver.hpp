@@ -66,23 +66,13 @@ class Smt2Sort : public AbsSort
 class Smt2Term : public AbsTerm
 {
  public:
-  enum LeafKind
-  {
-    NONE,
-    CONST,
-    VALUE,
-    VAR,
-  };
-
   Smt2Term(Op::Kind kind,
            std::vector<Term> args,
            std::vector<uint32_t> params,
-           LeafKind leaf_kind,
            std::string repr)
       : d_kind(kind),
         d_args(args),
         d_indices(params),
-        d_leaf_kind(leaf_kind),
         d_repr(repr)
   {
   }
@@ -101,7 +91,6 @@ class Smt2Term : public AbsTerm
   Op::Kind d_kind;
   std::vector<Term> d_args;
   std::vector<uint32_t> d_indices;
-  LeafKind d_leaf_kind = LeafKind::NONE;
   std::string d_repr;
 
   std::unordered_map<std::string, std::string> d_op_kind_to_str = {
