@@ -2140,16 +2140,10 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       }
 
       cvc5_res = cvc5_opterm.isNull()
-                     ? d_solver->mkTerm(cvc5_kind,
-                                        cvc5_dt_sort.getDatatype()
-                                            .getConstructor(str_args[0])
-                                            .getTesterTerm(),
-                                        cvc5_args[0])
-                     : d_solver->mkTerm(cvc5_opterm,
-                                        cvc5_dt_sort.getDatatype()
-                                            .getConstructor(str_args[0])
-                                            .getTesterTerm(),
-                                        cvc5_args[0]);
+                     ? d_solver->mkTerm(
+                         cvc5_kind, cvc5_ctor.getTesterTerm(), cvc5_args[0])
+                     : d_solver->mkTerm(
+                         cvc5_opterm, cvc5_ctor.getTesterTerm(), cvc5_args[0]);
     }
     else
     {
