@@ -343,9 +343,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  EQ_RANGE,
 
 //  ## Datatypes
-//  APPLY_TESTER,
-//  TUPLE_UPDATE,
-//  RECORD_UPDATE,
 //  MATCH,
 //  MATCH_CASE,
 //  MATCH_BIND_CASE,
@@ -1820,6 +1817,14 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   int32_t n_args    = args.size();
   uint32_t n_indices             = indices.size();
 
+  if ((kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_FP
+       || kind == Op::FP_TO_FP_FROM_SBV || kind == Op::FP_TO_FP_FROM_UBV
+       || kind == Op::FP_TO_FP_FROM_REAL)
+      && d_rng.flip_coin())
+  {
+    cvc5_kind = ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC;
+  }
+
   /* Create Op. Flip a coin for non-indexed operators. */
   switch (n_indices)
   {
@@ -1894,6 +1899,11 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     ::cvc5::api::Term body = Cvc5Term::get_cvc5_term(args.back());
     cvc5_args              = {bvl, body};
   }
+  else if (kind == Op::RE_ALL)
+  {
+    cvc5_res = d_solver->mkRegexpAll();
+    goto DONE;
+  }
   else if (kind == Cvc5Term::OP_REAL_PI && d_rng.flip_coin())
   {
     cvc5_res = d_solver->mkPi();
@@ -1903,13 +1913,6 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     cvc5_res = d_solver->mkRegexpNone();
     goto DONE;
-  }
-  else if ((kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_FP
-            || kind == Op::FP_TO_FP_FROM_SBV || kind == Op::FP_TO_FP_FROM_UBV
-            || kind == Op::FP_TO_FP_FROM_REAL)
-           && d_rng.flip_coin())
-  {
-    cvc5_kind = ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC;
   }
   else if (kind == Cvc5Term::OP_BV_ITE)
   {
