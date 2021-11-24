@@ -528,7 +528,7 @@ class Solver
 
   using OpKindSortKindMap = std::unordered_map<Op::Kind, SortKindSet>;
 
-  Solver(SolverSeedGenerator& sng) : d_rng(sng.seed()) {}
+  Solver(SolverSeedGenerator& sng);
   Solver() = delete;
   virtual ~Solver() = default;
 
@@ -736,6 +736,9 @@ class Solver
   const std::unordered_set<AbsTerm::SpecialValueKind>& get_special_values(
       SortKind sort_kind) const;
 
+  /** Return all sort kinds for which we have special values. */
+  const SortKindSet& get_special_values_sort_kinds() const;
+
   virtual std::string get_option_name_incremental() const       = 0;
   virtual std::string get_option_name_model_gen() const         = 0;
   virtual std::string get_option_name_unsat_assumptions() const = 0;
@@ -834,6 +837,9 @@ class Solver
             AbsTerm::SPECIAL_VALUE_SET_UNIVERSE}},
           {SORT_ANY, {}},
   };
+
+  /** Contains all sort kinds for which we have special values. */
+  SortKindSet d_special_values_sort_kinds;
 };
 
 /** Serialize a solver result to given stream.  */

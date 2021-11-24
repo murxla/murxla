@@ -624,6 +624,17 @@ operator<<(std::ostream& out, const std::vector<Term>& vector)
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
+Solver::Solver(SolverSeedGenerator& sng) : d_rng(sng.seed())
+{
+  for (const auto& it : d_special_values)
+  {
+    if (!it.second.empty())
+    {
+      d_special_values_sort_kinds.insert(it.first);
+    }
+  }
+}
+
 bool
 Solver::supports_theory(TheoryId theory) const
 {
@@ -752,6 +763,7 @@ Solver::add_special_value(SortKind sort_kind,
   if (d_special_values.find(sort_kind) == d_special_values.end())
   {
     d_special_values[sort_kind] = {};
+    d_special_values_sort_kinds.insert(sort_kind);
   }
   if (d_special_values.at(sort_kind).find(kind)
       == d_special_values.at(sort_kind).end())
@@ -780,6 +792,12 @@ Solver::get_special_values(SortKind sort_kind) const
     return d_special_values.at(SORT_ANY);
   }
   return d_special_values.at(sort_kind);
+}
+
+const SortKindSet&
+Solver::get_special_values_sort_kinds() const
+{
+  return d_special_values_sort_kinds;
 }
 
 Term

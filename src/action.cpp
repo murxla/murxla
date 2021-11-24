@@ -2099,11 +2099,11 @@ ActionMkSpecialValue::run()
 {
   assert(d_solver.is_initialized());
   /* Pick sort of value. */
-  if (!d_smgr.has_sort()) return false;
-  Sort sort                  = d_smgr.pick_sort();
+  if (!d_smgr.has_sort(d_solver.get_special_values_sort_kinds())) return false;
+  Sort sort = d_smgr.pick_sort(d_solver.get_special_values_sort_kinds(), false);
   SortKind sort_kind         = sort->get_kind();
   const auto& special_values = d_solver.get_special_values(sort_kind);
-  if (special_values.empty()) return false;
+  assert(!special_values.empty());
   _run(sort,
        d_rng.pick_from_set<std::unordered_set<AbsTerm::SpecialValueKind>,
                            AbsTerm::SpecialValueKind>(special_values));
