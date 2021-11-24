@@ -59,7 +59,7 @@ Statistics::print() const
   {
     std::cout << "  " << static_cast<SortKind>(i) << ": " << d_sorts[i] << " ("
               << d_sorts_ok[i] << ")" << std::endl;
-    sum += d_ops[i];
+    sum += d_sorts[i];
     sum_ok += d_sorts_ok[i];
   }
   std::cout << "  Total: " << sum << " (" << sum_ok << ")" << std::endl;
