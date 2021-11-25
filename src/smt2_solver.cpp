@@ -821,6 +821,9 @@ void
 Smt2Solver::new_solver()
 {
   d_initialized = true;
+  /* Global declarations must always enabled since via the API there's no such
+   * concept of scoped declaration of symbols. */
+  dump_smt2("(set-option :global-declarations true)");
   if (d_online)
   {
     dump_smt2("(set-option :print-success true)");
