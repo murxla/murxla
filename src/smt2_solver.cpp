@@ -1344,12 +1344,6 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     }
     break;
 
-    case SORT_FUN:
-    {
-      sort = get_fun_sort_string(term->get_sort()->get_sorts());
-    }
-    break;
-
     case SORT_BV:
       if (kind == Op::BV_CONCAT)
       {
