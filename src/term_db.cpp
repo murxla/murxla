@@ -103,7 +103,7 @@ TermDb::add_term(Term& term,
     return;
   }
 
-  assert(term->get_sort() == nullptr);
+  assert(term->get_sort() == nullptr || term->get_sort() == sort);
 
   /* Determine scope level of term. */
   std::vector<uint64_t> levels = term->get_levels();

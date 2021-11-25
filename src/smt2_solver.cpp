@@ -450,7 +450,8 @@ Smt2Term::get_repr() const
     {
       cache.emplace(cur, "");
       /* Do not go below quantifiers. */
-      if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS)
+      if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS
+          || cur->d_kind == Op::SET_COMPREHENSION)
       {
         continue;
       }
@@ -859,7 +860,8 @@ Smt2Solver::mk_var(Sort sort, const std::string& name)
     ss << "_v" << d_n_unnamed_vars++;
     symbol = ss.str();
   }
-  return std::shared_ptr<Smt2Term>(new Smt2Term(Op::UNDEFINED, {}, {}, symbol));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, {}, symbol));
 }
 
 Term
@@ -891,7 +893,8 @@ Smt2Solver::mk_const(Sort sort, const std::string& name)
     smt2 << "(declare-const " << symbol << " " << smt2_sort->get_repr() << ")";
   }
   dump_smt2(smt2.str());
-  return std::shared_ptr<Smt2Term>(new Smt2Term(Op::UNDEFINED, {}, {}, symbol));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, {}, symbol));
 }
 
 Term
@@ -906,7 +909,8 @@ Smt2Solver::mk_value(Sort sort, bool value)
 {
   assert(sort->is_bool());
   std::string val = value ? "true" : "false";
-  return std::shared_ptr<Smt2Term>(new Smt2Term(Op::UNDEFINED, {}, {}, val));
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::UNDEFINED, {}, {}, {}, val));
 }
 
 Term
@@ -959,7 +963,7 @@ Smt2Solver::mk_value(Sort sort, const std::string& value)
     default: assert(false);
   }
   return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
+      new Smt2Term(Op::UNDEFINED, {}, {}, {}, val.str()));
 }
 
 Term
@@ -969,7 +973,7 @@ Smt2Solver::mk_value(Sort sort, const std::string& num, const std::string& den)
   std::stringstream val;
   val << "(/ " << num << " " << den << ")";
   return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
+      new Smt2Term(Op::UNDEFINED, {}, {}, {}, val.str()));
 }
 
 Term
@@ -996,7 +1000,7 @@ Smt2Solver::mk_value(Sort sort, const std::string& value, Base base)
       break;
   }
   return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
+      new Smt2Term(Op::UNDEFINED, {}, {}, {}, val.str()));
 }
 
 Term
@@ -1110,7 +1114,7 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
     default: assert(false);
   }
   return std::shared_ptr<Smt2Term>(
-      new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
+      new Smt2Term(Op::UNDEFINED, {}, {}, {}, val.str()));
 }
 
 Sort
@@ -1224,7 +1228,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     auto aargs = args;
     assert(aargs.size() == 2);
     std::swap(aargs[0], aargs[1]);
-    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, aargs, params, ""));
+    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, {}, aargs, params, ""));
   }
   else if (kind == Op::SET_COMPREHENSION)
   {
@@ -1233,7 +1237,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     std::vector<Term> aargs{args.begin() + 2, args.end()};
     aargs.push_back(args[0]);
     aargs.push_back(args[1]);
-    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, aargs, params, ""));
+    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, {}, aargs, params, ""));
   }
   else if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
   {
@@ -1241,10 +1245,29 @@ Smt2Solver::mk_term(const Op::Kind& kind,
      * { elem_1, ..., elem_n, set }  */
     std::vector<Term> aargs{args.begin() + 1, args.end()};
     aargs.push_back(args[0]);
-    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, aargs, params, ""));
+    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, {}, aargs, params, ""));
   }
 
-  return std::shared_ptr<Smt2Term>(new Smt2Term(kind, args, params, ""));
+  return std::shared_ptr<Smt2Term>(new Smt2Term(kind, {}, args, params, ""));
+}
+
+Term
+Smt2Solver::mk_term(const Op::Kind& kind,
+                    const std::vector<std::string>& str_args,
+                    const std::vector<Term>& args)
+{
+  return std::shared_ptr<Smt2Term>(new Smt2Term(kind, str_args, args, {}, ""));
+}
+
+Term
+Smt2Solver::mk_term(const Op::Kind& kind,
+                    Sort sort,
+                    const std::vector<std::string>& str_args,
+                    const std::vector<Term>& args)
+{
+  Smt2Term* res = new Smt2Term(kind, str_args, args, {}, "");
+  res->set_sort(sort);
+  return std::shared_ptr<Smt2Term>(res);
 }
 
 Sort
@@ -1317,6 +1340,12 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       || kind == Op::SET_MINUS || kind == Op::SET_UNION)
   {
     assert(args.size() >= 1);
+    return args[0]->get_sort();
+  }
+
+  if (kind == Op::DT_APPLY_UPDATER)
+  {
+    assert(args.size() == 2);
     return args[0]->get_sort();
   }
 

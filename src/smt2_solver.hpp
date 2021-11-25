@@ -84,12 +84,14 @@ class Smt2Term : public AbsTerm
 {
  public:
   Smt2Term(Op::Kind kind,
+           std::vector<std::string> str_args,
            std::vector<Term> args,
-           std::vector<uint32_t> params,
+           std::vector<uint32_t> indices,
            std::string repr)
       : d_kind(kind),
+        d_str_args(str_args),
         d_args(args),
-        d_indices(params),
+        d_indices(indices),
         d_repr(repr)
   {
   }
@@ -105,10 +107,17 @@ class Smt2Term : public AbsTerm
   const std::string get_repr() const;
 
  private:
+  /** The operator kind of this term. */
   Op::Kind d_kind;
+  /** The string arguments of this term. Only needed for DT operator kinds. */
+  std::vector<std::string> d_str_args;
+  /** The arguments (children) of this term. */
   std::vector<Term> d_args;
+  /** The indices of this term. */
   std::vector<uint32_t> d_indices;
   std::string d_repr;
+  /** The datatype sort of this term. Only needed for DT_APPLY_CONS. */
+  Sort d_dt_sort;
 
   std::unordered_map<std::string, std::string> d_op_kind_to_str = {
       {Op::DISTINCT, "distinct"},
@@ -182,6 +191,11 @@ class Smt2Term : public AbsTerm
       {Op::BV_UREM, "bvurem"},
       {Op::BV_XNOR, "bvxnor"},
       {Op::BV_XOR, "bvxor"},
+
+      /* Datatypes */
+      {Op::DT_APPLY_TESTER, "is"},
+      {Op::DT_APPLY_UPDATER, "update"},
+      {Op::DT_MATCH, "match"},
 
       /* FP */
       {Op::FP_TO_FP_FROM_BV, "to_fp"},
@@ -362,7 +376,14 @@ class Smt2Solver : public Solver
 
   Term mk_term(const Op::Kind& kind,
                const std::vector<Term>& args,
-               const std::vector<uint32_t>& params) override;
+               const std::vector<uint32_t>& indices) override;
+  Term mk_term(const Op::Kind& kind,
+               const std::vector<std::string>& str_args,
+               const std::vector<Term>& args) override;
+  Term mk_term(const Op::Kind& kind,
+               Sort sort,
+               const std::vector<std::string>& str_args,
+               const std::vector<Term>& args) override;
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 
