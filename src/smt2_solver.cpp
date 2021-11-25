@@ -14,6 +14,124 @@ namespace murxla {
 namespace smt2 {
 
 /* -------------------------------------------------------------------------- */
+
+static std::string
+get_bool_sort_string()
+{
+  return "Bool";
+}
+
+static std::string
+get_int_sort_string()
+{
+  return "Int";
+}
+
+static std::string
+get_real_sort_string()
+{
+  return "Real";
+}
+
+static std::string
+get_rm_sort_string()
+{
+  return "RoundingMode";
+}
+
+static std::string
+get_string_sort_string()
+{
+  return "String";
+}
+
+static std::string
+get_reglan_sort_string()
+{
+  return "RegLan";
+}
+
+static std::string
+get_bv_sort_string(uint32_t size)
+{
+  std::stringstream sort;
+  sort << "(_ BitVec " << size << ")";
+  return sort.str();
+}
+
+static std::string
+get_fp_sort_string(uint32_t esize, uint32_t ssize)
+{
+  std::stringstream sort;
+  sort << "(_ FloatingPoint " << esize << " " << ssize << ")";
+  return sort.str();
+}
+
+static std::string
+get_array_sort_string(const std::vector<Sort>& sorts)
+{
+  std::stringstream sort;
+  sort << "(Array";
+  for (const Sort& s : sorts)
+  {
+    sort << " " << static_cast<const Smt2Sort*>(s.get())->get_repr();
+  }
+  sort << ")";
+  return sort.str();
+}
+
+static std::string
+get_bag_sort_string(const std::vector<Sort>& sorts)
+{
+  assert(sorts.size() == 1);
+  std::stringstream sort;
+  sort << "(Bag";
+  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
+  sort << ") ";
+  return sort.str();
+}
+
+static std::string
+get_fun_sort_string(const std::vector<Sort>& sorts)
+{
+  std::stringstream sort;
+  sort << "(";
+  for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
+  {
+    if (it > sorts.begin())
+    {
+      sort << " ";
+    }
+    sort << static_cast<const Smt2Sort*>(it->get())->get_repr();
+  }
+  sort << ") ";
+  sort << static_cast<const Smt2Sort*>(sorts.back().get())->get_repr();
+  return sort.str();
+}
+
+static std::string
+get_seq_sort_string(const std::vector<Sort>& sorts)
+{
+  assert(sorts.size() == 1);
+  std::stringstream sort;
+  sort << "(Seq";
+  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
+  sort << ") ";
+  return sort.str();
+}
+
+static std::string
+get_set_sort_string(const std::vector<Sort>& sorts)
+{
+  assert(sorts.size() == 1);
+  std::stringstream sort;
+  sort << "(Set";
+  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
+  sort << ") ";
+  return sort.str();
+}
+
+/* -------------------------------------------------------------------------- */
 /* Smt2Sort                                                                   */
 /* -------------------------------------------------------------------------- */
 
@@ -141,6 +259,18 @@ const std::string&
 Smt2Sort::get_repr() const
 {
   return d_repr;
+}
+
+void
+Smt2Sort::set_symbol(const std::string& symbol)
+{
+  d_symbol = symbol;
+}
+
+std::string
+Smt2Sort::get_next_symbol()
+{
+  return "_s" + std::to_string(s_symbol_cnt++);
 }
 
 Sort
@@ -744,7 +874,8 @@ Smt2Solver::mk_const(Sort sort, const std::string& name)
       ss << "_f" << d_n_unnamed_ufs++;
       symbol = ss.str();
     }
-    smt2 << "(declare-fun " << symbol << " " << smt2_sort->get_repr() << ")";
+    smt2 << "(declare-fun " << symbol << " "
+         << get_fun_sort_string(smt2_sort->get_sorts()) << ")";
   }
   else
   {
@@ -979,122 +1110,6 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       new Smt2Term(Op::UNDEFINED, {}, {}, val.str()));
 }
 
-static std::string
-get_bool_sort_string()
-{
-  return "Bool";
-}
-
-static std::string
-get_int_sort_string()
-{
-  return "Int";
-}
-
-static std::string
-get_real_sort_string()
-{
-  return "Real";
-}
-
-static std::string
-get_rm_sort_string()
-{
-  return "RoundingMode";
-}
-
-static std::string
-get_string_sort_string()
-{
-  return "String";
-}
-
-static std::string
-get_reglan_sort_string()
-{
-  return "RegLan";
-}
-
-static std::string
-get_bv_sort_string(uint32_t size)
-{
-  std::stringstream sort;
-  sort << "(_ BitVec " << size << ")";
-  return sort.str();
-}
-
-static std::string
-get_fp_sort_string(uint32_t esize, uint32_t ssize)
-{
-  std::stringstream sort;
-  sort << "(_ FloatingPoint " << esize << " " << ssize << ")";
-  return sort.str();
-}
-
-static std::string
-get_array_sort_string(const std::vector<Sort>& sorts)
-{
-  std::stringstream sort;
-  sort << "(Array";
-  for (const Sort& s : sorts)
-  {
-    sort << " " << static_cast<const Smt2Sort*>(s.get())->get_repr();
-  }
-  sort << ")";
-  return sort.str();
-}
-
-static std::string
-get_bag_sort_string(const std::vector<Sort>& sorts)
-{
-  assert(sorts.size() == 1);
-  std::stringstream sort;
-  sort << "(Bag";
-  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
-  sort << ") ";
-  return sort.str();
-}
-
-static std::string
-get_fun_sort_string(const std::vector<Sort>& sorts)
-{
-  std::stringstream sort;
-  sort << "(";
-  for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
-  {
-    if (it > sorts.begin())
-    {
-      sort << " ";
-    }
-    sort << static_cast<const Smt2Sort*>(it->get())->get_repr();
-  }
-  sort << ") ";
-  sort << static_cast<const Smt2Sort*>(sorts.back().get())->get_repr();
-  return sort.str();
-}
-
-static std::string
-get_seq_sort_string(const std::vector<Sort>& sorts)
-{
-  assert(sorts.size() == 1);
-  std::stringstream sort;
-  sort << "(Seq";
-  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
-  sort << ") ";
-  return sort.str();
-}
-
-static std::string
-get_set_sort_string(const std::vector<Sort>& sorts)
-{
-  assert(sorts.size() == 1);
-  std::stringstream sort;
-  sort << "(Set";
-  sort << " " << static_cast<const Smt2Sort*>(sorts[0].get())->get_repr();
-  sort << ") ";
-  return sort.str();
-}
-
 Sort
 Smt2Solver::mk_sort(const std::string name, uint32_t arity)
 {
@@ -1146,14 +1161,26 @@ Smt2Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 Sort
 Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
+  if (kind == SORT_FUN)
+  {
+  }
+
   std::string sort;
   switch (kind)
   {
     case SORT_ARRAY: sort = get_array_sort_string(sorts); break;
     case SORT_BAG: sort = get_bag_sort_string(sorts); break;
-    case SORT_FUN: sort = get_fun_sort_string(sorts); break;
     case SORT_SEQ: sort = get_seq_sort_string(sorts); break;
     case SORT_SET: sort = get_set_sort_string(sorts); break;
+    case SORT_FUN:
+    {
+      sort = Smt2Sort::get_next_symbol();
+      std::stringstream smt2;
+      smt2 << "(define-sort " << sort << " " << get_fun_sort_string(sorts)
+           << ")";
+      dump_smt2(smt2.str());
+    }
+    break;
     default: assert(false);
   }
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));

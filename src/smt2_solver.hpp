@@ -17,6 +17,9 @@ namespace smt2 {
 class Smt2Sort : public AbsSort
 {
  public:
+  /** Get a fresh sort symbol. Only used for function sorts. */
+  static std::string get_next_symbol();
+
   Smt2Sort(std::string repr, uint32_t bv_size = 0, uint32_t sig_size = 0)
       : d_repr(repr), d_bv_size(bv_size), d_sig_size(sig_size)
   {
@@ -52,11 +55,25 @@ class Smt2Sort : public AbsSort
   Sort get_set_element_sort() const override;
 
   const std::string& get_repr() const;
+  void set_symbol(const std::string& symbol);
 
  private:
+  /**
+   * The counter of sort symbols that have been freshly introduced. Used to
+   * generate a unique sort string for function sorts.
+   */
+  inline static uint32_t s_symbol_cnt = 0;
+  /** The representation of this sort. */
   std::string d_repr;
-  uint32_t d_bv_size  = 0; /* doubles as exponent size for FP sorts */
+  /**
+   * The bit-vector size of this sort.
+   * Doubles as exponent size for FP sorts.
+   */
+  uint32_t d_bv_size = 0;
+  /** The floating-point significand size of this sort. */
   uint32_t d_sig_size = 0;
+  /** The symbol of this sort. Only for function sorts. */
+  std::string d_symbol;
 };
 
 /* -------------------------------------------------------------------------- */
