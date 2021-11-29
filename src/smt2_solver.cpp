@@ -243,6 +243,12 @@ Smt2Sort::get_bv_size() const
   return d_bv_size;
 }
 
+std::string
+Smt2Sort::get_dt_name() const
+{
+  return d_repr;
+}
+
 uint32_t
 Smt2Sort::get_fp_exp_size() const
 {
@@ -365,6 +371,7 @@ Smt2Term::equals(const Term& other) const
 {
   const Smt2Term* smt2_term     = static_cast<const Smt2Term*>(other.get());
   const std::vector<Term>& args = smt2_term->get_args();
+  const std::vector<std::string>& str_args = smt2_term->get_str_args();
   const std::vector<uint32_t>& params = smt2_term->get_indices_uint32();
   bool res = d_kind == smt2_term->get_kind() && d_args.size() == args.size()
              && d_indices.size() == params.size();
@@ -379,7 +386,17 @@ Smt2Term::equals(const Term& other) const
       }
     }
   }
-
+  if (res)
+  {
+    for (size_t i = 0, n = str_args.size(); i < n; ++i)
+    {
+      if (d_str_args[i] != str_args[i])
+      {
+        res = false;
+        break;
+      }
+    }
+  }
   if (res)
   {
     for (size_t i = 0, n = params.size(); i < n; ++i)
@@ -416,6 +433,12 @@ const std::vector<Term>&
 Smt2Term::get_args() const
 {
   return d_args;
+}
+
+const std::vector<std::string>&
+Smt2Term::get_str_args() const
+{
+  return d_str_args;
 }
 
 const std::vector<uint32_t>&
@@ -1347,6 +1370,13 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
   {
     assert(args.size() == 2);
     return args[0]->get_sort();
+  }
+
+  if (kind == Op::DT_APPLY_SEL)
+  {
+    assert(args.size() == 1);
+    return args[0]->get_sort()->get_dt_sel_sort(smt2_term->get_str_args()[0],
+                                                smt2_term->get_str_args()[1]);
   }
 
   switch (sort_kind)

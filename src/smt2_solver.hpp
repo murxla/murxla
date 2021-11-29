@@ -43,6 +43,7 @@ class Smt2Sort : public AbsSort
   bool is_string() const override;
   bool is_reglan() const override;
   uint32_t get_bv_size() const override;
+  std::string get_dt_name() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
   Sort get_array_index_sort() const override;
@@ -103,6 +104,7 @@ class Smt2Term : public AbsTerm
   const std::string& get_kind() const override;
   std::vector<Term> get_children() const override;
   const std::vector<Term>& get_args() const;
+  const std::vector<std::string>& get_str_args() const;
   const std::vector<uint32_t>& get_indices_uint32() const;
   const std::string get_repr() const;
 
@@ -115,9 +117,8 @@ class Smt2Term : public AbsTerm
   std::vector<Term> d_args;
   /** The indices of this term. */
   std::vector<uint32_t> d_indices;
+  /** The smt2 representation of this term. */
   std::string d_repr;
-  /** The datatype sort of this term. Only needed for DT_APPLY_CONS. */
-  Sort d_dt_sort;
 
   std::unordered_map<std::string, std::string> d_op_kind_to_str = {
       {Op::DISTINCT, "distinct"},
