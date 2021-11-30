@@ -521,6 +521,12 @@ Smt2Term::get_repr() const
           res << "((_ " << d_op_kind_to_str.at(cur->d_kind) << " "
               << cur->d_str_args[0] << ")";
         }
+        else if (cur->d_kind == Op::DT_APPLY_UPDATER)
+        {
+          assert(cur->d_str_args.size() == 2);
+          res << "((_ " << d_op_kind_to_str.at(cur->d_kind) << " "
+              << cur->d_str_args[1] << ")";
+        }
         else if (cur->d_indices.empty())
         {
           if (!cur->d_args.empty())
@@ -531,6 +537,16 @@ Smt2Term::get_repr() const
           {
             res << to_smt2_term(cur->d_args[0])->get_repr();
             i += 1;
+          }
+          else if (cur->d_kind == Op::DT_APPLY_CONS)
+          {
+            assert(cur->get_str_args().size() == 1);
+            res << cur->get_str_args()[0];
+          }
+          else if (cur->d_kind == Op::DT_APPLY_SEL)
+          {
+            assert(cur->get_str_args().size() == 2);
+            res << cur->get_str_args()[1];
           }
           else
           {
