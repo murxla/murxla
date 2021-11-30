@@ -154,7 +154,6 @@ OpKindManager::add_op_kinds()
   // add_op_kind(Op::DT_MATCH_CASE, 2, 0,
   // add_op_kind(Op::DT_MATCH_BIND_CASE, 3, 0,
   // add_op_kind(Op::DT_TUPLE_PROJECT, 1, 0,
-  add_op_kind(Op::DT_SIZE, 1, 0, SORT_INT, {SORT_DT}, THEORY_DT);
 
   /* FP */
   add_op_kind(Op::FP_ABS, 1, 0, SORT_FP, {SORT_FP}, THEORY_FP);

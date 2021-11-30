@@ -86,7 +86,6 @@ struct Op
   inline static const Kind DT_MATCH_CASE      = "OP_DT_MATCH_CASE";
   inline static const Kind DT_MATCH_BIND_CASE = "OP_DT_MATCH_BIND_CASE";
   inline static const Kind DT_TUPLE_PROJECT   = "OP_DT_TUPLE_PROJECT";
-  inline static const Kind DT_SIZE            = "OP_DT_SIZE";
   /* FP */
   inline static const Kind FP_TO_FP_FROM_BV   = "OP_FP_TO_FP_FROM_BV";
   inline static const Kind FP_TO_FP_FROM_SBV  = "OP_FP_TO_FP_FROM_SBV";
