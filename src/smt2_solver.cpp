@@ -515,7 +515,13 @@ Smt2Term::get_repr() const
       }
       else
       {
-        if (cur->d_indices.empty())
+        if (cur->d_kind == Op::DT_APPLY_TESTER)
+        {
+          assert(cur->d_str_args.size() == 1);
+          res << "((_ " << d_op_kind_to_str.at(cur->d_kind) << " "
+              << cur->d_str_args[0] << ")";
+        }
+        else if (cur->d_indices.empty())
         {
           if (!cur->d_args.empty())
           {
