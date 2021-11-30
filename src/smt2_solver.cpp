@@ -1537,13 +1537,17 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       {
         sort = get_bool_sort_string();
       }
+      else if (kind == Op::BAG_MAKE)
+      {
+        sort = get_bag_sort_string({args[0]->get_sort()});
+      }
       else if (kind == Op::BAG_TO_SET || kind == Op::BAG_FROM_SET)
       {
         sort = get_bag_sort_string({args[0]->get_sort()->get_sorts()[0]});
       }
       else if (kind == Op::BAG_MAP)
       {
-        sort = get_bag_sort_string({args[1]->get_sort()->get_sorts()[1]});
+        sort = get_bag_sort_string({args[0]->get_sort()->get_sorts()[1]});
       }
       else if (kind == Op::SET_COMPREHENSION)
       {
