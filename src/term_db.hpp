@@ -102,6 +102,9 @@ class TermDb
    */
   void reset();
 
+  /** Return the current top level of stored terms. */
+  size_t max_level() const;
+
   /** Get the number of available variables. */
   uint32_t get_num_vars() const;
 
@@ -301,6 +304,9 @@ class TermDb
 
   /** Pick sort with any of the given sort kinds. */
   Sort pick_sort(const SortKindSet& sort_kinds) const;
+
+  /** Get the number of terms at a given level stored in the database. */
+  size_t get_number_of_terms(size_t level) const;
 
  private:
   /** Open new scope with given variable. */

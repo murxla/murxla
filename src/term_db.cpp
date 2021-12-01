@@ -90,6 +90,12 @@ TermDb::reset()
   d_vars.emplace_back();
 }
 
+size_t
+TermDb::max_level() const
+{
+  return d_vars.size() - 1;
+}
+
 uint32_t
 TermDb::get_num_vars() const
 {
@@ -398,16 +404,14 @@ bool
 TermDb::has_quant_body() const
 {
   if (!has_var()) return false;
-  size_t max_level = d_vars.size() - 1;
-  return has_term(SORT_BOOL, max_level);
+  return has_term(SORT_BOOL, max_level());
 }
 
 bool
 TermDb::has_quant_term() const
 {
   if (!has_var()) return false;
-  size_t max_level = d_vars.size() - 1;
-  return has_term(SORT_ANY, max_level);
+  return has_term(SORT_ANY, max_level());
 }
 
 Term
@@ -458,6 +462,20 @@ TermDb::get_number_of_terms(SortKind sort_kind, size_t level) const
       {
         res += p.second.size();
       }
+    }
+  }
+  return res;
+}
+
+size_t
+TermDb::get_number_of_terms(size_t level) const
+{
+  size_t res = 0;
+  for (const auto& s : d_term_db[level])
+  {
+    for (const auto& t : s.second)
+    {
+      res += t.second.size();
     }
   }
   return res;
@@ -639,8 +657,7 @@ TermDb::pick_var() const
 {
   assert(has_var());
   assert(d_vars.size() > 1);
-  size_t max_level = d_vars.size() - 1;
-  return d_vars[max_level];
+  return d_vars[max_level()];
 }
 
 std::vector<Term>
@@ -648,10 +665,10 @@ TermDb::pick_vars(uint32_t num_vars) const
 {
   assert(d_vars.size() > num_vars);
   std::vector<Term> res;
-  size_t max_level = d_vars.size() - 1;
-  for (size_t i = 0; i < max_level; ++i)
+  size_t level = max_level();
+  for (size_t i = 0; i < level; ++i)
   {
-    res.push_back(d_vars[max_level - i]);
+    res.push_back(d_vars[level - i]);
   }
   return res;
 }
@@ -666,17 +683,16 @@ Term
 TermDb::pick_quant_body()
 {
   assert(has_quant_body());
-  size_t max_level = d_vars.size() - 1;
-  return pick_term(SORT_BOOL, max_level);
+  return pick_term(SORT_BOOL, max_level());
 }
 
 Term
 TermDb::pick_quant_term()
 {
   assert(has_quant_term());
-  size_t max_level   = d_vars.size() - 1;
-  SortKind sort_kind = pick_sort_kind(max_level);
-  return pick_term(sort_kind, max_level);
+  size_t level       = max_level();
+  SortKind sort_kind = pick_sort_kind(level);
+  return pick_term(sort_kind, level);
 }
 
 size_t

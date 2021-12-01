@@ -80,4 +80,8 @@
 /* mk_term: max number of arguments */
 #define MURXLA_MK_TERM_N_ARGS_MAX 11
 
+/* Minimum number of quantified terms on the current level before binding
+ * a variable. */
+#define MURXLA_MIN_N_QUANT_TERMS 5
+
 #endif

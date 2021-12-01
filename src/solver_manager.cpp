@@ -400,9 +400,15 @@ SolverManager::pick_op_kind(bool with_terms)
 
       /* Quantifiers can only be created if we already have variables and
        * Boolean terms in the current scope. */
-      if (op.d_kind == Op::FORALL || op.d_kind == Op::EXISTS)
+      if (op.d_kind == Op::FORALL || op.d_kind == Op::EXISTS
+          || op.d_kind == Op::SET_COMPREHENSION)
       {
         if (!d_term_db.has_var() || !d_term_db.has_quant_body()) continue;
+        if (d_term_db.get_number_of_terms(d_term_db.max_level())
+            < MURXLA_MIN_N_QUANT_TERMS)
+        {
+          continue;
+        }
       }
       else
       {
