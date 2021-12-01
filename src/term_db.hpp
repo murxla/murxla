@@ -102,8 +102,8 @@ class TermDb
    */
   void reset();
 
-  /** Reset term id counter to id (required for untracing) */
-  void set_term_id_couter(uint64_t id);
+  /** Get the number of available variables. */
+  uint32_t get_num_vars() const;
 
   /**
    * Add term to database.
@@ -264,6 +264,11 @@ class TermDb
    */
   Term pick_var() const;
   /**
+   * Pick 'num_vars' variables.
+   * Requires that at least 'num_vars' variables exist.
+   */
+  std::vector<Term> pick_vars(uint32_t num_vars) const;
+  /**
    * Pick Boolean term from current scope.
    * Requires that a Boolean term exists at the current scope level.
    */
@@ -275,6 +280,7 @@ class TermDb
   Term pick_quant_term();
   /**
    * Remove variable from current scope and close scope.
+   * Must be called before calling add_term.
    */
   void remove_var(Term& var);
 

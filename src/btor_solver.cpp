@@ -1575,7 +1575,7 @@ class BtorActionBvAssignment : public Action
      *       extended anymore (Boolector is succeeded by Bitwuzla), we consider
      *       it not worth the effort. */
     MURXLA_TRACE << get_kind();
-    uint64_t n = d_rng.pick<uint64_t>(1, d_smgr.get_n_terms(SORT_BV));
+    uint64_t n = d_rng.pick<uint64_t>(1, d_smgr.get_num_terms(SORT_BV));
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     std::vector<const char*> assignments;
     for (uint64_t i = 0; i < n; ++i)
@@ -1636,7 +1636,7 @@ class BtorActionClone : public Action
     }
     if (d_smgr.has_term() && d_rng.flip_coin())
     {
-      for (uint64_t i = 0, n = d_smgr.get_n_terms(); i < n; ++i)
+      for (uint64_t i = 0, n = d_smgr.get_num_terms(); i < n; ++i)
       {
         Term t = d_smgr.pick_term();
         BoolectorNode *t_btor, *t_clone;

@@ -90,6 +90,12 @@ TermDb::reset()
   d_vars.emplace_back();
 }
 
+uint32_t
+TermDb::get_num_vars() const
+{
+  return d_vars.size() - 1;
+}
+
 void
 TermDb::add_term(Term& term,
                  Sort& sort,
@@ -123,16 +129,13 @@ TermDb::add_term(Term& term,
     std::sort(levels.begin(), levels.end());
   }
 
-  uint64_t level = levels.empty() ? 0 : levels.back();
-
-  /* This should only occur when a new quantifier was created. */
-  if (level > 0 && level >= d_vars.size())
+  /* This should only occur when a new binder (e.g., quantifier) was created. */
+  while (levels.size() > 0 && levels.back() >= d_vars.size())
   {
-    assert(level == levels.back());
     levels.pop_back();
-    level = levels.empty() ? 0 : levels.back();
-    assert(levels.size() < d_vars.size());
   }
+  uint64_t level = levels.empty() ? 0 : levels.back();
+  assert(levels.size() < d_vars.size());
 
   /* If sort_kind is SORT_REAL, given sort can only be an Int sort when the
    * solver identifies it as an Int sort (since Int may be a subtype of Real).
@@ -637,8 +640,20 @@ TermDb::pick_var() const
   assert(has_var());
   assert(d_vars.size() > 1);
   size_t max_level = d_vars.size() - 1;
-
   return d_vars[max_level];
+}
+
+std::vector<Term>
+TermDb::pick_vars(uint32_t num_vars) const
+{
+  assert(d_vars.size() > num_vars);
+  std::vector<Term> res;
+  size_t max_level = d_vars.size() - 1;
+  for (size_t i = 0; i < max_level; ++i)
+  {
+    res.push_back(d_vars[max_level - i]);
+  }
+  return res;
 }
 
 void

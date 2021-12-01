@@ -93,9 +93,12 @@ class SolverManager
   void mark_option_used(const std::string& opt);
 
   /** Get the number of created terms. */
-  uint64_t get_n_terms() const;
+  uint64_t get_num_terms() const;
   /** Get the number of created terms of given sort kind. */
-  uint64_t get_n_terms(SortKind sort_kind);
+  uint64_t get_num_terms(SortKind sort_kind);
+
+  /** Get the number of available variables. */
+  uint32_t get_num_vars() const;
 
   /** Add sort to sort databse. */
   void add_sort(Sort& sort, SortKind sort_kind);
@@ -211,11 +214,18 @@ class SolverManager
 
   /**
    * Pick variable from current scope level.
+   * Requires that a variable exists.
    */
   Term pick_var();
+  /**
+   * Pick 'num_vars' variables.
+   * Requires that at least 'num_vars' variables exist.
+   */
+  std::vector<Term> pick_vars(uint32_t num_vars) const;
 
   /**
    * Remove variable from current scope level.
+   * Must be called before calling add_term.
    */
   void remove_var(Term& var);
 

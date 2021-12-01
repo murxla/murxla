@@ -1025,12 +1025,17 @@ ActionMkTerm::run()
       assert(!n_indices);
       assert(d_smgr.has_var());
       assert(d_smgr.has_quant_body());
-      /* First pick quant body, then pick variable.  pick_var() pops the
-       * variable scope level. */
       Term body = d_smgr.pick_quant_body();
-      /* Now pick variable, is picked from the top most level. */
-      Term var = d_smgr.pick_var();
-      args.push_back(var);
+      uint32_t n_vars = d_rng.pick<uint32_t>(1, d_smgr.get_num_vars());
+      if (n_vars > 1)
+      {
+        args.push_back(d_smgr.pick_var());
+      }
+      else
+      {
+        std::vector<Term> vars = d_smgr.pick_vars(n_vars);
+        args.insert(args.begin(), vars.begin(), vars.end());
+      }
       args.push_back(body);
     }
     else if (d_smgr.d_arith_linear
@@ -1163,15 +1168,20 @@ ActionMkTerm::run()
       if (!d_smgr.has_var()) return false;
       if (!d_smgr.has_quant_term()) return false;
       if (!d_smgr.has_quant_body()) return false;
-      /* First pick quant body and quant term, then pick variable.
-       * pick_var() pops the variable scope level. */
       Term body = d_smgr.pick_quant_body();
       Term term = d_smgr.pick_quant_term();
-      /* Now pick variable, is picked from the top most level. */
-      Term var = d_smgr.pick_var();
       args.push_back(body);
       args.push_back(term);
-      args.push_back(var);
+      uint32_t n_vars = d_rng.pick<uint32_t>(1, d_smgr.get_num_vars());
+      if (n_vars > 1)
+      {
+        args.push_back(d_smgr.pick_var());
+      }
+      else
+      {
+        std::vector<Term> vars = d_smgr.pick_vars(n_vars);
+        args.insert(args.end(), vars.begin(), vars.end());
+      }
     }
     else if (kind == Op::BAG_COUNT)
     {
@@ -1479,20 +1489,27 @@ ActionMkTerm::_run(Op::Kind kind,
   }
   MURXLA_TRACE << get_kind() << trace_str.str();
 
-  std::vector<Term>& aargs = args;
   std::vector<Term> bargs;
-  /* Note: We remove the variable in _run instead of run so that we correctly
-   *       handle this case for untracing. */
+  /* Note: We pop the variable scopes in _run instead of run so that we
+   *       correctly handle this case for untracing. */
   if (kind == Op::FORALL || kind == Op::EXISTS)
   {
-    bargs = args;
-    d_smgr.remove_var(bargs[0]);
-    aargs = bargs;
+    for (size_t i = 0, n = args.size() - 1; i < n; ++i)
+    {
+      d_smgr.remove_var(args[i]);
+    }
+  }
+  else if (kind == Op::SET_COMPREHENSION)
+  {
+    for (size_t i = 2, n = args.size(); i < n; ++i)
+    {
+      d_smgr.remove_var(args[i]);
+    }
   }
 
-  Term res = d_solver.mk_term(kind, aargs, indices);
+  Term res = d_solver.mk_term(kind, args, indices);
 
-  if ((aargs.size() > 1 || (aargs.size() == 1 && !aargs[0]->equals(res)))
+  if ((args.size() > 1 || (args.size() == 1 && !args[0]->equals(res)))
       && res->is_indexed() && indices.size())
   {
     /* We have to guard against the case where an op is rewritten to itself,
@@ -1513,7 +1530,7 @@ ActionMkTerm::_run(Op::Kind kind,
      * this in the solver implementation, if possible. */
   }
 
-  d_smgr.add_term(res, sort_kind, aargs);
+  d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;

@@ -1816,7 +1816,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       Cvc5Term::terms_to_cvc5_terms(args);
 
   std::vector<uint32_t> iindices = indices;  // copy to modify
-  int32_t n_args    = args.size();
+  int32_t n_args                 = args.size();
   uint32_t n_indices             = indices.size();
 
   if ((kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_FP
@@ -1900,6 +1900,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
                                vars);
     ::cvc5::api::Term body = Cvc5Term::get_cvc5_term(args.back());
     cvc5_args              = {bvl, body};
+    n_args                 = cvc5_args.size();
   }
   else if (kind == Op::RE_ALL)
   {

@@ -148,16 +148,22 @@ SolverManager::mark_option_used(const std::string& opt)
 /* -------------------------------------------------------------------------- */
 
 uint64_t
-SolverManager::get_n_terms() const
+SolverManager::get_num_terms() const
 {
   return d_n_terms;
 }
 
 uint64_t
-SolverManager::get_n_terms(SortKind sort_kind)
+SolverManager::get_num_terms(SortKind sort_kind)
 {
   if (d_n_sort_terms.find(sort_kind) == d_n_sort_terms.end()) return 0;
   return d_n_sort_terms.at(sort_kind);
+}
+
+uint32_t
+SolverManager::get_num_vars() const
+{
+  return d_term_db.get_num_vars();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -556,6 +562,12 @@ Term
 SolverManager::pick_var()
 {
   return d_term_db.pick_var();
+}
+
+std::vector<Term>
+SolverManager::pick_vars(uint32_t num_vars) const
+{
+  return d_term_db.pick_vars(num_vars);
 }
 
 void
