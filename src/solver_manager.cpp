@@ -397,37 +397,32 @@ SolverManager::pick_op_kind(bool with_terms)
     std::vector<Op::Kind> remove;
     for (const auto& [kind, op] : d_available_op_kinds)
     {
-      bool has_terms = true;
-
       /* Quantifiers can only be created if we already have variables and
        * Boolean terms in the current scope. */
-      if (op.d_kind == Op::FORALL || op.d_kind == Op::EXISTS
-          || op.d_kind == Op::SET_COMPREHENSION)
+      if ((op.d_kind == Op::FORALL || op.d_kind == Op::EXISTS
+           || op.d_kind == Op::SET_COMPREHENSION)
+          && (!d_term_db.has_var() || !d_term_db.has_quant_body()
+              || (d_term_db.get_number_of_terms(d_term_db.max_level())
+                  < MURXLA_MIN_N_QUANT_TERMS)))
       {
-        if (!d_term_db.has_var() || !d_term_db.has_quant_body()) continue;
-        if (d_term_db.get_number_of_terms(d_term_db.max_level())
-            < MURXLA_MIN_N_QUANT_TERMS)
-        {
-          continue;
-        }
+        continue;
+      }
+
+      bool has_terms = true;
+
+      /* Check if we already have terms that can be used with this operator. */
+      if (op.d_arity < 0)
+      {
+        has_terms = has_term(op.get_arg_sort_kind(0));
       }
       else
       {
-        /* Check if we already have terms that can be used with this operator.
-         */
-        if (op.d_arity < 0)
+        for (int32_t i = 0; i < op.d_arity; ++i)
         {
-          has_terms = has_term(op.get_arg_sort_kind(0));
-        }
-        else
-        {
-          for (int32_t i = 0; i < op.d_arity; ++i)
+          if (!has_term(op.get_arg_sort_kind(i)))
           {
-            if (!has_term(op.get_arg_sort_kind(i)))
-            {
-              has_terms = false;
-              break;
-            }
+            has_terms = false;
+            break;
           }
         }
       }
