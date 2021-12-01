@@ -15,7 +15,11 @@ TermRefs::add(const Term& t)
     d_idx.emplace(t, d_refs.size());
     d_terms.push_back(t);
     d_refs.push_back(0);
-    d_weights.push_back(0);
+    /* Weight must be at least 1. Weight 0 corresponds to preventing the term
+     * from being picked, and when all have weight 0, always the first one will
+     * be picked.  This is due to how RNGenerator::pick_weighted is implemented
+     * via std::discrete_distribution. */
+    d_weights.push_back(1);
   }
 }
 
