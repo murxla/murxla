@@ -818,16 +818,13 @@ ActionMkSort::check_sort(Sort sort, const std::string& name) const
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionMkTerm::run()
+ActionMkTerm::run(Op::Kind kind)
 {
   assert(d_solver.is_initialized());
   assert(d_smgr.get_enabled_theories().find(THEORY_BOOL)
          != d_smgr.get_enabled_theories().end());
   assert(d_smgr.has_term());
 
-  /* Op gets only picked if there already exist terms that can be used as
-   * operands. */
-  const Op::Kind& kind = d_smgr.pick_op_kind();
   assert(!d_smgr.d_arith_linear || kind != Op::INT_MOD);
   assert(!d_smgr.d_arith_linear || kind != Op::INT_DIV);
   assert(!d_smgr.d_arith_linear || kind != Op::REAL_DIV);
@@ -1392,6 +1389,13 @@ ActionMkTerm::run()
   ++d_smgr.d_mbt_stats->d_ops_ok[op.d_id];
 
   return true;
+}
+
+bool
+ActionMkTerm::run()
+{
+  /* Op is only picked if there exist terms that can be used as operands. */
+  return run(d_smgr.pick_op_kind());
 }
 
 std::vector<uint64_t>

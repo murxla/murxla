@@ -344,12 +344,16 @@ class ActionMkTerm : public Action
 {
  public:
   ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID) {}
+
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
 
   /** Perform checks on the created term. */
   void check_term(Term term);
+
+  /** Create term of given operator kind. */
+  bool run(Op::Kind kind);
 
  private:
   std::vector<uint64_t> _run(Op::Kind kind,
