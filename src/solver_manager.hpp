@@ -155,10 +155,11 @@ class SolverManager
    */
   SortKindData& pick_sort_kind_data();
   /**
-   * Pick enabled operator kind (and get its data).
+   * Pick enabled operator kind (and get its data), optionally restricted to
+   * operator kinds that create terms of given sort kind.
    * Only operator kinds of enabled theories are picked.
    */
-  Op::Kind pick_op_kind(bool with_terms = true);
+  Op::Kind pick_op_kind(bool with_terms = true, SortKind sort_kind = SORT_ANY);
 
   Op& get_op(const Op::Kind& kind);
 

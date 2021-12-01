@@ -331,6 +331,7 @@ class OpKindManager
                    const std::vector<SortKind>& sort_kind_args,
                    TheoryId theory);
 
+  /** Get a map of enabled operator kinds to their corresponding Op. */
   const OpKindMap& get_op_kinds() { return d_op_kinds; }
 
  private:

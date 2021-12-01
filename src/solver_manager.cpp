@@ -372,7 +372,7 @@ SolverManager::pick_sort_kind(const SortKindSet& sort_kinds, bool with_terms)
   {
     if (has_sort(sk)) skinds.push_back(sk);
   }
-  return d_rng.pick_from_set<SortKindVector, SortKind>(skinds);
+  return d_rng.pick_from_set<decltype(skinds), SortKind>(skinds);
 }
 
 SortKind
@@ -389,7 +389,7 @@ SolverManager::pick_sort_kind_data()
 }
 
 Op::Kind
-SolverManager::pick_op_kind(bool with_terms)
+SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
 {
   if (with_terms)
   {
@@ -397,6 +397,12 @@ SolverManager::pick_op_kind(bool with_terms)
     std::vector<Op::Kind> remove;
     for (const auto& [kind, op] : d_available_op_kinds)
     {
+      if (sort_kind != SORT_ANY
+          && op.d_sort_kinds.find(sort_kind) == op.d_sort_kinds.end())
+      {
+        continue;
+      }
+
       /* Quantifiers can only be created if we already have variables and
        * Boolean terms in the current scope. */
       if ((op.d_kind == Op::FORALL || op.d_kind == Op::EXISTS
@@ -460,7 +466,22 @@ SolverManager::pick_op_kind(bool with_terms)
     /* We cannot create any operation with the current set of terms. */
     return Op::UNDEFINED;
   }
-  return d_rng.pick_from_map<OpKindMap, Op::Kind>(d_opmgr->get_op_kinds());
+
+  if (sort_kind == SORT_ANY)
+  {
+    return d_rng.pick_from_map<OpKindMap, Op::Kind>(d_opmgr->get_op_kinds());
+  }
+
+  std::vector<Op::Kind> kinds;
+  const auto& enabled_ops = d_opmgr->get_op_kinds();
+  for (const auto& op : enabled_ops)
+  {
+    if (op.second.d_sort_kinds.find(sort_kind) != op.second.d_sort_kinds.end())
+    {
+      kinds.push_back(op.first);
+    }
+  }
+  return d_rng.pick_from_set<decltype(kinds), Op::Kind>(kinds);
 }
 
 Op&
@@ -503,9 +524,10 @@ SolverManager::pick_theory(bool with_terms)
         theories.insert(theory);
       }
     }
-    return d_rng.pick_from_set<TheoryIdSet, TheoryId>(theories);
+    return d_rng.pick_from_set<decltype(theories), TheoryId>(theories);
   }
-  return d_rng.pick_from_set<TheoryIdSet, TheoryId>(d_enabled_theories);
+  return d_rng.pick_from_set<decltype(d_enabled_theories), TheoryId>(
+      d_enabled_theories);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -520,7 +542,7 @@ Term
 SolverManager::pick_string_char_value()
 {
   assert(has_string_char_value());
-  return d_rng.pick_from_set<std::unordered_set<Term>, Term>(
+  return d_rng.pick_from_set<decltype(d_string_char_values), Term>(
       d_string_char_values);
 }
 
@@ -601,7 +623,7 @@ Term
 SolverManager::pick_assumed_assumption()
 {
   assert(has_assumed());
-  return d_rng.pick_from_set<std::unordered_set<Term>, Term>(d_assumptions);
+  return d_rng.pick_from_set<decltype(d_assumptions), Term>(d_assumptions);
 }
 
 void
@@ -792,7 +814,7 @@ SolverManager::pick_symbol()
 Sort
 SolverManager::pick_sort()
 {
-  Sort res = d_rng.pick_from_set<SortSet, Sort>(d_sorts);
+  Sort res = d_rng.pick_from_set<decltype(d_sorts), Sort>(d_sorts);
   assert(res->get_id());
   return res;
 }
@@ -854,7 +876,7 @@ SolverManager::pick_sort_excluding(const SortKindSet& exclude_sort_kinds,
     }
   }
   assert(!sorts.empty());
-  Sort res = d_rng.pick_from_set<SortSet, Sort>(sorts);
+  Sort res = d_rng.pick_from_set<decltype(sorts), Sort>(sorts);
   assert(res->get_id());
   return res;
 }
@@ -891,7 +913,7 @@ SolverManager::pick_sort_bv_max(uint32_t bw_max, bool with_terms)
     }
   }
   assert(bv_sorts.size() > 0);
-  Sort res = d_rng.pick_from_set<std::vector<Sort>, Sort>(bv_sorts);
+  Sort res = d_rng.pick_from_set<decltype(bv_sorts), Sort>(bv_sorts);
   assert(res->get_id());
   return res;
 }
