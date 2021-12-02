@@ -126,7 +126,7 @@ std::vector<uint64_t>
 ActionTermGetChildren::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-  Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+  Term t = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
   _run(t);
   return {};
@@ -564,11 +564,11 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
           << "solver does not support theory of arrays";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
       std::vector<Sort> sorts;
-      sorts.push_back(d_smgr.get_sort(untrace_str_to_id(tokens[1])));
+      sorts.push_back(d_smgr.get_untraced_sort(untrace_str_to_id(tokens[1])));
       MURXLA_CHECK_TRACE(sorts[0] != nullptr)
           << "unknown sort id '" << tokens[1] << "' as argument to "
           << get_kind();
-      sorts.push_back(d_smgr.get_sort(untrace_str_to_id(tokens[2])));
+      sorts.push_back(d_smgr.get_untraced_sort(untrace_str_to_id(tokens[2])));
       MURXLA_CHECK_TRACE(sorts[1] != nullptr)
           << "unknown sort id '" << tokens[2] << "' as argument to "
           << get_kind();
@@ -581,7 +581,8 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_BAG) != theories.end())
           << "solver does not support theory of bags";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
+      res =
+          _run(kind, {d_smgr.get_untraced_sort(untrace_str_to_id(tokens[1]))});
       break;
 
     case SORT_BOOL:
@@ -615,7 +616,8 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
         for (uint32_t j = 0; j < n_sels; ++j)
         {
           std::string sname = str_to_str(tokens[idx++]);
-          Sort ssort        = d_smgr.get_sort(untrace_str_to_id(tokens[idx++]));
+          Sort ssort =
+              d_smgr.get_untraced_sort(untrace_str_to_id(tokens[idx++]));
           ctors[cname].emplace_back(sname, ssort);
         }
       }
@@ -639,7 +641,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       std::vector<Sort> sorts;
       for (auto it = tokens.begin() + 1; it < tokens.end(); ++it)
       {
-        Sort s = d_smgr.get_sort(untrace_str_to_id(*it));
+        Sort s = d_smgr.get_untraced_sort(untrace_str_to_id(*it));
         MURXLA_CHECK_TRACE(s != nullptr)
             << "unknown sort id '" << *it << "' as argument to " << get_kind();
         sorts.push_back(s);
@@ -685,7 +687,8 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_SEQ) != theories.end())
           << "solver does not support theory of sequences";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
+      res =
+          _run(kind, {d_smgr.get_untraced_sort(untrace_str_to_id(tokens[1]))});
       break;
 
     case SORT_SET:
@@ -693,7 +696,8 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_SET) != theories.end())
           << "solver does not support theory of sets";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, {d_smgr.get_sort(untrace_str_to_id(tokens[1]))});
+      res =
+          _run(kind, {d_smgr.get_untraced_sort(untrace_str_to_id(tokens[1]))});
       break;
 
     case SORT_STRING:
@@ -1427,7 +1431,7 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   else if (op_kind == Op::DT_APPLY_CONS)
   {
     uint32_t id = untrace_str_to_id(tokens[2]);
-    sort        = d_smgr.get_sort(id);
+    sort        = d_smgr.get_untraced_sort(id);
     n_str_args  = str_to_uint32(tokens[idx++]);
     for (uint32_t i = 0; i < n_str_args; ++i, ++idx)
     {
@@ -1446,7 +1450,7 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   for (uint32_t i = 0; i < n_args; ++i, ++idx)
   {
     uint32_t id = untrace_str_to_id(tokens[idx]);
-    Term t      = d_smgr.get_term(id);
+    Term t      = d_smgr.get_untraced_term(id);
     MURXLA_CHECK_TRACE_TERM(t, id);
     args.push_back(t);
   }
@@ -1751,7 +1755,7 @@ std::vector<uint64_t>
 ActionMkConst::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
-  Sort sort = d_smgr.get_sort(untrace_str_to_id(tokens[0]));
+  Sort sort = d_smgr.get_untraced_sort(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
   std::string symbol = str_to_str(tokens[1]);
   return _run(sort, symbol);
@@ -1801,7 +1805,7 @@ std::vector<uint64_t>
 ActionMkVar::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
-  Sort sort = d_smgr.get_sort(untrace_str_to_id(tokens[0]));
+  Sort sort = d_smgr.get_untraced_sort(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
   std::string symbol = str_to_str(tokens[1]);
   return _run(sort, symbol);
@@ -1954,7 +1958,7 @@ ActionMkValue::untrace(const std::vector<std::string>& tokens)
   MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
 
   uint64_t res = 0;
-  Sort sort    = d_smgr.get_sort(untrace_str_to_id(tokens[0]));
+  Sort sort    = d_smgr.get_untraced_sort(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
   switch (tokens.size())
   {
@@ -2150,7 +2154,7 @@ ActionMkSpecialValue::untrace(const std::vector<std::string>& tokens)
   MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
 
   uint64_t res = 0;
-  Sort sort    = d_smgr.get_sort(untrace_str_to_id(tokens[0]));
+  Sort sort    = d_smgr.get_untraced_sort(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
   const auto& special_vals = d_solver.get_special_values(sort->get_kind());
 
@@ -2287,7 +2291,7 @@ std::vector<uint64_t>
 ActionAssertFormula::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-  Term t = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+  Term t = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
   _run(t);
   return {};
@@ -2371,7 +2375,7 @@ ActionCheckSatAssuming::untrace(const std::vector<std::string>& tokens)
   for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
   {
     uint32_t id = untrace_str_to_id(tokens[idx]);
-    Term t      = d_smgr.get_term(id);
+    Term t      = d_smgr.get_untraced_term(id);
     MURXLA_CHECK_TRACE_TERM(t, id);
     assumptions.push_back(t);
   }
@@ -2509,7 +2513,7 @@ ActionGetValue::untrace(const std::vector<std::string>& tokens)
   for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
   {
     uint32_t id = untrace_str_to_id(tokens[idx]);
-    Term t      = d_smgr.get_term(id);
+    Term t      = d_smgr.get_untraced_term(id);
     MURXLA_CHECK_TRACE_TERM(t, id);
     terms.push_back(t);
   }

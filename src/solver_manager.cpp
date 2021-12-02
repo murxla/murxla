@@ -746,7 +746,7 @@ SolverManager::find_term(Term term, Sort sort, SortKind sort_kind)
 }
 
 Term
-SolverManager::get_term(uint64_t id) const
+SolverManager::get_untraced_term(uint64_t id) const
 {
   auto it = d_untraced_terms.find(id);
   if (it != d_untraced_terms.end()) return it->second;
@@ -761,7 +761,7 @@ SolverManager::register_term(uint64_t untraced_id, uint64_t term_id)
   // If we already have a term with given 'id' we don't register the term.
   if (d_untraced_terms.find(untraced_id) != d_untraced_terms.end())
   {
-    Term t = get_term(untraced_id);
+    Term t = get_untraced_term(untraced_id);
     assert(t->get_sort() == term->get_sort());
     return;
   }
@@ -786,7 +786,7 @@ SolverManager::register_sort(uint64_t untraced_id, uint64_t sort_id)
   // If we already have a sort with given 'id' we don't register the sort.
   if (d_untraced_sorts.find(untraced_id) != d_untraced_sorts.end())
   {
-    Sort s = get_sort(untraced_id);
+    Sort s = get_untraced_sort(untraced_id);
     assert(s == sort);
     return true;
   }
@@ -974,7 +974,7 @@ SolverManager::has_sort_excluding(
 }
 
 Sort
-SolverManager::get_sort(uint64_t id) const
+SolverManager::get_untraced_sort(uint64_t id) const
 {
   auto it = d_untraced_sorts.find(id);
   if (it != d_untraced_sorts.end()) return it->second;

@@ -2649,7 +2649,7 @@ class Cvc5ActionCheckEntailed : public Action
     MURXLA_CHECK_TRACE_NTOKENS_MIN(1, "", tokens.size());
     if (tokens.size() == 1)
     {
-      Term term = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+      Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
       MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
       _run(term);
     }
@@ -2660,7 +2660,7 @@ class Cvc5ActionCheckEntailed : public Action
       for (uint32_t i = 0, idx = 1; i < n_terms; ++i, ++idx)
       {
         uint32_t id = untrace_str_to_id(tokens[idx]);
-        Term term   = d_smgr.get_term(id);
+        Term term   = d_smgr.get_untraced_term(id);
         MURXLA_CHECK_TRACE_TERM(term, id);
         terms.push_back(term);
       }
@@ -2761,7 +2761,7 @@ class Cvc5ActionSimplify : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = d_smgr.get_term(untrace_str_to_id(tokens[0]));
+    Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     return _run(term);
   }

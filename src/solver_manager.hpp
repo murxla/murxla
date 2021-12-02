@@ -320,10 +320,9 @@ class SolverManager
   Term find_term(Term term, Sort sort, SortKind sort_kind);
 
   /**
-   * Return the term with the given id.
-   * Note: We only use this for untracing.
+   * Return the untraced term with the given id.
    */
-  Term get_term(uint64_t id) const;
+  Term get_untraced_term(uint64_t id) const;
 
   /**
    * Map an id from a trace to an actual term ID.
@@ -414,10 +413,9 @@ class SolverManager
   bool has_sort_bv_max(uint32_t bw_max, bool with_terms = true) const;
 
   /**
-   * Return the sort with the given id.
-   * Note: We only use this for untracing.
+   * Return the untraced sort with the given id.
    */
-  Sort get_sort(uint64_t id) const;
+  Sort get_untraced_sort(uint64_t id) const;
 
   /**
    * Set d_n_sorts to id.
