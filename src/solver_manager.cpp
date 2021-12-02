@@ -161,6 +161,12 @@ SolverManager::get_num_terms(SortKind sort_kind)
   return d_n_sort_terms.at(sort_kind);
 }
 
+uint64_t
+SolverManager::get_num_terms_max_level() const
+{
+  return d_term_db.get_num_terms(d_term_db.max_level());
+}
+
 uint32_t
 SolverManager::get_num_vars() const
 {
@@ -408,7 +414,7 @@ SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
       if ((op.d_kind == Op::FORALL || op.d_kind == Op::EXISTS
            || op.d_kind == Op::SET_COMPREHENSION)
           && (!d_term_db.has_var() || !d_term_db.has_quant_body()
-              || (d_term_db.get_number_of_terms(d_term_db.max_level())
+              || (d_term_db.get_num_terms(d_term_db.max_level())
                   < MURXLA_MIN_N_QUANT_TERMS)))
       {
         continue;
@@ -613,6 +619,12 @@ SolverManager::pick_quant_term()
   return d_term_db.pick_quant_term();
 }
 
+Term
+SolverManager::pick_quant_term(Sort sort)
+{
+  return d_term_db.pick_quant_term(sort);
+}
+
 void
 SolverManager::add_assumption(Term t)
 {
@@ -739,10 +751,22 @@ SolverManager::has_quant_term() const
   return d_term_db.has_quant_term();
 }
 
+bool
+SolverManager::has_quant_term(Sort sort) const
+{
+  return d_term_db.has_quant_term(sort);
+}
+
 Term
 SolverManager::find_term(Term term, Sort sort, SortKind sort_kind)
 {
   return d_term_db.find(term, sort, sort_kind);
+}
+
+Term
+SolverManager::get_term(uint64_t id) const
+{
+  return d_term_db.get_term(id);
 }
 
 Term

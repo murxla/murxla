@@ -116,7 +116,7 @@ class TermDb
    *
    * The mapping from SortKind to Sort is a 1:1 mapping for sorts that are not
    * parameterized, and a 1:n mapping for parameterized sorts like BV and FP
-   * sorts. A notable special case is sort kind SORT_REAL, since sort Int is
+   * sorts. A notable special case is sort kind SORT_REAL if sort Int is
    * a subtype of sort Real. We always store terms of sort Int under SORT_REAL,
    * even created terms that are expected to be of SORT_REAL but are identified
    * by the solver as of sort Int.
@@ -150,43 +150,54 @@ class TermDb
   /**
    * Return true if term database has a value with given sort.
    *
-   * Special case: if sort is of kind SORT_REAL, return true if term database
-   *               has value of kind SORT_INT or SORT_REAL.
+   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
+   *               enabled , return true if term database has value of kind
+   *               SORT_INT or SORT_REAL.
    */
   bool has_value(Sort sort) const;
 
   /**
-   * Return true if term database has a term with given sort kind and at
-   * given or lower scope levels.
+   * Return true if term database has a term with given sort kind at given or
+   * lower scope levels.
    *
-   * Special case: if sort kind is SORT_REAL, return true if term database
-   *               has term of kind SORT_INT or SORT_REAL at given or lower
-   *               scope levels.
+   * Special case: if sort kind is SORT_REAL and arithmetic subtyping is
+   *               enabled, return true if term database has term of kind
+   *               SORT_INT or SORT_REAL at given or lower scope levels.
    */
   bool has_term(SortKind kind, size_t level) const;
   /**
    * Return true if term database has a term with given sort kind.
    *
-   * Special case: if sort kind is SORT_REAL, return true if term database
-   *               has term of kind SORT_INT or SORT_REAL.
+   * Special case: if sort kind is SORT_REAL and arithmetic subtyping is
+   *               enabled, return true if term database has term of kind
+   *               SORT_INT or SORT_REAL.
    */
   bool has_term(SortKind kind) const;
   /**
    * Return true if term database has a term with any of the given sort kinds.
    *
-   * Special case: if sort kind is SORT_REAL and the solver treats Int as a
-   *               subtype of Real, return true if term database has term of
-   *               kind SORT_INT or SORT_REAL.
+   * Special case: if sort kind is SORT_REAL and arithmetic subtyping is
+   *               enabled, return true if term database has term of kind
+   *               SORT_INT or SORT_REAL.
    */
   bool has_term(const SortKindSet& kinds) const;
   /**
    * Return true if term database has a term with sort.
    *
-   * Special case: if sort is of kind SORT_REAL and the solver treats Int as a
-   *               subtype of Real, return true if term database has term of
-   *               kind SORT_INT or SORT_REAL.
+   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
+   *               enabled, return true if term database has term of kind
+   *               SORT_INT or SORT_REAL.
    */
   bool has_term(Sort sort) const;
+  /**
+   * Return true if term database has a term with given sort at given or lower
+   * scope levels.
+   *
+   * Special case: if sort kind is SORT_REAL and arithmetic subtyping is
+   *               enabled, return true if term database has term of kind
+   *               SORT_INT or SORT_REAL at given or lower scope levels.
+   */
+  bool has_term(Sort sort, size_t level) const;
   /** Return true if term database contains any term. */
   bool has_term() const;
   /**
@@ -202,18 +213,23 @@ class TermDb
    */
   bool has_quant_body() const;
   /**
-   * Return true if term database contains a variable and a term (of any sort)
-   * in the current scope level.
+   * Return true if term database contains a variable and a term (of the given
+   * or any sort kind) in the current scope level.
    */
-  bool has_quant_term() const;
+  bool has_quant_term(SortKind sort_kind = SORT_ANY) const;
+  /**
+   * Return true if term database contains a variable and a term of the given
+   * sort in the current scope level.
+   */
+  bool has_quant_term(Sort sort) const;
 
   /**
    * Pick a value of given sort.
    * Requires that values of this sort exist.
    *
-   * Special case: if sort is of kind SORT_REAL, we pick either from SORT_INT
-   *               or SORT_REAL, weighted by number of terms of these sorts
-   *               in the database.
+   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
+   *               enabled, we pick either from SORT_INT or SORT_REAL, weighted
+   *               by number of terms of these sorts in the database.
    */
   Term pick_value(Sort sort) const;
 
@@ -221,27 +237,38 @@ class TermDb
    * Pick a term of given sort kind at scope level.
    * Requires that terms of this sort kind at given or lower scope levels exist.
    *
-   * Special case: if sort is of kind SORT_REAL, we pick either from SORT_INT
-   *               or SORT_REAL at given or lower scope levels, weighted by
-   *               number of terms of these sorts in the database.
+   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
+   *               enabled, we pick either from SORT_INT or SORT_REAL at given
+   *               or lower scope levels, weighted by number of terms of these
+   *               sorts in the database.
    */
   Term pick_term(SortKind kind, size_t level);
+  /**
+   * Pick a term of given sort at scope level.
+   * Requires that terms of this sort at given or lower scope levels exist.
+   *
+   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
+   *               enabled, we pick either from SORT_INT or SORT_REAL at given
+   *               or lower scope levels, weighted by number of terms of these
+   *               sorts in the database.
+   */
+  Term pick_term(Sort sort, size_t level);
   /**
    * Pick a term of given sort kind.
    * Requires that terms of this sort kind exist.
    *
-   * Special case: if sort is of kind SORT_REAL, we pick either from SORT_INT
-   *               or SORT_REAL, weighted by number of terms of these sorts
-   *               in the database.
+   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
+   *               enabled, we pick either from SORT_INT or SORT_REAL, weighted
+   *               by number of terms of these sorts in the database.
    */
   Term pick_term(SortKind kind);
   /**
    * Pick a term of given sort.
    * Requires that terms of this sort exist.
    *
-   * Special case: if sort is of kind SORT_REAL, we pick either from SORT_INT
-   *               or SORT_REAL, weighted by number of terms of these sorts
-   *               in the database.
+   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
+   *               enabled, we pick either from SORT_INT or SORT_REAL, weighted
+   *               by number of terms of these sorts in the database.
    */
   Term pick_term(Sort sort);
   /**
@@ -277,10 +304,15 @@ class TermDb
    */
   Term pick_quant_body();
   /**
-   * Pick term of any sort from current scope.
-   * Requires that a term exists at the current scope level.
+   * Pick term of (optionally the given, else any) sort kind from current scope.
+   * Requires that a term of that sort kind exists at the current scope level.
    */
-  Term pick_quant_term();
+  Term pick_quant_term(SortKind sort_kind = SORT_ANY);
+  /**
+   * Pick term of given sort from current scope.
+   * Requires that a term of that sort exists at the current scope level.
+   */
+  Term pick_quant_term(Sort sort);
   /**
    * Remove variable from current scope and close scope.
    * Must be called before calling add_term.
@@ -306,7 +338,7 @@ class TermDb
   Sort pick_sort(const SortKindSet& sort_kinds) const;
 
   /** Get the number of terms at a given level stored in the database. */
-  size_t get_number_of_terms(size_t level) const;
+  size_t get_num_terms(size_t level) const;
 
  private:
   /** Open new scope with given variable. */
@@ -314,12 +346,12 @@ class TermDb
   /** Close current scope with given variable. */
   void pop(Term& var);
   /** Get the number of terms of given sort kind stored in the database. */
-  size_t get_number_of_terms(SortKind sort_kind) const;
+  size_t get_num_terms(SortKind sort_kind) const;
   /**
    * Get the number of terms of given sort kind stored in the database up
    * to and includinv given level.
    */
-  size_t get_number_of_terms(SortKind sort_kind, size_t level) const;
+  size_t get_num_terms(SortKind sort_kind, size_t level) const;
 
   /**
    * Pick a scope level.
@@ -330,9 +362,10 @@ class TermDb
    * Pick a scope level that has terms with given sort kind.
    * Lower levels are picked less often.
    *
-   * Special case: If sort kind is SORT_REAL, we pick a level either for kind
-   *               SORT_INT or SORT_REAL, weighted by number of terms of these
-   *               sorts in the database.
+   * Special case: If sort kind is SORT_REAL and arithmetic subtyping is
+   *               enabled, we pick a level either for kind SORT_INT or
+   *               SORT_REAL, weighted by number of terms of these sorts in the
+   *               database.
    *               Note: If level of kind SORT_INT is picked, 'kind' is reset
    *                     to SORT_INT.
    */

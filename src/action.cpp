@@ -834,7 +834,8 @@ ActionMkTerm::run(Op::Kind kind)
   assert(!d_smgr.d_arith_linear || kind != Op::REAL_DIV);
   if (kind == Op::UNDEFINED) return false;
 
-  Op& op             = d_smgr.get_op(kind);
+  Op& op = d_smgr.get_op(kind);
+  assert(op.d_kind != Op::UNDEFINED);
   int32_t arity      = op.d_arity;
   uint32_t n_indices = op.d_nidxs;
 
@@ -914,6 +915,61 @@ ActionMkTerm::run(Op::Kind kind)
     if (!d_smgr.has_term(codomain_sort)) return false;
     args.push_back(d_smgr.pick_term(codomain_sort));
     _run(kind, sort_kind, {ctor, sel}, args);
+  }
+  else if (kind == Op::DT_MATCH)
+  {
+    assert(!n_indices);
+    if (!d_smgr.has_term(SORT_DT)) return false;
+    Sort dt_sort = d_smgr.pick_sort(SORT_DT);
+
+    /* DT_MATCH is a weird special case. We need variables (of a specific sort)
+     * for each selector of a constructor we create patterns for, and a
+     * quantified term that possibly uses these variables. We don't rely on
+     * Murxla to generate these variables and terms beforehand but generate
+     * them here on demand. */
+
+    std::vector<Term> args;
+    const auto& cons_names = dt_sort->get_dt_ctor_names();
+    SortKind sort_kind = d_smgr.pick_sort_kind();  // pick sort kind with terms
+    Sort sort          = d_smgr.pick_sort(sort_kind);  // pick sort with terms
+
+    ActionMkVar mkvar(d_smgr);  // to create variables on demand
+
+    for (const auto& ctor : cons_names)
+    {
+      const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
+      std::vector<Term> match_case_args;
+      Op::Kind match_case_kind;
+      if (!sel_names.empty())
+      {
+        for (const auto& sel : sel_names)
+        {
+          /* Create variable of selector codomain sort for each selector. */
+          uint32_t var_id = mkvar._run(dt_sort->get_dt_sel_sort(ctor, sel),
+                                       d_smgr.pick_symbol())[0];
+          match_case_args.push_back(d_smgr.get_term(var_id));
+        }
+        /* Create some terms that (possibly) use these variables. */
+        while (!d_smgr.has_quant_term(sort))
+        {
+          // todo: mkvalue, mkconst
+          Op::Kind op_kind = d_smgr.pick_op_kind(true, sort_kind);
+          run(op_kind);
+        }
+        match_case_args.push_back(d_smgr.pick_quant_term(sort));
+        match_case_kind = Op::DT_MATCH_BIND_CASE;
+      }
+      else
+      {
+        match_case_args.push_back(d_smgr.pick_term(sort));
+        match_case_kind = Op::DT_MATCH_CASE;
+      }
+      uint32_t match_case_id =
+          _run(match_case_kind, SORT_DT, dt_sort, {ctor}, match_case_args)[0];
+      args.push_back(d_smgr.get_term(match_case_id));
+    }
+    assert(sort_kind != SORT_ANY);
+    _run(kind, sort_kind, args, {});
   }
   else
   {
@@ -1428,7 +1484,8 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
     }
     n_args = str_to_uint32(tokens[idx++]);
   }
-  else if (op_kind == Op::DT_APPLY_CONS)
+  else if (op_kind == Op::DT_APPLY_CONS || op_kind == Op::DT_MATCH_CASE
+           || op_kind == Op::DT_MATCH_BIND_CASE)
   {
     uint32_t id = untrace_str_to_id(tokens[2]);
     sort        = d_smgr.get_untraced_sort(id);
@@ -1474,7 +1531,8 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
     return _run(op_kind, sort_kind, str_args, args);
   }
 
-  if (op_kind == Op::DT_APPLY_CONS)
+  if (op_kind == Op::DT_APPLY_CONS || op_kind == Op::DT_MATCH_CASE
+      || op_kind == Op::DT_MATCH_BIND_CASE)
   {
     return _run(op_kind, sort_kind, sort, str_args, args);
   }
@@ -1576,7 +1634,7 @@ ActionMkTerm::_run(Op::Kind kind,
                    SortKind sort_kind,
                    Sort sort,
                    const std::vector<std::string> str_args,
-                   const std::vector<Term>& args)
+                   std::vector<Term>& args)
 {
   std::stringstream trace_str;
   trace_str << " " << kind << " " << sort_kind << " " << sort;
@@ -1588,7 +1646,19 @@ ActionMkTerm::_run(Op::Kind kind,
   trace_str << " " << args.size() << args;
   MURXLA_TRACE << get_kind() << trace_str.str();
 
+  /* Note: We pop the variable scopes in _run instead of run so that we
+   *       correctly handle this case for untracing. */
+  if (kind == Op::DT_MATCH_BIND_CASE)
+  {
+    for (size_t i = 0, n = args.size() - 1; i < n; ++i)
+    {
+      d_smgr.remove_var(args[n - 1 - i]);
+    }
+  }
+
   Term res = d_solver.mk_term(kind, sort, str_args, args);
+  /* We do not add match case terms since they are specifically created for
+   * creating a match term and should not be used in any other terms. */
   d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
 

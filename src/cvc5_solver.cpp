@@ -342,11 +342,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 // ## Arrays
 //  EQ_RANGE,
 
-//  ## Datatypes
-//  MATCH,
-//  MATCH_CASE,
-//  MATCH_BIND_CASE,
-
 //  ## Separation Logic
 //  SEP_NIL,
 //  SEP_EMP,
@@ -424,6 +419,9 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::DT_APPLY_SEL, ::cvc5::api::Kind::APPLY_SELECTOR},
         {Op::DT_APPLY_TESTER, ::cvc5::api::Kind::APPLY_TESTER},
         {Op::DT_APPLY_UPDATER, ::cvc5::api::Kind::APPLY_UPDATER},
+        {Op::DT_MATCH, ::cvc5::api::Kind::MATCH},
+        {Op::DT_MATCH_BIND_CASE, ::cvc5::api::Kind::MATCH_BIND_CASE},
+        {Op::DT_MATCH_CASE, ::cvc5::api::Kind::MATCH_CASE},
 
         /* FP */
         {Op::FP_ABS, ::cvc5::api::Kind::FLOATINGPOINT_ABS},
@@ -687,6 +685,9 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::APPLY_SELECTOR, Op::DT_APPLY_SEL},
         {::cvc5::api::Kind::APPLY_TESTER, Op::DT_APPLY_TESTER},
         {::cvc5::api::Kind::APPLY_UPDATER, Op::DT_APPLY_UPDATER},
+        {::cvc5::api::Kind::MATCH, Op::DT_MATCH},
+        {::cvc5::api::Kind::MATCH_BIND_CASE, Op::DT_MATCH_BIND_CASE},
+        {::cvc5::api::Kind::MATCH_CASE, Op::DT_MATCH_CASE},
 
         /* FP */
         {::cvc5::api::Kind::FLOATINGPOINT_ABS, Op::FP_ABS},
@@ -1888,19 +1889,19 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   if (kind == Op::FORALL || kind == Op::EXISTS)
   {
     assert(args.size() >= 2);
-    std::vector<::cvc5::api::Term> vars;
+    std::vector<::cvc5::api::Term> cvc5_vars;
     for (size_t i = 0; i < args.size() - 1; ++i)
     {
-      vars.push_back(cvc5_args[i]);
+      cvc5_vars.push_back(cvc5_args[i]);
     }
-    ::cvc5::api::Term bvl =
+    ::cvc5::api::Term cvc5_bvl =
         d_rng.flip_coin()
-            ? d_solver->mkTerm(::cvc5::api::Kind::VARIABLE_LIST, vars)
+            ? d_solver->mkTerm(::cvc5::api::Kind::VARIABLE_LIST, cvc5_vars)
             : d_solver->mkTerm(d_solver->mkOp(::cvc5::api::Kind::VARIABLE_LIST),
-                               vars);
-    ::cvc5::api::Term body = Cvc5Term::get_cvc5_term(args.back());
-    cvc5_args              = {bvl, body};
-    n_args                 = cvc5_args.size();
+                               cvc5_vars);
+    ::cvc5::api::Term cvc5_body = Cvc5Term::get_cvc5_term(args.back());
+    cvc5_args                   = {cvc5_bvl, cvc5_body};
+    n_args                      = cvc5_args.size();
   }
   else if (kind == Op::RE_ALL)
   {
@@ -2215,9 +2216,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
                     const std::vector<std::string>& str_args,
                     const std::vector<Term>& args)
 {
-  assert(kind == Op::DT_APPLY_CONS);
   assert(sort->is_dt());
-  assert(str_args.size() == 1);
 
   ::cvc5::api::Term cvc5_res;
   ::cvc5::api::Kind cvc5_kind    = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
@@ -2225,30 +2224,62 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   std::vector<::cvc5::api::Term> cvc5_args =
       Cvc5Term::terms_to_cvc5_terms(args);
 
-  ::cvc5::api::Term cvc5_ctor_term;
-  auto choice = d_rng.pick_one_of_three();
-  if (choice == RNGenerator::Choice::FIRST)
+  if (kind == Op::DT_MATCH_BIND_CASE)
   {
-    cvc5_ctor_term =
-        cvc5_dt_sort.getDatatype()[str_args[0]].getConstructorTerm();
+    assert(str_args.size() == 1);
+    std::vector<::cvc5::api::Term> cvc5_vars;
+    for (size_t i = 0; i < args.size() - 1; ++i)
+    {
+      cvc5_vars.push_back(cvc5_args[i]);
+    }
+    ::cvc5::api::Term cvc5_bvl =
+        d_rng.flip_coin()
+            ? d_solver->mkTerm(::cvc5::api::Kind::VARIABLE_LIST, cvc5_vars)
+            : d_solver->mkTerm(d_solver->mkOp(::cvc5::api::Kind::VARIABLE_LIST),
+                               cvc5_vars);
+
+    std::vector<Term> vars{args.begin(), args.end() - 1};
+    Term acons = mk_term(Op::DT_APPLY_CONS, sort, str_args, vars);
+    ::cvc5::api::Term cvc5_acons = Cvc5Term::get_cvc5_term(acons);
+    cvc5_args                    = {cvc5_bvl, cvc5_acons, cvc5_args.back()};
   }
-  else if (choice == RNGenerator::Choice::SECOND)
+  else if (kind == Op::DT_MATCH_CASE)
   {
-    cvc5_ctor_term = cvc5_dt_sort.getDatatype()
-                         .getConstructor(str_args[0])
-                         .getConstructorTerm();
+    assert(str_args.size() == 1);
+    Term acons = mk_term(Op::DT_APPLY_CONS, sort, str_args, {});
+    ::cvc5::api::Term cvc5_acons = Cvc5Term::get_cvc5_term(acons);
+    cvc5_args                    = {cvc5_acons, cvc5_args.back()};
   }
   else
   {
-    cvc5_ctor_term = cvc5_dt_sort.getDatatype().getConstructorTerm(str_args[0]);
+    assert(kind == Op::DT_APPLY_CONS);
+    assert(str_args.size() == 1);
+
+    ::cvc5::api::Term cvc5_ctor_term;
+    auto choice = d_rng.pick_one_of_three();
+    if (choice == RNGenerator::Choice::FIRST)
+    {
+      cvc5_ctor_term =
+          cvc5_dt_sort.getDatatype()[str_args[0]].getConstructorTerm();
+    }
+    else if (choice == RNGenerator::Choice::SECOND)
+    {
+      cvc5_ctor_term = cvc5_dt_sort.getDatatype()
+                           .getConstructor(str_args[0])
+                           .getConstructorTerm();
+    }
+    else
+    {
+      cvc5_ctor_term =
+          cvc5_dt_sort.getDatatype().getConstructorTerm(str_args[0]);
+    }
+    cvc5_args.insert(cvc5_args.begin(), cvc5_ctor_term);
   }
-  cvc5_args.insert(cvc5_args.begin(), cvc5_ctor_term);
 
   if (d_rng.flip_coin())
   {
-    ::cvc5::api::Op cvc5_opterm =
-        d_solver->mkOp(::cvc5::api::Kind::APPLY_CONSTRUCTOR);
-    cvc5_res = d_solver->mkTerm(cvc5_opterm, cvc5_args);
+    ::cvc5::api::Op cvc5_opterm = d_solver->mkOp(cvc5_kind);
+    cvc5_res                    = d_solver->mkTerm(cvc5_opterm, cvc5_args);
   }
   else
   {

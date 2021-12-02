@@ -368,7 +368,7 @@ class ActionMkTerm : public Action
                              SortKind sort_kind,
                              Sort sort,
                              const std::vector<std::string> str_args,
-                             const std::vector<Term>& args);
+                             std::vector<Term>& args);
 };
 
 class ActionMkConst : public Action
@@ -392,11 +392,11 @@ class ActionMkVar : public Action
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
+  std::vector<uint64_t> _run(Sort sort, const std::string& symbol);
 
  private:
   /** Perform checks on the created variable. */
   void check_variable(RNGenerator& rng, Term term);
-  std::vector<uint64_t> _run(Sort sort, const std::string& symbol);
 };
 
 class ActionMkValue : public Action

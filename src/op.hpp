@@ -302,7 +302,8 @@ class OpKindManager
         d_disabled_op_kinds(disabled_op_kinds),
         d_unsupported_op_kind_sorts(unsupported_op_kind_sorts),
         d_arith_linear(arith_linear),
-        d_stats(stats)
+        d_stats(stats),
+        d_op_undefined(0u, Op::UNDEFINED, 0, 0, {}, {}, THEORY_ALL)
   {
     for (const auto p : enabled_sort_kinds)
     {
@@ -311,7 +312,11 @@ class OpKindManager
     add_op_kinds();
   }
 
-  /** Get operator of given kind. */
+  /**
+   * Get operator of given kind.
+   * Returns a reference to d_op_undefined if the op kind has not been added
+   * to the op database.
+   */
   Op& get_op(const Op::Kind& kind);
 
   /**
@@ -354,6 +359,13 @@ class OpKindManager
   bool d_arith_linear = false;
   /** Statistics. */
   statistics::Statistics* d_stats;
+  /**
+   * Op representing kinds that are defined but not added as operator kind
+   * to d_op_kinds, to be returned via get_op(). This is for operators that
+   * are explicitly not added to the op kind database because they should not
+   * be randomly picked but only created on demand. Examples are DT_MATCH_CASE
+   * and DT_MATCH_BIND_CASE. */
+  Op d_op_undefined;
 };
 
 /* -------------------------------------------------------------------------- */

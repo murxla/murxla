@@ -99,6 +99,8 @@ class SolverManager
   uint64_t get_num_terms() const;
   /** Get the number of created terms of given sort kind. */
   uint64_t get_num_terms(SortKind sort_kind);
+  /** Get the number of created terms in the top scope. */
+  uint64_t get_num_terms_max_level() const;
 
   /** Get the number of available variables. */
   uint32_t get_num_vars() const;
@@ -243,6 +245,11 @@ class SolverManager
    */
   Term pick_quant_term();
 
+  /**
+   * Pick term of given sort from current scope level.
+   */
+  Term pick_quant_term(Sort sort);
+
   /** Add assumption currently assumed. */
   void add_assumption(Term t);
 
@@ -308,6 +315,11 @@ class SolverManager
    * the current scope level.
    */
   bool has_quant_term() const;
+  /**
+   * Return true if term database contains a variable and a term of given sort
+   * in the current scope level.
+   */
+  bool has_quant_term(Sort sort) const;
 
   /**
    * Return the Term in the Term database that wraps the same solver term
@@ -318,6 +330,11 @@ class SolverManager
    *       solver terms without sort information.
    */
   Term find_term(Term term, Sort sort, SortKind sort_kind);
+
+  /**
+   * Return the term with the given id.
+   */
+  Term get_term(uint64_t id) const;
 
   /**
    * Return the untraced term with the given id.

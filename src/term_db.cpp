@@ -365,6 +365,20 @@ TermDb::has_term(Sort sort) const
 }
 
 bool
+TermDb::has_term(Sort sort, size_t level) const
+{
+  assert(sort != nullptr);
+  SortKind sort_kind = sort->get_kind();
+  if (sort_kind == SORT_REAL)
+  {
+    return has_term(sort_kind, level);
+  }
+  if (d_term_db[level].find(sort_kind) == d_term_db[level].end()) return false;
+  const auto& smap = d_term_db[level].at(sort_kind);
+  return smap.find(sort) != smap.end();
+}
+
+bool
 TermDb::has_term() const
 {
   return d_terms.size() > 0;
@@ -408,10 +422,17 @@ TermDb::has_quant_body() const
 }
 
 bool
-TermDb::has_quant_term() const
+TermDb::has_quant_term(SortKind sort_kind) const
 {
   if (!has_var()) return false;
-  return has_term(SORT_ANY, max_level());
+  return has_term(sort_kind, max_level());
+}
+
+bool
+TermDb::has_quant_term(Sort sort) const
+{
+  if (!has_var()) return false;
+  return has_term(sort, max_level());
 }
 
 Term
@@ -450,7 +471,7 @@ TermDb::pick_value(Sort sort) const
 }
 
 size_t
-TermDb::get_number_of_terms(SortKind sort_kind, size_t level) const
+TermDb::get_num_terms(SortKind sort_kind, size_t level) const
 {
   assert(sort_kind != SORT_ANY);
   size_t res = 0;
@@ -468,7 +489,7 @@ TermDb::get_number_of_terms(SortKind sort_kind, size_t level) const
 }
 
 size_t
-TermDb::get_number_of_terms(size_t level) const
+TermDb::get_num_terms(size_t level) const
 {
   size_t res = 0;
   for (const auto& s : d_term_db[level])
@@ -482,9 +503,27 @@ TermDb::get_number_of_terms(size_t level) const
 }
 
 size_t
-TermDb::get_number_of_terms(SortKind sort_kind) const
+TermDb::get_num_terms(SortKind sort_kind) const
 {
-  return get_number_of_terms(sort_kind, d_term_db.size() - 1);
+  return get_num_terms(sort_kind, d_term_db.size() - 1);
+}
+
+Term
+TermDb::pick_term(Sort sort, size_t level)
+{
+  SortKind sort_kind = sort->get_kind();
+  if (sort_kind == SORT_REAL)
+  {
+    return pick_term(sort_kind, level);
+  }
+
+  assert(has_term(sort, level));
+  assert(d_smgr.has_sort(sort));
+
+  assert(d_term_db[level].find(sort_kind) != d_term_db[level].end());
+  SortMap& smap = d_term_db[level].at(sort_kind);
+  assert(smap.find(sort) != smap.end());
+  return smap.at(sort).pick(d_rng);
 }
 
 Term
@@ -497,20 +536,15 @@ TermDb::pick_term(Sort sort)
   if (d_smgr.d_arith_subtyping && sort->get_kind() == SORT_REAL
       && has_term(SORT_INT))
   {
-    size_t n_reals = get_number_of_terms(SORT_REAL);
-    size_t n_ints  = get_number_of_terms(SORT_INT);
+    size_t n_reals = get_num_terms(SORT_REAL);
+    size_t n_ints  = get_num_terms(SORT_INT);
     assert(n_reals || n_ints);
     std::vector<size_t> weights = {n_reals, n_ints};
     size_t p                    = d_rng.pick_weighted<size_t>(weights);
     if (p) s = pick_sort(SORT_INT);
   }
 
-  size_t level    = pick_level(s);
-  SortKind s_kind = s->get_kind();
-  assert(d_term_db[level].find(s_kind) != d_term_db[level].end());
-  SortMap& smap = d_term_db[level].at(s_kind);
-  assert(smap.find(s) != smap.end());
-  return smap.at(s).pick(d_rng);
+  return pick_term(s, pick_level(s));
 }
 
 Term
@@ -522,8 +556,8 @@ TermDb::pick_term(SortKind sort_kind, size_t level)
   if (d_smgr.d_arith_subtyping && sort_kind == SORT_REAL
       && has_term(SORT_INT, level))
   {
-    size_t n_reals = get_number_of_terms(SORT_REAL, level);
-    size_t n_ints  = get_number_of_terms(SORT_INT, level);
+    size_t n_reals = get_num_terms(SORT_REAL, level);
+    size_t n_ints  = get_num_terms(SORT_INT, level);
     assert(n_reals || n_ints);
     std::vector<size_t> weights = {n_reals, n_ints};
     if (d_rng.pick_weighted<size_t>(weights)) sort_kind = SORT_INT;
@@ -687,12 +721,19 @@ TermDb::pick_quant_body()
 }
 
 Term
-TermDb::pick_quant_term()
+TermDb::pick_quant_term(SortKind sort_kind)
 {
-  assert(has_quant_term());
-  size_t level       = max_level();
-  SortKind sort_kind = pick_sort_kind(level);
+  assert(has_quant_term(sort_kind));
+  size_t level = max_level();
+  if (sort_kind == SORT_ANY) sort_kind = pick_sort_kind(level);
   return pick_term(sort_kind, level);
+}
+
+Term
+TermDb::pick_quant_term(Sort sort)
+{
+  assert(has_quant_term(sort));
+  return pick_term(sort, max_level());
 }
 
 size_t
@@ -716,8 +757,8 @@ TermDb::pick_level(SortKind& kind) const
 
   if (d_smgr.d_arith_subtyping && kind == SORT_REAL && has_term(SORT_INT))
   {
-    size_t n_reals = get_number_of_terms(SORT_REAL);
-    size_t n_ints  = get_number_of_terms(SORT_INT);
+    size_t n_reals = get_num_terms(SORT_REAL);
+    size_t n_ints  = get_num_terms(SORT_INT);
     assert(n_reals || n_ints);
     std::vector<size_t> weights = {n_reals, n_ints};
     if (d_rng.pick_weighted<size_t>(weights)) kind = SORT_INT;

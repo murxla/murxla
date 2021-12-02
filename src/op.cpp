@@ -71,6 +71,7 @@ Op::get_arg_sort_kind(size_t i) const
 Op&
 OpKindManager::get_op(const Op::Kind& kind)
 {
+  if (d_op_kinds.find(kind) == d_op_kinds.end()) return d_op_undefined;
   return d_op_kinds.at(kind);
 }
 
@@ -150,9 +151,7 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::DT_APPLY_TESTER, 1, 0, SORT_BOOL, {SORT_DT}, THEORY_DT);
   add_op_kind(
       Op::DT_APPLY_UPDATER, 2, 0, SORT_DT, {SORT_DT, SORT_ANY}, THEORY_DT);
-  // add_op_kind(Op::DT_MATCH, n, 0,
-  // add_op_kind(Op::DT_MATCH_CASE, 2, 0,
-  // add_op_kind(Op::DT_MATCH_BIND_CASE, 3, 0,
+  add_op_kind(Op::DT_MATCH, n, 0, SORT_ANY, {SORT_ANY}, THEORY_DT);
   // add_op_kind(Op::DT_TUPLE_PROJECT, 1, 0,
 
   /* FP */

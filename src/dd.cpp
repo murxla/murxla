@@ -956,6 +956,9 @@ DD::minimize_line(Result golden_exit,
       {
         Op::Kind op_kind = tokens[0];
         Op& op           = opmgr.get_op(op_kind);
+        /* op kind not in op datatbase, skip */
+        if (op.d_kind == Op::UNDEFINED) continue;
+        /* we only minimize n-ary op kinds */
         if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
         idx    = 3;
         n_args = str_to_uint32(tokens[2]);
