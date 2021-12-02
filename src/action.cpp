@@ -1534,7 +1534,7 @@ ActionMkTerm::_run(Op::Kind kind,
   Sort res_sort = res->get_sort();
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;
-  check_term(d_rng, res);
+  check_term(res);
   return {res->get_id(), res_sort->get_id()};
 }
 
@@ -1559,7 +1559,7 @@ ActionMkTerm::_run(Op::Kind kind,
   Sort res_sort = res->get_sort();
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;
-  check_term(d_rng, res);
+  check_term(res);
   return {res->get_id(), res_sort->get_id()};
 }
 
@@ -1585,14 +1585,14 @@ ActionMkTerm::_run(Op::Kind kind,
   Sort res_sort = res->get_sort();
 
   MURXLA_TRACE_RETURN << res << " " << res_sort;
-  check_term(d_rng, res);
+  check_term(res);
   return {res->get_id(), res_sort->get_id()};
 }
 
 void
-ActionMkTerm::check_term(RNGenerator& rng, Term term)
+ActionMkTerm::check_term(Term term)
 {
-  if (rng.pick_with_prob(990)) return;
+  if (d_rng.pick_with_prob(990)) return;
 
   /* check sort */
   Sort sort = term->get_sort();
@@ -1600,7 +1600,7 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
   {
     MURXLA_TEST(term->is_array());
     MURXLA_TEST(sort->get_array_index_sort() == term->get_array_index_sort());
-    if (rng.pick_with_prob(500))
+    if (d_rng.pick_with_prob(500))
     {
       MURXLA_TEST(sort->get_array_element_sort()
                   == term->get_array_element_sort());
@@ -1644,7 +1644,7 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
   {
     MURXLA_TEST(term->is_fun());
     MURXLA_TEST(sort->get_fun_arity() == term->get_fun_arity());
-    if (rng.pick_with_prob(500))
+    if (d_rng.pick_with_prob(500))
     {
       MURXLA_TEST(sort->get_fun_codomain_sort()
                   == term->get_fun_codomain_sort());
@@ -1659,7 +1659,7 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
     MURXLA_TEST(domain_sorts_expected.size() == domain_sorts.size());
     for (size_t i = 0, n = domain_sorts_expected.size(); i < n; ++i)
     {
-      if (rng.pick_with_prob(500))
+      if (d_rng.pick_with_prob(500))
       {
         MURXLA_TEST(domain_sorts_expected[i] == domain_sorts[i]);
       }
@@ -1719,6 +1719,7 @@ ActionMkTerm::check_term(RNGenerator& rng, Term term)
   MURXLA_TEST(!(term != term));
   MURXLA_TEST(!(term == Term()));
   MURXLA_TEST(term != Term());
+  d_solver.check_term(term);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1768,7 +1769,8 @@ ActionMkConst::check_const(RNGenerator& rng, Term term)
 {
   if (rng.pick_with_prob(990)) return;
 
-  ActionMkTerm::check_term(rng, term);
+  ActionMkTerm mkterm(d_smgr);
+  mkterm.check_term(term);
   MURXLA_TEST(term->is_const());
   MURXLA_TEST(!term->is_value());
   MURXLA_TEST(!term->is_var());
@@ -1817,7 +1819,8 @@ ActionMkVar::check_variable(RNGenerator& rng, Term term)
 {
   if (rng.pick_with_prob(999)) return;
 
-  ActionMkTerm::check_term(rng, term);
+  ActionMkTerm mkterm(d_smgr);
+  mkterm.check_term(term);
 
   MURXLA_TEST(term->is_var());
   MURXLA_TEST(!term->is_value());
@@ -1996,7 +1999,7 @@ ActionMkValue::_run(Sort sort, bool val)
   Term res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
-  check_value(d_rng, res);
+  check_value(res);
   return res->get_id();
 }
 
@@ -2008,7 +2011,7 @@ ActionMkValue::_run(Sort sort, const std::string& val)
   res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
-  check_value(d_rng, res);
+  check_value(res);
   return res->get_id();
 }
 
@@ -2024,7 +2027,7 @@ ActionMkValue::_run(Sort sort, const std::string& val, size_t len)
     d_smgr.add_string_char_value(res);
   }
   MURXLA_TRACE_RETURN << res;
-  check_value(d_rng, res);
+  check_value(res);
   return res->get_id();
 }
 
@@ -2036,7 +2039,7 @@ ActionMkValue::_run(Sort sort, const std::string& v0, const std::string& v1)
   Term res = d_solver.mk_value(sort, v0, v1);
   d_smgr.add_value(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
-  check_value(d_rng, res);
+  check_value(res);
   return res->get_id();
 }
 
@@ -2048,22 +2051,25 @@ ActionMkValue::_run(Sort sort, const std::string& val, Solver::Base base)
   Term res = d_solver.mk_value(sort, val, base);
   d_smgr.add_value(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
-  check_value(d_rng, res);
+  check_value(res);
   return res->get_id();
 }
 
 void
-ActionMkValue::check_value(RNGenerator& rng, Term term)
+ActionMkValue::check_value(Term term)
 {
   assert(term->get_leaf_kind() == AbsTerm::LeafKind::VALUE);
 
-  if (rng.pick_with_prob(0)) return;
+  if (d_rng.pick_with_prob(990)) return;
 
-  ActionMkTerm::check_term(rng, term);
+  ActionMkTerm mkterm(d_smgr);
+  mkterm.check_term(term);
 
   MURXLA_TEST(term->is_value());
   MURXLA_TEST(!term->is_const());
   MURXLA_TEST(!term->is_var());
+
+  d_solver.check_value(term);
 
   if (term->is_bag())
   {
@@ -2176,7 +2182,8 @@ ActionMkSpecialValue::check_special_value(RNGenerator& rng,
 
   if (rng.pick_with_prob(990)) return;
 
-  ActionMkValue::check_value(rng, term);
+  ActionMkValue mkvalue(d_smgr);
+  mkvalue.check_value(term);
 
   MURXLA_TEST(term->is_special_value(kind));
 

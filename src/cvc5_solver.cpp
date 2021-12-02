@@ -2410,6 +2410,95 @@ Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
   d_enabled_options.emplace_back(opt, value);
 }
 
+void
+Cvc5Solver::check_value(Term term)
+{
+  ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+
+  if (cvc5_term.isAbstractValue())
+  {
+    (void) cvc5_term.getAbstractValue();
+  }
+  if (cvc5_term.isFloatingPointNaN() || cvc5_term.isFloatingPointNegInf()
+      || cvc5_term.isFloatingPointNegZero() || cvc5_term.isFloatingPointPosInf()
+      || cvc5_term.isFloatingPointPosZero())
+  {
+    (void) cvc5_term.getFloatingPointValue();
+  }
+  if (cvc5_term.isInt32Value())
+  {
+    (void) cvc5_term.getInt32Value();
+  }
+  if (cvc5_term.isInt64Value())
+  {
+    (void) cvc5_term.getInt64Value();
+  }
+  if (cvc5_term.isBooleanValue())
+  {
+    (void) cvc5_term.getBooleanValue();
+  }
+  if (cvc5_term.isBitVectorValue())
+  {
+    auto choice = d_rng.pick_one_of_three();
+    if (choice == RNGenerator::Choice::FIRST)
+    {
+      (void) cvc5_term.getBitVectorValue(2);
+    }
+    else if (choice == RNGenerator::Choice::SECOND)
+    {
+      (void) cvc5_term.getBitVectorValue(10);
+    }
+    else
+    {
+      (void) cvc5_term.getBitVectorValue(16);
+    }
+  }
+  if (cvc5_term.isRealValue())
+  {
+    (void) cvc5_term.getRealValue();
+  }
+  if (cvc5_term.isReal32Value())
+  {
+    (void) cvc5_term.getReal32Value();
+  }
+  if (cvc5_term.isReal64Value())
+  {
+    (void) cvc5_term.getReal64Value();
+  }
+  if (cvc5_term.isUInt32Value())
+  {
+    (void) cvc5_term.getUInt32Value();
+  }
+  if (cvc5_term.isUInt64Value())
+  {
+    (void) cvc5_term.getUInt64Value();
+  }
+  if (cvc5_term.isSetValue())
+  {
+    (void) cvc5_term.getSetValue();
+  }
+  if (cvc5_term.isSequenceValue())
+  {
+    (void) cvc5_term.getSequenceValue();
+  }
+  if (cvc5_term.isSetValue())
+  {
+    (void) cvc5_term.getSetValue();
+  }
+  if (cvc5_term.isStringValue())
+  {
+    (void) cvc5_term.getStringValue();
+  }
+  if (cvc5_term.isTupleValue())
+  {
+    (void) cvc5_term.getTupleValue();
+  }
+  if (cvc5_term.isUninterpretedValue())
+  {
+    (void) cvc5_term.getUninterpretedValue();
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 
 std::string

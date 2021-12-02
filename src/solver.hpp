@@ -789,6 +789,12 @@ class Solver
   //
   //
 
+  /** Solver-specific term checks. */
+  virtual void check_term(Term term){};
+
+  /** Solver-specific value checks. */
+  virtual void check_value(Term term){};
+
  protected:
   RNGenerator d_rng;
 

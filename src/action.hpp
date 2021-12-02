@@ -343,13 +343,13 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
-  /** Perform checks on the created term. */
-  static void check_term(RNGenerator& rng, Term term);
-
   ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID) {}
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
+
+  /** Perform checks on the created term. */
+  void check_term(Term term);
 
  private:
   std::vector<uint64_t> _run(Op::Kind kind,
@@ -398,13 +398,13 @@ class ActionMkVar : public Action
 class ActionMkValue : public Action
 {
  public:
-  /** Perform checks on created value. */
-  static void check_value(RNGenerator& rng, Term term);
-
   ActionMkValue(SolverManager& smgr) : Action(smgr, MK_VALUE, ID) {}
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
+
+  /** Perform checks on created value. */
+  void check_value(Term term);
 
  private:
   uint64_t _run(Sort sort, bool val);

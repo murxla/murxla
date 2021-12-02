@@ -292,7 +292,9 @@ class Cvc5Solver : public Solver
   // get_model()
   // get_proof()
   //
-  //
+
+  void check_value(Term term) override;
+
  private:
   ::cvc5::api::Solver* d_solver;
 
