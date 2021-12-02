@@ -43,6 +43,7 @@ SolverManager::SolverManager(Solver* solver,
   add_enabled_theories(enabled_theories, disabled_theories);
   add_sort_kinds();  // adds only sort kinds of enabled theories
   d_opmgr.reset(new OpKindManager(d_enabled_theories,
+                                  d_sort_kinds,
                                   d_solver->get_unsupported_op_kinds(),
                                   d_solver->get_unsupported_op_sort_kinds(),
                                   d_arith_linear,

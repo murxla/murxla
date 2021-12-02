@@ -389,52 +389,65 @@ OpKindManager::add_op_kind(const Op::Kind& kind,
                            const std::vector<SortKind>& sort_kind_args,
                            TheoryId theory)
 {
-  if (d_disabled_op_kinds.find(kind) == d_disabled_op_kinds.end()
-      && (theory == THEORY_ALL
-          || d_enabled_theories.find(theory) != d_enabled_theories.end()))
+  /* Operator was disabled. */
+  if (d_disabled_op_kinds.find(kind) != d_disabled_op_kinds.end())
   {
-    uint64_t id = d_op_kinds.size();
-    if (id >= MURXLA_MAX_N_OPS)
-    {
-      throw MurxlaException(
-          "maximum number of operators exceeded, increase limit by adjusting "
-          "value of macro MURXLA_MAX_N_OPS in config.hpp");
-    }
+    return;
+  }
+  /* Theory was not enabled. */
+  if (theory != THEORY_ALL
+      && d_enabled_theories.find(theory) == d_enabled_theories.end())
+  {
+    return;
+  }
+  /* Return sort for given operator was not enabled. */
+  if (sort_kind != SORT_ANY
+      && d_enabled_sort_kinds.find(sort_kind) == d_enabled_sort_kinds.end())
+  {
+    return;
+  }
 
-    SortKindSet exclude_sort_kinds;
-    const auto& it = d_unsupported_op_kind_sorts.find(kind);
-    if (it != d_unsupported_op_kind_sorts.end())
-    {
-      exclude_sort_kinds = it->second;
-    }
+  uint64_t id = d_op_kinds.size();
+  if (id >= MURXLA_MAX_N_OPS)
+  {
+    throw MurxlaException(
+        "maximum number of operators exceeded, increase limit by adjusting "
+        "value of macro MURXLA_MAX_N_OPS in config.hpp");
+  }
 
-    SortKindSet sort_kinds;
-    if (sort_kind == SORT_ANY)
+  SortKindSet exclude_sort_kinds;
+  const auto& it = d_unsupported_op_kind_sorts.find(kind);
+  if (it != d_unsupported_op_kind_sorts.end())
+  {
+    exclude_sort_kinds = it->second;
+  }
+
+  SortKindSet sort_kinds;
+  if (sort_kind == SORT_ANY)
+  {
+    sort_kinds = get_all_sort_kinds_for_any(exclude_sort_kinds);
+  }
+  else
+  {
+    sort_kinds.insert(sort_kind);
+  }
+  std::vector<SortKindSet> sort_kinds_args;
+  for (SortKind s : sort_kind_args)
+  {
+    SortKindSet sk;
+    if (s == SORT_ANY)
     {
-      sort_kinds = get_all_sort_kinds_for_any(exclude_sort_kinds);
+      sk = get_all_sort_kinds_for_any(exclude_sort_kinds);
     }
     else
     {
-      sort_kinds.insert(sort_kind);
+      sk.insert(s);
     }
-    std::vector<SortKindSet> sort_kinds_args;
-    for (SortKind s : sort_kind_args)
-    {
-      SortKindSet sk;
-      if (s == SORT_ANY)
-      {
-        sk = get_all_sort_kinds_for_any(exclude_sort_kinds);
-      }
-      else
-      {
-        sk.insert(s);
-      }
-      sort_kinds_args.push_back(sk);
-    }
-    d_op_kinds.emplace(
-        kind, Op(id, kind, arity, nidxs, sort_kinds, sort_kinds_args, theory));
-    strncpy(d_stats->d_op_kinds[id], kind.c_str(), kind.size());
+    sort_kinds_args.push_back(sk);
   }
+  d_op_kinds.emplace(
+      kind, Op(id, kind, arity, nidxs, sort_kinds, sort_kinds_args, theory));
+  strncpy(d_stats->d_op_kinds[id], kind.c_str(), kind.size());
 }
 
 /* -------------------------------------------------------------------------- */

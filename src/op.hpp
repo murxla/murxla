@@ -292,6 +292,7 @@ class OpKindManager
  public:
   /** Constructor. */
   OpKindManager(const TheoryIdSet& enabled_theories,
+                const SortKindMap& enabled_sort_kinds,
                 const OpKindSet& disabled_op_kinds,
                 const std::unordered_map<Op::Kind, SortKindSet>&
                     unsupported_op_kind_sorts,
@@ -303,6 +304,10 @@ class OpKindManager
         d_arith_linear(arith_linear),
         d_stats(stats)
   {
+    for (const auto p : enabled_sort_kinds)
+    {
+      d_enabled_sort_kinds.insert(p.first);
+    }
     add_op_kinds();
   }
 
@@ -338,6 +343,8 @@ class OpKindManager
   OpKindMap d_op_kinds;
   /** The set of enabled theories. */
   TheoryIdSet d_enabled_theories;
+  /** Enabled sort kinds. */
+  SortKindSet d_enabled_sort_kinds;
   /** The set of disabled operator kinds. */
   OpKindSet d_disabled_op_kinds;
   /** The map of unsupported sorts for operator kinds. */
