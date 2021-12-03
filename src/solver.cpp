@@ -62,6 +62,7 @@ AbsSort::get_dt_ctor_names() const
       d_dt_ctors.begin(), d_dt_ctors.end(), res.begin(), [](const auto& pair) {
         return pair.first;
       });
+  assert(!res.empty());
   return res;
 }
 

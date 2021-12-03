@@ -920,7 +920,11 @@ ActionMkTerm::run(Op::Kind kind)
   {
     assert(!n_indices);
     if (!d_smgr.has_term(SORT_DT)) return false;
-    Sort dt_sort = d_smgr.pick_sort(SORT_DT);
+    Term dt_term = d_smgr.pick_term(SORT_DT);
+    Sort dt_sort = dt_term->get_sort();
+
+    std::vector<Term> args;
+    args.push_back(dt_term);
 
     /* DT_MATCH is a weird special case. We need variables (of a specific sort)
      * for each selector of a constructor we create patterns for, and a
@@ -928,7 +932,6 @@ ActionMkTerm::run(Op::Kind kind)
      * Murxla to generate these variables and terms beforehand but generate
      * them here on demand. */
 
-    std::vector<Term> args;
     const auto& cons_names = dt_sort->get_dt_ctor_names();
     SortKind sort_kind = d_smgr.pick_sort_kind();  // pick sort kind with terms
     Sort sort          = d_smgr.pick_sort(sort_kind);  // pick sort with terms
@@ -965,7 +968,7 @@ ActionMkTerm::run(Op::Kind kind)
         match_case_kind = Op::DT_MATCH_CASE;
       }
       uint32_t match_case_id =
-          _run(match_case_kind, SORT_DT, dt_sort, {ctor}, match_case_args)[0];
+          _run(match_case_kind, sort_kind, dt_sort, {ctor}, match_case_args)[0];
       args.push_back(d_smgr.get_term(match_case_id));
     }
     assert(sort_kind != SORT_ANY);
