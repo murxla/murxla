@@ -958,6 +958,11 @@ DD::minimize_line(Result golden_exit,
         Op& op           = opmgr.get_op(op_kind);
         /* op kind not in op datatbase, skip */
         if (op.d_kind == Op::UNDEFINED) continue;
+        /* we don't minimize these kinds, skip */
+        if (op.d_kind == Op::DT_APPLY_CONS || op.d_kind == Op::DT_MATCH)
+        {
+          continue;
+        }
         /* we only minimize n-ary op kinds */
         if (op.d_arity != MURXLA_MK_TERM_N_ARGS_BIN) continue;
         idx    = 3;
