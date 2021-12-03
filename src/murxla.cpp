@@ -241,6 +241,7 @@ Murxla::run(uint32_t seed,
 void
 Murxla::test()
 {
+  uint64_t num_timeouts = 0, num_printed_lines = 0;
   uint32_t num_runs         = 0;
   double start_time         = get_cur_wall_time();
   std::string out_file_name = DEVNULL;
@@ -255,17 +256,32 @@ Murxla::test()
 
     uint32_t seed = sg.next();
 
+    if (num_printed_lines % 100 == 0)
+    {
+      std::cout << std::setw(10) << "seed";
+      std::cout << " " << std::setw(5) << "runs";
+      std::cout << " " << std::setw(8) << "r/s";
+      std::cout << " " << std::setw(5) << "sat";
+      std::cout << " " << std::setw(5) << "unsat";
+      std::cout << " " << std::setw(5) << "unknw";
+      std::cout << " " << std::setw(5) << "to";
+      std::cout << " " << std::setw(5) << "err";
+
+      std::cout << std::endl;
+      ++num_printed_lines;
+    }
+
     std::cout << std::setw(10) << seed;
-    std::cout << " " << std::setw(5) << num_runs << " runs";
-    std::cout << " " << std::setw(8);
-    std::cout << std::setprecision(2) << std::fixed;
-    std::cout << num_runs / (cur_time - start_time) << " r/s";
-    std::cout << " " << std::setw(4);
-    std::cout << d_stats->d_results[Solver::Result::SAT] << " sat";
-    std::cout << " " << std::setw(4);
-    std::cout << d_stats->d_results[Solver::Result::UNSAT] << " unsat";
-    std::cout << " " << std::setw(4);
-    std::cout << d_errors->size() << " errors";
+    std::cout << " " << std::setw(5) << num_runs;
+    std::cout << " " << std::setw(8) << std::setprecision(2) << std::fixed;
+    std::cout << num_runs / (cur_time - start_time);
+    std::cout << " " << std::setw(5) << d_stats->d_results[Solver::Result::SAT];
+    std::cout << " " << std::setw(5)
+              << d_stats->d_results[Solver::Result::UNSAT];
+    std::cout << " " << std::setw(5)
+              << d_stats->d_results[Solver::Result::UNKNOWN];
+    std::cout << " " << std::setw(5) << num_timeouts;
+    std::cout << " " << std::setw(5) << d_errors->size();
     std::cout << std::flush;
     num_runs++;
 
@@ -316,6 +332,7 @@ Murxla::test()
       else
       {
         std::cout << std::endl;
+        ++num_printed_lines;
       }
     }
     else
@@ -362,7 +379,10 @@ Murxla::test()
           break;
         case RESULT_ERROR_CONFIG: info << term.red() << "config error"; break;
         case RESULT_ERROR_UNTRACE: info << term.red() << "untrace error"; break;
-        case RESULT_TIMEOUT: info << term.blue() << "timeout"; break;
+        case RESULT_TIMEOUT:
+          info << term.blue() << "timeout";
+          ++num_timeouts;
+          break;
         default: assert(res == RESULT_UNKNOWN); info << "unknown";
       }
       info << term.defaultcolor() << "]";
@@ -371,7 +391,10 @@ Murxla::test()
       if (res == RESULT_ERROR)
         std::cout << " ";
       else
+      {
         std::cout << std::endl;
+        ++num_printed_lines;
+      }
     }
 
     /* Replay and trace on error.
@@ -394,6 +417,7 @@ Murxla::test()
     {
       std::cout << std::endl;
       std::cout << errmsg << std::endl;
+      ++num_printed_lines;
     }
   } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
 }
