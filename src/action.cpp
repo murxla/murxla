@@ -824,15 +824,7 @@ ActionMkSort::check_sort(Sort sort, const std::string& name) const
 bool
 ActionMkTerm::run(Op::Kind kind)
 {
-  assert(d_solver.is_initialized());
-  assert(d_smgr.get_enabled_theories().find(THEORY_BOOL)
-         != d_smgr.get_enabled_theories().end());
-  assert(d_smgr.has_term());
-
-  assert(!d_smgr.d_arith_linear || kind != Op::INT_MOD);
-  assert(!d_smgr.d_arith_linear || kind != Op::INT_DIV);
-  assert(!d_smgr.d_arith_linear || kind != Op::REAL_DIV);
-  if (kind == Op::UNDEFINED) return false;
+  assert(kind != Op::UNDEFINED);
 
   Op& op = d_smgr.get_op(kind);
   assert(op.d_kind != Op::UNDEFINED);
@@ -845,8 +837,6 @@ ActionMkTerm::run(Op::Kind kind)
   {
     sort_kind = *sort_kinds.begin();
   }
-
-  ++d_smgr.d_mbt_stats->d_ops[op.d_id];
 
   if (kind == Op::DT_APPLY_CONS)
   {
@@ -915,64 +905,6 @@ ActionMkTerm::run(Op::Kind kind)
     if (!d_smgr.has_term(codomain_sort)) return false;
     args.push_back(d_smgr.pick_term(codomain_sort));
     _run(kind, sort_kind, {ctor, sel}, args);
-  }
-  else if (kind == Op::DT_MATCH)
-  {
-    assert(!n_indices);
-    if (!d_smgr.has_term(SORT_DT)) return false;
-    Term dt_term = d_smgr.pick_term(SORT_DT);
-    Sort dt_sort = dt_term->get_sort();
-
-    std::vector<Term> args;
-    args.push_back(dt_term);
-
-    /* DT_MATCH is a weird special case. We need variables (of a specific sort)
-     * for each selector of a constructor we create patterns for, and a
-     * quantified term that possibly uses these variables. We don't rely on
-     * Murxla to generate these variables and terms beforehand but generate
-     * them here on demand. */
-
-    const auto& cons_names = dt_sort->get_dt_ctor_names();
-    SortKind sort_kind = d_smgr.pick_sort_kind();  // pick sort kind with terms
-    Sort sort          = d_smgr.pick_sort(sort_kind);  // pick sort with terms
-
-    ActionMkVar mkvar(d_smgr);  // to create variables on demand
-
-    for (const auto& ctor : cons_names)
-    {
-      const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
-      std::vector<Term> match_case_args;
-      Op::Kind match_case_kind;
-      if (!sel_names.empty())
-      {
-        for (const auto& sel : sel_names)
-        {
-          /* Create variable of selector codomain sort for each selector. */
-          uint32_t var_id = mkvar._run(dt_sort->get_dt_sel_sort(ctor, sel),
-                                       d_smgr.pick_symbol())[0];
-          match_case_args.push_back(d_smgr.get_term(var_id));
-        }
-        /* Create some terms that (possibly) use these variables. */
-        while (!d_smgr.has_quant_term(sort))
-        {
-          // todo: mkvalue, mkconst
-          Op::Kind op_kind = d_smgr.pick_op_kind(true, sort_kind);
-          run(op_kind);
-        }
-        match_case_args.push_back(d_smgr.pick_quant_term(sort));
-        match_case_kind = Op::DT_MATCH_BIND_CASE;
-      }
-      else
-      {
-        match_case_args.push_back(d_smgr.pick_term(sort));
-        match_case_kind = Op::DT_MATCH_CASE;
-      }
-      uint32_t match_case_id =
-          _run(match_case_kind, sort_kind, dt_sort, {ctor}, match_case_args)[0];
-      args.push_back(d_smgr.get_term(match_case_id));
-    }
-    assert(sort_kind != SORT_ANY);
-    _run(kind, sort_kind, args, {});
   }
   else
   {
@@ -1458,7 +1390,115 @@ bool
 ActionMkTerm::run()
 {
   /* Op is only picked if there exist terms that can be used as operands. */
-  return run(d_smgr.pick_op_kind());
+  Op::Kind kind = d_smgr.pick_op_kind();
+  assert(d_solver.is_initialized());
+  assert(d_smgr.get_enabled_theories().find(THEORY_BOOL)
+         != d_smgr.get_enabled_theories().end());
+  assert(d_smgr.has_term());
+
+  assert(!d_smgr.d_arith_linear || kind != Op::INT_MOD);
+  assert(!d_smgr.d_arith_linear || kind != Op::INT_DIV);
+  assert(!d_smgr.d_arith_linear || kind != Op::REAL_DIV);
+  if (kind == Op::UNDEFINED) return false;
+
+  if (kind == Op::DT_MATCH)
+  {
+    if (!d_smgr.has_term(SORT_DT)) return false;
+
+    /* DT_MATCH is a weird special case. We need variables (of a specific sort)
+     * for each selector of a constructor we create patterns for, and a
+     * quantified term that possibly uses these variables. We don't rely on
+     * Murxla to generate these variables and terms beforehand but generate
+     * them here on demand. */
+
+    Op& op = d_smgr.get_op(kind);
+    assert(op.d_kind != Op::UNDEFINED);
+    assert(!op.d_nidxs);
+
+    Term dt_term = d_smgr.pick_term(SORT_DT);
+    Sort dt_sort = dt_term->get_sort();
+
+    std::vector<Term> args;
+    args.push_back(dt_term);
+
+    const auto& cons_names = dt_sort->get_dt_ctor_names();
+    SortKind sort_kind = d_smgr.pick_sort_kind();  // pick sort kind with terms
+    Sort sort          = d_smgr.pick_sort(sort_kind);  // pick sort with terms
+
+    ActionMkVar mkvar(d_smgr);  // to create variables on demand
+
+    for (const auto& ctor : cons_names)
+    {
+      const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
+      std::vector<Term> match_case_args;
+      Op::Kind match_case_kind;
+      if (!sel_names.empty())
+      {
+        for (const auto& sel : sel_names)
+        {
+          /* Create variable of selector codomain sort for each selector. */
+          uint32_t var_id = mkvar._run(dt_sort->get_dt_sel_sort(ctor, sel),
+                                       d_smgr.pick_symbol())[0];
+          match_case_args.push_back(d_smgr.get_term(var_id));
+        }
+        /* Create some terms that (possibly) use these variables. */
+        uint32_t n_terms_created = 0;
+        while ((!d_smgr.has_quant_term(sort) && !d_smgr.has_term(sort))
+               || n_terms_created < MURXLA_MIN_N_QUANT_TERMS)
+        {
+          if (d_rng.pick_with_prob(100))
+          {
+            auto choice = d_rng.pick_one_of_three();
+            switch (choice)
+            {
+              case RNGenerator::FIRST:
+              {
+                ActionMkConst mkconst(d_smgr);
+                if (mkconst.run(sort)) n_terms_created += 1;
+                ;
+              }
+              break;
+              case RNGenerator::SECOND:
+              {
+                ActionMkValue mkvalue(d_smgr);
+                if (mkvalue.run(sort)) n_terms_created += 1;
+              }
+              break;
+              default:
+              {
+                if (!d_solver.get_special_values(sort_kind).empty())
+                {
+                  ActionMkSpecialValue mksvalue(d_smgr);
+                  if (mksvalue.run(sort)) n_terms_created += 1;
+                }
+              }
+            }
+          }
+          else
+          {
+            Op::Kind op_kind = d_smgr.pick_op_kind(true, sort_kind);
+            if (op_kind == Op::DT_MATCH) continue;
+            if (run(op_kind)) n_terms_created += 1;
+          }
+        }
+        match_case_kind = Op::DT_MATCH_BIND_CASE;
+      }
+      else
+      {
+        match_case_kind = Op::DT_MATCH_CASE;
+      }
+      match_case_args.push_back(d_smgr.pick_term(sort));
+      uint32_t match_case_id =
+          _run(match_case_kind, sort_kind, dt_sort, {ctor}, match_case_args)[0];
+      args.push_back(d_smgr.get_term(match_case_id));
+    }
+    assert(sort_kind != SORT_ANY);
+    _run(kind, sort_kind, args, {});
+
+    ++d_smgr.d_mbt_stats->d_ops[op.d_id];
+    return true;
+  }
+  return run(kind);
 }
 
 std::vector<uint64_t>
@@ -1806,22 +1846,25 @@ ActionMkTerm::check_term(Term term)
 /* -------------------------------------------------------------------------- */
 
 bool
+ActionMkConst::run(Sort sort)
+{
+  assert(d_solver.is_initialized());
+  if (d_exclude_sort_kinds.find(sort->get_kind()) != d_exclude_sort_kinds.end())
+  {
+    return false;
+  }
+  std::string symbol = d_smgr.pick_symbol();
+  _run(sort, symbol);
+  return true;
+}
+
+bool
 ActionMkConst::run()
 {
   assert(d_solver.is_initialized());
-
-  /* Creating constants with SORT_REGLAN not supported by any solver right
-   * now. */
-  SortKindSet exclude_sorts = {SORT_REGLAN};
-
-  /* Pick sort of const. */
-  if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
-
-  Sort sort          = d_smgr.pick_sort_excluding(exclude_sorts, false);
-  std::string symbol = d_smgr.pick_symbol();
-  /* Create const. */
-  _run(sort, symbol);
-  return true;
+  if (!d_smgr.has_sort_excluding(d_exclude_sort_kinds, false)) return false;
+  Sort sort = d_smgr.pick_sort_excluding(d_exclude_sort_kinds, false);
+  return run(sort);
 }
 
 std::vector<uint64_t>
@@ -1911,24 +1954,15 @@ ActionMkVar::check_variable(RNGenerator& rng, Term term)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionMkValue::run()
+ActionMkValue::run(Sort sort)
 {
   assert(d_solver.is_initialized());
-  SortKindSet exclude = {
-      SORT_ARRAY,
-      SORT_FUN,
-      SORT_BAG,
-      SORT_DT,
-      SORT_SEQ,
-      SORT_SET,
-      SORT_RM,
-      SORT_REGLAN,
-  };
 
-  /* Pick sort of value. */
-  if (!d_smgr.has_sort_excluding(exclude)) return false;
-  Sort sort          = d_smgr.pick_sort_excluding(exclude);
   SortKind sort_kind = sort->get_kind();
+  if (d_exclude_sort_kinds.find(sort_kind) != d_exclude_sort_kinds.end())
+  {
+    return false;
+  }
 
   /* Pick value. */
   switch (sort_kind)
@@ -2023,6 +2057,15 @@ ActionMkValue::run()
   }
 
   return true;
+}
+
+bool
+ActionMkValue::run()
+{
+  /* Pick sort of value. */
+  if (!d_smgr.has_sort_excluding(d_exclude_sort_kinds)) return false;
+  Sort sort = d_smgr.pick_sort_excluding(d_exclude_sort_kinds);
+  return run(sort);
 }
 
 std::vector<uint64_t>
@@ -2205,20 +2248,25 @@ ActionMkValue::check_value(Term term)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionMkSpecialValue::run()
+ActionMkSpecialValue::run(Sort sort)
 {
   assert(d_solver.is_initialized());
-  /* Pick sort of value. */
-  if (!d_smgr.has_sort(d_solver.get_special_values_sort_kinds())) return false;
-  Sort sort = d_smgr.pick_sort(d_solver.get_special_values_sort_kinds(), false);
   SortKind sort_kind         = sort->get_kind();
   const auto& special_values = d_solver.get_special_values(sort_kind);
   assert(!special_values.empty());
   _run(sort,
        d_rng.pick_from_set<std::unordered_set<AbsTerm::SpecialValueKind>,
                            AbsTerm::SpecialValueKind>(special_values));
-
   return true;
+}
+
+bool
+ActionMkSpecialValue::run()
+{
+  /* Pick sort of value. */
+  if (!d_smgr.has_sort(d_solver.get_special_values_sort_kinds())) return false;
+  Sort sort = d_smgr.pick_sort(d_solver.get_special_values_sort_kinds(), false);
+  return run(sort);
 }
 
 std::vector<uint64_t>

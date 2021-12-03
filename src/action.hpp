@@ -379,10 +379,18 @@ class ActionMkConst : public Action
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
 
+  /** Create const of given sort. */
+  bool run(Sort sort);
+
  private:
   /** Perform checks on the created (first-order) constant. */
   void check_const(RNGenerator& rng, Term term);
   std::vector<uint64_t> _run(Sort sort, const std::string& symbol);
+  /**
+   * The set of unsupported sort kinds.
+   * Creating constants with SORT_REGLAN not supported by any solver right now.
+   */
+  SortKindSet d_exclude_sort_kinds = {SORT_REGLAN};
 };
 
 class ActionMkVar : public Action
@@ -407,8 +415,12 @@ class ActionMkValue : public Action
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
 
+
   /** Perform checks on created value. */
   void check_value(Term term);
+
+  /** Create value of given sort. */
+  bool run(Sort sort);
 
  private:
   uint64_t _run(Sort sort, bool val);
@@ -416,6 +428,17 @@ class ActionMkValue : public Action
   uint64_t _run(Sort sort, const std::string& val, size_t len);
   uint64_t _run(Sort sort, const std::string& v0, const std::string& v1);
   uint64_t _run(Sort sort, const std::string& val, Solver::Base base);
+  /** The set of unsupported sort kinds. */
+  SortKindSet d_exclude_sort_kinds = {
+      SORT_ARRAY,
+      SORT_FUN,
+      SORT_BAG,
+      SORT_DT,
+      SORT_SEQ,
+      SORT_SET,
+      SORT_RM,
+      SORT_REGLAN,
+  };
 };
 
 class ActionMkSpecialValue : public Action
@@ -428,6 +451,9 @@ class ActionMkSpecialValue : public Action
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
+
+  /** Create special value of given sort. */
+  bool run(Sort sort);
 
  private:
   /** Perform checks on created special value. */
