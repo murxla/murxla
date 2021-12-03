@@ -453,6 +453,21 @@ to_smt2_term(const Term& t)
   return static_cast<const Smt2Term*>(t.get());
 }
 
+namespace {
+const std::string&
+get_default(const std::unordered_map<std::string, std::string>& map,
+            const std::string& key,
+            const std::string& default_value)
+{
+  auto it = map.find(key);
+  if (it == map.end())
+  {
+    return default_value;
+  }
+  return it->second;
+}
+}  // namespace
+
 const std::string
 Smt2Term::get_repr() const
 {
@@ -550,14 +565,7 @@ Smt2Term::get_repr() const
           }
           else
           {
-            if (d_op_kind_to_str.find(cur->d_kind) != d_op_kind_to_str.end())
-            {
-              res << d_op_kind_to_str.at(cur->d_kind);
-            }
-            else
-            {
-              res << cur->d_kind;
-            }
+            res << get_default(d_op_kind_to_str, cur->d_kind, cur->d_kind);
           }
           if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS
               || cur->d_kind == Op::SET_COMPREHENSION)
@@ -590,7 +598,8 @@ Smt2Term::get_repr() const
         }
         else
         {
-          res << "((_ " << d_op_kind_to_str.at(cur->d_kind);
+          res << "((_ "
+              << get_default(d_op_kind_to_str, cur->d_kind, cur->d_kind);
           for (uint32_t p : cur->d_indices)
           {
             res << " " << p;
