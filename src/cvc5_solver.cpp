@@ -2421,7 +2421,7 @@ Cvc5Solver::check_value(Term term)
   }
   if (cvc5_term.isFloatingPointNaN() || cvc5_term.isFloatingPointNegInf()
       || cvc5_term.isFloatingPointNegZero() || cvc5_term.isFloatingPointPosInf()
-      || cvc5_term.isFloatingPointPosZero())
+      || cvc5_term.isFloatingPointPosZero() || cvc5_term.isFloatingPointValue())
   {
     (void) cvc5_term.getFloatingPointValue();
   }
