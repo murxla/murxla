@@ -52,6 +52,9 @@ class SolverManager
 
   statistics::Statistics* d_mbt_stats;
 
+  /** Get sort kind data for specified theories. */
+  static SortKindMap get_sort_kind_data(const TheoryIdSet& theories);
+
   /**
    * Clear all data.
    *

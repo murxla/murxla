@@ -1122,69 +1122,74 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
   }
 }
 
-void
-SolverManager::add_sort_kinds()
+SortKindMap
+SolverManager::get_sort_kind_data(const TheoryIdSet& theories)
 {
-  assert(d_enabled_theories.size());
-
-  for (TheoryId theory : d_enabled_theories)
+  SortKindMap sort_kinds;
+  for (TheoryId theory : theories)
   {
     switch (theory)
     {
       case THEORY_ARRAY:
-        d_sort_kinds.emplace(SORT_ARRAY,
-                             SortKindData(SORT_ARRAY, 2, THEORY_ARRAY));
+        sort_kinds.emplace(SORT_ARRAY,
+                           SortKindData(SORT_ARRAY, 2, THEORY_ARRAY));
         break;
       case THEORY_BAG:
-        d_sort_kinds.emplace(SORT_BAG, SortKindData(SORT_BAG, 1, THEORY_BAG));
+        sort_kinds.emplace(SORT_BAG, SortKindData(SORT_BAG, 1, THEORY_BAG));
         break;
       case THEORY_BOOL:
-        d_sort_kinds.emplace(SORT_BOOL,
-                             SortKindData(SORT_BOOL, 0, THEORY_BOOL));
+        sort_kinds.emplace(SORT_BOOL, SortKindData(SORT_BOOL, 0, THEORY_BOOL));
         break;
       case THEORY_BV:
-        d_sort_kinds.emplace(SORT_BV, SortKindData(SORT_BV, 0, THEORY_BV));
+        sort_kinds.emplace(SORT_BV, SortKindData(SORT_BV, 0, THEORY_BV));
         break;
       case THEORY_DT:
-        d_sort_kinds.emplace(SORT_DT, SortKindData(SORT_DT, 0, THEORY_DT));
+        sort_kinds.emplace(SORT_DT, SortKindData(SORT_DT, 0, THEORY_DT));
         break;
       case THEORY_INT:
-        d_sort_kinds.emplace(SORT_INT, SortKindData(SORT_INT, 0, THEORY_INT));
+        sort_kinds.emplace(SORT_INT, SortKindData(SORT_INT, 0, THEORY_INT));
         break;
       case THEORY_REAL:
-        d_sort_kinds.emplace(SORT_REAL,
-                             SortKindData(SORT_REAL, 0, THEORY_REAL));
+        sort_kinds.emplace(SORT_REAL, SortKindData(SORT_REAL, 0, THEORY_REAL));
         break;
       case THEORY_FP:
-        d_sort_kinds.emplace(SORT_RM, SortKindData(SORT_RM, 0, THEORY_FP));
-        d_sort_kinds.emplace(SORT_FP, SortKindData(SORT_FP, 0, THEORY_FP));
+        sort_kinds.emplace(SORT_RM, SortKindData(SORT_RM, 0, THEORY_FP));
+        sort_kinds.emplace(SORT_FP, SortKindData(SORT_FP, 0, THEORY_FP));
         break;
 
       case THEORY_QUANT: break;
 
       case THEORY_SEQ:
-        d_sort_kinds.emplace(SORT_SEQ, SortKindData(SORT_SEQ, 1, THEORY_SEQ));
+        sort_kinds.emplace(SORT_SEQ, SortKindData(SORT_SEQ, 1, THEORY_SEQ));
         break;
 
       case THEORY_SET:
-        d_sort_kinds.emplace(SORT_SET, SortKindData(SORT_SET, 1, THEORY_SET));
+        sort_kinds.emplace(SORT_SET, SortKindData(SORT_SET, 1, THEORY_SET));
         break;
 
       case THEORY_STRING:
-        d_sort_kinds.emplace(SORT_STRING,
-                             SortKindData(SORT_STRING, 0, THEORY_STRING));
-        d_sort_kinds.emplace(SORT_REGLAN,
-                             SortKindData(SORT_REGLAN, 0, THEORY_STRING));
+        sort_kinds.emplace(SORT_STRING,
+                           SortKindData(SORT_STRING, 0, THEORY_STRING));
+        sort_kinds.emplace(SORT_REGLAN,
+                           SortKindData(SORT_REGLAN, 0, THEORY_STRING));
         break;
 
       case THEORY_UF:
-        d_sort_kinds.emplace(
+        sort_kinds.emplace(
             SORT_FUN, SortKindData(SORT_FUN, MURXLA_MK_TERM_N_ARGS, THEORY_UF));
         break;
 
       default: assert(false);
     }
   }
+  return sort_kinds;
+}
+
+void
+SolverManager::add_sort_kinds()
+{
+  assert(d_enabled_theories.size());
+  d_sort_kinds = get_sort_kind_data(d_enabled_theories);
 }
 
 template <typename TKind, typename TKindData, typename TKindMap>
