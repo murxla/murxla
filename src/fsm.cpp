@@ -421,7 +421,7 @@ FSM::configure()
   s_check_sat->add_action(a_sat_ass, 2);
   s_check_sat->add_action(t_default, 1, s_decide_sat_unsat);
   s_check_sat->add_action(t_inputs, 2, s_push_pop);
-  s_check_sat->add_action(t_inputs, 200, s_delete);
+  s_check_sat->add_action(t_inputs, 5, s_delete);
 
   /* Decision State: to sat/unsat states ................................. */
   s_decide_sat_unsat->add_action(t_default, 1, s_sat);
@@ -432,19 +432,20 @@ FSM::configure()
   s_unsat->add_action(a_getunsatcore, 1);
   s_unsat->add_action(t_default, 2, s_check_sat);
   s_unsat->add_action(t_default, 2, s_push_pop);
-  s_unsat->add_action(t_default, 200, s_delete);
+  s_unsat->add_action(t_default, 2, s_delete);
 
   /* State: sat .......................................................... */
   s_sat->add_action(a_printmodel, 1);
   s_sat->add_action(a_getvalue, 1);
   s_sat->add_action(t_default, 2, s_check_sat);
   s_sat->add_action(t_default, 2, s_push_pop);
-  s_sat->add_action(t_default, 200, s_delete);
+  s_sat->add_action(t_default, 2, s_delete);
 
   /* State: push_pop ..................................................... */
   s_push_pop->add_action(a_push, 1);
   s_push_pop->add_action(a_pop, 1);
   s_push_pop->add_action(t_default, 2, s_assert);
+  s_push_pop->add_action(t_default, 2, s_delete);
   add_action_to_all_states_next(
       t_default, 1, s_push_pop, {State::OPT, State::OPT_REQ});
 
