@@ -185,6 +185,13 @@ TermDb::add_term(Term& term,
 
       d_terms.emplace(term->get_id(), term);
       d_term_sorts.insert(sort);
+
+      if (sort_kind == SORT_FUN)
+      {
+        // last sort in get_sorts() is codomain sort
+        uint32_t arity = term->get_sort()->get_sorts().size() - 1;
+        d_funs[arity].insert(term);
+      }
     }
     else
     {
@@ -197,12 +204,6 @@ TermDb::add_term(Term& term,
   assert(term->get_sort()->get_id());
   assert(term->get_sort()->get_kind() != SORT_ANY);
 
-  if (sort_kind == SORT_FUN)
-  {
-    // last sort in get_sorts() is codomain sort
-    uint32_t arity = term->get_sort()->get_sorts().size() - 1;
-    d_funs[arity].insert(term);
-  }
 }
 
 void
