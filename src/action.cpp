@@ -1439,8 +1439,15 @@ ActionMkTerm::run()
 
     ActionMkVar mkvar(d_smgr);  // to create variables on demand
 
+    /* True if all constructors are to be matched. */
+    bool match_all = d_rng.pick_with_prob(700);
+    /* True if at least one match case is a variable pattern. */
+    bool match_var = false;
+
     for (const auto& ctor : cons_names)
     {
+      if (!match_all && d_rng.flip_coin()) continue;
+
       const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
       std::vector<Term> match_case_args;
       std::vector<std::string> match_case_ctor;
@@ -1453,6 +1460,7 @@ ActionMkTerm::run()
         uint32_t var_id = mkvar._run(dt_sort, d_smgr.pick_symbol())[0];
         match_case_args.push_back(d_smgr.get_term(var_id));
         match_case_kind = Op::DT_MATCH_BIND_CASE;
+        match_var       = true;
       }
       /* Else create regular pattern. */
       else
@@ -1498,6 +1506,18 @@ ActionMkTerm::run()
                            match_case_args)[0];
       args.push_back(d_smgr.get_term(match_case_id));
     }
+
+    /* We need at least one variable pattern if not all cases are matched. */
+    if (!match_all && !match_var)
+    {
+      uint32_t var_id = mkvar._run(dt_sort, d_smgr.pick_symbol())[0];
+      std::vector<Term> match_case_args{d_smgr.get_term(var_id),
+                                        d_smgr.pick_term(sort)};
+      uint32_t match_case_id = _run(
+          Op::DT_MATCH_BIND_CASE, sort_kind, dt_sort, {}, match_case_args)[0];
+      args.push_back(d_smgr.get_term(match_case_id));
+    }
+
     assert(sort_kind != SORT_ANY);
     _run(kind, sort_kind, args, {});
 

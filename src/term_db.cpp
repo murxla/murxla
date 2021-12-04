@@ -77,6 +77,7 @@ TermDb::clear()
 {
   d_term_db.clear();
   d_terms.clear();
+  d_terms_intermediate.clear();
   d_term_sorts.clear();
   d_funs.clear();
   d_vars.clear();
