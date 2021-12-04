@@ -2789,7 +2789,7 @@ class Cvc5ActionSimplify : public Action
 {
  public:
   Cvc5ActionSimplify(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_SIMPLIFY, ID)
+      : Action(smgr, Cvc5Solver::ACTION_SIMPLIFY, NONE)
   {
   }
 
@@ -2823,14 +2823,8 @@ class Cvc5ActionSimplify : public Action
     Sort sort = term->get_sort();
     assert (sort != nullptr);
     /* Note: The simplified term 'res' may or may not be already in the term
-     * DB. However, we assume the same level for 'res' as the original term
-     * since we can't always compute the exact level. */
-    if (res->get_levels().empty())
-    {
-      res->set_levels(term->get_levels());
-    }
-    d_smgr.add_term(res, sort->get_kind());
-    MURXLA_TRACE_RETURN << res;
+     *       DB. Since we can't always compute the exact level, we can't add
+     *       the simplified term to the term DB. */
     return {res->get_id()};
   }
 };
