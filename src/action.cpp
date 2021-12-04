@@ -433,7 +433,11 @@ ActionMkSort::run()
             sname = d_smgr.pick_symbol();
           } while (sel_names.find(sname) != sel_names.end());
           sel_names.insert(sname);
-          Sort s = d_smgr.pick_sort_excluding(exclude_sorts, false);
+          /* Pick datatype sort itself with 10% probability. We indicate this
+           * by passing a nullptr Sort. */
+          Sort s = d_rng.pick_with_prob(100)
+                       ? nullptr
+                       : d_smgr.pick_sort_excluding(exclude_sorts, false);
           sels.emplace_back(sname, s);
         }
 
@@ -616,8 +620,15 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
         for (uint32_t j = 0; j < n_sels; ++j)
         {
           std::string sname = str_to_str(tokens[idx++]);
-          Sort ssort =
-              d_smgr.get_untraced_sort(untrace_str_to_id(tokens[idx++]));
+          Sort ssort;
+          if (tokens[idx] == "s(nil)")
+          {
+            ssort = nullptr;
+          }
+          else
+          {
+            ssort = d_smgr.get_untraced_sort(untrace_str_to_id(tokens[idx++]));
+          }
           ctors[cname].emplace_back(sname, ssort);
         }
       }
@@ -850,7 +861,7 @@ ActionMkTerm::run(Op::Kind kind)
     std::vector<Term> args;
     for (const auto& sel : sel_names)
     {
-      Sort codomain_sort = dt_sort->get_dt_sel_sort(ctor, sel);
+      Sort codomain_sort = dt_sort->get_dt_sel_sort(dt_sort, ctor, sel);
       if (!d_smgr.has_term(codomain_sort)) return false;
       args.push_back(d_smgr.pick_term(codomain_sort));
     }
@@ -870,7 +881,7 @@ ActionMkTerm::run(Op::Kind kind)
     if (sel_names.empty()) return false;
     const std::string& sel =
         d_rng.pick_from_set<std::vector<std::string>, std::string>(sel_names);
-    Sort codomain_sort = dt_sort->get_dt_sel_sort(ctor, sel);
+    Sort codomain_sort = dt_sort->get_dt_sel_sort(dt_sort, ctor, sel);
     sort_kind          = codomain_sort->get_kind();
     assert(sort_kind != SORT_ANY);
     _run(kind, sort_kind, {ctor, sel}, {arg});
@@ -901,7 +912,7 @@ ActionMkTerm::run(Op::Kind kind)
     if (sel_names.empty()) return false;
     const std::string& sel =
         d_rng.pick_from_set<std::vector<std::string>, std::string>(sel_names);
-    Sort codomain_sort = dt_sort->get_dt_sel_sort(ctor, sel);
+    Sort codomain_sort = dt_sort->get_dt_sel_sort(dt_sort, ctor, sel);
     if (!d_smgr.has_term(codomain_sort)) return false;
     args.push_back(d_smgr.pick_term(codomain_sort));
     _run(kind, sort_kind, {ctor, sel}, args);
@@ -1437,8 +1448,9 @@ ActionMkTerm::run()
         for (const auto& sel : sel_names)
         {
           /* Create variable of selector codomain sort for each selector. */
-          uint32_t var_id = mkvar._run(dt_sort->get_dt_sel_sort(ctor, sel),
-                                       d_smgr.pick_symbol())[0];
+          uint32_t var_id =
+              mkvar._run(dt_sort->get_dt_sel_sort(dt_sort, ctor, sel),
+                         d_smgr.pick_symbol())[0];
           match_case_args.push_back(d_smgr.get_term(var_id));
         }
         /* Create some terms that (possibly) use these variables. */

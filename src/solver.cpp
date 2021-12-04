@@ -78,7 +78,9 @@ AbsSort::get_dt_sel_names(const std::string& ctor) const
 }
 
 Sort
-AbsSort::get_dt_sel_sort(const std::string& ctor, const std::string& sel) const
+AbsSort::get_dt_sel_sort(Sort dt_sort,
+                         const std::string& ctor,
+                         const std::string& sel) const
 {
   const auto& sels = d_dt_ctors.at(ctor);
   Sort res;
@@ -87,6 +89,7 @@ AbsSort::get_dt_sel_sort(const std::string& ctor, const std::string& sel) const
     if (s.first == sel)
     {
       res = s.second;
+      if (res == nullptr) res = dt_sort;
       break;
     }
   }
@@ -219,8 +222,15 @@ operator!=(const Sort& a, const Sort& b)
 std::ostream&
 operator<<(std::ostream& out, const Sort s)
 {
-  assert(s->get_id());
-  out << "s" << s->get_id();
+  if (s)
+  {
+    assert(s->get_id());
+    out << "s" << s->get_id();
+  }
+  else
+  {
+    out << "s(nil)";
+  }
   return out;
 }
 

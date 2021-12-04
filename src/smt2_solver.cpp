@@ -1431,8 +1431,9 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
   if (kind == Op::DT_APPLY_SEL)
   {
     assert(args.size() == 1);
-    return args[0]->get_sort()->get_dt_sel_sort(smt2_term->get_str_args()[0],
-                                                smt2_term->get_str_args()[1]);
+    Sort dt_sort = args[0]->get_sort();
+    return dt_sort->get_dt_sel_sort(
+        dt_sort, smt2_term->get_str_args()[0], smt2_term->get_str_args()[1]);
   }
 
   switch (sort_kind)

@@ -1414,7 +1414,14 @@ Cvc5Solver::mk_sort(
     {
       const auto& sname = s.first;
       const auto& ssort = s.second;
-      cvc5_cdecl.addSelector(sname, Cvc5Sort::get_cvc5_sort(ssort));
+      if (ssort == nullptr)
+      {
+        cvc5_cdecl.addSelectorSelf(sname);
+      }
+      else
+      {
+        cvc5_cdecl.addSelector(sname, Cvc5Sort::get_cvc5_sort(ssort));
+      }
     }
 
     cvc5_dtypedecl.addConstructor(cvc5_cdecl);

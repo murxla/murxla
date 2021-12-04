@@ -195,8 +195,17 @@ class AbsSort
   std::vector<std::string> get_dt_ctor_names() const;
   /** Get the list of selector names of the given constructor (murxla level). */
   std::vector<std::string> get_dt_sel_names(const std::string& ctor) const;
-  /** Get the sort of the selector of the given datatype constructor. */
-  Sort get_dt_sel_sort(const std::string& ctor, const std::string& sel) const;
+  /**
+   * Get the sort of the selector of the given datatype constructor.
+   * Returns 'dt_sort' in case of self selectors.
+   *
+   * Note: 'dt_sort' must be the sort that this function is called on. We need
+   *       to pass this for handling the self selector case (where the selector
+   *       codomain sort is a nullptr).
+   */
+  Sort get_dt_sel_sort(Sort dt_sort,
+                       const std::string& ctor,
+                       const std::string& sel) const;
 
  protected:
   /** The (unique) id of this sort. */
@@ -687,6 +696,10 @@ class Solver
    * ctors: The list of datatype constructors, given as a map of constructor
    *        name to vector of selectors (which are given as a pair of name and
    *        sort).
+   *
+   * Note: Selectors may return a term of the sort that is currently be
+   *       created. We inidicate ths by passing a nullptr for the selector
+   *       codomain sort. Solvers must special case this accordingly.
    */
   virtual Sort mk_sort(SortKind kind,
                        const std::string& name,
