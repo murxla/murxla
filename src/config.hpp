@@ -55,11 +55,11 @@
 /** Minimum number of datatype selectors for a datatype constructor. */
 #define MURXLA_DT_SEL_MIN 0
 /** Maximum number of datatype selectors for a datatype constructor. */
-#define MURXLA_DT_SEL_MAX 10
+#define MURXLA_DT_SEL_MAX 5
 /** Minimum number of datatype constructors for a datatype. */
 #define MURXLA_DT_CON_MIN 1
 /** Maximum number of datatype constructors for a datatype. */
-#define MURXLA_DT_CON_MAX 10
+#define MURXLA_DT_CON_MAX 5
 
 /** Maximum length for symbols. */
 #define MURXLA_SYMBOL_LEN_MAX 128
