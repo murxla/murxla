@@ -154,30 +154,45 @@ TermDb::add_term(Term& term,
     sort_kind = SORT_INT;
   }
 
-  SortMap& map  = d_term_db[level][sort_kind];
   d_smgr.add_sort(sort, sort_kind);
   assert(sort->get_id());
   assert(sort->get_kind() != SORT_ANY);
-  TermRefs& trefs = map[sort];
 
   /* Sort may not be set since term is a fresh term. */
   term->set_sort(sort);
 
-  if (!trefs.contains(term))
+  /* We only store regular terms in d_term_db, intermediate terms are only
+   * added to d_terms_intermediate. */
+  if (d_intermediate_op_kinds.find(term->get_kind())
+      != d_intermediate_op_kinds.end())
   {
-    term->set_id(d_terms.size() + 1);
+    term->set_id(d_terms.size() + d_terms_intermediate.size() + 1);
     term->set_levels(levels);
-    trefs.add(term);
-
-    d_terms.emplace(term->get_id(), term);
-    d_term_sorts.insert(sort);
+    // no need to wrap into Trefs since we may not pick these terms
+    d_terms_intermediate.emplace(term->get_id(), term);
+    // no need to add to d_term_sorts for the same reason
   }
   else
   {
-    term = trefs.get(term);
-    assert(term->get_id());
-    assert(term->get_levels().empty() || term->get_levels().back() == level);
-    assert(!term->get_levels().empty() || level == 0);
+    SortMap& map    = d_term_db[level][sort_kind];
+    TermRefs& trefs = map[sort];
+
+    if (!trefs.contains(term))
+    {
+      term->set_id(d_terms.size() + d_terms_intermediate.size() + 1);
+      term->set_levels(levels);
+      trefs.add(term);
+
+      d_terms.emplace(term->get_id(), term);
+      d_term_sorts.insert(sort);
+    }
+    else
+    {
+      term = trefs.get(term);
+      assert(term->get_id());
+      assert(term->get_levels().empty() || term->get_levels().back() == level);
+      assert(!term->get_levels().empty() || level == 0);
+    }
   }
   assert(term->get_sort()->get_id());
   assert(term->get_sort()->get_kind() != SORT_ANY);
@@ -243,6 +258,8 @@ TermDb::get_term(uint64_t id) const
 {
   auto it = d_terms.find(id);
   if (it != d_terms.end()) return it->second;
+  it = d_terms_intermediate.find(id);
+  if (it != d_terms_intermediate.end()) return it->second;
   return nullptr;
 }
 

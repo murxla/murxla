@@ -641,7 +641,7 @@ class SolverManager
   /** Map untraced ids to corresponding Terms. */
   std::unordered_map<uint64_t, Term> d_untraced_terms;
 
-  /** Map untraced ids to corresponding Terms. */
+  /** Map untraced ids to corresponding Sorts. */
   std::unordered_map<uint64_t, Sort> d_untraced_sorts;
 
   /**

@@ -341,6 +341,9 @@ class TermDb
   size_t get_num_terms(size_t level) const;
 
  private:
+  /** Intermediate op kinds. */
+  inline static std::unordered_set<Op::Kind> d_intermediate_op_kinds{
+      Op::DT_MATCH_BIND_CASE, Op::DT_MATCH_CASE};
   /** Open new scope with given variable. */
   void push(Term& var);
   /** Close current scope with given variable. */
@@ -380,11 +383,29 @@ class TermDb
 
   RNGenerator& d_rng;
 
-  /** Term database that maps SortKind -> Sort -> Term -> size_t */
+  /** Term database that maps level -> SortKind -> Sort -> TermRefs */
   std::vector<SortTermMap> d_term_db;
 
-  /** Maps term ids to terms. */
+  /**
+   * Maps term ids to terms.
+   *
+   * This only includes terms that may be picked to create arbitrary other
+   * terms. Examples for terms that are excluded are terms like DT_MATCH_CASE
+   * and DT_MATCH_BIND_CASE, which have to be considered as 'intermediate'
+   * terms that may only be used for the one specific DT_MATCH they were
+   * created for.
+   */
   std::unordered_map<uint64_t, Term> d_terms;
+  /**
+   * Maps term ids to intermediate terms.
+   *
+   * This only includes terms that may NOT be picked to create other terms.
+   * Intermediate terms are terms that have been created as intermediate steps
+   * to create a specific term, for examples terms like DT_MATCH_CASE and
+   * DT_MATCH_BIND_CASE, which may only be used for the one specific DT_MATCH
+   * they were created for.
+   */
+  std::unordered_map<uint64_t, Term> d_terms_intermediate;
 
   /** Maps function term arity to function terms. */
   std::unordered_map<uint32_t, std::unordered_set<Term>> d_funs;
