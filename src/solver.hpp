@@ -813,6 +813,9 @@ class Solver
   /** Solver-specific value checks. */
   virtual void check_value(Term term){};
 
+  /** Solver-specific sort checks. */
+  virtual void check_sort(Sort sort){};
+
  protected:
   RNGenerator d_rng;
 

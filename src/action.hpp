@@ -338,6 +338,9 @@ class ActionMkSort : public Action
 
   /** Perform checks on the created sort. */
   void check_sort(Sort sort, const std::string& name) const;
+
+  /** Perform checks on the created sort. */
+  void check_sort(Sort sort) const;
 };
 
 class ActionMkTerm : public Action

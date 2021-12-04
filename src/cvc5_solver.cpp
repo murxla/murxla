@@ -2550,6 +2550,80 @@ Cvc5Solver::check_value(Term term)
   }
 }
 
+void
+Cvc5Solver::check_sort(Sort sort)
+{
+  ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
+
+  if (cvc5_sort.isDatatype())
+  {
+    (void) cvc5_sort.getDatatypeArity();
+  }
+  else if (cvc5_sort.isParametricDatatype())
+  {
+    (void) cvc5_sort.getDatatypeParamSorts();
+  }
+  else if (cvc5_sort.isConstructor())
+  {
+    (void) cvc5_sort.getConstructorArity();
+    (void) cvc5_sort.getConstructorDomainSorts();
+    (void) cvc5_sort.getConstructorCodomainSort();
+  }
+  else if (cvc5_sort.isSelector())
+  {
+    (void) cvc5_sort.getSelectorDomainSort();
+    (void) cvc5_sort.getSelectorCodomainSort();
+  }
+  else if (cvc5_sort.isTester())
+  {
+    (void) cvc5_sort.getTesterDomainSort();
+    (void) cvc5_sort.getTesterCodomainSort();
+  }
+  else if (cvc5_sort.isUpdater())
+  {
+  }
+  else if (cvc5_sort.isPredicate())
+  {
+  }
+  else if (cvc5_sort.isTuple())
+  {
+    (void) cvc5_sort.getTupleLength();
+    (void) cvc5_sort.getTupleSorts();
+  }
+  else if (cvc5_sort.isRecord())
+  {
+  }
+  else if (cvc5_sort.isUninterpretedSort())
+  {
+    (void) cvc5_sort.getUninterpretedSortName();
+
+    if (cvc5_sort.isUninterpretedSortParameterized())
+    {
+      (void) cvc5_sort.getUninterpretedSortParamSorts();
+    }
+  }
+  else if (cvc5_sort.isSortConstructor())
+  {
+    (void) cvc5_sort.getSortConstructorName();
+    (void) cvc5_sort.getSortConstructorArity();
+  }
+  else if (cvc5_sort.isFunction())
+  {
+    (void) cvc5_sort.getFunctionArity();
+    (void) cvc5_sort.getFunctionDomainSorts();
+    (void) cvc5_sort.getFunctionCodomainSort();
+  }
+  else if (cvc5_sort.isFunctionLike())
+  {
+  }
+  else if (cvc5_sort.isSubsortOf(cvc5_sort))
+  {
+  }
+  else if (cvc5_sort.isComparableTo(cvc5_sort))
+  {
+  }
+}
+
 /* -------------------------------------------------------------------------- */
 
 std::string

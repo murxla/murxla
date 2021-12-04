@@ -295,6 +295,7 @@ class Cvc5Solver : public Solver
   //
 
   void check_value(Term term) override;
+  void check_sort(Sort sort) override;
 
  private:
   ::cvc5::api::Solver* d_solver;

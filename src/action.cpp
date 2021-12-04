@@ -731,6 +731,7 @@ ActionMkSort::_run(SortKind kind)
   MURXLA_TRACE << get_kind() << " " << kind;
   Sort res = d_solver.mk_sort(kind);
   d_smgr.add_sort(res, kind);
+  check_sort(res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -743,6 +744,7 @@ ActionMkSort::_run(SortKind kind, uint32_t bw)
   Sort res = d_solver.mk_sort(kind, bw);
   MURXLA_TEST(res->get_bv_size() == bw);
   d_smgr.add_sort(res, kind);
+  check_sort(res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -756,6 +758,7 @@ ActionMkSort::_run(SortKind kind, uint32_t ew, uint32_t sw)
   MURXLA_TEST(res->get_fp_exp_size() == ew);
   MURXLA_TEST(res->get_fp_sig_size() == sw);
   d_smgr.add_sort(res, kind);
+  check_sort(res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -772,6 +775,7 @@ ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
   Sort res = d_solver.mk_sort(kind, sorts);
   res->set_sorts(sorts);
   d_smgr.add_sort(res, kind);
+  check_sort(res);
   MURXLA_TEST(res->get_sorts().size() == sorts.size());
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
@@ -802,6 +806,7 @@ ActionMkSort::_run(SortKind kind,
   res->set_dt_ctors(ctors);
   check_sort(res, name);
   d_smgr.add_sort(res, kind);
+  check_sort(res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -829,6 +834,13 @@ ActionMkSort::check_sort(Sort sort, const std::string& name) const
                   != sel_names.end());
     }
   }
+}
+
+void
+ActionMkSort::check_sort(Sort sort) const
+{
+  if (d_rng.pick_with_prob(990)) return;
+  d_solver.check_sort(sort);
 }
 
 /* -------------------------------------------------------------------------- */
