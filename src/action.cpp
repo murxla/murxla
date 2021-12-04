@@ -1443,66 +1443,59 @@ ActionMkTerm::run()
     {
       const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
       std::vector<Term> match_case_args;
+      std::vector<std::string> match_case_ctor;
+      uint32_t match_case_id;
       Op::Kind match_case_kind;
-      if (!sel_names.empty())
+
+      /* Pick variable pattern with 10% probability. */
+      if (d_rng.pick_with_prob(10))
       {
-        for (const auto& sel : sel_names)
+        uint32_t var_id = mkvar._run(dt_sort, d_smgr.pick_symbol())[0];
+        match_case_args.push_back(d_smgr.get_term(var_id));
+        match_case_kind = Op::DT_MATCH_BIND_CASE;
+      }
+      /* Else create regular pattern. */
+      else
+      {
+        match_case_ctor.push_back(ctor);
+
+        if (!sel_names.empty())
         {
-          /* Create variable of selector codomain sort for each selector. */
-          uint32_t var_id =
-              mkvar._run(dt_sort->get_dt_sel_sort(dt_sort, ctor, sel),
-                         d_smgr.pick_symbol())[0];
-          match_case_args.push_back(d_smgr.get_term(var_id));
-        }
-        /* Create some terms that (possibly) use these variables. */
-        uint32_t n_terms_created = 0;
-        while ((!d_smgr.has_quant_term(sort) && !d_smgr.has_term(sort))
-               || n_terms_created < MURXLA_MIN_N_QUANT_TERMS)
-        {
-          if (d_rng.pick_with_prob(100))
+          for (const auto& sel : sel_names)
           {
-            auto choice = d_rng.pick_one_of_three();
-            switch (choice)
-            {
-              case RNGenerator::FIRST:
-              {
-                ActionMkConst mkconst(d_smgr);
-                if (mkconst.run(sort)) n_terms_created += 1;
-                ;
-              }
-              break;
-              case RNGenerator::SECOND:
-              {
-                ActionMkValue mkvalue(d_smgr);
-                if (mkvalue.run(sort)) n_terms_created += 1;
-              }
-              break;
-              default:
-              {
-                if (!d_solver.get_special_values(sort_kind).empty())
-                {
-                  ActionMkSpecialValue mksvalue(d_smgr);
-                  if (mksvalue.run(sort)) n_terms_created += 1;
-                }
-              }
-            }
+            /* Create variable of selector codomain sort for each selector. */
+            uint32_t var_id =
+                mkvar._run(dt_sort->get_dt_sel_sort(dt_sort, ctor, sel),
+                           d_smgr.pick_symbol())[0];
+            match_case_args.push_back(d_smgr.get_term(var_id));
           }
-          else
+          /* Create some terms that (possibly) use these variables. */
+          uint32_t n_terms_created = 0;
+          while ((!d_smgr.has_quant_term(sort) && !d_smgr.has_term(sort))
+                 || n_terms_created < MURXLA_MIN_N_QUANT_TERMS)
           {
+            /* We only create op terms here (no consts, values, vars). The
+             * former two wouldn't be quantified terms that use the created vars
+             * anyways, and we have already picked a sort with terms, so we do
+             * have terms of that sort in the term db. We may consider to create
+             * vars here in the future. */
             Op::Kind op_kind = d_smgr.pick_op_kind(true, sort_kind);
             if (op_kind == Op::DT_MATCH) continue;
             if (run(op_kind)) n_terms_created += 1;
           }
+          match_case_kind = Op::DT_MATCH_BIND_CASE;
         }
-        match_case_kind = Op::DT_MATCH_BIND_CASE;
-      }
-      else
-      {
-        match_case_kind = Op::DT_MATCH_CASE;
+        else
+        {
+          match_case_kind = Op::DT_MATCH_CASE;
+        }
       }
       match_case_args.push_back(d_smgr.pick_term(sort));
-      uint32_t match_case_id =
-          _run(match_case_kind, sort_kind, dt_sort, {ctor}, match_case_args)[0];
+      match_case_id = _run(match_case_kind,
+                           sort_kind,
+                           dt_sort,
+                           match_case_ctor,
+                           match_case_args)[0];
       args.push_back(d_smgr.get_term(match_case_id));
     }
     assert(sort_kind != SORT_ANY);

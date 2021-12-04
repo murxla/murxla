@@ -125,6 +125,7 @@ TermDb::add_term(Term& term,
   std::vector<uint64_t> levels = term->get_levels();
   if (levels.empty())
   {
+    std::cout << "##asdf\n";
     std::unordered_set<uint64_t> clevels;
     for (const auto& child : args)
     {

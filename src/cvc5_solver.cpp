@@ -2239,7 +2239,6 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
 
   if (kind == Op::DT_MATCH_BIND_CASE)
   {
-    assert(str_args.size() == 1);
     std::vector<::cvc5::api::Term> cvc5_vars;
     for (size_t i = 0; i < args.size() - 1; ++i)
     {
@@ -2251,10 +2250,18 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
             : d_solver->mkTerm(d_solver->mkOp(::cvc5::api::Kind::VARIABLE_LIST),
                                cvc5_vars);
 
-    std::vector<Term> vars{args.begin(), args.end() - 1};
-    Term acons = mk_term(Op::DT_APPLY_CONS, sort, str_args, vars);
-    ::cvc5::api::Term cvc5_acons = Cvc5Term::get_cvc5_term(acons);
-    cvc5_args                    = {cvc5_bvl, cvc5_acons, cvc5_args.back()};
+    if (str_args.size() == 1)
+    {
+      std::vector<Term> vars{args.begin(), args.end() - 1};
+      Term acons = mk_term(Op::DT_APPLY_CONS, sort, str_args, vars);
+      ::cvc5::api::Term cvc5_acons = Cvc5Term::get_cvc5_term(acons);
+      cvc5_args                    = {cvc5_bvl, cvc5_acons, cvc5_args.back()};
+    }
+    else
+    {
+      assert(cvc5_vars.size() == 1);
+      cvc5_args = {cvc5_bvl, cvc5_vars[0], cvc5_args.back()};
+    }
   }
   else if (kind == Op::DT_MATCH_CASE)
   {
