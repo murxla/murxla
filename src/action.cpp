@@ -624,6 +624,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
           if (tokens[idx] == "s(nil)")
           {
             ssort = nullptr;
+            idx += 1;
           }
           else
           {
