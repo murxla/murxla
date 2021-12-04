@@ -1218,6 +1218,12 @@ Cvc5Solver::get_unsupported_set_element_sort_kinds() const
 }
 
 SortKindSet
+Cvc5Solver::get_unsupported_dt_sel_codomain_sort_kinds() const
+{
+  return {SORT_FUN, SORT_REGLAN};
+}
+
+SortKindSet
 Cvc5Solver::get_unsupported_fun_domain_sort_kinds() const
 {
   return {SORT_FUN, SORT_REGLAN};
