@@ -1,5 +1,6 @@
 #include "fsm.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <iomanip>
 #include <iostream>
@@ -98,7 +99,8 @@ FSM::FSM(RNGenerator& rng,
          statistics::Statistics* stats,
          const TheoryIdVector& enabled_theories,
          const TheoryIdSet& disabled_theories,
-         const std::vector<std::pair<std::string, std::string>> solver_options)
+         const std::vector<std::pair<std::string, std::string>> solver_options,
+         bool in_untrace_replay_mode)
     : d_smgr(solver,
              rng,
              sng,
@@ -145,6 +147,31 @@ FSM::FSM(RNGenerator& rng,
       }
     }
   }
+
+  /* Instead of enabling all theories by default, we randomly disable theories
+   * to allow narrower logics. */
+  if (!in_untrace_replay_mode)
+  {
+    smgr_enabled_theories = d_smgr.get_enabled_theories();
+    std::vector<TheoryId> enabled;
+    for (auto t : smgr_enabled_theories)
+    {
+      /* Always keep THEORY_BOOL. */
+      if (t != THEORY_BOOL)
+      {
+        enabled.push_back(t);
+      }
+    }
+    std::shuffle(enabled.begin(), enabled.end(), d_rng.get_engine());
+
+    size_t num_disable = d_rng.pick(static_cast<size_t>(0), enabled.size());
+    for (size_t i = 0; i < num_disable; ++i)
+    {
+      d_smgr.disable_theory(enabled[i]);
+    }
+  }
+
+  d_smgr.initialize();
 }
 
 SolverManager&

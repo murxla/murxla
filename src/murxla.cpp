@@ -509,7 +509,8 @@ Murxla::create_fsm(RNGenerator& rng,
                    SolverSeedGenerator& sng,
                    std::ostream& trace,
                    std::ostream& smt2_out,
-                   bool record_stats) const
+                   bool record_stats,
+                   bool in_untrace_replay_mode) const
 {
   /* Dummy statistics object for the cases were we don't want to record
    * statistics (replay, dd). */
@@ -550,7 +551,8 @@ Murxla::create_fsm(RNGenerator& rng,
              record_stats ? d_stats : &dummy_stats,
              d_options.enabled_theories,
              d_options.disabled_theories,
-             d_options.solver_options);
+             d_options.solver_options,
+             in_untrace_replay_mode);
 }
 
 void
@@ -561,7 +563,7 @@ Murxla::print_fsm() const
   std::ofstream file_smt2_out = open_output_file(DEVNULL, false);
   std::ostream smt2_out(std::cout.rdbuf());
   smt2_out.rdbuf(file_smt2_out.rdbuf());
-  FSM fsm = create_fsm(rng, sng, std::cout, smt2_out, false);
+  FSM fsm = create_fsm(rng, sng, std::cout, smt2_out, false, false);
   fsm.configure();
   fsm.print();
 }
@@ -735,7 +737,8 @@ Murxla::run_aux(uint32_t seed,
 
     try
     {
-      FSM fsm = create_fsm(rng, sng, trace, smt2_out, record_stats);
+      FSM fsm = create_fsm(
+          rng, sng, trace, smt2_out, record_stats, !untrace_file_name.empty());
 
       fsm.configure();
 

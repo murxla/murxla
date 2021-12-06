@@ -50,6 +50,12 @@ class SolverManager
                 const TheoryIdSet& disabled_theories);
   ~SolverManager() = default;
 
+  /**
+   * Finalize initialization of SolverManager. Configures sort kinds,
+   * operators, etc. based on currently configured theories.
+   */
+  void initialize();
+
   statistics::Statistics* d_mbt_stats;
 
   /** Get sort kind data for specified theories. */
@@ -663,6 +669,9 @@ class SolverManager
    * by opmgr, but cannot be constructed yet due to missing terms.
    */
   OpKindMap d_available_op_kinds;
+
+  /** Is this solver manager already initialized? */
+  bool d_initialized = false;
 };
 
 /* -------------------------------------------------------------------------- */

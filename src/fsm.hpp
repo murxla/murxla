@@ -164,7 +164,8 @@ class FSM
       statistics::Statistics* stats,
       const TheoryIdVector& enabled_theories,
       const TheoryIdSet& disabled_theories,
-      const std::vector<std::pair<std::string, std::string>> solver_options);
+      const std::vector<std::pair<std::string, std::string>> solver_options,
+      bool in_untrace_replay_mode);
 
   /** Default constructor is disabled. */
   FSM() = delete;

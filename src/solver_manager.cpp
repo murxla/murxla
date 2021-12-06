@@ -41,6 +41,14 @@ SolverManager::SolverManager(Solver* solver,
       d_untraced_sorts()
 {
   add_enabled_theories(enabled_theories, disabled_theories);
+}
+
+/* -------------------------------------------------------------------------- */
+
+void
+SolverManager::initialize()
+{
+  assert(!d_initialized);
   add_sort_kinds();  // adds only sort kinds of enabled theories
   d_opmgr.reset(new OpKindManager(d_enabled_theories,
                                   d_sort_kinds,
@@ -48,9 +56,10 @@ SolverManager::SolverManager(Solver* solver,
                                   d_solver->get_unsupported_op_sort_kinds(),
                                   d_arith_linear,
                                   d_mbt_stats));
-  solver->configure_smgr(this);
-  solver->configure_opmgr(d_opmgr.get());
+  d_solver->configure_smgr(this);
+  d_solver->configure_opmgr(d_opmgr.get());
   reset_op_cache();
+  d_initialized = true;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -83,6 +92,7 @@ SolverManager::reset_op_cache()
 Solver&
 SolverManager::get_solver()
 {
+  assert(d_initialized);
   return *d_solver.get();
 }
 
@@ -1152,7 +1162,9 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
   if (enabled_theories.empty())
   {
     for (int32_t t = 0; t < THEORY_ALL; ++t)
+    {
       all_theories.push_back(static_cast<TheoryId>(t));
+    }
   }
   else
   {
@@ -1167,6 +1179,7 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
   /* We need to sort these for intersection. */
   std::sort(all_theories.begin(), all_theories.end());
   std::sort(solver_theories.begin(), solver_theories.end());
+
   /* Filter out theories not supported by solver. */
   TheoryIdVector tmp(all_theories.size());
   auto it = std::set_intersection(all_theories.begin(),
@@ -1174,9 +1187,11 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
                                   solver_theories.begin(),
                                   solver_theories.end(),
                                   tmp.begin());
+
   /* Resize to intersection size. */
   tmp.resize(it - tmp.begin());
   d_enabled_theories = TheoryIdSet(tmp.begin(), tmp.end());
+
   /* Remove disabled theories. */
   for (auto t : disabled_theories)
   {

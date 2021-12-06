@@ -134,7 +134,8 @@ class Murxla
                  SolverSeedGenerator& sng,
                  std::ostream& trace,
                  std::ostream& smt2_out,
-                 bool record_stats) const;
+                 bool record_stats,
+                 bool in_untrace_replay_mode) const;
 
   /**
    * Auxiliary helper for run().
