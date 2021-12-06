@@ -382,6 +382,27 @@ SolverManager::pick_sort_kind(const SortKindSet& sort_kinds, bool with_terms)
 }
 
 SortKind
+SolverManager::pick_sort_kind_excluding(const SortKindSet& exclude_sort_kinds,
+                                        bool with_terms) const
+{
+  assert(has_sort_excluding(exclude_sort_kinds));
+  if (with_terms)
+  {
+    return d_term_db.pick_sort_kind_excluding(exclude_sort_kinds);
+  }
+  std::vector<SortKind> skinds;
+  for (const auto& s : d_sorts)
+  {
+    SortKind sk = s->get_kind();
+    if (exclude_sort_kinds.find(sk) == exclude_sort_kinds.end())
+    {
+      skinds.push_back(sk);
+    }
+  }
+  return d_rng.pick_from_set<decltype(skinds), SortKind>(skinds);
+}
+
+SortKind
 SolverManager::pick_sort_kind(uint32_t level,
                               const SortKindSet& exclude_sort_kinds)
 {

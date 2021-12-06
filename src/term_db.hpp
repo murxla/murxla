@@ -319,17 +319,22 @@ class TermDb
    */
   void remove_var(Term& var);
 
-  /** Pick a sort kind. */
+  /** Pick a sort kind from any level. */
   SortKind pick_sort_kind() const;
 
   /**
-   * Pick a sort kind from given level. Optionally, exclude given sort kinds.
+   * Pick a sort kind from given level.
+   * Optionally, exclude given sort kinds.
    */
   SortKind pick_sort_kind(size_t level,
                           const SortKindSet& exclude_sort_kinds = {}) const;
 
   /** Pick a sort kind (with terms) from any of the given sort kinds. */
   SortKind pick_sort_kind(const SortKindSet& sort_kinds) const;
+
+  /** Pick a sort kind from any level, excluding the given sort kinds. */
+  SortKind pick_sort_kind_excluding(
+      const SortKindSet& exclude_sort_kinds) const;
 
   /** Pick sort with given sort kind. */
   Sort pick_sort(SortKind sort_kind) const;

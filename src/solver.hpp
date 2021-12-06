@@ -588,6 +588,11 @@ class Solver
    */
   virtual SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const;
   /**
+   * Get the set of sort kinds that are unsupported as sort of match terms
+   * for operator DT_MATCH.
+   */
+  virtual SortKindSet get_unsupported_dt_match_sort_kinds() const;
+  /**
    * Get the set of sort kinds that are unsupported as function domain sort.
    */
   virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;

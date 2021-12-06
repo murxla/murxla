@@ -1434,8 +1434,10 @@ ActionMkTerm::run()
     args.push_back(dt_term);
 
     const auto& cons_names = dt_sort->get_dt_ctor_names();
-    SortKind sort_kind = d_smgr.pick_sort_kind();  // pick sort kind with terms
-    Sort sort          = d_smgr.pick_sort(sort_kind);  // pick sort with terms
+    auto exclude_sorts     = d_solver.get_unsupported_dt_match_sort_kinds();
+    /* Pick sort with terms. */
+    SortKind sort_kind = d_smgr.pick_sort_kind_excluding(exclude_sorts);
+    Sort sort          = d_smgr.pick_sort(sort_kind);
 
     ActionMkVar mkvar(d_smgr);  // to create variables on demand
 

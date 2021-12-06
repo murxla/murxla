@@ -126,7 +126,6 @@ TermDb::add_term(Term& term,
   std::vector<uint64_t> levels = term->get_levels();
   if (levels.empty())
   {
-    std::cout << "##asdf\n";
     std::unordered_set<uint64_t> clevels;
     for (const auto& child : args)
     {
@@ -681,6 +680,25 @@ TermDb::pick_sort_kind(const SortKindSet& sort_kinds) const
     for (const auto& p : tmap)
     {
       if (sort_kinds.find(p.first) != sort_kinds.end()) kinds.insert(p.first);
+    }
+  }
+  return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
+}
+
+SortKind
+TermDb::pick_sort_kind_excluding(const SortKindSet& exclude_sort_kinds) const
+{
+  assert(has_term());
+
+  std::unordered_set<SortKind> kinds;
+  for (const auto& tmap : d_term_db)
+  {
+    for (const auto& p : tmap)
+    {
+      if (exclude_sort_kinds.find(p.first) == exclude_sort_kinds.end())
+      {
+        kinds.insert(p.first);
+      }
     }
   }
   return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);

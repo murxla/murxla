@@ -144,6 +144,14 @@ class SolverManager
   SortKind pick_sort_kind(const SortKindSet& sort_kinds,
                           bool with_terms = true);
   /**
+   * Pick a sort kind of existing (= created) sort, excluding the given sort
+   * kinds.  Optionally restrict selection to sort kinds with terms only if
+   * 'with_terms' is true.
+   */
+  SortKind pick_sort_kind_excluding(const SortKindSet& exclude_sort_kinds,
+                                    bool with_terms = true) const;
+
+  /**
    * Pick sort kind of existing (= created) sort with terms at given level.
    * Optionally, exclude given sort kinds.
    */
