@@ -883,7 +883,6 @@ Smt2Solver::new_solver()
   {
     dump_smt2("(set-option :print-success true)");
   }
-  dump_smt2("(set-logic ALL)");
 }
 
 void
@@ -1667,6 +1666,14 @@ void
 Smt2Solver::print_model()
 {
   dump_smt2("(get-model)", ResponseKind::SMT2_SEXPR);
+}
+
+void
+Smt2Solver::set_logic(const std::string& logic)
+{
+  std::stringstream smt2;
+  smt2 << "(set-logic " << logic << ")";
+  dump_smt2(smt2.str());
 }
 
 void

@@ -413,6 +413,8 @@ class Smt2Solver : public Solver
 
   void print_model() override;
 
+  void set_logic(const std::string& logic) override;
+
   void reset() override;
   void reset_assertions() override;
 
