@@ -2380,6 +2380,7 @@ Solver::Result
 Cvc5Solver::check_sat()
 {
   ::cvc5::api::Result res = d_solver->checkSat();
+  MURXLA_TEST(!res.isNull());
   MURXLA_TEST(res != ::cvc5::api::Result());
   MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
   if (res.isSat()) return Result::SAT;
@@ -2404,6 +2405,7 @@ Cvc5Solver::check_sat_assuming(const std::vector<Term>& assumptions)
   res = cvc5_assumptions.size() == 1 && d_rng.flip_coin()
             ? d_solver->checkSatAssuming(cvc5_assumptions[0])
             : d_solver->checkSatAssuming(cvc5_assumptions);
+  MURXLA_TEST(!res.isNull());
   MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
   MURXLA_TEST(res != ::cvc5::api::Result());
   MURXLA_TEST(!res.isEntailed());
@@ -2883,6 +2885,7 @@ class Cvc5ActionCheckEntailed : public Action
     ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
     MURXLA_TEST(!cvc5_term.isNull());
     ::cvc5::api::Result res = cvc5->checkEntailed(cvc5_term);
+    MURXLA_TEST(!res.isNull());
     MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
     MURXLA_TEST(res != ::cvc5::api::Result());
     MURXLA_TEST(!res.isSat());
