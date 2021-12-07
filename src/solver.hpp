@@ -58,6 +58,8 @@ class AbsSort
   virtual bool is_bv() const   = 0;
   /** Return true if this sort is a datatype sort. */
   virtual bool is_dt() const = 0;
+  /** Return true if this sort is a parametric datatype sort. */
+  virtual bool is_dt_parametric() const = 0;
   /** Return true if this sort is a floating-point sort. */
   virtual bool is_fp() const   = 0;
   /** Return true if this sort is a function sort. */
@@ -175,6 +177,11 @@ class AbsSort
   /** Set the datatype constructor map of this sort. */
   virtual void set_dt_ctors(const DatatypeConstructorMap& ctors);
 
+  /* Only to be overriden by ParanSort.                                     */
+  /* ---------------------------------------------------------------------- */
+
+  virtual bool is_param_sort() const;
+
   /* NOT to be overriden, murxla level.                                     */
   /* ---------------------------------------------------------------------- */
 
@@ -207,6 +214,15 @@ class AbsSort
                        const std::string& ctor,
                        const std::string& sel) const;
 
+  /** Instantiate datatype constructor map with 'sorts'.  */
+  DatatypeConstructorMap instantiate_dt_param_sort(
+      const std::vector<Sort>& sorts) const;
+
+  /** Set d_dt_is_instantiated to the given value. */
+  void set_dt_is_instantiated(bool value);
+  /** Return true if this is an instantiated parametric datatype sort. */
+  bool is_dt_instantiated() const;
+
  protected:
   /** The (unique) id of this sort. */
   uint64_t d_id = 0u;
@@ -226,6 +242,8 @@ class AbsSort
    * as pairs of selector name and codomain sort.
    */
   DatatypeConstructorMap d_dt_ctors;
+  /** True if this is an instantiated datatype sort. */
+  bool d_dt_is_instantiated = false;
 };
 
 /** Operator overload for equality over Sorts. */
@@ -241,6 +259,50 @@ bool operator!=(const Sort& a, const Sort& b);
  * solver, user AbsSort::to_string() insted.
  */
 std::ostream& operator<<(std::ostream& out, const Sort s);
+/**
+ * Serialize a vector of Sorts to given stream.
+ *
+ * As above, a sort is represented as 's' + its id, so this will yield a list
+ * of space separated ids.
+ */
+std::ostream& operator<<(std::ostream& out, const std::vector<Sort>& vector);
+
+/**
+ * Parameter sort.
+ * Only to be used for parameterizing datatypes. Instances of ParamSort may
+ * never be added to the solver manager's sort database. No terms of ParamSort
+ * may ever be created.
+ */
+class ParamSort : public AbsSort
+{
+ public:
+  ParamSort(const std::string& symbol) : d_symbol(symbol) {}
+  size_t hash() const override;
+  std::string to_string() const override;
+  bool equals(const Sort& other) const override;
+  bool is_array() const override;
+  bool is_bag() const override;
+  bool is_bool() const override;
+  bool is_bv() const override;
+  bool is_dt() const override;
+  bool is_dt_parametric() const override;
+  bool is_fp() const override;
+  bool is_fun() const override;
+  bool is_int() const override;
+  bool is_real() const override;
+  bool is_rm() const override;
+  bool is_reglan() const override;
+  bool is_seq() const override;
+  bool is_set() const override;
+  bool is_string() const override;
+
+  bool is_param_sort() const override;
+
+  const std::string& get_symbol() const;
+
+ private:
+  std::string d_symbol;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Term                                                                       */
@@ -583,6 +645,11 @@ class Solver
    */
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
   /**
+   * Get the set of sort kinds that are unsupported as parameter for other
+   * sorts (e.g., for parametric datatype sorts).
+   */
+  virtual SortKindSet get_unsupported_sort_param_sort_kinds() const;
+  /**
    * Get the set of sort kinds that are unsupported as datatype
    * selectorcodomain sort.
    */
@@ -700,10 +767,12 @@ class Solver
   /**
    * Create datatype sort.
    *
-   * name: The name of the datatype.
-   * ctors: The list of datatype constructors, given as a map of constructor
-   *        name to vector of selectors (which are given as a pair of name and
-   *        sort).
+   * name       : The name of the datatype.
+   * param_sorts: The list of parameter sorts in case of parametric datatype
+   *              sorts, may be empty.
+   * ctors      : The list of datatype constructors, given as a map of
+   *              constructor name to vector of selectors (which are given as a
+   *              pair of name and sort).
    *
    * Note: Selectors may return a term of the sort that is currently be
    *       created. We inidicate ths by passing a nullptr for the selector
@@ -711,7 +780,12 @@ class Solver
    */
   virtual Sort mk_sort(SortKind kind,
                        const std::string& name,
+                       const std::vector<Sort>& param_sorts,
                        const AbsSort::DatatypeConstructorMap& ctors);
+
+  /** Instantiate parametric sort 'param_sort' with given sorts. */
+  virtual Sort instantiate_sort(Sort param_sort,
+                                const std::vector<Sort>& sorts);
 
   /**
    * Create term with given term arguments and indices.

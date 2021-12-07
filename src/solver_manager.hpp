@@ -112,7 +112,7 @@ class SolverManager
   uint32_t get_num_vars() const;
 
   /** Add sort to sort databse. */
-  void add_sort(Sort& sort, SortKind sort_kind);
+  void add_sort(Sort& sort, SortKind sort_kind, bool parametric = false);
   /** Add value to term database. */
   void add_value(Term& term,
                  Sort& sort,
@@ -139,6 +139,7 @@ class SolverManager
    * Pick sort kind of existing (= created) sort.
    * Optionally restrict selection to sort kinds with terms only if
    * 'with_terms' is true.
+   * This excludes parametric datatype sorts.
    */
   SortKind pick_sort_kind(bool with_terms = true);
   /**
@@ -146,6 +147,7 @@ class SolverManager
    * kinds.  Asserts that a sort of any of the given kinds exists.
    * Optionally restrict selection to sort kinds with terms only if
    * 'with_terms' is true.
+   * This excludes parametric datatype sorts.
    */
   SortKind pick_sort_kind(const SortKindSet& sort_kinds,
                           bool with_terms = true);
@@ -153,6 +155,7 @@ class SolverManager
    * Pick a sort kind of existing (= created) sort, excluding the given sort
    * kinds.  Optionally restrict selection to sort kinds with terms only if
    * 'with_terms' is true.
+   * This excludes parametric datatype sorts.
    */
   SortKind pick_sort_kind_excluding(const SortKindSet& exclude_sort_kinds,
                                     bool with_terms = true) const;
@@ -160,6 +163,7 @@ class SolverManager
   /**
    * Pick sort kind of existing (= created) sort with terms at given level.
    * Optionally, exclude given sort kinds.
+   * This excludes parametric datatype sorts.
    */
   SortKind pick_sort_kind(uint32_t level,
                           const SortKindSet& exclude_sort_kinds);
@@ -168,6 +172,7 @@ class SolverManager
    * Pick enabled sort kind (and get its data).
    * Only sort kinds of enabled theories are picked.
    * This function does not guarantee that a sort of this kind alreay exists.
+   * This excludes parametric datatype sorts.
    */
   SortKindData& pick_sort_kind_data();
   /**
@@ -371,21 +376,25 @@ class SolverManager
   /**
    * Pick sort.
    * It is not guaranteed that there exist terms of the returned sort.
+   * This excludes parametric datatype sorts.
    */
   Sort pick_sort();
   /**
    * Pick sort of given sort kind. Optionally restrict selection to sorts
    * with terms only if 'with_terms' is true.
+   * This excludes parametric datatype sorts.
    */
   Sort pick_sort(SortKind sort_kind, bool with_terms = true);
   /**
    * Pick sort of any of the given sort kinds. Optionally restrict selection to
    * sorts with terms only if 'with_terms' is true.
+   * This excludes parametric datatype sorts.
    */
   Sort pick_sort(const SortKindSet& sort_kinds, bool with_terms = true);
   /**
    * Pick sort, excluding sorts of kinds included in 'exclude_sort_kinds'.
    * It is not guaranteed that there exist terms of the returned sort.
+   * This excludes parametric datatype sorts.
    */
   Sort pick_sort_excluding(const SortKindSet& exclude_sort_kinds,
                            bool with_terms = true);
@@ -400,19 +409,25 @@ class SolverManager
    */
   Sort pick_sort_bv_max(uint32_t bw_max, bool with_terms = true);
 
+  /** Pick parametric datatypes sort. */
+  Sort pick_sort_dt_param();
+
   /**
    * Return true if any sort has been created.
    * This does not guarantee that any terms have been created.
+   * This excludes parametric datatype sorts.
    */
   bool has_sort() const;
   /**
    * Return true if a sort of given kind exists.
    * This does not guarantee that any terms of this sort have been created.
+   * This excludes parametric datatype sorts.
    */
   bool has_sort(SortKind sort_kind) const;
   /**
    * Return true if a sort of any of the given kinds exists.
    * This does not guarantee that any terms of these sorts have been created.
+   * This excludes parametric datatype sorts.
    */
   bool has_sort(const SortKindSet& sort_kinds) const;
   /**
@@ -422,9 +437,9 @@ class SolverManager
   bool has_sort(Sort sort) const;
   /**
    * Return true if sorts of a kind other than the kinds given in
-   * exclude_sort_kinds have been created.
-   * Optionally restrict selection to sorts with terms only if 'with_terms' is
-   * true.
+   * exclude_sort_kinds have been created.  Optionally restrict selection to
+   * sorts with terms only if 'with_terms' is true.
+   * This excludes parametric datatype sorts.
    */
   bool has_sort_excluding(
       const std::unordered_set<SortKind>& exclude_sort_kinds,
@@ -442,6 +457,9 @@ class SolverManager
    * true.
    */
   bool has_sort_bv_max(uint32_t bw_max, bool with_terms = true) const;
+
+  /** Return true if a parametric datatypes sort exists. */
+  bool has_sort_dt_parametric() const;
 
   /**
    * Return the untraced sort with the given id.
@@ -637,8 +655,19 @@ class SolverManager
 
   /** Solver state data members -------------------- */
 
-  /** Maintain all created sorts. */
+  /**
+   * Maintain all created sorts, excluding not yet instantiated parametric
+   * datatype sorts.
+   */
   SortSet d_sorts;
+  /**
+   * Maintain parametric, not yet instantizted datatype sorts.
+   *
+   * We have to maintain these separately, since they can only be picked/used
+   * after having been instantiated. Instantiated parametric datatype sorts
+   * are maintained in d_sorts.
+   */
+  SortSet d_sorts_dt_parametric;
 
   /** Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;

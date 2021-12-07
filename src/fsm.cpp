@@ -333,6 +333,7 @@ FSM::configure()
   auto a_delete = new_action<ActionDelete>();
 
   auto a_mksort = new_action<ActionMkSort>();
+  auto a_instsort = new_action<ActionInstantiateSort>();
 
   auto a_mkval   = new_action<ActionMkValue>();
   auto a_mksval  = new_action<ActionMkSpecialValue>();
@@ -420,7 +421,9 @@ FSM::configure()
   s_opt->add_action(a_setoption, 1);
   s_opt->add_action(t_default, 5, s_sorts);
 
+  /* State: sorts ........................................................ */
   s_sorts->add_action(a_mksort, 1);
+  s_sorts->add_action(a_instsort, 2);
   s_sorts->add_action(t_sorts, 5, s_inputs);
 
   /* State: create inputs ................................................ */

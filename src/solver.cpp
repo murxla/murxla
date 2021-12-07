@@ -54,6 +54,12 @@ AbsSort::set_dt_ctors(const DatatypeConstructorMap& ctors)
   d_dt_ctors = ctors;
 }
 
+bool
+AbsSort::is_param_sort() const
+{
+  return false;
+}
+
 std::vector<std::string>
 AbsSort::get_dt_ctor_names() const
 {
@@ -100,6 +106,53 @@ const AbsSort::DatatypeConstructorMap&
 AbsSort::get_dt_ctors() const
 {
   return d_dt_ctors;
+}
+
+AbsSort::DatatypeConstructorMap
+AbsSort::instantiate_dt_param_sort(const std::vector<Sort>& sorts) const
+{
+  assert(d_sorts.size() == sorts.size());
+  std::unordered_map<Sort, Sort> sorts_map;
+  for (size_t i = 0, n = d_sorts.size(); i < n; ++i)
+  {
+    assert(sorts_map.find(d_sorts[i]) == sorts_map.end());
+    sorts_map[d_sorts[i]] = sorts[i];
+  }
+
+  DatatypeConstructorMap res;
+  for (const auto& c : d_dt_ctors)
+  {
+    const auto& cname = c.first;
+    res[cname]        = {};
+    const auto& sels  = c.second;
+    for (const auto& s : sels)
+    {
+      const auto& sname = s.first;
+      const auto& ssort = s.second;
+      if (ssort && ssort->is_param_sort())
+      {
+        assert(sorts_map.find(ssort) != sorts_map.end());
+        res.at(cname).emplace_back(sname, sorts_map[ssort]);
+      }
+      else
+      {
+        res.at(cname).emplace_back(sname, ssort);
+      }
+    }
+  }
+  return res;
+}
+
+void
+AbsSort::set_dt_is_instantiated(bool value)
+{
+  d_dt_is_instantiated = value;
+}
+
+bool
+AbsSort::is_dt_instantiated() const
+{
+  return d_dt_is_instantiated;
 }
 
 uint32_t
@@ -224,14 +277,149 @@ operator<<(std::ostream& out, const Sort s)
 {
   if (s)
   {
-    assert(s->get_id());
-    out << "s" << s->get_id();
+    if (s->is_param_sort())
+    {
+      assert(!s->get_id());
+      out << "s\"" << s->to_string() << "\"";
+    }
+    else
+    {
+      assert(s->get_id());
+      out << "s" << s->get_id();
+    }
   }
   else
   {
     out << "s(nil)";
   }
   return out;
+}
+
+std::ostream&
+operator<<(std::ostream& out, const std::vector<Sort>& vector)
+{
+  for (const Sort& sort : vector) out << " " << sort;
+  return out;
+}
+
+size_t
+ParamSort::hash() const
+{
+  return std::hash<std::string>{}(d_symbol);
+}
+
+std::string
+ParamSort::to_string() const
+{
+  return d_symbol;
+}
+
+bool
+ParamSort::equals(const Sort& other) const
+{
+  return d_symbol == dynamic_cast<ParamSort*>(other.get())->get_symbol();
+}
+
+bool
+ParamSort::is_array() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_bag() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_bool() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_bv() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_dt() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_dt_parametric() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_fp() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_fun() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_int() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_real() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_rm() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_reglan() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_seq() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_set() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_string() const
+{
+  return false;
+}
+
+bool
+ParamSort::is_param_sort() const
+{
+  return true;
+}
+
+const std::string&
+ParamSort::get_symbol() const
+{
+  return d_symbol;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -690,6 +878,12 @@ Solver::get_unsupported_var_sort_kinds() const
 }
 
 SortKindSet
+Solver::get_unsupported_sort_param_sort_kinds() const
+{
+  return {SORT_FUN};
+}
+
+SortKindSet
 Solver::get_unsupported_dt_sel_codomain_sort_kinds() const
 {
   return {SORT_FUN};
@@ -856,7 +1050,14 @@ Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 Sort
 Solver::mk_sort(SortKind kind,
                 const std::string& name,
+                const std::vector<Sort>& param_sorts,
                 const AbsSort::DatatypeConstructorMap& ctors)
+{
+  return Sort();
+}
+
+Sort
+Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 {
   return Sort();
 }

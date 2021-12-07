@@ -60,6 +60,14 @@
 #define MURXLA_DT_CON_MIN 1
 /** Maximum number of datatype constructors for a datatype. */
 #define MURXLA_DT_CON_MAX 5
+/**
+ * Minimum number of datatype parameter sorts for a parametric datatype sort.
+ */
+#define MURXLA_DT_PARAM_SORT_MIN 1
+/**
+ * Maximum number of datatype parameter sorts for a parametric datatype sort.
+ */
+#define MURXLA_DT_PARAM_SORT_MAX 3
 
 /** Maximum length for symbols. */
 #define MURXLA_SYMBOL_LEN_MAX 128

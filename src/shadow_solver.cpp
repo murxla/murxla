@@ -61,6 +61,12 @@ ShadowSort::is_dt() const
 }
 
 bool
+ShadowSort::is_dt_parametric() const
+{
+  return d_sort->is_dt_parametric();
+}
+
+bool
 ShadowSort::is_fp() const
 {
   return d_sort->is_fp();
@@ -839,17 +845,22 @@ ShadowSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 }
 
 Sort
-ShadowSolver::mk_sort(
-    SortKind kind,
-    const std::string& name,
-    const std::unordered_map<std::string,
-                             std::vector<std::pair<std::string, Sort>>>& ctors)
+ShadowSolver::mk_sort(SortKind kind,
+                      const std::string& name,
+                      const std::vector<Sort>& param_sorts,
+                      const AbsSort::DatatypeConstructorMap& ctors)
 {
-  std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
-      ctors_orig;
-  std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
-      ctors_shadow;
+  std::vector<Sort> param_sorts_orig;
+  std::vector<Sort> param_sorts_shadow;
+  for (const auto& s : param_sorts)
+  {
+    ShadowSort* ssort = dynamic_cast<ShadowSort*>(s.get());
+    param_sorts_orig.push_back(ssort->get_sort());
+    param_sorts_shadow.push_back(ssort->get_sort_shadow());
+  }
 
+  AbsSort::DatatypeConstructorMap ctors_orig;
+  AbsSort::DatatypeConstructorMap ctors_shadow;
   for (const auto& c : ctors)
   {
     const auto& cname   = c.first;
@@ -867,8 +878,9 @@ ShadowSolver::mk_sort(
     }
   }
 
-  Sort s        = d_solver->mk_sort(kind, name, ctors_orig);
-  Sort s_shadow = d_solver_shadow->mk_sort(kind, name, ctors_shadow);
+  Sort s = d_solver->mk_sort(kind, name, param_sorts_orig, ctors_orig);
+  Sort s_shadow =
+      d_solver_shadow->mk_sort(kind, name, param_sorts_shadow, ctors_shadow);
   std::shared_ptr<ShadowSort> res(new ShadowSort(s, s_shadow));
   return res;
 }

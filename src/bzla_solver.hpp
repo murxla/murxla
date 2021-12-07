@@ -37,6 +37,7 @@ class BzlaSort : public AbsSort
   bool is_bool() const override;
   bool is_bv() const override;
   bool is_dt() const override { return false; }
+  bool is_dt_parametric() const override { return false; }
   bool is_fp() const override;
   bool is_fun() const override;
   bool is_int() const override { return false; }

@@ -57,6 +57,7 @@ class Action
   inline static const Kind MK_CONST              = "mk-const";
   inline static const Kind MK_VAR                = "mk-var";
   inline static const Kind MK_TERM               = "mk-term";
+  inline static const Kind INSTANTIATE_SORT      = "instantiate-sort";
   inline static const Kind TERM_GET_CHILDREN     = "term-get-children";
   inline static const Kind ASSERT_FORMULA        = "assert-formula";
   inline static const Kind GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
@@ -347,6 +348,7 @@ class ActionMkSort : public Action
   uint64_t _run(SortKind kind, const std::vector<Sort>& sorts);
   uint64_t _run(SortKind kind,
                 const std::string& name,
+                const std::vector<Sort>& param_sorts,
                 const AbsSort::DatatypeConstructorMap& ctors);
 
   /** Perform checks on the created sort. */
@@ -478,6 +480,22 @@ class ActionMkSpecialValue : public Action
                            const AbsTerm::SpecialValueKind& kind);
 
   uint64_t _run(Sort sort, const AbsTerm::SpecialValueKind& val);
+};
+
+class ActionInstantiateSort : public Action
+{
+ public:
+  ActionInstantiateSort(SolverManager& smgr)
+      : Action(smgr, INSTANTIATE_SORT, ID)
+  {
+  }
+
+  bool run() override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
+
+ private:
+  uint64_t _run(Sort param_sort, const std::vector<Sort>& inst_sorts);
 };
 
 class ActionAssertFormula : public Action

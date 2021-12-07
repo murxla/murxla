@@ -184,6 +184,12 @@ Smt2Sort::is_dt() const
 }
 
 bool
+Smt2Sort::is_dt_parametric() const
+{
+  return false;
+}
+
+bool
 Smt2Sort::is_int() const
 {
   return d_kind == SORT_INT;
@@ -1274,6 +1280,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 Sort
 Smt2Solver::mk_sort(SortKind kind,
                     const std::string& name,
+                    const std::vector<Sort>& param_sorts,
                     const AbsSort::DatatypeConstructorMap& ctors)
 {
   assert(kind == SORT_DT);

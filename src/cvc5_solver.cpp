@@ -90,6 +90,12 @@ Cvc5Sort::is_dt() const
 }
 
 bool
+Cvc5Sort::is_dt_parametric() const
+{
+  return d_sort.isParametricDatatype();
+}
+
+bool
 Cvc5Sort::is_fp() const
 {
   return d_sort.isFloatingPoint();
@@ -290,6 +296,17 @@ Cvc5Sort::get_set_element_sort() const
   ::cvc5::api::Sort cvc5_res = d_sort.getSetElementSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
   MURXLA_TEST(res);
+  return res;
+}
+
+std::vector<::cvc5::api::Sort>
+Cvc5Sort::sorts_to_cvc5_sorts(const std::vector<Sort>& sorts)
+{
+  std::vector<::cvc5::api::Sort> res;
+  for (auto& s : sorts)
+  {
+    res.emplace_back(get_cvc5_sort(s));
+  }
   return res;
 }
 
@@ -1327,9 +1344,7 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t size)
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_BV << "'";
   ::cvc5::api::Sort cvc5_res = d_solver->mkBitVectorSort(size);
   MURXLA_TEST(!cvc5_res.isNull());
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
-  assert(res);
-  return res;
+  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
 }
 
 Sort
@@ -1340,9 +1355,7 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_FP << "'";
   ::cvc5::api::Sort cvc5_res = d_solver->mkFloatingPointSort(esize, ssize);
   MURXLA_TEST(!cvc5_res.isNull());
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
-  assert(res);
-  return res;
+  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
 }
 
 Sort
@@ -1393,19 +1406,33 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
                                  << SORT_ARRAY << "' or '" << SORT_FUN << "'";
   }
   MURXLA_TEST(!cvc5_res.isNull());
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
-  assert(res);
-  return res;
+  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
 }
 
 Sort
-Cvc5Solver::mk_sort(
-    SortKind kind,
-    const std::string& name,
-    const std::unordered_map<std::string,
-                             std::vector<std::pair<std::string, Sort>>>& ctors)
+Cvc5Solver::mk_sort(SortKind kind,
+                    const std::string& name,
+                    const std::vector<Sort>& param_sorts,
+                    const AbsSort::DatatypeConstructorMap& ctors)
 {
-  ::cvc5::api::DatatypeDecl cvc5_dtypedecl = d_solver->mkDatatypeDecl(name);
+  std::unordered_map<std::string, ::cvc5::api::Sort> symbol_to_cvc5_param_sorts;
+  std::vector<::cvc5::api::Sort> cvc5_param_sorts;
+  for (const auto& s : param_sorts)
+  {
+    const std::string& symbol = dynamic_cast<ParamSort*>(s.get())->get_symbol();
+    ::cvc5::api::Sort cvc5_param_sort = d_solver->mkParamSort(symbol);
+    cvc5_param_sorts.push_back(cvc5_param_sort);
+    assert(symbol_to_cvc5_param_sorts.find(symbol)
+           == symbol_to_cvc5_param_sorts.end());
+    symbol_to_cvc5_param_sorts[symbol] = cvc5_param_sort;
+  }
+
+  ::cvc5::api::DatatypeDecl cvc5_dtypedecl =
+      param_sorts.size() > 0
+          ? (param_sorts.size() == 1 && d_rng.flip_coin()
+                 ? d_solver->mkDatatypeDecl(name, cvc5_param_sorts[0])
+                 : d_solver->mkDatatypeDecl(name, cvc5_param_sorts))
+          : d_solver->mkDatatypeDecl(name);
 
   std::vector<::cvc5::api::DatatypeConstructorDecl> cvc5_ctors;
   for (const auto& c : ctors)
@@ -1426,7 +1453,18 @@ Cvc5Solver::mk_sort(
       }
       else
       {
-        cvc5_cdecl.addSelector(sname, Cvc5Sort::get_cvc5_sort(ssort));
+        if (ssort->is_param_sort())
+        {
+          const std::string& symbol =
+              dynamic_cast<ParamSort*>(ssort.get())->get_symbol();
+          assert(symbol_to_cvc5_param_sorts.find(symbol)
+                 != symbol_to_cvc5_param_sorts.end());
+          cvc5_cdecl.addSelector(sname, symbol_to_cvc5_param_sorts.at(symbol));
+        }
+        else
+        {
+          cvc5_cdecl.addSelector(sname, Cvc5Sort::get_cvc5_sort(ssort));
+        }
       }
     }
 
@@ -1434,9 +1472,18 @@ Cvc5Solver::mk_sort(
   }
   ::cvc5::api::Sort cvc5_res = d_solver->mkDatatypeSort(cvc5_dtypedecl);
   MURXLA_TEST(!cvc5_res.isNull());
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_solver, cvc5_res));
-  assert(res);
-  return res;
+  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
+}
+
+Sort
+Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
+{
+  ::cvc5::api::Sort cvc5_param_sort = Cvc5Sort::get_cvc5_sort(param_sort);
+  std::vector<::cvc5::api::Sort> cvc5_sorts =
+      Cvc5Sort::sorts_to_cvc5_sorts(sorts);
+  ::cvc5::api::Sort cvc5_res = cvc5_param_sort.instantiate(cvc5_sorts);
+  MURXLA_TEST(!cvc5_res.isNull());
+  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
 }
 
 Term
@@ -2276,22 +2323,31 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     assert(str_args.size() == 1);
 
     ::cvc5::api::Term cvc5_ctor_term;
-    auto choice = d_rng.pick_one_of_three();
-    if (choice == RNGenerator::Choice::FIRST)
-    {
-      cvc5_ctor_term =
-          cvc5_dt_sort.getDatatype()[str_args[0]].getConstructorTerm();
-    }
-    else if (choice == RNGenerator::Choice::SECOND)
+    if (sort->is_dt_instantiated())
     {
       cvc5_ctor_term = cvc5_dt_sort.getDatatype()
                            .getConstructor(str_args[0])
-                           .getConstructorTerm();
+                           .getSpecializedConstructorTerm(cvc5_dt_sort);
     }
     else
     {
-      cvc5_ctor_term =
-          cvc5_dt_sort.getDatatype().getConstructorTerm(str_args[0]);
+      auto choice = d_rng.pick_one_of_three();
+      if (choice == RNGenerator::Choice::FIRST)
+      {
+        cvc5_ctor_term =
+            cvc5_dt_sort.getDatatype()[str_args[0]].getConstructorTerm();
+      }
+      else if (choice == RNGenerator::Choice::SECOND)
+      {
+        cvc5_ctor_term = cvc5_dt_sort.getDatatype()
+                             .getConstructor(str_args[0])
+                             .getConstructorTerm();
+      }
+      else
+      {
+        cvc5_ctor_term =
+            cvc5_dt_sort.getDatatype().getConstructorTerm(str_args[0]);
+      }
     }
     cvc5_args.insert(cvc5_args.begin(), cvc5_ctor_term);
   }

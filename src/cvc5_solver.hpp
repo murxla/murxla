@@ -24,6 +24,9 @@ class Cvc5Sort : public AbsSort
   /** Convert vector of cvc5 sorts to vector of Murxla sorts. */
   static std::vector<Sort> cvc5_sorts_to_sorts(
       ::cvc5::api::Solver* cvc5, const std::vector<::cvc5::api::Sort>& sorts);
+  /** Convert vector of Murxla sorts to vector of cvc5 sorts. */
+  static std::vector<::cvc5::api::Sort> sorts_to_cvc5_sorts(
+      const std::vector<Sort>& sorts);
 
   Cvc5Sort(::cvc5::api::Solver* cvc5, ::cvc5::api::Sort sort)
       : d_solver(cvc5), d_sort(sort)
@@ -40,6 +43,7 @@ class Cvc5Sort : public AbsSort
   bool is_bool() const override;
   bool is_bv() const override;
   bool is_dt() const override;
+  bool is_dt_parametric() const override;
   bool is_fp() const override;
   bool is_fun() const override;
   bool is_int() const override;
@@ -247,12 +251,13 @@ class Cvc5Solver : public Solver
   Sort mk_sort(SortKind kind, uint32_t size) override;
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
-  Sort mk_sort(
-      SortKind kind,
-      const std::string& name,
-      const std::unordered_map<std::string,
-                               std::vector<std::pair<std::string, Sort>>>&
-          ctors) override;
+  Sort mk_sort(SortKind kind,
+               const std::string& name,
+               const std::vector<Sort>& param_sorts,
+               const AbsSort::DatatypeConstructorMap& ctors) override;
+
+  Sort instantiate_sort(Sort param_sort,
+                        const std::vector<Sort>& sorts) override;
 
   Term mk_const(Sort sort, const std::string& name) override;
   Term mk_term(const Op::Kind& kind,
@@ -264,7 +269,7 @@ class Cvc5Solver : public Solver
   Term mk_term(const Op::Kind& kind,
                Sort sort,
                const std::vector<std::string>& str_args,
-               const std::vector<Term>& args);
+               const std::vector<Term>& args) override;
 
   Sort get_sort(Term term, SortKind sort_kind) const override;
 

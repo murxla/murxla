@@ -69,6 +69,7 @@ SolverManager::clear()
 {
   d_used_solver_options.clear();
   d_sorts.clear();
+  d_sorts_dt_parametric.clear();
   d_sort_kind_to_sorts.clear();
   d_n_sort_terms.clear();
   d_assumptions.clear();
@@ -296,7 +297,7 @@ SolverManager::add_term(Term& term,
 }
 
 void
-SolverManager::add_sort(Sort& sort, SortKind sort_kind)
+SolverManager::add_sort(Sort& sort, SortKind sort_kind, bool parametric)
 {
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
@@ -317,11 +318,13 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
          || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)
          || sort->get_kind() == sort_kind);
 
-  auto it = d_sorts.find(sort);
-  if (it == d_sorts.end())
+  SortSet& sorts = parametric ? d_sorts_dt_parametric : d_sorts;
+
+  auto it = sorts.find(sort);
+  if (it == sorts.end())
   {
     sort->set_id(++d_n_sorts);
-    d_sorts.insert(sort);
+    sorts.insert(sort);
     ++d_stats.sorts;
   }
   else
@@ -349,10 +352,13 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind)
              && sort->get_sorts()[1]->get_kind() != SORT_ANY));
   assert(sort->get_id());
 
-  auto& sorts = d_sort_kind_to_sorts[sort_kind];
-  if (sorts.find(sort) == sorts.end())
+  /* We do not add parametric datatype sorts here. These should never be
+   * picked for anything except instantiating the sort (see
+   * pick_sort_dt_param()). */
+  auto& sorts_of_kind = d_sort_kind_to_sorts[sort_kind];
+  if (sorts_of_kind.find(sort) == sorts_of_kind.end())
   {
-    sorts.insert(sort);
+    sorts_of_kind.insert(sort);
   }
 }
 
@@ -844,6 +850,17 @@ SolverManager::register_sort(uint64_t untraced_id, uint64_t sort_id)
       break;
     }
   }
+  if (!sort)
+  {
+    for (const auto& s : d_sorts_dt_parametric)
+    {
+      if (s->get_id() == sort_id)
+      {
+        sort = s;
+        break;
+      }
+    }
+  }
 
   if (sort == nullptr) return false;
 
@@ -982,6 +999,13 @@ SolverManager::pick_sort_bv_max(uint32_t bw_max, bool with_terms)
   return res;
 }
 
+Sort
+SolverManager::pick_sort_dt_param()
+{
+  return d_rng.pick_from_set<decltype(d_sorts_dt_parametric), Sort>(
+      d_sorts_dt_parametric);
+}
+
 bool
 SolverManager::has_sort() const
 {
@@ -1018,7 +1042,12 @@ SolverManager::has_sort(const SortKindSet& sort_kinds) const
 bool
 SolverManager::has_sort(Sort sort) const
 {
-  return d_sorts.find(sort) != d_sorts.end();
+  bool res = d_sorts.find(sort) != d_sorts.end();
+  if (!res)
+  {
+    res = d_sorts_dt_parametric.find(sort) != d_sorts_dt_parametric.end();
+  }
+  return res;
 }
 
 bool
@@ -1087,6 +1116,12 @@ SolverManager::has_sort_bv_max(uint32_t bw_max, bool with_terms) const
     }
   }
   return false;
+}
+
+bool
+SolverManager::has_sort_dt_parametric() const
+{
+  return !d_sorts_dt_parametric.empty();
 }
 
 std::pair<std::string, std::string>
