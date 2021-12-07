@@ -2594,10 +2594,7 @@ ActionCheckSat::_run()
 {
   MURXLA_TRACE << get_kind();
   reset_sat();
-  d_smgr.d_sat_result = d_solver.check_sat();
-  d_smgr.d_sat_called = true;
-  d_smgr.d_n_sat_calls += 1;
-  d_smgr.d_mbt_stats->d_results[d_smgr.d_sat_result]++;
+  d_smgr.report_result(d_solver.check_sat());
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2651,10 +2648,7 @@ ActionCheckSatAssuming::_run(const std::vector<Term>& assumptions)
   {
     d_smgr.add_assumption(t);
   }
-  d_smgr.d_sat_result = d_solver.check_sat_assuming(assumptions);
-  d_smgr.d_sat_called = true;
-  d_smgr.d_n_sat_calls += 1;
-  d_smgr.d_mbt_stats->d_results[d_smgr.d_sat_result]++;
+  d_smgr.report_result(d_solver.check_sat_assuming(assumptions));
 }
 
 /* -------------------------------------------------------------------------- */

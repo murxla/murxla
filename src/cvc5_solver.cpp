@@ -2821,19 +2821,17 @@ class Cvc5ActionCheckEntailed : public Action
       {
         (void) res.getUnknownExplanation();
       }
-      d_smgr.d_sat_result = Solver::Result::UNKNOWN;
+      d_smgr.report_result(Solver::Result::UNKNOWN);
     }
     else if (res.isEntailed())
     {
-      d_smgr.d_sat_result = Solver::Result::UNSAT;
+      d_smgr.report_result(Solver::Result::UNSAT);
     }
     else
     {
       MURXLA_TEST(res.isNotEntailed());
-      d_smgr.d_sat_result = Solver::Result::SAT;
+      d_smgr.report_result(Solver::Result::SAT);
     }
-    d_smgr.d_sat_called = true;
-    d_smgr.d_n_sat_calls += 1;
   }
 
   void _run(std::vector<Term> terms)
@@ -2856,19 +2854,17 @@ class Cvc5ActionCheckEntailed : public Action
       {
         (void) res.getUnknownExplanation();
       }
-      d_smgr.d_sat_result = Solver::Result::UNKNOWN;
+      d_smgr.report_result(Solver::Result::UNKNOWN);
     }
     else if (res.isEntailed())
     {
-      d_smgr.d_sat_result = Solver::Result::UNSAT;
+      d_smgr.report_result(Solver::Result::UNSAT);
     }
     else
     {
       MURXLA_TEST(res.isNotEntailed());
-      d_smgr.d_sat_result = Solver::Result::SAT;
+      d_smgr.report_result(Solver::Result::SAT);
     }
-    d_smgr.d_sat_called = true;
-    d_smgr.d_n_sat_calls += 1;
   }
 };
 
@@ -2930,7 +2926,7 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   // Solver::checkEntailed(Term term)
   // Solver::checkEntailed(std::vector<Term> terms)
   auto a_check_entailed = fsm->new_action<Cvc5ActionCheckEntailed>();
-  s_sat->add_action(a_check_entailed, 1);
+  s_sat->add_action(a_check_entailed, 2);
 }
 /* -------------------------------------------------------------------------- */
 

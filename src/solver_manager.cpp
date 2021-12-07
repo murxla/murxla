@@ -701,6 +701,15 @@ SolverManager::add_option(SolverOption* opt)
 }
 
 void
+SolverManager::report_result(Solver::Result res)
+{
+  d_sat_result = res;
+  d_sat_called = true;
+  ++d_n_sat_calls;
+  ++d_mbt_stats->d_results[res];
+}
+
+void
 SolverManager::reset_sat()
 {
   if (d_sat_called)

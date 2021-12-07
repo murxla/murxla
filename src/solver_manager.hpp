@@ -475,6 +475,9 @@ class SolverManager
   /** Add solver option. */
   void add_option(SolverOption* opt);
 
+  /** Report solver result to solver manager. */
+  void report_result(Solver::Result res);
+
   /** Statistics. */
   Stats d_stats;
 
