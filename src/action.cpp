@@ -256,44 +256,50 @@ ActionSetLogic::run()
 
   auto it = enabled_theories.find(THEORY_QUANT);
   enabled_theories.erase(THEORY_QUANT);
+  bool is_quant = it != enabled_theories.end();
 
-  std::string logic;
-  logic += (it == enabled_theories.end()) ? "QF_" : "";
+  std::string logic = "";
 
   it = enabled_theories.find(THEORY_ARRAY);
   if (it != enabled_theories.end())
   {
+    enabled_theories.erase(THEORY_ARRAY);
     /* Only THEORY_ARRAY left, use AX. */
-    logic += enabled_theories.size() == 1 ? "AX" : "A";
+    logic += enabled_theories.empty() ? "AX" : "A";
   }
 
   it = enabled_theories.find(THEORY_UF);
   if (it != enabled_theories.end())
   {
+    enabled_theories.erase(THEORY_UF);
     logic += "UF";
   }
 
   it = enabled_theories.find(THEORY_BV);
   if (it != enabled_theories.end())
   {
+    enabled_theories.erase(THEORY_BV);
     logic += "BV";
   }
 
   it = enabled_theories.find(THEORY_FP);
   if (it != enabled_theories.end())
   {
+    enabled_theories.erase(THEORY_FP);
     logic += "FP";
   }
 
   it = enabled_theories.find(THEORY_DT);
   if (it != enabled_theories.end())
   {
+    enabled_theories.erase(THEORY_DT);
     logic += "DT";
   }
 
   it = enabled_theories.find(THEORY_STRING);
   if (it != enabled_theories.end())
   {
+    enabled_theories.erase(THEORY_STRING);
     logic += "S";
   }
 
@@ -307,18 +313,26 @@ ActionSetLogic::run()
     logic += d_smgr.d_arith_linear ? "L" : "N";
     if (int_enabled)
     {
+      enabled_theories.erase(THEORY_INT);
       logic += "I";
     }
     if (real_enabled)
     {
+      enabled_theories.erase(THEORY_REAL);
       logic += "R";
     }
     logic += "A";
   }
 
-  if (logic == "QF_" || logic == "")
+  /* If we didn't cover all enabled theories, we just use logic ALL. */
+  if (!enabled_theories.empty() || logic.empty())
   {
-    logic += "ALL";
+    logic = "ALL";
+  }
+
+  if (!is_quant)
+  {
+    logic = "QF_" + logic;
   }
 
   _run(logic);
