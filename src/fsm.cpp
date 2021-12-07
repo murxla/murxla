@@ -150,7 +150,7 @@ FSM::FSM(RNGenerator& rng,
 
   /* Instead of enabling all theories by default, we randomly disable theories
    * to allow narrower logics. */
-  if (!in_untrace_replay_mode)
+  if (!in_untrace_replay_mode && enabled_theories.empty())
   {
     smgr_enabled_theories = d_smgr.get_enabled_theories();
     std::vector<TheoryId> enabled;
