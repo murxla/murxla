@@ -359,27 +359,27 @@ ActionSetOption::run()
    */
   if (d_rng.pick_with_prob(100))
   {
-    std::tie(opt, value) =
-        d_smgr.pick_option(d_solver.get_option_name_incremental(),
-                           d_rng.flip_coin() ? "true" : "false");
+    std::tie(opt, value) = d_smgr.pick_option(
+        d_solver.get_option_name_incremental(),
+        d_solver.option_incremental_enabled() ? "false" : "true");
   }
   if (opt.empty() && d_rng.pick_with_prob(100))
   {
-    std::tie(opt, value) =
-        d_smgr.pick_option(d_solver.get_option_name_model_gen(),
-                           d_rng.flip_coin() ? "true" : "false");
+    std::tie(opt, value) = d_smgr.pick_option(
+        d_solver.get_option_name_model_gen(),
+        d_solver.option_model_gen_enabled() ? "false" : "true");
   }
   if (opt.empty() && d_rng.pick_with_prob(100))
   {
-    std::tie(opt, value) =
-        d_smgr.pick_option(d_solver.get_option_name_unsat_assumptions(),
-                           d_rng.flip_coin() ? "true" : "false");
+    std::tie(opt, value) = d_smgr.pick_option(
+        d_solver.get_option_name_unsat_assumptions(),
+        d_solver.option_unsat_assumptions_enabled() ? "false" : "true");
   }
   if (opt.empty() && d_rng.pick_with_prob(100))
   {
-    std::tie(opt, value) =
-        d_smgr.pick_option(d_solver.get_option_name_unsat_cores(),
-                           d_rng.flip_coin() ? "true" : "false");
+    std::tie(opt, value) = d_smgr.pick_option(
+        d_solver.get_option_name_unsat_cores(),
+        d_solver.option_unsat_cores_enabled() ? "false" : "true");
   }
   /* Pick random options. */
   if (opt.empty())
