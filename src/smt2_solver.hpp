@@ -377,6 +377,9 @@ class Smt2Solver : public Solver
                const std::vector<Sort>& param_sorts,
                const AbsSort::DatatypeConstructorMap& ctors) override;
 
+  Sort instantiate_sort(Sort param_sort,
+                        const std::vector<Sort>& sorts) override;
+
   Term mk_term(const Op::Kind& kind,
                const std::vector<Term>& args,
                const std::vector<uint32_t>& indices) override;

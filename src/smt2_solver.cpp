@@ -1284,8 +1284,20 @@ Smt2Solver::mk_sort(SortKind kind,
                     const AbsSort::DatatypeConstructorMap& ctors)
 {
   assert(kind == SORT_DT);
+  bool parametric = !param_sorts.empty();
   std::stringstream smt2;
-  smt2 << "(declare-datatype " << name << " (";
+  smt2 << "(declare-datatype " << name << " ";
+  if (parametric)
+  {
+    smt2 << "( par (";
+    for (const Sort& p : param_sorts)
+    {
+      Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(p.get());
+      smt2 << " " << smt2_sort->get_repr();
+    }
+    smt2 << " ) ";
+  }
+  smt2 << "(";
   for (const auto& c : ctors)
   {
     smt2 << " (" << c.first;
@@ -1297,8 +1309,26 @@ Smt2Solver::mk_sort(SortKind kind,
     smt2 << ")";
   }
   smt2 << "))";
+  if (parametric)
+  {
+    smt2 << " )";
+  }
   dump_smt2(smt2.str());
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(name));
+}
+
+Sort
+Smt2Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
+{
+  std::stringstream sort;
+  sort << "(" << param_sort->get_dt_name();
+  for (const auto& s : sorts)
+  {
+    Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(s.get());
+    sort << " " << smt2_sort->get_repr();
+  }
+  sort << ")";
+  return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort.str()));
 }
 
 Term
