@@ -2482,6 +2482,7 @@ Cvc5Solver::print_model()
 void
 Cvc5Solver::set_logic(const std::string& logic)
 {
+  d_logic = logic;
   d_solver->setLogic(logic);
 }
 
@@ -2511,6 +2512,7 @@ Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
 
   try
   {
+    check_opt_slv.setLogic(d_logic);
     check_opt_slv.setOption(opt, value);
     check_opt_slv.checkSat();  // Trigger option checks
   }

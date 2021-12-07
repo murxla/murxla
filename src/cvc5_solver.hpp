@@ -309,6 +309,9 @@ class Cvc5Solver : public Solver
 
   /** Options set via set_opt(). */
   std::vector<std::pair<std::string, std::string>> d_enabled_options;
+
+  /** Logic set via set_logic(). */
+  std::string d_logic = "";
 };
 
 }  // namespace cvc5
