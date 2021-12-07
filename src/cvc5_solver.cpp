@@ -1272,10 +1272,6 @@ Cvc5Solver::new_solver()
 {
   assert(d_solver == nullptr);
   d_solver = new ::cvc5::api::Solver();
-  d_solver->setOption("fp-exp", "true");
-  d_solver->setOption("strings-exp", "true");
-  d_solver->setOption("sets-ext", "true");
-  d_solver->setLogic("HO_ALL");
 }
 
 void
@@ -2686,6 +2682,25 @@ Cvc5Solver::check_sort(Sort sort)
   else if (cvc5_sort.isComparableTo(cvc5_sort))
   {
   }
+}
+
+std::unordered_map<std::string, std::string>
+Cvc5Solver::get_required_options(TheoryId theory) const
+{
+  std::unordered_map<std::string, std::string> reqopts;
+  if (theory == THEORY_FP)
+  {
+    reqopts.emplace("fp-exp", "true");
+  }
+  else if (theory == THEORY_SET)
+  {
+    reqopts.emplace("sets-exp", "true");
+  }
+  else if (theory == THEORY_STRING)
+  {
+    reqopts.emplace("strings-exp", "true");
+  }
+  return reqopts;
 }
 
 /* -------------------------------------------------------------------------- */

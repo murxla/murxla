@@ -715,6 +715,12 @@ SolverManager::report_result(Solver::Result res)
   ++d_mbt_stats->d_results[res];
 }
 
+std::unordered_map<std::string, std::string>
+SolverManager::get_required_options(TheoryId theory) const
+{
+  return d_solver->get_required_options(theory);
+}
+
 void
 SolverManager::reset_sat()
 {

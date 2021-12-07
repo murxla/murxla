@@ -304,6 +304,9 @@ class Cvc5Solver : public Solver
   void check_value(Term term) override;
   void check_sort(Sort sort) override;
 
+  std::unordered_map<std::string, std::string> get_required_options(
+      TheoryId theory) const override;
+
  private:
   ::cvc5::api::Solver* d_solver;
 

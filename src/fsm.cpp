@@ -171,6 +171,17 @@ FSM::FSM(RNGenerator& rng,
     }
   }
 
+  /* Query solver if certain options are required for enabled theories. */
+  smgr_enabled_theories = d_smgr.get_enabled_theories();
+  for (auto t : smgr_enabled_theories)
+  {
+    auto reqopts = d_smgr.get_required_options(t);
+    for (const auto& [opt, val] : reqopts)
+    {
+      d_solver_options.emplace_back(opt, val);
+    }
+  }
+
   d_smgr.initialize();
 }
 
@@ -448,7 +459,7 @@ FSM::configure()
 
   /* State: assert/assume formula ........................................ */
   s_assert->add_action(a_assert, 1);
-  s_assert->add_action(t_default, 20, s_check_sat);
+  s_assert->add_action(t_default, 5, s_check_sat);
   s_assert->add_action(t_inputs, 3, s_push_pop);
   s_assert->add_action(t_default, 50, s_terms);
 

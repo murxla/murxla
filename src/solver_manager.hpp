@@ -496,6 +496,10 @@ class SolverManager
   /** Report solver result to solver manager. */
   void report_result(Solver::Result res);
 
+  /** Get options required for a given theory. */
+  std::unordered_map<std::string, std::string> get_required_options(
+      TheoryId theory) const;
+
   /** Statistics. */
   Stats d_stats;
 

@@ -893,6 +893,13 @@ class Solver
   /** Solver-specific sort checks. */
   virtual void check_sort(Sort sort){};
 
+  /** Query solver options that need to be enabled for a given theory. */
+  virtual std::unordered_map<std::string, std::string> get_required_options(
+      TheoryId theory) const
+  {
+    return {};
+  }
+
  protected:
   RNGenerator d_rng;
 
