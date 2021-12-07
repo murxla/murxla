@@ -417,7 +417,7 @@ Murxla::test()
     {
       std::cout << std::endl;
       std::cout << errmsg << std::endl;
-      ++num_printed_lines;
+      num_printed_lines = 0; // print header again after error
     }
   } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
 }
