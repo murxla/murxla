@@ -2424,6 +2424,12 @@ Cvc5Solver::print_model()
 }
 
 void
+Cvc5Solver::set_logic(const std::string& logic)
+{
+  d_solver->setLogic(logic);
+}
+
+void
 Cvc5Solver::reset()
 {
   delete d_solver;

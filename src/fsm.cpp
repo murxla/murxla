@@ -364,6 +364,8 @@ FSM::configure()
   auto a_setoptionreq = new_action<ActionSetOptionReq>();
   a_setoptionreq->init(d_solver_options, a_setoption);
 
+  auto a_set_logic = new_action<ActionSetLogic>();
+
   auto t_default = new_action<TransitionDefault>();
   auto t_inputs  = new_action<TransitionCreateInputs>();
   auto t_sorts   = new_action<TransitionCreateSorts>();
@@ -372,11 +374,12 @@ FSM::configure()
   /* States                                                                */
   /* --------------------------------------------------------------------- */
 
-  auto s_new     = new_state(State::NEW);
-  auto s_opt     = new_state(State::OPT);
-  auto s_opt_req = new_state(State::OPT_REQ);
-  auto s_delete  = new_state(State::DELETE);
-  auto s_final   = new_final_state(State::FINAL, nullptr);
+  auto s_new       = new_state(State::NEW);
+  auto s_set_logic = new_state(State::SET_LOGIC, nullptr, true);
+  auto s_opt       = new_state(State::OPT);
+  auto s_opt_req   = new_state(State::OPT_REQ);
+  auto s_delete    = new_state(State::DELETE);
+  auto s_final     = new_final_state(State::FINAL, nullptr);
 
   auto s_sorts  = new_state(State::CREATE_SORTS);
   auto s_inputs = new_state(State::CREATE_INPUTS);
@@ -405,7 +408,10 @@ FSM::configure()
   /* --------------------------------------------------------------------- */
 
   /* State: new .......................................................... */
-  s_new->add_action(a_new, 1, s_opt_req);
+  s_new->add_action(a_new, 1, s_set_logic);
+
+  /* State: set logic .................................................... */
+  s_set_logic->add_action(a_set_logic, 1, s_opt_req);
 
   /* State: opt required ................................................. */
   s_opt_req->add_action(a_setoptionreq, 1, s_opt);

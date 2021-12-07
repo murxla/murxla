@@ -37,6 +37,7 @@ class State
   /** States of the SMT-LIB API model. */
   inline static const Kind UNDEFINED     = "undefined";
   inline static const Kind NEW           = "new";
+  inline static const Kind SET_LOGIC     = "set_logic";
   inline static const Kind OPT           = "opt";
   inline static const Kind OPT_REQ       = "opt_req";
   inline static const Kind DELETE        = "delete";

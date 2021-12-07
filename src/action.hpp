@@ -50,6 +50,7 @@ class Action
   inline static const Kind UNDEFINED             = "undefined";
   inline static const Kind NEW                   = "new";
   inline static const Kind DELETE                = "delete";
+  inline static const Kind SET_LOGIC             = "set-logic";
   inline static const Kind MK_SORT               = "mk-sort";
   inline static const Kind MK_VALUE              = "mk-value";
   inline static const Kind MK_SPECIAL_VALUE      = "mk-special-value";
@@ -281,6 +282,18 @@ class ActionDelete : public Action
 
  private:
   void _run();
+};
+
+class ActionSetLogic : public Action
+{
+ public:
+  ActionSetLogic(SolverManager& smgr) : Action(smgr, SET_LOGIC, NONE) {}
+  bool run() override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
+
+ private:
+  void _run(const std::string& logic);
 };
 
 class ActionSetOption : public Action

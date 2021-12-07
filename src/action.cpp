@@ -247,6 +247,102 @@ ActionDelete::_run()
 /* -------------------------------------------------------------------------- */
 
 bool
+ActionSetLogic::run()
+{
+  assert(d_solver.is_initialized());
+
+  TheoryIdSet enabled_theories = d_smgr.get_enabled_theories();
+  enabled_theories.erase(THEORY_BOOL);
+
+  auto it = enabled_theories.find(THEORY_QUANT);
+  enabled_theories.erase(THEORY_QUANT);
+
+  std::string logic;
+  logic += (it == enabled_theories.end()) ? "QF_" : "";
+
+  it = enabled_theories.find(THEORY_ARRAY);
+  if (it != enabled_theories.end())
+  {
+    /* Only THEORY_ARRAY left, use AX. */
+    logic += enabled_theories.size() == 1 ? "AX" : "A";
+  }
+
+  it = enabled_theories.find(THEORY_UF);
+  if (it != enabled_theories.end())
+  {
+    logic += "UF";
+  }
+
+  it = enabled_theories.find(THEORY_BV);
+  if (it != enabled_theories.end())
+  {
+    logic += "BV";
+  }
+
+  it = enabled_theories.find(THEORY_FP);
+  if (it != enabled_theories.end())
+  {
+    logic += "FP";
+  }
+
+  it = enabled_theories.find(THEORY_DT);
+  if (it != enabled_theories.end())
+  {
+    logic += "DT";
+  }
+
+  it = enabled_theories.find(THEORY_STRING);
+  if (it != enabled_theories.end())
+  {
+    logic += "S";
+  }
+
+  auto int_enabled =
+      enabled_theories.find(THEORY_INT) != enabled_theories.end();
+  auto real_enabled =
+      enabled_theories.find(THEORY_REAL) != enabled_theories.end();
+
+  if (int_enabled || real_enabled)
+  {
+    logic += d_smgr.d_arith_linear ? "L" : "N";
+    if (int_enabled)
+    {
+      logic += "I";
+    }
+    if (real_enabled)
+    {
+      logic += "R";
+    }
+    logic += "A";
+  }
+
+  if (logic == "QF_" || logic == "")
+  {
+    logic += "ALL";
+  }
+
+  _run(logic);
+  return true;
+}
+
+std::vector<uint64_t>
+ActionSetLogic::untrace(const std::vector<std::string>& tokens)
+{
+  MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+  _run(tokens[0]);
+  return {};
+}
+
+void
+ActionSetLogic::_run(const std::string& logic)
+{
+  MURXLA_TRACE << get_kind() << " " << logic;
+  d_solver.set_logic(logic);
+}
+
+/* -------------------------------------------------------------------------- */
+
+bool
 ActionSetOption::run()
 {
   assert(d_solver.is_initialized());
@@ -861,6 +957,8 @@ ActionMkTerm::run(Op::Kind kind)
   {
     sort_kind = *sort_kinds.begin();
   }
+
+  ++d_smgr.d_mbt_stats->d_ops[op.d_id];
 
   if (kind == Op::DT_APPLY_CONS)
   {

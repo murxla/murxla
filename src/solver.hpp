@@ -634,6 +634,9 @@ class Solver
   void add_special_value(SortKind sort_kind,
                          const AbsTerm::SpecialValueKind& kind);
 
+  /** Set logic string. */
+  virtual void set_logic(const std::string& logic){};
+
   /** Reset solver.  */
   virtual void reset() = 0;
 
