@@ -500,7 +500,7 @@ FSM::configure()
   s_delete->add_action(a_delete, 1, s_final);
 
   /* All States (with exceptions) ........................................ */
-  add_action_to_all_states(a_reset, 10000, {}, s_opt);
+  add_action_to_all_states(a_reset, 10000, {}, s_opt_req);
   add_action_to_all_states(a_reset_ass, 10000, {}, s_sorts);
 
   /* --------------------------------------------------------------------- */
