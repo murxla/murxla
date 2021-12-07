@@ -2890,11 +2890,12 @@ class Cvc5ActionSimplify : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    return _run(term);
+    _run(term);
+    return {};
   }
 
  private:
-  std::vector<uint64_t> _run(Term term)
+  void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
@@ -2902,13 +2903,9 @@ class Cvc5ActionSimplify : public Action
     ::cvc5::api::Solver* cvc5  = solver.get_solver();
     ::cvc5::api::Term cvc5_res = cvc5->simplify(Cvc5Term::get_cvc5_term(term));
     MURXLA_TEST(!cvc5_res.isNull());
-    Term res  = std::make_shared<Cvc5Term>(solver.get_rng(), cvc5, cvc5_res);
-    Sort sort = term->get_sort();
-    assert (sort != nullptr);
-    /* Note: The simplified term 'res' may or may not be already in the term
-     *       DB. Since we can't always compute the exact level, we can't add
-     *       the simplified term to the term DB. */
-    return {res->get_id()};
+    /* Note: The simplified term 'cvc5_res' may or may not be already in the
+     *       term DB. Since we can't always compute the exact level, we can't
+     *       add the simplified term to the term DB. */
   }
 };
 
