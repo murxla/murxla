@@ -26,6 +26,9 @@ set(murxla_src_files
 )
 
 add_executable(murxla ${murxla_src_files})
+if(GCOV)
+  target_compile_definitions(murxla PUBLIC MURXLA_COVERAGE)
+endif()
 
 include(CheckIncludeFileCXX)
 # Workaround to support compilation with gcc7.

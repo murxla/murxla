@@ -27,6 +27,28 @@ namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
+#ifdef MURXLA_COVERAGE
+extern "C" void __gcov_dump();
+
+volatile sig_atomic_t handled_abort = 0;
+
+/* This handler makes sure that coverage data is dumped even when the process
+ * aborts since we also want the coverage information for these runs. */
+extern "C" void
+handle_abort(int sig)
+{
+  if (!handled_abort)
+  {
+    handled_abort = 1;
+    __gcov_dump();
+  }
+  signal(sig, SIG_DFL);
+  raise(sig);
+}
+#endif
+
+/* -------------------------------------------------------------------------- */
+
 namespace {
 
 std::string
@@ -712,6 +734,9 @@ Murxla::run_aux(uint32_t seed,
   else
   {
     signal(SIGINT, SIG_DFL);  // reset stats signal handler
+#ifdef MURXLA_COVERAGE
+    signal(SIGABRT, handle_abort);
+#endif
 
     if (run_forked)
     {
