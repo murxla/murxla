@@ -2651,9 +2651,6 @@ Cvc5Solver::check_sort(Sort sort)
   else if (cvc5_sort.isUpdater())
   {
   }
-  else if (cvc5_sort.isPredicate())
-  {
-  }
   else if (cvc5_sort.isTuple())
   {
     (void) cvc5_sort.getTupleLength();
@@ -2675,22 +2672,20 @@ Cvc5Solver::check_sort(Sort sort)
   {
     (void) cvc5_sort.getSortConstructorName();
     (void) cvc5_sort.getSortConstructorArity();
+    MURXLA_TEST(cvc5_sort.isFunctionLike());
   }
-  else if (cvc5_sort.isFunction())
+  if (cvc5_sort.isFunction())
   {
-    (void) cvc5_sort.getFunctionArity();
-    (void) cvc5_sort.getFunctionDomainSorts();
-    (void) cvc5_sort.getFunctionCodomainSort();
+    MURXLA_TEST(cvc5_sort.isFunctionLike());
+    MURXLA_TEST(!cvc5_sort.getFunctionCodomainSort().isBoolean()
+                || cvc5_sort.isPredicate());
   }
-  else if (cvc5_sort.isFunctionLike())
+  else
   {
+    MURXLA_TEST(!cvc5_sort.isPredicate());
   }
-  else if (cvc5_sort.isSubsortOf(cvc5_sort))
-  {
-  }
-  else if (cvc5_sort.isComparableTo(cvc5_sort))
-  {
-  }
+  MURXLA_TEST(cvc5_sort.isSubsortOf(cvc5_sort));
+  MURXLA_TEST(cvc5_sort.isComparableTo(cvc5_sort));
 }
 
 std::unordered_map<std::string, std::string>
