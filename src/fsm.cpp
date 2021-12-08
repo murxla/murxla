@@ -96,6 +96,7 @@ FSM::FSM(RNGenerator& rng,
          bool simple_symbols,
          bool smt,
          bool fuzz_options,
+         std::string fuzz_options_filter,
          statistics::Statistics* stats,
          const TheoryIdVector& enabled_theories,
          const TheoryIdSet& disabled_theories,
@@ -117,6 +118,7 @@ FSM::FSM(RNGenerator& rng,
       d_arith_linear(arith_linear),
       d_smt(smt),
       d_fuzz_options(fuzz_options),
+      d_fuzz_options_filter(fuzz_options_filter),
       d_mbt_stats(stats),
       d_solver_options(solver_options)
 {
@@ -519,6 +521,7 @@ FSM::configure()
     if (d_fuzz_options)
     {
       d_smgr.get_solver().configure_options(&d_smgr);
+      d_smgr.filter_solver_options(d_fuzz_options_filter);
     }
   }
 

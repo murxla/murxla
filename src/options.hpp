@@ -42,6 +42,7 @@ struct Options
   bool arith_linear = false;
   /** True to enable option fuzzing. */
   bool fuzz_options = false;
+  std::string fuzz_options_filter;
 
   /** The directory for tmp files (default: current). */
   std::string tmp_dir = "/tmp";

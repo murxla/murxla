@@ -722,6 +722,42 @@ SolverManager::get_required_options(TheoryId theory) const
 }
 
 void
+SolverManager::filter_solver_options(const std::string& filter)
+{
+  if (filter.empty())
+  {
+    return;
+  }
+
+  auto filters = split(filter, ',');
+  std::vector<std::string> options;
+
+  bool remove;
+  for (const auto& p : d_solver_options)
+  {
+    const std::string& opt = p.first;
+    remove                 = true;
+    for (const auto& f : filters)
+    {
+      if (opt.find(f) != std::string::npos)
+      {
+        remove = false;
+        break;
+      }
+    }
+    if (remove)
+    {
+      options.push_back(opt);
+    }
+  }
+
+  for (const auto& opt : options)
+  {
+    d_solver_options.erase(opt);
+  }
+}
+
+void
 SolverManager::reset_sat()
 {
   if (d_sat_called)

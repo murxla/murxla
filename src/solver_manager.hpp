@@ -500,6 +500,9 @@ class SolverManager
   std::unordered_map<std::string, std::string> get_required_options(
       TheoryId theory) const;
 
+  /** Remove all solver options not matching filter. */
+  void filter_solver_options(const std::string& filter);
+
   /** Statistics. */
   Stats d_stats;
 

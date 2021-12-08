@@ -162,6 +162,7 @@ class FSM
       bool simple_symbols,
       bool smt,
       bool fuzz_options,
+      std::string fuzz_options_filter,
       statistics::Statistics* stats,
       const TheoryIdVector& enabled_theories,
       const TheoryIdSet& disabled_theories,
@@ -345,6 +346,8 @@ class FSM
   bool d_smt = false;
   /** True to enable option fuzzing. */
   bool d_fuzz_options = false;
+  /** Filter options to be fuzzed. */
+  std::string d_fuzz_options_filter;
 
   statistics::Statistics* d_mbt_stats;
 
