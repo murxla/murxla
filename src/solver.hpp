@@ -885,13 +885,16 @@ class Solver
   //
 
   /** Solver-specific term checks. */
-  virtual void check_term(Term term){};
+  virtual void check_term(Term term) {}
+  virtual void check_term(Term term, const std::vector<std::string>& str_args)
+  {
+  }
 
   /** Solver-specific value checks. */
-  virtual void check_value(Term term){};
+  virtual void check_value(Term term) {}
 
   /** Solver-specific sort checks. */
-  virtual void check_sort(Sort sort){};
+  virtual void check_sort(Sort sort) {}
 
   /** Query solver options that need to be enabled for a given theory. */
   virtual std::unordered_map<std::string, std::string> get_required_options(
