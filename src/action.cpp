@@ -2642,6 +2642,7 @@ ActionInstantiateSort::_run(Sort param_sort, const std::vector<Sort>& sorts)
   // MURXLA_TEST(!res->is_dt_parametric());
   /* We need to reconstruct the instantiation of map AbsSort::d_dt_ctors. */
   res->set_dt_ctors(param_sort->instantiate_dt_param_sort(sorts));
+  res->set_sorts(sorts);
   d_smgr.add_sort(res, param_sort->get_kind());
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
