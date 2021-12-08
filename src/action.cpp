@@ -965,7 +965,6 @@ ActionMkSort::_run(SortKind kind,
   res->set_dt_ctors(ctors);
   check_sort(res, name);
   d_smgr.add_sort(res, kind, param_sorts.size() > 0);
-  check_sort(res);
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -975,6 +974,10 @@ ActionMkSort::check_sort(Sort sort, const std::string& name) const
 {
   if (d_rng.pick_with_prob(990)) return;
 
+  d_solver.check_sort(sort);
+
+  MURXLA_TEST(sort->is_dt());
+  MURXLA_TEST(sort->get_sorts().size() == 0 || sort->is_dt_parametric());
   MURXLA_TEST(sort->get_dt_name() == name);
 
   uint32_t n_cons = sort->get_dt_num_cons();
