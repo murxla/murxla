@@ -985,6 +985,12 @@ Cvc5Term::is_seq_value() const
 }
 
 bool
+Cvc5Term::is_set_value() const
+{
+  return d_term.isSetValue();
+}
+
+bool
 Cvc5Term::is_string_value() const
 {
   return d_term.isStringValue();
@@ -2586,10 +2592,6 @@ Cvc5Solver::check_value(Term term)
   if (cvc5_term.isUInt64Value())
   {
     (void) cvc5_term.getUInt64Value();
-  }
-  if (cvc5_term.isSetValue())
-  {
-    (void) cvc5_term.getSetValue();
   }
   if (cvc5_term.isSequenceValue())
   {

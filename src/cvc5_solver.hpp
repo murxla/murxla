@@ -145,6 +145,7 @@ class Cvc5Term : public AbsTerm
   bool is_int_value() const override;
   bool is_real_value() const override;
   bool is_seq_value() const override;
+  bool is_set_value() const override;
   bool is_string_value() const override;
   const Op::Kind& get_kind() const override;
   std::vector<Term> get_children() const override;
