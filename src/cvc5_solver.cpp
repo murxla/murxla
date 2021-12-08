@@ -2630,20 +2630,27 @@ Cvc5Solver::check_sort(Sort sort)
             : cvc5_sort.getDatatype().getConstructor(ctor).getConstructorTerm();
     MURXLA_TEST(cvc5_ctor_term.getSort().isConstructor());
 
-    MURXLA_TEST(cvc5_sort.getDatatype()
-                    .getConstructor(ctor)
-                    .getTesterTerm()
-                    .getSort()
-                    .isTester());
-    // TODO tester domain and codomain checks
+    ::cvc5::api::Term cvc5_tester_term =
+        cvc5_sort.getDatatype().getConstructor(ctor).getTesterTerm();
+    MURXLA_TEST(cvc5_tester_term.getSort().isTester());
+    MURXLA_TEST(cvc5_tester_term.getSort().getTesterDomainSort()
+                == Cvc5Sort::get_cvc5_sort(sort));
+    MURXLA_TEST(cvc5_tester_term.getSort().getTesterCodomainSort().isBoolean());
 
     const auto& sel_names = sort->get_dt_sel_names(ctor);
 
     MURXLA_TEST(sel_names.size()
                 == cvc5_ctor_term.getSort().getConstructorArity());
 
+    std::vector<Sort> ctor_domain_sorts;
+
     if (!sel_names.empty())
     {
+      for (const auto& sel : sel_names)
+      {
+        ctor_domain_sorts.push_back(sort->get_dt_sel_sort(sort, ctor, sel));
+      }
+
       const std::string& sel =
           d_rng.pick_from_set<decltype(sel_names), std::string>(sel_names);
 
@@ -2655,6 +2662,7 @@ Cvc5Solver::check_sort(Sort sort)
       ::cvc5::api::Term cvc5_sel_term = cvc5_sel.getSelectorTerm();
 
       MURXLA_TEST(cvc5_sel_term.getSort().isSelector());
+
       Sort sel_codomain = sort->get_dt_sel_sort(sort, ctor, sel);
       ::cvc5::api::Sort cvc5_sel_codomain =
           cvc5_sel_term.getSort().getSelectorCodomainSort();
@@ -2672,6 +2680,24 @@ Cvc5Solver::check_sort(Sort sort)
 
       MURXLA_TEST(cvc5_sel.getUpdaterTerm().getSort().isUpdater());
     }
+
+    std::vector<::cvc5::api::Sort> cvc5_ctor_domain_sorts =
+        cvc5_ctor_term.getSort().getConstructorDomainSorts();
+    MURXLA_TEST(cvc5_ctor_domain_sorts.size() == ctor_domain_sorts.size());
+    for (size_t i = 0, n = ctor_domain_sorts.size(); i < n; ++i)
+    {
+      if (ctor_domain_sorts[i] == nullptr)
+      {
+        MURXLA_TEST(cvc5_ctor_domain_sorts[i] == Cvc5Sort::get_cvc5_sort(sort));
+      }
+      else if (!ctor_domain_sorts[i]->is_param_sort())
+      {
+        MURXLA_TEST(cvc5_ctor_domain_sorts[i]
+                    == Cvc5Sort::get_cvc5_sort(ctor_domain_sorts[i]));
+      }
+    }
+    MURXLA_TEST(cvc5_ctor_term.getSort().getConstructorCodomainSort()
+                == Cvc5Sort::get_cvc5_sort(sort));
 
     const auto& sorts = sort->get_sorts();
     MURXLA_TEST(sorts.size() == cvc5_sort.getDatatypeArity());
@@ -2693,13 +2719,7 @@ Cvc5Solver::check_sort(Sort sort)
     MURXLA_TEST(!cvc5_sort.isUpdater());
   }
 
-  if (cvc5_sort.isConstructor())
-  {
-    (void) cvc5_sort.getConstructorArity();
-    (void) cvc5_sort.getConstructorDomainSorts();
-    (void) cvc5_sort.getConstructorCodomainSort();
-  }
-  else if (cvc5_sort.isTuple())
+  if (cvc5_sort.isTuple())
   {
     (void) cvc5_sort.getTupleLength();
     (void) cvc5_sort.getTupleSorts();
