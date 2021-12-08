@@ -2629,10 +2629,6 @@ Cvc5Solver::check_sort(Sort sort)
       {
         const auto& cvc5_param_sorts = cvc5_sort.getDatatypeParamSorts();
         MURXLA_TEST(cvc5_param_sorts.size() == sorts.size());
-        for (size_t i = 0, n = sorts.size(); i < n; ++i)
-        {
-          MURXLA_TEST(Cvc5Sort::get_cvc5_sort(sorts[i]) == cvc5_param_sorts[i]);
-        }
       }
     }
   }
