@@ -565,7 +565,6 @@ parse_options(Options& options, int argc, char* argv[])
       if (i + 1 < size && args[i + 1][0] != '-')
       {
         i += 1;
-        options.solver_binary = args[i];
         if (!options.fuzz_options_filter.empty())
         {
           options.fuzz_options_filter += ",";
