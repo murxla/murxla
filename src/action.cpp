@@ -1209,12 +1209,12 @@ ActionMkTerm::run(Op::Kind kind)
       uint32_t n_vars = d_rng.pick<uint32_t>(1, d_smgr.get_num_vars());
       if (n_vars > 1)
       {
-        args.push_back(d_smgr.pick_var());
+        std::vector<Term> vars = d_smgr.pick_vars(n_vars);
+        args.insert(args.begin(), vars.begin(), vars.end());
       }
       else
       {
-        std::vector<Term> vars = d_smgr.pick_vars(n_vars);
-        args.insert(args.begin(), vars.begin(), vars.end());
+        args.push_back(d_smgr.pick_var());
       }
       args.push_back(body);
     }
