@@ -233,6 +233,10 @@ set_sigint_handler_stats(void)
   "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
   "                             via stdout)\n"                                 \
   "  -o name=value,...          solver options enabled by default\n"           \
+  "  --fuzz-opts [wildcard,...] restrict options to be fuzzed with multiple\n" \
+  "                             wildcards, which are matched against option\n" \
+  "                             names. use ^ to indicate a wildcard must\n"    \
+  "                             match the beginning of an option name\n"       \
   "\n"                                                                         \
   " enable disabled theories:\n"                                               \
   "  --add-bags                 enable theory of bags in addition to \n"       \

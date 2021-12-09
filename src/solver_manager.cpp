@@ -739,9 +739,20 @@ SolverManager::filter_solver_options(const std::string& filter)
     remove                 = true;
     for (const auto& f : filters)
     {
-      if (opt.find(f) != std::string::npos)
+      assert(!f.empty());
+      /* Option name must start with f. */
+      if (f[0] == '^')
       {
-        remove = false;
+        std::string ff(f.begin() + 1, f.end());
+        remove = opt.find(ff) != 0;
+      }
+      /* Option name contains f. */
+      else
+      {
+        remove = opt.find(f) == std::string::npos;
+      }
+      if (!remove)
+      {
         break;
       }
     }
