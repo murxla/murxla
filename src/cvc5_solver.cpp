@@ -1417,6 +1417,7 @@ Cvc5Solver::mk_sort(SortKind kind,
                     const std::vector<Sort>& param_sorts,
                     const AbsSort::DatatypeConstructorMap& ctors)
 {
+  bool is_parametric = !param_sorts.empty();
   std::unordered_map<std::string, ::cvc5::api::Sort> symbol_to_cvc5_param_sorts;
   std::vector<::cvc5::api::Sort> cvc5_param_sorts;
   for (const auto& s : param_sorts)
@@ -1430,11 +1431,15 @@ Cvc5Solver::mk_sort(SortKind kind,
   }
 
   ::cvc5::api::DatatypeDecl cvc5_dtypedecl =
-      param_sorts.size() > 0
-          ? (param_sorts.size() == 1 && d_rng.flip_coin()
-                 ? d_solver->mkDatatypeDecl(name, cvc5_param_sorts[0])
-                 : d_solver->mkDatatypeDecl(name, cvc5_param_sorts))
-          : d_solver->mkDatatypeDecl(name);
+      is_parametric ? (param_sorts.size() == 1 && d_rng.flip_coin()
+                           ? d_solver->mkDatatypeDecl(name, cvc5_param_sorts[0])
+                           : d_solver->mkDatatypeDecl(name, cvc5_param_sorts))
+                    : d_solver->mkDatatypeDecl(name);
+  if (d_rng.pick_with_prob(10))
+  {
+    MURXLA_TEST(!is_parametric == cvc5_dtypedecl.isParametric());
+    MURXLA_TEST(name == cvc5_dtypedecl.getName());
+  }
 
   std::vector<::cvc5::api::DatatypeConstructorDecl> cvc5_ctors;
   for (const auto& c : ctors)
