@@ -2775,7 +2775,7 @@ Cvc5Solver::check_sort(Sort sort)
     MURXLA_TEST(sorts.size() == cvc5_sort.getDatatypeArity());
     /* Note: isParametricDatatype() returns true for both instantiated and
      *       non-instantiated datatypes. */
-    if (cvc5_sort.isParametricDatatype())
+    if (cvc5_sort.getDatatype().isParametric())
     {
       if (!sorts.empty())
       {
