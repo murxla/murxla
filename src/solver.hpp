@@ -68,8 +68,9 @@ class AbsSort
   virtual bool is_int() const  = 0;
   /**
    * Return true if this sort is a Real sort.
-   * Note: We consider sort Int as a subtype of sort Real. Hence, this must
-   *       return true for Int sorts.
+   * Note: If arithmetic subtyping is enabled, we consider sort Int as a
+   *       subtype of sort Real. In that case, this must return true for Int
+   *       sorts.
    */
   virtual bool is_real() const = 0;
   /** Return true if this sort is a RoundingMode sort. */

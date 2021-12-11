@@ -355,10 +355,13 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind, bool parametric)
   /* We do not add parametric datatype sorts here. These should never be
    * picked for anything except instantiating the sort (see
    * pick_sort_dt_param()). */
-  auto& sorts_of_kind = d_sort_kind_to_sorts[sort_kind];
-  if (sorts_of_kind.find(sort) == sorts_of_kind.end())
+  if (!parametric)
   {
-    sorts_of_kind.insert(sort);
+    auto& sorts_of_kind = d_sort_kind_to_sorts[sort_kind];
+    if (sorts_of_kind.find(sort) == sorts_of_kind.end())
+    {
+      sorts_of_kind.insert(sort);
+    }
   }
 }
 
