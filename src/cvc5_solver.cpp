@@ -1485,6 +1485,7 @@ Cvc5Solver::mk_sort(SortKind kind,
   }
   ::cvc5::api::Sort cvc5_res = d_solver->mkDatatypeSort(cvc5_dtypedecl);
   MURXLA_TEST(!cvc5_res.isNull());
+  MURXLA_TEST(!cvc5_res.getDatatype().isNull());
   return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
 }
 
