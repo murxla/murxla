@@ -271,10 +271,10 @@ set_sigint_handler_stats(void)
   "  --strings                  theory of strings\n"                           \
   "  --seq                      theory of sequences (default: disabled)\n"     \
   "  --sets                     theory of sets (default: disabled)\n"          \
+  "  --uf                       uninterpreted functions\n"                     \
   "\n"                                                                         \
   " constraining/extending features based for enabled theories:\n"             \
-  "  --linear                   restrict arithmetic to linear fragment\n"      \
-  "  --uf                       uninterpreted functions"
+  "  --linear                   restrict arithmetic to linear fragment"
 
 /* -------------------------------------------------------------------------- */
 /* Command-line option parsing                                                */
