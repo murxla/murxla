@@ -85,6 +85,16 @@ class AbsSort
   virtual bool is_string() const = 0;
 
   /**
+   * Return true if this datatype sort is well founded.
+   *
+   * We use this to filter out datatype sorts that are not well founded.
+   * Default returns always true, must be overriden by solver to actually
+   * check if the datatype sort is well founded. If not, this may trigger
+   * (properly handled) errors in the solver due to non-well-foundedness.
+   */
+  virtual bool is_dt_well_founded() const;
+
+  /**
    * Get the array index sort of this sort.
    * Returns nullptr by default.
    */

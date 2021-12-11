@@ -964,7 +964,7 @@ ActionMkSort::_run(SortKind kind,
   res->set_sorts(param_sorts);
   res->set_dt_ctors(ctors);
   check_sort(res, name);
-  d_smgr.add_sort(res, kind, param_sorts.size() > 0);
+  d_smgr.add_sort(res, kind, param_sorts.size() > 0, res->is_dt_well_founded());
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }
@@ -2643,7 +2643,8 @@ ActionInstantiateSort::_run(Sort param_sort, const std::vector<Sort>& sorts)
   /* We need to reconstruct the instantiation of map AbsSort::d_dt_ctors. */
   res->set_dt_ctors(param_sort->instantiate_dt_param_sort(sorts));
   res->set_sorts(sorts);
-  d_smgr.add_sort(res, param_sort->get_kind());
+  d_smgr.add_sort(
+      res, param_sort->get_kind(), false, res->is_dt_well_founded());
   MURXLA_TRACE_RETURN << res;
   return res->get_id();
 }

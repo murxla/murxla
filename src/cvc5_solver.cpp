@@ -96,6 +96,12 @@ Cvc5Sort::is_dt_parametric() const
 }
 
 bool
+Cvc5Sort::is_dt_well_founded() const
+{
+  return d_sort.isDatatype() && d_sort.getDatatype().isWellFounded();
+}
+
+bool
 Cvc5Sort::is_fp() const
 {
   return d_sort.isFloatingPoint();

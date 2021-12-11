@@ -143,6 +143,12 @@ AbsSort::instantiate_dt_param_sort(const std::vector<Sort>& sorts) const
   return res;
 }
 
+bool
+AbsSort::is_dt_well_founded() const
+{
+  return true;
+}
+
 void
 AbsSort::set_dt_is_instantiated(bool value)
 {

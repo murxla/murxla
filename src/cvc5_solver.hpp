@@ -44,6 +44,7 @@ class Cvc5Sort : public AbsSort
   bool is_bv() const override;
   bool is_dt() const override;
   bool is_dt_parametric() const override;
+  bool is_dt_well_founded() const override;
   bool is_fp() const override;
   bool is_fun() const override;
   bool is_int() const override;

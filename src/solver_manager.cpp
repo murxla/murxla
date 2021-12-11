@@ -297,7 +297,10 @@ SolverManager::add_term(Term& term,
 }
 
 void
-SolverManager::add_sort(Sort& sort, SortKind sort_kind, bool parametric)
+SolverManager::add_sort(Sort& sort,
+                        SortKind sort_kind,
+                        bool parametric,
+                        bool well_founded)
 {
   assert(sort.get());
   assert(sort_kind != SORT_ANY);
@@ -324,7 +327,7 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind, bool parametric)
   if (it == sorts.end())
   {
     sort->set_id(++d_n_sorts);
-    sorts.insert(sort);
+    if (well_founded) sorts.insert(sort);
     ++d_stats.sorts;
   }
   else
@@ -355,7 +358,7 @@ SolverManager::add_sort(Sort& sort, SortKind sort_kind, bool parametric)
   /* We do not add parametric datatype sorts here. These should never be
    * picked for anything except instantiating the sort (see
    * pick_sort_dt_param()). */
-  if (!parametric)
+  if (!parametric && well_founded)
   {
     auto& sorts_of_kind = d_sort_kind_to_sorts[sort_kind];
     if (sorts_of_kind.find(sort) == sorts_of_kind.end())

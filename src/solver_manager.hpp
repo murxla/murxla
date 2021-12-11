@@ -111,8 +111,21 @@ class SolverManager
   /** Get the number of available variables. */
   uint32_t get_num_vars() const;
 
-  /** Add sort to sort databse. */
-  void add_sort(Sort& sort, SortKind sort_kind, bool parametric = false);
+  /**
+   * Add sort to sort database.
+   *
+   * Parametric sorts are not added to the main database (the database that we
+   * pick sorts from), but to a separate database that we only pick from
+   * when we explicitly need parametric sorts (see pick_sort_dt_param()).
+   *
+   * We only add well founded sorts. A sort that is not well founded gets an
+   * id to trace the return statement of mk-sort, but is otherwise discarded.
+   */
+  void add_sort(Sort& sort,
+                SortKind sort_kind,
+                bool parametric   = false,
+                bool well_founded = true);
+
   /** Add value to term database. */
   void add_value(Term& term,
                  Sort& sort,
