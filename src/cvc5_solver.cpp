@@ -1437,7 +1437,7 @@ Cvc5Solver::mk_sort(SortKind kind,
                     : d_solver->mkDatatypeDecl(name);
   if (d_rng.pick_with_prob(10))
   {
-    MURXLA_TEST(!is_parametric == cvc5_dtypedecl.isParametric());
+    MURXLA_TEST(is_parametric == cvc5_dtypedecl.isParametric());
     MURXLA_TEST(name == cvc5_dtypedecl.getName());
   }
 
@@ -2122,6 +2122,172 @@ DONE:
   return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
 }
 
+::cvc5::api::DatatypeConstructor
+Cvc5Solver::getDatatypeConstructor(::cvc5::api::Sort dt_sort,
+                                   const std::string& ctor_name)
+{
+  ::cvc5::api::Datatype dt = dt_sort.getDatatype();
+  ::cvc5::api::DatatypeConstructor res;
+  auto choice = d_rng.pick_one_of_three();
+  if (choice == RNGenerator::Choice::FIRST)
+  {
+    res = dt[ctor_name];
+  }
+  else if (choice == RNGenerator::Choice::SECOND)
+  {
+    auto ch = d_rng.pick_one_of_four();
+    ::cvc5::api::Datatype::const_iterator it, end;
+    if (ch == RNGenerator::Choice::FIRST)
+    {
+      for (it = dt.begin(), end = dt.end(); it != end; ++it)
+      {
+        if (it->getName() == ctor_name)
+        {
+          res = *it;
+          break;
+        }
+      }
+    }
+    else if (ch == RNGenerator::Choice::SECOND)
+    {
+      for (it = dt.begin(), end = dt.end(); it != end; it++)
+      {
+        if (it->getName() == ctor_name)
+        {
+          res = *it;
+          break;
+        }
+      }
+    }
+    else if (ch == RNGenerator::Choice::THIRD)
+    {
+      for (it = dt.begin(), end = dt.end(); !(it == end); ++it)
+      {
+        if (it->getName() == ctor_name)
+        {
+          res = *it;
+          break;
+        }
+      }
+    }
+    else
+    {
+      for (it = dt.begin(), end = dt.end(); !(it == end); it++)
+      {
+        if (it->getName() == ctor_name)
+        {
+          res = *it;
+          break;
+        }
+      }
+    }
+  }
+  else
+  {
+    res = dt.getConstructor(ctor_name);
+  }
+  MURXLA_TEST(!res.isNull());
+  return res;
+}
+
+::cvc5::api::DatatypeSelector
+Cvc5Solver::getDatatypeSelector(::cvc5::api::Sort dt_sort,
+                                const std::string& ctor_name,
+                                const std::string& sel_name)
+{
+  ::cvc5::api::DatatypeConstructor ctor =
+      getDatatypeConstructor(dt_sort, ctor_name);
+  ::cvc5::api::DatatypeSelector res;
+  auto choice = d_rng.pick_one_of_four();
+  if (choice == RNGenerator::Choice::FIRST)
+  {
+    res = ctor[sel_name];
+  }
+  else if (choice == RNGenerator::Choice::SECOND)
+  {
+    ::cvc5::api::DatatypeConstructor::const_iterator it, end;
+    auto ch = d_rng.pick_one_of_four();
+    if (ch == RNGenerator::Choice::FIRST)
+    {
+      for (it = ctor.begin(), end = ctor.end(); it != end; ++it)
+      {
+        if (it->getName() == sel_name)
+        {
+          res = *it;
+          break;
+        }
+      }
+    }
+    else if (ch == RNGenerator::Choice::SECOND)
+    {
+      for (it = ctor.begin(), end = ctor.end(); it != end; it++)
+      {
+        if (it->getName() == sel_name)
+        {
+          res = *it;
+          break;
+        }
+      }
+    }
+    else if (ch == RNGenerator::Choice::THIRD)
+    {
+      for (it = ctor.begin(), end = ctor.end(); !(it == end); ++it)
+      {
+        if (it->getName() == sel_name)
+        {
+          res = *it;
+          break;
+        }
+      }
+    }
+    else
+    {
+      for (it = ctor.begin(), end = ctor.end(); !(it == end); it++)
+      {
+        if (it->getName() == sel_name)
+        {
+          res = *it;
+          break;
+        }
+      }
+    }
+  }
+  else if (choice == RNGenerator::Choice::THIRD)
+  {
+    res = ctor.getSelector(sel_name);
+  }
+  else
+  {
+    res = dt_sort.getDatatype().getSelector(sel_name);
+  }
+
+  MURXLA_TEST(!res.isNull());
+  return res;
+}
+
+::cvc5::api::Term
+Cvc5Solver::getDatatypeConstructorTerm(::cvc5::api::Sort dt_sort,
+                                       const std::string& ctor_name)
+{
+  if (d_rng.flip_coin())
+  {
+    return dt_sort.getDatatype().getConstructorTerm(ctor_name);
+  }
+  return getDatatypeConstructor(dt_sort, ctor_name).getConstructorTerm();
+}
+
+::cvc5::api::Term
+Cvc5Solver::getDatatypeSelectorTerm(::cvc5::api::Sort dt_sort,
+                                    const std::string& ctor_name,
+                                    const std::string& sel_name)
+{
+  if (d_rng.flip_coin())
+  {
+    return getDatatypeSelector(dt_sort, ctor_name, sel_name).getSelectorTerm();
+  }
+  return getDatatypeConstructor(dt_sort, ctor_name).getSelectorTerm(sel_name);
+}
+
 Term
 Cvc5Solver::mk_term(const Op::Kind& kind,
                     const std::vector<std::string>& str_args,
@@ -2149,51 +2315,11 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     assert(str_args.size() == 2);
     assert(args.size() == 1);
 
-    if (d_rng.flip_coin())
-    {
-      ::cvc5::api::DatatypeConstructor cvc5_ctor;
-      ::cvc5::api::Term cvc5_sel_term;
-      if (d_rng.flip_coin())
-      {
-        cvc5_ctor = cvc5_dt_sort.getDatatype()[str_args[0]];
-      }
-      else
-      {
-        cvc5_ctor = cvc5_dt_sort.getDatatype().getConstructor(str_args[0]);
-      }
-      auto choice = d_rng.pick_one_of_three();
-      if (choice == RNGenerator::Choice::FIRST)
-      {
-        cvc5_sel_term = cvc5_ctor[str_args[1]].getSelectorTerm();
-      }
-      else if (choice == RNGenerator::Choice::SECOND)
-      {
-        cvc5_sel_term = cvc5_ctor.getSelector(str_args[1]).getSelectorTerm();
-      }
-      else
-      {
-        cvc5_sel_term = cvc5_ctor.getSelectorTerm(str_args[1]);
-      }
-
-      cvc5_res =
-          cvc5_opterm.isNull()
-              ? d_solver->mkTerm(cvc5_kind, cvc5_sel_term, cvc5_args[0])
-              : d_solver->mkTerm(cvc5_opterm, cvc5_sel_term, cvc5_args[0]);
-    }
-    else
-    {
-      cvc5_res = cvc5_opterm.isNull()
-                     ? d_solver->mkTerm(cvc5_kind,
-                                        cvc5_dt_sort.getDatatype()
-                                            .getSelector(str_args[1])
-                                            .getSelectorTerm(),
-                                        cvc5_args[0])
-                     : d_solver->mkTerm(cvc5_opterm,
-                                        cvc5_dt_sort.getDatatype()
-                                            .getSelector(str_args[1])
-                                            .getSelectorTerm(),
-                                        cvc5_args[0]);
-    }
+    ::cvc5::api::Term cvc5_sel_term =
+        getDatatypeSelectorTerm(cvc5_dt_sort, str_args[0], str_args[1]);
+    cvc5_res = cvc5_opterm.isNull()
+                   ? d_solver->mkTerm(cvc5_kind, cvc5_sel_term, cvc5_args[0])
+                   : d_solver->mkTerm(cvc5_opterm, cvc5_sel_term, cvc5_args[0]);
   }
   else
   {
@@ -2201,16 +2327,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       assert(str_args.size() == 1);
       assert(args.size() == 1);
-      ::cvc5::api::DatatypeConstructor cvc5_ctor;
-      if (d_rng.flip_coin())
-      {
-        cvc5_ctor = cvc5_dt_sort.getDatatype()[str_args[0]];
-      }
-      else
-      {
-        cvc5_ctor = cvc5_dt_sort.getDatatype().getConstructor(str_args[0]);
-      }
-
+      ::cvc5::api::DatatypeConstructor cvc5_ctor =
+          getDatatypeConstructor(cvc5_dt_sort, str_args[0]);
       cvc5_res = cvc5_opterm.isNull()
                      ? d_solver->mkTerm(
                          cvc5_kind, cvc5_ctor.getTesterTerm(), cvc5_args[0])
@@ -2223,52 +2341,15 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       assert(str_args.size() == 2);
       assert(args.size() == 2);
 
-      if (d_rng.flip_coin())
-      {
-        ::cvc5::api::DatatypeConstructor cvc5_ctor;
-        ::cvc5::api::DatatypeSelector cvc5_sel;
-        if (d_rng.flip_coin())
-        {
-          cvc5_ctor = cvc5_dt_sort.getDatatype()[str_args[0]];
-        }
-        else
-        {
-          cvc5_ctor = cvc5_dt_sort.getDatatype().getConstructor(str_args[0]);
-        }
-        if (d_rng.flip_coin())
-        {
-          cvc5_sel = cvc5_ctor[str_args[1]];
-        }
-        else
-        {
-          cvc5_sel = cvc5_ctor.getSelector(str_args[1]);
-        }
-        cvc5_res = cvc5_opterm.isNull()
-                       ? d_solver->mkTerm(cvc5_kind,
-                                          cvc5_sel.getUpdaterTerm(),
-                                          cvc5_args[0],
-                                          cvc5_args[1])
-                       : d_solver->mkTerm(cvc5_opterm,
-                                          cvc5_sel.getUpdaterTerm(),
-                                          cvc5_args[0],
-                                          cvc5_args[1]);
-      }
-      else
-      {
-        cvc5_res = cvc5_opterm.isNull()
-                       ? d_solver->mkTerm(cvc5_kind,
-                                          cvc5_dt_sort.getDatatype()
-                                              .getSelector(str_args[1])
-                                              .getUpdaterTerm(),
-                                          cvc5_args[0],
-                                          cvc5_args[1])
-                       : d_solver->mkTerm(cvc5_opterm,
-                                          cvc5_dt_sort.getDatatype()
-                                              .getSelector(str_args[1])
-                                              .getUpdaterTerm(),
-                                          cvc5_args[0],
-                                          cvc5_args[1]);
-      }
+      ::cvc5::api::DatatypeSelector cvc5_sel =
+          getDatatypeSelector(cvc5_dt_sort, str_args[0], str_args[1]);
+      cvc5_res =
+          cvc5_opterm.isNull() ? d_solver->mkTerm(
+              cvc5_kind, cvc5_sel.getUpdaterTerm(), cvc5_args[0], cvc5_args[1])
+                               : d_solver->mkTerm(cvc5_opterm,
+                                                  cvc5_sel.getUpdaterTerm(),
+                                                  cvc5_args[0],
+                                                  cvc5_args[1]);
     }
   }
   MURXLA_TEST(!cvc5_res.isNull());
@@ -2339,23 +2420,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     }
     else
     {
-      auto choice = d_rng.pick_one_of_three();
-      if (choice == RNGenerator::Choice::FIRST)
-      {
-        cvc5_ctor_term =
-            cvc5_dt_sort.getDatatype()[str_args[0]].getConstructorTerm();
-      }
-      else if (choice == RNGenerator::Choice::SECOND)
-      {
-        cvc5_ctor_term = cvc5_dt_sort.getDatatype()
-                             .getConstructor(str_args[0])
-                             .getConstructorTerm();
-      }
-      else
-      {
-        cvc5_ctor_term =
-            cvc5_dt_sort.getDatatype().getConstructorTerm(str_args[0]);
-      }
+      cvc5_ctor_term = getDatatypeConstructorTerm(cvc5_dt_sort, str_args[0]);
     }
     cvc5_args.insert(cvc5_args.begin(), cvc5_ctor_term);
   }

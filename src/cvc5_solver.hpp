@@ -309,6 +309,34 @@ class Cvc5Solver : public Solver
       TheoryId theory) const override;
 
  private:
+  /**
+   * Helper to get the DatatypeConstructor of given name from a datatype sort.
+   */
+  ::cvc5::api::DatatypeConstructor getDatatypeConstructor(
+      ::cvc5::api::Sort dt_sort, const std::string& ctor_name);
+  /**
+   * Helper to get the DatatypeSelector of given name for the given constructor
+   * from a datatype sort.
+   */
+  ::cvc5::api::DatatypeSelector getDatatypeSelector(
+      ::cvc5::api::Sort dt_sort,
+      const std::string& ctor_name,
+      const std::string& sel_name);
+  /**
+   * Helper to get the Term representation of the DatatypeConstructor of given
+   * name from a datatype sort.
+   */
+  ::cvc5::api::Term getDatatypeConstructorTerm(::cvc5::api::Sort dt_sort,
+                                               const std::string& ctor_name);
+  /**
+   * Helper to get the Term representation of the DatatypeSelector of given
+   * name for the given constructor from a datatype sort.
+   */
+  ::cvc5::api::Term getDatatypeSelectorTerm(::cvc5::api::Sort dt_sort,
+                                            const std::string& ctor_name,
+                                            const std::string& sel_name);
+
+  /** The wrapped cvc5 solver instance. */
   ::cvc5::api::Solver* d_solver;
 
   /** Options set via set_opt(). */
