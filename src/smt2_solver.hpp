@@ -278,7 +278,7 @@ class Smt2Term : public AbsTerm
       {Op::SEQ_REPLACE_ALL, "seq.replace_all"},
       {Op::SEQ_REV, "seq.rev"},
       {Op::SEQ_PREFIX, "seq.prefixof"},
-      {Op::SEQ_SUFFIX, "seq.suffix"},
+      {Op::SEQ_SUFFIX, "seq.suffixof"},
       {Op::SEQ_UNIT, "seq.unit"},
       {Op::SEQ_NTH, "seq.nth"},
 

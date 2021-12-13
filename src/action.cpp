@@ -741,56 +741,71 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
                          || theories.find(THEORY_DT) != theories.end())
           << "solver does not support theory of datatypes";
-      MURXLA_CHECK_TRACE_NTOKENS_MIN(4, "", n_tokens);
-      std::string name = str_to_str(tokens[1]);
-      uint32_t n_params = str_to_uint32(tokens[2]);
+      MURXLA_CHECK_TRACE_NTOKENS_MIN(5, "", n_tokens);
+      uint32_t n_dt_sorts = str_to_uint32(tokens[1]);
+      std::string name    = str_to_str(tokens[2]);
+      uint32_t n_params   = str_to_uint32(tokens[3]);
+      uint32_t idx        = 4;
 
-      uint32_t idx = 3;
-      std::vector<Sort> param_sorts;
-      std::unordered_map<std::string, Sort> symbol_to_param_sort;
-      for (uint32_t i = 0; i < n_params; ++i)
-      {
-        MURXLA_CHECK_TRACE(tokens[idx].substr(0, 2) == "s\"")
-            << "expected parameter sort string of the form 's\"<symbol>\"'";
-        std::string pname = str_to_str(tokens[idx++].substr(1));
-        param_sorts.push_back(std::shared_ptr<ParamSort>(new ParamSort(pname)));
-        assert(symbol_to_param_sort.find(pname) == symbol_to_param_sort.end());
-        symbol_to_param_sort[pname] = param_sorts.back();
-      }
+      std::vector<std::vector<Sort>> param_sorts;
+      std::vector<AbsSort::DatatypeConstructorMap> constructors;
 
-      std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
-          ctors;
-      uint32_t n_ctors = str_to_uint32(tokens[idx++]);
-      for (uint32_t i = 0; i < n_ctors; ++i)
+      for (uint32_t j = 0; j < n_dt_sorts; ++j)
       {
-        std::string cname = str_to_str(tokens[idx++]);
-        ctors[cname]      = {};
-        uint32_t n_sels   = str_to_uint32(tokens[idx++]);
-        for (uint32_t j = 0; j < n_sels; ++j)
+        std::vector<Sort> psorts;
+        std::unordered_map<std::string, Sort> symbol_to_psort;
+        for (uint32_t i = 0; i < n_params; ++i)
         {
-          std::string sname = str_to_str(tokens[idx++]);
-          Sort ssort;
-          if (tokens[idx] == "s(nil)")
-          {
-            ssort = nullptr;
-            idx += 1;
-          }
-          else if (tokens[idx].substr(0, 2) == "s\"")
-          {
-            std::string pname = str_to_str(tokens[idx++].substr(1));
-            assert(symbol_to_param_sort.find(pname)
-                   != symbol_to_param_sort.end());
-            ssort = symbol_to_param_sort[pname];
-          }
-          else
-          {
-            ssort = d_smgr.get_untraced_sort(untrace_str_to_id(tokens[idx++]));
-          }
-          ctors[cname].emplace_back(sname, ssort);
+          MURXLA_CHECK_TRACE(tokens[idx].substr(0, 2) == "s\"")
+              << "expected parameter sort string of the form 's\"<symbol>\"'";
+          std::string pname = str_to_str(tokens[idx++].substr(1));
+          psorts.push_back(std::shared_ptr<ParamSort>(new ParamSort(pname)));
+          assert(symbol_to_psort.find(pname) == symbol_to_psort.end());
+          symbol_to_psort[pname] = psorts.back();
         }
+
+        AbsSort::DatatypeConstructorMap ctors;
+        uint32_t n_ctors = str_to_uint32(tokens[idx++]);
+        for (uint32_t i = 0; i < n_ctors; ++i)
+        {
+          std::string cname = str_to_str(tokens[idx++]);
+          ctors[cname]      = {};
+          uint32_t n_sels   = str_to_uint32(tokens[idx++]);
+          for (uint32_t j = 0; j < n_sels; ++j)
+          {
+            std::string sname = str_to_str(tokens[idx++]);
+            Sort ssort;
+            if (tokens[idx] == "s(nil)")
+            {
+              ssort = nullptr;
+              idx += 1;
+            }
+            else if (tokens[idx].substr(0, 2) == "s\"")
+            {
+              std::string pname = str_to_str(tokens[idx++].substr(1));
+              assert(symbol_to_psort.find(pname) != symbol_to_psort.end());
+              ssort = symbol_to_psort[pname];
+            }
+            else
+            {
+              ssort =
+                  d_smgr.get_untraced_sort(untrace_str_to_id(tokens[idx++]));
+            }
+            ctors[cname].emplace_back(sname, ssort);
+          }
+        }
+        param_sorts.push_back(psorts);
+        constructors.push_back(ctors);
       }
 
-      res = _run(kind, name, param_sorts, ctors);
+      if (n_dt_sorts == 1)
+      {
+        res = _run(kind, name, param_sorts[0], constructors[0]);
+      }
+      else
+      {
+        // TODO
+      }
     }
     break;
 
@@ -958,7 +973,7 @@ ActionMkSort::_run(SortKind kind,
       ss << " \"" << sname << "\" " << ssort;
     }
   }
-  MURXLA_TRACE << get_kind() << " " << kind << " \"" << name << "\""
+  MURXLA_TRACE << get_kind() << " " << kind << " 1 \"" << name << "\""
                << ss.str();
   Sort res = d_solver.mk_sort(kind, name, param_sorts, ctors);
   res->set_sorts(param_sorts);
