@@ -2423,7 +2423,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       cvc5_ctor_term = cvc5_dt_sort.getDatatype()
                            .getConstructor(str_args[0])
-                           .getSpecializedConstructorTerm(cvc5_dt_sort);
+                           .getInstantiatedConstructorTerm(cvc5_dt_sort);
     }
     else
     {
