@@ -42,7 +42,7 @@ endif()
 
 add_check_cxx_flag("-Wall")
 
-#if(ASAN)
+if(ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
   # otherwise the -fsanitize=address check will fail while linking.
   set(CMAKE_REQUIRED_FLAGS -fsanitize=address)
@@ -50,7 +50,7 @@ add_check_cxx_flag("-Wall")
   unset(CMAKE_REQUIRED_FLAGS)
   add_check_cxx_flag("-fno-omit-frame-pointer")
   add_required_cxx_flag("-fsanitize-recover=address")
-#endif()
+endif()
 
 #-----------------------------------------------------------------------------#
 
