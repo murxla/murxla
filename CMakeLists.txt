@@ -85,10 +85,22 @@ endif()
 if(GCOV)
   include(CodeCoverage)
   append_coverage_compiler_flags()
+
+  # Coverage report for solvers only
   setup_code_coverage_fastcov(
     NAME coverage
     PATH "${PROJECT_SOURCE_DIR}"
-    EXCLUDE "${PROJECT_SOURCE_DIR}/deps"
+    EXCLUDE
+      "${PROJECT_SOURCE_DIR}/deps"
+      "${PROJECT_SOURCE_DIR}/src"
+    DEPENDENCIES murxla)
+
+  # Coverage report including murxla code base
+  setup_code_coverage_fastcov(
+    NAME coverage-all
+    PATH "${PROJECT_SOURCE_DIR}"
+    EXCLUDE
+      "${PROJECT_SOURCE_DIR}/deps"
     DEPENDENCIES murxla)
 endif()
 

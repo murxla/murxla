@@ -48,10 +48,11 @@ function(setup_code_coverage_fastcov)
 
   add_custom_target(${COVERAGE_NAME}
     COMMAND
-      ${FASTCOV_BINARY}
-      -d ${COVERAGE_PATH} --lcov ${EXCLUDES} -o coverage.info
+      ${FASTCOV_BINARY} -d ${COVERAGE_PATH} -p ${EXCLUDES} -o coverage.json
     COMMAND
-      ${GENHTML_BINARY} --no-prefix -o coverage coverage.info
+      ${FASTCOV_BINARY} -C coverage.json --lcov -o coverage.info
+    COMMAND
+      ${GENHTML_BINARY} -q --no-prefix -o coverage coverage.info
     DEPENDS
       ${COVERAGE_DEPENDENCIES}
     COMMENT
