@@ -1053,13 +1053,14 @@ Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
   return Sort();
 }
 
-Sort
-Solver::mk_sort(SortKind kind,
-                const std::string& name,
-                const std::vector<Sort>& param_sorts,
-                const AbsSort::DatatypeConstructorMap& ctors)
+std::vector<Sort>
+Solver::mk_sort(
+    SortKind kind,
+    const std::vector<std::string>& dt_names,
+    const std::vector<std::vector<Sort>>& param_sorts,
+    const std::vector<AbsSort::DatatypeConstructorMap>& constructors)
 {
-  return Sort();
+  return {};
 }
 
 Sort

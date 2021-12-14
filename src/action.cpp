@@ -823,14 +823,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
         constructors.push_back(ctors);
       }
 
-      if (n_dt_sorts == 1)
-      {
-        res = _run(kind, dt_names, param_sorts, constructors);
-      }
-      else
-      {
-        // TODO
-      }
+      res = _run(kind, dt_names, param_sorts, constructors);
     }
     break;
 
@@ -1010,24 +1003,17 @@ ActionMkSort::_run(
     }
   }
   MURXLA_TRACE << get_kind() << " " << kind << ss.str();
-  std::vector<Sort> res_sorts;
-  if (n_dt_sorts == 1)
+  std::vector<Sort> res_sorts =
+      d_solver.mk_sort(kind, dt_names, param_sorts, constructors);
+  for (size_t i = 0; i < n_dt_sorts; ++i)
   {
-    Sort res_sort =
-        d_solver.mk_sort(kind, dt_names[0], param_sorts[0], constructors[0]);
-    res_sort->set_sorts(param_sorts[0]);
-    res_sort->set_dt_ctors(constructors[0]);
-    check_sort(res_sort, dt_names[0]);
-    d_smgr.add_sort(res_sort,
+    res_sorts[i]->set_sorts(param_sorts[i]);
+    res_sorts[i]->set_dt_ctors(constructors[i]);
+    check_sort(res_sorts[i], dt_names[i]);
+    d_smgr.add_sort(res_sorts[i],
                     kind,
-                    param_sorts[0].size() > 0,
-                    res_sort->is_dt_well_founded());
-    res_sorts.push_back(res_sort);
-  }
-  else
-  {
-    // TODO
-    assert(false);
+                    param_sorts[i].size() > 0,
+                    res_sorts[i]->is_dt_well_founded());
   }
   MURXLA_TRACE_RETURN << res_sorts;
   std::vector<uint64_t> res(res_sorts.size());

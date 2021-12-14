@@ -1277,44 +1277,103 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));
 }
 
-Sort
-Smt2Solver::mk_sort(SortKind kind,
-                    const std::string& name,
-                    const std::vector<Sort>& param_sorts,
-                    const AbsSort::DatatypeConstructorMap& ctors)
+std::vector<Sort>
+Smt2Solver::mk_sort(
+    SortKind kind,
+    const std::vector<std::string>& dt_names,
+    const std::vector<std::vector<Sort>>& param_sorts,
+    const std::vector<AbsSort::DatatypeConstructorMap>& constructors)
 {
   assert(kind == SORT_DT);
-  bool parametric = !param_sorts.empty();
+
+  size_t n_dt_sorts = dt_names.size();
+  assert(n_dt_sorts == param_sorts.size());
+  assert(n_dt_sorts == constructors.size());
+
   std::stringstream smt2;
-  smt2 << "(declare-datatype " << name << " ";
-  if (parametric)
+  std::vector<Sort> res;
+
+  if (n_dt_sorts == 1)
   {
-    smt2 << "( par (";
-    for (const Sort& p : param_sorts)
+    const std::string& name = dt_names[0];
+    const auto& psorts      = param_sorts[0];
+    const auto& ctors       = constructors[0];
+    bool parametric         = !psorts.empty();
+    smt2 << "(declare-datatype " << name << " ";
+    if (parametric)
     {
-      Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(p.get());
-      smt2 << " " << smt2_sort->get_repr();
+      smt2 << "( par (";
+      for (const Sort& p : psorts)
+      {
+        Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(p.get());
+        smt2 << " " << smt2_sort->get_repr();
+      }
+      smt2 << " ) ";
     }
-    smt2 << " ) ";
-  }
-  smt2 << "(";
-  for (const auto& c : ctors)
-  {
-    smt2 << " (" << c.first;
-    for (const auto& s : c.second)
+    smt2 << "(";
+    for (const auto& c : ctors)
     {
-      Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(s.second.get());
-      smt2 << " (" << s.first << " " << smt2_sort->get_repr() << ")";
+      smt2 << " (" << c.first;
+      for (const auto& s : c.second)
+      {
+        Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(s.second.get());
+        smt2 << " (" << s.first << " " << smt2_sort->get_repr() << ")";
+      }
+      smt2 << ")";
+    }
+    smt2 << "))";
+    if (parametric)
+    {
+      smt2 << " )";
+    }
+    res.push_back(std::shared_ptr<Smt2Sort>(new Smt2Sort(name)));
+  }
+  else
+  {
+    smt2 << "(declare-datatypes (";
+    for (size_t i = 0; i < n_dt_sorts; ++i)
+    {
+      smt2 << " (" << dt_names[i] << " " << param_sorts[i].size() << ")";
+    }
+    smt2 << ") (";
+    for (size_t i = 0; i < n_dt_sorts; ++i)
+    {
+      const std::string& name = dt_names[i];
+      const auto& psorts      = param_sorts[i];
+      const auto& ctors       = constructors[i];
+      bool parametric         = !psorts.empty();
+      if (parametric)
+      {
+        smt2 << "( par (";
+        for (const Sort& p : psorts)
+        {
+          Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(p.get());
+          smt2 << " " << smt2_sort->get_repr();
+        }
+        smt2 << " ) ";
+      }
+      smt2 << "(";
+      for (const auto& c : ctors)
+      {
+        smt2 << " (" << c.first;
+        for (const auto& s : c.second)
+        {
+          Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(s.second.get());
+          smt2 << " (" << s.first << " " << smt2_sort->get_repr() << ")";
+        }
+        smt2 << ")";
+      }
+      smt2 << "))";
+      if (parametric)
+      {
+        smt2 << " )";
+      }
+      res.push_back(std::shared_ptr<Smt2Sort>(new Smt2Sort(name)));
     }
     smt2 << ")";
   }
-  smt2 << "))";
-  if (parametric)
-  {
-    smt2 << " )";
-  }
   dump_smt2(smt2.str());
-  return std::shared_ptr<Smt2Sort>(new Smt2Sort(name));
+  return res;
 }
 
 Sort

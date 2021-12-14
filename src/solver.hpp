@@ -776,23 +776,26 @@ class Solver
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
   /**
-   * Create datatype sort.
+   * Create one or more datatype sorts.
    *
-   * name       : The name of the datatype.
-   * param_sorts: The list of parameter sorts in case of parametric datatype
-   *              sorts, may be empty.
-   * ctors      : The list of datatype constructors, given as a map of
-   *              constructor name to vector of selectors (which are given as a
-   *              pair of name and sort).
+   *
+   * dt_names    : A vector with the names of the datatypes.
+   * param_sorts : A vector with the lists of parameter sorts in case of
+   *               parametric datatype sorts. The list of parameter sorts for a
+   *               datatype may be empty.
+   * constructors: A vector with the lists of datatype constructors, wich are
+   *               given as maps of constructor name to vector of selectors
+   *               (which are given as a pair of name and sort).
    *
    * Note: Selectors may return a term of the sort that is currently be
-   *       created. We inidicate ths by passing a nullptr for the selector
+   *       created. We indicate this by passing a nullptr for the selector
    *       codomain sort. Solvers must special case this accordingly.
    */
-  virtual Sort mk_sort(SortKind kind,
-                       const std::string& name,
-                       const std::vector<Sort>& param_sorts,
-                       const AbsSort::DatatypeConstructorMap& ctors);
+  virtual std::vector<Sort> mk_sort(
+      SortKind kind,
+      const std::vector<std::string>& dt_names,
+      const std::vector<std::vector<Sort>>& param_sorts,
+      const std::vector<AbsSort::DatatypeConstructorMap>& constructors);
 
   /** Instantiate parametric sort 'param_sort' with given sorts. */
   virtual Sort instantiate_sort(Sort param_sort,

@@ -1417,76 +1417,107 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
 }
 
-Sort
-Cvc5Solver::mk_sort(SortKind kind,
-                    const std::string& name,
-                    const std::vector<Sort>& param_sorts,
-                    const AbsSort::DatatypeConstructorMap& ctors)
+std::vector<Sort>
+Cvc5Solver::mk_sort(
+    SortKind kind,
+    const std::vector<std::string>& dt_names,
+    const std::vector<std::vector<Sort>>& param_sorts,
+    const std::vector<AbsSort::DatatypeConstructorMap>& constructors)
 {
-  bool is_parametric = !param_sorts.empty();
-  std::unordered_map<std::string, ::cvc5::api::Sort> symbol_to_cvc5_param_sorts;
-  std::vector<::cvc5::api::Sort> cvc5_param_sorts;
-  for (const auto& s : param_sorts)
+  size_t n_dt_sorts = dt_names.size();
+  assert(n_dt_sorts == param_sorts.size());
+  assert(n_dt_sorts == constructors.size());
+
+  std::vector<::cvc5::api::DatatypeDecl> cvc5_dtypedecls;
+
+  for (size_t i = 0; i < n_dt_sorts; ++i)
   {
-    const std::string& symbol = dynamic_cast<ParamSort*>(s.get())->get_symbol();
-    ::cvc5::api::Sort cvc5_param_sort = d_solver->mkParamSort(symbol);
-    cvc5_param_sorts.push_back(cvc5_param_sort);
-    assert(symbol_to_cvc5_param_sorts.find(symbol)
-           == symbol_to_cvc5_param_sorts.end());
-    symbol_to_cvc5_param_sorts[symbol] = cvc5_param_sort;
-  }
+    const std::string& name = dt_names[i];
+    const auto& psorts      = param_sorts[i];
+    const auto& ctors       = constructors[i];
 
-  ::cvc5::api::DatatypeDecl cvc5_dtypedecl =
-      is_parametric ? (param_sorts.size() == 1 && d_rng.flip_coin()
-                           ? d_solver->mkDatatypeDecl(name, cvc5_param_sorts[0])
-                           : d_solver->mkDatatypeDecl(name, cvc5_param_sorts))
-                    : d_solver->mkDatatypeDecl(name);
-  if (d_rng.pick_with_prob(10))
-  {
-    MURXLA_TEST(is_parametric == cvc5_dtypedecl.isParametric());
-    MURXLA_TEST(name == cvc5_dtypedecl.getName());
-  }
-
-  std::vector<::cvc5::api::DatatypeConstructorDecl> cvc5_ctors;
-  for (const auto& c : ctors)
-  {
-    const auto& cname = c.first;
-    const auto& sels  = c.second;
-
-    ::cvc5::api::DatatypeConstructorDecl cvc5_cdecl =
-        d_solver->mkDatatypeConstructorDecl(cname);
-
-    for (const auto& s : sels)
+    bool is_parametric = !psorts.empty();
+    std::unordered_map<std::string, ::cvc5::api::Sort> symbol_to_cvc5_psorts;
+    std::vector<::cvc5::api::Sort> cvc5_psorts;
+    for (const auto& s : psorts)
     {
-      const auto& sname = s.first;
-      const auto& ssort = s.second;
-      if (ssort == nullptr)
+      const std::string& symbol =
+          dynamic_cast<ParamSort*>(s.get())->get_symbol();
+      ::cvc5::api::Sort cvc5_param_sort = d_solver->mkParamSort(symbol);
+      cvc5_psorts.push_back(cvc5_param_sort);
+      assert(symbol_to_cvc5_psorts.find(symbol) == symbol_to_cvc5_psorts.end());
+      symbol_to_cvc5_psorts[symbol] = cvc5_param_sort;
+    }
+
+    ::cvc5::api::DatatypeDecl cvc5_dtypedecl =
+        is_parametric ? (psorts.size() == 1 && d_rng.flip_coin()
+                             ? d_solver->mkDatatypeDecl(name, cvc5_psorts[0])
+                             : d_solver->mkDatatypeDecl(name, cvc5_psorts))
+                      : d_solver->mkDatatypeDecl(name);
+    if (d_rng.pick_with_prob(10))
+    {
+      MURXLA_TEST(is_parametric == cvc5_dtypedecl.isParametric());
+      MURXLA_TEST(name == cvc5_dtypedecl.getName());
+    }
+
+    std::vector<::cvc5::api::DatatypeConstructorDecl> cvc5_ctors;
+    for (const auto& c : ctors)
+    {
+      const auto& cname = c.first;
+      const auto& sels  = c.second;
+
+      ::cvc5::api::DatatypeConstructorDecl cvc5_cdecl =
+          d_solver->mkDatatypeConstructorDecl(cname);
+
+      for (const auto& s : sels)
       {
-        cvc5_cdecl.addSelectorSelf(sname);
-      }
-      else
-      {
-        if (ssort->is_param_sort())
+        const auto& sname = s.first;
+        const auto& ssort = s.second;
+        if (ssort == nullptr)
         {
-          const std::string& symbol =
-              dynamic_cast<ParamSort*>(ssort.get())->get_symbol();
-          assert(symbol_to_cvc5_param_sorts.find(symbol)
-                 != symbol_to_cvc5_param_sorts.end());
-          cvc5_cdecl.addSelector(sname, symbol_to_cvc5_param_sorts.at(symbol));
+          cvc5_cdecl.addSelectorSelf(sname);
         }
         else
         {
-          cvc5_cdecl.addSelector(sname, Cvc5Sort::get_cvc5_sort(ssort));
+          if (ssort->is_param_sort())
+          {
+            const std::string& symbol =
+                dynamic_cast<ParamSort*>(ssort.get())->get_symbol();
+            assert(symbol_to_cvc5_psorts.find(symbol)
+                   != symbol_to_cvc5_psorts.end());
+            cvc5_cdecl.addSelector(sname, symbol_to_cvc5_psorts.at(symbol));
+          }
+          else
+          {
+            cvc5_cdecl.addSelector(sname, Cvc5Sort::get_cvc5_sort(ssort));
+          }
         }
       }
-    }
 
-    cvc5_dtypedecl.addConstructor(cvc5_cdecl);
+      cvc5_dtypedecl.addConstructor(cvc5_cdecl);
+    }
+    cvc5_dtypedecls.push_back(cvc5_dtypedecl);
   }
-  ::cvc5::api::Sort cvc5_res = d_solver->mkDatatypeSort(cvc5_dtypedecl);
-  MURXLA_TEST(!cvc5_res.isNull());
-  MURXLA_TEST(!cvc5_res.getDatatype().isNull());
-  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
+
+  if (n_dt_sorts == 1 && d_rng.flip_coin())
+  {
+    ::cvc5::api::Sort cvc5_res = d_solver->mkDatatypeSort(cvc5_dtypedecls[0]);
+    MURXLA_TEST(!cvc5_res.isNull());
+    MURXLA_TEST(!cvc5_res.getDatatype().isNull());
+    return {std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res))};
+  }
+
+  std::vector<::cvc5::api::Sort> cvc5_res =
+      d_solver->mkDatatypeSorts(cvc5_dtypedecls);
+  size_t idx = d_rng.pick<size_t>(0, cvc5_res.size() - 1);
+  MURXLA_TEST(!cvc5_res[idx].isNull());
+  MURXLA_TEST(!cvc5_res[idx].getDatatype().isNull());
+  std::vector<Sort> res(cvc5_res.size());
+  std::transform(
+      cvc5_res.begin(), cvc5_res.end(), res.begin(), [this](const auto& sort) {
+        return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, sort));
+      });
+  return res;
 }
 
 Sort

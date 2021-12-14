@@ -844,44 +844,68 @@ ShadowSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   return res;
 }
 
-Sort
-ShadowSolver::mk_sort(SortKind kind,
-                      const std::string& name,
-                      const std::vector<Sort>& param_sorts,
-                      const AbsSort::DatatypeConstructorMap& ctors)
+std::vector<Sort>
+ShadowSolver::mk_sort(
+    SortKind kind,
+    const std::vector<std::string>& dt_names,
+    const std::vector<std::vector<Sort>>& param_sorts,
+    const std::vector<AbsSort::DatatypeConstructorMap>& constructors)
 {
-  std::vector<Sort> param_sorts_orig;
-  std::vector<Sort> param_sorts_shadow;
-  for (const auto& s : param_sorts)
-  {
-    ShadowSort* ssort = dynamic_cast<ShadowSort*>(s.get());
-    param_sorts_orig.push_back(ssort->get_sort());
-    param_sorts_shadow.push_back(ssort->get_sort_shadow());
-  }
+  size_t n_dt_sorts = dt_names.size();
+  assert(n_dt_sorts == param_sorts.size());
+  assert(n_dt_sorts == constructors.size());
+  std::vector<std::vector<Sort>> param_sorts_orig;
+  std::vector<std::vector<Sort>> param_sorts_shadow;
+  std::vector<AbsSort::DatatypeConstructorMap> constructors_orig;
+  std::vector<AbsSort::DatatypeConstructorMap> constructors_shadow;
 
-  AbsSort::DatatypeConstructorMap ctors_orig;
-  AbsSort::DatatypeConstructorMap ctors_shadow;
-  for (const auto& c : ctors)
+  for (size_t i = 0; i < n_dt_sorts; ++i)
   {
-    const auto& cname   = c.first;
-    const auto& sels    = c.second;
-    ctors_orig[cname]   = {};
-    ctors_shadow[cname] = {};
-
-    for (const auto& s : sels)
+    std::vector<Sort> psorts_orig;
+    std::vector<Sort> psorts_shadow;
+    for (const auto& s : param_sorts[i])
     {
-      const auto& sname = s.first;
-      auto& ssort       = s.second;
-      ShadowSort* sort  = dynamic_cast<ShadowSort*>(ssort.get());
-      ctors_orig[cname].emplace_back(sname, sort->get_sort());
-      ctors_shadow[cname].emplace_back(sname, sort->get_sort_shadow());
+      ShadowSort* ssort = dynamic_cast<ShadowSort*>(s.get());
+      psorts_orig.push_back(ssort->get_sort());
+      psorts_shadow.push_back(ssort->get_sort_shadow());
     }
+    param_sorts_orig.push_back(psorts_orig);
+    param_sorts_shadow.push_back(psorts_shadow);
+
+    AbsSort::DatatypeConstructorMap ctors_orig;
+    AbsSort::DatatypeConstructorMap ctors_shadow;
+    for (const auto& c : constructors[i])
+    {
+      const auto& cname   = c.first;
+      const auto& sels    = c.second;
+      ctors_orig[cname]   = {};
+      ctors_shadow[cname] = {};
+
+      for (const auto& s : sels)
+      {
+        const auto& sname = s.first;
+        auto& ssort       = s.second;
+        ShadowSort* sort  = dynamic_cast<ShadowSort*>(ssort.get());
+        ctors_orig[cname].emplace_back(sname, sort->get_sort());
+        ctors_shadow[cname].emplace_back(sname, sort->get_sort_shadow());
+      }
+    }
+    constructors_orig.push_back(ctors_orig);
+    constructors_shadow.push_back(ctors_shadow);
   }
 
-  Sort s = d_solver->mk_sort(kind, name, param_sorts_orig, ctors_orig);
-  Sort s_shadow =
-      d_solver_shadow->mk_sort(kind, name, param_sorts_shadow, ctors_shadow);
-  std::shared_ptr<ShadowSort> res(new ShadowSort(s, s_shadow));
+  std::vector<Sort> res_orig =
+      d_solver->mk_sort(kind, dt_names, param_sorts_orig, constructors_orig);
+  std::vector<Sort> res_shadow = d_solver_shadow->mk_sort(
+      kind, dt_names, param_sorts_shadow, constructors_shadow);
+  MURXLA_TEST(res_orig.size() == n_dt_sorts);
+  MURXLA_TEST(res_orig.size() == res_shadow.size());
+  std::vector<Sort> res;
+  for (size_t i = 0; i < n_dt_sorts; ++i)
+  {
+    res.push_back(std::shared_ptr<ShadowSort>(
+        new ShadowSort(res_orig[i], res_shadow[i])));
+  }
   return res;
 }
 

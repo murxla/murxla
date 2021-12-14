@@ -152,10 +152,11 @@ class ShadowSolver : public Solver
   Sort mk_sort(SortKind kind, uint32_t size) override;
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
-  Sort mk_sort(SortKind kind,
-               const std::string& name,
-               const std::vector<Sort>& param_sorts,
-               const AbsSort::DatatypeConstructorMap& ctors) override;
+  std::vector<Sort> mk_sort(SortKind kind,
+                            const std::vector<std::string>& dt_names,
+                            const std::vector<std::vector<Sort>>& param_sorts,
+                            const std::vector<AbsSort::DatatypeConstructorMap>&
+                                constructors) override;
 
   Term mk_term(const Op::Kind& kind,
                const std::vector<Term>& args,
