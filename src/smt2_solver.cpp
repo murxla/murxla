@@ -1359,7 +1359,16 @@ Smt2Solver::mk_sort(
         for (const auto& s : c.second)
         {
           Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(s.second.get());
-          smt2 << " (" << s.first << " " << smt2_sort->get_repr() << ")";
+          smt2 << " (" << s.first << " ";
+          if (smt2_sort)
+          {
+            smt2 << smt2_sort->get_repr();
+          }
+          else
+          {
+            smt2 << name;
+          }
+          smt2 << ")";
         }
         smt2 << ")";
       }
@@ -1440,7 +1449,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args)
 {
   Smt2Term* res = new Smt2Term(kind, str_args, args, {}, "");
-  res->set_sort(sort);
+  if (kind == Op::DT_APPLY_CONS) res->set_sort(sort);
   return std::shared_ptr<Smt2Term>(res);
 }
 
@@ -1529,6 +1538,13 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
     Sort dt_sort = args[0]->get_sort();
     return dt_sort->get_dt_sel_sort(
         dt_sort, smt2_term->get_str_args()[0], smt2_term->get_str_args()[1]);
+  }
+
+  if (kind == Op::DT_MATCH || kind == Op::DT_MATCH_BIND_CASE
+      || kind == Op::DT_MATCH_CASE)
+  {
+    assert(args.size() >= 1);
+    return args.back()->get_sort();
   }
 
   switch (sort_kind)
