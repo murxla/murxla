@@ -2232,8 +2232,14 @@ bool
 ActionMkConst::run()
 {
   assert(d_solver.is_initialized());
-  if (!d_smgr.has_sort_excluding(d_exclude_sort_kinds, false)) return false;
-  Sort sort = d_smgr.pick_sort_excluding(d_exclude_sort_kinds, false);
+  SortKindSet exclude(d_exclude_sort_kinds);
+  /* Deemphasize picking of Boolean sort. */
+  if (d_rng.pick_with_prob(800))
+  {
+    exclude.insert(SORT_BOOL);
+  }
+  if (!d_smgr.has_sort_excluding(exclude, false)) return false;
+  Sort sort = d_smgr.pick_sort_excluding(exclude, false);
   return run(sort);
 }
 
@@ -2277,6 +2283,11 @@ ActionMkVar::run()
 {
   assert(d_solver.is_initialized());
   SortKindSet exclude_sorts = d_solver.get_unsupported_var_sort_kinds();
+  /* Deemphasize picking of Boolean sort. */
+  if (d_rng.pick_with_prob(800))
+  {
+    exclude_sorts.insert(SORT_BOOL);
+  }
 
   /* Pick sort of const. */
   if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
@@ -2432,9 +2443,15 @@ ActionMkValue::run(Sort sort)
 bool
 ActionMkValue::run()
 {
+  SortKindSet exclude(d_exclude_sort_kinds);
+  /* Deemphasize picking of Boolean sort. */
+  if (d_rng.pick_with_prob(800))
+  {
+    exclude.insert(SORT_BOOL);
+  }
   /* Pick sort of value. */
-  if (!d_smgr.has_sort_excluding(d_exclude_sort_kinds)) return false;
-  Sort sort = d_smgr.pick_sort_excluding(d_exclude_sort_kinds);
+  if (!d_smgr.has_sort_excluding(exclude)) return false;
+  Sort sort = d_smgr.pick_sort_excluding(exclude);
   return run(sort);
 }
 

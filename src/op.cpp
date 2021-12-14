@@ -81,8 +81,8 @@ OpKindManager::add_op_kinds()
   uint32_t n = MURXLA_MK_TERM_N_ARGS_BIN;
 
   /* Special Cases */
-  add_op_kind(Op::DISTINCT, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_BOOL);
-  add_op_kind(Op::EQUAL, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_BOOL);
+  add_op_kind(Op::DISTINCT, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_ALL);
+  add_op_kind(Op::EQUAL, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_ALL);
   add_op_kind(
       Op::ITE, 3, 0, SORT_ANY, {SORT_BOOL, SORT_ANY, SORT_ANY}, THEORY_ALL);
 

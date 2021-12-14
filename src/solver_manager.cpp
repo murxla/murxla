@@ -509,9 +509,34 @@ SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
 
     if (kinds.size() > 0)
     {
+      assert(kinds.find(THEORY_ALL) != kinds.end());
+
       /* First pick theory and then operator kind (avoids bias against theories
-       * with many operators). */
-      TheoryId theory = d_rng.pick_from_map<decltype(kinds), TheoryId>(kinds);
+       * with many operators). However, we pick THEORY_BOOL and THEORY_ALL with
+       * lower probability (10% each) to generate more theory terms. */
+
+      bool have_bool  = kinds.find(THEORY_BOOL) != kinds.end();
+      size_t min_size = 1;
+      uint32_t prob   = 900;
+      if (have_bool)
+      {
+        min_size = 2;
+        prob     = 800;
+      }
+
+      TheoryId theory = THEORY_ALL;
+      if (kinds.size() > min_size && d_rng.pick_with_prob(prob))
+      {
+        do
+        {
+          theory = d_rng.pick_from_map<decltype(kinds), TheoryId>(kinds);
+        } while (theory == THEORY_ALL || theory == THEORY_BOOL);
+      }
+      else if (have_bool && d_rng.flip_coin())
+      {
+        theory = THEORY_BOOL;
+      }
+
       auto& op_kinds  = kinds[theory];
       return d_rng.pick_from_set<decltype(op_kinds), Op::Kind>(op_kinds);
     }
