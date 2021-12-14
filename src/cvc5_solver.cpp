@@ -1159,7 +1159,7 @@ Cvc5Term::get_fun_domain_sorts() const
 OpKindSet
 Cvc5Solver::get_unsupported_op_kinds() const
 {
-  return {Op::BAG_CARD,
+  return {Op::BAG_CHOOSE,
           Op::BAG_FROM_SET,
           Op::BAG_TO_SET,
           Op::BAG_IS_SINGLETON,
@@ -2839,7 +2839,11 @@ std::unordered_map<std::string, std::string>
 Cvc5Solver::get_required_options(TheoryId theory) const
 {
   std::unordered_map<std::string, std::string> reqopts;
-  if (theory == THEORY_FP)
+  if (theory == THEORY_BAG)
+  {
+    reqopts.emplace("fmf-found", "true");
+  }
+  else if (theory == THEORY_FP)
   {
     reqopts.emplace("fp-exp", "true");
   }
