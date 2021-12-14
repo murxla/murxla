@@ -2872,7 +2872,7 @@ Cvc5Solver::get_required_options(TheoryId theory) const
   std::unordered_map<std::string, std::string> reqopts;
   if (theory == THEORY_BAG)
   {
-    reqopts.emplace("fmf-found", "true");
+    reqopts.emplace("fmf-bound", "true");
   }
   else if (theory == THEORY_FP)
   {
