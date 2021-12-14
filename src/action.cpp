@@ -1178,7 +1178,7 @@ ActionMkTerm::run(Op::Kind kind)
       if (!d_smgr.has_term(index_sort)) return false;
       if (!d_smgr.has_term(element_sort)) return false;
 
-      args.push_back(d_smgr.pick_term(array_sort));
+      args.push_back(mk_store(array_sort, index_sort, element_sort));
       args.push_back(d_smgr.pick_term(index_sort));
       args.push_back(d_smgr.pick_term(element_sort));
     }
@@ -2060,6 +2060,30 @@ ActionMkTerm::check_term(Term term)
   MURXLA_TEST(!(term == Term()));
   MURXLA_TEST(term != Term());
   d_solver.check_term(term);
+}
+
+Term
+ActionMkTerm::mk_store(const Sort& array_sort,
+                       const Sort& index_sort,
+                       const Sort& element_sort)
+{
+  size_t nstores =
+      d_rng.flip_coin() ? 0 : d_rng.pick(1, MURXLA_MAX_STORE_CHAIN_LENGTH);
+  Term result = d_smgr.pick_term(array_sort);
+
+  Term index, element;
+  for (size_t i = 0; i < nstores; ++i)
+  {
+    std::vector<Term> args;
+    args.push_back(result);
+    args.push_back(d_smgr.pick_term(index_sort));
+    args.push_back(d_smgr.pick_term(element_sort));
+    auto ret = _run(Op::ARRAY_STORE, SortKind::SORT_ARRAY, args, {});
+    assert(ret.size() == 2);
+    result = d_smgr.get_term(ret[0]);
+  }
+
+  return result;
 }
 
 /* -------------------------------------------------------------------------- */

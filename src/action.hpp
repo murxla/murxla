@@ -387,6 +387,11 @@ class ActionMkTerm : public Action
                              Sort sort,
                              const std::vector<std::string> str_args,
                              std::vector<Term>& args);
+
+  /* Term creation helpers */
+  Term mk_store(const Sort& array_sort,
+                const Sort& index_sort,
+                const Sort& element_sort);
 };
 
 class ActionMkConst : public Action

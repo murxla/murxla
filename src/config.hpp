@@ -92,4 +92,7 @@
  * a variable. */
 #define MURXLA_MIN_N_QUANT_TERMS 5
 
+/** Maximum number of nested stores created in ActionMkTerm::mk_store. */
+#define MURXLA_MAX_STORE_CHAIN_LENGTH 32
+
 #endif
