@@ -688,6 +688,11 @@ class SolverManager
    * are maintained in d_sorts.
    */
   SortSet d_sorts_dt_parametric;
+  /**
+   * Cache non-well-founded sorts.
+   * We do not use these sorts but need to cache them for untracing.
+   */
+  SortSet d_sorts_dt_non_well_founded;
 
   /** Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;

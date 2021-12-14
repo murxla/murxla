@@ -68,6 +68,12 @@
  * Maximum number of datatype parameter sorts for a parametric datatype sort.
  */
 #define MURXLA_DT_PARAM_SORT_MAX 3
+/**
+ * The maximum number of datatypes to create (at once).
+ * This is (declare-datatype ...) vs (declare-datatypes ...) in SMT-LIB.
+ * For the latter, we declare at most the number below with one single command.
+ */
+#define MURXLA_DT_MAX_N_DTYPES 1
 
 /** Maximum length for symbols. */
 #define MURXLA_SYMBOL_LEN_MAX 128

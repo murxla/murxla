@@ -70,6 +70,7 @@ SolverManager::clear()
   d_used_solver_options.clear();
   d_sorts.clear();
   d_sorts_dt_parametric.clear();
+  d_sorts_dt_non_well_founded.clear();
   d_sort_kind_to_sorts.clear();
   d_n_sort_terms.clear();
   d_assumptions.clear();
@@ -321,13 +322,14 @@ SolverManager::add_sort(Sort& sort,
          || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)
          || sort->get_kind() == sort_kind);
 
-  SortSet& sorts = parametric ? d_sorts_dt_parametric : d_sorts;
+  SortSet& sorts = well_founded ? (parametric ? d_sorts_dt_parametric : d_sorts)
+                                : d_sorts_dt_non_well_founded;
 
   auto it = sorts.find(sort);
   if (it == sorts.end())
   {
     sort->set_id(++d_n_sorts);
-    if (well_founded) sorts.insert(sort);
+    sorts.insert(sort);
     ++d_stats.sorts;
   }
   else
@@ -912,6 +914,17 @@ SolverManager::register_sort(uint64_t untraced_id, uint64_t sort_id)
   if (!sort)
   {
     for (const auto& s : d_sorts_dt_parametric)
+    {
+      if (s->get_id() == sort_id)
+      {
+        sort = s;
+        break;
+      }
+    }
+  }
+  if (!sort)
+  {
+    for (const auto& s : d_sorts_dt_non_well_founded)
     {
       if (s->get_id() == sort_id)
       {

@@ -733,6 +733,7 @@ FSM::untrace(const std::string& trace_file_name)
             nline += 1;
 
             const auto& [seed, next_id, next_tokens] = tokenize(line);
+            size_t next_tokens_size                  = next_tokens.size();
             d_smgr.get_sng().set_seed(seed);
 
             if (next_id != "return")
@@ -745,7 +746,7 @@ FSM::untrace(const std::string& trace_file_name)
             {
               if (ret_action->get_kind() == Action::MK_TERM)
               {
-                if (next_tokens.size() != 2)
+                if (next_tokens_size != 2)
                 {
                   throw MurxlaUntraceException(
                       trace_file_name,
@@ -753,7 +754,7 @@ FSM::untrace(const std::string& trace_file_name)
                       "expected two arguments (term, sort) to 'return'");
                 }
               }
-              else if (next_tokens.size() != 1)
+              else if (next_tokens_size != 1)
               {
                 throw MurxlaUntraceException(
                     trace_file_name,
@@ -762,7 +763,7 @@ FSM::untrace(const std::string& trace_file_name)
               }
             }
             else if (action->returns() == Action::ReturnValue::ID_LIST
-                     && next_tokens.size() < 1)
+                     && next_tokens_size < 1)
             {
               throw MurxlaUntraceException(
                   trace_file_name,
@@ -770,15 +771,15 @@ FSM::untrace(const std::string& trace_file_name)
                   "expected at least one argument to 'return'");
             }
 
-            if (ret_val.size() != next_tokens.size())
+            if (ret_val.size() != next_tokens_size)
             {
               std::stringstream ss;
-              ss << next_tokens.size() << " arguments given but expected "
+              ss << next_tokens_size << " arguments given but expected "
                  << ret_val.size();
               throw MurxlaUntraceException(trace_file_name, nline, ss.str());
             }
 
-            for (uint32_t i = 0, n = next_tokens.size(); i < n; ++i)
+            for (uint32_t i = 0; i < next_tokens_size; ++i)
             {
               uint64_t rid = Action::untrace_str_to_id(next_tokens[i]);
               if (next_tokens[i][0] == 's')

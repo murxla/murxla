@@ -342,14 +342,15 @@ class ActionMkSort : public Action
       const std::vector<std::string>& tokens) override;
 
  private:
-  uint64_t _run(SortKind kind);
-  uint64_t _run(SortKind kind, uint32_t bw);
-  uint64_t _run(SortKind kind, uint32_t ew, uint32_t sw);
-  uint64_t _run(SortKind kind, const std::vector<Sort>& sorts);
-  uint64_t _run(SortKind kind,
-                const std::string& name,
-                const std::vector<Sort>& param_sorts,
-                const AbsSort::DatatypeConstructorMap& ctors);
+  std::vector<uint64_t> _run(SortKind kind);
+  std::vector<uint64_t> _run(SortKind kind, uint32_t bw);
+  std::vector<uint64_t> _run(SortKind kind, uint32_t ew, uint32_t sw);
+  std::vector<uint64_t> _run(SortKind kind, const std::vector<Sort>& sorts);
+  std::vector<uint64_t> _run(
+      SortKind kind,
+      const std::vector<std::string>& dt_names,
+      const std::vector<std::vector<Sort>>& param_sorts,
+      const std::vector<AbsSort::DatatypeConstructorMap>& constructors);
 
   /** Perform checks on the created sort. */
   void check_sort(Sort sort, const std::string& name) const;

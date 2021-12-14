@@ -466,7 +466,7 @@ ActionSetOptionReq::init(
 
 /* -------------------------------------------------------------------------- */
 
-ActionMkSort::ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, ID)
+ActionMkSort::ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, ID_LIST)
 {
   for (uint32_t i = 0; i < MURXLA_MK_TERM_N_ARGS_MAX; ++i)
   {
@@ -529,69 +529,82 @@ ActionMkSort::run()
       SortKindSet exclude_sorts =
           d_solver.get_unsupported_dt_sel_codomain_sort_kinds();
       bool no_sels = !d_smgr.has_sort_excluding(exclude_sorts, false);
-      bool parametric = no_sels || d_rng.flip_coin();
 
-      std::string dt_name = d_smgr.pick_symbol();
-      std::unordered_map<std::string, std::vector<std::pair<std::string, Sort>>>
-          ctors;
+      uint32_t n_dt_sorts = d_rng.pick<uint32_t>(1, MURXLA_DT_MAX_N_DTYPES);
 
-      uint32_t n_cons =
-          d_rng.pick<uint32_t>(MURXLA_DT_CON_MIN, MURXLA_DT_CON_MAX);
+      std::vector<std::string> dt_names;
+      std::vector<std::vector<Sort>> param_sorts;
+      std::vector<AbsSort::DatatypeConstructorMap> constructors;
 
-      uint32_t n_param_sorts = 0;
-      std::vector<Sort> param_sorts;
-      if (parametric)
+      for (uint32_t j = 0; j < n_dt_sorts; ++j)
       {
-        n_param_sorts = d_rng.pick<uint32_t>(MURXLA_DT_PARAM_SORT_MIN,
-                                             MURXLA_DT_PARAM_SORT_MAX);
-        for (uint32_t i = 0; i < n_param_sorts; ++i)
+        bool parametric = no_sels || d_rng.flip_coin();
+
+        std::string dt_name = d_smgr.pick_symbol();
+
+        uint32_t n_ctors =
+            d_rng.pick<uint32_t>(MURXLA_DT_CON_MIN, MURXLA_DT_CON_MAX);
+        AbsSort::DatatypeConstructorMap ctors;
+
+        uint32_t n_psorts = 0;
+        std::vector<Sort> psorts;
+
+        if (parametric)
         {
-          param_sorts.push_back(
-              std::shared_ptr<ParamSort>(new ParamSort(d_smgr.pick_symbol())));
+          n_psorts = d_rng.pick<uint32_t>(MURXLA_DT_PARAM_SORT_MIN,
+                                          MURXLA_DT_PARAM_SORT_MAX);
+          for (uint32_t i = 0; i < n_psorts; ++i)
+          {
+            psorts.push_back(std::shared_ptr<ParamSort>(
+                new ParamSort(d_smgr.pick_symbol())));
+          }
         }
-      }
 
-      for (uint32_t i = 0; i < n_cons; ++i)
-      {
-        uint32_t n_sels =
-            no_sels && !parametric
-                ? 0
-                : d_rng.pick<uint32_t>(MURXLA_DT_SEL_MIN, MURXLA_DT_SEL_MAX);
-        std::vector<std::pair<std::string, Sort>> sels;
-        std::unordered_set<std::string> sel_names;
-        for (uint32_t j = 0; j < n_sels; ++j)
+        for (uint32_t i = 0; i < n_ctors; ++i)
         {
-          std::string sname;
+          uint32_t n_sels =
+              no_sels && !parametric
+                  ? 0
+                  : d_rng.pick<uint32_t>(MURXLA_DT_SEL_MIN, MURXLA_DT_SEL_MAX);
+          std::vector<std::pair<std::string, Sort>> sels;
+          std::unordered_set<std::string> sel_names;
+          for (uint32_t j = 0; j < n_sels; ++j)
+          {
+            std::string sname;
+            do
+            {
+              sname = d_smgr.pick_symbol();
+            } while (sel_names.find(sname) != sel_names.end());
+            sel_names.insert(sname);
+            /* Pick datatype sort itself with 10% probability. We indicate this
+             * by passing a nullptr Sort. */
+            Sort s = nullptr;
+            if (d_rng.pick_with_prob(900))
+            {
+              if (parametric && (no_sels || d_rng.flip_coin()))
+              {
+                s = d_rng.pick_from_set<decltype(psorts), Sort>(psorts);
+              }
+              else
+              {
+                s = d_smgr.pick_sort_excluding(exclude_sorts, false);
+              }
+            }
+            sels.emplace_back(sname, s);
+          }
+
+          std::string cname;
           do
           {
-            sname = d_smgr.pick_symbol();
-          } while (sel_names.find(sname) != sel_names.end());
-          sel_names.insert(sname);
-          /* Pick datatype sort itself with 10% probability. We indicate this
-           * by passing a nullptr Sort. */
-          Sort s = nullptr;
-          if (d_rng.pick_with_prob(900))
-          {
-            if (parametric && (no_sels || d_rng.flip_coin()))
-            {
-              s = d_rng.pick_from_set<decltype(param_sorts), Sort>(param_sorts);
-            }
-            else
-            {
-              s = d_smgr.pick_sort_excluding(exclude_sorts, false);
-            }
-          }
-          sels.emplace_back(sname, s);
+            cname = d_smgr.pick_symbol();
+          } while (ctors.find(cname) != ctors.end());
+          ctors[cname] = sels;
         }
-
-        std::string cname;
-        do
-        {
-          cname = d_smgr.pick_symbol();
-        } while (ctors.find(cname) != ctors.end());
-        ctors[cname] = sels;
+        dt_names.push_back(dt_name);
+        param_sorts.push_back(psorts);
+        constructors.push_back(ctors);
       }
-      _run(kind, dt_name, param_sorts, ctors);
+      _run(kind, dt_names, param_sorts, constructors);
     }
     break;
 
@@ -699,7 +712,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
 
   MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
 
-  uint64_t res         = 0;
+  std::vector<uint64_t> res;
   SortKind kind        = get_sort_kind_from_str(tokens[0]);
   const auto& theories = d_smgr.get_enabled_theories();
 
@@ -753,15 +766,16 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
           << "solver does not support theory of datatypes";
       MURXLA_CHECK_TRACE_NTOKENS_MIN(5, "", n_tokens);
       uint32_t n_dt_sorts = str_to_uint32(tokens[1]);
-      std::string name    = str_to_str(tokens[2]);
-      uint32_t n_params   = str_to_uint32(tokens[3]);
-      uint32_t idx        = 4;
+      uint32_t idx        = 2;
 
+      std::vector<std::string> dt_names;
       std::vector<std::vector<Sort>> param_sorts;
       std::vector<AbsSort::DatatypeConstructorMap> constructors;
 
       for (uint32_t j = 0; j < n_dt_sorts; ++j)
       {
+        std::string dt_name = str_to_str(tokens[idx++]);
+        uint32_t n_params   = str_to_uint32(tokens[idx++]);
         std::vector<Sort> psorts;
         std::unordered_map<std::string, Sort> symbol_to_psort;
         for (uint32_t i = 0; i < n_params; ++i)
@@ -804,13 +818,14 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
             ctors[cname].emplace_back(sname, ssort);
           }
         }
+        dt_names.push_back(dt_name);
         param_sorts.push_back(psorts);
         constructors.push_back(ctors);
       }
 
       if (n_dt_sorts == 1)
       {
-        res = _run(kind, name, param_sorts[0], constructors[0]);
+        res = _run(kind, dt_names, param_sorts, constructors);
       }
       else
       {
@@ -904,10 +919,10 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
 
     default: MURXLA_CHECK_TRACE(false) << "unknown sort kind " << tokens[0];
   }
-  return {res};
+  return res;
 }
 
-uint64_t
+std::vector<uint64_t>
 ActionMkSort::_run(SortKind kind)
 {
   MURXLA_TRACE << get_kind() << " " << kind;
@@ -915,10 +930,10 @@ ActionMkSort::_run(SortKind kind)
   d_smgr.add_sort(res, kind);
   check_sort(res);
   MURXLA_TRACE_RETURN << res;
-  return res->get_id();
+  return {res->get_id()};
 }
 
-uint64_t
+std::vector<uint64_t>
 ActionMkSort::_run(SortKind kind, uint32_t bw)
 {
   MURXLA_TRACE << get_kind() << " " << kind << " " << bw;
@@ -928,10 +943,10 @@ ActionMkSort::_run(SortKind kind, uint32_t bw)
   d_smgr.add_sort(res, kind);
   check_sort(res);
   MURXLA_TRACE_RETURN << res;
-  return res->get_id();
+  return {res->get_id()};
 }
 
-uint64_t
+std::vector<uint64_t>
 ActionMkSort::_run(SortKind kind, uint32_t ew, uint32_t sw)
 {
   MURXLA_TRACE << get_kind() << " " << kind << " " << ew << " " << sw;
@@ -942,10 +957,10 @@ ActionMkSort::_run(SortKind kind, uint32_t ew, uint32_t sw)
   d_smgr.add_sort(res, kind);
   check_sort(res);
   MURXLA_TRACE_RETURN << res;
-  return res->get_id();
+  return {res->get_id()};
 }
 
-uint64_t
+std::vector<uint64_t>
 ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
 {
   MURXLA_TRACE << get_kind() << " " << kind << sorts;
@@ -955,43 +970,72 @@ ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
   check_sort(res);
   MURXLA_TEST(res->get_sorts().size() == sorts.size());
   MURXLA_TRACE_RETURN << res;
-  return res->get_id();
+  return {res->get_id()};
 }
 
-uint64_t
-ActionMkSort::_run(SortKind kind,
-                   const std::string& name,
-                   const std::vector<Sort>& param_sorts,
-                   const AbsSort::DatatypeConstructorMap& ctors)
+std::vector<uint64_t>
+ActionMkSort::_run(
+    SortKind kind,
+    const std::vector<std::string>& dt_names,
+    const std::vector<std::vector<Sort>>& param_sorts,
+    const std::vector<AbsSort::DatatypeConstructorMap>& constructors)
 {
+  size_t n_dt_sorts = dt_names.size();
+
+  assert(n_dt_sorts == param_sorts.size());
+  assert(n_dt_sorts == constructors.size());
+
   std::stringstream ss;
-  ss << " " << param_sorts.size();
-  for (const Sort& s : param_sorts)
+  ss << " " << n_dt_sorts;
+
+  for (size_t i = 0; i < n_dt_sorts; ++i)
   {
-    ss << " " << s;
-  }
-  ss << " " << ctors.size();
-  for (const auto& c : ctors)
-  {
-    const auto& cname = c.first;
-    const auto& sels  = c.second;
-    ss << " \"" << cname << "\" " << sels.size();
-    for (const auto& s : sels)
+    ss << " \"" << dt_names[i] << "\" " << param_sorts[i].size();
+    for (const Sort& s : param_sorts[i])
     {
-      const auto& sname = s.first;
-      const auto& ssort = s.second;
-      ss << " \"" << sname << "\" " << ssort;
+      ss << " " << s;
+    }
+    ss << " " << constructors[i].size();
+    for (const auto& c : constructors[i])
+    {
+      const auto& cname = c.first;
+      const auto& sels  = c.second;
+      ss << " \"" << cname << "\" " << sels.size();
+      for (const auto& s : sels)
+      {
+        const auto& sname = s.first;
+        const auto& ssort = s.second;
+        ss << " \"" << sname << "\" " << ssort;
+      }
     }
   }
-  MURXLA_TRACE << get_kind() << " " << kind << " 1 \"" << name << "\""
-               << ss.str();
-  Sort res = d_solver.mk_sort(kind, name, param_sorts, ctors);
-  res->set_sorts(param_sorts);
-  res->set_dt_ctors(ctors);
-  check_sort(res, name);
-  d_smgr.add_sort(res, kind, param_sorts.size() > 0, res->is_dt_well_founded());
-  MURXLA_TRACE_RETURN << res;
-  return res->get_id();
+  MURXLA_TRACE << get_kind() << " " << kind << ss.str();
+  std::vector<Sort> res_sorts;
+  if (n_dt_sorts == 1)
+  {
+    Sort res_sort =
+        d_solver.mk_sort(kind, dt_names[0], param_sorts[0], constructors[0]);
+    res_sort->set_sorts(param_sorts[0]);
+    res_sort->set_dt_ctors(constructors[0]);
+    check_sort(res_sort, dt_names[0]);
+    d_smgr.add_sort(res_sort,
+                    kind,
+                    param_sorts[0].size() > 0,
+                    res_sort->is_dt_well_founded());
+    res_sorts.push_back(res_sort);
+  }
+  else
+  {
+    // TODO
+    assert(false);
+  }
+  MURXLA_TRACE_RETURN << res_sorts;
+  std::vector<uint64_t> res(res_sorts.size());
+  std::transform(
+      res_sorts.begin(), res_sorts.end(), res.begin(), [](const auto& sort) {
+        return sort->get_id();
+      });
+  return res;
 }
 
 void
