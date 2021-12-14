@@ -19,7 +19,7 @@ TermRefs::add(const Term& t)
      * from being picked, and when all have weight 0, always the first one will
      * be picked.  This is due to how RNGenerator::pick_weighted is implemented
      * via std::discrete_distribution. */
-    d_weights.push_back(1);
+    d_weights.push_back(d_refs_sum);
   }
 }
 

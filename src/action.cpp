@@ -466,6 +466,15 @@ ActionSetOptionReq::init(
 
 /* -------------------------------------------------------------------------- */
 
+ActionMkSort::ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, ID)
+{
+  for (uint32_t i = 0; i < MURXLA_MK_TERM_N_ARGS_MAX; ++i)
+  {
+    uint32_t n = MURXLA_MK_TERM_N_ARGS_MAX - i;
+    d_n_args_weights.push_back(n * n);
+  }
+}
+
 bool
 ActionMkSort::run()
 {
@@ -635,7 +644,8 @@ ActionMkSort::run()
       {
         return false;
       }
-      uint32_t nsorts = d_rng.pick<uint32_t>(1, MURXLA_MK_TERM_N_ARGS_MAX - 1);
+      uint32_t nsorts = d_rng.pick_weighted<uint32_t>(d_n_args_weights.begin(),
+                                                      d_n_args_weights.end());
       for (uint32_t i = 0; i < nsorts; ++i)
       {
         sorts.push_back(
@@ -1116,8 +1126,10 @@ ActionMkTerm::run(Op::Kind kind)
 
     if (arity == MURXLA_MK_TERM_N_ARGS || arity == MURXLA_MK_TERM_N_ARGS_BIN)
     {
-      arity = d_rng.pick<uint32_t>(MURXLA_MK_TERM_N_ARGS_MIN(arity),
-                                   MURXLA_MK_TERM_N_ARGS_MAX);
+      uint32_t min_arity = MURXLA_MK_TERM_N_ARGS_MIN(arity);
+      arity              = d_rng.pick_weighted<uint32_t>(
+          d_n_args_weights.begin(), d_n_args_weights.end() - (min_arity - 1));
+      arity += min_arity;
     }
 
     /* Pick term arguments. */
@@ -1587,6 +1599,15 @@ ActionMkTerm::run(Op::Kind kind)
   ++d_smgr.d_mbt_stats->d_ops_ok[op.d_id];
 
   return true;
+}
+
+ActionMkTerm::ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID)
+{
+  for (uint32_t i = 0; i < MURXLA_MK_TERM_N_ARGS_MAX; ++i)
+  {
+    uint32_t n = MURXLA_MK_TERM_N_ARGS_MAX - i;
+    d_n_args_weights.push_back(n * n);
+  }
 }
 
 bool

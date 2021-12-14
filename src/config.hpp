@@ -86,7 +86,7 @@
 /* mk_term: min number of arguments */
 #define MURXLA_MK_TERM_N_ARGS_MIN(arity) ((arity) < 0 ? -(arity) : (arity))
 /* mk_term: max number of arguments */
-#define MURXLA_MK_TERM_N_ARGS_MAX 11
+#define MURXLA_MK_TERM_N_ARGS_MAX 5
 
 /* Minimum number of quantified terms on the current level before binding
  * a variable. */

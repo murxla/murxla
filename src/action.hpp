@@ -335,7 +335,7 @@ class ActionSetOptionReq : public Action
 class ActionMkSort : public Action
 {
  public:
-  ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, ID) {}
+  ActionMkSort(SolverManager& smgr);
 
   bool run() override;
   std::vector<uint64_t> untrace(
@@ -356,12 +356,14 @@ class ActionMkSort : public Action
 
   /** Perform checks on the created sort. */
   void check_sort(Sort sort) const;
+
+  std::vector<uint32_t> d_n_args_weights;
 };
 
 class ActionMkTerm : public Action
 {
  public:
-  ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID) {}
+  ActionMkTerm(SolverManager& smgr);
 
   bool run() override;
   std::vector<uint64_t> untrace(
@@ -392,6 +394,8 @@ class ActionMkTerm : public Action
   Term mk_store(const Sort& array_sort,
                 const Sort& index_sort,
                 const Sort& element_sort);
+
+  std::vector<uint32_t> d_n_args_weights;
 };
 
 class ActionMkConst : public Action
