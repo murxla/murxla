@@ -1,25 +1,42 @@
 #include "term_db.hpp"
 
 #include <algorithm>
+#include <set>
 
 #include "config.hpp"
 #include "solver_manager.hpp"
 
 namespace murxla {
 
-void
-TermRefs::add(const Term& t)
+const static size_t MURXLA_PICK_MAX_WEIGHT = std::numeric_limits<size_t>::max();
+
+TermRefs::TermRefs(size_t level)
 {
+  for (size_t i = 0; i < level; ++i)
+  {
+    d_levels.push_back(0);
+  }
+}
+
+void
+TermRefs::add(const Term& t, size_t level)
+{
+  assert(level < d_levels.size());
+
   if (d_idx.find(t) == d_idx.end())
   {
     d_idx.emplace(t, d_refs.size());
-    d_terms.push_back(t);
-    d_refs.push_back(0);
-    /* Weight must be at least 1. Weight 0 corresponds to preventing the term
-     * from being picked, and when all have weight 0, always the first one will
-     * be picked.  This is due to how RNGenerator::pick_weighted is implemented
-     * via std::discrete_distribution. */
-    d_weights.push_back(d_refs_sum);
+
+    size_t end = get_level_end(level);
+
+    ++d_levels[level];
+    d_terms.insert(d_terms.begin() + end, t);
+    d_refs.insert(d_refs.begin() + end, 0);
+
+    /* Initialize weight to maximum weight for new terms. Will be recomputed as
+     * soon as term is picked once. This ensures that new terms are picked with
+     * a very high probability. */
+    d_weights.insert(d_weights.begin() + end, MURXLA_PICK_MAX_WEIGHT);
   }
 }
 
@@ -41,8 +58,10 @@ TermRefs::get(const Term& t) const
 }
 
 Term
-TermRefs::pick(RNGenerator& rng)
+TermRefs::pick(RNGenerator& rng, size_t level)
 {
+  assert(!d_terms.empty());
+
   /* Terms with higher reference count have lower probability to be picked. */
   if (d_refs_sum % 100 == 25)
   {
@@ -53,10 +72,35 @@ TermRefs::pick(RNGenerator& rng)
     }
   }
 
-  size_t idx = rng.pick_weighted(d_weights);
+  size_t idx;
+  /* No specifc level requested, pick from any level. */
+  if (level == MAX_LEVEL)
+  {
+    idx = rng.pick_weighted(d_weights);
+  }
+  /* Pick from specified level only. */
+  else
+  {
+    size_t begin = get_level_begin(level);
+    size_t end   = get_level_end(level);
+    assert(end - begin > 0);
+    auto it = d_weights.begin();
+    idx     = rng.pick_weighted<size_t>(it + begin, it + end);
+    idx += begin;
+    assert(begin <= idx);
+    assert(idx < end);
+  }
+
   Term t     = d_terms[idx];
   d_refs[idx] += 1;  // increment reference count
   d_refs_sum += 1;
+
+  /* d_terms[idx] was freshly added before, now compute new weight. */
+  if (d_weights[idx] == MURXLA_PICK_MAX_WEIGHT)
+  {
+    d_weights[idx] = d_refs_sum - d_refs[idx] + 1;
+  }
+
   return t;
 }
 
@@ -66,9 +110,75 @@ TermRefs::size() const
   return d_idx.size();
 }
 
+void
+TermRefs::push()
+{
+  d_levels.push_back(0);
+}
+
+void
+TermRefs::pop()
+{
+  assert(d_levels.size() > 1);
+
+  /* Find start of current level. */
+  size_t begin = get_level_begin(d_levels.size() - 1);
+
+  /* Erase all terms from current level. */
+  std::vector<Term> removed;
+  for (auto it = d_terms.begin() + begin; it != d_terms.end(); ++it)
+  {
+    d_idx.erase(*it);
+    removed.push_back(*it);
+  }
+  d_terms.erase(d_terms.begin() + begin, d_terms.end());
+  d_refs.erase(d_refs.begin() + begin, d_refs.end());
+  d_weights.erase(d_weights.begin() + begin, d_weights.end());
+  assert(d_idx.size() == d_terms.size());
+  assert(d_terms.size() == d_refs.size());
+  assert(d_refs.size() == d_weights.size());
+
+  d_levels.pop_back();
+  // TODO: restore d_refs_sum
+}
+
+size_t
+TermRefs::get_num_terms(size_t level) const
+{
+  assert(level < d_levels.size());
+  return d_levels[level];
+}
+
+size_t
+TermRefs::get_level_begin(size_t level)
+{
+  assert(level < d_levels.size());
+
+  size_t offset = 0;
+  for (size_t i = 0; i < level; ++i)
+  {
+    offset += d_levels[i];
+  }
+  return offset;
+}
+
+size_t
+TermRefs::get_level_end(size_t level)
+{
+  assert(level < d_levels.size());
+
+  size_t offset = 0;
+  for (size_t i = 0; i <= level; ++i)
+  {
+    offset += d_levels[i];
+  }
+  return offset;
+}
+
+/* -------------------------------------------------------------------------- */
+
 TermDb::TermDb(SolverManager& smgr, RNGenerator& rng) : d_smgr(smgr), d_rng(rng)
 {
-  d_term_db.emplace_back();
   d_vars.emplace_back();
 }
 
@@ -87,7 +197,6 @@ void
 TermDb::reset()
 {
   clear();
-  d_term_db.emplace_back();
   d_vars.emplace_back();
 }
 
@@ -126,14 +235,13 @@ TermDb::add_term(Term& term,
   std::vector<uint64_t> levels = term->get_levels();
   if (levels.empty())
   {
-    std::unordered_set<uint64_t> clevels;
+    std::set<uint64_t> clevels;
     for (const auto& child : args)
     {
-      auto cl = child->get_levels();
+      const auto& cl = child->get_levels();
       clevels.insert(cl.begin(), cl.end());
     }
     levels.insert(levels.end(), clevels.begin(), clevels.end());
-    std::sort(levels.begin(), levels.end());
   }
 
   /* This should only occur when a new binder (e.g., quantifier) was created. */
@@ -175,14 +283,20 @@ TermDb::add_term(Term& term,
   }
   else
   {
-    SortMap& map    = d_term_db[level][sort_kind];
-    TermRefs& trefs = map[sort];
+    SortMap& map = d_term_db[sort_kind];
+    auto it      = map.find(sort);
+
+    if (it == map.end())
+    {
+      map.emplace(sort, d_vars.size());
+    }
+    TermRefs& trefs = map.at(sort);
 
     if (!trefs.contains(term))
     {
       term->set_id(d_terms.size() + d_terms_intermediate.size() + 1);
       term->set_levels(levels);
-      trefs.add(term);
+      trefs.add(term, level);
 
       d_terms.emplace(term->get_id(), term);
       d_term_sorts.insert(sort);
@@ -218,10 +332,7 @@ void
 TermDb::add_var(Term& var, Sort& sort, SortKind sort_kind)
 {
   assert(var.get());
-
   push(var);
-
-  //  d_stats.inputs += 1;
   add_term(var, sort, sort_kind);
 }
 
@@ -240,16 +351,13 @@ TermDb::find(Term term, Sort sort, SortKind sort_kind) const
   assert(d_smgr.has_sort(sort));
   term->set_sort(sort);
 
-  for (const auto& stmap : d_term_db)
+  if (d_term_db.find(sort_kind) != d_term_db.end())
   {
-    if (stmap.find(sort_kind) != stmap.end())
+    const SortMap& map = d_term_db.at(sort_kind);
+    if (map.find(sort) != map.end())
     {
-      const SortMap& map = stmap.at(sort_kind);
-      if (map.find(sort) != map.end())
-      {
-        auto t = map.at(sort).get(term);
-        if (t != nullptr) return t;
-      }
+      auto t = map.at(sort).get(term);
+      if (t != nullptr) return t;
     }
   }
   return nullptr;
@@ -285,17 +393,14 @@ TermDb::has_value(Sort sort) const
   {
     if (!has_term(s)) continue;
     SortKind s_kind = s->get_kind();
-    for (const auto& level : d_term_db)
+    assert(d_term_db.find(s_kind) != d_term_db.end());
+    assert(d_term_db.at(s_kind).find(s) != d_term_db.at(s_kind).end());
+    const TermRefs& terms = d_term_db.at(s_kind).at(s);
+    for (const auto& t : terms)
     {
-      assert(level.find(s_kind) != level.end());
-      assert(level.at(s_kind).find(s) != level.at(s_kind).end());
-      const TermRefs& terms = level.at(s_kind).at(s);
-      for (const auto& t : terms)
+      if (t->get_leaf_kind() == AbsTerm::LeafKind::VALUE)
       {
-        if (t->get_leaf_kind() == AbsTerm::LeafKind::VALUE)
-        {
-          return true;
-        }
+        return true;
       }
     }
   }
@@ -313,12 +418,9 @@ TermDb::has_term(SortKind kind) const
   }
   for (const SortKind& k : sort_kinds)
   {
-    for (const auto& tmap : d_term_db)
+    if (d_term_db.find(k) != d_term_db.end())
     {
-      if (tmap.find(k) != tmap.end())
-      {
-        return true;
-      }
+      return true;
     }
   }
   return false;
@@ -328,7 +430,20 @@ bool
 TermDb::has_term(SortKind kind, size_t level) const
 {
   if (d_term_db.empty()) return false;
-  if (kind == SORT_ANY) return !d_term_db[level].empty();
+  if (kind == SORT_ANY)
+  {
+    for (const auto& p : d_term_db)
+    {
+      for (const auto& pp : p.second)
+      {
+        if (pp.second.get_num_terms(level) > 0)
+        {
+          return true;
+        }
+      }
+    }
+  }
+
   std::vector<SortKind> sort_kinds = {kind};
   if (d_smgr.d_arith_subtyping && kind == SORT_REAL)
   {
@@ -336,7 +451,16 @@ TermDb::has_term(SortKind kind, size_t level) const
   }
   for (const SortKind& k : sort_kinds)
   {
-    if (d_term_db[level].find(k) != d_term_db[level].end()) return true;
+    if (d_term_db.find(k) != d_term_db.end())
+    {
+      for (const auto& p : d_term_db.at(k))
+      {
+        if (p.second.get_num_terms(level) > 0)
+        {
+          return true;
+        }
+      }
+    }
   }
   return false;
 }
@@ -355,12 +479,9 @@ TermDb::has_term(const SortKindSet& kinds) const
   }
   for (const SortKind& k : *sort_kinds)
   {
-    for (const auto& tmap : d_term_db)
+    if (d_term_db.find(k) != d_term_db.end())
     {
-      if (tmap.find(k) != tmap.end())
-      {
-        return true;
-      }
+      return true;
     }
   }
   return false;
@@ -392,9 +513,13 @@ TermDb::has_term(Sort sort, size_t level) const
   {
     return has_term(sort_kind, level);
   }
-  if (d_term_db[level].find(sort_kind) == d_term_db[level].end()) return false;
-  const auto& smap = d_term_db[level].at(sort_kind);
-  return smap.find(sort) != smap.end();
+  if (!has_term(sort_kind, level)) return false;
+  const auto& smap = d_term_db.at(sort_kind);
+  if (smap.find(sort) == smap.end())
+  {
+    return false;
+  }
+  return smap.at(sort).get_num_terms(level) > 0;
 }
 
 bool
@@ -471,17 +596,14 @@ TermDb::pick_value(Sort sort) const
   for (const Sort& s : sorts)
   {
     SortKind s_kind = s->get_kind();
-    for (auto& level : d_term_db)
+    assert(d_term_db.find(s_kind) != d_term_db.end());
+    assert(d_term_db.at(s_kind).find(s) != d_term_db.at(s_kind).end());
+    const TermRefs& terms = d_term_db.at(s_kind).at(s);
+    for (auto& t : terms)
     {
-      assert(level.find(s_kind) != level.end());
-      assert(level.at(s_kind).find(s) != level.at(s_kind).end());
-      const TermRefs& terms = level.at(s_kind).at(s);
-      for (auto& t : terms)
+      if (t->get_leaf_kind() == AbsTerm::LeafKind::VALUE)
       {
-        if (t->get_leaf_kind() == AbsTerm::LeafKind::VALUE)
-        {
-          values.push_back(t);
-        }
+        values.push_back(t);
       }
     }
   }
@@ -494,14 +616,11 @@ TermDb::get_num_terms(SortKind sort_kind, size_t level) const
 {
   assert(sort_kind != SORT_ANY);
   size_t res = 0;
-  for (size_t i = 0; i <= level; ++i)
+  if (d_term_db.find(sort_kind) != d_term_db.end())
   {
-    if (d_term_db[i].find(sort_kind) != d_term_db[i].end())
+    for (const auto& p : d_term_db.at(sort_kind))
     {
-      for (const auto& p : d_term_db[i].at(sort_kind))
-      {
-        res += p.second.size();
-      }
+      res += p.second.get_num_terms(level);
     }
   }
   return res;
@@ -511,11 +630,11 @@ size_t
 TermDb::get_num_terms(size_t level) const
 {
   size_t res = 0;
-  for (const auto& s : d_term_db[level])
+  for (const auto& s : d_term_db)
   {
     for (const auto& t : s.second)
     {
-      res += t.second.size();
+      res += t.second.get_num_terms(level);
     }
   }
   return res;
@@ -524,7 +643,7 @@ TermDb::get_num_terms(size_t level) const
 size_t
 TermDb::get_num_terms(SortKind sort_kind) const
 {
-  return get_num_terms(sort_kind, d_term_db.size() - 1);
+  return get_num_terms(sort_kind, d_vars.size() - 1);
 }
 
 Term
@@ -539,10 +658,11 @@ TermDb::pick_term(Sort sort, size_t level)
   assert(has_term(sort, level));
   assert(d_smgr.has_sort(sort));
 
-  assert(d_term_db[level].find(sort_kind) != d_term_db[level].end());
-  SortMap& smap = d_term_db[level].at(sort_kind);
+  assert(d_term_db.find(sort_kind) != d_term_db.end());
+  SortMap& smap = d_term_db.at(sort_kind);
   assert(smap.find(sort) != smap.end());
-  return smap.at(sort).pick(d_rng);
+  assert(smap.at(sort).get_num_terms(level) > 0);
+  return smap.at(sort).pick(d_rng, level);
 }
 
 Term
@@ -563,7 +683,7 @@ TermDb::pick_term(Sort sort)
     if (p) s = pick_sort(SORT_INT);
   }
 
-  return pick_term(s, pick_level(s));
+  return d_term_db.at(s->get_kind()).at(s).pick(d_rng);
 }
 
 Term
@@ -571,7 +691,7 @@ TermDb::pick_term(SortKind sort_kind, size_t level)
 {
   assert(sort_kind != SORT_ANY);
   assert(has_term(sort_kind, level));
-  assert(level < d_term_db.size());
+  assert(level < d_vars.size());
   if (d_smgr.d_arith_subtyping && sort_kind == SORT_REAL
       && has_term(SORT_INT, level))
   {
@@ -581,11 +701,21 @@ TermDb::pick_term(SortKind sort_kind, size_t level)
     std::vector<size_t> weights = {n_reals, n_ints};
     if (d_rng.pick_weighted<size_t>(weights)) sort_kind = SORT_INT;
   }
-  assert(d_term_db[level].find(sort_kind) != d_term_db[level].end());
+  assert(d_term_db.find(sort_kind) != d_term_db.end());
 
-  SortMap& smap = d_term_db[level].at(sort_kind);
-  Sort sort     = d_rng.pick_from_map<SortMap, Sort>(smap);
-  return smap.at(sort).pick(d_rng);
+  SortMap& smap = d_term_db.at(sort_kind);
+  /* Collect sorts with terms in given level. */
+  std::vector<Sort> sorts_with_terms;
+  for (const auto& [sort, tref] : smap)
+  {
+    if (tref.get_num_terms(level) > 0)
+    {
+      sorts_with_terms.push_back(sort);
+    }
+  }
+  assert(!sorts_with_terms.empty());
+  Sort sort = d_rng.pick_from_set<std::vector<Sort>, Sort>(sorts_with_terms);
+  return smap.at(sort).pick(d_rng, level);
 }
 
 Term
@@ -593,9 +723,7 @@ TermDb::pick_term(SortKind sort_kind)
 {
   assert(sort_kind != SORT_ANY);
   assert(has_term(sort_kind));
-
-  size_t level = pick_level(sort_kind);
-  return pick_term(sort_kind, level);
+  return pick_term(pick_sort(sort_kind));
 }
 
 Term
@@ -640,16 +768,9 @@ SortKind
 TermDb::pick_sort_kind() const
 {
   assert(has_term());
-
-  std::unordered_set<SortKind> kinds;
-  for (const auto& tmap : d_term_db)
-  {
-    for (const auto& p : tmap)
-    {
-      kinds.insert(p.first);
-    }
-  }
-  return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
+  auto it = d_term_db.begin();
+  std::advance(it, d_rng.pick<size_t>(0, d_term_db.size() - 1));
+  return it->first;
 }
 
 SortKind
@@ -659,11 +780,18 @@ TermDb::pick_sort_kind(size_t level,
   assert(has_term());
 
   std::unordered_set<SortKind> kinds;
-  for (const auto& p : d_term_db[level])
+  for (const auto& p : d_term_db)
   {
     if (exclude_sort_kinds.find(p.first) == exclude_sort_kinds.end())
     {
-      kinds.insert(p.first);
+      for (const auto& pp : p.second)
+      {
+        if (pp.second.get_num_terms(level) > 0)
+        {
+          kinds.insert(p.first);
+          break;
+        }
+      }
     }
   }
   return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
@@ -675,12 +803,9 @@ TermDb::pick_sort_kind(const SortKindSet& sort_kinds) const
   assert(has_term());
 
   std::unordered_set<SortKind> kinds;
-  for (const auto& tmap : d_term_db)
+  for (const auto& p : d_term_db)
   {
-    for (const auto& p : tmap)
-    {
-      if (sort_kinds.find(p.first) != sort_kinds.end()) kinds.insert(p.first);
-    }
+    if (sort_kinds.find(p.first) != sort_kinds.end()) kinds.insert(p.first);
   }
   return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
 }
@@ -691,14 +816,11 @@ TermDb::pick_sort_kind_excluding(const SortKindSet& exclude_sort_kinds) const
   assert(has_term());
 
   std::unordered_set<SortKind> kinds;
-  for (const auto& tmap : d_term_db)
+  for (const auto& p : d_term_db)
   {
-    for (const auto& p : tmap)
+    if (exclude_sort_kinds.find(p.first) == exclude_sort_kinds.end())
     {
-      if (exclude_sort_kinds.find(p.first) == exclude_sort_kinds.end())
-      {
-        kinds.insert(p.first);
-      }
+      kinds.insert(p.first);
     }
   }
   return d_rng.pick_from_set<SortKindSet, SortKind>(kinds);
@@ -709,9 +831,9 @@ TermDb::pick_sort(SortKind sort_kind) const
 {
   assert(sort_kind != SORT_ANY);
   assert(has_term(sort_kind));
-  size_t level = pick_level(sort_kind);
-  assert(d_term_db[level].find(sort_kind) != d_term_db[level].end());
-  Sort res = d_rng.pick_from_map<SortMap, Sort>(d_term_db[level].at(sort_kind));
+
+  assert(d_term_db.find(sort_kind) != d_term_db.end());
+  Sort res = d_rng.pick_from_map<SortMap, Sort>(d_term_db.at(sort_kind));
   assert(res->get_id());
   assert(res->get_kind() != SORT_ANY);
   return res;
@@ -774,69 +896,19 @@ TermDb::pick_quant_term(Sort sort)
   return pick_term(sort, max_level());
 }
 
-size_t
-TermDb::pick_level() const
-{
-  assert(has_term());
-
-  std::vector<size_t> levels;
-  for (size_t i = 0; i < d_term_db.size(); ++i)
-  {
-    levels.push_back(i + 1);
-  }
-  return d_rng.pick_weighted<size_t>(levels);
-}
-
-size_t
-TermDb::pick_level(SortKind& kind) const
-{
-  assert(kind != SORT_ANY);
-  assert(has_term(kind));
-
-  if (d_smgr.d_arith_subtyping && kind == SORT_REAL && has_term(SORT_INT))
-  {
-    size_t n_reals = get_num_terms(SORT_REAL);
-    size_t n_ints  = get_num_terms(SORT_INT);
-    assert(n_reals || n_ints);
-    std::vector<size_t> weights = {n_reals, n_ints};
-    if (d_rng.pick_weighted<size_t>(weights)) kind = SORT_INT;
-  }
-
-  std::vector<size_t> levels(d_term_db.size(), 0);
-  for (size_t i = 0; i < d_term_db.size(); ++i)
-  {
-    if (d_term_db[i].find(kind) != d_term_db[i].end())
-    {
-      levels[i] = i + 1;
-    }
-  }
-  return d_rng.pick_weighted<size_t>(levels);
-}
-
-size_t
-TermDb::pick_level(Sort sort) const
-{
-  assert(has_term(sort));
-
-  std::vector<size_t> levels(d_term_db.size(), 0);
-  SortKind kind = sort->get_kind();
-  for (size_t i = 0; i < d_term_db.size(); ++i)
-  {
-    if (d_term_db[i].find(kind) == d_term_db[i].end()) continue;
-    if (d_term_db[i].at(kind).find(sort) != d_term_db[i].at(kind).end())
-    {
-      levels[i] = i + 1;
-    }
-  }
-  return d_rng.pick_weighted<size_t>(levels);
-}
-
 void
 TermDb::push(Term& var)
 {
   var->set_levels({d_vars.size()});
-  d_term_db.emplace_back();
   d_vars.push_back(var);
+
+  for (auto& p : d_term_db)
+  {
+    for (auto& q : p.second)
+    {
+      q.second.push();
+    }
+  }
 }
 
 void
@@ -849,18 +921,45 @@ TermDb::pop(Term& var)
   assert(d_vars[level] == var);
 
   d_vars.pop_back();
-  d_term_db.pop_back();
+
+  /* Pop current level from d_term_db and cleanup. */
+  for (auto it = d_term_db.begin(); it != d_term_db.end();)
+  {
+    auto& skind = it->first;
+    auto& skmap = it->second;
+    ++it;
+
+    for (auto iit = skmap.begin(); iit != skmap.end();)
+    {
+      auto& tref       = iit->second;
+      const auto& sort = iit->first;
+      ++iit;
+
+      tref.pop();
+
+      /* Remove sorts without terms. */
+      if (tref.size() == 0)
+      {
+        skmap.erase(sort);
+      }
+    }
+
+    /* Remove sort kinds without terms. */
+    if (skmap.empty())
+    {
+      d_term_db.erase(skind);
+    }
+  }
 
   /* Recompute d_term_sorts */
   d_term_sorts.clear();
-  for (const auto& tmap : d_term_db)
+  for (const auto& p : d_term_db)
   {
-    for (const auto& p : tmap)
+    assert(!p.second.empty());
+    for (const auto& pp : p.second)
     {
-      for (const auto& pp : p.second)
-      {
-        d_term_sorts.insert(pp.first);
-      }
+      assert(pp.second.size() > 0);
+      d_term_sorts.insert(pp.first);
     }
   }
 }

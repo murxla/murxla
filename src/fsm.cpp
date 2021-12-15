@@ -444,7 +444,8 @@ FSM::configure()
   s_inputs->add_action(a_mkval, 10);
   s_inputs->add_action(a_mksval, 5);
   s_inputs->add_action(a_mkconst, 2);
-  if (d_smgr.get_solver().supports_theory(THEORY_QUANT))
+  const auto& enabled_theories = d_smgr.get_enabled_theories();
+  if (enabled_theories.find(THEORY_QUANT) != enabled_theories.end())
   {
     s_inputs->add_action(a_mkvar, 20);
   }

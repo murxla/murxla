@@ -605,6 +605,7 @@ class AbsTerm
    * SPECIAL_VALUE_NONE if not a value or no special value.
    */
   SpecialValueKind d_value_kind  = SPECIAL_VALUE_NONE;
+  /* Stores (sorted) list of unique scope levels of all subterms. */
   std::vector<uint64_t> d_levels = {};
 };
 

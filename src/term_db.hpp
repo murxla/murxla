@@ -19,8 +19,12 @@ class RNGenerator;
 class TermRefs
 {
  public:
+  const static size_t MAX_LEVEL = std::numeric_limits<size_t>::max();
+
+  TermRefs(size_t level);
+
   /** Add term. */
-  void add(const Term& t);
+  void add(const Term& t, size_t level);
   /** Check if term was already added. */
   bool contains(const Term& t) const;
   /** Get stored term. */
@@ -29,7 +33,7 @@ class TermRefs
    * Pick random term based on reference counts.
    * Terms with higher reference count have lower probability to be picked.
    */
-  Term pick(RNGenerator& rng);
+  Term pick(RNGenerator& rng, size_t level = MAX_LEVEL);
   /** Return number of stored terms. */
   size_t size() const;
 
@@ -71,7 +75,15 @@ class TermRefs
   Iterator begin() const { return Iterator(d_idx.cbegin()); }
   Iterator end() const { return Iterator(d_idx.cend()); }
 
+  void push();
+  void pop();
+
+  size_t get_num_terms(size_t level) const;
+
  private:
+  size_t get_level_begin(size_t level);
+  size_t get_level_end(size_t level);
+
   /** Map term to term index. */
   std::unordered_map<Term, size_t> d_idx;
   /** Maps term index to term. */
@@ -82,6 +94,9 @@ class TermRefs
   std::vector<size_t> d_weights;
   /** Sum of all references d_refs, used to compute weights in pick(). */
   size_t d_refs_sum = 0;
+
+  /* Maps level to number of corresponding terms. */
+  std::vector<size_t> d_levels;
 };
 
 class TermDb
@@ -361,35 +376,12 @@ class TermDb
    */
   size_t get_num_terms(SortKind sort_kind, size_t level) const;
 
-  /**
-   * Pick a scope level.
-   * Lower levels are picked less often.
-   */
-  size_t pick_level() const;
-  /**
-   * Pick a scope level that has terms with given sort kind.
-   * Lower levels are picked less often.
-   *
-   * Special case: If sort kind is SORT_REAL and arithmetic subtyping is
-   *               enabled, we pick a level either for kind SORT_INT or
-   *               SORT_REAL, weighted by number of terms of these sorts in the
-   *               database.
-   *               Note: If level of kind SORT_INT is picked, 'kind' is reset
-   *                     to SORT_INT.
-   */
-  size_t pick_level(SortKind& kind) const;
-  /**
-   * Pick a scope level that has terms with given sort.
-   * Lower levels are picked less often.
-   */
-  size_t pick_level(Sort sort) const;
-
   SolverManager& d_smgr;
 
   RNGenerator& d_rng;
 
-  /** Term database that maps level -> SortKind -> Sort -> TermRefs */
-  std::vector<SortTermMap> d_term_db;
+  /** Term database that maps SortKind -> Sort -> TermRefs */
+  SortTermMap d_term_db;
 
   /**
    * Maps term ids to terms.
