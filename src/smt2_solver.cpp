@@ -1317,7 +1317,16 @@ Smt2Solver::mk_sort(
       for (const auto& s : c.second)
       {
         Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(s.second.get());
-        smt2 << " (" << s.first << " " << smt2_sort->get_repr() << ")";
+        smt2 << " (" << s.first << " ";
+        if (smt2_sort)
+        {
+          smt2 << smt2_sort->get_repr();
+        }
+        else
+        {
+          smt2 << name;
+        }
+        smt2 << ")";
       }
       smt2 << ")";
     }
