@@ -1429,6 +1429,7 @@ Cvc5Solver::mk_sort(
   assert(n_dt_sorts == constructors.size());
 
   std::vector<::cvc5::api::DatatypeDecl> cvc5_dtypedecls;
+  std::set<::cvc5::api::Sort> cvc5_usorts;
 
   for (size_t i = 0; i < n_dt_sorts; ++i)
   {
@@ -1438,6 +1439,7 @@ Cvc5Solver::mk_sort(
 
     bool is_parametric = !psorts.empty();
     std::unordered_map<std::string, ::cvc5::api::Sort> symbol_to_cvc5_psorts;
+    std::unordered_map<std::string, ::cvc5::api::Sort> symbol_to_cvc5_usorts;
     std::vector<::cvc5::api::Sort> cvc5_psorts;
     for (const auto& s : psorts)
     {
@@ -1487,6 +1489,24 @@ Cvc5Solver::mk_sort(
                    != symbol_to_cvc5_psorts.end());
             cvc5_cdecl.addSelector(sname, symbol_to_cvc5_psorts.at(symbol));
           }
+          else if (ssort->is_unresolved_sort())
+          {
+            const std::string& symbol =
+                dynamic_cast<UnresolvedSort*>(ssort.get())->get_symbol();
+            const auto& it = symbol_to_cvc5_usorts.find(symbol);
+            ::cvc5::api::Sort cvc5_unres_sort;
+            if (it == symbol_to_cvc5_usorts.end())
+            {
+              cvc5_unres_sort = d_solver->mkUninterpretedSort(symbol);
+              symbol_to_cvc5_usorts[symbol] = cvc5_unres_sort;
+              cvc5_usorts.insert(cvc5_unres_sort);
+            }
+            else
+            {
+              cvc5_unres_sort = it->second;
+            }
+            cvc5_cdecl.addSelector(sname, cvc5_unres_sort);
+          }
           else
           {
             cvc5_cdecl.addSelector(sname, Cvc5Sort::get_cvc5_sort(ssort));
@@ -1501,6 +1521,7 @@ Cvc5Solver::mk_sort(
 
   if (n_dt_sorts == 1 && d_rng.flip_coin())
   {
+    assert(cvc5_usorts.empty());
     ::cvc5::api::Sort cvc5_res = d_solver->mkDatatypeSort(cvc5_dtypedecls[0]);
     MURXLA_TEST(!cvc5_res.isNull());
     MURXLA_TEST(!cvc5_res.getDatatype().isNull());
@@ -1508,7 +1529,7 @@ Cvc5Solver::mk_sort(
   }
 
   std::vector<::cvc5::api::Sort> cvc5_res =
-      d_solver->mkDatatypeSorts(cvc5_dtypedecls);
+      d_solver->mkDatatypeSorts(cvc5_dtypedecls, cvc5_usorts);
   size_t idx = d_rng.pick<size_t>(0, cvc5_res.size() - 1);
   MURXLA_TEST(!cvc5_res[idx].isNull());
   MURXLA_TEST(!cvc5_res[idx].getDatatype().isNull());

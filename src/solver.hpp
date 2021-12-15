@@ -188,10 +188,15 @@ class AbsSort
   /** Set the datatype constructor map of this sort. */
   virtual void set_dt_ctors(const DatatypeConstructorMap& ctors);
 
-  /* Only to be overriden by ParanSort.                                     */
+  /* Only to be overriden by ParamSort.                                     */
   /* ---------------------------------------------------------------------- */
 
   virtual bool is_param_sort() const;
+
+  /* Only to be overriden by UnresolvedSort.                                */
+  /* ---------------------------------------------------------------------- */
+
+  virtual bool is_unresolved_sort() const;
 
   /* NOT to be overriden, murxla level.                                     */
   /* ---------------------------------------------------------------------- */
@@ -208,7 +213,7 @@ class AbsSort
   const std::vector<Sort>& get_sorts() const;
 
   /** Get the datatype constructor map of this sort. */
-  const DatatypeConstructorMap& get_dt_ctors() const;
+  DatatypeConstructorMap& get_dt_ctors();
   /** Get the list of constructor names of this sort (murxla level). */
   std::vector<std::string> get_dt_ctor_names() const;
   /** Get the list of selector names of the given constructor (murxla level). */
@@ -291,25 +296,62 @@ class ParamSort : public AbsSort
   size_t hash() const override;
   std::string to_string() const override;
   bool equals(const Sort& other) const override;
-  bool is_array() const override;
-  bool is_bag() const override;
-  bool is_bool() const override;
-  bool is_bv() const override;
-  bool is_dt() const override;
-  bool is_dt_parametric() const override;
-  bool is_fp() const override;
-  bool is_fun() const override;
-  bool is_int() const override;
-  bool is_real() const override;
-  bool is_rm() const override;
-  bool is_reglan() const override;
-  bool is_seq() const override;
-  bool is_set() const override;
-  bool is_string() const override;
+  bool is_array() const override { return false; }
+  bool is_bag() const override { return false; }
+  bool is_bool() const override { return false; }
+  bool is_bv() const override { return false; }
+  bool is_dt() const override { return false; }
+  bool is_dt_parametric() const override { return false; }
+  bool is_fp() const override { return false; }
+  bool is_fun() const override { return false; }
+  bool is_int() const override { return false; }
+  bool is_real() const override { return false; }
+  bool is_rm() const override { return false; }
+  bool is_reglan() const override { return false; }
+  bool is_seq() const override { return false; }
+  bool is_set() const override { return false; }
+  bool is_string() const override { return false; }
 
-  bool is_param_sort() const override;
+  bool is_param_sort() const override { return true; }
 
-  const std::string& get_symbol() const;
+  const std::string& get_symbol() const { return d_symbol; }
+
+ private:
+  std::string d_symbol;
+};
+
+/**
+ * Unresolved sort.
+ * Only to be used for mutually recursive datatypes. Instances of
+ * UnresolvedSort may never be added to the solver manager's sort database.
+ * No terms of UnresolvedSort may ever be created.
+ */
+class UnresolvedSort : public AbsSort
+{
+ public:
+  UnresolvedSort(const std::string& symbol) : d_symbol(symbol) {}
+  size_t hash() const override;
+  std::string to_string() const override;
+  bool equals(const Sort& other) const override;
+  bool is_array() const override { return false; }
+  bool is_bag() const override { return false; }
+  bool is_bool() const override { return false; }
+  bool is_bv() const override { return false; }
+  bool is_dt() const override { return false; }
+  bool is_dt_parametric() const override { return false; }
+  bool is_fp() const override { return false; }
+  bool is_fun() const override { return false; }
+  bool is_int() const override { return false; }
+  bool is_real() const override { return false; }
+  bool is_rm() const override { return false; }
+  bool is_reglan() const override { return false; }
+  bool is_seq() const override { return false; }
+  bool is_set() const override { return false; }
+  bool is_string() const override { return false; }
+
+  bool is_unresolved_sort() const override { return true; }
+
+  const std::string& get_symbol() const { return d_symbol; }
 
  private:
   std::string d_symbol;

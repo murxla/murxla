@@ -289,6 +289,7 @@ SolverManager::add_term(Term& term,
   d_term_db.add_term(term, lookup, sort_kind, args);
   assert(lookup->get_id());
   assert(lookup->get_kind() != SORT_ANY);
+  assert(!lookup->is_dt() || !lookup->get_dt_ctor_names().empty());
   assert(sort_kind != SORT_SEQ
          || (lookup->get_sorts().size() == 1
              && lookup->get_sorts()[0]->get_kind() != SORT_ANY));
@@ -356,6 +357,7 @@ SolverManager::add_sort(Sort& sort,
              && sort->get_sorts()[0]->get_kind() != SORT_ANY
              && sort->get_sorts()[1]->get_kind() != SORT_ANY));
   assert(sort->get_id());
+  assert(!sort->is_dt() || !sort->get_dt_ctor_names().empty());
 
   /* We do not add parametric datatype sorts here. These should never be
    * picked for anything except instantiating the sort (see
@@ -1158,7 +1160,15 @@ SolverManager::find_sort(Sort sort) const
   auto it = d_sorts.find(sort);
   if (it == d_sorts.end())
   {
-    return sort;
+    it = d_sorts_dt_parametric.find(sort);
+    if (it == d_sorts_dt_parametric.end())
+    {
+      it = d_sorts_dt_non_well_founded.find(sort);
+      if (it == d_sorts_dt_non_well_founded.end())
+      {
+        return sort;
+      }
+    }
   }
   return *it;
 }

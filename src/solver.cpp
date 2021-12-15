@@ -60,6 +60,12 @@ AbsSort::is_param_sort() const
   return false;
 }
 
+bool
+AbsSort::is_unresolved_sort() const
+{
+  return false;
+}
+
 std::vector<std::string>
 AbsSort::get_dt_ctor_names() const
 {
@@ -102,8 +108,8 @@ AbsSort::get_dt_sel_sort(Sort dt_sort,
   return res;
 }
 
-const AbsSort::DatatypeConstructorMap&
-AbsSort::get_dt_ctors() const
+AbsSort::DatatypeConstructorMap&
+AbsSort::get_dt_ctors()
 {
   return d_dt_ctors;
 }
@@ -288,6 +294,11 @@ operator<<(std::ostream& out, const Sort s)
       assert(!s->get_id());
       out << "s\"" << s->to_string() << "\"";
     }
+    else if (s->is_unresolved_sort())
+    {
+      assert(!s->get_id());
+      out << "s<\"" << s->to_string() << "\">";
+    }
     else
     {
       assert(s->get_id());
@@ -326,106 +337,22 @@ ParamSort::equals(const Sort& other) const
   return d_symbol == dynamic_cast<ParamSort*>(other.get())->get_symbol();
 }
 
-bool
-ParamSort::is_array() const
+size_t
+UnresolvedSort::hash() const
 {
-  return false;
+  return std::hash<std::string>{}(d_symbol);
 }
 
-bool
-ParamSort::is_bag() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_bool() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_bv() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_dt() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_dt_parametric() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_fp() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_fun() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_int() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_real() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_rm() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_reglan() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_seq() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_set() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_string() const
-{
-  return false;
-}
-
-bool
-ParamSort::is_param_sort() const
-{
-  return true;
-}
-
-const std::string&
-ParamSort::get_symbol() const
+std::string
+UnresolvedSort::to_string() const
 {
   return d_symbol;
+}
+
+bool
+UnresolvedSort::equals(const Sort& other) const
+{
+  return d_symbol == dynamic_cast<UnresolvedSort*>(other.get())->get_symbol();
 }
 
 /* -------------------------------------------------------------------------- */

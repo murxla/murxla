@@ -350,7 +350,7 @@ class ActionMkSort : public Action
       SortKind kind,
       const std::vector<std::string>& dt_names,
       const std::vector<std::vector<Sort>>& param_sorts,
-      const std::vector<AbsSort::DatatypeConstructorMap>& constructors);
+      std::vector<AbsSort::DatatypeConstructorMap>& constructors);
 
   /** Perform checks on the created sort. */
   void check_sort(Sort sort, const std::string& name) const;
