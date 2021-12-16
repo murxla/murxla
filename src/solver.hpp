@@ -209,7 +209,15 @@ class AbsSort
   /** Get the kind of this sort. */
   SortKind get_kind() const;
 
-  /** Get the sort parameters of this sort. */
+  /**
+   * Get the sort parameters of this sort.
+   *
+   * Note:
+   * - If this sort is a ParamSort, this returns the back reference to the
+   *   associated DT sort.
+   * - If this is an UnresolvedSort that refers to a parametric DT, this
+   *   returns the set of sort parameters to instantiate the sort with.
+   */
   const std::vector<Sort>& get_sorts() const;
 
   /** Get the datatype constructor map of this sort. */
@@ -285,9 +293,12 @@ std::ostream& operator<<(std::ostream& out, const std::vector<Sort>& vector);
 
 /**
  * Parameter sort.
+ *
  * Only to be used for parameterizing datatypes. Instances of ParamSort may
  * never be added to the solver manager's sort database. No terms of ParamSort
  * may ever be created.
+ *
+ * A back reference to the associated DT sort is stored in d_sorts.
  */
 class ParamSort : public AbsSort
 {
@@ -833,6 +844,9 @@ class Solver
    * Note: Selectors may return a term of the sort that is currently be
    *       created. We indicate this by passing a nullptr for the selector
    *       codomain sort. Solvers must special case this accordingly.
+   *
+   *       Parameter sorts keep a back reference to the associated DT sort
+   *       in ParamSort::d_sorts (inherited from AbsSort).
    *
    *       For mutually recursive datatypes, we use instances of UnresolvedSort
    *       as place holders. These instances are not unique, we create a new

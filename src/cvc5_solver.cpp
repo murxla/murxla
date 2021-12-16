@@ -1518,8 +1518,23 @@ Cvc5Solver::mk_sort(
 
             if (arity)
             {
-              const auto& cvc5_inst_sorts =
-                  Cvc5Sort::sorts_to_cvc5_sorts(inst_sorts);
+              std::vector<::cvc5::api::Sort> cvc5_inst_sorts;
+              for (const Sort& s : inst_sorts)
+              {
+                if (s->is_param_sort())
+                {
+                  assert(!s->is_unresolved_sort());
+                  const std::string& s_symbol =
+                      dynamic_cast<ParamSort*>(s.get())->get_symbol();
+                  assert(symbol_to_cvc5_psorts.find(s_symbol)
+                         != symbol_to_cvc5_psorts.end());
+                  cvc5_inst_sorts.push_back(symbol_to_cvc5_psorts.at(s_symbol));
+                }
+                else
+                {
+                  cvc5_inst_sorts.push_back(Cvc5Sort::get_cvc5_sort(s));
+                }
+              }
               cvc5_cdecl.addSelector(
                   sname, cvc5_unres_sort.instantiate(cvc5_inst_sorts));
             }
@@ -1566,9 +1581,34 @@ Sort
 Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 {
   ::cvc5::api::Sort cvc5_param_sort = Cvc5Sort::get_cvc5_sort(param_sort);
-  std::vector<::cvc5::api::Sort> cvc5_sorts =
-      Cvc5Sort::sorts_to_cvc5_sorts(sorts);
+  std::vector<::cvc5::api::Sort> cvc5_sorts;
+
+  for (const Sort& s : sorts)
+  {
+    if (s->is_param_sort())
+    {
+      assert(!s->is_unresolved_sort());
+      assert(s->get_sorts().size() == 1);
+      const std::string& s_symbol =
+          dynamic_cast<ParamSort*>(s.get())->get_symbol();
+      ::cvc5::api::Sort cvc5_dt_sort =
+          Cvc5Sort::get_cvc5_sort(s->get_sorts()[0]);
+      const auto& cvc5_sort_params = cvc5_dt_sort.getDatatype().getParameters();
+      const auto& it               = std::find_if(
+          cvc5_sort_params.begin(),
+          cvc5_sort_params.end(),
+          [&s_symbol](auto& sort) { return sort.getSymbol() == s_symbol; });
+      assert(it != cvc5_sort_params.end());
+      cvc5_sorts.push_back(*it);
+    }
+    else
+    {
+      cvc5_sorts.push_back(Cvc5Sort::get_cvc5_sort(s));
+    }
+  }
+
   ::cvc5::api::Sort cvc5_res = cvc5_param_sort.instantiate(cvc5_sorts);
+
   MURXLA_TEST(!cvc5_res.isNull());
   return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res));
 }

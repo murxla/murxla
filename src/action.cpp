@@ -1075,6 +1075,12 @@ ActionMkSort::_run(SortKind kind,
   }
   for (size_t i = 0; i < n_dt_sorts; ++i)
   {
+    /* add back reference to DT sort for param sorts */
+    for (auto& p : param_sorts[i])
+    {
+      p->set_sorts({res_sorts[i]});
+    }
+
     /* update unresolved sorts */
     for (auto& c : res_sorts[i]->get_dt_ctors())
     {
