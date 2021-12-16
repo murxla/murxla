@@ -833,6 +833,17 @@ class Solver
    * Note: Selectors may return a term of the sort that is currently be
    *       created. We indicate this by passing a nullptr for the selector
    *       codomain sort. Solvers must special case this accordingly.
+   *
+   *       For mutually recursive datatypes, we use instances of UnresolvedSort
+   *       as place holders. These instances are not unique, we create a new
+   *       instance of UnresolvedSort for every occurence of an unresolved sort.
+   *       Solvers must distinguish these sorts via their names
+   *       (see UnresolvedSort::get_symbol()).
+   *
+   *       If the mutually recursive datatypes are parametric, then
+   *       we specify sorts for instantiating these parameters, and store them
+   *       in UnresolvedSort::d_sorts (inherited from AbsSort). These sorts can
+   *       be retrieved via UnresolvedSort::get_sorts() (inherited).
    */
   virtual std::vector<Sort> mk_sort(
       SortKind kind,

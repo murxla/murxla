@@ -1494,18 +1494,39 @@ Cvc5Solver::mk_sort(
             const std::string& symbol =
                 dynamic_cast<UnresolvedSort*>(ssort.get())->get_symbol();
             const auto& it = symbol_to_cvc5_usorts.find(symbol);
+            const auto& inst_sorts = ssort->get_sorts();
+            size_t arity           = inst_sorts.size();
             ::cvc5::api::Sort cvc5_unres_sort;
             if (it == symbol_to_cvc5_usorts.end())
             {
-              cvc5_unres_sort = d_solver->mkUninterpretedSort(symbol);
+              if (arity > 0)
+              {
+                cvc5_unres_sort =
+                    d_solver->mkSortConstructorSort(symbol, arity);
+              }
+              else
+              {
+                cvc5_unres_sort = d_solver->mkUninterpretedSort(symbol);
+              }
               symbol_to_cvc5_usorts[symbol] = cvc5_unres_sort;
               cvc5_usorts.insert(cvc5_unres_sort);
             }
             else
             {
-              cvc5_unres_sort = it->second;
+              cvc5_unres_sort = symbol_to_cvc5_usorts.at(symbol);
             }
-            cvc5_cdecl.addSelector(sname, cvc5_unres_sort);
+
+            if (arity)
+            {
+              const auto& cvc5_inst_sorts =
+                  Cvc5Sort::sorts_to_cvc5_sorts(inst_sorts);
+              cvc5_cdecl.addSelector(
+                  sname, cvc5_unres_sort.instantiate(cvc5_inst_sorts));
+            }
+            else
+            {
+              cvc5_cdecl.addSelector(sname, cvc5_unres_sort);
+            }
           }
           else
           {

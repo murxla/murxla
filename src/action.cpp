@@ -534,27 +534,16 @@ ActionMkSort::run()
       bool mutual_rec     = n_dt_sorts > 1 && d_rng.flip_coin();
 
       std::vector<std::string> dt_names;
+      std::vector<std::vector<Sort>> param_sorts;
+      std::vector<AbsSort::DatatypeConstructorMap> constructors;
+      std::unordered_map<std::string, uint32_t> dt_n_params;
+
       for (uint32_t i = 0; i < n_dt_sorts; ++i)
       {
         dt_names.push_back(d_smgr.pick_symbol());
-      }
-
-      std::vector<std::vector<Sort>> param_sorts;
-      std::vector<AbsSort::DatatypeConstructorMap> constructors;
-
-      for (uint32_t i = 0; i < n_dt_sorts; ++i)
-      {
         bool parametric = (no_sel_sorts && !mutual_rec) || d_rng.flip_coin();
-
-        std::string dt_name = dt_names[i];
-
-        uint32_t n_ctors =
-            d_rng.pick<uint32_t>(MURXLA_DT_CON_MIN, MURXLA_DT_CON_MAX);
-        AbsSort::DatatypeConstructorMap ctors;
-
-        uint32_t n_psorts = 0;
         std::vector<Sort> psorts;
-
+        uint32_t n_psorts = 0;
         if (parametric)
         {
           n_psorts = d_rng.pick<uint32_t>(MURXLA_DT_PARAM_SORT_MIN,
@@ -565,8 +554,19 @@ ActionMkSort::run()
                 new ParamSort(d_smgr.pick_symbol())));
           }
         }
+        param_sorts.push_back(psorts);
+        dt_n_params[dt_names.back()] = n_psorts;
+      }
 
-        std::unordered_map<std::string, Sort> symbol_to_usort;
+      for (uint32_t i = 0; i < n_dt_sorts; ++i)
+      {
+        const std::string& dt_name = dt_names[i];
+        const auto& psorts         = param_sorts[i];
+        bool parametric            = psorts.size() > 0;
+
+        uint32_t n_ctors =
+            d_rng.pick<uint32_t>(MURXLA_DT_CON_MIN, MURXLA_DT_CON_MAX);
+        AbsSort::DatatypeConstructorMap ctors;
 
         for (uint32_t j = 0; j < n_ctors; ++j)
         {
@@ -602,16 +602,27 @@ ActionMkSort::run()
                   uname = d_rng.pick_from_set<decltype(dt_names), std::string>(
                       dt_names);
                 } while (uname == dt_name);
-                const auto& it = symbol_to_usort.find(uname);
-                if (it == symbol_to_usort.end())
+                s = std::shared_ptr<UnresolvedSort>(new UnresolvedSort(uname));
+                if (dt_n_params.at(uname) > 0)
                 {
-                  s = std::shared_ptr<UnresolvedSort>(
-                      new UnresolvedSort(uname));
-                  symbol_to_usort[uname] = s;
-                }
-                else
-                {
-                  s = it->second;
+                  /* pick sorts to instantiate parametric (unresolved) sort */
+                  std::vector<Sort> inst_sorts;
+                  for (size_t l = 0, n = dt_n_params.at(uname); l < n; ++l)
+                  {
+                    if (psorts.size() && d_rng.flip_coin())
+                    {
+                      inst_sorts.push_back(
+                          d_rng.pick_from_set<decltype(psorts), Sort>(psorts));
+                    }
+                    else
+                    {
+                      SortKindSet excl =
+                          d_solver.get_unsupported_sort_param_sort_kinds();
+                      inst_sorts.push_back(
+                          d_smgr.pick_sort_excluding(excl, false));
+                    }
+                  }
+                  s->set_sorts(inst_sorts);
                 }
               }
               else
@@ -629,7 +640,6 @@ ActionMkSort::run()
           } while (ctors.find(cname) != ctors.end());
           ctors[cname] = sels;
         }
-        param_sorts.push_back(psorts);
         constructors.push_back(ctors);
       }
       _run(kind, dt_names, param_sorts, constructors);
@@ -1074,11 +1084,28 @@ ActionMkSort::_run(SortKind kind,
         Sort& ssort = s.second;
         if (ssort && ssort->is_unresolved_sort())
         {
-          const std::string& symbol =
-              dynamic_cast<UnresolvedSort*>(ssort.get())->get_symbol();
+          UnresolvedSort* usort = dynamic_cast<UnresolvedSort*>(ssort.get());
+          const std::string& symbol = usort->get_symbol();
           auto it = symbol_to_dt_sort.find(symbol);
           assert(it != symbol_to_dt_sort.end());
           ssort = it->second;
+          if (ssort->is_dt_parametric() && !ssort->is_dt_instantiated())
+          {
+            /* we have to instantiate and cache the instantiated parametric
+             * unresolved sort */
+            const auto& inst_sorts = usort->get_sorts();
+            assert(!inst_sorts.empty());
+            Sort inst_ssort = d_solver.instantiate_sort(ssort, inst_sorts);
+            inst_ssort->set_dt_is_instantiated(true);
+            inst_ssort->set_dt_ctors(
+                ssort->instantiate_dt_param_sort(inst_sorts));
+            inst_ssort->set_sorts(inst_sorts);
+            d_smgr.add_sort(inst_ssort,
+                            ssort->get_kind(),
+                            false,
+                            inst_ssort->is_dt_well_founded());
+            ssort = inst_ssort;
+          }
         }
       }
     }
@@ -2004,12 +2031,6 @@ ActionMkTerm::_run(Op::Kind kind,
   MURXLA_TRACE << get_kind() << trace_str.str();
 
   Term res = d_solver.mk_term(kind, str_args, args);
-  Sort sel_sort;
-  if (kind == Op::DT_APPLY_SEL)
-  {
-    sel_sort = args[0]->get_sort()->get_dt_sel_sort(
-        args[0]->get_sort(), str_args[0], str_args[1]);
-  }
   d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
 
