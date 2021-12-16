@@ -25,6 +25,7 @@ option(ENABLE_BOOLECTOR "enable Boolector" ON)
 option(ENABLE_BITWUZLA "enable Bitwuzla" ON)
 option(ENABLE_CVC5 "enable cvc5" ON)
 option(ENABLE_YICES "enable Yices" ON)
+option(ASAN "compile with ASAN support" OFF)
 
 #-----------------------------------------------------------------------------#
 
