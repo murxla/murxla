@@ -819,7 +819,6 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
         uint32_t n_params   = str_to_uint32(tokens[idx++]);
         std::vector<Sort> psorts;
         std::unordered_map<std::string, Sort> symbol_to_psort;
-        std::unordered_map<std::string, Sort> symbol_to_usort;
         for (uint32_t i = 0; i < n_params; ++i)
         {
           MURXLA_CHECK_TRACE(tokens[idx].substr(0, 2) == "s\"")
@@ -850,23 +849,31 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
             {
               std::string pname = str_to_str(tokens[idx++].substr(1));
               assert(symbol_to_psort.find(pname) != symbol_to_psort.end());
-              ssort = symbol_to_psort[pname];
+              ssort = symbol_to_psort.at(pname);
             }
             else if (tokens[idx].substr(0, 2) == "s<")
             {
               const std::string& t = tokens[idx++];
               std::string uname    = str_to_str(t.substr(2, t.size() - 3));
-              const auto& it       = symbol_to_usort.find(uname);
-              if (it == symbol_to_usort.end())
+              ssort =
+                  std::shared_ptr<UnresolvedSort>(new UnresolvedSort(uname));
+              uint32_t n_inst_sorts = str_to_uint32(tokens[idx++]);
+              std::vector<Sort> inst_sorts;
+              for (uint32_t k = 0; k < n_inst_sorts; ++k)
               {
-                ssort =
-                    std::shared_ptr<UnresolvedSort>(new UnresolvedSort(uname));
-                symbol_to_usort[uname] = ssort;
+                if (tokens[idx].substr(0, 2) == "s\"")
+                {
+                  std::string upname = str_to_str(tokens[idx++].substr(1));
+                  assert(symbol_to_psort.find(upname) != symbol_to_psort.end());
+                  inst_sorts.push_back(symbol_to_psort.at(upname));
+                }
+                else
+                {
+                  inst_sorts.push_back(d_smgr.get_untraced_sort(
+                      untrace_str_to_id(tokens[idx++])));
+                }
               }
-              else
-              {
-                ssort = it->second;
-              }
+              ssort->set_sorts(inst_sorts);
             }
             else
             {
@@ -1076,6 +1083,11 @@ ActionMkSort::_run(SortKind kind,
         const auto& sname = s.first;
         const auto& ssort = s.second;
         ss << " \"" << sname << "\" " << ssort;
+        if (ssort && ssort->is_unresolved_sort())
+        {
+          const auto& ssorts = ssort->get_sorts();
+          ss << " " << ssorts.size() << ssorts;
+        }
       }
     }
   }
