@@ -3281,7 +3281,7 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
     auto info = slv.getOptionInfo(option);
     if (std::holds_alternative<OptionInfo::ValueInfo<bool>>(info.valueInfo))
     {
-      smgr->add_option(new SolverOptionBool(option));
+      smgr->add_option(new SolverOptionBool(option, info.boolValue()));
     }
     else if (std::holds_alternative<OptionInfo::NumberInfo<int64_t>>(
                  info.valueInfo))
@@ -3290,7 +3290,8 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
       smgr->add_option(new SolverOptionNum<int64_t>(
           option,
           num_info.minimum.value_or(std::numeric_limits<int64_t>::min()),
-          num_info.maximum.value_or(std::numeric_limits<int64_t>::max())));
+          num_info.maximum.value_or(std::numeric_limits<int64_t>::max()),
+          info.intValue()));
     }
     else if (std::holds_alternative<OptionInfo::NumberInfo<uint64_t>>(
                  info.valueInfo))
@@ -3300,12 +3301,14 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
       smgr->add_option(new SolverOptionNum<uint64_t>(
           option,
           num_info.minimum.value_or(std::numeric_limits<uint64_t>::min()),
-          num_info.maximum.value_or(std::numeric_limits<uint64_t>::max())));
+          num_info.maximum.value_or(std::numeric_limits<uint64_t>::max()),
+          info.uintValue()));
     }
     else if (std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo))
     {
       auto mode_info = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-      smgr->add_option(new SolverOptionList(option, mode_info.modes));
+      smgr->add_option(
+          new SolverOptionList(option, mode_info.modes, info.stringValue()));
     }
     else if (std::holds_alternative<OptionInfo::NumberInfo<double>>(
                  info.valueInfo))
@@ -3314,7 +3317,8 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
       smgr->add_option(new SolverOptionNum<double>(
           option,
           num_info.minimum.value_or(std::numeric_limits<double>::min()),
-          num_info.maximum.value_or(std::numeric_limits<double>::max())));
+          num_info.maximum.value_or(std::numeric_limits<double>::max()),
+          info.doubleValue()));
     }
   }
 }

@@ -2077,7 +2077,8 @@ BtorSolver::configure_options(SolverManager* smgr) const
     smgr->add_option(
         new SolverOptionNum<uint32_t>(boolector_get_opt_lng(slv, o),
                                       boolector_get_opt_min(slv, o),
-                                      boolector_get_opt_max(slv, o)));
+                                      boolector_get_opt_max(slv, o),
+                                      boolector_get_opt_dflt(slv, o)));
   }
   boolector_delete(slv);
 }

@@ -1645,8 +1645,10 @@ BzlaSolver::configure_options(SolverManager* smgr) const
     bitwuzla_get_option_info(bzla, opt, &info);
     if (info.is_numeric)
     {
-      smgr->add_option(new SolverOptionNum<uint32_t>(
-          info.lng, info.numeric.min_val, info.numeric.max_val));
+      smgr->add_option(new SolverOptionNum<uint32_t>(info.lng,
+                                                     info.numeric.min_val,
+                                                     info.numeric.max_val,
+                                                     info.numeric.def_val));
     }
     else
     {
@@ -1655,7 +1657,8 @@ BzlaSolver::configure_options(SolverManager* smgr) const
       {
         values.emplace_back(info.string.values[j]);
       }
-      smgr->add_option(new SolverOptionList(info.lng, values));
+      smgr->add_option(
+          new SolverOptionList(info.lng, values, info.string.def_val));
     }
   }
   bitwuzla_delete(bzla);

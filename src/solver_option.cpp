@@ -44,9 +44,10 @@ SolverOption::add_depends(const std::string& opt_name)
 }
 
 SolverOptionBool::SolverOptionBool(const std::string& name,
+                                   bool default_value,
                                    const std::vector<std::string>& depends,
                                    const std::vector<std::string>& conflicts)
-    : SolverOption(name, depends, conflicts){};
+    : SolverOption(name, depends, conflicts), d_default(default_value){};
 
 std::string
 SolverOptionBool::pick_value(RNGenerator& rng) const
@@ -56,9 +57,12 @@ SolverOptionBool::pick_value(RNGenerator& rng) const
 
 SolverOptionList::SolverOptionList(const std::string& name,
                                    const std::vector<std::string>& values,
+                                   const std::string& default_value,
                                    const std::vector<std::string>& depends,
                                    const std::vector<std::string>& conflicts)
-    : SolverOption(name, depends, conflicts), d_values(values){};
+    : SolverOption(name, depends, conflicts),
+      d_values(values),
+      d_default(default_value){};
 
 std::string
 SolverOptionList::pick_value(RNGenerator& rng) const

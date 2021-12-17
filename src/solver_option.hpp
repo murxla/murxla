@@ -11,8 +11,6 @@
 
 namespace murxla {
 
-// TODO: depends and conflicts handling in SolverOption
-
 class SolverOption
 {
  public:
@@ -40,10 +38,14 @@ class SolverOptionBool : public SolverOption
 {
  public:
   SolverOptionBool(const std::string& name,
+                   bool default_value,
                    const std::vector<std::string>& depends   = {},
                    const std::vector<std::string>& conflicts = {});
   ~SolverOptionBool() = default;
   std::string pick_value(RNGenerator& rng) const override;
+
+ private:
+  bool d_default;
 };
 
 template <typename T>
@@ -53,9 +55,13 @@ class SolverOptionNum : public SolverOption
   SolverOptionNum(const std::string& name,
                   T min,
                   T max,
+                  T default_value,
                   const std::vector<std::string>& depends   = {},
                   const std::vector<std::string>& conflicts = {})
-      : SolverOption(name, depends, conflicts), d_min(min), d_max(max){};
+      : SolverOption(name, depends, conflicts),
+        d_min(min),
+        d_max(max),
+        d_default(default_value){};
   ~SolverOptionNum() = default;
 
   std::string pick_value(RNGenerator& rng) const override
@@ -68,6 +74,7 @@ class SolverOptionNum : public SolverOption
  private:
   T d_min;
   T d_max;
+  T d_default;
 };
 
 class SolverOptionList : public SolverOption
@@ -75,6 +82,7 @@ class SolverOptionList : public SolverOption
  public:
   SolverOptionList(const std::string& name,
                    const std::vector<std::string>& values,
+                   const std::string& default_value,
                    const std::vector<std::string>& depends   = {},
                    const std::vector<std::string>& conflicts = {});
   ~SolverOptionList() = default;
@@ -82,6 +90,7 @@ class SolverOptionList : public SolverOption
 
  private:
   std::vector<std::string> d_values;
+  std::string d_default;
 };
 
 using SolverOptions =
