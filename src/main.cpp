@@ -726,7 +726,8 @@ parse_options(Options& options, int argc, char* argv[])
   {
     assert(args[i] != "-u");
     assert(args[i] != "--untrace");
-    if (args[i] == "-s" || args[i] == "--seed")
+    if (args[i] == "-s" || args[i] == "--seed" || args[i] == "-a"
+        || args[i] == "--api-trace")
     {
       ++i;
       continue;
