@@ -1133,6 +1133,28 @@ ActionMkSort::_run(SortKind kind,
       p->set_associated_sort({res_sorts[i]});
     }
 
+    /* Add back reference to DT sort for unresolved sorts. */
+    for (auto& ctor : res_sorts[i]->get_dt_ctors())
+    {
+      for (auto& sel : ctor.second)
+      {
+        if (sel.second && sel.second->is_unresolved_sort())
+        {
+          UnresolvedSort* usort =
+              dynamic_cast<UnresolvedSort*>(sel.second.get());
+          const std::string& symbol = usort->get_symbol();
+          auto it = symbol_to_dt_sort.find(symbol);
+          assert(it != symbol_to_dt_sort.end());
+          Sort associated_sort = it->second;
+          assert(associated_sort);
+          usort->set_associated_sort(associated_sort);
+        }
+      }
+    }
+  }
+
+  for (size_t i = 0; i < n_dt_sorts; ++i)
+  {
     /* Resolve unresolved sorts. */
     for (auto& ctor : res_sorts[i]->get_dt_ctors())
     {
@@ -1142,11 +1164,8 @@ ActionMkSort::_run(SortKind kind,
         if (ssort && ssort->is_unresolved_sort())
         {
           UnresolvedSort* usort = dynamic_cast<UnresolvedSort*>(ssort.get());
-          const std::string& symbol = usort->get_symbol();
-          auto it = symbol_to_dt_sort.find(symbol);
-          assert(it != symbol_to_dt_sort.end());
-          Sort associated_sort = it->second;
-          usort->set_associated_sort(associated_sort);
+          Sort associated_sort  = usort->get_associated_sort();
+          assert(associated_sort);
           /* We instantiate and cache the instantiated parametric unresolved
            * sort if the sort parameters do not contain a ParamSort.
            * Else we keep the unresolved sort but add the associated parametric
@@ -2915,12 +2934,34 @@ Sort
 ActionInstantiateSort::_run(Sort param_sort, const std::vector<Sort>& sorts)
 {
   MURXLA_TRACE << get_kind() << " " << param_sort << sorts;
+  std::unordered_map<Sort, std::vector<std::pair<std::vector<Sort>, Sort>>>
+      cache;
+  std::vector<std::pair<std::string, Sort>> to_trace;
+  Sort res = _run(param_sort, sorts, cache, to_trace);
+  MURXLA_TRACE_RETURN << res;
+  for (const auto& p : to_trace)
+  {
+    MURXLA_TRACE << p.first;
+    MURXLA_TRACE_RETURN << p.second;
+  }
+  return res;
+}
+
+Sort
+ActionInstantiateSort::_run(
+    Sort param_sort,
+    const std::vector<Sort>& sorts,
+    std::unordered_map<Sort, std::vector<std::pair<std::vector<Sort>, Sort>>>&
+        cache,
+    std::vector<std::pair<std::string, Sort>>& to_trace)
+{
   Sort res = d_solver.instantiate_sort(param_sort, sorts);
   res->set_dt_is_instantiated(true);
   MURXLA_TEST(param_sort->is_dt_parametric());
   /* We need to reconstruct the instantiation of map AbsSort::d_dt_ctors. */
   auto ctors = param_sort->instantiate_dt_param_sort(sorts);
   /* Instantiate unresolved sorts. */
+  cache[param_sort].emplace_back(sorts, res);
   for (auto& ctor : ctors)
   {
     auto& sels = ctor.second;
@@ -2929,18 +2970,37 @@ ActionInstantiateSort::_run(Sort param_sort, const std::vector<Sort>& sorts)
       Sort& ssort = sel.second;
       if (ssort && ssort->is_unresolved_sort())
       {
-        Sort assocated_sort    = ssort->get_associated_sort();
-        const auto& inst_sorts = ssort->get_sorts();
+        Sort associated_sort = ssort->get_associated_sort();
+        assert(associated_sort);
+        const std::vector<Sort> inst_sorts = ssort->get_sorts();
         if (inst_sorts.size())
         {
-          Sort assocated_sort = ssort->get_associated_sort();
-          ActionInstantiateSort instantiate_sort(d_smgr);
-          ssort = instantiate_sort._run(assocated_sort, inst_sorts);
+          bool cached = false;
+          auto it     = cache.find(associated_sort);
+          if (it != cache.end())
+          {
+            for (const auto& v : it->second)
+            {
+              if (v.first == inst_sorts)
+              {
+                ssort  = v.second;
+                cached = true;
+                break;
+              }
+            }
+          }
+          if (!cached)
+          {
+            ssort = _run(associated_sort, inst_sorts, cache, to_trace);
+            cache[associated_sort].emplace_back(inst_sorts, ssort);
+            std::stringstream ss;
+            ss << get_kind() << " " << associated_sort << inst_sorts;
+            to_trace.emplace_back(ss.str(), ssort);
+          }
         }
         else
         {
-          Sort assocated_sort = ssort->get_associated_sort();
-          ssort               = assocated_sort;
+          ssort = associated_sort;
         }
       }
     }
@@ -2949,7 +3009,6 @@ ActionInstantiateSort::_run(Sort param_sort, const std::vector<Sort>& sorts)
   res->set_sorts(sorts);
   d_smgr.add_sort(
       res, param_sort->get_kind(), false, res->is_dt_well_founded());
-  MURXLA_TRACE_RETURN << res;
   return res;
 }
 

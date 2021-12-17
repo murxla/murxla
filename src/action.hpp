@@ -515,6 +515,14 @@ class ActionInstantiateSort : public Action
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
   Sort _run(Sort param_sort, const std::vector<Sort>& inst_sorts);
+
+ private:
+  Sort _run(
+      Sort param_sort,
+      const std::vector<Sort>& sorts,
+      std::unordered_map<Sort, std::vector<std::pair<std::vector<Sort>, Sort>>>&
+          cache,
+      std::vector<std::pair<std::string, Sort>>& to_trace);
 };
 
 class ActionAssertFormula : public Action
