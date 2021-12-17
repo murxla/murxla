@@ -726,6 +726,11 @@ Murxla::run_aux(uint32_t seed,
     {
       /* Kill and collect solver process if time limit is exceeded. */
       assert(pid_timeout);
+#ifdef MURXLA_COVERAGE
+      /* Try to trigger the abort handler to dump coverage information. */
+      kill(pid_solver, SIGABRT);
+      usleep(100);
+#endif
       kill(pid_solver, SIGKILL);
       waitpid(pid_solver, nullptr, 0);
       result = RESULT_TIMEOUT;
