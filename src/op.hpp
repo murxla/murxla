@@ -122,7 +122,6 @@ struct Op
   inline static const Kind FP_TO_REAL         = "OP_FP_TO_REAL";
   /* Ints */
   inline static const Kind INT_IS_DIV = "OP_INT_IS_DIV";
-  inline static const Kind INT_IS_INT = "OP_INT_IS_INT";
   inline static const Kind INT_NEG    = "OP_INT_NEG";
   inline static const Kind INT_SUB    = "OP_INT_SUB";
   inline static const Kind INT_ADD    = "OP_INT_ADD";
@@ -135,7 +134,6 @@ struct Op
   inline static const Kind INT_GT     = "OP_INT_GT";
   inline static const Kind INT_GTE    = "OP_INT_GTE";
   /* Reals */
-  inline static const Kind REAL_IS_INT = "OP_REAL_IS_INT";
   inline static const Kind REAL_NEG    = "OP_REAL_NEG";
   inline static const Kind REAL_SUB    = "OP_REAL_SUB";
   inline static const Kind REAL_ADD    = "OP_REAL_ADD";
@@ -145,6 +143,11 @@ struct Op
   inline static const Kind REAL_LTE    = "OP_REAL_LTE";
   inline static const Kind REAL_GT     = "OP_REAL_GT";
   inline static const Kind REAL_GTE    = "OP_REAL_GTE";
+  /* Reals and Ints */
+  inline static const Kind INT_IS_INT  = "OP_INT_IS_INT";
+  inline static const Kind INT_TO_REAL = "OP_INT_TO_REAL";
+  inline static const Kind REAL_IS_INT = "OP_REAL_IS_INT";
+  inline static const Kind REAL_TO_INT = "OP_REAL_TO_INT";
   /* Quantifiers */
   inline static const Kind FORALL = "OP_FORALL";
   inline static const Kind EXISTS = "OP_EXISTS";

@@ -505,6 +505,7 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::INT_GT, ::cvc5::api::Kind::GT},
         {Op::INT_GTE, ::cvc5::api::Kind::GEQ},
         {Op::INT_IS_INT, ::cvc5::api::Kind::IS_INTEGER},
+        {Op::INT_TO_REAL, ::cvc5::api::Kind::TO_REAL},
 
         /* Reals */
         {Op::REAL_NEG, ::cvc5::api::Kind::UMINUS},
@@ -517,6 +518,7 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::REAL_GT, ::cvc5::api::Kind::GT},
         {Op::REAL_GTE, ::cvc5::api::Kind::GEQ},
         {Op::REAL_IS_INT, ::cvc5::api::Kind::IS_INTEGER},
+        {Op::REAL_TO_INT, ::cvc5::api::Kind::TO_INTEGER},
 
         /* Quantifiers */
         {Op::FORALL, ::cvc5::api::Kind::FORALL},
@@ -772,6 +774,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::GT, Op::INT_GT},
         {::cvc5::api::Kind::GEQ, Op::INT_GTE},
         {::cvc5::api::Kind::IS_INTEGER, Op::INT_IS_INT},
+        {::cvc5::api::Kind::TO_REAL, Op::INT_TO_REAL},
 
         /* Reals */
         {::cvc5::api::Kind::UMINUS, Op::REAL_NEG},
@@ -784,6 +787,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::GT, Op::REAL_GT},
         {::cvc5::api::Kind::GEQ, Op::REAL_GTE},
         {::cvc5::api::Kind::IS_INTEGER, Op::REAL_IS_INT},
+        {::cvc5::api::Kind::TO_INTEGER, Op::REAL_TO_INT},
 
         /* Quantifiers */
         {::cvc5::api::Kind::FORALL, Op::FORALL},

@@ -1407,6 +1407,17 @@ YicesSolver::mk_term(const std::string& kind,
     assert(n_args == 1);
     yices_res = yices_is_int_atom(yices_args[0]);
   }
+  else if (kind == Op::INT_TO_REAL)
+  {
+    assert(n_args == 1);
+    /* no-op for yices */
+    yices_res = yices_args[0];
+  }
+  else if (kind == Op::REAL_TO_INT)
+  {
+    assert(n_args == 1);
+    yices_res = yices_floor(yices_args[0]);
+  }
   else if (kind == Op::INT_NEG || kind == Op::REAL_NEG)
   {
     assert(n_args == 1);
