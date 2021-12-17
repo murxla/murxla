@@ -28,20 +28,9 @@ class BtorSort : public AbsSort
   bool equals(const Sort& other) const override;
   std::string to_string() const override;
   bool is_array() const override;
-  bool is_bag() const override { return false; }
   bool is_bool() const override;
   bool is_bv() const override;
-  bool is_dt() const override { return false; }
-  bool is_dt_parametric() const override { return false; }
-  bool is_fp() const override { return false; }
   bool is_fun() const override;
-  bool is_int() const override { return false; }
-  bool is_real() const override { return false; }
-  bool is_rm() const override { return false; }
-  bool is_seq() const override { return false; }
-  bool is_set() const override { return false; }
-  bool is_string() const override { return false; }
-  bool is_reglan() const override { return false; }
   uint32_t get_bv_size() const override;
   Sort get_array_index_sort() const override;
   Sort get_array_element_sort() const override;

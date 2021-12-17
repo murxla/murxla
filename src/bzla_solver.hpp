@@ -33,20 +33,11 @@ class BzlaSort : public AbsSort
   bool equals(const Sort& other) const override;
   std::string to_string() const override;
   bool is_array() const override;
-  bool is_bag() const override { return false; }
   bool is_bool() const override;
   bool is_bv() const override;
-  bool is_dt() const override { return false; }
-  bool is_dt_parametric() const override { return false; }
   bool is_fp() const override;
   bool is_fun() const override;
-  bool is_int() const override { return false; }
-  bool is_real() const override { return false; }
-  bool is_reglan() const override { return false; }
   bool is_rm() const override;
-  bool is_seq() const override { return false; }
-  bool is_set() const override { return false; }
-  bool is_string() const override { return false; }
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;

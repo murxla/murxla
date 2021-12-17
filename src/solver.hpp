@@ -49,40 +49,40 @@ class AbsSort
   virtual bool not_equals(const std::shared_ptr<AbsSort>& other) const;
 
   /** Return true if this sort is an Array sort. */
-  virtual bool is_array() const = 0;
+  virtual bool is_array() const { return false; }
   /** Return true if this sort is a Bag sort. */
-  virtual bool is_bag() const = 0;
+  virtual bool is_bag() const { return false; }
   /** Return true if this sort is a Boolean sort. */
-  virtual bool is_bool() const = 0;
+  virtual bool is_bool() const { return false; }
   /** Return true if this sort is a bit-vector sort. */
-  virtual bool is_bv() const   = 0;
+  virtual bool is_bv() const { return false; };
   /** Return true if this sort is a datatype sort. */
-  virtual bool is_dt() const = 0;
+  virtual bool is_dt() const { return false; }
   /** Return true if this sort is a parametric datatype sort. */
-  virtual bool is_dt_parametric() const = 0;
+  virtual bool is_dt_parametric() const { return false; }
   /** Return true if this sort is a floating-point sort. */
-  virtual bool is_fp() const   = 0;
+  virtual bool is_fp() const { return false; }
   /** Return true if this sort is a function sort. */
-  virtual bool is_fun() const  = 0;
+  virtual bool is_fun() const { return false; }
   /** Return true if this sort is an Int sort. */
-  virtual bool is_int() const  = 0;
+  virtual bool is_int() const { return false; }
   /**
    * Return true if this sort is a Real sort.
    * Note: If arithmetic subtyping is enabled, we consider sort Int as a
    *       subtype of sort Real. In that case, this must return true for Int
    *       sorts.
    */
-  virtual bool is_real() const = 0;
+  virtual bool is_real() const { return false; }
   /** Return true if this sort is a RoundingMode sort. */
-  virtual bool is_rm() const   = 0;
+  virtual bool is_rm() const { return false; }
   /** Return true if this sort is a RegLan sort. */
-  virtual bool is_reglan() const = 0;
+  virtual bool is_reglan() const { return false; }
   /** Return true if this sort is a Sequence sort. */
-  virtual bool is_seq() const = 0;
+  virtual bool is_seq() const { return false; }
   /** Return true if this sort is a Set sort. */
-  virtual bool is_set() const = 0;
+  virtual bool is_set() const { return false; }
   /** Return true if this sort is a String sort. */
-  virtual bool is_string() const = 0;
+  virtual bool is_string() const { return false; }
   /** Return true if this sort is an uninterpreted sort. */
   virtual bool is_uninterpreted() const { return false; };
 
