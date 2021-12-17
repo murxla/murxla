@@ -1115,12 +1115,6 @@ ActionMkSort::_run(SortKind kind,
                     res_sorts[i]->is_dt_well_founded());
   }
 
-  for (size_t i = 0; i < n_dt_sorts; ++i)
-  {
-    /* Check sorts. */
-    check_sort(res_sorts[i], dt_names[i]);
-  }
-
   MURXLA_TRACE_RETURN << res_sorts;
 
   /* Update d_ctors: resolve unresolved sorts in d_ctors and add back reference
@@ -1203,6 +1197,12 @@ ActionMkSort::_run(SortKind kind,
       }
     }
   }
+  for (size_t i = 0; i < n_dt_sorts; ++i)
+  {
+    /* Check sorts. */
+    check_sort(res_sorts[i], dt_names[i]);
+  }
+
   std::vector<uint64_t> res(res_sorts.size());
   std::transform(
       res_sorts.begin(), res_sorts.end(), res.begin(), [](const auto& sort) {

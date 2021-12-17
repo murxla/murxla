@@ -2883,7 +2883,8 @@ Cvc5Solver::check_sort(Sort sort)
       {
         MURXLA_TEST(cvc5_sel_codomain == Cvc5Sort::get_cvc5_sort(sort));
       }
-      else if (!sel_codomain->is_param_sort())
+      else if (!sel_codomain->is_param_sort()
+               && !sel_codomain->is_unresolved_sort())
       {
         MURXLA_TEST(cvc5_sel_codomain == Cvc5Sort::get_cvc5_sort(sel_codomain));
       }
@@ -2900,7 +2901,8 @@ Cvc5Solver::check_sort(Sort sort)
       {
         MURXLA_TEST(cvc5_ctor_domain_sorts[i] == Cvc5Sort::get_cvc5_sort(sort));
       }
-      else if (!ctor_domain_sorts[i]->is_param_sort())
+      else if (!ctor_domain_sorts[i]->is_param_sort()
+               && !ctor_domain_sorts[i]->is_unresolved_sort())
       {
         MURXLA_TEST(cvc5_ctor_domain_sorts[i]
                     == Cvc5Sort::get_cvc5_sort(ctor_domain_sorts[i]));
