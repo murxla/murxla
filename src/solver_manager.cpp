@@ -246,6 +246,7 @@ SolverManager::add_term(Term& term,
    * in d_sorts. Hence, we need to do a lookup on d_sorts if we already have
    * a matching sort. */
   Sort sort = d_solver->get_sort(term, sort_kind);
+  sort->set_kind(sort_kind);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
   assert(lookup->equals(sort));
