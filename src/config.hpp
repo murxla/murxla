@@ -18,7 +18,7 @@
  * can be used). If an exception is raised to indicate that the maximum number
  * of operators has been exceeded, increase this value.
  */
-#define MURXLA_MAX_N_OPS 200
+#define MURXLA_MAX_N_OPS 300
 /**
  * Maximum number of states.
  *

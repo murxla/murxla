@@ -752,7 +752,7 @@ ActionMkSort::run()
     case SORT_REAL:
     case SORT_RM: _run(kind); break;
 
-    case SORT_UNINTERPRETED: _run(kind, d_smgr.pick_symbol("_s")); break;
+    case SORT_UNINTERPRETED: _run(kind, d_smgr.pick_symbol("_u")); break;
 
     default: assert(false);
   }
@@ -1008,7 +1008,7 @@ std::vector<uint64_t>
 ActionMkSort::_run(SortKind kind, const std::string& name)
 {
   assert(kind == SORT_UNINTERPRETED);
-  MURXLA_TRACE << get_kind() << " " << kind;
+  MURXLA_TRACE << get_kind() << " " << kind << " " << name;
   Sort res = d_solver.mk_sort(name);
   d_smgr.add_sort(res, kind);
   check_sort(res);
