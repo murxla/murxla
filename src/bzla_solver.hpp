@@ -221,11 +221,6 @@ class BzlaSolver : public Solver
   Term mk_special_value(Sort sort,
                         const AbsTerm::SpecialValueKind& value) override;
 
-  Sort mk_sort(const std::string name, uint32_t arity) override
-  {  // TODO:
-    return nullptr;
-  }
-
   Sort mk_sort(SortKind kind) override;
   Sort mk_sort(SortKind kind, uint32_t size) override;
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;

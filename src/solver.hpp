@@ -818,14 +818,14 @@ class Solver
   /**
    * Create uninterpreted sort.
    */
-  virtual Sort mk_sort(const std::string& name) = 0;
+  virtual Sort mk_sort(const std::string& name) { return nullptr; }
 
   /**
    * Create sort of given sort kind with no additional arguments.
    * Examples are sorts of kind SORT_BOOL, SORT_INT, SORT_REAL, SORT_RM,
    * SORT_REGLAN, and SORT_STRING.
    */
-  virtual Sort mk_sort(SortKind kind)                          = 0;
+  virtual Sort mk_sort(SortKind kind) = 0;
   /**
    * Create sort of given kind with given size argument.
    * This is mainly for creating bit-vector sorts.
