@@ -2958,6 +2958,13 @@ ActionInstantiateSort::_run(
   Sort res = d_solver.instantiate_sort(param_sort, sorts);
   res->set_dt_is_instantiated(true);
   MURXLA_TEST(param_sort->is_dt_parametric());
+  /* We temporarily set the ctors map to the map of param_sort in order to be
+   * able to add the sort to the SolverManager. Will be updated after
+   * instantiating and resolving unresolved sorts.  */
+  res->set_dt_ctors(param_sort->get_dt_ctors());
+  res->set_sorts(sorts);
+  d_smgr.add_sort(
+      res, param_sort->get_kind(), false, res->is_dt_well_founded());
   /* We need to reconstruct the instantiation of map AbsSort::d_dt_ctors. */
   auto ctors = param_sort->instantiate_dt_param_sort(sorts);
   /* Instantiate unresolved sorts. */
@@ -2992,6 +2999,7 @@ ActionInstantiateSort::_run(
           if (!cached)
           {
             ssort = _run(associated_sort, inst_sorts, cache, to_trace);
+            assert(ssort->get_id());
             cache[associated_sort].emplace_back(inst_sorts, ssort);
             std::stringstream ss;
             ss << get_kind() << " " << associated_sort << inst_sorts;
@@ -3005,10 +3013,8 @@ ActionInstantiateSort::_run(
       }
     }
   }
+  /* Update with the instantiated, resolved ctors map. */
   res->set_dt_ctors(ctors);
-  res->set_sorts(sorts);
-  d_smgr.add_sort(
-      res, param_sort->get_kind(), false, res->is_dt_well_founded());
   return res;
 }
 
