@@ -798,10 +798,10 @@ ShadowSolver::mk_special_value(Sort sort,
 }
 
 Sort
-ShadowSolver::mk_sort(const std::string name, uint32_t arity)
+ShadowSolver::mk_sort(const std::string& name)
 {
-  Sort s        = d_solver->mk_sort(name, arity);
-  Sort s_shadow = d_solver_shadow->mk_sort(name, arity);
+  Sort s        = d_solver->mk_sort(name);
+  Sort s_shadow = d_solver_shadow->mk_sort(name);
   std::shared_ptr<ShadowSort> res(new ShadowSort(s, s_shadow));
   return res;
 }

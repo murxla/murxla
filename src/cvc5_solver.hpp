@@ -54,6 +54,7 @@ class Cvc5Sort : public AbsSort
   bool is_seq() const override;
   bool is_set() const override;
   bool is_string() const override;
+  bool is_uninterpreted() const override;
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
@@ -244,11 +245,7 @@ class Cvc5Solver : public Solver
   Term mk_special_value(Sort sort,
                         const AbsTerm::SpecialValueKind& value) override;
 
-  Sort mk_sort(const std::string name, uint32_t arity) override
-  {  // TODO:
-    return nullptr;
-  }
-
+  Sort mk_sort(const std::string& name) override;
   Sort mk_sort(SortKind kind) override;
   Sort mk_sort(SortKind kind, uint32_t size) override;
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;

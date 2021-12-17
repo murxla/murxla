@@ -1183,10 +1183,12 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 }
 
 Sort
-Smt2Solver::mk_sort(const std::string name, uint32_t arity)
+Smt2Solver::mk_sort(const std::string& name)
 {
-  // TODO
-  return nullptr;
+  std::stringstream smt2;
+  smt2 << "(declare-sort " << name << " 0)";
+  dump_smt2(smt2.str());
+  return std::make_shared<Smt2Sort>(name);
 }
 
 Sort

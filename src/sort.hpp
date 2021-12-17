@@ -24,6 +24,7 @@ enum SortKind
   SORT_SEQ,
   SORT_SET,
   SORT_STRING,
+  SORT_UNINTERPRETED,
   // must be last
   SORT_ANY,
 };
@@ -54,8 +55,9 @@ static std::unordered_map<SortKind, std::string> sort_kinds_to_str{
     {SORT_RM, "SORT_RM"},
     {SORT_SEQ, "SORT_SEQ"},
     {SORT_SET, "SORT_SET"},
-    {SORT_STRING, "SORT_STRING"},
     {SORT_REGLAN, "SORT_REGLAN"},
+    {SORT_STRING, "SORT_STRING"},
+    {SORT_UNINTERPRETED, "SORT_UNINTERPRETED"},
     {SORT_ANY, "SORT_ANY"}};
 
 struct SortKindData

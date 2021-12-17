@@ -138,6 +138,12 @@ Cvc5Sort::is_string() const
 }
 
 bool
+Cvc5Sort::is_uninterpreted() const
+{
+  return d_sort.isUninterpretedSort();
+}
+
+bool
 Cvc5Sort::is_reglan() const
 {
   return d_sort.isRegExp();
@@ -1319,6 +1325,13 @@ Cvc5Solver::is_unsat_assumption(const Term& t) const
 }
 
 /* -------------------------------------------------------------------------- */
+
+Sort
+Cvc5Solver::mk_sort(const std::string& name)
+{
+  ::cvc5::api::Sort cvc5_res = d_solver->mkUninterpretedSort(name);
+  return std::make_shared<Cvc5Sort>(d_solver, cvc5_res);
+}
 
 Sort
 Cvc5Solver::mk_sort(SortKind kind)

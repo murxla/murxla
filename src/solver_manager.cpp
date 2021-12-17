@@ -976,12 +976,12 @@ SolverManager::register_sort(uint64_t untraced_id, uint64_t sort_id)
 /* -------------------------------------------------------------------------- */
 
 std::string
-SolverManager::pick_symbol()
+SolverManager::pick_symbol(const std::string& prefix)
 {
   if (d_simple_symbols)
   {
     std::stringstream ss;
-    ss << "_x" << d_n_symbols++;
+    ss << prefix << d_n_symbols++;
     return ss.str();
   }
   uint32_t len = d_rng.pick<uint32_t>(0, MURXLA_SYMBOL_LEN_MAX);
@@ -1404,6 +1404,8 @@ SolverManager::get_sort_kind_data(const TheoryIdSet& theories)
       case THEORY_UF:
         sort_kinds.emplace(
             SORT_FUN, SortKindData(SORT_FUN, MURXLA_MK_TERM_N_ARGS, THEORY_UF));
+        sort_kinds.emplace(SORT_UNINTERPRETED,
+                           SortKindData(SORT_UNINTERPRETED, 0, THEORY_UF));
         break;
 
       default: assert(false);

@@ -147,7 +147,7 @@ class ShadowSolver : public Solver
   Term mk_special_value(Sort sort,
                         const AbsTerm::SpecialValueKind& value) override;
 
-  Sort mk_sort(const std::string name, uint32_t arity) override;
+  Sort mk_sort(const std::string& name) override;
   Sort mk_sort(SortKind kind) override;
   Sort mk_sort(SortKind kind, uint32_t size) override;
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;

@@ -146,7 +146,7 @@ class SolverManager
                 const std::vector<Term>& args = {});
 
   /** Pick arbitrary symbol (simple or piped). */
-  std::string pick_symbol();
+  std::string pick_symbol(const std::string& prefix = "_x");
 
   /**
    * Pick sort kind of existing (= created) sort.

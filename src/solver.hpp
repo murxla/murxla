@@ -83,6 +83,8 @@ class AbsSort
   virtual bool is_set() const = 0;
   /** Return true if this sort is a String sort. */
   virtual bool is_string() const = 0;
+  /** Return true if this sort is an uninterpreted sort. */
+  virtual bool is_uninterpreted() const { return false; };
 
   /**
    * Return true if this datatype sort is well founded.
@@ -456,6 +458,8 @@ class AbsTerm
   virtual bool is_set() const;
   /** Return true if this term is a String term. */
   virtual bool is_string() const;
+  /** Return true if this term is an uninterpreted term. */
+  virtual bool is_uninterpreted() const;
 
   /** Return true if this term is a Bag value. */
   virtual bool is_bag_value() const;
@@ -802,7 +806,11 @@ class Solver
   virtual Term mk_special_value(Sort sort,
                                 const AbsTerm::SpecialValueKind& value);
 
-  virtual Sort mk_sort(const std::string name, uint32_t arity) = 0;
+  /**
+   * Create uninterpreted sort.
+   */
+  virtual Sort mk_sort(const std::string& name) = 0;
+
   /**
    * Create sort of given sort kind with no additional arguments.
    * Examples are sorts of kind SORT_BOOL, SORT_INT, SORT_REAL, SORT_RM,

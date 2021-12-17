@@ -343,6 +343,7 @@ class ActionMkSort : public Action
 
  private:
   std::vector<uint64_t> _run(SortKind kind);
+  std::vector<uint64_t> _run(SortKind kind, const std::string& name);
   std::vector<uint64_t> _run(SortKind kind, uint32_t bw);
   std::vector<uint64_t> _run(SortKind kind, uint32_t ew, uint32_t sw);
   std::vector<uint64_t> _run(SortKind kind, const std::vector<Sort>& sorts);
@@ -457,16 +458,15 @@ class ActionMkValue : public Action
   uint64_t _run(Sort sort, const std::string& v0, const std::string& v1);
   uint64_t _run(Sort sort, const std::string& val, Solver::Base base);
   /** The set of unsupported sort kinds. */
-  SortKindSet d_exclude_sort_kinds = {
-      SORT_ARRAY,
-      SORT_FUN,
-      SORT_BAG,
-      SORT_DT,
-      SORT_SEQ,
-      SORT_SET,
-      SORT_RM,
-      SORT_REGLAN,
-  };
+  SortKindSet d_exclude_sort_kinds = {SORT_ARRAY,
+                                      SORT_FUN,
+                                      SORT_BAG,
+                                      SORT_DT,
+                                      SORT_SEQ,
+                                      SORT_SET,
+                                      SORT_RM,
+                                      SORT_REGLAN,
+                                      SORT_UNINTERPRETED};
 };
 
 class ActionMkSpecialValue : public Action

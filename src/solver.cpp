@@ -426,6 +426,12 @@ AbsTerm::is_string() const
 }
 
 bool
+AbsTerm::is_uninterpreted() const
+{
+  return get_sort()->is_uninterpreted();
+}
+
+bool
 AbsTerm::is_reglan() const
 {
   return get_sort()->is_reglan();

@@ -736,6 +736,8 @@ ActionMkSort::run()
     case SORT_REAL:
     case SORT_RM: _run(kind); break;
 
+    case SORT_UNINTERPRETED: _run(kind, d_smgr.pick_symbol("_s")); break;
+
     default: assert(false);
   }
 
@@ -966,6 +968,13 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       res = _run(kind);
       break;
 
+    case SORT_UNINTERPRETED:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
+                         || theories.find(THEORY_BOOL) != theories.end());
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
+      res = _run(kind, tokens[1]);
+      break;
+
     default: MURXLA_CHECK_TRACE(false) << "unknown sort kind " << tokens[0];
   }
   return res;
@@ -976,6 +985,18 @@ ActionMkSort::_run(SortKind kind)
 {
   MURXLA_TRACE << get_kind() << " " << kind;
   Sort res = d_solver.mk_sort(kind);
+  d_smgr.add_sort(res, kind);
+  check_sort(res);
+  MURXLA_TRACE_RETURN << res;
+  return {res->get_id()};
+}
+
+std::vector<uint64_t>
+ActionMkSort::_run(SortKind kind, const std::string& name)
+{
+  assert(kind == SORT_UNINTERPRETED);
+  MURXLA_TRACE << get_kind() << " " << kind;
+  Sort res = d_solver.mk_sort(name);
   d_smgr.add_sort(res, kind);
   check_sort(res);
   MURXLA_TRACE_RETURN << res;
@@ -2204,6 +2225,10 @@ ActionMkTerm::check_term(Term term)
     // of sort kind, too)
     MURXLA_TEST(elem_sort == nullptr
                 || elem_sort->equals(sort->get_sorts()[0]));
+  }
+  else if (sort->is_uninterpreted())
+  {
+    MURXLA_TEST(term->is_uninterpreted());
   }
   else
   {
