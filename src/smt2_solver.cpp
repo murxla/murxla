@@ -378,43 +378,42 @@ Smt2Term::equals(const Term& other) const
   const Smt2Term* smt2_term     = static_cast<const Smt2Term*>(other.get());
   const std::vector<Term>& args = smt2_term->get_args();
   const std::vector<std::string>& str_args = smt2_term->get_str_args();
-  const std::vector<uint32_t>& params = smt2_term->get_indices_uint32();
+  const std::vector<uint32_t>& indices     = smt2_term->get_indices_uint32();
   bool res = d_kind == smt2_term->get_kind() && d_args.size() == args.size()
-             && d_indices.size() == params.size();
-  if (res)
+             && d_indices.size() == indices.size()
+             && get_leaf_kind() == smt2_term->get_leaf_kind();
+
+  if (!res) return false;
+
+  /* Leaf terms */
+  if (get_kind() == Op::UNDEFINED)
   {
-    for (size_t i = 0, n = args.size(); i < n; ++i)
+    assert(!d_repr.empty());
+    assert(!smt2_term->d_repr.empty());
+    return d_repr == smt2_term->d_repr;
+  }
+  for (size_t i = 0, n = args.size(); i < n; ++i)
+  {
+    if (d_args[i]->get_id() != args[i]->get_id())
     {
-      if (d_args[i] != args[i])
-      {
-        res = false;
-        break;
-      }
+      return false;
     }
   }
-  if (res)
+  for (size_t i = 0, n = str_args.size(); i < n; ++i)
   {
-    for (size_t i = 0, n = str_args.size(); i < n; ++i)
+    if (d_str_args[i] != str_args[i])
     {
-      if (d_str_args[i] != str_args[i])
-      {
-        res = false;
-        break;
-      }
+      return false;
     }
   }
-  if (res)
+  for (size_t i = 0, n = indices.size(); i < n; ++i)
   {
-    for (size_t i = 0, n = params.size(); i < n; ++i)
+    if (d_indices[i] != indices[i])
     {
-      if (d_indices[i] != params[i])
-      {
-        res = false;
-        break;
-      }
+      return false;
     }
   }
-  return res;
+  return true;
 }
 
 std::string
@@ -453,10 +452,10 @@ Smt2Term::get_indices_uint32() const
   return d_indices;
 }
 
-const Smt2Term*
+Smt2Term*
 to_smt2_term(const Term& t)
 {
-  return static_cast<const Smt2Term*>(t.get());
+  return static_cast<Smt2Term*>(t.get());
 }
 
 namespace {
@@ -477,10 +476,18 @@ get_default(const std::unordered_map<std::string, std::string>& map,
 const std::string
 Smt2Term::get_repr() const
 {
+  if (!d_repr.empty())
+  {
+    return d_repr;
+  }
+
   std::vector<const Smt2Term*> visit;
   std::unordered_map<const Smt2Term*, std::string> cache;
   std::unordered_map<const Smt2Term*, uint64_t> refs;
   std::vector<std::string> lets;
+
+  std::unordered_set<Op::Kind> new_scope = {
+      Op::FORALL, Op::EXISTS, Op::SET_COMPREHENSION};
 
   // Compute references
   visit.push_back(this);
@@ -494,8 +501,7 @@ Smt2Term::get_repr() const
     {
       cache.emplace(cur, "");
       /* Do not go below quantifiers. */
-      if (cur->d_kind == Op::FORALL || cur->d_kind == Op::EXISTS
-          || cur->d_kind == Op::SET_COMPREHENSION)
+      if (new_scope.find(cur->d_kind) != new_scope.end())
       {
         continue;
       }
@@ -1413,6 +1419,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
                     const std::vector<uint32_t>& params)
 {
+  Smt2Term* res;
   if (kind == Op::BAG_COUNT || kind == Op::BAG_MAP)
   {
     /* given as { bag, element } resp. { bag, function } but we print it in
@@ -1420,7 +1427,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     auto aargs = args;
     assert(aargs.size() == 2);
     std::swap(aargs[0], aargs[1]);
-    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, {}, aargs, params, ""));
+    res = new Smt2Term(kind, {}, aargs, params, "");
   }
   else if (kind == Op::SET_COMPREHENSION)
   {
@@ -1429,7 +1436,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     std::vector<Term> aargs{args.begin() + 2, args.end()};
     aargs.push_back(args[0]);
     aargs.push_back(args[1]);
-    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, {}, aargs, params, ""));
+    res = new Smt2Term(kind, {}, aargs, params, "");
   }
   else if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
   {
@@ -1437,10 +1444,13 @@ Smt2Solver::mk_term(const Op::Kind& kind,
      * { elem_1, ..., elem_n, set }  */
     std::vector<Term> aargs{args.begin() + 1, args.end()};
     aargs.push_back(args[0]);
-    return std::shared_ptr<Smt2Term>(new Smt2Term(kind, {}, aargs, params, ""));
+    res = new Smt2Term(kind, {}, aargs, params, "");
   }
-
-  return std::shared_ptr<Smt2Term>(new Smt2Term(kind, {}, args, params, ""));
+  else
+  {
+    res = new Smt2Term(kind, {}, args, params, "");
+  }
+  return std::shared_ptr<Smt2Term>(res);
 }
 
 Term
