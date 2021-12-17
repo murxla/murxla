@@ -468,6 +468,7 @@ ActionSetOptionReq::init(
 
 ActionMkSort::ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, ID_LIST)
 {
+  d_n_args_weights.push_back(0);
   for (uint32_t i = 0; i < MURXLA_MK_TERM_N_ARGS_MAX; ++i)
   {
     uint32_t n = MURXLA_MK_TERM_N_ARGS_MAX - i;
@@ -1012,6 +1013,7 @@ std::vector<uint64_t>
 ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
 {
   MURXLA_TRACE << get_kind() << " " << kind << sorts;
+  assert(sorts.size() > 1);
   Sort res = d_solver.mk_sort(kind, sorts);
   res->set_sorts(sorts);
   d_smgr.add_sort(res, kind);
