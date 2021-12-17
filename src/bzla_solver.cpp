@@ -1691,7 +1691,7 @@ class BzlaActionGetArrayValue : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return {};
@@ -1751,7 +1751,7 @@ class BzlaActionGetBvValue : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return {};
@@ -1801,7 +1801,7 @@ class BzlaActionGetFpValue : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return {};
@@ -1854,7 +1854,7 @@ class BzlaActionGetFunValue : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return {};
@@ -1914,7 +1914,7 @@ class BzlaActionGetRmValue : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return {};
@@ -1985,7 +1985,7 @@ class BzlaActionIsUnsatAssumption : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     _run(term);
     return {};
@@ -2120,7 +2120,7 @@ class BzlaActionTermSetSymbol : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
-    Term term = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
     _run(term, symbol);
@@ -2157,8 +2157,8 @@ class BzlaActionTermIsEqualSort : public Action
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
-    Term term0 = d_smgr.get_untraced_term(untrace_str_to_id(tokens[0]));
-    Term term1 = d_smgr.get_untraced_term(untrace_str_to_id(tokens[1]));
+    Term term0 = get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term1 = get_untraced_term(untrace_str_to_id(tokens[1]));
     MURXLA_CHECK_TRACE_TERM(term0, tokens[0]);
     MURXLA_CHECK_TRACE_TERM(term1, tokens[1]);
     _run(term0, term1);

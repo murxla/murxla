@@ -155,6 +155,17 @@ class Action
    */
   void seed_solver_rng() const;
 
+  /**
+   * Get the untraced term with the given id.
+   * Checks that such a term exists.
+   */
+  Term get_untraced_term(uint64_t id);
+  /**
+   * Get the untraced sort with the given id.
+   * Checks that such a sort exists.
+   */
+  Sort get_untraced_sort(uint64_t id);
+
  protected:
   /**
    * Reset solver and solver manager state into assert mode.
