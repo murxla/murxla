@@ -195,7 +195,6 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::FP_TO_UBV, 2, 1, SORT_BV, {SORT_RM, SORT_FP}, THEORY_FP);
 
   /* Ints */
-  add_op_kind(Op::INT_IS_INT, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
   add_op_kind(Op::INT_NEG, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   add_op_kind(Op::INT_ABS, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
   add_op_kind(Op::INT_SUB, n, 0, SORT_INT, {SORT_INT}, THEORY_INT);
@@ -214,7 +213,6 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::INT_IS_DIV, 1, 1, SORT_BOOL, {SORT_INT}, THEORY_INT);
 
   /* Reals */
-  add_op_kind(Op::REAL_IS_INT, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   add_op_kind(Op::REAL_NEG, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   add_op_kind(Op::REAL_SUB, n, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   add_op_kind(Op::REAL_ADD, n, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
@@ -227,6 +225,14 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::REAL_LTE, n, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   add_op_kind(Op::REAL_GT, n, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
   add_op_kind(Op::REAL_GTE, n, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+
+  /* Reals and Ints */
+  if (d_enabled_theories.find(THEORY_REAL) != d_enabled_theories.end()
+      && d_enabled_theories.find(THEORY_INT) != d_enabled_theories.end())
+  {
+    add_op_kind(Op::INT_IS_INT, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
+    add_op_kind(Op::REAL_IS_INT, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
+  }
 
   /* Strings */
   add_op_kind(Op::STR_CONCAT, n, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
