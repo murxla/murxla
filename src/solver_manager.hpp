@@ -145,7 +145,10 @@ class SolverManager
                 SortKind sort_kind,
                 const std::vector<Term>& args = {});
 
-  /** Pick arbitrary symbol (simple or piped). */
+  /**
+   * Pick arbitrary symbol (simple or piped).
+   * Simple symbols are generated as "<prefix><id>".
+   */
   std::string pick_symbol(const std::string& prefix = "_x");
 
   /**

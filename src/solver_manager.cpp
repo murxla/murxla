@@ -980,9 +980,7 @@ SolverManager::pick_symbol(const std::string& prefix)
 {
   if (d_simple_symbols)
   {
-    std::stringstream ss;
-    ss << prefix << d_n_symbols++;
-    return ss.str();
+    return prefix + std::to_string(d_n_symbols++);
   }
   uint32_t len = d_rng.pick<uint32_t>(0, MURXLA_SYMBOL_LEN_MAX);
   /* Pick piped vs simple symbol with 50% probability. */

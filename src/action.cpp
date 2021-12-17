@@ -541,7 +541,7 @@ ActionMkSort::run()
 
       for (uint32_t i = 0; i < n_dt_sorts; ++i)
       {
-        dt_names.push_back(d_smgr.pick_symbol());
+        dt_names.push_back(d_smgr.pick_symbol("_dt"));
         bool parametric = (no_sel_sorts && !mutual_rec) || d_rng.flip_coin();
         std::vector<Sort> psorts;
         uint32_t n_psorts = 0;
@@ -552,7 +552,7 @@ ActionMkSort::run()
           for (uint32_t j = 0; j < n_psorts; ++j)
           {
             psorts.push_back(std::shared_ptr<ParamSort>(
-                new ParamSort(d_smgr.pick_symbol())));
+                new ParamSort(d_smgr.pick_symbol("_p"))));
           }
         }
         param_sorts.push_back(psorts);
@@ -582,7 +582,7 @@ ActionMkSort::run()
             std::string sname;
             do
             {
-              sname = d_smgr.pick_symbol();
+              sname = d_smgr.pick_symbol("_sel");
             } while (sel_names.find(sname) != sel_names.end());
             sel_names.insert(sname);
             /* Pick datatype sort itself with 10% probability. We indicate this
@@ -637,7 +637,7 @@ ActionMkSort::run()
           std::string cname;
           do
           {
-            cname = d_smgr.pick_symbol();
+            cname = d_smgr.pick_symbol("_cons");
           } while (ctors.find(cname) != ctors.end());
           ctors[cname] = sels;
         }
