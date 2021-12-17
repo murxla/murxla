@@ -514,9 +514,7 @@ class ActionInstantiateSort : public Action
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
-
- private:
-  uint64_t _run(Sort param_sort, const std::vector<Sort>& inst_sorts);
+  Sort _run(Sort param_sort, const std::vector<Sort>& inst_sorts);
 };
 
 class ActionAssertFormula : public Action

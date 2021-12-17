@@ -187,6 +187,9 @@ class AbsSort
   /** Set the sort parameters of this sort. */
   virtual void set_sorts(const std::vector<Sort>& sorts);
 
+  /** Set the associated sort. */
+  virtual void set_associated_sort(Sort sort);
+
   /** Set the datatype constructor map of this sort. */
   virtual void set_dt_ctors(const DatatypeConstructorMap& ctors);
 
@@ -214,13 +217,13 @@ class AbsSort
   /**
    * Get the sort parameters of this sort.
    *
-   * Note:
-   * - If this sort is a ParamSort, this returns the back reference to the
-   *   associated DT sort.
-   * - If this is an UnresolvedSort that refers to a parametric DT, this
-   *   returns the set of sort parameters to instantiate the sort with.
+   * Note: If this is an UnresolvedSort that refers to a parametric DT, this
+   *       contains the set of sort parameters to instantiate the sort with.
    */
   const std::vector<Sort>& get_sorts() const;
+
+  /** Return the associated sort. */
+  Sort get_associated_sort() const;
 
   /** Get the datatype constructor map of this sort. */
   DatatypeConstructorMap& get_dt_ctors();
@@ -260,6 +263,12 @@ class AbsSort
    * Note: For datatype sorts, this set is empty.
    */
   std::vector<Sort> d_sorts;
+  /**
+   * The sort this sort is associated with.
+   * This is only non-null for ParamSorts and UnresolvedSorts and refers to
+   * their associated DT sort.
+   */
+  Sort d_associated_sort = nullptr;
   /**
    * The datatype constructors of this sort.
    * This is only used for datatype sorts and required for book keeping on

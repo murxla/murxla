@@ -1601,11 +1601,11 @@ Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
     if (s->is_param_sort())
     {
       assert(!s->is_unresolved_sort());
-      assert(s->get_sorts().size() == 1);
+      assert(s->get_associated_sort());
       const std::string& s_symbol =
           dynamic_cast<ParamSort*>(s.get())->get_symbol();
       ::cvc5::api::Sort cvc5_dt_sort =
-          Cvc5Sort::get_cvc5_sort(s->get_sorts()[0]);
+          Cvc5Sort::get_cvc5_sort(s->get_associated_sort());
       const auto& cvc5_sort_params = cvc5_dt_sort.getDatatype().getParameters();
       const auto& it               = std::find_if(
           cvc5_sort_params.begin(),
@@ -2498,6 +2498,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
                     const std::vector<std::string>& str_args,
                     const std::vector<Term>& args)
 {
+  assert(sort);
   assert(sort->is_dt());
 
   ::cvc5::api::Term cvc5_res;

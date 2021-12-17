@@ -275,6 +275,14 @@ ShadowSort::set_sorts(const std::vector<Sort>& sorts)
 }
 
 void
+ShadowSort::set_associated_sort(Sort sort)
+{
+  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  d_sort->set_associated_sort(s->d_sort);
+  d_sort_shadow->set_associated_sort(s->d_sort_shadow);
+}
+
+void
 ShadowSort::set_dt_ctors(const DatatypeConstructorMap& ctors)
 {
   DatatypeConstructorMap ctors_orig, ctors_shadow;

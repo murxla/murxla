@@ -49,6 +49,18 @@ AbsSort::get_sorts() const
 }
 
 void
+AbsSort::set_associated_sort(Sort sort)
+{
+  d_associated_sort = sort;
+}
+
+Sort
+AbsSort::get_associated_sort() const
+{
+  return d_associated_sort;
+}
+
+void
 AbsSort::set_dt_ctors(const DatatypeConstructorMap& ctors)
 {
   d_dt_ctors = ctors;
@@ -131,14 +143,31 @@ AbsSort::instantiate_dt_param_sort(const std::vector<Sort>& sorts) const
     const auto& cname = c.first;
     res[cname]        = {};
     const auto& sels  = c.second;
-    for (const auto& s : sels)
+    for (const auto& sel : sels)
     {
-      const auto& sname = s.first;
-      const auto& ssort = s.second;
+      const auto& sname = sel.first;
+      const auto& ssort = sel.second;
       if (ssort && ssort->is_param_sort())
       {
         assert(sorts_map.find(ssort) != sorts_map.end());
-        res.at(cname).emplace_back(sname, sorts_map[ssort]);
+        res.at(cname).emplace_back(sname, sorts_map.at(ssort));
+      }
+      else if (ssort && ssort->is_unresolved_sort())
+      {
+        std::vector<Sort> inst_sorts = ssort->get_sorts();
+        UnresolvedSort* usort =
+            new UnresolvedSort(*dynamic_cast<UnresolvedSort*>(ssort.get()));
+        for (auto& s : inst_sorts)
+        {
+          if (s->is_param_sort())
+          {
+            assert(sorts_map.find(s) != sorts_map.end());
+            s = sorts_map.at(s);
+          }
+        }
+        usort->set_sorts(inst_sorts);
+        res.at(cname).emplace_back(sname,
+                                   std::shared_ptr<UnresolvedSort>(usort));
       }
       else
       {

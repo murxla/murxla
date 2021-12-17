@@ -54,6 +54,7 @@ class ShadowSort : public AbsSort
 
   void set_kind(SortKind sort_kind) override;
   void set_sorts(const std::vector<Sort>& sorts) override;
+  void set_associated_sort(Sort sort) override;
   void set_dt_ctors(const DatatypeConstructorMap& ctors) override;
 
   Sort get_sort() const { return d_sort; }
