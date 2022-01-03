@@ -1047,7 +1047,7 @@ std::vector<uint64_t>
 ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
 {
   MURXLA_TRACE << get_kind() << " " << kind << sorts;
-  assert(sorts.size() > 1);
+  assert(sorts.size() >= 1);
   Sort res = d_solver.mk_sort(kind, sorts);
   res->set_sorts(sorts);
   d_smgr.add_sort(res, kind);
