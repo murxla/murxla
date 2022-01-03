@@ -2966,6 +2966,11 @@ Cvc5Solver::check_sort(Sort sort)
   }
   MURXLA_TEST(cvc5_sort.isSubsortOf(cvc5_sort));
   MURXLA_TEST(cvc5_sort.isComparableTo(cvc5_sort));
+  MURXLA_TEST(cvc5_sort >= cvc5_sort);
+  MURXLA_TEST(cvc5_sort <= cvc5_sort);
+  MURXLA_TEST(!(cvc5_sort > cvc5_sort));
+  MURXLA_TEST(!(cvc5_sort < cvc5_sort));
+  MURXLA_TEST(!cvc5_sort.hasSymbol() || !cvc5_sort.getSymbol().empty());
 }
 
 std::unordered_map<std::string, std::string>
