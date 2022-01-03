@@ -2973,6 +2973,19 @@ Cvc5Solver::check_sort(Sort sort)
   MURXLA_TEST(!cvc5_sort.hasSymbol() || !cvc5_sort.getSymbol().empty());
 }
 
+void
+Cvc5Solver::check_term(Term term)
+{
+  ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+
+  MURXLA_TEST(!(cvc5_term != cvc5_term));
+  MURXLA_TEST(cvc5_term >= cvc5_term);
+  MURXLA_TEST(cvc5_term <= cvc5_term);
+  MURXLA_TEST(!(cvc5_term > cvc5_term));
+  MURXLA_TEST(!(cvc5_term < cvc5_term));
+  MURXLA_TEST(!cvc5_term.hasSymbol() || !cvc5_term.getSymbol().empty());
+}
+
 std::unordered_map<std::string, std::string>
 Cvc5Solver::get_required_options(TheoryId theory) const
 {
