@@ -489,8 +489,8 @@ class SolverManager
   void set_n_sorts(uint64_t id);
 
   /**
-   * Lookup sort in d_sorts. If a no matching sort is found the given sort is
-   * returned.
+   * Lookup sort in d_sorts.
+   * If no matching sort is found the given sort is returned.
    */
   Sort find_sort(Sort sort) const;
 

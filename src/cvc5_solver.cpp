@@ -3289,12 +3289,195 @@ class Cvc5ActionSimplify : public Action
   }
 };
 
+class Cvc5ActionTermSubstitute : public Action
+{
+ public:
+  Cvc5ActionTermSubstitute(SolverManager& smgr)
+      : Action(smgr, Cvc5Solver::ACTION_TERM_SUBSTITUTE, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term()) return false;
+    Term term = d_smgr.pick_term();
+    /* Pick term to substitute. */
+    std::vector<Term> sub_terms = get_sub_terms(term);
+    if (sub_terms.empty()) return false;
+    Term to_subst_term =
+        d_rng.pick_from_set<decltype(sub_terms), Term>(sub_terms);
+    Term subst_term = d_smgr.pick_term();
+    if (!Cvc5Term::get_cvc5_term(subst_term)
+             .getSort()
+             .isComparableTo(Cvc5Term::get_cvc5_term(to_subst_term).getSort()))
+    {
+      return false;
+    }
+    _run(term, to_subst_term, subst_term);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(3, tokens.size());
+    Term term          = get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term to_subst_term = get_untraced_term(untrace_str_to_id(tokens[1]));
+    Term subst_term    = get_untraced_term(untrace_str_to_id(tokens[2]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    MURXLA_CHECK_TRACE_TERM(to_subst_term, tokens[1]);
+    MURXLA_CHECK_TRACE_TERM(subst_term, tokens[2]);
+    _run(term, to_subst_term, subst_term);
+    return {};
+  }
+
+ private:
+  void _run(Term term, Term to_subst_term, Term subst_term)
+  {
+    MURXLA_TRACE << get_kind() << " " << term << " " << subst_term;
+    d_smgr.reset_sat();
+    ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+    ::cvc5::api::Term cvc5_to_subst_term =
+        Cvc5Term::get_cvc5_term(to_subst_term);
+    ::cvc5::api::Term cvc5_subst_term = Cvc5Term::get_cvc5_term(subst_term);
+    ::cvc5::api::Term cvc5_res =
+        cvc5_term.substitute(cvc5_to_subst_term, cvc5_subst_term);
+    MURXLA_TEST(!cvc5_res.isNull());
+    /* Note: The simplified term 'cvc5_res' may or may not be already in the
+     *       term DB. Since we can't always compute the exact level, we can't
+     *       add the substituted term to the term DB. */
+  }
+
+  /**
+   * Collect all known sub terms (terms registered in the term DB) of a given
+   * term. Performs a pre-order traversal over term.
+   */
+  std::vector<Term> get_sub_terms(Term term)
+  {
+    std::vector<Term> res;
+    std::unordered_set<::cvc5::api::Term> cvc5_res;
+    ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+    std::vector<::cvc5::api::Term> to_visit{cvc5_term};
+    while (!to_visit.empty())
+    {
+      ::cvc5::api::Term cvc5_vterm = to_visit.back();
+      to_visit.pop_back();
+      auto ch = d_rng.pick_one_of_four();
+      switch (ch)
+      {
+        case RNGenerator::FIRST:
+          for (const auto& cvc5_t : cvc5_vterm)
+          {
+            if (cvc5_res.find(cvc5_t) == cvc5_res.end())
+            {
+              cvc5_res.insert(cvc5_t);
+              to_visit.push_back(cvc5_t);
+            }
+          }
+          break;
+        case RNGenerator::SECOND:
+          for (size_t i = 0, n = cvc5_vterm.getNumChildren(); i < n; ++i)
+          {
+            ::cvc5::api::Term cvc5_t = cvc5_vterm[i];
+            if (cvc5_res.find(cvc5_t) == cvc5_res.end())
+            {
+              cvc5_res.insert(cvc5_t);
+              to_visit.push_back(cvc5_t);
+            }
+          }
+          break;
+        case RNGenerator::THIRD:
+          if (d_rng.flip_coin())
+          {
+            for (::cvc5::api::Term::const_iterator it  = cvc5_vterm.begin(),
+                                                   end = cvc5_vterm.end();
+                 it != end;
+                 ++it)
+            {
+              ::cvc5::api::Term cvc5_t = *it;
+              if (cvc5_res.find(cvc5_t) == cvc5_res.end())
+              {
+                cvc5_res.insert(cvc5_t);
+                to_visit.push_back(cvc5_t);
+              }
+            }
+          }
+          else
+          {
+            for (::cvc5::api::Term::const_iterator it  = cvc5_vterm.begin(),
+                                                   end = cvc5_vterm.end();
+                 !(it == end);
+                 ++it)
+            {
+              ::cvc5::api::Term cvc5_t = *it;
+              if (cvc5_res.find(cvc5_t) == cvc5_res.end())
+              {
+                cvc5_res.insert(cvc5_t);
+                to_visit.push_back(cvc5_t);
+              }
+            }
+          }
+          break;
+        default:
+          if (d_rng.flip_coin())
+          {
+            for (::cvc5::api::Term::const_iterator it  = cvc5_vterm.begin(),
+                                                   end = cvc5_vterm.end();
+                 it != end;
+                 it++)
+            {
+              ::cvc5::api::Term cvc5_t = *it;
+              if (cvc5_res.find(cvc5_t) == cvc5_res.end())
+              {
+                cvc5_res.insert(cvc5_t);
+                to_visit.push_back(cvc5_t);
+              }
+            }
+          }
+          else
+          {
+            for (::cvc5::api::Term::const_iterator it  = cvc5_vterm.begin(),
+                                                   end = cvc5_vterm.end();
+                 !(it == end);
+                 it++)
+            {
+              ::cvc5::api::Term cvc5_t = *it;
+              if (cvc5_res.find(cvc5_t) == cvc5_res.end())
+              {
+                cvc5_res.insert(cvc5_t);
+                to_visit.push_back(cvc5_t);
+              }
+            }
+          }
+      }
+    }
+
+    ::cvc5::api::Solver* cvc5 =
+        static_cast<Cvc5Solver&>(d_smgr.get_solver()).get_solver();
+    for (const ::cvc5::api::Term& cvc5_t : cvc5_res)
+    {
+      Sort s = std::shared_ptr<Cvc5Sort>(new Cvc5Sort(cvc5, cvc5_t.getSort()));
+      s      = d_smgr.find_sort(s);
+      if (s->get_kind() == SORT_ANY) continue;
+      Term t = std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, cvc5, cvc5_t));
+      t      = d_smgr.find_term(t, s, s->get_kind());
+      if (t == nullptr) continue;
+      res.push_back(t);
+    }
+    return res;
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
 Cvc5Solver::configure_fsm(FSM* fsm) const
 {
   State* s_sat = fsm->get_state(State::CHECK_SAT);
+
+  // Term::substitute(const Term& term, const Term& subst_term)
+  auto a_term_subst = fsm->new_action<Cvc5ActionTermSubstitute>();
+  fsm->add_action_to_all_states(a_term_subst, 100);
 
   // Solver::simplify(const Term& term)
   auto a_simplify = fsm->new_action<Cvc5ActionSimplify>();

@@ -246,11 +246,12 @@ SolverManager::add_term(Term& term,
    * in d_sorts. Hence, we need to do a lookup on d_sorts if we already have
    * a matching sort. */
   Sort sort = d_solver->get_sort(term, sort_kind);
-  sort->set_kind(sort_kind);
+  // sort->set_kind(sort_kind);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
   assert(lookup->equals(sort));
   assert(lookup->to_string() == sort->to_string());
+  assert(lookup->get_kind() == SORT_ANY || lookup->get_kind() == sort_kind);
   /* Operators SEQ_UNIT, SET_UNIT and SET_COMPREHENSION may implicitly create a
    * new sequence sort. In that case we have to populate Sort::d_sorts with the
    * element sort. */
@@ -1180,20 +1181,24 @@ SolverManager::set_n_sorts(uint64_t id)
 Sort
 SolverManager::find_sort(Sort sort) const
 {
-  auto it = d_sorts.find(sort);
-  if (it == d_sorts.end())
+  if (sort == nullptr) return sort;
+
+  /* We can't use d_sorts::find() here since this uses operator==, which
+   * also compares for equality of the kind of 'sort', which may be yet
+   * unknown (SORT_ANY). */
+  for (const auto& s : d_sorts)
   {
-    it = d_sorts_dt_parametric.find(sort);
-    if (it == d_sorts_dt_parametric.end())
-    {
-      it = d_sorts_dt_non_well_founded.find(sort);
-      if (it == d_sorts_dt_non_well_founded.end())
-      {
-        return sort;
-      }
-    }
+    if (s->equals(sort)) return s;
   }
-  return *it;
+  for (const auto& s : d_sorts_dt_parametric)
+  {
+    if (s->equals(sort)) return s;
+  }
+  for (const auto& s : d_sorts_dt_non_well_founded)
+  {
+    if (s->equals(sort)) return s;
+  }
+  return sort;
 }
 
 bool
