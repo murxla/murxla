@@ -2047,8 +2047,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
   s_fix_reset_assumptions->add_action(a_fix_assumptions, 5);
   s_fix_reset_assumptions->add_action(a_reset_assumptions, 5);
   s_fix_reset_assumptions->add_action(t_default, 1, s_assert);
-  fsm->add_action_to_all_states_next(
-      t_default, 2, s_fix_reset_assumptions, {State::OPT});
+  fsm->add_action_to_all_states_next(t_default, 2, s_fix_reset_assumptions);
 
   // boolector_release_all
   auto a_release_all = fsm->new_action<BtorActionReleaseAll>();

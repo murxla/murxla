@@ -215,8 +215,8 @@ class FSM
    *
    * Note: A decision state is never final.
    *
-   * kind    : A unique string identifying the state.
-   * fun     : The precondition for transitioning to the next state.
+   * kind: A unique string identifying the state.
+   * fun : The precondition for transitioning to the next state.
    */
   State* new_decision_state(const std::string& kind,
                             std::function<bool(void)> fun = nullptr);
@@ -230,8 +230,8 @@ class FSM
    *
    * Note: A choice state can be final.
    *
-   * kind    : A unique string identifying the state.
-   * fun     : The precondition for transitioning to the next state.
+   * kind: A unique string identifying the state.
+   * fun : The precondition for transitioning to the next state.
    */
   State* new_choice_state(const std::string& kind,
                           std::function<bool(void)> fun = nullptr,
@@ -245,8 +245,8 @@ class FSM
    *
    * Note: A final state is never a decision state.
    *
-   * kind    : A unique string identifying the state.
-   * fun     : The precondition for transitioning to the next state.
+   * kind: A unique string identifying the state.
+   * fun : The precondition for transitioning to the next state.
    */
   State* new_final_state(const std::string& kind,
                          std::function<bool(void)> fun = nullptr);
@@ -259,12 +259,24 @@ class FSM
   void disable_action(Action::Kind kind);
 
   /**
-   * Add given action to all configured states (excl. states "new" and "delete"
-   * and the given excluded states).
+   * Add given action to all configured states (excl. the states defined in
+   * d_actions_all_states_excluded and the given excluded states).
    *
    * To be processed after configuration of solver-specific states/actions.
    * The actual weight of the action is computed as priority/sum, with <sum>
    * being the sum of the priorities of all actions in that state.
+   *
+   * action         : The action to add to all states (with exceptions).
+   * priority       : The priority of the action, determines the weight, and
+   *                  thus the probability to choose running the action. The
+   *                  actual weight of the action is computed as sum/priority,
+   *                  with <sum> being the sum of the priorities of all actions
+   *                  in that state.
+   * excluded_states: The states to exclude the action from, additionally to
+   *                  the states that are always excluded (defined in
+   *                  d_actions_all_states_excluded).
+   * next           : The state to transition into after running the action.
+   *                  Optional, if not set, we stay in the current state.
    */
   template <class T>
   void add_action_to_all_states(
@@ -273,12 +285,25 @@ class FSM
       const std::unordered_set<std::string>& excluded_states = {},
       State* next                                            = nullptr);
 
-  /* Add transition with given action from given state to all configured states
-   * (excl. states "new" and "delete" and the given excluded states).
+  /**
+   * Add transition with given action from given state to all configured states
+   * (excl. the states defined in d_actions_all_states_excluded and the given
+   * excluded states).
    *
    * To be processed after configuration of solver-specific states/actions.
    * The actual weight of the action is computed as priority/sum, with <sum>
    * being the sum of the priorities of all actions in that state.
+   *
+   * action         : The action to add to all states (with exceptions).
+   * priority       : The priority of the action, determines the weight, and
+   *                  thus the probability to choose running the action. The
+   *                  actual weight of the action is computed as sum/priority,
+   *                  with <sum> being the sum of the priorities of all actions
+   *                  in that state.
+   * state          : The state to transition from.
+   * excluded_states: The states to exclude the action from, additionally to
+   *                  the states that are always excluded (defined in
+   *                  d_actions_all_states_excluded).
    */
   template <class T>
   void add_action_to_all_states_next(
@@ -304,9 +329,13 @@ class FSM
   void print() const;
 
  private:
+  /** The solver manager. */
   SolverManager d_smgr;
+  /** The associated random number generator. */
   RNGenerator& d_rng;
+  /** The set of configured states. */
   std::vector<std::unique_ptr<State>> d_states;
+  /** The set of configured actions. */
   std::unordered_map<Action::Kind, std::unique_ptr<Action>> d_actions;
 
   /**
@@ -333,7 +362,7 @@ class FSM
    * (add_action_to_all_states) or when adding all aconfigured states to an
    * action/transition (add_action_to_all_states_next). */
   std::unordered_set<std::string> d_actions_all_states_excluded = {
-      State::NEW, State::DELETE};
+      State::NEW, State::DELETE, State::OPT, State::OPT_REQ, State::SET_LOGIC};
 
   /** The initial state. */
   State* d_state_init = nullptr;

@@ -3298,7 +3298,7 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
 
   // Solver::simplify(const Term& term)
   auto a_simplify = fsm->new_action<Cvc5ActionSimplify>();
-  fsm->add_action_to_all_states(a_simplify, 100, {State::NEW, State::DELETE});
+  fsm->add_action_to_all_states(a_simplify, 100);
 
   // Solver::checkEntailed(Term term)
   // Solver::checkEntailed(std::vector<Term> terms)
