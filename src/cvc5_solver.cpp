@@ -2,6 +2,7 @@
 
 #include "cvc5_solver.hpp"
 
+#include <algorithm>
 #include <cassert>
 
 #include "action.hpp"
@@ -3331,6 +3332,9 @@ class Cvc5ActionSimplify : public Action
 class Cvc5ActionTermSubstitute : public Action
 {
  public:
+  /** The maximum number of terms to be substituted. */
+  static constexpr uint32_t MAX_N_SUBST_TERMS = 3;
+
   Cvc5ActionTermSubstitute(SolverManager& smgr)
       : Action(smgr, Cvc5Solver::ACTION_TERM_SUBSTITUTE, NONE)
   {
@@ -3344,43 +3348,85 @@ class Cvc5ActionTermSubstitute : public Action
     /* Pick term to substitute. */
     std::vector<Term> sub_terms = get_sub_terms(term);
     if (sub_terms.empty()) return false;
-    Term to_subst_term =
-        d_rng.pick_from_set<decltype(sub_terms), Term>(sub_terms);
-    Term subst_term = d_smgr.pick_term();
-    if (!Cvc5Term::get_cvc5_term(subst_term)
-             .getSort()
-             .isComparableTo(Cvc5Term::get_cvc5_term(to_subst_term).getSort()))
+    uint32_t n_terms = d_rng.pick<uint32_t>(
+        1, std::min<size_t>(sub_terms.size(), MAX_N_SUBST_TERMS));
+    std::vector<Term> to_subst_terms;
+    std::vector<Term> subst_terms;
+    for (uint32_t i = 0; i < n_terms; ++i)
     {
-      return false;
+      Term to_subst_term =
+          d_rng.pick_from_set<decltype(sub_terms), Term>(sub_terms);
+      to_subst_terms.push_back(to_subst_term);
+      Term subst_term = d_smgr.pick_term();
+      if (!Cvc5Term::get_cvc5_term(subst_term)
+               .getSort()
+               .isComparableTo(
+                   Cvc5Term::get_cvc5_term(to_subst_term).getSort()))
+      {
+        return false;
+      }
+      subst_terms.push_back(subst_term);
     }
-    _run(term, to_subst_term, subst_term);
+
+    _run(term, to_subst_terms, subst_terms);
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
-    MURXLA_CHECK_TRACE_NTOKENS(3, tokens.size());
+    MURXLA_CHECK_TRACE_NTOKENS_MIN(5, "", tokens.size());
+
     Term term          = get_untraced_term(untrace_str_to_id(tokens[0]));
-    Term to_subst_term = get_untraced_term(untrace_str_to_id(tokens[1]));
-    Term subst_term    = get_untraced_term(untrace_str_to_id(tokens[2]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    MURXLA_CHECK_TRACE_TERM(to_subst_term, tokens[1]);
-    MURXLA_CHECK_TRACE_TERM(subst_term, tokens[2]);
-    _run(term, to_subst_term, subst_term);
+
+    uint32_t idx              = 1;
+    uint32_t n_to_subst_terms = str_to_uint32(tokens[idx++]);
+    std::vector<Term> to_subst_terms;
+    for (size_t i = 0; i < n_to_subst_terms; ++i)
+    {
+      to_subst_terms.push_back(
+          get_untraced_term(untrace_str_to_id(tokens[idx])));
+      MURXLA_CHECK_TRACE_TERM(to_subst_terms.back(), tokens[idx]);
+      idx += 1;
+    }
+
+    uint32_t n_subst_terms = str_to_uint32(tokens[idx++]);
+    std::vector<Term> subst_terms;
+    for (size_t i = 0; i < n_subst_terms; ++i)
+    {
+      subst_terms.push_back(get_untraced_term(untrace_str_to_id(tokens[idx])));
+      MURXLA_CHECK_TRACE_TERM(subst_terms.back(), tokens[idx]);
+      idx += 1;
+    }
+
+    _run(term, to_subst_terms, subst_terms);
     return {};
   }
 
  private:
-  void _run(Term term, Term to_subst_term, Term subst_term)
+  void _run(Term term,
+            std::vector<Term> to_subst_terms,
+            std::vector<Term> subst_terms)
   {
-    MURXLA_TRACE << get_kind() << " " << term << " " << subst_term;
+    MURXLA_TRACE << get_kind() << " " << term << " " << to_subst_terms.size()
+                 << to_subst_terms << " " << subst_terms.size() << subst_terms;
     d_smgr.reset_sat();
     ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
-    ::cvc5::api::Term cvc5_to_subst_term =
-        Cvc5Term::get_cvc5_term(to_subst_term);
-    ::cvc5::api::Term cvc5_subst_term = Cvc5Term::get_cvc5_term(subst_term);
-    ::cvc5::api::Term cvc5_res =
-        cvc5_term.substitute(cvc5_to_subst_term, cvc5_subst_term);
+    std::vector<::cvc5::api::Term> cvc5_to_subst_terms =
+        Cvc5Term::terms_to_cvc5_terms(to_subst_terms);
+    std::vector<::cvc5::api::Term> cvc5_subst_terms =
+        Cvc5Term::terms_to_cvc5_terms(subst_terms);
+
+    ::cvc5::api::Term cvc5_res;
+    if (to_subst_terms.size() == 1 && d_rng.flip_coin())
+    {
+      cvc5_res =
+          cvc5_term.substitute(cvc5_to_subst_terms[0], cvc5_subst_terms[0]);
+    }
+    else
+    {
+      cvc5_res = cvc5_term.substitute(cvc5_to_subst_terms, cvc5_subst_terms);
+    }
     MURXLA_TEST(!cvc5_res.isNull());
     /* Note: The simplified term 'cvc5_res' may or may not be already in the
      *       term DB. Since we can't always compute the exact level, we can't
