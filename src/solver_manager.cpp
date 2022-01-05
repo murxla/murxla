@@ -250,7 +250,6 @@ SolverManager::add_term(Term& term,
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
   assert(lookup->equals(sort));
-  assert(lookup->to_string() == sort->to_string());
   /* Operators SEQ_UNIT, SET_UNIT and SET_COMPREHENSION may implicitly create a
    * new sequence sort. In that case we have to populate Sort::d_sorts with the
    * element sort. */
