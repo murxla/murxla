@@ -1187,7 +1187,11 @@ SolverManager::find_sort(Sort sort) const
    * unknown (SORT_ANY). */
   for (const auto& s : d_sorts)
   {
-    if (s->equals(sort)) return s;
+    /* If sort does have a sort kind, we have to compare the sort kinds too due
+     * to the bool vs. bv1 handling in Bitwuzla and Boolector. */
+    if (s->equals(sort)
+        && (sort->get_kind() == SORT_ANY || s->get_kind() == sort->get_kind()))
+      return s;
   }
   for (const auto& s : d_sorts_dt_parametric)
   {
