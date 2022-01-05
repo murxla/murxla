@@ -705,6 +705,8 @@ class Solver
   virtual TheoryIdVector get_unsupported_quant_theories() const;
   /** Get the set of unsupported operator kinds. */
   virtual OpKindSet get_unsupported_op_kinds() const;
+  /** Get the set of unsupported sort kinds. */
+  virtual SortKindSet get_unsupported_sort_kinds() const;
 
   /**
    * Get operator sort restrictions.

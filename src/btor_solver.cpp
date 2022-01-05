@@ -409,10 +409,10 @@ BtorSolver::get_unsupported_quant_theories() const
   return {THEORY_ARRAY, THEORY_UF};
 }
 
-OpKindSet
-BtorSolver::get_unsupported_op_kinds() const
+SortKindSet
+BtorSolver::get_unsupported_sort_kinds() const
 {
-  return {};
+  return {SORT_UNINTERPRETED};
 }
 
 SortKindSet

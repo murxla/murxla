@@ -1415,6 +1415,7 @@ SolverManager::get_sort_kind_data(const TheoryIdSet& theories)
       default: assert(false);
     }
   }
+
   return sort_kinds;
 }
 
@@ -1423,6 +1424,12 @@ SolverManager::add_sort_kinds()
 {
   assert(d_enabled_theories.size());
   d_sort_kinds = get_sort_kind_data(d_enabled_theories);
+
+  /* Remove sort kinds not supported by solver. */
+  for (const auto& k : d_solver->get_unsupported_sort_kinds())
+  {
+    d_sort_kinds.erase(k);
+  }
 }
 
 template <typename TKind, typename TKindData, typename TKindMap>

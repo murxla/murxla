@@ -180,6 +180,7 @@ class BzlaSolver : public Solver
 
   TheoryIdVector get_supported_theories() const override;
   OpKindSet get_unsupported_op_kinds() const override;
+  SortKindSet get_unsupported_sort_kinds() const override;
   SortKindSet get_unsupported_var_sort_kinds() const override;
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
   SortKindSet get_unsupported_array_element_sort_kinds() const override;

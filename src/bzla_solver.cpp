@@ -841,6 +841,12 @@ BzlaSolver::get_unsupported_op_kinds() const
 }
 
 SortKindSet
+BzlaSolver::get_unsupported_sort_kinds() const
+{
+  return {SORT_UNINTERPRETED};
+}
+
+SortKindSet
 BzlaSolver::get_unsupported_var_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN, SORT_FP};

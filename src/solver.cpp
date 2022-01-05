@@ -831,6 +831,12 @@ Solver::get_unsupported_op_kinds() const
   return {};
 }
 
+SortKindSet
+Solver::get_unsupported_sort_kinds() const
+{
+  return {};
+}
+
 Solver::OpKindSortKindMap
 Solver::get_unsupported_op_sort_kinds() const
 {
