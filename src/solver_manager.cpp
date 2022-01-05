@@ -246,12 +246,11 @@ SolverManager::add_term(Term& term,
    * in d_sorts. Hence, we need to do a lookup on d_sorts if we already have
    * a matching sort. */
   Sort sort = d_solver->get_sort(term, sort_kind);
-  // sort->set_kind(sort_kind);
+  sort->set_kind(sort_kind);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
   assert(lookup->equals(sort));
   assert(lookup->to_string() == sort->to_string());
-  assert(lookup->get_kind() == SORT_ANY || lookup->get_kind() == sort_kind);
   /* Operators SEQ_UNIT, SET_UNIT and SET_COMPREHENSION may implicitly create a
    * new sequence sort. In that case we have to populate Sort::d_sorts with the
    * element sort. */
