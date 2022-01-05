@@ -2133,6 +2133,11 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     cvc5_res = d_solver->mkRegexpAll();
     goto DONE;
   }
+  else if (kind == Op::RE_ALLCHAR && d_rng.flip_coin())
+  {
+    cvc5_res = d_solver->mkRegexpAllchar();
+    goto DONE;
+  }
   else if (kind == Cvc5Term::OP_REAL_PI && d_rng.flip_coin())
   {
     cvc5_res = d_solver->mkPi();
