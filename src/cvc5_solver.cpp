@@ -2784,26 +2784,32 @@ Cvc5Solver::check_value(Term term)
   if (cvc5_term.isRealValue())
   {
     (void) cvc5_term.getRealValue();
+    (void) cvc5_term.getRealOrIntegerValueSign();
   }
   if (cvc5_term.isReal32Value())
   {
     (void) cvc5_term.getReal32Value();
+    (void) cvc5_term.getRealOrIntegerValueSign();
   }
   if (cvc5_term.isReal64Value())
   {
     (void) cvc5_term.getReal64Value();
+    (void) cvc5_term.getRealOrIntegerValueSign();
   }
   if (cvc5_term.isUInt32Value())
   {
     (void) cvc5_term.getUInt32Value();
+    (void) cvc5_term.getRealOrIntegerValueSign();
   }
   if (cvc5_term.isUInt64Value())
   {
     (void) cvc5_term.getUInt64Value();
+    (void) cvc5_term.getRealOrIntegerValueSign();
   }
   if (cvc5_term.isSequenceValue())
   {
     (void) cvc5_term.getSequenceValue();
+    (void) cvc5_term.getRealOrIntegerValueSign();
   }
   if (cvc5_term.isSetValue())
   {
