@@ -65,9 +65,9 @@ BzlaSort::to_string() const
   {
     ss << (char) ch;
   }
-  std::fclose(tmp_file);
   MURXLA_EXIT_ERROR(std::ferror(tmp_file))
       << "error while reading from tmp file";
+  std::fclose(tmp_file);
   return ss.str();
 }
 
@@ -509,9 +509,9 @@ BzlaTerm::to_string() const
   {
     ss << (char) ch;
   }
-  std::fclose(tmp_file);
   MURXLA_EXIT_ERROR(std::ferror(tmp_file))
       << "error while reading from tmp file";
+  std::fclose(tmp_file);
   return ss.str();
 }
 
