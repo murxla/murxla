@@ -2181,10 +2181,6 @@ class BzlaActionTermIsEqualSort : public Action
     {
       MURXLA_TEST(bitwuzla_term_is_equal_sort(bzla_term0, bzla_term1));
     }
-    else
-    {
-      MURXLA_TEST(!bitwuzla_term_is_equal_sort(bzla_term0, bzla_term1));
-    }
   }
 };
 
