@@ -2832,14 +2832,21 @@ Cvc5Solver::check_sort(Sort sort)
     const std::string& ctor =
         d_rng.pick_from_set<decltype(cons_names), std::string>(cons_names);
 
+    ::cvc5::api::Datatype cvc5_dt = cvc5_sort.getDatatype();
+    (void) cvc5_dt.isRecord();
+    if (!cvc5_dt.isParametric())
+    {
+      (void) cvc5_dt.isFinite();
+    }
+
     ::cvc5::api::Term cvc5_ctor_term =
         d_rng.flip_coin()
-            ? cvc5_sort.getDatatype().getConstructorTerm(ctor)
-            : cvc5_sort.getDatatype().getConstructor(ctor).getConstructorTerm();
+            ? cvc5_dt.getConstructorTerm(ctor)
+            : cvc5_dt.getConstructor(ctor).getConstructorTerm();
     MURXLA_TEST(cvc5_ctor_term.getSort().isConstructor());
 
     ::cvc5::api::Term cvc5_tester_term =
-        cvc5_sort.getDatatype().getConstructor(ctor).getTesterTerm();
+        cvc5_dt.getConstructor(ctor).getTesterTerm();
     MURXLA_TEST(cvc5_tester_term.getSort().isTester());
     MURXLA_TEST(cvc5_tester_term.getSort().getTesterDomainSort()
                 == Cvc5Sort::get_cvc5_sort(sort));
@@ -2864,8 +2871,8 @@ Cvc5Solver::check_sort(Sort sort)
 
       ::cvc5::api::DatatypeSelector cvc5_sel =
           d_rng.flip_coin()
-              ? cvc5_sort.getDatatype().getSelector(sel)
-              : cvc5_sort.getDatatype().getConstructor(ctor).getSelector(sel);
+              ? cvc5_dt.getSelector(sel)
+              : cvc5_dt.getConstructor(ctor).getSelector(sel);
 
       ::cvc5::api::Term cvc5_sel_term = cvc5_sel.getSelectorTerm();
 
@@ -2913,7 +2920,7 @@ Cvc5Solver::check_sort(Sort sort)
     MURXLA_TEST(sorts.size() == cvc5_sort.getDatatypeArity());
     /* Note: isParametricDatatype() returns true for both instantiated and
      *       non-instantiated datatypes. */
-    if (cvc5_sort.getDatatype().isParametric())
+    if (cvc5_dt.isParametric())
     {
       if (!sorts.empty())
       {
