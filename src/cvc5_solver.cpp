@@ -1516,15 +1516,7 @@ Cvc5Solver::mk_sort(
             ::cvc5::api::Sort cvc5_unres_sort;
             if (it == symbol_to_cvc5_usorts.end())
             {
-              if (arity > 0)
-              {
-                cvc5_unres_sort =
-                    d_solver->mkSortConstructorSort(symbol, arity);
-              }
-              else
-              {
-                cvc5_unres_sort = d_solver->mkUninterpretedSort(symbol);
-              }
+              cvc5_unres_sort = d_solver->mkUnresolvedSort(symbol, arity);
               symbol_to_cvc5_usorts[symbol] = cvc5_unres_sort;
               cvc5_usorts.insert(cvc5_unres_sort);
             }
