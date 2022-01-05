@@ -1446,6 +1446,8 @@ Cvc5Solver::mk_sort(
   assert(n_dt_sorts == constructors.size());
 
   std::vector<::cvc5::api::DatatypeDecl> cvc5_dtypedecls;
+  std::vector<std::vector<::cvc5::api::DatatypeConstructorDecl>>
+      cvc5_dtypectordecls;
   std::set<::cvc5::api::Sort> cvc5_usorts;
 
   for (size_t i = 0; i < n_dt_sorts; ++i)
@@ -1487,6 +1489,7 @@ Cvc5Solver::mk_sort(
 
       ::cvc5::api::DatatypeConstructorDecl cvc5_cdecl =
           d_solver->mkDatatypeConstructorDecl(cname);
+      cvc5_ctors.push_back(cvc5_cdecl);
 
       for (const auto& s : sels)
       {
@@ -1561,13 +1564,24 @@ Cvc5Solver::mk_sort(
 
       cvc5_dtypedecl.addConstructor(cvc5_cdecl);
     }
+    cvc5_dtypectordecls.push_back(cvc5_ctors);
     cvc5_dtypedecls.push_back(cvc5_dtypedecl);
   }
 
   if (n_dt_sorts == 1 && d_rng.flip_coin())
   {
     assert(cvc5_usorts.empty());
-    ::cvc5::api::Sort cvc5_res = d_solver->mkDatatypeSort(cvc5_dtypedecls[0]);
+    assert(cvc5_dtypedecls.size() == 1);
+    assert(cvc5_dtypectordecls.size() == 1);
+    ::cvc5::api::Sort cvc5_res;
+    if (!param_sorts[0].empty() || d_rng.flip_coin())
+    {
+      cvc5_res = d_solver->mkDatatypeSort(cvc5_dtypedecls[0]);
+    }
+    else
+    {
+      cvc5_res = d_solver->declareDatatype(dt_names[0], cvc5_dtypectordecls[0]);
+    }
     MURXLA_TEST(!cvc5_res.isNull());
     MURXLA_TEST(!cvc5_res.getDatatype().isNull());
     return {std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_solver, cvc5_res))};
