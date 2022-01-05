@@ -3363,6 +3363,7 @@ class Cvc5ActionTermSubstitute : public Action
       ::cvc5::api::Term cvc5_vterm = to_visit.back();
       to_visit.pop_back();
       auto ch = d_rng.pick_one_of_four();
+      ::cvc5::api::Term::const_iterator it, end;
       switch (ch)
       {
         case RNGenerator::FIRST:
@@ -3389,9 +3390,7 @@ class Cvc5ActionTermSubstitute : public Action
         case RNGenerator::THIRD:
           if (d_rng.flip_coin())
           {
-            for (::cvc5::api::Term::const_iterator it  = cvc5_vterm.begin(),
-                                                   end = cvc5_vterm.end();
-                 it != end;
+            for (it = cvc5_vterm.begin(), end = cvc5_vterm.end(); it != end;
                  ++it)
             {
               ::cvc5::api::Term cvc5_t = *it;
@@ -3404,9 +3403,7 @@ class Cvc5ActionTermSubstitute : public Action
           }
           else
           {
-            for (::cvc5::api::Term::const_iterator it  = cvc5_vterm.begin(),
-                                                   end = cvc5_vterm.end();
-                 !(it == end);
+            for (it = cvc5_vterm.begin(), end = cvc5_vterm.end(); !(it == end);
                  ++it)
             {
               ::cvc5::api::Term cvc5_t = *it;
@@ -3421,9 +3418,7 @@ class Cvc5ActionTermSubstitute : public Action
         default:
           if (d_rng.flip_coin())
           {
-            for (::cvc5::api::Term::const_iterator it  = cvc5_vterm.begin(),
-                                                   end = cvc5_vterm.end();
-                 it != end;
+            for (it = cvc5_vterm.begin(), end = cvc5_vterm.end(); it != end;
                  it++)
             {
               ::cvc5::api::Term cvc5_t = *it;
@@ -3436,9 +3431,7 @@ class Cvc5ActionTermSubstitute : public Action
           }
           else
           {
-            for (::cvc5::api::Term::const_iterator it  = cvc5_vterm.begin(),
-                                                   end = cvc5_vterm.end();
-                 !(it == end);
+            for (it = cvc5_vterm.begin(), end = cvc5_vterm.end(); !(it == end);
                  it++)
             {
               ::cvc5::api::Term cvc5_t = *it;
