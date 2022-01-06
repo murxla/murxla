@@ -1419,13 +1419,20 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       }
       ::cvc5::api::Sort codomain = Cvc5Sort::get_cvc5_sort(sorts.back());
 
-      if (domain.size() == 1 && d_rng.flip_coin())
+      if (codomain.isBoolean() && d_rng.flip_coin())
       {
-        cvc5_res = d_solver->mkFunctionSort(domain[0], codomain);
+        cvc5_res = d_solver->mkPredicateSort(domain);
       }
       else
       {
-        cvc5_res = d_solver->mkFunctionSort(domain, codomain);
+        if (domain.size() == 1 && d_rng.flip_coin())
+        {
+          cvc5_res = d_solver->mkFunctionSort(domain[0], codomain);
+        }
+        else
+        {
+          cvc5_res = d_solver->mkFunctionSort(domain, codomain);
+        }
       }
       break;
     }
