@@ -3034,6 +3034,7 @@ Cvc5Solver::check_term(Term term)
   MURXLA_TEST(!cvc5_term.hasSymbol() || !cvc5_term.getSymbol().empty());
   MURXLA_TEST(!term->is_indexed() || cvc5_term.hasOp());
   MURXLA_TEST(term->is_indexed() || term->get_num_indices() == 0);
+  MURXLA_TEST(cvc5_term.getId() != 0);
 }
 
 std::unordered_map<std::string, std::string>
