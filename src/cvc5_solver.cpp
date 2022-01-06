@@ -23,7 +23,7 @@ namespace cvc5 {
 ::cvc5::api::Sort&
 Cvc5Sort::get_cvc5_sort(Sort sort)
 {
-  return static_cast<Cvc5Sort*>(sort.get())->d_sort;
+  return dynamic_cast<Cvc5Sort*>(sort.get())->d_sort;
 }
 
 size_t
@@ -918,7 +918,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
 ::cvc5::api::Term&
 Cvc5Term::get_cvc5_term(Term term)
 {
-  return static_cast<Cvc5Term*>(term.get())->d_term;
+  return dynamic_cast<Cvc5Term*>(term.get())->d_term;
 }
 
 std::vector<Term>
@@ -2901,6 +2901,19 @@ Cvc5Solver::check_sort(Sort sort)
     if (!cvc5_dt.isParametric())
     {
       (void) cvc5_dt.isFinite();
+    }
+    else
+    {
+      auto dt_params      = sort->get_sorts();
+      auto cvc5_dt_params = cvc5_dt.getParameters();
+      MURXLA_TEST(dt_params.size() == cvc5_dt_params.size());
+      for (size_t i = 0, n = dt_params.size(); i < n; ++i)
+      {
+        MURXLA_TEST(cvc5_dt_params[i].hasSymbol());
+        MURXLA_TEST(dynamic_cast<ParamSort*>(dt_params[i].get())->get_symbol()
+                    == cvc5_dt_params[i].getSymbol());
+      }
+      MURXLA_TEST(cvc5_dt_params == cvc5_sort.getDatatypeParamSorts());
     }
 
     ::cvc5::api::Term cvc5_ctor_term =
