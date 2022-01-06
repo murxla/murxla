@@ -3374,6 +3374,205 @@ class Cvc5ActionSimplify : public Action
   }
 };
 
+class Cvc5ActionSortSubstitute : public Action
+{
+ public:
+  /** The maximum number of sorts to be substituted. */
+  static constexpr uint32_t MAX_N_SUBST_SORTS = 3;
+
+  Cvc5ActionSortSubstitute(SolverManager& smgr)
+      : Action(smgr, Cvc5Solver::ACTION_SORT_SUBSTITUTE, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_sort_with_sort_params()) return false;
+    Sort sort = d_smgr.pick_sort_with_sort_params();
+    /* Pick sort to substitute. */
+    std::vector<Sort> sub_sorts = get_sub_sorts(sort);
+    if (sub_sorts.empty()) return false;
+    uint32_t n_sorts = d_rng.pick<uint32_t>(
+        1, std::min<size_t>(sub_sorts.size(), MAX_N_SUBST_SORTS));
+    std::vector<Sort> to_subst_sorts;
+    std::vector<Sort> subst_sorts;
+    for (uint32_t i = 0; i < n_sorts; ++i)
+    {
+      Sort to_subst_sort =
+          d_rng.pick_from_set<decltype(sub_sorts), Sort>(sub_sorts);
+      to_subst_sorts.push_back(to_subst_sort);
+      Sort subst_sort = d_smgr.pick_sort();
+      if (!Cvc5Sort::get_cvc5_sort(subst_sort)
+               .isComparableTo(Cvc5Sort::get_cvc5_sort(to_subst_sort)))
+      {
+        return false;
+      }
+      subst_sorts.push_back(subst_sort);
+    }
+
+    _run(sort, to_subst_sorts, subst_sorts);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS_MIN(5, "", tokens.size());
+
+    Sort sort = get_untraced_sort(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
+
+    uint32_t idx              = 1;
+    uint32_t n_to_subst_sorts = str_to_uint32(tokens[idx++]);
+    std::vector<Sort> to_subst_sorts;
+    for (size_t i = 0; i < n_to_subst_sorts; ++i)
+    {
+      to_subst_sorts.push_back(
+          get_untraced_sort(untrace_str_to_id(tokens[idx])));
+      MURXLA_CHECK_TRACE_SORT(to_subst_sorts.back(), tokens[idx]);
+      idx += 1;
+    }
+
+    uint32_t n_subst_sorts = str_to_uint32(tokens[idx++]);
+    std::vector<Sort> subst_sorts;
+    for (size_t i = 0; i < n_subst_sorts; ++i)
+    {
+      subst_sorts.push_back(get_untraced_sort(untrace_str_to_id(tokens[idx])));
+      MURXLA_CHECK_TRACE_SORT(subst_sorts.back(), tokens[idx]);
+      idx += 1;
+    }
+
+    _run(sort, to_subst_sorts, subst_sorts);
+    return {};
+  }
+
+ private:
+  void _run(Sort sort,
+            std::vector<Sort> to_subst_sorts,
+            std::vector<Sort> subst_sorts)
+  {
+    MURXLA_TRACE << get_kind() << " " << sort << " " << to_subst_sorts.size()
+                 << to_subst_sorts << " " << subst_sorts.size() << subst_sorts;
+    d_smgr.reset_sat();
+    ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
+    std::vector<::cvc5::api::Sort> cvc5_to_subst_sorts =
+        Cvc5Sort::sorts_to_cvc5_sorts(to_subst_sorts);
+    std::vector<::cvc5::api::Sort> cvc5_subst_sorts =
+        Cvc5Sort::sorts_to_cvc5_sorts(subst_sorts);
+
+    ::cvc5::api::Sort cvc5_res;
+    if (to_subst_sorts.size() == 1 && d_rng.flip_coin())
+    {
+      cvc5_res =
+          cvc5_sort.substitute(cvc5_to_subst_sorts[0], cvc5_subst_sorts[0]);
+    }
+    else
+    {
+      cvc5_res = cvc5_sort.substitute(cvc5_to_subst_sorts, cvc5_subst_sorts);
+    }
+    MURXLA_TEST(!cvc5_res.isNull());
+
+    // TODO add sort
+  }
+
+  /**
+   * Collect all known sub sorts (sorts registered in the sort DB) of a given
+   * sort. Performs a pre-order traversal over sort.
+   */
+  std::vector<Sort> get_sub_sorts(Sort sort)
+  {
+    std::vector<Sort> res;
+    std::unordered_set<::cvc5::api::Sort> cvc5_res;
+    ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
+    std::vector<::cvc5::api::Sort> to_visit{cvc5_sort};
+    while (!to_visit.empty())
+    {
+      ::cvc5::api::Sort cvc5_vsort = to_visit.back();
+      to_visit.pop_back();
+      if (cvc5_vsort.isConstructor())
+      {
+        auto cvc5_domain   = cvc5_vsort.getConstructorDomainSorts();
+        auto cvc5_codomain = cvc5_vsort.getConstructorCodomainSort();
+        cvc5_res.insert(cvc5_domain.begin(), cvc5_domain.end());
+        cvc5_res.insert(cvc5_codomain);
+        to_visit.insert(to_visit.end(), cvc5_domain.begin(), cvc5_domain.end());
+        to_visit.push_back(cvc5_codomain);
+      }
+      else if (cvc5_vsort.isSelector())
+      {
+        auto cvc5_domain   = cvc5_vsort.getSelectorDomainSort();
+        auto cvc5_codomain = cvc5_vsort.getSelectorCodomainSort();
+        cvc5_res.insert(cvc5_domain);
+        cvc5_res.insert(cvc5_codomain);
+        to_visit.push_back(cvc5_domain);
+        to_visit.push_back(cvc5_codomain);
+      }
+      else if (cvc5_vsort.isTester())
+      {
+        auto cvc5_domain   = cvc5_vsort.getTesterDomainSort();
+        auto cvc5_codomain = cvc5_vsort.getTesterCodomainSort();
+        cvc5_res.insert(cvc5_domain);
+        cvc5_res.insert(cvc5_codomain);
+        to_visit.push_back(cvc5_domain);
+        to_visit.push_back(cvc5_codomain);
+      }
+      else if (cvc5_vsort.isFunction())
+      {
+        auto cvc5_domain   = cvc5_vsort.getFunctionDomainSorts();
+        auto cvc5_codomain = cvc5_vsort.getFunctionCodomainSort();
+        cvc5_res.insert(cvc5_domain.begin(), cvc5_domain.end());
+        cvc5_res.insert(cvc5_codomain);
+        to_visit.insert(to_visit.end(), cvc5_domain.begin(), cvc5_domain.end());
+        to_visit.push_back(cvc5_codomain);
+      }
+      else if (cvc5_vsort.isArray())
+      {
+        auto cvc5_elem  = cvc5_vsort.getArrayElementSort();
+        auto cvc5_index = cvc5_vsort.getArrayIndexSort();
+        cvc5_res.insert(cvc5_elem);
+        cvc5_res.insert(cvc5_index);
+        to_visit.push_back(cvc5_elem);
+        to_visit.push_back(cvc5_index);
+      }
+      else if (cvc5_vsort.isBag())
+      {
+        auto cvc5_elem = cvc5_vsort.getBagElementSort();
+        cvc5_res.insert(cvc5_elem);
+        to_visit.push_back(cvc5_elem);
+      }
+      else if (cvc5_vsort.isSet())
+      {
+        auto cvc5_elem = cvc5_vsort.getSetElementSort();
+        cvc5_res.insert(cvc5_elem);
+        to_visit.push_back(cvc5_elem);
+      }
+      else if (cvc5_vsort.isSequence())
+      {
+        auto cvc5_elem = cvc5_vsort.getSequenceElementSort();
+        cvc5_res.insert(cvc5_elem);
+        to_visit.push_back(cvc5_elem);
+      }
+      else if (cvc5_vsort.isTuple())
+      {
+        auto sorts = cvc5_vsort.getTupleSorts();
+        cvc5_res.insert(sorts.begin(), sorts.end());
+        to_visit.insert(to_visit.end(), sorts.begin(), sorts.end());
+      }
+    }
+
+    ::cvc5::api::Solver* cvc5 =
+        static_cast<Cvc5Solver&>(d_smgr.get_solver()).get_solver();
+    for (const ::cvc5::api::Sort& cvc5_s : cvc5_res)
+    {
+      Sort s = std::shared_ptr<Cvc5Sort>(new Cvc5Sort(cvc5, cvc5_s));
+      s      = d_smgr.find_sort(s);
+      if (s->get_kind() == SORT_ANY) continue;
+      res.push_back(s);
+    }
+    return res;
+  }
+};
+
 class Cvc5ActionTermSubstitute : public Action
 {
  public:
@@ -3598,6 +3797,9 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
 {
   State* s_sat = fsm->get_state(State::CHECK_SAT);
 
+  // Sort::substitute(const Sort& sort, const Sort& subst_sort)
+  auto a_sort_subst = fsm->new_action<Cvc5ActionSortSubstitute>();
+  fsm->add_action_to_all_states(a_sort_subst, 100);
   // Term::substitute(const Term& term, const Term& subst_term)
   auto a_term_subst = fsm->new_action<Cvc5ActionTermSubstitute>();
   fsm->add_action_to_all_states(a_term_subst, 100);

@@ -396,6 +396,12 @@ class SolverManager
    */
   Sort pick_sort();
   /**
+   * Pick sort that has sort parameters.
+   * It is not guaranteed that there exist terms of the returned sort.
+   * This includes (parametric) datatype sorts.
+   */
+  Sort pick_sort_with_sort_params();
+  /**
    * Pick sort of given sort kind. Optionally restrict selection to sorts
    * with terms only if 'with_terms' is true.
    * This excludes parametric datatype sorts.
@@ -460,6 +466,12 @@ class SolverManager
   bool has_sort_excluding(
       const std::unordered_set<SortKind>& exclude_sort_kinds,
       bool with_terms = true) const;
+
+  /**
+   * Return true if sorts that have sort parameters have been created.
+   * This includes non-parametric datatypes.
+   */
+  bool has_sort_with_sort_params() const;
 
   /**
    * Return true if a bit-vector sort with given bit-width exists.

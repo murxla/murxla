@@ -997,6 +997,26 @@ SolverManager::pick_sort()
 }
 
 Sort
+SolverManager::pick_sort_with_sort_params()
+{
+  assert(has_sort_with_sort_params());
+
+  std::vector<Sort> sorts{d_sorts_dt_parametric.begin(),
+                          d_sorts_dt_parametric.end()};
+
+  for (const auto& s : d_sorts)
+  {
+    if (!s->get_sorts().empty())
+    {
+      sorts.push_back(s);
+    }
+  }
+  Sort res = d_rng.pick_from_set<decltype(sorts), Sort>(sorts);
+  assert(res->get_id());
+  return res;
+}
+
+Sort
 SolverManager::pick_sort(SortKind sort_kind, bool with_terms)
 {
   assert(!with_terms || has_term(sort_kind));
@@ -1159,6 +1179,20 @@ SolverManager::has_sort_excluding(
       return true;
     }
   }
+  return false;
+}
+
+bool
+SolverManager::has_sort_with_sort_params() const
+{
+  if (!d_sorts_dt_parametric.empty()) return true;
+
+  for (const auto& s : d_sorts)
+  {
+    if (s->is_dt()) return true;
+    if (!s->get_sorts().empty()) return true;
+  }
+
   return false;
 }
 
