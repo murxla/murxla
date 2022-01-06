@@ -1046,13 +1046,21 @@ Cvc5Term::get_children() const
 bool
 Cvc5Term::is_indexed() const
 {
-  return d_term.getOp().isIndexed();
+  if (d_term.hasOp())
+  {
+    return d_term.getOp().isIndexed();
+  }
+  return false;
 }
 
 size_t
 Cvc5Term::get_num_indices() const
 {
-  return d_term.getOp().getNumIndices();
+  if (d_term.hasOp())
+  {
+    return d_term.getOp().getNumIndices();
+  }
+  return 0;
 }
 
 std::vector<std::string>
@@ -3024,6 +3032,8 @@ Cvc5Solver::check_term(Term term)
   MURXLA_TEST(!(cvc5_term > cvc5_term));
   MURXLA_TEST(!(cvc5_term < cvc5_term));
   MURXLA_TEST(!cvc5_term.hasSymbol() || !cvc5_term.getSymbol().empty());
+  MURXLA_TEST(!term->is_indexed() || cvc5_term.hasOp());
+  MURXLA_TEST(term->is_indexed() || term->get_num_indices() == 0);
 }
 
 std::unordered_map<std::string, std::string>
