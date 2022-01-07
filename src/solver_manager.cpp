@@ -1006,7 +1006,7 @@ SolverManager::pick_sort_with_sort_params()
 
   for (const auto& s : d_sorts)
   {
-    if (!s->get_sorts().empty())
+    if (s->is_dt() || !s->get_sorts().empty())
     {
       sorts.push_back(s);
     }
