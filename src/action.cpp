@@ -642,7 +642,7 @@ ActionMkSort::run()
                   s->set_sorts(inst_sorts);
                 }
               }
-              else
+              else if (!no_sel_sorts)
               {
                 s = d_smgr.pick_sort_excluding(exclude_sorts, false);
               }
