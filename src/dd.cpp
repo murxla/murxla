@@ -15,44 +15,6 @@ namespace murxla {
 
 namespace {
 /**
- * Write trace lines to output file.
- *
- * A trace is represented as a vector of lines and a line is represented as a
- * vector of strings with at most 2 elements.
- *
- * Trace statements that do not expect a return statement are represented as a
- * line (vector) with one element. Trace statements that expect a return
- * statement are represented as a line (vector) with two elements: the action
- * and the return statement.
- *
- * This function writes only the lines at the indices given in 'indices'
- * to the output file.
- *
- * This is only used for delta debugging traces.
- */
-void
-write_lines_to_file(const std::vector<std::vector<std::string>>& lines,
-                    const std::vector<size_t> indices,
-                    const std::string& out_file_name)
-{
-  size_t size            = lines.size();
-  std::ofstream out_file = open_output_file(out_file_name, false);
-  for (size_t idx : indices)
-  {
-    assert(idx < size);
-    assert(lines[idx].size() > 0);
-    assert(lines[idx].size() <= 2);
-    out_file << lines[idx][0];
-    if (lines[idx].size() == 2)
-    {
-      out_file << std::endl << lines[idx][1];
-    }
-    out_file << std::endl;
-  }
-  out_file.close();
-}
-
-/**
  * Remove subsets listed in 'excluded_sets' from the list of 'subsets'.
  *
  * Excluded sets are given as indices of the list of subsets.
@@ -191,7 +153,7 @@ DD::run(const std::string& input_trace_file_name,
    * elements: the statement and the return statement.
    */
 
-  std::string line, murxla_options_line;
+  std::string line;
   std::vector<std::vector<std::string>> lines;
   std::ifstream trace_file = open_input_file(tmp_input_trace_file_name, false);
   while (std::getline(trace_file, line))
@@ -200,7 +162,7 @@ DD::run(const std::string& input_trace_file_name,
     if (line[0] == '#') continue;
     if (line.rfind("set-murxla-options", 0) == 0)
     {
-      murxla_options_line = line;
+      d_options_line = line;
       continue;
     }
     if (std::getline(
@@ -269,15 +231,9 @@ DD::run(const std::string& input_trace_file_name,
 
   if (filesystem::exists(d_tmp_trace_file_name))
   {
-    std::ofstream outfile(reduced_trace_file_name);
-    std::ifstream infile(d_tmp_trace_file_name);
-    if (!murxla_options_line.empty())
-    {
-      outfile << murxla_options_line << std::endl;
-    }
-    outfile << infile.rdbuf();
-    outfile.close();
-    infile.close();
+    filesystem::copy(d_tmp_trace_file_name,
+                     reduced_trace_file_name,
+                     filesystem::copy_options::overwrite_existing);
 
     MURXLA_MESSAGE_DD << "written to: " << reduced_trace_file_name.c_str();
     MURXLA_MESSAGE_DD << "file reduced to "
@@ -1042,6 +998,32 @@ DD::test(Result golden_exit,
     d_ntests_success += 1;
   }
   return res_superset;
+}
+
+void
+DD::write_lines_to_file(const std::vector<std::vector<std::string>>& lines,
+                        const std::vector<size_t> indices,
+                        const std::string& out_file_name)
+{
+  size_t size            = lines.size();
+  std::ofstream out_file = open_output_file(out_file_name, false);
+  if (!d_options_line.empty())
+  {
+    out_file << d_options_line << std::endl;
+  }
+  for (size_t idx : indices)
+  {
+    assert(idx < size);
+    assert(lines[idx].size() > 0);
+    assert(lines[idx].size() <= 2);
+    out_file << lines[idx][0];
+    if (lines[idx].size() == 2)
+    {
+      out_file << std::endl << lines[idx][1];
+    }
+    out_file << std::endl;
+  }
+  out_file.close();
 }
 
 /* -------------------------------------------------------------------------- */

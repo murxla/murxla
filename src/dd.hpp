@@ -71,6 +71,26 @@ class DD
                            const std::vector<size_t>& superset,
                            const std::string& input_trace_file_name);
 
+  /**
+   * Write trace lines to output file.
+   *
+   * A trace is represented as a vector of lines and a line is represented as a
+   * vector of strings with at most 2 elements.
+   *
+   * Trace statements that do not expect a return statement are represented as a
+   * line (vector) with one element. Trace statements that expect a return
+   * statement are represented as a line (vector) with two elements: the action
+   * and the return statement.
+   *
+   * This function writes only the lines at the indices given in 'indices'
+   * to the output file.
+   *
+   * This is only used for delta debugging traces.
+   */
+  void write_lines_to_file(const std::vector<std::vector<std::string>>& lines,
+                           const std::vector<size_t> indices,
+                           const std::string& out_file_name);
+
   /** The associated Murxla instance. */
   Murxla* d_murxla = nullptr;
   /** The directory for output files (default: current). */
@@ -92,6 +112,8 @@ class DD
   std::string d_gold_err_file_name;
   /** The temp trace file name for dd. */
   std::string d_tmp_trace_file_name;
+  /** The trace line configuring murxla options. */
+  std::string d_options_line;
 };
 
 }  // namespace murxla
