@@ -10,11 +10,12 @@
 
 /* -------------------------------------------------------------------------- */
 
-#define MURXLA_TRACE                                             \
-  OstreamVoider()                                                \
-      & Action::TraceStream(d_smgr).stream()                     \
-            << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "") \
-            << std::setw(5) << d_sng.seed() << " "
+#define MURXLA_TRACE                                                 \
+  d_solver.get_rng().reseed(d_sng.seed()),                           \
+      OstreamVoider()                                                \
+          & Action::TraceStream(d_smgr).stream()                     \
+                << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "") \
+                << std::setw(5) << d_sng.seed() << " "
 
 #define MURXLA_TRACE_RETURN                                         \
   OstreamVoider()                                                   \
