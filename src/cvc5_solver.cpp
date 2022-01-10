@@ -2862,11 +2862,6 @@ Cvc5Solver::check_value(Term term)
     (void) cvc5_term.getUInt64Value();
     (void) cvc5_term.getRealOrIntegerValueSign();
   }
-  if (cvc5_term.isSequenceValue())
-  {
-    (void) cvc5_term.getSequenceValue();
-    (void) cvc5_term.getRealOrIntegerValueSign();
-  }
   if (cvc5_term.isSetValue())
   {
     (void) cvc5_term.getSetValue();
@@ -2883,6 +2878,11 @@ Cvc5Solver::check_value(Term term)
   {
     (void) cvc5_term.getUninterpretedValue();
   }
+  /* Note: It is necessary for sequences to call Solver::simplify() to turn a
+   *       sequence that is constructed by, e.g., concatenation of unit
+   *       sequences, into a sequence value.
+   */
+  MURXLA_TEST(!cvc5_term.isSequenceValue());
 }
 
 void
@@ -3369,6 +3369,21 @@ class Cvc5ActionSimplify : public Action
     ::cvc5::api::Solver* cvc5  = solver.get_solver();
     ::cvc5::api::Term cvc5_res = cvc5->simplify(Cvc5Term::get_cvc5_term(term));
     MURXLA_TEST(!cvc5_res.isNull());
+
+    /* Note: It is necessary for sequences to call Solver::simplify() to turn a
+     *       sequence that is constructed by, e.g., concatenation of unit
+     *       sequences, into a sequence value. Hence, we can't test these in
+     *       check_value() but must check them here.
+     */
+    if (cvc5_res.isSequenceValue() && d_solver.get_rng().flip_coin())
+    {
+      auto cvc5_seq_value = cvc5_res.getSequenceValue();
+      for (const auto& t : cvc5_seq_value)
+      {
+        MURXLA_TEST(!t.isNull());
+      }
+    }
+
     /* Note: The simplified term 'cvc5_res' may or may not be already in the
      *       term DB. Since we can't always compute the exact level, we can't
      *       add the simplified term to the term DB. */
