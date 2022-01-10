@@ -3289,7 +3289,8 @@ class Cvc5ActionCheckEntailed : public Action
     }
     else if (res.isEntailed())
     {
-      d_smgr.report_result(Solver::Result::UNSAT);
+      // Note: We return UNKNOWN instead of UNSAT here to disable unsat cores
+      d_smgr.report_result(Solver::Result::UNKNOWN);
     }
     else
     {
@@ -3322,7 +3323,8 @@ class Cvc5ActionCheckEntailed : public Action
     }
     else if (res.isEntailed())
     {
-      d_smgr.report_result(Solver::Result::UNSAT);
+      // Note: We return UNKNOWN instead of UNSAT here to disable unsat cores
+      d_smgr.report_result(Solver::Result::UNKNOWN);
     }
     else
     {
