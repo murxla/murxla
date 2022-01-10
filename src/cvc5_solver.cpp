@@ -3047,7 +3047,6 @@ Cvc5Solver::check_sort(Sort sort)
     MURXLA_TEST(!cvc5_sort.isPredicate());
   }
   MURXLA_TEST(cvc5_sort.isSubsortOf(cvc5_sort));
-  MURXLA_TEST(cvc5_sort.isComparableTo(cvc5_sort));
   MURXLA_TEST(cvc5_sort >= cvc5_sort);
   MURXLA_TEST(cvc5_sort <= cvc5_sort);
   MURXLA_TEST(!(cvc5_sort > cvc5_sort));
@@ -3403,11 +3402,6 @@ class Cvc5ActionSortSubstitute : public Action
           d_rng.pick_from_set<decltype(sub_sorts), Sort>(sub_sorts);
       to_subst_sorts.push_back(to_subst_sort);
       Sort subst_sort = d_smgr.pick_sort();
-      if (!Cvc5Sort::get_cvc5_sort(subst_sort)
-               .isComparableTo(Cvc5Sort::get_cvc5_sort(to_subst_sort)))
-      {
-        return false;
-      }
       subst_sorts.push_back(subst_sort);
     }
 
@@ -3602,10 +3596,8 @@ class Cvc5ActionTermSubstitute : public Action
           d_rng.pick_from_set<decltype(sub_terms), Term>(sub_terms);
       to_subst_terms.push_back(to_subst_term);
       Term subst_term = d_smgr.pick_term();
-      if (!Cvc5Term::get_cvc5_term(subst_term)
-               .getSort()
-               .isComparableTo(
-                   Cvc5Term::get_cvc5_term(to_subst_term).getSort()))
+      if (Cvc5Term::get_cvc5_term(subst_term).getSort()
+          != Cvc5Term::get_cvc5_term(to_subst_term).getSort())
       {
         return false;
       }
