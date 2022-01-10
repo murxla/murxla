@@ -1920,6 +1920,9 @@ ActionMkTerm::run()
              * vars here in the future. */
             Op::Kind op_kind = d_smgr.pick_op_kind(true, sort_kind);
             if (op_kind == Op::DT_MATCH) continue;
+            /* Do not create quantifiers since this would bind the variables
+             * created above. */
+            if (op_kind == Op::FORALL || op_kind == Op::EXISTS) continue;
             if (run(op_kind)) n_terms_created += 1;
           }
           match_case_kind = Op::DT_MATCH_BIND_CASE;
