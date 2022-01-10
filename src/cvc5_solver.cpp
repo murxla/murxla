@@ -3461,7 +3461,7 @@ class Cvc5ActionSortSubstitute : public Action
         Cvc5Sort::sorts_to_cvc5_sorts(subst_sorts);
 
     ::cvc5::api::Sort cvc5_res;
-    if (to_subst_sorts.size() == 1 && d_rng.flip_coin())
+    if (to_subst_sorts.size() == 1 && d_solver.get_rng().flip_coin())
     {
       cvc5_res =
           cvc5_sort.substitute(cvc5_to_subst_sorts[0], cvc5_subst_sorts[0]);
