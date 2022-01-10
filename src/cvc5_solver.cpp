@@ -3847,8 +3847,8 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
     else if (std::holds_alternative<OptionInfo::ModeInfo>(info.valueInfo))
     {
       auto mode_info = std::get<OptionInfo::ModeInfo>(info.valueInfo);
-      smgr->add_option(
-          new SolverOptionList(option, mode_info.modes, info.stringValue()));
+      smgr->add_option(new SolverOptionList(
+          option, mode_info.modes, mode_info.defaultValue));
     }
     else if (std::holds_alternative<OptionInfo::NumberInfo<double>>(
                  info.valueInfo))
