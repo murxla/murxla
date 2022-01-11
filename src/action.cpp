@@ -1607,6 +1607,16 @@ ActionMkTerm::run(Op::Kind kind)
         args.insert(args.end(), vars.begin(), vars.end());
       }
     }
+    else if (kind == Op::SET_UNION && d_smgr.has_value()
+             && d_rng.pick_with_prob(10))
+    {
+      /* Create union chain with canonical set value. */
+      Term value        = d_smgr.pick_value();
+      Sort element_sort = value->get_sort();
+      Term set_value    = mk_set_value(element_sort);
+      args.push_back(set_value);
+      args.push_back(d_smgr.pick_term(set_value->get_sort()));
+    }
     else if (kind == Op::BAG_COUNT)
     {
       assert(!n_indices);
@@ -2328,6 +2338,56 @@ ActionMkTerm::mk_store(const Sort& array_sort,
     result = d_smgr.get_term(ret[0]);
   }
 
+  return result;
+}
+
+Term
+ActionMkTerm::mk_set_value(const Sort& element_sort)
+{
+  assert(d_smgr.has_value(element_sort));
+
+  size_t n_unions =
+      d_rng.flip_coin() ? 2 : d_rng.pick(1, MURXLA_MAX_UNION_CHAIN_LENGTH);
+
+  std::unordered_set<Term> values;
+  for (uint32_t i = 0; i < n_unions; ++i)
+  {
+    values.insert(d_smgr.pick_value(element_sort));
+  }
+  std::vector<Term> values_sorted{values.begin(), values.end()};
+  std::sort(values_sorted.begin(), values_sorted.end(), [](Term a, Term b) {
+    return a->get_id() > b->get_id();
+  });
+
+  Term val1 = values_sorted.back();
+  values_sorted.pop_back();
+  Term val0 = val1;
+  if (!values_sorted.empty())
+  {
+    val0 = values_sorted.back();
+    values_sorted.pop_back();
+  }
+  std::vector<Term> args1 = {val1};
+  std::vector<Term> args0 = {val0};
+  Term arg1               = d_smgr.get_term(
+      _run(Op::SET_SINGLETON, SortKind::SORT_SET, args1, {})[0]);
+  Term arg0        = val1 == val0
+                         ? arg1
+                         : d_smgr.get_term(_run(
+                      Op::SET_SINGLETON, SortKind::SORT_SET, args0, {})[0]);
+  std::vector args = {arg0, arg1};
+  Term result =
+      d_smgr.get_term(_run(Op::SET_UNION, SortKind::SORT_SET, args, {})[0]);
+  while (!values_sorted.empty())
+  {
+    args0 = {values_sorted.back()};
+    values_sorted.pop_back();
+    args = {d_smgr.get_term(
+                _run(Op::SET_SINGLETON, SortKind::SORT_SET, args0, {})[0]),
+            result};
+    result =
+        d_smgr.get_term(_run(Op::SET_UNION, SortKind::SORT_SET, args, {})[0]);
+  }
   return result;
 }
 

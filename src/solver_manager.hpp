@@ -198,6 +198,7 @@ class SolverManager
    */
   Op::Kind pick_op_kind(bool with_terms = true, SortKind sort_kind = SORT_ANY);
 
+  /** Get the Op data for given operator kind. */
   Op& get_op(const Op::Kind& kind);
 
   /**
@@ -209,6 +210,12 @@ class SolverManager
   bool has_theory(bool with_terms = true);
   /** Pick any of the enabled theories. */
   TheoryId pick_theory(bool with_terms = true);
+
+  /**
+   * Pick a value of any sort.
+   * Requires that a value of any sort exists.
+   */
+  Term pick_value();
 
   /**
    * Pick a value of given sort.
@@ -308,6 +315,9 @@ class SolverManager
    * is not possible until after the next SAT call.
    */
   void reset_sat();
+
+  /** Return true if term database contains any value of any sort. */
+  bool has_value() const;
 
   /** Return true if term database contains any value of given sort. */
   bool has_value(Sort sort) const;

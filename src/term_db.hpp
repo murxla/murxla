@@ -162,6 +162,8 @@ class TermDb
   /** Returns all term sorts currently in the database. */
   const SortSet get_sorts() const;
 
+  /** Return true if term database has a value. */
+  bool has_value() const;
   /**
    * Return true if term database has a value with given sort.
    *
@@ -238,6 +240,8 @@ class TermDb
    */
   bool has_quant_term(Sort sort) const;
 
+  /** Pick value of any sort. */
+  Term pick_value() const;
   /**
    * Pick a value of given sort.
    * Requires that values of this sort exist.

@@ -404,10 +404,19 @@ class ActionMkTerm : public Action
                              const std::vector<std::string> str_args,
                              std::vector<Term>& args);
 
-  /* Term creation helpers */
+  /** Helper to create array store chains. */
   Term mk_store(const Sort& array_sort,
                 const Sort& index_sort,
                 const Sort& element_sort);
+  /**
+   * Helper to create a canonical set value of the form
+   *   (union
+   *     (singleton c1) ...
+   *     (union (singleton c_{n-1}) (singleton c_n))))
+   * where c_1 ... c_n are values ordered by id s.t. c_1 > ... > c_n, ordered
+   * by term id.
+   */
+  Term mk_set_value(const Sort& element_sort);
 
   std::vector<uint32_t> d_n_args_weights;
 };

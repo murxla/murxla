@@ -2862,10 +2862,6 @@ Cvc5Solver::check_value(Term term)
     (void) cvc5_term.getUInt64Value();
     (void) cvc5_term.getRealOrIntegerValueSign();
   }
-  if (cvc5_term.isSetValue())
-  {
-    (void) cvc5_term.getSetValue();
-  }
   if (cvc5_term.isStringValue())
   {
     (void) cvc5_term.getStringValue();
@@ -2883,6 +2879,17 @@ Cvc5Solver::check_value(Term term)
    *       sequences, into a sequence value.
    */
   MURXLA_TEST(!cvc5_term.isSequenceValue());
+  /* Note: cvc5 considers a term a set value if it is a (canonical) constant
+   *       set value
+   *       (union
+   *         (singleton c1) ...
+   *         (union (singleton c_{n-1}) (singleton c_n))))
+   *       where c_1 ... c_n are values ordered by id s.t. c_1 > ... > c_n.
+   *       A universe set term is not considered a set value, in fact, no
+   *       term created via mk_value is.  Hence, we can't test these in
+   *       check_value() but must check them here.
+   */
+  MURXLA_TEST(!cvc5_term.isSetValue());
 }
 
 void
@@ -3068,6 +3075,27 @@ Cvc5Solver::check_term(Term term)
   MURXLA_TEST(!term->is_indexed() || cvc5_term.hasOp());
   MURXLA_TEST(term->is_indexed() || term->get_num_indices() == 0);
   MURXLA_TEST(cvc5_term.getId() != 0);
+
+  /* Note: cvc5 considers empty sets and sets of the form (canonical) constant
+   *       set value
+   *       (union
+   *         (singleton c1) ...
+   *         (union (singleton c_{n-1}) (singleton c_n))))
+   *       where c_1 ... c_n are values ordered by id s.t. c_1 > ... > c_n.
+   *       A universe set term is not considered a set value, in fact, no
+   *       term created via mk_value is.  Hence, we can't test these in
+   *       check_value() but must check them here.
+   */
+  if (cvc5_term.isSetValue())
+  {
+    auto cvc5_set_value = cvc5_term.getSetValue();
+    MURXLA_TEST(!cvc5_set_value.empty()
+                || cvc5_term.getKind() == ::cvc5::api::Kind::SET_EMPTY);
+    for (const auto& t : cvc5_set_value)
+    {
+      MURXLA_TEST(!t.isNull());
+    }
+  }
 }
 
 std::unordered_map<std::string, std::string>

@@ -380,6 +380,25 @@ TermDb::get_sorts() const
 }
 
 bool
+TermDb::has_value() const
+{
+  for (const auto& p : d_term_db)
+  {
+    for (const auto& pp : p.second)
+    {
+      for (const auto& t : pp.second)
+      {
+        if (t->is_value())
+        {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+bool
 TermDb::has_value(Sort sort) const
 {
   assert(sort != nullptr);
@@ -577,6 +596,28 @@ TermDb::has_quant_term(Sort sort) const
 {
   if (!has_var()) return false;
   return has_term(sort, max_level());
+}
+
+Term
+TermDb::pick_value() const
+{
+  assert(has_value());
+  std::vector<Term> values;
+  for (const auto& p : d_term_db)
+  {
+    for (const auto& pp : p.second)
+    {
+      for (const auto& t : pp.second)
+      {
+        if (t->is_value())
+        {
+          values.push_back(t);
+        }
+      }
+    }
+  }
+  assert(!values.empty());
+  return d_rng.pick_from_set<std::vector<Term>, Term>(values);
 }
 
 Term

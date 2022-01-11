@@ -101,4 +101,7 @@
 /** Maximum number of nested stores created in ActionMkTerm::mk_store. */
 #define MURXLA_MAX_STORE_CHAIN_LENGTH 32
 
+/** Maximum number of nested unions created in ActionMkTerm::mk_set_value. */
+#define MURXLA_MAX_UNION_CHAIN_LENGTH 32
+
 #endif

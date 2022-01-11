@@ -610,6 +610,12 @@ SolverManager::pick_theory(bool with_terms)
 /* -------------------------------------------------------------------------- */
 
 Term
+SolverManager::pick_value()
+{
+  return d_term_db.pick_value();
+}
+
+Term
 SolverManager::pick_value(Sort sort)
 {
   return d_term_db.pick_value(sort);
@@ -810,6 +816,12 @@ SolverManager::reset_sat()
     clear_assumptions();
   }
   d_sat_called = false;
+}
+
+bool
+SolverManager::has_value() const
+{
+  return d_term_db.has_value();
 }
 
 bool
