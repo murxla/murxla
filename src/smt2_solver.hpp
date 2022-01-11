@@ -262,6 +262,12 @@ class Smt2Term : public AbsTerm
       {Op::REAL_GTE, ">="},
       {Op::REAL_IS_INT, "is_int"},
 
+      /* Reals and Ints */
+      {Op::INT_IS_INT, "is_int"},
+      {Op::INT_TO_REAL, "to_real"},
+      {Op::REAL_IS_INT, "is_int"},
+      {Op::REAL_TO_INT, "to_int"},
+
       /* Quantifiers */
       {Op::FORALL, "forall"},
       {Op::EXISTS, "exists"},
