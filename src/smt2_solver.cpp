@@ -186,7 +186,7 @@ Smt2Sort::is_dt() const
 bool
 Smt2Sort::is_dt_parametric() const
 {
-  return false;
+  return is_dt() && !get_sorts().empty();
 }
 
 bool
