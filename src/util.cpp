@@ -211,16 +211,22 @@ std::string
 str_dec_to_bin(const std::string& str_dec)
 {
   std::string res;
+  bool is_neg = str_dec[0] == '-';
+  size_t i    = is_neg ? 1 : 0;
 
-  for (size_t i = 0, n = str_dec.size(); i < n; ++i)
+  for (size_t n = str_dec.size(); i < n; ++i)
   {
     res = mult_unbounded_bin_str(res, "1010");                // * 10
     res = add_unbounded_bin_str(res, digit2bin(str_dec[i]));  // + digit
   }
   assert(strip_zeros(res) == res);
-  assert(str_bin_to_dec(res) == str_dec);
-  if (res.size()) return res;
-  return "0";
+  assert(str_bin_to_dec(res) == (is_neg ? str_dec.substr(1) : str_dec));
+  if (res.empty()) return "0";
+  if (!is_neg) return res;
+  /* negate */
+  for (auto& c : res) c = c == '1' ? '0' : '1';      // xor
+  res = add_unbounded_bin_str(res, digit2bin('1'));  // + 1
+  return res;
 }
 
 uint64_t
