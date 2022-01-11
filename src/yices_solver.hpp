@@ -39,6 +39,7 @@ class YicesSort : public AbsSort
   bool is_fun() const override;
   bool is_int() const override;
   bool is_real() const override;
+  bool is_uninterpreted() const override;
   uint32_t get_bv_size() const override;
 
  private:
@@ -181,6 +182,7 @@ class YicesSolver : public Solver
 
   Sort mk_sort(SortKind kind) override;
   Sort mk_sort(SortKind kind, uint32_t size) override;
+  Sort mk_sort(const std::string& name) override;
 
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
 

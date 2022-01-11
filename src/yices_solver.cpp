@@ -96,6 +96,12 @@ YicesSort::is_real() const
   return res;
 }
 
+bool
+YicesSort::is_uninterpreted() const
+{
+  return yices_type_is_uninterpreted(d_sort);
+}
+
 uint32_t
 YicesSort::get_bv_size() const
 {
@@ -856,6 +862,16 @@ YicesSolver::mk_sort(SortKind kind, uint32_t size)
 
   type_t yices_res = yices_bv_type(size);
   MURXLA_TEST(is_valid_sort(yices_res));
+  std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
+  assert(res);
+  return res;
+}
+
+Sort
+YicesSolver::mk_sort(const std::string& name)
+{
+  (void) name;
+  type_t yices_res = yices_new_uninterpreted_type();
   std::shared_ptr<YicesSort> res(new YicesSort(yices_res));
   assert(res);
   return res;
