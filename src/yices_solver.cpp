@@ -1914,7 +1914,7 @@ YicesSolver::reset()
   }
   if (d_config)
   {
-    d_config = nullptr;
+    d_config = yices_new_config();
   }
 }
 
