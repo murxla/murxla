@@ -37,6 +37,8 @@ class YicesSort : public AbsSort
   bool is_bool() const override;
   bool is_bv() const override;
   bool is_fun() const override;
+  bool is_int() const override;
+  bool is_real() const override;
   uint32_t get_bv_size() const override;
 
  private:

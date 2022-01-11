@@ -82,6 +82,20 @@ YicesSort::is_fun() const
   return yices_type_is_function(d_sort);
 }
 
+bool
+YicesSort::is_int() const
+{
+  return yices_type_is_int(d_sort);
+}
+
+bool
+YicesSort::is_real() const
+{
+  bool res = yices_type_is_arithmetic(d_sort);
+  MURXLA_TEST(!res || yices_type_is_int(d_sort) || yices_type_is_real(d_sort));
+  return res;
+}
+
 uint32_t
 YicesSort::get_bv_size() const
 {
@@ -476,7 +490,7 @@ YicesSolver::mk_value(Sort sort, const std::string& value)
     case SORT_REAL:
     {
       assert(sort->get_kind() != SORT_INT || sort->is_int());
-      assert(sort->is_real());
+      assert(sort->get_kind() != SORT_REAL || sort->is_real());
       if (value.find('.') == std::string::npos && d_rng.flip_coin())
       {
         int32_t val32 = 0;
