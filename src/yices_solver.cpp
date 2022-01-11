@@ -268,7 +268,6 @@ YicesSolver::new_solver()
 void
 YicesSolver::delete_solver()
 {
-  assert(d_config);
   if (d_context)
   {
     yices_free_context(d_context);
@@ -279,8 +278,11 @@ YicesSolver::delete_solver()
     yices_free_model(d_model);
     d_model = nullptr;
   }
-  yices_free_config(d_config);
-  d_config = nullptr;
+  if (d_config)
+  {
+    yices_free_config(d_config);
+    d_config = nullptr;
+  }
   yices_exit();
 }
 
@@ -1902,6 +1904,18 @@ void
 YicesSolver::reset()
 {
   yices_reset();
+  if (d_context)
+  {
+    d_context = nullptr;
+  }
+  if (d_model)
+  {
+    d_model = nullptr;
+  }
+  if (d_config)
+  {
+    d_config = nullptr;
+  }
 }
 
 void
