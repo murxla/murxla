@@ -459,6 +459,7 @@ class Smt2Solver : public Solver
   uint32_t d_n_unnamed_consts = 0;
   uint32_t d_n_unnamed_ufs    = 0;
   uint32_t d_n_unnamed_vars   = 0;
+  uint64_t d_define_sort_param_cnt = 0;
   Solver::Result d_last_result = Solver::Result::UNKNOWN;
 
   static constexpr int32_t SMT2_READ_END  = 0;

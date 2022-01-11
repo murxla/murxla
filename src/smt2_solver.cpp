@@ -1245,7 +1245,6 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     case SORT_FUN:
     {
       std::string symbol = Smt2Sort::get_next_symbol();
-      uint32_t sorts_cnt = 0;
       std::unordered_map<Sort, std::string> sorts_map;
       std::stringstream ssort, smt2;
       ssort << "(" << symbol << " ";
@@ -1259,7 +1258,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
         }
         if (sorts_map.find(*it) == sorts_map.end())
         {
-          sorts_map[*it] = "_y" + std::to_string(sorts_cnt++);
+          sorts_map[*it] = "_y" + std::to_string(d_define_sort_param_cnt++);
         }
         ssort << static_cast<Smt2Sort*>(it->get())->get_repr();
         smt2 << sorts_map.at(*it);
