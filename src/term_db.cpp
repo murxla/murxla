@@ -713,8 +713,8 @@ TermDb::pick_term(Sort sort)
   assert(d_smgr.has_sort(sort));
 
   Sort s = sort;
-  if (d_smgr.d_arith_subtyping && sort->get_kind() == SORT_REAL
-      && has_term(SORT_INT))
+  SortKind sort_kind = sort->get_kind();
+  if (d_smgr.d_arith_subtyping && sort_kind == SORT_REAL && has_term(SORT_INT))
   {
     size_t n_reals = get_num_terms(SORT_REAL);
     size_t n_ints  = get_num_terms(SORT_INT);
@@ -722,9 +722,15 @@ TermDb::pick_term(Sort sort)
     std::vector<size_t> weights = {n_reals, n_ints};
     size_t p                    = d_rng.pick_weighted<size_t>(weights);
     if (p) s = pick_sort(SORT_INT);
+    sort_kind = s->get_kind();
+    if (d_term_db.at(sort_kind).find(s) == d_term_db.at(sort_kind).end())
+    {
+      sort_kind = sort_kind == SORT_INT ? SORT_REAL : SORT_INT;
+    }
+    assert(d_term_db.at(sort_kind).find(s) != d_term_db.at(sort_kind).end());
   }
 
-  return d_term_db.at(s->get_kind()).at(s).pick(d_rng);
+  return d_term_db.at(sort_kind).at(s).pick(d_rng);
 }
 
 Term
