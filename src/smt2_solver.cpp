@@ -1349,7 +1349,8 @@ Smt2Solver::mk_sort(
     smt2 << "(declare-datatypes (";
     for (size_t i = 0; i < n_dt_sorts; ++i)
     {
-      smt2 << " (" << dt_names[i] << " " << param_sorts[i].size() << ")";
+      if (i > 0) smt2 << " ";
+      smt2 << "(" << dt_names[i] << " " << param_sorts[i].size() << ")";
     }
     smt2 << ") (";
     for (size_t i = 0; i < n_dt_sorts; ++i)
@@ -1363,39 +1364,78 @@ Smt2Solver::mk_sort(
         smt2 << "( par (";
         for (const Sort& p : psorts)
         {
-          Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(p.get());
-          smt2 << " " << smt2_sort->get_repr();
+          ParamSort* psort = dynamic_cast<ParamSort*>(p.get());
+          assert(psort);
+          smt2 << " " << psort->get_symbol();
         }
         smt2 << " ) ";
       }
       smt2 << "(";
-      for (const auto& c : ctors)
+      for (const auto& [csym, selectors] : ctors)
       {
-        smt2 << " (" << c.first;
-        for (const auto& s : c.second)
+        smt2 << " (" << csym;
+        for (const auto& [ssym, ssort] : selectors)
         {
-          Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(s.second.get());
-          smt2 << " (" << s.first << " ";
-          if (smt2_sort)
+          smt2 << " (" << ssym << " ";
+          if (ssort == nullptr)
           {
-            smt2 << smt2_sort->get_repr();
+            smt2 << name;
+          }
+          else if (ssort->is_param_sort())
+          {
+            ParamSort* psort = dynamic_cast<ParamSort*>(ssort.get());
+            smt2 << psort->get_symbol();
+          }
+          else if (ssort->is_unresolved_sort())
+          {
+            UnresolvedSort* usort = dynamic_cast<UnresolvedSort*>(ssort.get());
+            assert(usort);
+            const auto& sorts = usort->get_sorts();
+
+            if (sorts.empty())
+            {
+              smt2 << usort->get_symbol();
+            }
+            else
+            {
+              smt2 << "(" << usort->get_symbol() << " ";
+              for (size_t i = 0; i < sorts.size(); ++i)
+              {
+                if (i > 0) smt2 << " ";
+                if (sorts[i]->is_param_sort())
+                {
+                  ParamSort* psort = dynamic_cast<ParamSort*>(sorts[i].get());
+                  assert(psort);
+                  smt2 << psort->get_symbol();
+                }
+                else
+                {
+                  Smt2Sort* smt2_sort = dynamic_cast<Smt2Sort*>(sorts[i].get());
+                  assert(smt2_sort);
+                  smt2 << smt2_sort->get_repr();
+                }
+              }
+              smt2 << ")";
+            }
           }
           else
           {
-            smt2 << name;
+            Smt2Sort* smt2_sort = dynamic_cast<Smt2Sort*>(ssort.get());
+            assert(smt2_sort);
+            smt2 << smt2_sort->get_repr();
           }
           smt2 << ")";
         }
         smt2 << ")";
       }
-      smt2 << "))";
+      smt2 << ")";
       if (parametric)
       {
         smt2 << " )";
       }
       res.push_back(std::shared_ptr<Smt2Sort>(new Smt2Sort(name)));
     }
-    smt2 << ")";
+    smt2 << "))";
   }
   dump_smt2(smt2.str());
   return res;
