@@ -1713,6 +1713,15 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       }
       else
       {
+        /* Note: We currently "support" printing solver-specific operators,
+         *       but do not support specific sort inference if required.
+         *       For solver-specific operators, we always enter this catch-all
+         *       case and return the sort of the first argument. This is
+         *       problematic for operator kinds where their sort does not
+         *       match the sort of the first argument.  For example,
+         *       Cvc5Term::OP_BV_SLTBV is a bit-vector term of size 1, but
+         *       its arguments may be of any size.
+         */
         assert(args[0]->get_sort()->is_bv());
         return args[0]->get_sort();
       }
