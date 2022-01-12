@@ -1577,16 +1577,28 @@ class BtorActionBvAssignment : public Action
     MURXLA_TRACE << get_kind();
     uint64_t n = d_rng.pick<uint64_t>(1, d_smgr.get_num_terms(SORT_BV));
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    std::vector<Term> terms;
     std::vector<const char*> assignments;
     for (uint64_t i = 0; i < n; ++i)
     {
       Term t                    = d_smgr.pick_term(SORT_BV);
       const char* bv_assignment = boolector_bv_assignment(
           btor_solver.get_solver(), BtorTerm::get_btor_term(t));
+      terms.push_back(t);
       assignments.push_back(bv_assignment);
     }
     for (uint64_t i = 0; i < n; ++i)
     {
+      if (d_smgr.d_incremental)
+      {
+        /* assume assignment and check if result is still SAT */
+        Term term_bv_val = d_solver.mk_value(
+            terms[i]->get_sort(), assignments[i], Solver::Base::BIN);
+        std::vector<Term> assumptions{
+            d_solver.mk_term(Op::EQUAL, {terms[i], term_bv_val}, {})};
+        MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                    == Solver::Result::SAT);
+      }
       boolector_free_bv_assignment(btor_solver.get_solver(), assignments[i]);
     }
   }
