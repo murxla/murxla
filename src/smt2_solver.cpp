@@ -1612,11 +1612,17 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       || kind == Op::BAG_INTERSECTION_MIN || kind == Op::BAG_DIFFERENCE_REMOVE
       || kind == Op::BAG_DIFFERENCE_SUBTRACT
       || kind == Op::BAG_DUPLICATE_REMOVAL || kind == Op::SET_COMPLEMENT
-      || kind == Op::SET_INSERT || kind == Op::SET_INTERSECTION
-      || kind == Op::SET_MINUS || kind == Op::SET_UNION)
+      || kind == Op::SET_INTERSECTION || kind == Op::SET_MINUS
+      || kind == Op::SET_UNION)
   {
     assert(args.size() >= 1);
     return args[0]->get_sort();
+  }
+
+  if (kind == Op::SET_INSERT)
+  {
+    assert(args.size() >= 1);
+    return args.back()->get_sort();
   }
 
   if (kind == Op::DT_APPLY_UPDATER)
@@ -1790,7 +1796,7 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
       }
       else if (kind == Op::SET_COMPREHENSION)
       {
-        sort = get_set_sort_string({args[1]->get_sort()});
+        sort = get_set_sort_string({args.back()->get_sort()});
       }
       else
       {
