@@ -107,6 +107,8 @@ class BtorSolver : public Solver
  public:
   /** Solver-specific actions. */
   inline static const Action::Kind ACTION_OPT_ITERATOR  = "btor-opt-iterator";
+  inline static const Action::Kind ACTION_ARRAY_ASSIGNMENT =
+      "btor-array-assignment";
   inline static const Action::Kind ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
   inline static const Action::Kind ACTION_CLONE         = "btor-clone";
   inline static const Action::Kind ACTION_FAILED        = "btor-failed";
@@ -136,6 +138,7 @@ class BtorSolver : public Solver
   /* Solver-specific states. */
   inline static const State::Kind STATE_FIX_RESET_ASSUMPTIONS =
       "btor-fix-reset-assumptions";
+  inline static const State::Kind STATE_UNKNOWN = "btor-unknown";
 
   /** Constructor. */
   BtorSolver(SolverSeedGenerator& sng) : Solver(sng), d_solver(nullptr) {}

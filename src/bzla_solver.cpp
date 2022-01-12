@@ -2192,15 +2192,15 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   SolverManager& smgr = fsm->get_smgr();
 
   /* Retrieve existing states. */
-  State* s_assert        = fsm->get_state(State::ASSERT);
-  State* s_check_sat     = fsm->get_state(State::CHECK_SAT);
-  State* s_create_sorts  = fsm->get_state(State::CREATE_SORTS);
-  State* s_create_inputs = fsm->get_state(State::CREATE_INPUTS);
-  State* s_create_terms  = fsm->get_state(State::CREATE_TERMS);
-  State* s_opt           = fsm->get_state(State::OPT);
-  State* s_push_pop      = fsm->get_state(State::PUSH_POP);
-  State* s_sat           = fsm->get_state(State::SAT);
-  State* s_unsat         = fsm->get_state(State::UNSAT);
+  State* s_assert           = fsm->get_state(State::ASSERT);
+  State* s_check_sat        = fsm->get_state(State::CHECK_SAT);
+  State* s_create_sorts     = fsm->get_state(State::CREATE_SORTS);
+  State* s_create_inputs    = fsm->get_state(State::CREATE_INPUTS);
+  State* s_create_terms     = fsm->get_state(State::CREATE_TERMS);
+  State* s_opt              = fsm->get_state(State::OPT);
+  State* s_push_pop         = fsm->get_state(State::PUSH_POP);
+  State* s_sat              = fsm->get_state(State::SAT);
+  State* s_unsat            = fsm->get_state(State::UNSAT);
   State* s_decide_sat_unsat = fsm->get_state(State::DECIDE_SAT_UNSAT);
 
   auto t_default = fsm->new_action<TransitionDefault>();

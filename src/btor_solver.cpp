@@ -1538,6 +1538,71 @@ BtorSolver::configure_opmgr(OpKindManager* opmgr) const
 /* FSM configuration.                                                         */
 /* -------------------------------------------------------------------------- */
 
+class BtorActionArrayAssignment : public Action
+{
+ public:
+  BtorActionArrayAssignment(SolverManager& smgr)
+      : Action(smgr, BtorSolver::ACTION_ARRAY_ASSIGNMENT, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_model_gen) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
+    if (!d_smgr.has_term(SORT_ARRAY)) return false;
+    Term term = d_smgr.pick_term(SORT_ARRAY);
+    _run(term);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    _run(term);
+    return {};
+  }
+
+ private:
+  void _run(Term term)
+  {
+    MURXLA_TRACE << get_kind() << " " << term;
+    BoolectorNode* btor_term = BtorTerm::get_btor_term(term);
+    BtorSolver& btor_solver  = static_cast<BtorSolver&>(d_smgr.get_solver());
+    Btor* btor               = btor_solver.get_solver();
+    char **indices, **values;
+    uint32_t size;
+    boolector_array_assignment(btor, btor_term, &indices, &values, &size);
+    if (d_smgr.d_incremental)
+    {
+      /* assume assignment and check if result is still SAT */
+      std::vector<Term> assumptions;
+      for (size_t i = 0; i < size; ++i)
+      {
+        Term idx = d_solver.mk_value(term->get_sort()->get_array_index_sort(),
+                                     indices[i],
+                                     Solver::Base::BIN);
+        Term val = d_solver.mk_value(term->get_sort()->get_array_element_sort(),
+                                     values[i],
+                                     Solver::Base::BIN);
+        BoolectorNode* btor_idx    = BtorTerm::get_btor_term(idx);
+        BoolectorNode* btor_val    = BtorTerm::get_btor_term(val);
+        BoolectorNode* btor_select = boolector_read(btor, btor_term, btor_idx);
+        BoolectorNode* btor_eq     = boolector_eq(btor, btor_select, btor_val);
+        assumptions.push_back(
+            std::shared_ptr<BtorTerm>(new BtorTerm(btor, btor_eq)));
+      }
+      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                  == Solver::Result::SAT);
+    }
+    boolector_free_array_assignment(btor, indices, values, size);
+  }
+};
+
 class BtorActionBvAssignment : public Action
 {
  public:
@@ -2028,21 +2093,46 @@ class BtorActionSetSymbol : public Action
 void
 BtorSolver::configure_fsm(FSM* fsm) const
 {
-  State* s_assert = fsm->get_state(State::ASSERT);
-  State* s_delete = fsm->get_state(State::DELETE);
-  State* s_opt    = fsm->get_state(State::OPT);
+  SolverManager& smgr = fsm->get_smgr();
 
+  State* s_assert           = fsm->get_state(State::ASSERT);
+  State* s_check_sat        = fsm->get_state(State::CHECK_SAT);
+  State* s_create_sorts     = fsm->get_state(State::CREATE_SORTS);
+  State* s_create_inputs    = fsm->get_state(State::CREATE_INPUTS);
+  State* s_create_terms     = fsm->get_state(State::CREATE_TERMS);
+  State* s_delete           = fsm->get_state(State::DELETE);
+  State* s_opt              = fsm->get_state(State::OPT);
+  State* s_push_pop         = fsm->get_state(State::PUSH_POP);
+  State* s_sat              = fsm->get_state(State::SAT);
+  State* s_unsat            = fsm->get_state(State::UNSAT);
+  State* s_decide_sat_unsat = fsm->get_state(State::DECIDE_SAT_UNSAT);
+
+  /* Solver-specific states. */
   State* s_fix_reset_assumptions = fsm->new_state(STATE_FIX_RESET_ASSUMPTIONS);
+  State* s_unknown = fsm->new_choice_state(STATE_UNKNOWN, [&smgr]() {
+    return smgr.d_sat_called && smgr.d_sat_result == Solver::Result::UNKNOWN;
+  });
+
+  /* Modify precondition of existing states. */
+  s_sat->update_precondition([&smgr]() {
+    return smgr.d_sat_called && smgr.d_sat_result == Solver::Result::SAT;
+  });
 
   auto t_default = fsm->new_action<TransitionDefault>();
+
+  /* Add solver-specific actions and reconfigure existing states. */
+  s_decide_sat_unsat->add_action(t_default, 1, s_unknown);
 
   // options
   auto a_opt_it = fsm->new_action<BtorActionOptIterator>();
   fsm->add_action_to_all_states(a_opt_it, 100);
 
+  // boolector_array_assignment
+  auto a_arr_ass = fsm->new_action<BtorActionArrayAssignment>();
+  s_sat->add_action(a_arr_ass, 2);
   // boolector_bv_assignment
   auto a_bv_ass = fsm->new_action<BtorActionBvAssignment>();
-  fsm->add_action_to_all_states(a_bv_ass, 100);
+  s_sat->add_action(a_bv_ass, 2);
 
   // boolector_clone
   auto a_clone = fsm->new_action<BtorActionClone>();
@@ -2067,7 +2157,15 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_simplify
   auto a_simplify = fsm->new_action<BtorActionSimplify>();
-  fsm->add_action_to_all_states(a_simplify, 100);
+  s_assert->add_action(a_simplify, 10000);
+  s_create_sorts->add_action(a_simplify, 10000);
+  s_create_inputs->add_action(a_simplify, 10000);
+  s_create_terms->add_action(a_simplify, 10000);
+  s_opt->add_action(a_simplify, 10000);
+  s_push_pop->add_action(a_simplify, 10000);
+  s_check_sat->add_action(a_simplify, 10000, s_assert);
+  s_sat->add_action(a_simplify, 10000, s_assert);
+  s_unsat->add_action(a_simplify, 10000, s_assert);
 
   // boolector_set_sat_solver
   auto a_set_sat_solver = fsm->new_action<BtorActionSetSatSolver>();
@@ -2076,6 +2174,9 @@ BtorSolver::configure_fsm(FSM* fsm) const
   // boolector_set_symbol
   auto a_set_symbol = fsm->new_action<BtorActionSetSymbol>();
   fsm->add_action_to_all_states(a_set_symbol, 100);
+
+  /* Configure solver-specific states. */
+  s_unknown->add_action(t_default, 1, s_check_sat);
 }
 
 void
