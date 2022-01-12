@@ -101,10 +101,6 @@ class SolverManager
   /** Mark given option as already configured. */
   void mark_option_used(const std::string& opt);
 
-  /** Get the number of created terms. */
-  uint64_t get_num_terms() const;
-  /** Get the number of created terms of given sort kind. */
-  uint64_t get_num_terms(SortKind sort_kind);
   /** Get the number of created terms in the top scope. */
   uint64_t get_num_terms_max_level() const;
 
@@ -690,8 +686,6 @@ class SolverManager
   /** The solver options that have already been configured. */
   std::unordered_set<std::string> d_used_solver_options;
 
-  /** Term id counter. */
-  uint64_t d_n_terms = 0;
   /** Sort id counter. */
   uint64_t d_n_sorts = 0;
 
@@ -721,9 +715,6 @@ class SolverManager
 
   /** Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
-
-  /** Map SortKind to number of created terms of that SortKind. */
-  std::unordered_map<SortKind, uint64_t> d_n_sort_terms;
 
   /** The set of already assumed formulas. */
   std::unordered_set<Term> d_assumptions;

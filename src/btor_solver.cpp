@@ -1618,54 +1618,38 @@ class BtorActionBvAssignment : public Action
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_BV)) return false;
-    _run();
+    Term term = d_smgr.pick_term(SORT_BV);
+    _run(term);
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
-    MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    _run(term);
     return {};
   }
 
  private:
-  void _run()
+  void _run(Term term)
   {
-    /* Note: This implements just the very basic testing for this API call.
-     *       Boolector does some nasty tricks with the pointers returned by
-     *       boolector_bv_assignment, which makes testing this in non-batch
-     *       mode quite complicated. This API functionality should be removed
-     *       as it is implemented now, and since its API will not change / be
-     *       extended anymore (Boolector is succeeded by Bitwuzla), we consider
-     *       it not worth the effort. */
-    MURXLA_TRACE << get_kind();
-    uint64_t n = d_rng.pick<uint64_t>(1, d_smgr.get_num_terms(SORT_BV));
+    MURXLA_TRACE << get_kind() << " " << term;
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
-    std::vector<Term> terms;
-    std::vector<const char*> assignments;
-    for (uint64_t i = 0; i < n; ++i)
+    const char* assignment  = boolector_bv_assignment(
+        btor_solver.get_solver(), BtorTerm::get_btor_term(term));
+    if (d_smgr.d_incremental)
     {
-      Term t                    = d_smgr.pick_term(SORT_BV);
-      const char* bv_assignment = boolector_bv_assignment(
-          btor_solver.get_solver(), BtorTerm::get_btor_term(t));
-      terms.push_back(t);
-      assignments.push_back(bv_assignment);
+      /* assume assignment and check if result is still SAT */
+      Term term_bv_val =
+          d_solver.mk_value(term->get_sort(), assignment, Solver::Base::BIN);
+      std::vector<Term> assumptions{
+          d_solver.mk_term(Op::EQUAL, {term, term_bv_val}, {})};
+      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                  == Solver::Result::SAT);
     }
-    for (uint64_t i = 0; i < n; ++i)
-    {
-      if (d_smgr.d_incremental)
-      {
-        /* assume assignment and check if result is still SAT */
-        Term term_bv_val = d_solver.mk_value(
-            terms[i]->get_sort(), assignments[i], Solver::Base::BIN);
-        std::vector<Term> assumptions{
-            d_solver.mk_term(Op::EQUAL, {terms[i], term_bv_val}, {})};
-        MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
-                    == Solver::Result::SAT);
-      }
-      boolector_free_bv_assignment(btor_solver.get_solver(), assignments[i]);
-    }
+    boolector_free_bv_assignment(btor_solver.get_solver(), assignment);
   }
 };
 
@@ -1713,7 +1697,7 @@ class BtorActionClone : public Action
     }
     if (d_smgr.has_term() && d_rng.flip_coin())
     {
-      for (uint64_t i = 0, n = d_smgr.get_num_terms(); i < n; ++i)
+      for (uint64_t i = 0, n = d_smgr.get_num_terms_max_level(); i < n; ++i)
       {
         Term t = d_smgr.pick_term();
         BoolectorNode *t_btor, *t_clone;

@@ -72,7 +72,6 @@ SolverManager::clear()
   d_sorts_dt_parametric.clear();
   d_sorts_dt_non_well_founded.clear();
   d_sort_kind_to_sorts.clear();
-  d_n_sort_terms.clear();
   d_assumptions.clear();
   d_term_db.clear();
   d_string_char_values.clear();
@@ -159,19 +158,6 @@ SolverManager::mark_option_used(const std::string& opt)
 }
 
 /* -------------------------------------------------------------------------- */
-
-uint64_t
-SolverManager::get_num_terms() const
-{
-  return d_n_terms;
-}
-
-uint64_t
-SolverManager::get_num_terms(SortKind sort_kind)
-{
-  if (d_n_sort_terms.find(sort_kind) == d_n_sort_terms.end()) return 0;
-  return d_n_sort_terms.at(sort_kind);
-}
 
 uint64_t
 SolverManager::get_num_terms_max_level() const
@@ -747,7 +733,6 @@ SolverManager::reset()
   d_sat_called        = false;
   d_sat_result        = Solver::Result::UNKNOWN;
   d_n_sat_calls       = 0;
-  d_n_terms           = 0;
   d_n_sorts           = 0;
   d_n_symbols         = 0;
 }
