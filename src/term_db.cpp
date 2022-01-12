@@ -301,8 +301,6 @@ TermDb::add_term(Term& term,
     {
       term = trefs.get(term);
       assert(term->get_id());
-      assert(term->get_levels().empty() || term->get_levels().back() == level);
-      assert(!term->get_levels().empty() || level == 0);
     }
 
     /* If subtyping is enabled, we additionally store SORT_INT terms in
