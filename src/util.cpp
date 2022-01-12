@@ -32,72 +32,6 @@ static std::unordered_map<std::string, std::string> s_hex_lookup = {
 
 /* -------------------------------------------------------------------------- */
 
-uint32_t
-uint32_to_value_in_range(uint32_t val, uint32_t from, uint32_t to)
-{
-  assert(from <= to);
-
-  from = from == UINT32_MAX ? UINT32_MAX - 1 : from;
-  to   = to == UINT32_MAX ? UINT32_MAX - 1 : to;
-  val %= to - from + 1;
-  val += from;
-  return val;
-}
-
-/* -------------------------------------------------------------------------- */
-
-std::string
-str_bin_to_hex(const std::string& str_bin)
-{
-  std::stringstream ss;
-  std::vector<std::string> stack;
-  for (size_t i = 0, n = str_bin.size(); i < n; i += 4)
-  {
-    uint32_t len = n - i >= 4 ? 4 : n - i;
-    std::string chunk(len, 0);
-    for (uint32_t j = 0; j <= len; ++j) chunk[len - j] = str_bin[n - i - j];
-    stack.push_back(s_hex_lookup.at(chunk));
-  }
-  for (size_t i = 0, n = stack.size(); i < n; ++i) ss << stack[n - 1 - i];
-  return ss.str();
-}
-
-std::string
-str_bin_to_dec(const std::string& str_bin)
-{
-  std::string digits(str_bin.size(), 0);
-
-  // from MSB to LSB
-  for (const auto& c : str_bin)
-  {
-    // shift digits, with carry
-    uint32_t carry = 0;
-    for (auto& digit : digits)
-    {
-      uint32_t d = digit * 2 + carry;
-      carry      = d > 9;
-      digit      = d % 10;
-    }
-    // add new bit
-    if (c == '1') digits[0] |= 1;
-  }
-
-  // Note: digits are in reverse order, with leading zeros on the right
-  size_t pos = 0;
-  size_t n   = digits.size();
-  for (pos = 0; pos <= n; ++pos)
-  {
-    if (digits[n - pos] != 0) break;
-  }
-  std::stringstream ss;
-  if (pos > n) return "0";
-  for (size_t i = pos; i <= n; ++i)
-  {
-    ss << ((char) (digits[n - i] + '0'));
-  }
-  return ss.str();
-}
-
 namespace {
 /** Strip leading zeros of given string. */
 std::string
@@ -206,6 +140,83 @@ digit2bin(char ch)
   return table[ch - '0'];
 }
 }  // namespace
+
+/* -------------------------------------------------------------------------- */
+
+uint32_t
+uint32_to_value_in_range(uint32_t val, uint32_t from, uint32_t to)
+{
+  assert(from <= to);
+
+  from = from == UINT32_MAX ? UINT32_MAX - 1 : from;
+  to   = to == UINT32_MAX ? UINT32_MAX - 1 : to;
+  val %= to - from + 1;
+  val += from;
+  return val;
+}
+
+/* -------------------------------------------------------------------------- */
+
+std::string
+str_bin_to_hex(const std::string& str_bin)
+{
+  std::stringstream ss;
+  std::vector<std::string> stack;
+  for (size_t i = 0, n = str_bin.size(); i < n; i += 4)
+  {
+    uint32_t len = n - i >= 4 ? 4 : n - i;
+    std::string chunk(len, 0);
+    for (uint32_t j = 0; j <= len; ++j) chunk[len - j] = str_bin[n - i - j];
+    stack.push_back(s_hex_lookup.at(chunk));
+  }
+  for (size_t i = 0, n = stack.size(); i < n; ++i) ss << stack[n - 1 - i];
+  return ss.str();
+}
+
+std::string
+str_bin_to_dec(const std::string& str_bin, bool sign)
+{
+  std::string _str_bin = str_bin;
+  if (sign)
+  {
+    // negate
+    for (auto& c : _str_bin) c = c == '1' ? '0' : '1';           // xor
+    _str_bin = add_unbounded_bin_str(_str_bin, digit2bin('1'));  // + 1
+  }
+
+  std::string digits(_str_bin.size(), 0);
+
+  // from MSB to LSB
+  for (const auto& c : _str_bin)
+  {
+    // shift digits, with carry
+    uint32_t carry = 0;
+    for (auto& digit : digits)
+    {
+      uint32_t d = digit * 2 + carry;
+      carry      = d > 9;
+      digit      = d % 10;
+    }
+    // add new bit
+    if (c == '1') digits[0] |= 1;
+  }
+
+  // Note: digits are in reverse order, with leading zeros on the right
+  size_t pos = 0;
+  size_t n   = digits.size();
+  for (pos = 0; pos <= n; ++pos)
+  {
+    if (digits[n - pos] != 0) break;
+  }
+  std::stringstream ss;
+  if (pos > n) return "0";
+  for (size_t i = pos; i <= n; ++i)
+  {
+    ss << ((char) (digits[n - i] + '0'));
+  }
+  if (sign) return '-' + ss.str();
+  return ss.str();
+}
 
 std::string
 str_dec_to_bin(const std::string& str_dec)

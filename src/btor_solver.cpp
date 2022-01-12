@@ -712,7 +712,7 @@ BtorSolver::mk_value(Sort sort, const std::string& value, Base base)
         if (d_rng.pick_with_prob(10))
         {
           const char* bits = boolector_get_bits(d_solver, btor_res);
-          MURXLA_TEST(str_bin_to_dec(bits) == value);
+          MURXLA_TEST(str_bin_to_dec(bits, value[0] == '-') == value);
           boolector_free_bits(d_solver, bits);
         }
       }
