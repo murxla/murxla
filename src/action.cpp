@@ -1951,7 +1951,10 @@ ActionMkTerm::run()
           match_case_kind = Op::DT_MATCH_CASE;
         }
       }
-      match_case_args.push_back(d_smgr.pick_term(sort));
+      Term match_term = d_smgr.pick_term(sort);
+      assert(match_term->get_kind() != Op::DT_MATCH_CASE);
+      assert(match_term->get_kind() != Op::DT_MATCH_BIND_CASE);
+      match_case_args.push_back(match_term);
       match_case_id = _run(match_case_kind,
                            sort_kind,
                            dt_sort,

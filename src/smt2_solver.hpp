@@ -198,6 +198,8 @@ class Smt2Term : public AbsTerm
       {Op::DT_APPLY_TESTER, "is"},
       {Op::DT_APPLY_UPDATER, "update"},
       {Op::DT_MATCH, "match"},
+      {Op::DT_MATCH_BIND_CASE, ""},
+      {Op::DT_MATCH_CASE, ""},
 
       /* FP */
       {Op::FP_TO_FP_FROM_BV, "to_fp"},

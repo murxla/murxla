@@ -487,7 +487,7 @@ Smt2Term::get_repr() const
   std::vector<std::string> lets;
 
   std::unordered_set<Op::Kind> new_scope = {
-      Op::FORALL, Op::EXISTS, Op::SET_COMPREHENSION};
+      Op::FORALL, Op::EXISTS, Op::SET_COMPREHENSION, Op::DT_MATCH};
 
   // Compute references
   visit.push_back(this);
@@ -554,6 +554,47 @@ Smt2Term::get_repr() const
           res << "((_ " << d_op_kind_to_str.at(cur->d_kind) << " "
               << cur->d_str_args[1] << ")";
         }
+        else if (cur->d_kind == Op::DT_MATCH)
+        {
+          res << "(" << d_op_kind_to_str.at(cur->d_kind) << " "
+              << to_smt2_term(cur->d_args[i++])->get_repr() << " (";
+          for (size_t n = cur->d_args.size(); i < n; ++i)
+          {
+            res << to_smt2_term(cur->d_args[i])->get_repr();
+          }
+          res << "))";
+        }
+        else if (cur->d_kind == Op::DT_MATCH_BIND_CASE)
+        {
+          if (cur->d_str_args.empty())
+          {
+            /* variable pattern */
+            assert(cur->d_args.size() == 2);
+            res << "(" << to_smt2_term(cur->d_args[0])->get_repr() << " "
+                << to_smt2_term(cur->d_args[1])->get_repr() << ")";
+            i = 2;
+          }
+          else
+          {
+            res << "((" << cur->d_str_args[0] << " ";
+            for (size_t n = cur->d_args.size() - 1; i < n; ++i)
+            {
+              if (i > 0) res << " ";
+              res << to_smt2_term(cur->d_args[i])->get_repr();
+            }
+            res << ") ";
+            res << to_smt2_term(cur->d_args[i++])->get_repr();
+            res << ")";
+          }
+        }
+        else if (cur->d_kind == Op::DT_MATCH_CASE)
+        {
+          assert(cur->d_str_args.size() == 1);
+          assert(cur->d_args.size() == 1);
+          res << "(" << cur->d_str_args[0] << " "
+              << to_smt2_term(cur->d_args[0])->get_repr() << ") ";
+          i = cur->d_args.size();
+        }
         else if (cur->d_indices.empty())
         {
           if (!cur->d_args.empty())
@@ -618,16 +659,20 @@ Smt2Term::get_repr() const
           }
           res << ")";
         }
-        for (size_t size = cur->d_args.size(); i < size; ++i)
+        size_t size = cur->d_args.size();
+        if (i < size)
         {
-          const auto itt = cache.find(to_smt2_term(cur->d_args[i]));
-          assert(itt != cache.end());
-          assert(!itt->second.empty());
-          res << " " << itt->second;
-        }
-        if (!cur->d_args.empty())
-        {
-          res << ")";
+          for (; i < size; ++i)
+          {
+            const auto itt = cache.find(to_smt2_term(cur->d_args[i]));
+            assert(itt != cache.end());
+            assert(!itt->second.empty());
+            res << " " << itt->second;
+          }
+          if (!cur->d_args.empty())
+          {
+            res << ")";
+          }
         }
       }
 
