@@ -748,9 +748,18 @@ ActionMkSort::run()
     case SORT_STRING:
     case SORT_REGLAN:
     case SORT_BOOL:
-    case SORT_INT:
-    case SORT_REAL:
     case SORT_RM: _run(kind); break;
+
+    case SORT_REAL:
+    case SORT_INT:
+      _run(kind);
+      /* Ensure that we have real sorts when subtyping. */
+      if (d_smgr.d_arith_subtyping && kind == SORT_INT
+          && d_smgr.has_sort(SORT_REAL))
+      {
+        _run(SORT_REAL);
+      }
+      break;
 
     case SORT_UNINTERPRETED: _run(kind, d_smgr.pick_symbol("_u")); break;
 

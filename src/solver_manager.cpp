@@ -246,6 +246,18 @@ SolverManager::add_term(Term& term,
    * in d_sorts. Hence, we need to do a lookup on d_sorts if we already have
    * a matching sort. */
   Sort sort = d_solver->get_sort(term, sort_kind);
+
+  /* If sort_kind is SORT_REAL, given sort can only be an Int sort when the
+   * solver identifies it as an Int sort (since Int may be a subtype of Real).
+   * We don't infer this based on the arguments but delegate this inference
+   * to the solver. We always store terms of sort Int under sort kind SORT_INT,
+   * even if they were created from a Real operator (and thus, the expected
+   * sort kind sort_kind = SORT_REAL).  */
+  if (sort_kind == SORT_REAL && sort->is_int())
+  {
+    sort_kind = SORT_INT;
+  }
+
   sort->set_kind(sort_kind);
   /* If no matching sort is found, we use the sort returned by the solver. */
   Sort lookup = find_sort(sort);
