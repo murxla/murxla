@@ -296,34 +296,34 @@ TermDb::add_term(Term& term,
         uint32_t arity = term->get_sort()->get_sorts().size() - 1;
         d_funs[arity].insert(term);
       }
+
+      /* If subtyping is enabled, we additionally store SORT_INT terms in
+       * SORT_REAL. */
+      if (d_smgr.d_arith_subtyping && sort_kind == SORT_INT
+          && d_smgr.has_sort(SORT_REAL))
+      {
+        SortMap& map = d_term_db[SORT_REAL];
+        /* It is guaranteed that this sort exists when subtyping is enabled. */
+        Sort s = d_smgr.pick_sort(SORT_REAL, false);
+
+        auto it = map.find(sort);
+        if (it == map.end())
+        {
+          map.emplace(s, d_vars.size());
+        }
+        TermRefs& trefs = map.at(s);
+
+        if (!trefs.contains(term))
+        {
+          trefs.add(term, level);
+          d_term_sorts.insert(s);
+        }
+      }
     }
     else
     {
       term = trefs.get(term);
       assert(term->get_id());
-    }
-
-    /* If subtyping is enabled, we additionally store SORT_INT terms in
-     * SORT_REAL. */
-    if (d_smgr.d_arith_subtyping && sort_kind == SORT_INT
-        && d_smgr.has_sort(SORT_REAL))
-    {
-      SortMap& map = d_term_db[SORT_REAL];
-      /* It is guaranteed that this sort exists when subtyping is enabled. */
-      Sort s = d_smgr.pick_sort(SORT_REAL, false);
-
-      auto it = map.find(sort);
-      if (it == map.end())
-      {
-        map.emplace(s, d_vars.size());
-      }
-      TermRefs& trefs = map.at(s);
-
-      if (!trefs.contains(term))
-      {
-        trefs.add(term, level);
-        d_term_sorts.insert(s);
-      }
     }
   }
   assert(term->get_sort()->get_id());
