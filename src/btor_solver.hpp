@@ -20,6 +20,9 @@ class BtorSort : public AbsSort
   friend class BtorSolver;
 
  public:
+  /** Get wrapped Boolector sort from Murxla Sort. */
+  static BoolectorSort get_btor_sort(Sort sort);
+
   BtorSort(Btor* btor,
            BoolectorSort sort,
            const std::vector<BoolectorSort>& domain = {});
@@ -69,6 +72,9 @@ class BtorTerm : public AbsTerm
   friend class BtorSolver;
 
  public:
+  /** Get wrapped Boolector term from Murxla term. */
+  static BoolectorNode* get_btor_term(Term term);
+
   BtorTerm(Btor* btor, BoolectorNode* term);
   ~BtorTerm() override;
   size_t hash() const override;
@@ -176,8 +182,6 @@ class BtorSolver : public Solver
   bool option_unsat_assumptions_enabled() const override;
   bool option_unsat_cores_enabled() const override;
 
-  BoolectorNode* get_btor_term(Term term) const;
-
   Term mk_var(Sort sort, const std::string& name) override;
 
   Term mk_const(Sort sort, const std::string& name) override;
@@ -235,7 +239,6 @@ class BtorSolver : public Solver
   std::vector<BoolectorNode*> terms_to_btor_terms(
       const std::vector<Term>& terms) const;
 
-  BoolectorSort get_btor_sort(Sort sort) const;
   BoolectorNode* mk_value_bv_uint32(Sort sort, uint32_t value);
   BoolectorNode* mk_term_left_assoc(
       std::vector<BoolectorNode*>& args,

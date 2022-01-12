@@ -30,6 +30,14 @@ is_power_of_2(uint32_t x)
 /* BtorSort                                                                   */
 /* -------------------------------------------------------------------------- */
 
+BoolectorSort
+BtorSort::get_btor_sort(Sort sort)
+{
+  BtorSort* btor_sort = dynamic_cast<BtorSort*>(sort.get());
+  assert(btor_sort);
+  return btor_sort->d_sort;
+}
+
 BtorSort::BtorSort(Btor* btor,
                    BoolectorSort sort,
                    const std::vector<BoolectorSort>& domain)
@@ -177,6 +185,14 @@ BtorSort::get_fun_codomain_sort() const
 /* -------------------------------------------------------------------------- */
 /* BtorTerm                                                                   */
 /* -------------------------------------------------------------------------- */
+
+BoolectorNode*
+BtorTerm::get_btor_term(Term term)
+{
+  BtorTerm* btor_term = dynamic_cast<BtorTerm*>(term.get());
+  assert(btor_term);
+  return btor_term->d_term;
+}
 
 BtorTerm::BtorTerm(Btor* btor, BoolectorNode* term)
     : d_solver(btor), d_term(boolector_copy(btor, term))
@@ -483,8 +499,8 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   {
     case SORT_ARRAY:
     {
-      BoolectorSort isort = get_btor_sort(sorts[0]);
-      BoolectorSort esort = get_btor_sort(sorts[1]);
+      BoolectorSort isort = BtorSort::get_btor_sort(sorts[0]);
+      BoolectorSort esort = BtorSort::get_btor_sort(sorts[1]);
       btor_res            = boolector_array_sort(d_solver, isort, esort);
       domain.push_back(isort);
       domain.push_back(esort);
@@ -493,10 +509,10 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 
     case SORT_FUN:
     {
-      BoolectorSort codomain = get_btor_sort(sorts.back());
+      BoolectorSort codomain = BtorSort::get_btor_sort(sorts.back());
       for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
       {
-        domain.push_back(get_btor_sort(*it));
+        domain.push_back(BtorSort::get_btor_sort(*it));
       }
       btor_res =
           boolector_fun_sort(d_solver, domain.data(), domain.size(), codomain);
@@ -533,7 +549,7 @@ BtorSolver::mk_var(Sort sort, const std::string& name)
     cname  = symbol.c_str();
   }
 
-  btor_res = boolector_param(d_solver, get_btor_sort(sort), cname);
+  btor_res = boolector_param(d_solver, BtorSort::get_btor_sort(sort), cname);
   assert(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
@@ -560,15 +576,15 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
 
   if (sort->get_kind() == SORT_ARRAY)
   {
-    btor_res = boolector_array(d_solver, get_btor_sort(sort), cname);
+    btor_res = boolector_array(d_solver, BtorSort::get_btor_sort(sort), cname);
   }
   else if (sort->get_kind() == SORT_FUN)
   {
-    btor_res = boolector_uf(d_solver, get_btor_sort(sort), cname);
+    btor_res = boolector_uf(d_solver, BtorSort::get_btor_sort(sort), cname);
   }
   else
   {
-    btor_res = boolector_var(d_solver, get_btor_sort(sort), cname);
+    btor_res = boolector_var(d_solver, BtorSort::get_btor_sort(sort), cname);
   }
   MURXLA_TEST(btor_res);
   if (d_rng.pick_with_prob(1))
@@ -612,7 +628,7 @@ BtorSolver::mk_value_bv_uint32(Sort sort, uint32_t value)
       << "' as argument to BtorSolver::mk_value, expected bit-vector sort";
 
   BoolectorNode* btor_res = 0;
-  BoolectorSort btor_sort = get_btor_sort(sort);
+  BoolectorSort btor_sort = BtorSort::get_btor_sort(sort);
   uint32_t bw             = sort->get_bv_size();
   assert(bw <= 32);
   bool check_bits = d_rng.pick_with_prob(10);
@@ -661,7 +677,7 @@ BtorSolver::mk_value(Sort sort, const std::string& value, Base base)
       << "' as argument to BtorSolver::mk_value, expected bit-vector sort";
 
   BoolectorNode* btor_res;
-  BoolectorSort btor_sort = get_btor_sort(sort);
+  BoolectorSort btor_sort = BtorSort::get_btor_sort(sort);
   uint32_t bw             = sort->get_bv_size();
 
   switch (base)
@@ -737,7 +753,7 @@ BtorSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
          "sort";
 
   BoolectorNode* btor_res = 0;
-  BoolectorSort btor_sort = get_btor_sort(sort);
+  BoolectorSort btor_sort = BtorSort::get_btor_sort(sort);
   uint32_t bw             = sort->get_bv_size();
   bool check_bits         = bw <= 64 && d_rng.pick_with_prob(10);
   std::string str;
@@ -1156,13 +1172,13 @@ BtorSolver::get_sort(Term term, SortKind sort_kind) const
 {
   (void) sort_kind;
   return std::shared_ptr<BtorSort>(new BtorSort(
-      d_solver, boolector_get_sort(d_solver, get_btor_term(term))));
+      d_solver, boolector_get_sort(d_solver, BtorTerm::get_btor_term(term))));
 }
 
 void
 BtorSolver::assert_formula(const Term& t)
 {
-  boolector_assert(d_solver, get_btor_term(t));
+  boolector_assert(d_solver, BtorTerm::get_btor_term(t));
 }
 
 Solver::Result
@@ -1181,7 +1197,7 @@ BtorSolver::check_sat_assuming(const std::vector<Term>& assumptions)
   int32_t res;
   for (const Term& t : assumptions)
   {
-    boolector_assume(d_solver, get_btor_term(t));
+    boolector_assume(d_solver, BtorTerm::get_btor_term(t));
   }
   res = boolector_sat(d_solver);
   if (res == BOOLECTOR_SAT) return Result::SAT;
@@ -1267,26 +1283,10 @@ BtorSolver::get_supported_sat_solvers()
 bool
 BtorSolver::is_unsat_assumption(const Term& t) const
 {
-  return boolector_failed(d_solver, get_btor_term(t));
+  return boolector_failed(d_solver, BtorTerm::get_btor_term(t));
 }
 
 /* -------------------------------------------------------------------------- */
-
-BoolectorSort
-BtorSolver::get_btor_sort(Sort sort) const
-{
-  BtorSort* btor_sort = dynamic_cast<BtorSort*>(sort.get());
-  assert(btor_sort);
-  return btor_sort->d_sort;
-}
-
-BoolectorNode*
-BtorSolver::get_btor_term(Term term) const
-{
-  BtorTerm* btor_term = dynamic_cast<BtorTerm*>(term.get());
-  assert(btor_term);
-  return btor_term->d_term;
-}
 
 BoolectorNode*
 BtorSolver::mk_term_left_assoc(std::vector<BoolectorNode*>& args,
@@ -1506,7 +1506,7 @@ BtorSolver::terms_to_btor_terms(const std::vector<Term>& terms) const
   std::vector<BoolectorNode*> res;
   for (auto& t : terms)
   {
-    res.push_back(get_btor_term(t));
+    res.push_back(BtorTerm::get_btor_term(t));
   }
   return res;
 }
@@ -1582,7 +1582,7 @@ class BtorActionBvAssignment : public Action
     {
       Term t                    = d_smgr.pick_term(SORT_BV);
       const char* bv_assignment = boolector_bv_assignment(
-          btor_solver.get_solver(), btor_solver.get_btor_term(t));
+          btor_solver.get_solver(), BtorTerm::get_btor_term(t));
       assignments.push_back(bv_assignment);
     }
     for (uint64_t i = 0; i < n; ++i)
@@ -1645,7 +1645,7 @@ class BtorActionClone : public Action
         const char* s;
         std::string symbol;
 
-        t_btor = solver.get_btor_term(t);
+        t_btor = BtorTerm::get_btor_term(t);
         MURXLA_TEST(boolector_get_btor(t_btor) == btor);
         id     = boolector_get_node_id(btor, t_btor);
         sort   = boolector_get_sort(btor, t_btor);
@@ -1745,7 +1745,7 @@ class BtorActionFailed : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     (void) boolector_failed(btor_solver.get_solver(),
-                            btor_solver.get_btor_term(term));
+                            BtorTerm::get_btor_term(term));
   }
 };
 
@@ -2006,7 +2006,7 @@ class BtorActionSetSymbol : public Action
     MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     (void) boolector_set_symbol(btor_solver.get_solver(),
-                                btor_solver.get_btor_term(term),
+                                BtorTerm::get_btor_term(term),
                                 symbol.c_str());
   }
 };
