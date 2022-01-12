@@ -2141,15 +2141,15 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_simplify
   auto a_simplify = fsm->new_action<BtorActionSimplify>();
-  s_assert->add_action(a_simplify, 10000);
-  s_create_sorts->add_action(a_simplify, 10000);
-  s_create_inputs->add_action(a_simplify, 10000);
-  s_create_terms->add_action(a_simplify, 10000);
-  s_opt->add_action(a_simplify, 10000);
-  s_push_pop->add_action(a_simplify, 10000);
-  s_check_sat->add_action(a_simplify, 10000, s_assert);
-  s_sat->add_action(a_simplify, 10000, s_assert);
-  s_unsat->add_action(a_simplify, 10000, s_assert);
+  s_assert->add_action(a_simplify, 1000);
+  s_create_sorts->add_action(a_simplify, 1000);
+  s_create_inputs->add_action(a_simplify, 1000);
+  s_create_terms->add_action(a_simplify, 1000);
+  s_opt->add_action(a_simplify, 1000);
+  s_push_pop->add_action(a_simplify, 1000);
+  s_check_sat->add_action(a_simplify, 1000, s_assert);
+  s_sat->add_action(a_simplify, 1000, s_assert);
+  s_unsat->add_action(a_simplify, 1000, s_assert);
 
   // boolector_set_sat_solver
   auto a_set_sat_solver = fsm->new_action<BtorActionSetSatSolver>();
