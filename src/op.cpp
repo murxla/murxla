@@ -102,6 +102,7 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::NOT, 1, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
   add_op_kind(Op::XOR, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
   add_op_kind(Op::IMPLIES, n, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
+  add_op_kind(Op::IFF, 2, 0, SORT_BOOL, {SORT_BOOL}, THEORY_BOOL);
 
   /* Quantifiers */
   add_op_kind(Op::FORALL, 2, 0, SORT_BOOL, {SORT_ANY, SORT_BOOL}, THEORY_QUANT);
