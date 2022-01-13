@@ -43,7 +43,10 @@ WarnStream::flush()
   stream().flush();
 }
 
-AbortStream::AbortStream() { stream() << "murxla: ERROR: "; }
+AbortStream::AbortStream(const std::string& msg_prefix)
+{
+  stream() << msg_prefix << " ";
+}
 
 AbortStream::~AbortStream()
 {

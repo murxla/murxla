@@ -3321,7 +3321,8 @@ ActionGetUnsatCore::_run()
   for (Term& fa : res)
   {
     Term t = d_smgr.find_term(fa, d_solver.get_sort(fa, SORT_BOOL), SORT_BOOL);
-    assert(t != nullptr);
+    MURXLA_TEST(t != nullptr)
+        << "Detected unknown input assertion in unsat core.";
   }
 }
 

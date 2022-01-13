@@ -120,7 +120,7 @@ class WarnStream
 class AbortStream
 {
  public:
-  AbortStream();
+  AbortStream(const std::string& msg_prefix);
   [[noreturn]] ~AbortStream();
   AbortStream(const AbortStream& astream) = default;
 
@@ -206,7 +206,7 @@ class OstreamVoider
 
 /** Create an abort stream if given condition is not true. */
 #define MURXLA_ABORT(cond) \
-  !(cond) ? (void) 0 : OstreamVoider() & AbortStream().stream()
+  !(cond) ? (void) 0 : OstreamVoider() & AbortStream("murxla: ERROR:").stream()
 
 /**
  * Create an exit stream for general errors in the main process which exits
@@ -332,13 +332,13 @@ class OstreamVoider
   MURXLA_CHECK_TRACE((term) != nullptr) << "unknown term id '" << (id) << "'";
 
 /** Test assertion about a solver's behavior. */
-#define MURXLA_TEST(cond)                                        \
-  if (!(cond))                                                   \
-  {                                                              \
-    std::cerr << __FILE__ << ":" << __LINE__ << ": "             \
-              << "Check `" << #cond << "' failed." << std::endl; \
-    abort();                                                     \
-  }
+#define MURXLA_TEST(cond)                                                     \
+  (cond) ? (void) 0                                                           \
+         : OstreamVoider()                                                    \
+               & AbortStream(std::string(__FILE__) + ":"                      \
+                             + std::to_string(__LINE__) + ": Check `" + #cond \
+                             + "' failed.")                                   \
+                     .stream()
 
 /* -------------------------------------------------------------------------- */
 }  // namespace murxla
