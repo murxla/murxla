@@ -34,6 +34,7 @@ class ShadowSort : public AbsSort
   bool is_set() const override;
   bool is_string() const override;
   bool is_reglan() const override;
+  bool is_uninterpreted() const override;
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;

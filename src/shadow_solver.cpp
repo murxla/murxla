@@ -115,6 +115,12 @@ ShadowSort::is_string() const
 }
 
 bool
+ShadowSort::is_uninterpreted() const
+{
+  return d_sort->is_uninterpreted();
+}
+
+bool
 ShadowSort::is_reglan() const
 {
   return d_sort->is_reglan();
