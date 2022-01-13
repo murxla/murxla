@@ -2173,6 +2173,46 @@ class BtorActionSetSymbol : public Action
   }
 };
 
+class BtorActionMisc : public Action
+{
+ public:
+  BtorActionMisc(SolverManager& smgr)
+      : Action(smgr, BtorSolver::ACTION_MISC, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    _run();
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(0, tokens.size());
+    _run();
+    return {};
+  }
+
+ private:
+  void _run()
+  {
+    MURXLA_TRACE << get_kind();
+    BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    Btor* btor              = btor_solver.get_solver();
+
+    const char* version = boolector_version(btor);
+    MURXLA_TEST(version && std::string(version) != "");
+    const char* copyright = boolector_copyright(btor);
+    MURXLA_TEST(copyright && std::string(copyright) != "");
+    const char* git_id = boolector_git_id(btor);
+    MURXLA_TEST(git_id && std::string(git_id) != "");
+    std::string msg_prefix = d_rng.pick_string(10);
+    boolector_set_msg_prefix(btor, msg_prefix.c_str());
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -2263,6 +2303,8 @@ BtorSolver::configure_fsm(FSM* fsm) const
   auto a_set_symbol = fsm->new_action<BtorActionSetSymbol>();
   fsm->add_action_to_all_states(a_set_symbol, 100);
 
+  auto a_misc = fsm->new_action<BtorActionMisc>();
+  fsm->add_action_to_all_states(a_misc, 100000);
   /* Configure solver-specific states. */
   s_unknown->add_action(t_default, 1, s_check_sat);
 }

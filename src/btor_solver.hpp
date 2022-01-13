@@ -107,7 +107,7 @@ class BtorSolver : public Solver
 {
  public:
   /** Solver-specific actions. */
-  inline static const Action::Kind ACTION_OPT_ITERATOR  = "btor-opt-iterator";
+  inline static const Action::Kind ACTION_OPT_ITERATOR = "btor-opt-iterator";
   inline static const Action::Kind ACTION_ARRAY_ASSIGNMENT =
       "btor-array-assignment";
   inline static const Action::Kind ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
@@ -116,6 +116,7 @@ class BtorSolver : public Solver
   inline static const Action::Kind ACTION_FAILED        = "btor-failed";
   inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
       "btor-fixate-assumptions";
+  inline static const Action::Kind ACTION_MISC = "btor-misc";
   inline static const Action::Kind ACTION_RESET_ASSUMPTIONS =
       "btor-reset-assumptions";
   inline static const Action::Kind ACTION_RELEASE_ALL = "btor-release-all";
