@@ -37,9 +37,7 @@ is_power_of_2(uint32_t x)
 BoolectorSort
 BtorSort::get_btor_sort(Sort sort)
 {
-  BtorSort* btor_sort = dynamic_cast<BtorSort*>(sort.get());
-  assert(btor_sort);
-  return btor_sort->d_sort;
+  return checked_cast<BtorSort*>(sort.get())->d_btor;
 }
 
 BtorSort::BtorSort(Btor* btor,
@@ -60,7 +58,7 @@ BtorSort::hash() const
 bool
 BtorSort::equals(const Sort& other) const
 {
-  BtorSort* btor_sort = dynamic_cast<BtorSort*>(other.get());
+  BtorSort* btor_sort = checked_cast<BtorSort*>(other.get());
   if (btor_sort)
   {
     return d_sort == btor_sort->d_sort;
@@ -193,9 +191,7 @@ BtorSort::get_fun_codomain_sort() const
 BoolectorNode*
 BtorTerm::get_btor_term(Term term)
 {
-  BtorTerm* btor_term = dynamic_cast<BtorTerm*>(term.get());
-  assert(btor_term);
-  return btor_term->d_term;
+  return checked_cast<BtorTerm*>(term.get())->d_term;
 }
 
 BtorTerm::BtorTerm(Btor* btor, BoolectorNode* term)
@@ -226,7 +222,7 @@ BtorTerm::hash() const
 bool
 BtorTerm::equals(const Term& other) const
 {
-  BtorTerm* btor_term = dynamic_cast<BtorTerm*>(other.get());
+  BtorTerm* btor_term = checked_cast<BtorTerm*>(other.get());
   if (btor_term)
   {
     return get_btor_node_id(d_solver, d_term)

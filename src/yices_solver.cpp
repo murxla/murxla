@@ -16,7 +16,7 @@ namespace yices {
 type_t
 YicesSort::get_yices_sort(Sort sort)
 {
-  YicesSort* yices_sort = dynamic_cast<YicesSort*>(sort.get());
+  YicesSort* yices_sort = checked_cast<YicesSort*>(sort.get());
   assert(yices_sort);
   return yices_sort->d_sort;
 }
@@ -41,7 +41,7 @@ YicesSort::hash() const
 bool
 YicesSort::equals(const Sort& other) const
 {
-  YicesSort* yices_sort = dynamic_cast<YicesSort*>(other.get());
+  YicesSort* yices_sort = checked_cast<YicesSort*>(other.get());
   if (yices_sort)
   {
     return d_sort == yices_sort->d_sort;
@@ -118,7 +118,7 @@ YicesSort::get_bv_size() const
 term_t
 YicesTerm::get_yices_term(Term term)
 {
-  YicesTerm* yices_term = dynamic_cast<YicesTerm*>(term.get());
+  YicesTerm* yices_term = checked_cast<YicesTerm*>(term.get());
   assert(yices_term);
   return yices_term->d_term;
 }
@@ -165,7 +165,7 @@ YicesTerm::hash() const
 bool
 YicesTerm::equals(const Term& other) const
 {
-  YicesTerm* yices_term = dynamic_cast<YicesTerm*>(other.get());
+  YicesTerm* yices_term = checked_cast<YicesTerm*>(other.get());
   if (yices_term)
   {
     return d_term == yices_term->d_term;

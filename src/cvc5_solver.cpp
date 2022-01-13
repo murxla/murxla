@@ -23,7 +23,7 @@ namespace cvc5 {
 ::cvc5::api::Sort&
 Cvc5Sort::get_cvc5_sort(Sort sort)
 {
-  return dynamic_cast<Cvc5Sort*>(sort.get())->d_sort;
+  return checked_cast<Cvc5Sort*>(sort.get())->d_sort;
 }
 
 size_t
@@ -35,7 +35,7 @@ Cvc5Sort::hash() const
 bool
 Cvc5Sort::equals(const Sort& other) const
 {
-  Cvc5Sort* cvc5_sort = dynamic_cast<Cvc5Sort*>(other.get());
+  Cvc5Sort* cvc5_sort = checked_cast<Cvc5Sort*>(other.get());
   if (cvc5_sort)
   {
     return d_sort == cvc5_sort->d_sort;
@@ -46,7 +46,7 @@ Cvc5Sort::equals(const Sort& other) const
 bool
 Cvc5Sort::not_equals(const Sort& other) const
 {
-  Cvc5Sort* cvc5_sort = dynamic_cast<Cvc5Sort*>(other.get());
+  Cvc5Sort* cvc5_sort = checked_cast<Cvc5Sort*>(other.get());
   if (cvc5_sort)
   {
     return d_sort != cvc5_sort->d_sort;
@@ -918,7 +918,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
 ::cvc5::api::Term&
 Cvc5Term::get_cvc5_term(Term term)
 {
-  return dynamic_cast<Cvc5Term*>(term.get())->d_term;
+  return checked_cast<Cvc5Term*>(term.get())->d_term;
 }
 
 std::vector<Term>
@@ -954,7 +954,7 @@ Cvc5Term::hash() const
 bool
 Cvc5Term::equals(const Term& other) const
 {
-  Cvc5Term* cvc5_term = dynamic_cast<Cvc5Term*>(other.get());
+  Cvc5Term* cvc5_term = checked_cast<Cvc5Term*>(other.get());
   if (cvc5_term) return d_term == cvc5_term->d_term;
   return false;
 }
@@ -1498,7 +1498,7 @@ Cvc5Solver::mk_sort(
     for (const auto& s : psorts)
     {
       const std::string& symbol =
-          dynamic_cast<ParamSort*>(s.get())->get_symbol();
+          checked_cast<ParamSort*>(s.get())->get_symbol();
       ::cvc5::api::Sort cvc5_param_sort = d_solver->mkParamSort(symbol);
       cvc5_psorts.push_back(cvc5_param_sort);
       assert(symbol_to_cvc5_psorts.find(symbol) == symbol_to_cvc5_psorts.end());
@@ -1539,7 +1539,7 @@ Cvc5Solver::mk_sort(
           if (ssort->is_param_sort())
           {
             const std::string& symbol =
-                dynamic_cast<ParamSort*>(ssort.get())->get_symbol();
+                checked_cast<ParamSort*>(ssort.get())->get_symbol();
             assert(symbol_to_cvc5_psorts.find(symbol)
                    != symbol_to_cvc5_psorts.end());
             cvc5_cdecl.addSelector(sname, symbol_to_cvc5_psorts.at(symbol));
@@ -1547,7 +1547,7 @@ Cvc5Solver::mk_sort(
           else if (ssort->is_unresolved_sort())
           {
             const std::string& symbol =
-                dynamic_cast<UnresolvedSort*>(ssort.get())->get_symbol();
+                checked_cast<UnresolvedSort*>(ssort.get())->get_symbol();
             const auto& it = symbol_to_cvc5_usorts.find(symbol);
             const auto& inst_sorts = ssort->get_sorts();
             size_t arity           = inst_sorts.size();
@@ -1587,7 +1587,7 @@ Cvc5Solver::mk_sort(
                 {
                   assert(!s->is_unresolved_sort());
                   const std::string& s_symbol =
-                      dynamic_cast<ParamSort*>(s.get())->get_symbol();
+                      checked_cast<ParamSort*>(s.get())->get_symbol();
                   assert(symbol_to_cvc5_psorts.find(s_symbol)
                          != symbol_to_cvc5_psorts.end());
                   cvc5_inst_sorts.push_back(symbol_to_cvc5_psorts.at(s_symbol));
@@ -1670,7 +1670,7 @@ Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
       assert(!s->is_unresolved_sort());
       assert(s->get_associated_sort());
       const std::string& s_symbol =
-          dynamic_cast<ParamSort*>(s.get())->get_symbol();
+          checked_cast<ParamSort*>(s.get())->get_symbol();
       ::cvc5::api::Sort cvc5_dt_sort =
           Cvc5Sort::get_cvc5_sort(s->get_associated_sort());
       const auto& cvc5_sort_params = cvc5_dt_sort.getDatatype().getParameters();
@@ -2939,7 +2939,7 @@ Cvc5Solver::check_sort(Sort sort)
       for (size_t i = 0, n = dt_params.size(); i < n; ++i)
       {
         MURXLA_TEST(cvc5_dt_params[i].hasSymbol());
-        MURXLA_TEST(dynamic_cast<ParamSort*>(dt_params[i].get())->get_symbol()
+        MURXLA_TEST(checked_cast<ParamSort*>(dt_params[i].get())->get_symbol()
                     == cvc5_dt_params[i].getSymbol());
       }
       MURXLA_TEST(cvc5_dt_params == cvc5_sort.getDatatypeParamSorts());

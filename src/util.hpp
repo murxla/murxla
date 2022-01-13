@@ -138,6 +138,18 @@ std::vector<std::string> split(const std::string& s, const char delim);
 
 /* -------------------------------------------------------------------------- */
 
+template <typename T, typename P>
+T
+checked_cast(P* ptr)
+{
+  if (ptr == nullptr) return nullptr;
+  T res = dynamic_cast<T>(ptr);
+  assert(res);
+  return res;
+}
+
+/* -------------------------------------------------------------------------- */
+
 }  // namespace murxla
 
 #endif

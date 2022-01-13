@@ -19,7 +19,7 @@ ShadowSort::hash() const
 bool
 ShadowSort::equals(const Sort& other) const
 {
-  ShadowSort* s_sort = dynamic_cast<ShadowSort*>(other.get());
+  ShadowSort* s_sort = checked_cast<ShadowSort*>(other.get());
   return d_sort->equals(s_sort->d_sort)
          && d_sort_shadow->equals(s_sort->d_sort_shadow);
 }
@@ -277,7 +277,7 @@ ShadowSort::set_sorts(const std::vector<Sort>& sorts)
 void
 ShadowSort::set_associated_sort(Sort sort)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
   d_sort->set_associated_sort(s->d_sort);
   d_sort_shadow->set_associated_sort(s->d_sort_shadow);
 }
@@ -308,7 +308,7 @@ ShadowSort::set_dt_ctors(const DatatypeConstructorMap& ctors)
         }
         else
         {
-          ShadowSort* sort = dynamic_cast<ShadowSort*>(sel_sort.get());
+          ShadowSort* sort = checked_cast<ShadowSort*>(sel_sort.get());
           sel_sort_orig    = sort->get_sort();
           sel_sort_shadow  = sort->get_sort_shadow();
         }
@@ -343,7 +343,7 @@ ShadowTerm::hash() const
 bool
 ShadowTerm::equals(const Term& other) const
 {
-  ShadowTerm* s_term = dynamic_cast<ShadowTerm*>(other.get());
+  ShadowTerm* s_term = checked_cast<ShadowTerm*>(other.get());
   if (s_term)
   {
     return d_term->equals(s_term->d_term)
@@ -491,7 +491,7 @@ ShadowTerm::set_sort(Sort sort)
     }
     else
     {
-      ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+      ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
       assert(s);
       sort_orig   = s->get_sort();
       sort_shadow = s->get_sort_shadow();
@@ -546,7 +546,7 @@ ShadowSolver::get_sorts_helper(const std::vector<Sort>& sorts,
     }
     else
     {
-      ShadowSort* sort = dynamic_cast<ShadowSort*>(s.get());
+      ShadowSort* sort = checked_cast<ShadowSort*>(s.get());
       assert(sort);
       s_orig   = sort->get_sort();
       s_shadow = sort->get_sort_shadow();
@@ -659,7 +659,7 @@ ShadowSolver::get_terms_helper(const std::vector<Term>& terms,
 {
   for (auto t : terms)
   {
-    ShadowTerm* term = dynamic_cast<ShadowTerm*>(t.get());
+    ShadowTerm* term = checked_cast<ShadowTerm*>(t.get());
     assert(term);
     terms_orig.push_back(term->get_term());
     terms_shadow.push_back(term->get_term_shadow());
@@ -893,7 +893,7 @@ ShadowSolver::get_unsupported_set_element_sort_kinds() const
 Term
 ShadowSolver::mk_var(Sort sort, const std::string& name)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
   assert(s);
   Term t        = d_solver->mk_var(s->d_sort, name);
   Term t_shadow = d_solver_shadow->mk_var(s->d_sort_shadow, name);
@@ -904,7 +904,7 @@ ShadowSolver::mk_var(Sort sort, const std::string& name)
 Term
 ShadowSolver::mk_const(Sort sort, const std::string& name)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
   assert(s);
   Term t        = d_solver->mk_const(s->d_sort, name);
   Term t_shadow = d_solver_shadow->mk_const(s->d_sort_shadow, name);
@@ -917,7 +917,7 @@ ShadowSolver::mk_fun(const std::string& name,
                      const std::vector<Term>& args,
                      Term body)
 {
-  ShadowTerm* term = dynamic_cast<ShadowTerm*>(body.get());
+  ShadowTerm* term = checked_cast<ShadowTerm*>(body.get());
   assert(term);
   std::vector<Term> terms_orig, terms_shadow;
   get_terms_helper(args, terms_orig, terms_shadow);
@@ -931,7 +931,7 @@ ShadowSolver::mk_fun(const std::string& name,
 Term
 ShadowSolver::mk_value(Sort sort, bool value)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
   assert(s);
   Term t        = d_solver->mk_value(s->d_sort, value);
   Term t_shadow = d_solver_shadow->mk_value(s->d_sort_shadow, value);
@@ -942,7 +942,7 @@ ShadowSolver::mk_value(Sort sort, bool value)
 Term
 ShadowSolver::mk_value(Sort sort, const std::string& value)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
   assert(s);
   Term t        = d_solver->mk_value(s->d_sort, value);
   Term t_shadow = d_solver_shadow->mk_value(s->d_sort_shadow, value);
@@ -955,7 +955,7 @@ ShadowSolver::mk_value(Sort sort,
                        const std::string& num,
                        const std::string& den)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
   assert(s);
   Term t        = d_solver->mk_value(s->d_sort, num, den);
   Term t_shadow = d_solver_shadow->mk_value(s->d_sort_shadow, num, den);
@@ -966,7 +966,7 @@ ShadowSolver::mk_value(Sort sort,
 Term
 ShadowSolver::mk_value(Sort sort, const std::string& value, Base base)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
   assert(s);
   Term t        = d_solver->mk_value(s->d_sort, value, base);
   Term t_shadow = d_solver_shadow->mk_value(s->d_sort_shadow, value, base);
@@ -978,7 +978,7 @@ Term
 ShadowSolver::mk_special_value(Sort sort,
                                const AbsTerm::SpecialValueKind& value)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s = checked_cast<ShadowSort*>(sort.get());
   assert(s);
   Term t        = d_solver->mk_special_value(s->d_sort, value);
   Term t_shadow = d_solver_shadow->mk_special_value(s->d_sort_shadow, value);
@@ -1073,7 +1073,7 @@ ShadowSolver::mk_sort(
           }
           else
           {
-            ShadowSort* sort = dynamic_cast<ShadowSort*>(sel_sort.get());
+            ShadowSort* sort = checked_cast<ShadowSort*>(sel_sort.get());
             sel_sort_orig    = sort->get_sort();
             sel_sort_shadow  = sort->get_sort_shadow();
           }
@@ -1150,7 +1150,7 @@ ShadowSolver::mk_term(const Op::Kind& kind,
                       const std::vector<std::string>& str_args,
                       const std::vector<Term>& args)
 {
-  ShadowSort* s_sort = dynamic_cast<ShadowSort*>(sort.get());
+  ShadowSort* s_sort = checked_cast<ShadowSort*>(sort.get());
   Sort sort_orig     = s_sort->get_sort();
   Sort sort_shadow   = s_sort->get_sort_shadow();
   std::vector<Term> terms_orig, terms_shadow;
@@ -1165,7 +1165,7 @@ ShadowSolver::mk_term(const Op::Kind& kind,
 Sort
 ShadowSolver::get_sort(Term term, SortKind sort_kind) const
 {
-  ShadowTerm* t = dynamic_cast<ShadowTerm*>(term.get());
+  ShadowTerm* t = checked_cast<ShadowTerm*>(term.get());
   assert(t);
   Sort s        = d_solver->get_sort(t->get_term(), sort_kind);
   Sort s_shadow = d_solver_shadow->get_sort(t->get_term_shadow(), sort_kind);
@@ -1228,7 +1228,7 @@ ShadowSolver::option_unsat_cores_enabled() const
 bool
 ShadowSolver::is_unsat_assumption(const Term& t) const
 {
-  ShadowTerm* term = dynamic_cast<ShadowTerm*>(t.get());
+  ShadowTerm* term = checked_cast<ShadowTerm*>(t.get());
   assert(term);
   bool res = d_solver->is_unsat_assumption(term->get_term());
   if (d_same_solver)
@@ -1242,7 +1242,7 @@ ShadowSolver::is_unsat_assumption(const Term& t) const
 void
 ShadowSolver::assert_formula(const Term& t)
 {
-  ShadowTerm* term = dynamic_cast<ShadowTerm*>(t.get());
+  ShadowTerm* term = checked_cast<ShadowTerm*>(t.get());
   assert(term);
   d_solver->assert_formula(term->get_term());
   d_solver_shadow->assert_formula(term->get_term_shadow());

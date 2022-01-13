@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "theory.hpp"
+#include "util.hpp"
 
 /* -------------------------------------------------------------------------- */
 
@@ -156,7 +157,7 @@ AbsSort::instantiate_dt_param_sort(const std::vector<Sort>& sorts) const
       {
         std::vector<Sort> inst_sorts = ssort->get_sorts();
         UnresolvedSort* usort =
-            new UnresolvedSort(*dynamic_cast<UnresolvedSort*>(ssort.get()));
+            new UnresolvedSort(*checked_cast<UnresolvedSort*>(ssort.get()));
         for (auto& s : inst_sorts)
         {
           if (s->is_param_sort())
@@ -363,7 +364,7 @@ ParamSort::to_string() const
 bool
 ParamSort::equals(const Sort& other) const
 {
-  return d_symbol == dynamic_cast<ParamSort*>(other.get())->get_symbol();
+  return d_symbol == checked_cast<ParamSort*>(other.get())->get_symbol();
 }
 
 size_t
@@ -381,7 +382,7 @@ UnresolvedSort::to_string() const
 bool
 UnresolvedSort::equals(const Sort& other) const
 {
-  return d_symbol == dynamic_cast<UnresolvedSort*>(other.get())->get_symbol();
+  return d_symbol == checked_cast<UnresolvedSort*>(other.get())->get_symbol();
 }
 
 /* -------------------------------------------------------------------------- */

@@ -32,7 +32,7 @@ CheckSolver::option_unsat_cores_enabled() const
 void
 CheckSolver::assert_formula(const Term& t)
 {
-  ShadowTerm* term = dynamic_cast<ShadowTerm*>(t.get());
+  ShadowTerm* term = checked_cast<ShadowTerm*>(t.get());
   assert(term);
   d_solver->assert_formula(term->get_term());
   d_assertions[term->get_term()] = term->get_term_shadow();

@@ -1144,7 +1144,7 @@ ActionMkSort::_run(SortKind kind,
         if (sel.second && sel.second->is_unresolved_sort())
         {
           UnresolvedSort* usort =
-              dynamic_cast<UnresolvedSort*>(sel.second.get());
+              checked_cast<UnresolvedSort*>(sel.second.get());
           const std::string& symbol = usort->get_symbol();
           auto it = symbol_to_dt_sort.find(symbol);
           assert(it != symbol_to_dt_sort.end());
@@ -1166,7 +1166,7 @@ ActionMkSort::_run(SortKind kind,
         Sort& ssort = sel.second;
         if (ssort && ssort->is_unresolved_sort())
         {
-          UnresolvedSort* usort = dynamic_cast<UnresolvedSort*>(ssort.get());
+          UnresolvedSort* usort = checked_cast<UnresolvedSort*>(ssort.get());
           Sort associated_sort  = usort->get_associated_sort();
           assert(associated_sort);
           /* We instantiate and cache the instantiated parametric unresolved

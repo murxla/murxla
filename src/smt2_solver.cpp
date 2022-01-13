@@ -1019,7 +1019,7 @@ Smt2Solver::mk_fun(const std::string& name,
   for (const auto& arg : args)
   {
     const auto& t = to_smt2_term(arg);
-    const auto& s = dynamic_cast<Smt2Sort*>(t->get_sort().get());
+    const auto& s = checked_cast<Smt2Sort*>(t->get_sort().get());
     if (i++ > 0) smt2 << " ";
     smt2 << "(";
     smt2 << t->get_repr();
@@ -1030,7 +1030,7 @@ Smt2Solver::mk_fun(const std::string& name,
   smt2 << ") ";
 
   const auto& t = to_smt2_term(body);
-  const auto& s = dynamic_cast<Smt2Sort*>(body->get_sort().get());
+  const auto& s = checked_cast<Smt2Sort*>(body->get_sort().get());
 
   smt2 << s->get_repr() << " " << t->get_repr() << ")";
 
@@ -1411,7 +1411,7 @@ Smt2Solver::mk_sort(
       smt2 << "( par (";
       for (const Sort& p : psorts)
       {
-        ParamSort* psort = dynamic_cast<ParamSort*>(p.get());
+        ParamSort* psort = checked_cast<ParamSort*>(p.get());
         assert(psort);
         smt2 << " " << psort->get_symbol();
       }
@@ -1431,7 +1431,7 @@ Smt2Solver::mk_sort(
             smt2 << "(" << name;
             for (const Sort& p : psorts)
             {
-              ParamSort* psort = dynamic_cast<ParamSort*>(p.get());
+              ParamSort* psort = checked_cast<ParamSort*>(p.get());
               assert(psort);
               smt2 << " " << psort->get_symbol();
             }
@@ -1444,12 +1444,12 @@ Smt2Solver::mk_sort(
         }
         else if (ssort->is_param_sort())
         {
-          ParamSort* psort = dynamic_cast<ParamSort*>(ssort.get());
+          ParamSort* psort = checked_cast<ParamSort*>(ssort.get());
           smt2 << psort->get_symbol();
         }
         else if (ssort->is_unresolved_sort())
         {
-          UnresolvedSort* usort = dynamic_cast<UnresolvedSort*>(ssort.get());
+          UnresolvedSort* usort = checked_cast<UnresolvedSort*>(ssort.get());
           assert(usort);
           const auto& sorts = usort->get_sorts();
 
@@ -1465,13 +1465,13 @@ Smt2Solver::mk_sort(
               if (i > 0) smt2 << " ";
               if (sorts[i]->is_param_sort())
               {
-                ParamSort* psort = dynamic_cast<ParamSort*>(sorts[i].get());
+                ParamSort* psort = checked_cast<ParamSort*>(sorts[i].get());
                 assert(psort);
                 smt2 << psort->get_symbol();
               }
               else
               {
-                Smt2Sort* smt2_sort = dynamic_cast<Smt2Sort*>(sorts[i].get());
+                Smt2Sort* smt2_sort = checked_cast<Smt2Sort*>(sorts[i].get());
                 assert(smt2_sort);
                 smt2 << smt2_sort->get_repr();
               }
@@ -1481,7 +1481,7 @@ Smt2Solver::mk_sort(
         }
         else
         {
-          Smt2Sort* smt2_sort = dynamic_cast<Smt2Sort*>(ssort.get());
+          Smt2Sort* smt2_sort = checked_cast<Smt2Sort*>(ssort.get());
           assert(smt2_sort);
           smt2 << smt2_sort->get_repr();
         }
