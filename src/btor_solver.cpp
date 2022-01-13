@@ -1194,7 +1194,18 @@ BtorSolver::assert_formula(const Term& t)
 Solver::Result
 BtorSolver::check_sat()
 {
-  int32_t res = boolector_sat(d_solver);
+  int32_t res;
+
+  if (d_rng.pick_with_prob(100))
+  {
+    res = boolector_limited_sat(d_solver,
+                                d_rng.pick<int32_t>(-1, 10000),
+                                d_rng.pick<int32_t>(-1, 10000));
+  }
+  else
+  {
+    res = boolector_sat(d_solver);
+  }
   if (res == BOOLECTOR_SAT) return Result::SAT;
   if (res == BOOLECTOR_UNSAT) return Result::UNSAT;
   MURXLA_TEST(res == BOOLECTOR_UNKNOWN);
