@@ -2148,6 +2148,9 @@ class BzlaActionTermSetSymbol : public Action
     MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
     (void) bitwuzla_term_set_symbol(BzlaTerm::get_bzla_term(term),
                                     symbol.c_str());
+    MURXLA_TEST(
+        std::string(bitwuzla_term_get_symbol(BzlaTerm::get_bzla_term(term)))
+        == symbol);
   }
 };
 
