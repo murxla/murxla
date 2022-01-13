@@ -80,6 +80,7 @@ class BtorTerm : public AbsTerm
   size_t hash() const override;
   bool equals(const Term& other) const override;
   std::string to_string() const override;
+  bool is_array() const override;
   bool is_bool_value() const override;
   bool is_bv_value() const override;
   bool is_special_value(const SpecialValueKind& kind) const override;

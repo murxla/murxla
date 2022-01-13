@@ -250,6 +250,12 @@ BtorTerm::to_string() const
 }
 
 bool
+BtorTerm::is_array() const
+{
+  return boolector_is_array(d_solver, d_term);
+}
+
+bool
 BtorTerm::is_bool_value() const
 {
   return is_bool() && boolector_is_const(d_solver, d_term);
