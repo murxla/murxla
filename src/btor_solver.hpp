@@ -111,6 +111,7 @@ class BtorSolver : public Solver
   inline static const Action::Kind ACTION_ARRAY_ASSIGNMENT =
       "btor-array-assignment";
   inline static const Action::Kind ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
+  inline static const Action::Kind ACTION_UF_ASSIGNMENT = "btor-uf-assignment";
   inline static const Action::Kind ACTION_CLONE         = "btor-clone";
   inline static const Action::Kind ACTION_FAILED        = "btor-failed";
   inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =

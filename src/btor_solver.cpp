@@ -1605,6 +1605,8 @@ class BtorActionArrayAssignment : public Action
         BoolectorNode* btor_eq     = boolector_eq(btor, btor_select, btor_val);
         assumptions.push_back(
             std::shared_ptr<BtorTerm>(new BtorTerm(btor, btor_eq)));
+        boolector_release(btor, btor_eq);
+        boolector_release(btor, btor_select);
       }
       MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
                   == Solver::Result::SAT);
@@ -1660,6 +1662,79 @@ class BtorActionBvAssignment : public Action
                   == Solver::Result::SAT);
     }
     boolector_free_bv_assignment(btor_solver.get_solver(), assignment);
+  }
+};
+
+class BtorActionUFAssignment : public Action
+{
+ public:
+  BtorActionUFAssignment(SolverManager& smgr)
+      : Action(smgr, BtorSolver::ACTION_UF_ASSIGNMENT, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_model_gen) return false;
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
+    if (!d_smgr.has_term(SORT_FUN)) return false;
+    Term term = d_smgr.pick_term(SORT_FUN);
+    _run(term);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    _run(term);
+    return {};
+  }
+
+ private:
+  void _run(Term term)
+  {
+    MURXLA_TRACE << get_kind() << " " << term;
+    BoolectorNode* btor_term = BtorTerm::get_btor_term(term);
+    BtorSolver& btor_solver  = static_cast<BtorSolver&>(d_smgr.get_solver());
+    Btor* btor               = btor_solver.get_solver();
+    char **args, **values;
+    uint32_t size;
+    boolector_uf_assignment(btor, btor_term, &args, &values, &size);
+    if (d_smgr.d_incremental)
+    {
+      /* assume assignment and check if result is still SAT */
+      const auto& sorts = term->get_sort()->get_sorts();
+      std::vector<Sort> domain{sorts.begin(), sorts.end() - 1};
+      Sort codomain = sorts.back();
+      std::vector<Term> assumptions;
+      for (size_t i = 0; i < size; ++i)
+      {
+        std::vector<std::string> _args = split(args[i], ' ');
+        uint32_t arity                 = _args.size();
+        std::vector<Term> apply_args{term};
+        MURXLA_TEST(arity == domain.size());
+        for (uint32_t j = 0; j < arity; ++j)
+        {
+          apply_args.push_back(
+              d_solver.mk_value(domain[j], _args[j], Solver::Base::BIN));
+        }
+        Term apply = d_solver.mk_term(Op::UF_APPLY, apply_args, {});
+        Term val   = d_solver.mk_value(codomain, values[i], Solver::Base::BIN);
+        BoolectorNode* btor_apply = BtorTerm::get_btor_term(apply);
+        BoolectorNode* btor_val   = BtorTerm::get_btor_term(val);
+        BoolectorNode* btor_eq    = boolector_eq(btor, btor_apply, btor_val);
+        assumptions.push_back(
+            std::shared_ptr<BtorTerm>(new BtorTerm(btor, btor_eq)));
+        boolector_release(btor, btor_eq);
+      }
+      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                  == Solver::Result::SAT);
+    }
+    boolector_free_uf_assignment(btor, args, values, size);
   }
 };
 
@@ -2132,6 +2207,9 @@ BtorSolver::configure_fsm(FSM* fsm) const
   // boolector_bv_assignment
   auto a_bv_ass = fsm->new_action<BtorActionBvAssignment>();
   s_sat->add_action(a_bv_ass, 2);
+  // boolector_uf_assignment
+  auto a_uf_ass = fsm->new_action<BtorActionUFAssignment>();
+  s_sat->add_action(a_uf_ass, 2);
 
   // boolector_clone
   auto a_clone = fsm->new_action<BtorActionClone>();
