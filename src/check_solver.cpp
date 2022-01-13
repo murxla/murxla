@@ -75,10 +75,8 @@ CheckSolver::get_unsat_core()
     {
       d_solver_shadow->assert_formula(d_assertions.at(t));
     }
-    else
+    else if (d_assumptions.find(t) != d_assumptions.end())
     {
-      /* cvc5 returns assumptions in the unsat core. */
-      assert(d_assumptions.find(t) != d_assumptions.end());
       d_solver_shadow->assert_formula(d_assumptions.at(t));
     }
   }
