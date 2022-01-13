@@ -3705,7 +3705,7 @@ class Cvc5ActionTermSubstitute : public Action
       cvc5_res = cvc5_term.substitute(cvc5_to_subst_terms, cvc5_subst_terms);
     }
     MURXLA_TEST(!cvc5_res.isNull());
-    /* Note: The simplified term 'cvc5_res' may or may not be already in the
+    /* Note: The substituted term 'cvc5_res' may or may not be already in the
      *       term DB. Since we can't always compute the exact level, we can't
      *       add the substituted term to the term DB. */
   }
@@ -3832,10 +3832,10 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
 
   // Sort::substitute(const Sort& sort, const Sort& subst_sort)
   auto a_sort_subst = fsm->new_action<Cvc5ActionSortSubstitute>();
-  fsm->add_action_to_all_states(a_sort_subst, 100);
+  fsm->add_action_to_all_states(a_sort_subst, 1000);
   // Term::substitute(const Term& term, const Term& subst_term)
   auto a_term_subst = fsm->new_action<Cvc5ActionTermSubstitute>();
-  fsm->add_action_to_all_states(a_term_subst, 100);
+  fsm->add_action_to_all_states(a_term_subst, 1000);
 
   // Solver::simplify(const Term& term)
   auto a_simplify = fsm->new_action<Cvc5ActionSimplify>();
