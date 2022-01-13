@@ -10,6 +10,10 @@
 #include "config.hpp"
 #include "theory.hpp"
 
+extern "C" {
+void boolector_chkclone (Btor *);
+}
+
 namespace murxla {
 namespace btor {
 
@@ -1774,6 +1778,11 @@ class BtorActionClone : public Action
       }
     }
     boolector_delete(clone);
+
+    if (d_rng.pick_with_prob(100))
+    {
+      boolector_chkclone(btor);
+    }
   }
 };
 
@@ -2126,7 +2135,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   // boolector_clone
   auto a_clone = fsm->new_action<BtorActionClone>();
-  fsm->add_action_to_all_states(a_clone, 100);
+  fsm->add_action_to_all_states(a_clone, 1000);
 
   // boolector_failed
   auto a_failed = fsm->new_action<BtorActionFailed>();
