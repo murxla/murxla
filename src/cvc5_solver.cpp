@@ -3640,12 +3640,8 @@ class Cvc5ActionTermSubstitute : public Action
       Term to_subst_term =
           d_rng.pick_from_set<decltype(sub_terms), Term>(sub_terms);
       to_subst_terms.push_back(to_subst_term);
-      Term subst_term = d_smgr.pick_term();
-      if (Cvc5Term::get_cvc5_term(subst_term).getSort()
-          != Cvc5Term::get_cvc5_term(to_subst_term).getSort())
-      {
-        return false;
-      }
+      Sort to_subst_sort = to_subst_term->get_sort();
+      Term subst_term    = d_smgr.pick_term(to_subst_sort);
       subst_terms.push_back(subst_term);
     }
 
