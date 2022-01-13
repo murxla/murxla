@@ -3318,12 +3318,6 @@ ActionGetUnsatCore::_run()
   /* Note: The Terms in this vector are solver terms wrapped into Term,
    *       without sort information! */
   std::vector<Term> res = d_solver.get_unsat_core();
-  for (Term& fa : res)
-  {
-    Term t = d_smgr.find_term(fa, d_solver.get_sort(fa, SORT_BOOL), SORT_BOOL);
-    MURXLA_TEST(t != nullptr)
-        << "Detected unknown input assertion in unsat core.";
-  }
 }
 
 /* -------------------------------------------------------------------------- */
