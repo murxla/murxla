@@ -253,6 +253,8 @@ class BzlaSolver : public Solver
   void reset() override;
   void reset_assertions() override;
 
+  void check_term(Term term) override;
+
   //
   // get_model()
   // get_proof()

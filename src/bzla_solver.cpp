@@ -1587,6 +1587,13 @@ BzlaSolver::option_unsat_cores_enabled() const
   return bitwuzla_get_option(d_solver, BITWUZLA_OPT_PRODUCE_UNSAT_CORES) > 0;
 }
 
+void
+BzlaSolver::check_term(Term term)
+{
+  const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
+  MURXLA_TEST(bitwuzla_term_get_bitwuzla(bzla_term) == d_solver);
+}
+
 /* -------------------------------------------------------------------------- */
 /* OpKindManager configuration.                                               */
 /* -------------------------------------------------------------------------- */
