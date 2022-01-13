@@ -213,6 +213,7 @@ std::unordered_map<Op::Kind, BitwuzlaKind> BzlaTerm::s_kinds_to_bzla_kinds = {
     {Op::NOT, BITWUZLA_KIND_NOT},
     {Op::XOR, BITWUZLA_KIND_XOR},
     {Op::IMPLIES, BITWUZLA_KIND_IMPLIES},
+    {Op::IFF, BITWUZLA_KIND_IFF},
 
     /* Arrays */
     {Op::ARRAY_SELECT, BITWUZLA_KIND_ARRAY_SELECT},
@@ -335,6 +336,7 @@ std::unordered_map<BitwuzlaKind, Op::Kind> BzlaTerm::s_bzla_kinds_to_kinds = {
     {BITWUZLA_KIND_NOT, Op::NOT},
     {BITWUZLA_KIND_XOR, Op::XOR},
     {BITWUZLA_KIND_IMPLIES, Op::IMPLIES},
+    {BITWUZLA_KIND_IFF, Op::IFF},
 
     /* Arrays */
     {BITWUZLA_KIND_ARRAY_SELECT, Op::ARRAY_SELECT},
