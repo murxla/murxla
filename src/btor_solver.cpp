@@ -2305,6 +2305,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   auto a_misc = fsm->new_action<BtorActionMisc>();
   fsm->add_action_to_all_states(a_misc, 100000);
+
   /* Configure solver-specific states. */
   s_unknown->add_action(t_default, 1, s_check_sat);
 }

@@ -2186,6 +2186,44 @@ class BzlaActionTermIsEqualSort : public Action
   }
 };
 
+class BzlaActionMisc : public Action
+{
+ public:
+  BzlaActionMisc(SolverManager& smgr)
+      : Action(smgr, BzlaSolver::ACTION_MISC, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    _run();
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(0, tokens.size());
+    _run();
+    return {};
+  }
+
+ private:
+  void _run()
+  {
+    MURXLA_TRACE << get_kind();
+    BzlaSolver& bzla_solver = static_cast<BzlaSolver&>(d_smgr.get_solver());
+    Bitwuzla* bzla          = bzla_solver.get_solver();
+
+    const char* version = bitwuzla_version(bzla);
+    MURXLA_TEST(version && std::string(version) != "");
+    const char* copyright = bitwuzla_copyright(bzla);
+    MURXLA_TEST(copyright && std::string(copyright) != "");
+    const char* git_id = bitwuzla_git_id(bzla);
+    MURXLA_TEST(git_id && std::string(git_id) != "");
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -2265,6 +2303,9 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   auto a_term_is_equal_sort = fsm->new_action<BzlaActionTermIsEqualSort>();
   s_create_inputs->add_action(a_term_is_equal_sort, 1000);
   s_create_terms->add_action(a_term_is_equal_sort, 1000);
+
+  auto a_misc = fsm->new_action<BzlaActionMisc>();
+  fsm->add_action_to_all_states(a_misc, 100000);
 
   /* Configure solver-specific states. */
   s_unknown->add_action(t_default, 1, s_check_sat);

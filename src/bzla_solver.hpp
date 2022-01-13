@@ -151,6 +151,7 @@ class BzlaSolver : public Solver
       "bzla-is-unsat-assumption";
   inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
       "bzla-fixate-assumptions";
+  inline static const Action::Kind ACTION_MISC = "bzla-misc";
   inline static const Action::Kind ACTION_RESET_ASSUMPTIONS =
       "bzla-reset-assumptions";
   inline static const Action::Kind ACTION_SIMPLIFY = "bzla-simplify";
