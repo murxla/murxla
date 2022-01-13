@@ -2799,10 +2799,6 @@ Cvc5Solver::check_value(Term term)
 {
   ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
 
-  if (cvc5_term.isAbstractValue())
-  {
-    (void) cvc5_term.getAbstractValue();
-  }
   if (cvc5_term.isFloatingPointNaN() || cvc5_term.isFloatingPointNegInf()
       || cvc5_term.isFloatingPointNegZero() || cvc5_term.isFloatingPointPosInf()
       || cvc5_term.isFloatingPointPosZero() || cvc5_term.isFloatingPointValue())
@@ -2870,9 +2866,9 @@ Cvc5Solver::check_value(Term term)
   {
     (void) cvc5_term.getTupleValue();
   }
-  if (cvc5_term.isUninterpretedValue())
+  if (cvc5_term.isUninterpretedSortValue())
   {
-    (void) cvc5_term.getUninterpretedValue();
+    (void) cvc5_term.getUninterpretedSortValue();
   }
   /* Note: It is necessary for sequences to call Solver::simplify() to turn a
    *       sequence that is constructed by, e.g., concatenation of unit
