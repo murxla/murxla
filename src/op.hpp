@@ -27,6 +27,7 @@ struct Op
   inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
   inline static const Kind VALUE       = "OP_VALUE";
   inline static const Kind VARIABLE    = "OP_VARIABLE";
+  inline static const Kind FUN         = "OP_FUN";
   /* Special cases */
   inline static const Kind DISTINCT = "OP_DISTINCT";
   inline static const Kind EQUAL    = "OP_EQUAL";

@@ -871,6 +871,18 @@ Solver::get_unsupported_dt_match_sort_kinds() const
 }
 
 SortKindSet
+Solver::get_unsupported_fun_sort_domain_sort_kinds() const
+{
+  return {SORT_FUN};
+}
+
+SortKindSet
+Solver::get_unsupported_fun_sort_codomain_sort_kinds() const
+{
+  return {SORT_FUN};
+}
+
+SortKindSet
 Solver::get_unsupported_fun_domain_sort_kinds() const
 {
   return {SORT_FUN};

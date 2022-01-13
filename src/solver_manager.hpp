@@ -271,7 +271,7 @@ class SolverManager
    * Remove variable from current scope level.
    * Must be called before calling add_term.
    */
-  void remove_var(Term& var);
+  void remove_var(const Term& var);
 
   /**
    * Pick Boolean term from current scope level.

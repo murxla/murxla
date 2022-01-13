@@ -833,7 +833,7 @@ TermDb::pick_vars(uint32_t num_vars) const
 }
 
 void
-TermDb::remove_var(Term& var)
+TermDb::remove_var(const Term& var)
 {
   pop(var);
 }
@@ -877,9 +877,9 @@ TermDb::push(Term& var)
 }
 
 void
-TermDb::pop(Term& var)
+TermDb::pop(const Term& var)
 {
-  std::vector<uint64_t> levels = var->get_levels();
+  const std::vector<uint64_t>& levels = var->get_levels();
   assert(levels.size() == 1);
   size_t level = levels.back();
   assert(level == d_vars.size() - 1);

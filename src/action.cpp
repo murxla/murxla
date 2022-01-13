@@ -704,9 +704,9 @@ ActionMkSort::run()
     {
       std::vector<Sort> sorts;
       SortKindSet exclude_domain_sorts =
-          d_solver.get_unsupported_fun_domain_sort_kinds();
+          d_solver.get_unsupported_fun_sort_domain_sort_kinds();
       SortKindSet exclude_codomain_sorts =
-          d_solver.get_unsupported_fun_codomain_sort_kinds();
+          d_solver.get_unsupported_fun_sort_codomain_sort_kinds();
       if (!d_smgr.has_sort_excluding(exclude_domain_sorts, false)
           || !d_smgr.has_sort_excluding(exclude_codomain_sorts, false))
       {
@@ -1515,6 +1515,7 @@ ActionMkTerm::run(Op::Kind kind)
       args.push_back(d_smgr.pick_term(fun_sort));
 
       const auto& sorts = fun_sort->get_sorts();
+      assert(sorts.size() > 1);
       /* last sort is the codomain */
       for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
       {
@@ -2099,6 +2100,9 @@ ActionMkTerm::_run(Op::Kind kind,
   }
 
   Term res = d_solver.mk_term(kind, args, indices);
+  res->set_sort(infer_sort(kind, sort_kind, args, indices));
+  // MURXLA_TEST(res->get_sort() == nullptr
+  //             || d_solver.get_sort(res, sort_kind)->equals(res->get_sort()));
 
   if ((args.size() > 1 || (args.size() == 1 && !args[0]->equals(res)))
       && res->is_indexed() && indices.size())
@@ -2127,6 +2131,38 @@ ActionMkTerm::_run(Op::Kind kind,
   MURXLA_TRACE_RETURN << res << " " << res_sort;
   check_term(res);
   return {res->get_id(), res_sort->get_id()};
+}
+
+Sort
+ActionMkTerm::infer_sort(Op::Kind kind,
+                         SortKind sort_kind,
+                         const std::vector<Term>& args,
+                         const std::vector<uint32_t>& indices)
+{
+  Sort res;
+
+  if (kind == Op::ARRAY_STORE)
+  {
+    res = args[0]->get_sort();
+  }
+  else if (kind == Op::ARRAY_SELECT)
+  {
+    const auto& sorts = args[0]->get_sort()->get_sorts();
+    assert(sorts.size() == 2);
+    res = sorts[1];
+  }
+  else if (kind == Op::ITE)
+  {
+    res = args[1]->get_sort();
+  }
+  else
+  {
+    res = nullptr;
+  }
+
+  assert(res == nullptr || res->get_kind() == sort_kind);
+
+  return res;
 }
 
 std::vector<uint64_t>
@@ -3495,6 +3531,130 @@ ActionPrintModel::_run()
 {
   MURXLA_TRACE << get_kind();
   d_solver.print_model();
+}
+
+/* -------------------------------------------------------------------------- */
+
+ActionMkFun::ActionMkFun(SolverManager& smgr)
+    : Action(smgr, MK_FUN, ID), d_mkterm(smgr), d_mkvar(smgr)
+{
+}
+
+bool
+ActionMkFun::run()
+{
+  SortKindSet exclude_domain_sorts =
+      d_solver.get_unsupported_fun_domain_sort_kinds();
+  SortKindSet exclude_codomain_sorts =
+      d_solver.get_unsupported_fun_codomain_sort_kinds();
+  if (!d_smgr.has_sort_excluding(exclude_domain_sorts, false)
+      || !d_smgr.has_sort_excluding(exclude_codomain_sorts, false))
+  {
+    return false;
+  }
+
+  std::string name = d_smgr.pick_symbol("_f");
+
+  uint32_t id;
+  std::vector<Term> args;
+  uint32_t nargs = d_rng.pick(1, MURXLA_MK_FUN_MAX_ARGS);
+  for (uint32_t i = 0; i < nargs; ++i)
+  {
+    Sort s = d_smgr.pick_sort_excluding(exclude_domain_sorts);
+    std::stringstream ss;
+    ss << name << "_" << i;
+    id       = d_mkvar._run(s, ss.str())[0];
+    Term var = d_smgr.get_term(id);
+    args.push_back(var);
+  }
+
+  uint32_t nterms = d_rng.pick(0, MURXLA_MK_FUN_MAX_TERMS);
+
+  for (uint32_t i = 0; i < nterms; ++i)
+  {
+    Op::Kind op_kind = d_smgr.pick_op_kind(true);
+    /* Skip operator kinds that would bind variables created above. */
+    if (op_kind == Op::DT_MATCH || op_kind == Op::FORALL
+        || op_kind == Op::EXISTS)
+    {
+      continue;
+    }
+    d_mkterm.run(op_kind);
+  }
+
+  Sort codomain = d_smgr.pick_sort_excluding(exclude_codomain_sorts);
+  if (d_smgr.has_quant_term(codomain))
+  {
+    Term body = d_smgr.pick_quant_term(codomain);
+    _run(name, args, body);
+    return true;
+  }
+
+  return false;
+}
+
+std::vector<uint64_t>
+ActionMkFun::untrace(const std::vector<std::string>& tokens)
+{
+  MURXLA_CHECK_TRACE_NTOKENS_MIN(
+      4, " (name, number of arguments, body) ", tokens.size());
+
+  const std::string& name = tokens[0];
+  uint32_t n_args         = str_to_uint32(tokens[1]);
+
+  uint32_t id;
+  std::vector<Term> args;
+  for (uint32_t i = 0; i < n_args; ++i)
+  {
+    id     = untrace_str_to_id(tokens[2 + i]);
+    Term t = get_untraced_term(id);
+    MURXLA_CHECK_TRACE_TERM(t, id);
+    args.push_back(t);
+  }
+
+  id        = untrace_str_to_id(tokens[2 + n_args]);
+  Term body = get_untraced_term(id);
+
+  return _run(name, args, body);
+}
+
+std::vector<uint64_t>
+ActionMkFun::_run(const std::string& name,
+                  const std::vector<Term>& args,
+                  Term body)
+{
+  MURXLA_TRACE << get_kind() << " " << name << " " << args.size() << args << " "
+               << body;
+
+  // Pop variables beginning with top scope.
+  for (auto it = args.rbegin(); it != args.rend(); ++it)
+  {
+    d_smgr.remove_var(*it);
+  }
+
+  // Create expected function sort instead of querying the solver in order to
+  // get the full sort information of the domain and codomain.
+  std::vector<Sort> sorts;
+  for (const auto& t : args)
+  {
+    sorts.push_back(t->get_sort());
+  }
+  sorts.push_back(body->get_sort());
+  Sort s = d_solver.mk_sort(SORT_FUN, sorts);
+  s->set_sorts(sorts);
+
+  // Create function and set sort.
+  Term res = d_solver.mk_fun(name, args, body);
+  MURXLA_TEST(d_solver.get_sort(res, SORT_FUN)->equals(s));
+  res->set_sort(s);
+
+  std::vector<Term> term_args(args.begin(), args.end());
+  term_args.push_back(body);
+  d_smgr.add_term(res, SORT_FUN, term_args);
+  Sort res_sort = res->get_sort();
+
+  MURXLA_TRACE_RETURN << res << " " << res_sort;
+  return {res->get_id(), res_sort->get_id()};
 }
 
 /* -------------------------------------------------------------------------- */

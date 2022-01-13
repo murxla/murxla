@@ -104,4 +104,8 @@
 /** Maximum number of nested unions created in ActionMkTerm::mk_set_value. */
 #define MURXLA_MAX_UNION_CHAIN_LENGTH 32
 
+/** Maximum number of terms created for function body in ActionMkFun. */
+#define MURXLA_MK_FUN_MAX_ARGS 5
+#define MURXLA_MK_FUN_MAX_TERMS 32
+
 #endif

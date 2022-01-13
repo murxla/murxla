@@ -201,6 +201,8 @@ class Cvc5Solver : public Solver
   SortKindSet get_unsupported_bag_element_sort_kinds() const override;
   SortKindSet get_unsupported_seq_element_sort_kinds() const override;
   SortKindSet get_unsupported_set_element_sort_kinds() const override;
+  SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const override;
+  SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
   SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const override;
@@ -234,10 +236,9 @@ class Cvc5Solver : public Solver
 
   Term mk_var(Sort sort, const std::string& name) override;
 
-  Term mk_fun(Sort sort, const std::string& name) override
-  {  // TODO:
-    return nullptr;
-  }
+  Term mk_fun(const std::string& name,
+              const std::vector<Term>& args,
+              Term body) override;
 
   Term mk_value(Sort sort, bool value) override;
   Term mk_value(Sort sort, const std::string& value) override;

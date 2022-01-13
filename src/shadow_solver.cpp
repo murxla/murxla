@@ -631,6 +631,32 @@ ShadowSolver::get_unsupported_dt_sel_codomain_sort_kinds() const
 }
 
 SortKindSet
+ShadowSolver::get_unsupported_fun_sort_domain_sort_kinds() const
+{
+  SortKindSet unsupported;
+  auto unsupported_orig =
+      d_solver->get_unsupported_fun_sort_domain_sort_kinds();
+  auto unsupported_shadow =
+      d_solver_shadow->get_unsupported_fun_sort_domain_sort_kinds();
+  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
+  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
+  return unsupported;
+}
+
+SortKindSet
+ShadowSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
+{
+  SortKindSet unsupported;
+  auto unsupported_orig =
+      d_solver->get_unsupported_fun_sort_codomain_sort_kinds();
+  auto unsupported_shadow =
+      d_solver_shadow->get_unsupported_fun_sort_codomain_sort_kinds();
+  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
+  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
+  return unsupported;
+}
+
+SortKindSet
 ShadowSolver::get_unsupported_fun_domain_sort_kinds() const
 {
   SortKindSet unsupported;
@@ -737,12 +763,17 @@ ShadowSolver::mk_const(Sort sort, const std::string& name)
 }
 
 Term
-ShadowSolver::mk_fun(Sort sort, const std::string& name)
+ShadowSolver::mk_fun(const std::string& name,
+                     const std::vector<Term>& args,
+                     Term body)
 {
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
-  assert(s);
-  Term t        = d_solver->mk_fun(s->d_sort, name);
-  Term t_shadow = d_solver_shadow->mk_fun(s->d_sort_shadow, name);
+  ShadowTerm* term = dynamic_cast<ShadowTerm*>(body.get());
+  assert(term);
+  std::vector<Term> terms_orig, terms_shadow;
+  get_terms_helper(args, terms_orig, terms_shadow);
+  Term t = d_solver->mk_fun(name, terms_orig, term->get_term());
+  Term t_shadow =
+      d_solver_shadow->mk_fun(name, terms_shadow, term->get_term_shadow());
   std::shared_ptr<ShadowTerm> res(new ShadowTerm(t, t_shadow));
   return res;
 }

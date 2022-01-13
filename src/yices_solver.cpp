@@ -318,13 +318,13 @@ YicesSolver::get_unsupported_array_element_sort_kinds() const
 }
 
 SortKindSet
-YicesSolver::get_unsupported_fun_domain_sort_kinds() const
+YicesSolver::get_unsupported_fun_sort_domain_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN};
 }
 
 SortKindSet
-YicesSolver::get_unsupported_fun_codomain_sort_kinds() const
+YicesSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN};
 }
@@ -2121,7 +2121,7 @@ YicesSolver::configure_opmgr(OpKindManager* opmgr) const
 void
 YicesSolver::configure_fsm(FSM* fsm) const
 {
-  // TODO
+  fsm->disable_action(Action::MK_FUN);
 }
 
 /* -------------------------------------------------------------------------- */

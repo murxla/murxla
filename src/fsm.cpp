@@ -353,6 +353,7 @@ FSM::configure()
   auto a_mkconst = new_action<ActionMkConst>();
   auto a_mkvar   = new_action<ActionMkVar>();
   auto a_mkterm  = new_action<ActionMkTerm>();
+  auto a_mkfun   = new_action<ActionMkFun>();
 
   auto a_termgetchildren = new_action<ActionTermGetChildren>();
 
@@ -455,6 +456,7 @@ FSM::configure()
 
   /* State: create terms ................................................. */
   s_terms->add_action(a_mkterm, 1);
+  s_terms->add_action(a_mkfun, 50);
   s_terms->add_action(a_termgetchildren, 10);
   s_terms->add_action(t_default, 250, s_assert);
   s_terms->add_action(t_default, 1000, s_check_sat);
@@ -745,7 +747,8 @@ FSM::untrace(const std::string& trace_file_name)
 
             if (action->returns() == Action::ReturnValue::ID)
             {
-              if (ret_action->get_kind() == Action::MK_TERM)
+              if (ret_action->get_kind() == Action::MK_TERM
+                  || ret_action->get_kind() == Action::MK_FUN)
               {
                 if (next_tokens_size != 2)
                 {

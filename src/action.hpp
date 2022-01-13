@@ -58,6 +58,7 @@ class Action
   inline static const Kind MK_CONST              = "mk-const";
   inline static const Kind MK_VAR                = "mk-var";
   inline static const Kind MK_TERM               = "mk-term";
+  inline static const Kind MK_FUN                = "mk-fun";
   inline static const Kind INSTANTIATE_SORT      = "instantiate-sort";
   inline static const Kind TERM_GET_CHILDREN     = "term-get-children";
   inline static const Kind ASSERT_FORMULA        = "assert-formula";
@@ -380,6 +381,7 @@ class ActionMkTerm : public Action
   ActionMkTerm(SolverManager& smgr);
 
   bool run() override;
+
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
 
@@ -388,6 +390,9 @@ class ActionMkTerm : public Action
 
   /** Create term of given operator kind. */
   bool run(Op::Kind kind);
+
+  /** Create term of a given sort kind. */
+  bool run(SortKind sort_kind);
 
  private:
   std::vector<uint64_t> _run(Op::Kind kind,
@@ -417,6 +422,16 @@ class ActionMkTerm : public Action
    * by term id.
    */
   Term mk_set_value(const Sort& element_sort);
+
+  /**
+   * Sort inference used by ActionMkTer::_run().
+   *
+   * Implements sort inference for some operators instead of asking the solver.
+   */
+  Sort infer_sort(Op::Kind kind,
+                  SortKind sort_kind,
+                  const std::vector<Term>& args,
+                  const std::vector<uint32_t>& indices);
 
   std::vector<uint32_t> d_n_args_weights;
 };
@@ -702,6 +717,25 @@ class ActionTermGetChildren : public Action
 
  private:
   void _run(Term term);
+};
+
+class ActionMkFun : public Action
+{
+ public:
+  ActionMkFun(SolverManager& smgr);
+
+  bool run() override;
+
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
+
+ private:
+  std::vector<uint64_t> _run(const std::string& name,
+                             const std::vector<Term>& args,
+                             Term body);
+
+  ActionMkTerm d_mkterm;
+  ActionMkVar d_mkvar;
 };
 
 /* -------------------------------------------------------------------------- */

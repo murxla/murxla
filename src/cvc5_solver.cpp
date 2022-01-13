@@ -1272,6 +1272,18 @@ Cvc5Solver::get_unsupported_dt_sel_codomain_sort_kinds() const
 }
 
 SortKindSet
+Cvc5Solver::get_unsupported_fun_sort_domain_sort_kinds() const
+{
+  return {SORT_FUN, SORT_REGLAN};
+}
+
+SortKindSet
+Cvc5Solver::get_unsupported_fun_sort_codomain_sort_kinds() const
+{
+  return {SORT_FUN, SORT_REGLAN};
+}
+
+SortKindSet
 Cvc5Solver::get_unsupported_fun_domain_sort_kinds() const
 {
   return {SORT_FUN, SORT_REGLAN};
@@ -1687,6 +1699,20 @@ Cvc5Solver::mk_const(Sort sort, const std::string& name)
   ::cvc5::api::Term cvc5_res =
       d_solver->mkConst(Cvc5Sort::get_cvc5_sort(sort), name);
   MURXLA_TEST(!cvc5_res.isNull());
+  return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
+}
+
+Term
+Cvc5Solver::mk_fun(const std::string& name,
+                   const std::vector<Term>& args,
+                   Term body)
+{
+  std::vector<::cvc5::api::Term> cvc5_args =
+      Cvc5Term::terms_to_cvc5_terms(args);
+  ::cvc5::api::Term cvc5_body = Cvc5Term::get_cvc5_term(body);
+
+  auto cvc5_res =
+      d_solver->defineFun(name, cvc5_args, cvc5_body.getSort(), cvc5_body);
   return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
 }
 

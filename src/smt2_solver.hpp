@@ -363,7 +363,9 @@ class Smt2Solver : public Solver
 
   Term mk_var(Sort sort, const std::string& name) override;
   Term mk_const(Sort sort, const std::string& name) override;
-  Term mk_fun(Sort sort, const std::string& name) override;
+  Term mk_fun(const std::string& name,
+              const std::vector<Term>& args,
+              Term body) override;
 
   Term mk_value(Sort sort, bool value) override;
   Term mk_value(Sort sort, const std::string& value) override;
@@ -469,6 +471,7 @@ class Smt2Solver : public Solver
 
   pid_t d_online_pid = 0;
   std::string d_solver_call;
+  std::unordered_map<std::string, std::string> d_sort_fun_map;
 };
 
 /* -------------------------------------------------------------------------- */

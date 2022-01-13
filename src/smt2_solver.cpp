@@ -1008,10 +1008,37 @@ Smt2Solver::mk_const(Sort sort, const std::string& name)
 }
 
 Term
-Smt2Solver::mk_fun(Sort sort, const std::string& name)
+Smt2Solver::mk_fun(const std::string& name,
+                   const std::vector<Term>& args,
+                   Term body)
 {
-  // TODO
-  return nullptr;
+  std::stringstream smt2;
+
+  smt2 << "(define-fun " << name << " (";
+  size_t i = 0;
+  for (const auto& arg : args)
+  {
+    const auto& t = to_smt2_term(arg);
+    const auto& s = dynamic_cast<Smt2Sort*>(t->get_sort().get());
+    if (i++ > 0) smt2 << " ";
+    smt2 << "(";
+    smt2 << t->get_repr();
+    smt2 << " ";
+    smt2 << s->get_repr();
+    smt2 << ")";
+  }
+  smt2 << ") ";
+
+  const auto& t = to_smt2_term(body);
+  const auto& s = dynamic_cast<Smt2Sort*>(body->get_sort().get());
+
+  smt2 << s->get_repr() << " " << t->get_repr() << ")";
+
+  dump_smt2(smt2.str());
+  std::vector<Term> smt2_args(args.begin(), args.end());
+  smt2_args.push_back(body);
+  return std::shared_ptr<Smt2Term>(
+      new Smt2Term(Op::FUN, {}, smt2_args, {}, name));
 }
 
 Term
@@ -1291,7 +1318,8 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     {
       std::string symbol = Smt2Sort::get_next_symbol();
       std::unordered_map<Sort, std::string> sorts_map;
-      std::stringstream ssort, smt2;
+      std::stringstream ssort, smt2, key;
+      key << "(->";
       ssort << "(" << symbol << " ";
       smt2 << "(define-sort " << symbol << " (";
       for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
@@ -1305,23 +1333,28 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
         {
           sorts_map[*it] = "_y" + std::to_string(d_define_sort_param_cnt++);
         }
-        ssort << static_cast<Smt2Sort*>(it->get())->get_repr();
+        const auto& repr = static_cast<Smt2Sort*>(it->get())->get_repr();
+        ssort << repr;
         smt2 << sorts_map.at(*it);
+        key << " " << repr;
       }
       ssort << ")";
       smt2 << ") ";
       Sort codomain = sorts.back();
+      const auto smt2_sort = static_cast<Smt2Sort*>(codomain.get());
       if (sorts_map.find(codomain) == sorts_map.end())
       {
-        smt2 << static_cast<Smt2Sort*>(codomain.get())->get_repr();
+        smt2 << smt2_sort->get_repr();
       }
       else
       {
         smt2 << sorts_map.at(codomain);
       }
       smt2 << ")";
+      key << " " << smt2_sort->get_repr() << ")";
       dump_smt2(smt2.str());
       sort = ssort.str();
+      d_sort_fun_map.emplace(key.str(), sort);
     }
     break;
     default: assert(false);
@@ -1813,6 +1846,21 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind) const
         sort = get_set_sort_string({args[0]->get_sort()});
       }
       break;
+
+    case SORT_FUN:
+    {
+      std::stringstream key;
+      key << "(->";
+      for (const auto& arg : args)
+      {
+        const auto smt2_sort = static_cast<Smt2Sort*>(arg->get_sort().get());
+        key << " " << smt2_sort->get_repr();
+      }
+      key << ")";
+      assert(d_sort_fun_map.find(key.str()) != d_sort_fun_map.end());
+      sort = d_sort_fun_map.at(key.str());
+    }
+    break;
 
     default: assert(false);
   }

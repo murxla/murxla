@@ -228,10 +228,14 @@ SolverManager::add_term(Term& term,
                         const std::vector<Term>& args)
 {
   d_stats.terms += 1;
-  /* Query solver for sort of newly created term. The returned sort is not
-   * in d_sorts. Hence, we need to do a lookup on d_sorts if we already have
-   * a matching sort. */
-  Sort sort = d_solver->get_sort(term, sort_kind);
+  /* Query solver for sort of newly created term if term does not have a sort.
+   * If the returned sort is not in d_sorts, i.e., sort == nullptr, we need to
+   * do a lookup on d_sorts if we already have a matching sort. */
+  Sort sort = term->get_sort();
+  if (sort == nullptr)
+  {
+    sort = d_solver->get_sort(term, sort_kind);
+  }
 
   /* If sort_kind is SORT_REAL, given sort can only be an Int sort when the
    * solver identifies it as an Int sort (since Int may be a subtype of Real).
@@ -676,7 +680,7 @@ SolverManager::pick_vars(uint32_t num_vars) const
 }
 
 void
-SolverManager::remove_var(Term& var)
+SolverManager::remove_var(const Term& var)
 {
   d_term_db.remove_var(var);
   reset_op_cache();

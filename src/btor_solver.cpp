@@ -460,6 +460,18 @@ BtorSolver::get_unsupported_array_element_sort_kinds() const
 }
 
 SortKindSet
+BtorSolver::get_unsupported_fun_sort_domain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
+BtorSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
 BtorSolver::get_unsupported_fun_domain_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN};
@@ -601,6 +613,25 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
   {
     MURXLA_TEST(boolector_is_equal_sort(d_solver, btor_res, btor_res));
   }
+  std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
+  assert(res);
+  boolector_release(d_solver, btor_res);
+  return res;
+}
+
+Term
+BtorSolver::mk_fun(const std::string& name,
+                   const std::vector<Term>& args,
+                   Term body)
+{
+  std::vector<BoolectorNode*> btor_args = terms_to_btor_terms(args);
+  BoolectorNode* btor_body              = BtorTerm::get_btor_term(body);
+
+  BoolectorNode* btor_res =
+      boolector_fun(d_solver, btor_args.data(), btor_args.size(), btor_body);
+  boolector_set_symbol(d_solver, btor_res, name.c_str());
+
+  MURXLA_TEST(btor_res);
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);

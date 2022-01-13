@@ -126,6 +126,8 @@ class ShadowSolver : public Solver
   OpKindSortKindMap get_unsupported_op_sort_kinds() const override;
   SortKindSet get_unsupported_var_sort_kinds() const override;
   SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const override;
+  SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const override;
+  SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
   SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
   SortKindSet get_unsupported_array_index_sort_kinds() const override;
@@ -136,7 +138,9 @@ class ShadowSolver : public Solver
 
   Term mk_var(Sort sort, const std::string& name) override;
   Term mk_const(Sort sort, const std::string& name) override;
-  Term mk_fun(Sort sort, const std::string& name) override;
+  Term mk_fun(const std::string& name,
+              const std::vector<Term>& args,
+              Term body) override;
 
   Term mk_value(Sort sort, bool value) override;
   Term mk_value(Sort sort, const std::string& value) override;

@@ -740,11 +740,19 @@ class Solver
    */
   virtual SortKindSet get_unsupported_dt_match_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported as function domain sort.
+   * Get set of unsupported domain sort kinds for function sorts.
+   */
+  virtual SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const;
+  /**
+   * Get set of unsupported codomain sort kinds for function sorts.
+   */
+  virtual SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const;
+  /**
+   * Get set of unsupported domain sort kinds for functions (mk_fun).
    */
   virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported as function codomain sort.
+   * Get set of unsupported codomain sort kinds for functions.
    */
   virtual SortKindSet get_unsupported_fun_codomain_sort_kinds() const;
   /**
@@ -801,7 +809,10 @@ class Solver
 
   virtual Term mk_var(Sort sort, const std::string& name)   = 0;
   virtual Term mk_const(Sort sort, const std::string& name) = 0;
-  virtual Term mk_fun(Sort sort, const std::string& name)   = 0;
+  /** Create function `name` of sort `sort`. */
+  virtual Term mk_fun(const std::string& name,
+                      const std::vector<Term>& args,
+                      Term body) = 0;
 
   virtual Term mk_value(Sort sort, bool value) = 0;
   virtual Term mk_value(Sort sort, const std::string& value);

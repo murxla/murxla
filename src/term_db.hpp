@@ -336,7 +336,7 @@ class TermDb
    * Remove variable from current scope and close scope.
    * Must be called before calling add_term.
    */
-  void remove_var(Term& var);
+  void remove_var(const Term& var);
 
   /** Pick a sort kind from any level. */
   SortKind pick_sort_kind() const;
@@ -371,7 +371,7 @@ class TermDb
   /** Open new scope with given variable. */
   void push(Term& var);
   /** Close current scope with given variable. */
-  void pop(Term& var);
+  void pop(const Term& var);
   /** Get the number of terms of given sort kind stored in the database. */
   size_t get_num_terms(SortKind sort_kind) const;
   /**

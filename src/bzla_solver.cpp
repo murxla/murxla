@@ -324,6 +324,7 @@ std::unordered_map<BitwuzlaKind, Op::Kind> BzlaTerm::s_bzla_kinds_to_kinds = {
     {BITWUZLA_KIND_CONST_ARRAY, Op::CONST_ARRAY},
     {BITWUZLA_KIND_VAL, Op::VALUE},
     {BITWUZLA_KIND_VAR, Op::VARIABLE},
+    {BITWUZLA_KIND_LAMBDA, Op::FUN},
 
     /* Special Cases */
     {BITWUZLA_KIND_DISTINCT, Op::DISTINCT},
@@ -867,15 +868,27 @@ BzlaSolver::get_unsupported_array_element_sort_kinds() const
 }
 
 SortKindSet
-BzlaSolver::get_unsupported_fun_domain_sort_kinds() const
+BzlaSolver::get_unsupported_fun_sort_domain_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN};
 }
 
 SortKindSet
-BzlaSolver::get_unsupported_fun_codomain_sort_kinds() const
+BzlaSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
 {
   return {SORT_ARRAY, SORT_FUN};
+}
+
+SortKindSet
+BzlaSolver::get_unsupported_fun_domain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN, SORT_FP, SORT_RM};
+}
+
+SortKindSet
+BzlaSolver::get_unsupported_fun_codomain_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN, SORT_FP, SORT_RM};
 }
 
 Sort
@@ -1003,6 +1016,25 @@ BzlaSolver::mk_const(Sort sort, const std::string& name)
   }
 
   bzla_res = bitwuzla_mk_const(d_solver, BzlaSort::get_bzla_sort(sort), cname);
+  MURXLA_TEST(bzla_res);
+  std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
+  assert(res);
+  return res;
+}
+
+Term
+BzlaSolver::mk_fun(const std::string& name,
+                   const std::vector<Term>& args,
+                   Term body)
+{
+  std::vector<const BitwuzlaTerm*> bzla_args =
+      BzlaTerm::terms_to_bzla_terms(args);
+  bzla_args.push_back(BzlaTerm::get_bzla_term(body));
+
+  const BitwuzlaTerm* bzla_res = bitwuzla_mk_term(
+      d_solver, BITWUZLA_KIND_LAMBDA, bzla_args.size(), bzla_args.data());
+  bitwuzla_term_set_symbol(bzla_res, name.c_str());
+
   MURXLA_TEST(bzla_res);
   std::shared_ptr<BzlaTerm> res(new BzlaTerm(bzla_res));
   assert(res);
