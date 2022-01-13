@@ -1336,7 +1336,17 @@ ShadowSolver::reset_assertions()
 void
 ShadowSolver::set_opt(const std::string& opt, const std::string& value)
 {
-  d_solver->set_opt(opt, value);
+  const std::string shadow_prefix = "murxla-shadow-solver@";
+  if (opt.find(shadow_prefix, 0) == 0)
+  {
+    std::string name(opt.begin() + shadow_prefix.size(), opt.end());
+    d_solver_shadow->set_opt(name, value);
+  }
+  else
+  {
+    d_solver->set_opt(opt, value);
+  }
+
   if (opt == d_solver->get_option_name_incremental())
   {
     d_solver_shadow->set_opt(d_solver_shadow->get_option_name_incremental(),
@@ -1352,6 +1362,18 @@ ShadowSolver::set_opt(const std::string& opt, const std::string& value)
     d_solver_shadow->set_opt(
         d_solver_shadow->get_option_name_unsat_assumptions(), value);
   }
+}
+
+std::unordered_map<std::string, std::string>
+ShadowSolver::get_required_options(TheoryId theory) const
+{
+  auto req_opts = d_solver->get_required_options(theory);
+
+  for (const auto& [name, val] : d_solver_shadow->get_required_options(theory))
+  {
+    req_opts.emplace("murxla-shadow-solver@" + name, val);
+  }
+  return req_opts;
 }
 
 std::vector<Term>
