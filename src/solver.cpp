@@ -51,7 +51,6 @@ AbsSort::get_sorts() const
 void
 AbsSort::set_associated_sort(Sort sort)
 {
-  assert(sort);
   d_associated_sort = sort;
 }
 

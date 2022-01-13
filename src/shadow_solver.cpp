@@ -296,16 +296,38 @@ ShadowSort::set_dt_ctors(const DatatypeConstructorMap& ctors)
     const auto& sels = c.second;
     for (const auto& s : sels)
     {
-      const auto& sname = s.first;
-      const auto& ssort = s.second;
-      ShadowSort* sort  = dynamic_cast<ShadowSort*>(ssort.get());
-      ctors_orig.at(cname).emplace_back(sname, sort->get_sort());
-      ctors_shadow.at(cname).emplace_back(sname, sort->get_sort_shadow());
+      const auto& sname  = s.first;
+      auto& sel_sort     = s.second;
+      Sort sel_sort_orig = sel_sort, sel_sort_shadow = sel_sort;
+      if (sel_sort && !sel_sort->is_param_sort())
+      {
+        if (sel_sort->is_unresolved_sort())
+        {
+          ShadowSolver::get_unresolved_sort_helper(
+              sel_sort, sel_sort_orig, sel_sort_shadow);
+        }
+        else
+        {
+          ShadowSort* sort = dynamic_cast<ShadowSort*>(sel_sort.get());
+          sel_sort_orig    = sort->get_sort();
+          sel_sort_shadow  = sort->get_sort_shadow();
+        }
+      }
+      ctors_orig[cname].emplace_back(sname, sel_sort_orig);
+      ctors_shadow[cname].emplace_back(sname, sel_sort_shadow);
     }
   }
   d_sort->set_dt_ctors(ctors_orig);
   d_sort_shadow->set_dt_ctors(ctors_shadow);
   d_dt_ctors = ctors;
+}
+
+void
+ShadowSort::set_dt_is_instantiated(bool value)
+{
+  AbsSort::set_dt_is_instantiated(value);
+  d_sort->set_dt_is_instantiated(value);
+  d_sort_shadow->set_dt_is_instantiated(value);
 }
 
 ShadowTerm::ShadowTerm(Term term, Term term_shadow)
@@ -456,10 +478,27 @@ void
 ShadowTerm::set_sort(Sort sort)
 {
   AbsTerm::set_sort(sort);
-  ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
-  assert(s);
-  d_term->set_sort(s->d_sort);
-  d_term_shadow->set_sort(s->d_sort_shadow);
+  Sort sort_orig, sort_shadow;
+  if (sort)
+  {
+    if (sort->is_param_sort())
+    {
+      ShadowSolver::get_param_sort_helper(sort, sort_orig, sort_shadow);
+    }
+    else if (sort->is_unresolved_sort())
+    {
+      ShadowSolver::get_unresolved_sort_helper(sort, sort_orig, sort_shadow);
+    }
+    else
+    {
+      ShadowSort* s = dynamic_cast<ShadowSort*>(sort.get());
+      assert(s);
+      sort_orig   = s->get_sort();
+      sort_shadow = s->get_sort_shadow();
+    }
+  }
+  d_term->set_sort(sort_orig);
+  d_term_shadow->set_sort(sort_shadow);
 }
 
 void
@@ -495,11 +534,122 @@ ShadowSolver::get_sorts_helper(const std::vector<Sort>& sorts,
 {
   for (auto s : sorts)
   {
-    ShadowSort* sort = dynamic_cast<ShadowSort*>(s.get());
-    assert(sort);
-    sorts_orig.push_back(sort->get_sort());
-    sorts_shadow.push_back(sort->get_sort_shadow());
+    assert(s);
+    Sort s_orig, s_shadow;
+    if (s->is_param_sort())
+    {
+      get_param_sort_helper(s, s_orig, s_shadow);
+    }
+    else if (s->is_unresolved_sort())
+    {
+      get_unresolved_sort_helper(s, s_orig, s_shadow);
+    }
+    else
+    {
+      ShadowSort* sort = dynamic_cast<ShadowSort*>(s.get());
+      assert(sort);
+      s_orig   = sort->get_sort();
+      s_shadow = sort->get_sort_shadow();
+    }
+    sorts_orig.push_back(s_orig);
+    sorts_shadow.push_back(s_shadow);
   }
+}
+
+void
+ShadowSolver::get_param_sort_helper(Sort sort,
+                                    Sort& sort_orig,
+                                    Sort& sort_shadow)
+{
+  assert(sort->is_param_sort());
+
+  ParamSort* psort = dynamic_cast<ParamSort*>(sort.get());
+
+  sort_orig   = std::shared_ptr<ParamSort>(new ParamSort(psort->get_symbol()));
+  sort_shadow = std::shared_ptr<ParamSort>(new ParamSort(psort->get_symbol()));
+
+  Sort ass      = sort->get_associated_sort();
+  assert(!ass || (!ass->is_param_sort() && !ass->is_unresolved_sort()));
+  Sort ass_orig = ass, ass_shadow = ass;
+  if (ass)
+  {
+    if (ass->is_param_sort())
+    {
+      get_param_sort_helper(ass, ass_orig, ass_shadow);
+    }
+    else if (ass->is_unresolved_sort())
+    {
+      get_unresolved_sort_helper(ass, ass_orig, ass_shadow);
+    }
+    else
+    {
+      ShadowSort* sass = dynamic_cast<ShadowSort*>(ass.get());
+      ass_orig         = sass->get_sort();
+      ass_shadow       = sass->get_sort_shadow();
+    }
+  }
+  sort_orig->set_associated_sort(ass_orig);
+  sort_shadow->set_associated_sort(ass_shadow);
+}
+
+void
+ShadowSolver::get_unresolved_sort_helper(Sort sort,
+                                         Sort& sort_orig,
+                                         Sort& sort_shadow)
+{
+  UnresolvedSort* usort = dynamic_cast<UnresolvedSort*>(sort.get());
+
+  sort_orig =
+      std::shared_ptr<UnresolvedSort>(new UnresolvedSort(usort->get_symbol()));
+  sort_shadow =
+      std::shared_ptr<UnresolvedSort>(new UnresolvedSort(usort->get_symbol()));
+
+  Sort ass      = sort->get_associated_sort();
+  assert(!ass || (!ass->is_param_sort() && !ass->is_unresolved_sort()));
+  Sort ass_orig = ass, ass_shadow = ass;
+  if (ass)
+  {
+    if (ass->is_param_sort())
+    {
+      get_param_sort_helper(ass, ass_orig, ass_shadow);
+    }
+    else if (ass->is_unresolved_sort())
+    {
+      get_unresolved_sort_helper(ass, ass_orig, ass_shadow);
+    }
+    else
+    {
+      ShadowSort* sass = dynamic_cast<ShadowSort*>(ass.get());
+      ass_orig         = sass->get_sort();
+      ass_shadow       = sass->get_sort_shadow();
+    }
+  }
+  sort_orig->set_associated_sort(ass_orig);
+  sort_shadow->set_associated_sort(ass_shadow);
+
+  std::vector<Sort> inst_sorts_orig, inst_sorts_shadow;
+  for (Sort isort : usort->get_sorts())
+  {
+    Sort isort_orig, isort_shadow;
+    if (isort->is_param_sort())
+    {
+      get_param_sort_helper(isort, isort_orig, isort_shadow);
+    }
+    else if (isort->is_unresolved_sort())
+    {
+      get_unresolved_sort_helper(isort, isort_orig, isort_shadow);
+    }
+    else
+    {
+      ShadowSort* issort = dynamic_cast<ShadowSort*>(isort.get());
+      isort_orig         = issort->get_sort();
+      isort_shadow       = issort->get_sort_shadow();
+    }
+    inst_sorts_orig.push_back(isort_orig);
+    inst_sorts_shadow.push_back(isort_shadow);
+  }
+  sort_orig->set_sorts(inst_sorts_orig);
+  sort_shadow->set_sorts(inst_sorts_shadow);
 }
 
 void
@@ -900,17 +1050,6 @@ ShadowSolver::mk_sort(
 
   for (size_t i = 0; i < n_dt_sorts; ++i)
   {
-    std::vector<Sort> psorts_orig;
-    std::vector<Sort> psorts_shadow;
-    for (const auto& s : param_sorts[i])
-    {
-      ShadowSort* ssort = dynamic_cast<ShadowSort*>(s.get());
-      psorts_orig.push_back(ssort->get_sort());
-      psorts_shadow.push_back(ssort->get_sort_shadow());
-    }
-    param_sorts_orig.push_back(psorts_orig);
-    param_sorts_shadow.push_back(psorts_shadow);
-
     AbsSort::DatatypeConstructorMap ctors_orig;
     AbsSort::DatatypeConstructorMap ctors_shadow;
     for (const auto& c : constructors[i])
@@ -923,10 +1062,24 @@ ShadowSolver::mk_sort(
       for (const auto& s : sels)
       {
         const auto& sname = s.first;
-        auto& ssort       = s.second;
-        ShadowSort* sort  = dynamic_cast<ShadowSort*>(ssort.get());
-        ctors_orig[cname].emplace_back(sname, sort->get_sort());
-        ctors_shadow[cname].emplace_back(sname, sort->get_sort_shadow());
+        auto& sel_sort     = s.second;
+        Sort sel_sort_orig = sel_sort, sel_sort_shadow = sel_sort;
+        if (sel_sort && !sel_sort->is_param_sort())
+        {
+          if (sel_sort->is_unresolved_sort())
+          {
+            get_unresolved_sort_helper(
+                sel_sort, sel_sort_orig, sel_sort_shadow);
+          }
+          else
+          {
+            ShadowSort* sort = dynamic_cast<ShadowSort*>(sel_sort.get());
+            sel_sort_orig    = sort->get_sort();
+            sel_sort_shadow  = sort->get_sort_shadow();
+          }
+        }
+        ctors_orig[cname].emplace_back(sname, sel_sort_orig);
+        ctors_shadow[cname].emplace_back(sname, sel_sort_shadow);
       }
     }
     constructors_orig.push_back(ctors_orig);
@@ -934,9 +1087,9 @@ ShadowSolver::mk_sort(
   }
 
   std::vector<Sort> res_orig =
-      d_solver->mk_sort(kind, dt_names, param_sorts_orig, constructors_orig);
+      d_solver->mk_sort(kind, dt_names, param_sorts, constructors_orig);
   std::vector<Sort> res_shadow = d_solver_shadow->mk_sort(
-      kind, dt_names, param_sorts_shadow, constructors_shadow);
+      kind, dt_names, param_sorts, constructors_shadow);
   MURXLA_TEST(res_orig.size() == n_dt_sorts);
   MURXLA_TEST(res_orig.size() == res_shadow.size());
   std::vector<Sort> res;
@@ -945,6 +1098,23 @@ ShadowSolver::mk_sort(
     res.push_back(std::shared_ptr<ShadowSort>(
         new ShadowSort(res_orig[i], res_shadow[i])));
   }
+  return res;
+}
+
+Sort
+ShadowSolver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
+{
+  ShadowSort* sort       = dynamic_cast<ShadowSort*>(param_sort.get());
+  Sort param_sort_orig   = sort->get_sort();
+  Sort param_sort_shadow = sort->get_sort_shadow();
+
+  std::vector<Sort> sorts_orig, sorts_shadow;
+  get_sorts_helper(sorts, sorts_orig, sorts_shadow);
+
+  Sort s_orig   = d_solver->instantiate_sort(param_sort_orig, sorts_orig);
+  Sort s_shadow = d_solver->instantiate_sort(param_sort_shadow, sorts_shadow);
+
+  std::shared_ptr<ShadowSort> res(new ShadowSort(s_orig, s_shadow));
   return res;
 }
 

@@ -193,6 +193,9 @@ class AbsSort
   /** Set the datatype constructor map of this sort. */
   virtual void set_dt_ctors(const DatatypeConstructorMap& ctors);
 
+  /** Set d_dt_is_instantiated to the given value. */
+  virtual void set_dt_is_instantiated(bool value);
+
   /* Only to be overriden by ParamSort.                                     */
   /* ---------------------------------------------------------------------- */
 
@@ -247,8 +250,6 @@ class AbsSort
   DatatypeConstructorMap instantiate_dt_param_sort(
       const std::vector<Sort>& sorts) const;
 
-  /** Set d_dt_is_instantiated to the given value. */
-  void set_dt_is_instantiated(bool value);
   /** Return true if this is an instantiated parametric datatype sort. */
   bool is_dt_instantiated() const;
 

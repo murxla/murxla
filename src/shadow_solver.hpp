@@ -56,6 +56,7 @@ class ShadowSort : public AbsSort
   void set_sorts(const std::vector<Sort>& sorts) override;
   void set_associated_sort(Sort sort) override;
   void set_dt_ctors(const DatatypeConstructorMap& ctors) override;
+  void set_dt_is_instantiated(bool value) override;
 
   Sort get_sort() const { return d_sort; }
   Sort get_sort_shadow() const { return d_sort_shadow; }
@@ -112,6 +113,21 @@ class ShadowTerm : public AbsTerm
 class ShadowSolver : public Solver
 {
  public:
+  static void get_sorts_helper(const std::vector<Sort>& sorts,
+                               std::vector<Sort>& sorts_orig,
+                               std::vector<Sort>& sorts_shadow);
+
+  static void get_param_sort_helper(Sort sort,
+                                    Sort& sort_orig,
+                                    Sort& sort_shadow);
+  static void get_unresolved_sort_helper(Sort sort,
+                                         Sort& sort_orig,
+                                         Sort& sort_shadow);
+
+  static void get_terms_helper(const std::vector<Term>& terms,
+                               std::vector<Term>& terms_orig,
+                               std::vector<Term>& terms_shadow);
+
   ShadowSolver(SolverSeedGenerator& sng, Solver* solver, Solver* solver_shadow);
   ~ShadowSolver() override;
 
@@ -163,6 +179,9 @@ class ShadowSolver : public Solver
                             const std::vector<AbsSort::DatatypeConstructorMap>&
                                 constructors) override;
 
+  Sort instantiate_sort(Sort param_sort,
+                        const std::vector<Sort>& sorts) override;
+
   Term mk_term(const Op::Kind& kind,
                const std::vector<Term>& args,
                const std::vector<uint32_t>& indices) override;
@@ -210,14 +229,6 @@ class ShadowSolver : public Solver
   std::vector<Term> get_value(const std::vector<Term>& terms) override;
 
   void disable_unsupported_actions(FSM* fsm) const override;
-
-  static void get_sorts_helper(const std::vector<Sort>& sorts,
-                               std::vector<Sort>& sorts_orig,
-                               std::vector<Sort>& sorts_shadow);
-
-  static void get_terms_helper(const std::vector<Term>& terms,
-                               std::vector<Term>& terms_orig,
-                               std::vector<Term>& terms_shadow);
 
  protected:
   /** The solver under test. */
