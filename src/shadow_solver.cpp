@@ -574,7 +574,7 @@ ShadowSolver::get_param_sort_helper(Sort sort,
   sort_orig   = std::shared_ptr<ParamSort>(new ParamSort(psort->get_symbol()));
   sort_shadow = std::shared_ptr<ParamSort>(new ParamSort(psort->get_symbol()));
 
-  Sort ass      = sort->get_associated_sort();
+  Sort ass = sort->get_associated_sort();
   assert(!ass || (!ass->is_param_sort() && !ass->is_unresolved_sort()));
   Sort ass_orig = ass, ass_shadow = ass;
   if (ass)
@@ -610,7 +610,7 @@ ShadowSolver::get_unresolved_sort_helper(Sort sort,
   sort_shadow =
       std::shared_ptr<UnresolvedSort>(new UnresolvedSort(usort->get_symbol()));
 
-  Sort ass      = sort->get_associated_sort();
+  Sort ass = sort->get_associated_sort();
   assert(!ass || (!ass->is_param_sort() && !ass->is_unresolved_sort()));
   Sort ass_orig = ass, ass_shadow = ass;
   if (ass)
