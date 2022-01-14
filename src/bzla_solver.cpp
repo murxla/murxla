@@ -1726,8 +1726,8 @@ class BzlaActionGetArrayValue : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_ARRAY)) return false;
-    Term term = d_smgr.pick_term(SORT_ARRAY);
+    if (!d_smgr.has_term(SORT_ARRAY, 0)) return false;
+    Term term = d_smgr.pick_term(SORT_ARRAY, 0);
     _run(term);
     return true;
   }
@@ -1786,8 +1786,8 @@ class BzlaActionGetBvValue : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_BV)) return false;
-    Term term = d_smgr.pick_term(SORT_BV);
+    if (!d_smgr.has_term(SORT_BV, 0)) return false;
+    Term term = d_smgr.pick_term(SORT_BV, 0);
     _run(term);
     return true;
   }
@@ -1836,8 +1836,8 @@ class BzlaActionGetFpValue : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_FP)) return false;
-    Term term = d_smgr.pick_term(SORT_FP);
+    if (!d_smgr.has_term(SORT_FP, 0)) return false;
+    Term term = d_smgr.pick_term(SORT_FP, 0);
     _run(term);
     return true;
   }
@@ -1889,8 +1889,8 @@ class BzlaActionGetFunValue : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_FUN)) return false;
-    Term term = d_smgr.pick_term(SORT_FUN);
+    if (!d_smgr.has_term(SORT_FUN, 0)) return false;
+    Term term = d_smgr.pick_term(SORT_FUN, 0);
     _run(term);
     return true;
   }
@@ -1949,8 +1949,8 @@ class BzlaActionGetRmValue : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_RM)) return false;
-    Term term = d_smgr.pick_term(SORT_RM);
+    if (!d_smgr.has_term(SORT_RM, 0)) return false;
+    Term term = d_smgr.pick_term(SORT_RM, 0);
     _run(term);
     return true;
   }
