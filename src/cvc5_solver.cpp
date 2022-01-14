@@ -341,7 +341,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 
 // ##### TODO OPS
 
-//  ABSTRACT_VALUE,
 //  LAMBDA,
 //  WITNESS,
 //  CARDINALITY_CONSTRAINT,
@@ -351,8 +350,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  ## Arithmetic
 //  POW,
 //  EXPONENTIAL,
-//  TO_INTEGER,
-//  TO_REAL,
 
 // ## Arithmetic transcendental
 //  SINE,
@@ -3440,6 +3437,42 @@ class Cvc5ActionSimplify : public Action
   }
 };
 
+class Cvc5ActionGetDifficulty : public Action
+{
+ public:
+  Cvc5ActionGetDifficulty(SolverManager& smgr)
+      : Action(smgr, Cvc5Solver::ACTION_GET_DIFFICULTY, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.d_sat_called) return false;
+    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
+    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    if (cvc5->getOption("produce-difficulty") == "false") return false;
+    _run();
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
+    _run();
+    return {};
+  }
+
+ private:
+  void _run()
+  {
+    MURXLA_TRACE << get_kind();
+    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
+    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    (void) cvc5->getDifficulty();
+  }
+};
+
 class Cvc5ActionSortSubstitute : public Action
 {
  public:
@@ -3850,7 +3883,9 @@ class Cvc5ActionTermSubstitute : public Action
 void
 Cvc5Solver::configure_fsm(FSM* fsm) const
 {
-  State* s_sat = fsm->get_state(State::CHECK_SAT);
+  State* s_check_sat = fsm->get_state(State::CHECK_SAT);
+  State* s_sat       = fsm->get_state(State::SAT);
+  State* s_unsat     = fsm->get_state(State::UNSAT);
 
   // Sort::substitute(const Sort& sort, const Sort& subst_sort)
   auto a_sort_subst = fsm->new_action<Cvc5ActionSortSubstitute>();
@@ -3866,7 +3901,12 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   // Solver::checkEntailed(Term term)
   // Solver::checkEntailed(std::vector<Term> terms)
   auto a_check_entailed = fsm->new_action<Cvc5ActionCheckEntailed>();
-  s_sat->add_action(a_check_entailed, 2);
+  s_check_sat->add_action(a_check_entailed, 2);
+
+  // Solver::getDifficulty()
+  auto a_get_diff = fsm->new_action<Cvc5ActionGetDifficulty>();
+  s_sat->add_action(a_get_diff, 2);
+  s_unsat->add_action(a_get_diff, 2);
 }
 /* -------------------------------------------------------------------------- */
 
