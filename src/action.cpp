@@ -3555,7 +3555,7 @@ ActionMkFun::run()
   uint32_t nargs = d_rng.pick(1, MURXLA_MK_FUN_MAX_ARGS);
   for (uint32_t i = 0; i < nargs; ++i)
   {
-    Sort s = d_smgr.pick_sort_excluding(exclude_domain_sorts);
+    Sort s = d_smgr.pick_sort_excluding(exclude_domain_sorts, false);
     std::stringstream ss;
     ss << name << "_" << i;
     id       = d_mkvar._run(s, ss.str())[0];
@@ -3577,12 +3577,15 @@ ActionMkFun::run()
     d_mkterm.run(op_kind);
   }
 
-  Sort codomain = d_smgr.pick_sort_excluding(exclude_codomain_sorts);
-  if (d_smgr.has_quant_term(codomain))
+  if (d_smgr.has_sort_excluding(exclude_codomain_sorts))
   {
-    Term body = d_smgr.pick_quant_term(codomain);
-    _run(name, args, body);
-    return true;
+    Sort codomain = d_smgr.pick_sort_excluding(exclude_codomain_sorts);
+    if (d_smgr.has_quant_term(codomain))
+    {
+      Term body = d_smgr.pick_quant_term(codomain);
+      _run(name, args, body);
+      return true;
+    }
   }
 
   return false;
