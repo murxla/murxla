@@ -3588,6 +3588,12 @@ ActionMkFun::run()
     }
   }
 
+  // Pop unused variables and terms since we didn't create a function.
+  for (auto it = args.rbegin(); it != args.rend(); ++it)
+  {
+    d_smgr.remove_var(*it);
+  }
+
   return false;
 }
 
