@@ -3583,6 +3583,10 @@ ActionMkFun::run()
   for (uint32_t i = 0; i < nterms; ++i)
   {
     Op::Kind op_kind = d_smgr.pick_op_kind(true, codomain_sortk);
+    if (op_kind == Op::UNDEFINED)
+    {
+      break;
+    }
     if (skip_op_kinds.find(op_kind) != skip_op_kinds.end())
     {
       continue;
