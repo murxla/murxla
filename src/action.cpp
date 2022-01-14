@@ -2080,6 +2080,7 @@ ActionMkTerm::_run(Op::Kind kind,
     trace_str << " " << indices.size() << indices;
   }
   MURXLA_TRACE << get_kind() << trace_str.str();
+  reset_sat();
 
   std::vector<Term> bargs;
   /* Note: We pop the variable scopes in _run instead of run so that we
@@ -2180,6 +2181,7 @@ ActionMkTerm::_run(Op::Kind kind,
   }
   trace_str << " " << args.size() << args;
   MURXLA_TRACE << get_kind() << trace_str.str();
+  reset_sat();
 
   Term res = d_solver.mk_term(kind, str_args, args);
   d_smgr.add_term(res, sort_kind, args);
@@ -2206,6 +2208,7 @@ ActionMkTerm::_run(Op::Kind kind,
   }
   trace_str << " " << args.size() << args;
   MURXLA_TRACE << get_kind() << trace_str.str();
+  reset_sat();
 
   /* Note: We pop the variable scopes in _run instead of run so that we
    *       correctly handle this case for untracing. */
@@ -2483,6 +2486,7 @@ std::vector<uint64_t>
 ActionMkConst::_run(Sort sort, const std::string& symbol)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
+  reset_sat();
   Term res = d_solver.mk_const(sort, symbol);
   d_smgr.add_const(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
@@ -2733,6 +2737,7 @@ uint64_t
 ActionMkValue::_run(Sort sort, bool val)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " " << (val ? "true" : "false");
+  reset_sat();
   Term res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
@@ -2744,6 +2749,7 @@ uint64_t
 ActionMkValue::_run(Sort sort, const std::string& val)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
+  reset_sat();
   Term res;
   res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
@@ -2756,6 +2762,7 @@ uint64_t
 ActionMkValue::_run(Sort sort, const std::string& val, size_t len)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
+  reset_sat();
   Term res = d_solver.mk_value(sort, val);
   d_smgr.add_value(res, sort, sort->get_kind());
   if (len == 1)
@@ -2773,6 +2780,7 @@ ActionMkValue::_run(Sort sort, const std::string& v0, const std::string& v1)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << v0 << "\""
                << " \"" << v1 << "\"";
+  reset_sat();
   Term res = d_solver.mk_value(sort, v0, v1);
   d_smgr.add_value(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
@@ -2785,6 +2793,7 @@ ActionMkValue::_run(Sort sort, const std::string& val, Solver::Base base)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\""
                << " " << base;
+  reset_sat();
   Term res = d_solver.mk_value(sort, val, base);
   d_smgr.add_value(res, sort, sort->get_kind());
   MURXLA_TRACE_RETURN << res;
