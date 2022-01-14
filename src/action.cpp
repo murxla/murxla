@@ -3563,23 +3563,27 @@ ActionMkFun::run()
     args.push_back(var);
   }
 
-  uint32_t nterms = d_rng.pick(0, MURXLA_MK_FUN_MAX_TERMS);
+  const auto& codomain_sortk =
+      d_smgr.pick_sort_kind_excluding(exclude_codomain_sorts);
 
+  /* Skip operator kinds that would bind variables created above. */
+  OpKindSet skip_op_kinds = {
+      Op::DT_MATCH, Op::FORALL, Op::EXISTS, Op::SET_COMPREHENSION};
+
+  uint32_t nterms = d_rng.pick(1, MURXLA_MK_FUN_MAX_TERMS);
   for (uint32_t i = 0; i < nterms; ++i)
   {
-    Op::Kind op_kind = d_smgr.pick_op_kind(true);
-    /* Skip operator kinds that would bind variables created above. */
-    if (op_kind == Op::DT_MATCH || op_kind == Op::FORALL
-        || op_kind == Op::EXISTS || op_kind == Op::SET_COMPREHENSION)
+    Op::Kind op_kind = d_smgr.pick_op_kind(true, codomain_sortk);
+    if (skip_op_kinds.find(op_kind) != skip_op_kinds.end())
     {
       continue;
     }
     d_mkterm.run(op_kind);
   }
 
-  if (d_smgr.has_sort_excluding(exclude_codomain_sorts))
+  if (d_smgr.has_sort(codomain_sortk))
   {
-    Sort codomain = d_smgr.pick_sort_excluding(exclude_codomain_sorts);
+    Sort codomain = d_smgr.pick_sort(codomain_sortk);
     if (d_smgr.has_quant_term(codomain))
     {
       Term body = d_smgr.pick_quant_term(codomain);
