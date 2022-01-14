@@ -1601,8 +1601,8 @@ class BtorActionArrayAssignment : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_ARRAY)) return false;
-    Term term = d_smgr.pick_term(SORT_ARRAY);
+    if (!d_smgr.has_term(SORT_ARRAY, 0)) return false;
+    Term term = d_smgr.pick_term(SORT_ARRAY, 0);
     _run(term);
     return true;
   }
@@ -1668,8 +1668,8 @@ class BtorActionBvAssignment : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_BV)) return false;
-    Term term = d_smgr.pick_term(SORT_BV);
+    if (!d_smgr.has_term(SORT_BV, 0)) return false;
+    Term term = d_smgr.pick_term(SORT_BV, 0);
     _run(term);
     return true;
   }
@@ -1718,8 +1718,8 @@ class BtorActionUFAssignment : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_FUN)) return false;
-    Term term = d_smgr.pick_term(SORT_FUN);
+    if (!d_smgr.has_term(SORT_FUN, 0)) return false;
+    Term term = d_smgr.pick_term(SORT_FUN, 0);
     _run(term);
     return true;
   }
