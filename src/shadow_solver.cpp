@@ -569,7 +569,7 @@ ShadowSolver::get_param_sort_helper(Sort sort,
 {
   assert(sort->is_param_sort());
 
-  ParamSort* psort = dynamic_cast<ParamSort*>(sort.get());
+  ParamSort* psort = checked_cast<ParamSort*>(sort.get());
 
   sort_orig   = std::shared_ptr<ParamSort>(new ParamSort(psort->get_symbol()));
   sort_shadow = std::shared_ptr<ParamSort>(new ParamSort(psort->get_symbol()));
@@ -589,7 +589,7 @@ ShadowSolver::get_param_sort_helper(Sort sort,
     }
     else
     {
-      ShadowSort* sass = dynamic_cast<ShadowSort*>(ass.get());
+      ShadowSort* sass = checked_cast<ShadowSort*>(ass.get());
       ass_orig         = sass->get_sort();
       ass_shadow       = sass->get_sort_shadow();
     }
@@ -603,7 +603,7 @@ ShadowSolver::get_unresolved_sort_helper(Sort sort,
                                          Sort& sort_orig,
                                          Sort& sort_shadow)
 {
-  UnresolvedSort* usort = dynamic_cast<UnresolvedSort*>(sort.get());
+  UnresolvedSort* usort = checked_cast<UnresolvedSort*>(sort.get());
 
   sort_orig =
       std::shared_ptr<UnresolvedSort>(new UnresolvedSort(usort->get_symbol()));
@@ -625,7 +625,7 @@ ShadowSolver::get_unresolved_sort_helper(Sort sort,
     }
     else
     {
-      ShadowSort* sass = dynamic_cast<ShadowSort*>(ass.get());
+      ShadowSort* sass = checked_cast<ShadowSort*>(ass.get());
       ass_orig         = sass->get_sort();
       ass_shadow       = sass->get_sort_shadow();
     }
@@ -647,7 +647,7 @@ ShadowSolver::get_unresolved_sort_helper(Sort sort,
     }
     else
     {
-      ShadowSort* issort = dynamic_cast<ShadowSort*>(isort.get());
+      ShadowSort* issort = checked_cast<ShadowSort*>(isort.get());
       isort_orig         = issort->get_sort();
       isort_shadow       = issort->get_sort_shadow();
     }
@@ -984,7 +984,7 @@ ShadowSolver::mk_sort(
 Sort
 ShadowSolver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 {
-  ShadowSort* sort       = dynamic_cast<ShadowSort*>(param_sort.get());
+  ShadowSort* sort       = checked_cast<ShadowSort*>(param_sort.get());
   Sort param_sort_orig   = sort->get_sort();
   Sort param_sort_shadow = sort->get_sort_shadow();
 
