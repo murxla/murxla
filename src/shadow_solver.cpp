@@ -739,162 +739,36 @@ ShadowSolver::get_unsupported_quant_theories() const
   return unsupported;
 }
 
+#define IMPL_UNSUPPORTED_KINDS(T, func)                                       \
+  T ShadowSolver::func() const                                                \
+  {                                                                           \
+    T unsupported;                                                            \
+    auto unsupported_orig   = d_solver->func();                               \
+    auto unsupported_shadow = d_solver_shadow->func();                        \
+    unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());     \
+    unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end()); \
+    return unsupported;                                                       \
+  }
+
 /** Return union of unsupported operators kinds. */
-OpKindSet
-ShadowSolver::get_unsupported_op_kinds() const
-{
-  OpKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_op_kinds();
-  auto unsupported_shadow  = d_solver_shadow->get_unsupported_op_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-Solver::OpKindSortKindMap
-ShadowSolver::get_unsupported_op_sort_kinds() const
-{
-  OpKindSortKindMap unsupported;
-  auto unsupported_orig   = d_solver->get_unsupported_op_sort_kinds();
-  auto unsupported_shadow = d_solver_shadow->get_unsupported_op_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_var_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_var_sort_kinds();
-  auto unsupported_shadow  = d_solver_shadow->get_unsupported_var_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_dt_sel_codomain_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig =
-      d_solver->get_unsupported_dt_sel_codomain_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_dt_sel_codomain_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_fun_sort_domain_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig =
-      d_solver->get_unsupported_fun_sort_domain_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_fun_sort_domain_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig =
-      d_solver->get_unsupported_fun_sort_codomain_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_fun_sort_codomain_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_fun_domain_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_fun_domain_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_fun_domain_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_fun_codomain_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_fun_codomain_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_fun_codomain_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_array_index_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_array_index_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_array_index_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_array_element_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_array_element_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_array_element_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_bag_element_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_bag_element_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_bag_element_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_seq_element_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_seq_element_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_seq_element_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-SortKindSet
-ShadowSolver::get_unsupported_set_element_sort_kinds() const
-{
-  SortKindSet unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_set_element_sort_kinds();
-  auto unsupported_shadow =
-      d_solver_shadow->get_unsupported_set_element_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
+IMPL_UNSUPPORTED_KINDS(OpKindSet, get_unsupported_op_kinds);
+IMPL_UNSUPPORTED_KINDS(Solver::OpKindSortKindMap,
+                       get_unsupported_op_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_var_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_sort_param_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_dt_sel_codomain_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_dt_match_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_fun_sort_domain_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet,
+                       get_unsupported_fun_sort_codomain_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_fun_domain_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_fun_codomain_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_array_index_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_array_element_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_bag_element_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_seq_element_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_set_element_sort_kinds);
+IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_get_value_sort_kinds);
 
 Term
 ShadowSolver::mk_var(Sort sort, const std::string& name)
