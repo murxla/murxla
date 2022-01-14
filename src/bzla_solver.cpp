@@ -1923,8 +1923,14 @@ class BzlaActionGetFunValue : public Action
       std::vector<Term> assumptions;
       for (size_t i = 0; i < size; ++i)
       {
-        const BitwuzlaTerm* bzla_apply =
-            bitwuzla_mk_term(bzla, BITWUZLA_KIND_APPLY, arity, bzla_args[i]);
+        std::vector<const BitwuzlaTerm*> fun_args;
+        fun_args.push_back(bzla_term);
+        for (size_t j = 0; j < arity; ++j)
+        {
+          fun_args.push_back(bzla_args[i][j]);
+        }
+        const BitwuzlaTerm* bzla_apply = bitwuzla_mk_term(
+            bzla, BITWUZLA_KIND_APPLY, fun_args.size(), fun_args.data());
         const BitwuzlaTerm* bzla_eq = bitwuzla_mk_term2(
             bzla, BITWUZLA_KIND_EQUAL, bzla_apply, bzla_vals[i]);
         assumptions.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(bzla_eq)));
