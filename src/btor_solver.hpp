@@ -232,6 +232,9 @@ class BtorSolver : public Solver
   void reset() override;
   void reset_assertions() override;
 
+  std::unordered_map<std::string, std::string> get_required_options(
+      TheoryId theory) const override;
+
   //
   // get_model()
   // get_proof()

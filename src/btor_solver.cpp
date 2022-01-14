@@ -1321,6 +1321,17 @@ BtorSolver::reset_assertions()
   assert(false);
 }
 
+std::unordered_map<std::string, std::string>
+BtorSolver::get_required_options(TheoryId theory) const
+{
+  std::unordered_map<std::string, std::string> reqopts;
+  if (theory == THEORY_QUANT)
+  {
+    reqopts.emplace("incremental", "false");
+  }
+  return reqopts;
+}
+
 /* -------------------------------------------------------------------------- */
 
 std::vector<std::string>
