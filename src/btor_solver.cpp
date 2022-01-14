@@ -1328,6 +1328,8 @@ BtorSolver::get_required_options(TheoryId theory) const
   if (theory == THEORY_QUANT)
   {
     reqopts.emplace("incremental", "false");
+    reqopts.emplace("model-gen", "false");
+    reqopts.emplace("produce-unsat-cores", "false");
   }
   return reqopts;
 }
