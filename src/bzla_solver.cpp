@@ -11,6 +11,7 @@
 #include "except.hpp"
 #include "solver_option.hpp"
 #include "theory.hpp"
+#include "util.hpp"
 
 namespace murxla {
 namespace bzla {
@@ -1744,7 +1745,7 @@ class BzlaActionGetArrayValue : public Action
   void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    BzlaSolver& bzla_solver       = checked_cast<BzlaSolver&>(d_solver);
+    BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla                = bzla_solver.get_solver();
     const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     const BitwuzlaTerm **bzla_idxs, **bzla_vals, *bzla_default_val;
@@ -1804,7 +1805,7 @@ class BzlaActionGetBvValue : public Action
   void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    BzlaSolver& bzla_solver       = checked_cast<BzlaSolver&>(d_solver);
+    BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla                = bzla_solver.get_solver();
     const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     const char* bv_val            = bitwuzla_get_bv_value(bzla, bzla_term);
@@ -1854,7 +1855,7 @@ class BzlaActionGetFpValue : public Action
   void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    BzlaSolver& bzla_solver       = checked_cast<BzlaSolver&>(d_solver);
+    BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla                = bzla_solver.get_solver();
     const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     const char *fp_val_sign, *fp_val_exp, *fp_val_sig;
@@ -1907,7 +1908,7 @@ class BzlaActionGetFunValue : public Action
   void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    BzlaSolver& bzla_solver       = checked_cast<BzlaSolver&>(d_solver);
+    BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla                = bzla_solver.get_solver();
     const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     const BitwuzlaTerm ***bzla_args, **bzla_vals;
@@ -1967,7 +1968,7 @@ class BzlaActionGetRmValue : public Action
   void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    BzlaSolver& bzla_solver       = checked_cast<BzlaSolver&>(d_solver);
+    BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla                = bzla_solver.get_solver();
     const BitwuzlaTerm* bzla_term = BzlaTerm::get_bzla_term(term);
     std::string rm_val(bitwuzla_get_rm_value(bzla, bzla_term));
@@ -2038,7 +2039,7 @@ class BzlaActionIsUnsatAssumption : public Action
   void _run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    BzlaSolver& bzla_solver = checked_cast<BzlaSolver&>(d_solver);
+    BzlaSolver& bzla_solver = dynamic_cast<BzlaSolver&>(d_solver);
     (void) bitwuzla_is_unsat_assumption(bzla_solver.get_solver(),
                                         BzlaTerm::get_bzla_term(term));
   }
@@ -2073,7 +2074,7 @@ class BzlaActionFixateAssumptions : public Action
     MURXLA_TRACE << get_kind();
     d_smgr.clear_assumptions();
     bitwuzla_fixate_assumptions(
-        checked_cast<BzlaSolver&>(d_solver).get_solver());
+        dynamic_cast<BzlaSolver&>(d_solver).get_solver());
   }
 };
 
@@ -2106,7 +2107,7 @@ class BzlaActionResetAssumptions : public Action
     MURXLA_TRACE << get_kind();
     d_smgr.clear_assumptions();
     bitwuzla_reset_assumptions(
-        checked_cast<BzlaSolver&>(d_solver).get_solver());
+        dynamic_cast<BzlaSolver&>(d_solver).get_solver());
   }
 };
 
@@ -2121,7 +2122,7 @@ class BzlaActionSimplify : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
-    BzlaSolver& solver = checked_cast<BzlaSolver&>(d_solver);
+    BzlaSolver& solver = dynamic_cast<BzlaSolver&>(d_solver);
     if (solver.get_solver() == nullptr) return false;
     _run();
     return true;
@@ -2139,7 +2140,7 @@ class BzlaActionSimplify : public Action
   {
     MURXLA_TRACE << get_kind();
     reset_sat();
-    bitwuzla_simplify(checked_cast<BzlaSolver&>(d_solver).get_solver());
+    bitwuzla_simplify(dynamic_cast<BzlaSolver&>(d_solver).get_solver());
   }
 };
 
@@ -2238,7 +2239,7 @@ class BzlaActionSubstituteTerm : public Action
                  << to_subst_terms.size() << to_subst_terms << " "
                  << subst_terms.size() << subst_terms;
     d_smgr.reset_sat();
-    BzlaSolver& bzla_solver = checked_cast<BzlaSolver&>(d_solver);
+    BzlaSolver& bzla_solver = dynamic_cast<BzlaSolver&>(d_solver);
     Bitwuzla* bzla          = bzla_solver.get_solver();
     std::vector<const BitwuzlaTerm*> bzla_terms =
         BzlaTerm::terms_to_bzla_terms(terms);
@@ -2300,7 +2301,7 @@ class BzlaActionSubstituteTerm : public Action
     }
 
     Bitwuzla* bzla =
-        checked_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver();
+        dynamic_cast<BzlaSolver&>(d_smgr.get_solver()).get_solver();
     for (const BitwuzlaTerm* bzla_t : bzla_res)
     {
       Sort s = std::shared_ptr<BzlaSort>(
@@ -2424,7 +2425,7 @@ class BzlaActionMisc : public Action
   void _run()
   {
     MURXLA_TRACE << get_kind();
-    BzlaSolver& bzla_solver = checked_cast<BzlaSolver&>(d_smgr.get_solver());
+    BzlaSolver& bzla_solver = dynamic_cast<BzlaSolver&>(d_smgr.get_solver());
     Bitwuzla* bzla          = bzla_solver.get_solver();
 
     const char* version = bitwuzla_version(bzla);

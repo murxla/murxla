@@ -9,6 +9,7 @@
 #include "action.hpp"
 #include "config.hpp"
 #include "theory.hpp"
+#include "util.hpp"
 
 extern "C" {
 void boolector_chkclone (Btor *);
@@ -37,7 +38,7 @@ is_power_of_2(uint32_t x)
 BoolectorSort
 BtorSort::get_btor_sort(Sort sort)
 {
-  return checked_cast<BtorSort*>(sort.get())->d_btor;
+  return checked_cast<BtorSort*>(sort.get())->d_sort;
 }
 
 BtorSort::BtorSort(Btor* btor,
