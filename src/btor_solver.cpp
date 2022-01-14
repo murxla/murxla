@@ -1636,8 +1636,8 @@ class BtorActionArrayAssignment : public Action
     BoolectorNode* btor_term = BtorTerm::get_btor_term(term);
     BtorSolver& btor_solver  = static_cast<BtorSolver&>(d_smgr.get_solver());
     Btor* btor               = btor_solver.get_solver();
-    char **indices, **values;
-    uint32_t size;
+    char **indices = nullptr, **values = nullptr;
+    uint32_t size = 0;
     boolector_array_assignment(btor, btor_term, &indices, &values, &size);
     if (d_smgr.d_incremental)
     {
@@ -1663,7 +1663,10 @@ class BtorActionArrayAssignment : public Action
       MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
                   == Solver::Result::SAT);
     }
-    boolector_free_array_assignment(btor, indices, values, size);
+    if (size)
+    {
+      boolector_free_array_assignment(btor, indices, values, size);
+    }
   }
 };
 
@@ -1753,8 +1756,8 @@ class BtorActionUFAssignment : public Action
     BoolectorNode* btor_term = BtorTerm::get_btor_term(term);
     BtorSolver& btor_solver  = static_cast<BtorSolver&>(d_smgr.get_solver());
     Btor* btor               = btor_solver.get_solver();
-    char **args, **values;
-    uint32_t size;
+    char **args = nullptr, **values = nullptr;
+    uint32_t size = 0;
     boolector_uf_assignment(btor, btor_term, &args, &values, &size);
     if (d_smgr.d_incremental)
     {
@@ -1786,7 +1789,10 @@ class BtorActionUFAssignment : public Action
       MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
                   == Solver::Result::SAT);
     }
-    boolector_free_uf_assignment(btor, args, values, size);
+    if (size)
+    {
+      boolector_free_uf_assignment(btor, args, values, size);
+    }
   }
 };
 
