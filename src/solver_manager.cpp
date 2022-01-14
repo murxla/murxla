@@ -452,12 +452,6 @@ SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
     std::vector<Op::Kind> remove;
     for (const auto& [kind, op] : d_available_op_kinds)
     {
-      if (sort_kind != SORT_ANY
-          && op.d_sort_kinds.find(sort_kind) == op.d_sort_kinds.end())
-      {
-        continue;
-      }
-
       /* Quantifiers can only be created if we already have variables and
        * Boolean terms in the current scope. */
       if ((op.d_kind == Op::FORALL || op.d_kind == Op::EXISTS
@@ -507,6 +501,27 @@ SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
     for (const auto& k : remove)
     {
       d_available_op_kinds.erase(k);
+    }
+
+    /* Filter operator kinds based on sort kind. */
+    if (sort_kind != SORT_ANY)
+    {
+      const auto& enabled_ops = d_opmgr->get_op_kinds();
+      for (const auto& [kind, op] : enabled_ops)
+      {
+        if (op.d_sort_kinds.find(sort_kind) == op.d_sort_kinds.end())
+        {
+          const auto it = kinds.find(op.d_theory);
+          if (it != kinds.end())
+          {
+            it->second.erase(kind);
+            if (it->second.empty())
+            {
+              kinds.erase(op.d_theory);
+            }
+          }
+        }
+      }
     }
 
     if (kinds.size() > 0)
