@@ -3570,7 +3570,7 @@ ActionMkFun::run()
     Op::Kind op_kind = d_smgr.pick_op_kind(true);
     /* Skip operator kinds that would bind variables created above. */
     if (op_kind == Op::DT_MATCH || op_kind == Op::FORALL
-        || op_kind == Op::EXISTS)
+        || op_kind == Op::EXISTS || op_kind == Op::SET_COMPREHENSION)
     {
       continue;
     }
