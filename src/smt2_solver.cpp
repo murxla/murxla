@@ -1244,7 +1244,8 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_SET_UNIVERSE);
-        val << "set.universe";
+        val << "(as set.universe "
+            << static_cast<Smt2Sort*>(sort.get())->get_repr() << ")";
       }
       break;
 
