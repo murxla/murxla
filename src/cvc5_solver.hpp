@@ -185,6 +185,8 @@ class Cvc5Solver : public Solver
   inline static const Action::Kind ACTION_SIMPLIFY = "cvc5-simplify";
   inline static const Action::Kind ACTION_GET_DIFFICULTY =
       "cvc5-get-difficulty";
+  inline static const Action::Kind ACTION_GET_INTERPOLANT =
+      "cvc5-get-interpolant";
   inline static const Action::Kind ACTION_SORT_SUBSTITUTE =
       "cvc5-sort-substitute";
   inline static const Action::Kind ACTION_TERM_SUBSTITUTE =

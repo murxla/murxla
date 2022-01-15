@@ -776,8 +776,15 @@ operator!=(const Term& a, const Term& b)
 std::ostream&
 operator<<(std::ostream& out, const Term t)
 {
-  assert(t->get_id());
-  out << "t" << t->get_id();
+  if (t)
+  {
+    assert(t->get_id());
+    out << "t" << t->get_id();
+  }
+  else
+  {
+    out << "t(nil)";
+  }
   return out;
 }
 
