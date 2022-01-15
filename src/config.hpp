@@ -87,7 +87,7 @@
 
 /* mk_term: at least one argument */
 #define MURXLA_MK_TERM_N_ARGS -1
-/* mk_term: at least two arguemtns */
+/* mk_term: at least two arguments */
 #define MURXLA_MK_TERM_N_ARGS_BIN -2
 /* mk_term: min number of arguments */
 #define MURXLA_MK_TERM_N_ARGS_MIN(arity) ((arity) < 0 ? -(arity) : (arity))

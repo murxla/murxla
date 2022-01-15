@@ -1828,8 +1828,16 @@ ActionMkTerm::run(Op::Kind kind)
       }
     }
 
-    /* Every OP with return sort SORT_ANY needs to set the kind above. */
-    assert(sort_kind != SORT_ANY);
+    /* FIXME: We need a way to derive the term sort kind in case of
+     * sort_kind = SORT_ANY that is local to the solver wrapper for
+     * solver-specific operator kinds. Until then, we set it to the sort
+     * kind of the first element (which may not work for all cases!).
+     */
+    //assert(sort_kind != SORT_ANY);
+    if (sort_kind == SORT_ANY && arity > 0)
+    {
+      sort_kind = args[0]->get_sort()->get_kind();
+    }
     _run(kind, sort_kind, args, indices);
   }
 
