@@ -1132,8 +1132,13 @@ Solver::Result
 ShadowSolver::check_sat()
 {
   Result res_orig = d_solver->check_sat();
-  Result res_shadow  = d_solver_shadow->check_sat();
-  assert(res_orig == res_shadow);
+  Result res_shadow = d_solver_shadow->check_sat();
+  if (res_orig != Result::UNKNOWN && res_shadow != Result::UNKNOWN)
+  {
+    MURXLA_TEST(res_orig == res_shadow)
+        << "Solver reports " << res_orig << " while cross-check solver reports "
+        << res_shadow;
+  }
   return res_orig;
 }
 
@@ -1144,7 +1149,12 @@ ShadowSolver::check_sat_assuming(const std::vector<Term>& assumptions)
   get_terms_helper(assumptions, assumptions_orig, assumptions_shadow);
   Result res_orig = d_solver->check_sat_assuming(assumptions_orig);
   Result res_shadow  = d_solver_shadow->check_sat_assuming(assumptions_shadow);
-  assert(res_orig == res_shadow);
+  if (res_orig != Result::UNKNOWN && res_shadow != Result::UNKNOWN)
+  {
+    MURXLA_TEST(res_orig == res_shadow)
+        << "Solver reports " << res_orig << " while cross-check solver reports "
+        << res_shadow;
+  }
   return res_orig;
 }
 
