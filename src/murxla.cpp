@@ -199,7 +199,7 @@ Murxla::run(uint32_t seed,
   if (trace_mode == TO_FILE)
   {
     /* For the SMT2 solver, we only write the SMT2 file (not the trace). */
-    if (d_options.solver == SOLVER_SMT2)
+    if (!d_options.dd && d_options.solver == SOLVER_SMT2)
     {
       std::string smt2_file_name = d_options.smt2_file_name;
       if (smt2_file_name.empty())
