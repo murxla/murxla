@@ -1811,7 +1811,7 @@ ActionMkTerm::run(Op::Kind kind)
           assert(args.size() == 1);
           assert(args[0]->get_sort()->is_reglan());
           assert(sort_kind == SORT_REGLAN);
-          indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
+          indices.push_back(d_rng.pick<uint32_t>(1, INT32_MAX));
         }
         else
         {
