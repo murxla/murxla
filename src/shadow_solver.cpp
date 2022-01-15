@@ -752,8 +752,30 @@ ShadowSolver::get_unsupported_quant_theories() const
 
 /** Return union of unsupported operators kinds. */
 IMPL_UNSUPPORTED_KINDS(OpKindSet, get_unsupported_op_kinds);
-IMPL_UNSUPPORTED_KINDS(Solver::OpKindSortKindMap,
-                       get_unsupported_op_sort_kinds);
+
+Solver::OpKindSortKindMap
+ShadowSolver::get_unsupported_op_sort_kinds() const
+{
+  Solver::OpKindSortKindMap unsupported;
+  auto unsupported_orig   = d_solver->get_unsupported_op_sort_kinds();
+  auto unsupported_shadow = d_solver_shadow->get_unsupported_op_sort_kinds();
+  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
+  // Merge sort kind sets per operator kind.
+  for (const auto& [op_kind, sort_kinds] : unsupported_shadow)
+  {
+    const auto it = unsupported.find(op_kind);
+    if (it != unsupported.end())
+    {
+      it->second.insert(sort_kinds.begin(), sort_kinds.end());
+    }
+    else
+    {
+      unsupported.emplace(op_kind, sort_kinds);
+    }
+  }
+  return unsupported;
+}
+
 IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_var_sort_kinds);
 IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_sort_param_sort_kinds);
 IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_dt_sel_codomain_sort_kinds);
