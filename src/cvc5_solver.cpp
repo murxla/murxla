@@ -3484,11 +3484,11 @@ class Cvc5ActionGetInterpolant : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
-    if (!d_smgr.has_term(SORT_BOOL)) return false;
+    if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
     if (cvc5->getOption("produce-interpols") == "false") return false;
-    Term term = d_smgr.pick_term(SORT_BOOL);
+    Term term = d_smgr.pick_term(SORT_BOOL, 0);
     _run(term);
     return true;
   }
