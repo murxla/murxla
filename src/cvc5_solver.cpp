@@ -3528,6 +3528,60 @@ class Cvc5ActionGetInterpolant : public Action
   }
 };
 
+class Cvc5ActionGetAbduct : public Action
+{
+ public:
+  Cvc5ActionGetAbduct(SolverManager& smgr)
+      : Action(smgr, Cvc5Solver::ACTION_GET_ABDUCT, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
+    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
+    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    if (cvc5->getOption("produce-abducts") == "false") return false;
+    Term term = d_smgr.pick_term(SORT_BOOL, 0);
+    _run(term);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    _run(term);
+    return {};
+  }
+
+ private:
+  void _run(Term term)
+  {
+    MURXLA_TRACE << get_kind() << " " << term;
+    d_smgr.reset_sat();
+    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
+    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    ::cvc5::api::Term cvc5_res;
+    bool success = cvc5->getAbduct(Cvc5Term::get_cvc5_term(term), cvc5_res);
+    /* Note: We don't add the abduct to the term db for now, since this
+     *       requires refactoring untrace to support optional results. In
+     *       this case we would trace "return t(nil) s(nil)" when the
+     *       command was not successful (result of getAbduct() is false),
+     *       which is currently not supported by the untracer.
+     */
+    if (d_smgr.d_incremental && success)
+    {
+      do
+      {
+        success = cvc5->getAbductNext(cvc5_res);
+      } while (success && d_rng.flip_coin());
+    }
+  }
+};
+
 class Cvc5ActionSortSubstitute : public Action
 {
  public:
@@ -3958,9 +4012,15 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   auto a_check_entailed = fsm->new_action<Cvc5ActionCheckEntailed>();
   s_check_sat->add_action(a_check_entailed, 2);
 
-  // Solver::getInterpolant(const Term& term, Term& results)
+  // Solver::getInterpolant(const Term& term, Term& result)
+  // Solver::getInterpolantNext(Term& result)
   auto a_get_interpol = fsm->new_action<Cvc5ActionGetInterpolant>();
   s_check_sat->add_action(a_get_interpol, 2);
+
+  // Solver::getAbduct(const Term& term, Term& result)
+  // Solver::getAbductNext(Term& result)
+  auto a_get_abduct = fsm->new_action<Cvc5ActionGetAbduct>();
+  s_check_sat->add_action(a_get_abduct, 2);
 
   // Solver::getDifficulty()
   auto a_get_diff = fsm->new_action<Cvc5ActionGetDifficulty>();
