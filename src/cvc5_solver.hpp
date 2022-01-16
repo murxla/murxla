@@ -189,6 +189,8 @@ class Cvc5Solver : public Solver
   inline static const Action::Kind ACTION_GET_INTERPOLANT =
       "cvc5-get-interpolant";
   inline static const Action::Kind ACTION_BLOCK_MODEL = "cvc5-block-model";
+  inline static const Action::Kind ACTION_BLOCK_MODEL_VALUES =
+      "cvc5-block-model-values";
   inline static const Action::Kind ACTION_SORT_SUBSTITUTE =
       "cvc5-sort-substitute";
   inline static const Action::Kind ACTION_TERM_SUBSTITUTE =

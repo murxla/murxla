@@ -3336,8 +3336,7 @@ class Cvc5ActionCheckEntailed : public Action
     }
     else if (res.isEntailed())
     {
-      // Note: We return UNKNOWN instead of UNSAT here to disable unsat cores
-      d_smgr.report_result(Solver::Result::UNKNOWN);
+      d_smgr.report_result(Solver::Result::UNSAT);
     }
     else
     {
@@ -3370,8 +3369,7 @@ class Cvc5ActionCheckEntailed : public Action
     }
     else if (res.isEntailed())
     {
-      // Note: We return UNKNOWN instead of UNSAT here to disable unsat cores
-      d_smgr.report_result(Solver::Result::UNKNOWN);
+      d_smgr.report_result(Solver::Result::UNSAT);
     }
     else
     {
@@ -3605,7 +3603,6 @@ class Cvc5ActionBlockModel : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
-    if (!d_smgr.has_term()) return false;
     if (!d_smgr.d_model_gen)
     {
       d_disable = true;
@@ -3636,6 +3633,64 @@ class Cvc5ActionBlockModel : public Action
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
     cvc5->blockModel();
+  }
+};
+
+class Cvc5ActionBlockModelValues : public Action
+{
+ public:
+  /** The maximum number of model values to block. */
+  static constexpr uint32_t MAX_N_VALUES = 5;
+
+  Cvc5ActionBlockModelValues(SolverManager& smgr)
+      : Action(smgr, Cvc5Solver::ACTION_BLOCK_MODEL_VALUES, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term()) return false;
+    if (!d_smgr.d_model_gen)
+    {
+      d_disable = true;
+      return false;
+    }
+    uint32_t n_values = d_rng.pick<uint32_t>(1, MAX_N_VALUES);
+    std::vector<Term> values;
+    for (uint32_t i = 0; i < n_values; ++i)
+    {
+      values.push_back(d_smgr.pick_term());
+    }
+    _run(values);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NOT_EMPTY(tokens);
+    std::vector<Term> values;
+    uint32_t n_values = str_to_uint32(tokens[0]);
+    for (uint32_t i = 0, idx = 1; i < n_values; ++i, ++idx)
+    {
+      uint32_t id = untrace_str_to_id(tokens[idx]);
+      Term t      = get_untraced_term(id);
+      MURXLA_CHECK_TRACE_TERM(t, id);
+      values.push_back(t);
+    }
+    _run(values);
+    return {};
+  }
+
+ private:
+  void _run(const std::vector<Term>& values)
+  {
+    MURXLA_TRACE << get_kind() << " " << values.size() << values;
+    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
+    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    std::vector<::cvc5::api::Term> cvc5_values =
+        Cvc5Term::terms_to_cvc5_terms(values);
+    cvc5->blockModelValues(cvc5_values);
   }
 };
 
@@ -4072,6 +4127,10 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   // Solver::blockModel()
   auto a_block_model = fsm->new_action<Cvc5ActionBlockModel>();
   s_sat->add_action(a_block_model, 4);
+
+  // Solver::blockModelModelValues(const std::vector& terms)
+  auto a_block_model_values = fsm->new_action<Cvc5ActionBlockModelValues>();
+  s_sat->add_action(a_block_model_values, 4);
 
   // Solver::getInterpolant(const Term& term, Term& result)
   // Solver::getInterpolantNext(Term& result)
