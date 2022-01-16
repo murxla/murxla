@@ -3656,6 +3656,13 @@ class Cvc5ActionBlockModelValues : public Action
       d_disable = true;
       return false;
     }
+    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
+    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    if (cvc5->getOption("produce-assertions") == "false")
+    {
+      d_disable = true;
+      return false;
+    }
     uint32_t n_values = d_rng.pick<uint32_t>(1, MAX_N_VALUES);
     std::vector<Term> values;
     for (uint32_t i = 0; i < n_values; ++i)
