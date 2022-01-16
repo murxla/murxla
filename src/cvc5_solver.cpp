@@ -3630,6 +3630,7 @@ class Cvc5ActionBlockModel : public Action
   void _run()
   {
     MURXLA_TRACE << get_kind();
+    d_smgr.reset_sat();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
     cvc5->blockModel();
@@ -3693,6 +3694,7 @@ class Cvc5ActionBlockModelValues : public Action
   void _run(const std::vector<Term>& values)
   {
     MURXLA_TRACE << get_kind() << " " << values.size() << values;
+    d_smgr.reset_sat();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
     std::vector<::cvc5::api::Term> cvc5_values =
@@ -4133,11 +4135,11 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
 
   // Solver::blockModel()
   auto a_block_model = fsm->new_action<Cvc5ActionBlockModel>();
-  s_sat->add_action(a_block_model, 4);
+  s_sat->add_action(a_block_model, 4, s_check_sat);
 
   // Solver::blockModelModelValues(const std::vector& terms)
   auto a_block_model_values = fsm->new_action<Cvc5ActionBlockModelValues>();
-  s_sat->add_action(a_block_model_values, 4);
+  s_sat->add_action(a_block_model_values, 4, s_check_sat);
 
   // Solver::getInterpolant(const Term& term, Term& result)
   // Solver::getInterpolantNext(Term& result)
