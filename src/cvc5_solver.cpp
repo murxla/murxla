@@ -3487,7 +3487,7 @@ class Cvc5ActionGetInterpolant : public Action
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    if (cvc5->getOption("produce-interpols") == "false") return false;
+    if (cvc5->getOption("produce-interpols") == "none") return false;
     Term term = d_smgr.pick_term(SORT_BOOL, 0);
     _run(term);
     return true;
@@ -3518,12 +3518,12 @@ class Cvc5ActionGetInterpolant : public Action
      *       command was not successful (result of getInterpolant() is false),
      *       which is currently not supported by the untracer.
      */
-    if (d_smgr.d_incremental)
+    if (d_smgr.d_incremental && success)
     {
-      while (success && d_rng.flip_coin())
+      do
       {
         success = cvc5->getInterpolantNext(cvc5_res);
-      }
+      } while (success && d_solver.get_rng().flip_coin());
     }
   }
 };
