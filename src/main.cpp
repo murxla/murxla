@@ -215,6 +215,8 @@ set_sigint_handler_stats(void)
   "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
   "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
   "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
+  "  --cross-check-opts name=value,...\n"                                      \
+  "                             options for cross check solver\n"              \
   "  --check [<solver>]         check unsat cores/assumptions and model\n"     \
   "                             model values with <solver>\n"                  \
   "  -y, --random-symbols       use random symbol names\n"                     \
@@ -518,10 +520,12 @@ parse_options(Options& options, int argc, char* argv[])
       check_next_arg(arg, i, size);
       options.smt2_file_name = args[i];
     }
-    else if (arg == "-o")
+    else if (arg == "-o" || arg == "--cross-check-opts")
     {
       i += 1;
       check_next_arg(arg, i, size);
+      const std::string prefix =
+          arg == "--cross-check-opts" ? MURXLA_CHECK_SOLVER_OPT_PREFIX : "";
       auto solver_options = split(args[i], ',');
       for (auto opt : solver_options)
       {
@@ -530,7 +534,8 @@ parse_options(Options& options, int argc, char* argv[])
         MURXLA_EXIT_ERROR(split_opt.size() != 2)
             << "invalid solver option format: '" << opt
             << "', expected 'name=value'";
-        options.solver_options.emplace_back(split_opt[0], split_opt[1]);
+        options.solver_options.emplace_back(prefix + split_opt[0],
+                                            split_opt[1]);
       }
     }
     else if (arg == "-S" || arg == "--trace-seeds")

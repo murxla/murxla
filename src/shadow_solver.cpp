@@ -1248,7 +1248,7 @@ ShadowSolver::reset_assertions()
 void
 ShadowSolver::set_opt(const std::string& opt, const std::string& value)
 {
-  const std::string shadow_prefix = "murxla-shadow-solver@";
+  const std::string shadow_prefix = MURXLA_CHECK_SOLVER_OPT_PREFIX;
   if (opt.find(shadow_prefix, 0) == 0)
   {
     std::string name(opt.begin() + shadow_prefix.size(), opt.end());
@@ -1283,7 +1283,7 @@ ShadowSolver::get_required_options(TheoryId theory) const
 
   for (const auto& [name, val] : d_solver_shadow->get_required_options(theory))
   {
-    req_opts.emplace("murxla-shadow-solver@" + name, val);
+    req_opts.emplace(MURXLA_CHECK_SOLVER_OPT_PREFIX + name, val);
   }
   return req_opts;
 }

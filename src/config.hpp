@@ -108,4 +108,6 @@
 #define MURXLA_MK_FUN_MAX_ARGS 5
 #define MURXLA_MK_FUN_MAX_TERMS 32
 
+#define MURXLA_CHECK_SOLVER_OPT_PREFIX "murxla-check-solver:"
+
 #endif
