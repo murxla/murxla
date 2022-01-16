@@ -677,6 +677,25 @@ SolverManager::pick_term(size_t level)
 }
 
 Term
+SolverManager::pick_term_min_level(Sort sort, size_t min_level)
+{
+  size_t max_level = d_term_db.max_level();
+  std::cout << "min: " << min_level << ", max: " << max_level << std::endl;
+  std::vector<size_t> levels;
+  for (size_t i = min_level; i <= max_level; ++i)
+  {
+    if (d_term_db.has_term(sort, i))
+    {
+      levels.push_back(i);
+    }
+  }
+  assert(!levels.empty());
+
+  return d_term_db.pick_term(
+      sort, d_rng.pick_from_set<decltype(levels), size_t>(levels));
+}
+
+Term
 SolverManager::pick_fun(const std::vector<Sort>& sorts)
 {
   return d_term_db.pick_fun(sorts);

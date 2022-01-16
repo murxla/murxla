@@ -3565,32 +3565,53 @@ ActionMkFun::run()
     return false;
   }
 
+  SortKindSet exclude(exclude_domain_sorts.begin(), exclude_domain_sorts.end());
+  exclude.insert(exclude_codomain_sorts.begin(), exclude_codomain_sorts.end());
+
+  if (!d_smgr.has_sort_excluding(exclude, false))
+  {
+    return false;
+  }
+
   std::string name = d_smgr.pick_symbol("_f");
+
+  /* Pick at least one sort that is supported as domain and codomain so that we
+   * can always pick a function body (in the worst-case it's just the argument
+   * with the supported sort). */
+  std::vector<Sort> sorts;
+  uint32_t nsorts = d_rng.pick(0, MURXLA_MK_FUN_MAX_ARGS - 1);
+  for (uint32_t i = 0; i < nsorts; ++i)
+  {
+    sorts.push_back(d_smgr.pick_sort_excluding(exclude_domain_sorts, false));
+  }
+  Sort codomain_sort = d_smgr.pick_sort_excluding(exclude);
+  auto it            = sorts.begin();
+  if (!sorts.empty())
+  {
+    std::advance(it, d_rng.pick<size_t>() % sorts.size());
+  }
+  sorts.insert(it, codomain_sort);
 
   uint32_t id;
   std::vector<Term> args;
-  uint32_t nargs = d_rng.pick(1, MURXLA_MK_FUN_MAX_ARGS);
-  for (uint32_t i = 0; i < nargs; ++i)
+  size_t i = 0;
+  for (const auto& s : sorts)
   {
-    Sort s = d_smgr.pick_sort_excluding(exclude_domain_sorts, false);
     std::stringstream ss;
-    ss << name << "_" << i;
-    id       = d_mkvar._run(s, ss.str())[0];
-    Term var = d_smgr.get_term(id);
-    args.push_back(var);
+    ss << name << "_" << i++;
+    id = d_mkvar._run(s, ss.str())[0];
+    args.push_back(d_smgr.get_term(id));
   }
-
-  const auto& codomain_sortk =
-      d_smgr.pick_sort_kind_excluding(exclude_codomain_sorts);
 
   /* Skip operator kinds that would bind variables created above. */
   OpKindSet skip_op_kinds = {
       Op::DT_MATCH, Op::FORALL, Op::EXISTS, Op::SET_COMPREHENSION};
 
   uint32_t nterms = d_rng.pick(1, MURXLA_MK_FUN_MAX_TERMS);
+  size_t ncreated = 0;
   for (uint32_t i = 0; i < nterms; ++i)
   {
-    Op::Kind op_kind = d_smgr.pick_op_kind(true, codomain_sortk);
+    Op::Kind op_kind = d_smgr.pick_op_kind(true, codomain_sort->get_kind());
     if (op_kind == Op::UNDEFINED)
     {
       break;
@@ -3600,26 +3621,14 @@ ActionMkFun::run()
       continue;
     }
     d_mkterm.run(op_kind);
+    ncreated++;
   }
 
-  if (d_smgr.has_sort(codomain_sortk))
-  {
-    Sort codomain = d_smgr.pick_sort(codomain_sortk);
-    if (d_smgr.has_quant_term(codomain))
-    {
-      Term body = d_smgr.pick_quant_term(codomain);
-      _run(name, args, body);
-      return true;
-    }
-  }
-
-  // Pop unused variables and terms since we didn't create a function.
-  for (auto it = args.rbegin(); it != args.rend(); ++it)
-  {
-    d_smgr.remove_var(*it);
-  }
-
-  return false;
+  // Make sure to pick a term that is in the scope of this function.
+  size_t min_level = d_smgr.get_num_vars() - args.size() + 1;
+  Term body        = d_smgr.pick_term_min_level(codomain_sort, min_level);
+  _run(name, args, body);
+  return true;
 }
 
 std::vector<uint64_t>

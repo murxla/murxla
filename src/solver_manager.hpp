@@ -250,6 +250,8 @@ class SolverManager
    */
   Term pick_term(size_t level);
 
+  Term pick_term_min_level(Sort sort, size_t level);
+
   /**
    * Pick function term with given domain sorts.
    * Requires that such terms exist.
