@@ -3451,7 +3451,11 @@ class Cvc5ActionGetDifficulty : public Action
     if (!d_smgr.d_sat_called) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    if (cvc5->getOption("produce-difficulty") == "false") return false;
+    if (cvc5->getOption("produce-difficulty") == "false")
+    {
+      d_disable = true;
+      return false;
+    }
     _run();
     return true;
   }
@@ -3487,7 +3491,11 @@ class Cvc5ActionGetInterpolant : public Action
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    if (cvc5->getOption("produce-interpols") == "none") return false;
+    if (cvc5->getOption("produce-interpols") == "none")
+    {
+      d_disable = true;
+      return false;
+    }
     Term term = d_smgr.pick_term(SORT_BOOL, 0);
     _run(term);
     return true;
@@ -3542,7 +3550,11 @@ class Cvc5ActionGetAbduct : public Action
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    if (cvc5->getOption("produce-abducts") == "false") return false;
+    if (cvc5->getOption("produce-abducts") == "false")
+    {
+      d_disable = true;
+      return false;
+    }
     Term term = d_smgr.pick_term(SORT_BOOL, 0);
     _run(term);
     return true;
@@ -3579,6 +3591,51 @@ class Cvc5ActionGetAbduct : public Action
         success = cvc5->getAbductNext(cvc5_res);
       } while (success && d_rng.flip_coin());
     }
+  }
+};
+
+class Cvc5ActionBlockModel : public Action
+{
+ public:
+  Cvc5ActionBlockModel(SolverManager& smgr)
+      : Action(smgr, Cvc5Solver::ACTION_BLOCK_MODEL, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term()) return false;
+    if (!d_smgr.d_model_gen)
+    {
+      d_disable = true;
+      return false;
+    }
+    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
+    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    if (cvc5->getOption("block-models") == "none")
+    {
+      d_disable = true;
+      return false;
+    }
+    _run();
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
+    _run();
+    return {};
+  }
+
+ private:
+  void _run()
+  {
+    MURXLA_TRACE << get_kind();
+    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
+    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    cvc5->blockModel();
   }
 };
 
@@ -4011,6 +4068,10 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   // Solver::checkEntailed(std::vector<Term> terms)
   auto a_check_entailed = fsm->new_action<Cvc5ActionCheckEntailed>();
   s_check_sat->add_action(a_check_entailed, 2);
+
+  // Solver::blockModel()
+  auto a_block_model = fsm->new_action<Cvc5ActionBlockModel>();
+  s_sat->add_action(a_block_model, 4);
 
   // Solver::getInterpolant(const Term& term, Term& result)
   // Solver::getInterpolantNext(Term& result)
