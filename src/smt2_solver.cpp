@@ -13,6 +13,15 @@
 namespace murxla {
 namespace smt2 {
 
+/* Process id of online solver. */
+static pid_t s_online_solver_pid = 0;
+
+static void
+kill_online_solver(int32_t sig)
+{
+  kill(s_online_solver_pid, SIGKILL);
+}
+
 /* -------------------------------------------------------------------------- */
 
 static std::string
@@ -907,6 +916,12 @@ Smt2Solver::Smt2Solver(SolverSeedGenerator& sng,
       MURXLA_EXIT_ERROR_FORK(true, true)
           << "'" << d_solver_call << "' is not executable";
     }
+
+    /* Kill online solver in case the SMT2 solver process gets a SIGINT signal.
+     * This ensures that the online solver process will always be cleaned up in
+     * case it runs into a timeout. */
+    s_online_solver_pid = d_online_pid;
+    signal(SIGINT, kill_online_solver);
 
     close(fd_to[SMT2_READ_END]);
     close(fd_from[SMT2_WRITE_END]);

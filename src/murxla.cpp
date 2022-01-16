@@ -731,6 +731,12 @@ Murxla::run_aux(uint32_t seed,
       kill(pid_solver, SIGABRT);
       usleep(100);
 #endif
+      /* Signal the SMT2 solver to kill the online solver process. */
+      if (d_options.solver == SOLVER_SMT2 && !d_options.solver_binary.empty())
+      {
+        kill(pid_solver, SIGINT);
+        usleep(100);
+      }
       kill(pid_solver, SIGKILL);
       waitpid(pid_solver, nullptr, 0);
       result = RESULT_TIMEOUT;
