@@ -116,8 +116,6 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_BV_TO_NAT = "bv2nat";
   inline static const Op::Kind OP_INT_IAND  = "iand";
   inline static const Op::Kind OP_INT_POW2  = "int.pow2";
-  // Real
-  inline static const Op::Kind OP_REAL_PI = "real.pi";
   //  Strings
   inline static const Op::Kind OP_STRING_UPDATE  = "str.update";
   inline static const Op::Kind OP_STRING_TOLOWER = "str.tolower";

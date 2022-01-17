@@ -21,6 +21,7 @@ enum TheoryId
   THEORY_SEQ,
   THEORY_SET,
   THEORY_STRING,
+  THEORY_TRANSCENDENTAL,
   THEORY_UF,
   THEORY_ALL, /* must be last */
 };

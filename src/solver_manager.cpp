@@ -1493,6 +1493,8 @@ SolverManager::get_sort_kind_data(const TheoryIdSet& theories)
                            SortKindData(SORT_REGLAN, 0, THEORY_STRING));
         break;
 
+      case THEORY_TRANSCENDENTAL: break;
+
       case THEORY_UF:
         sort_kinds.emplace(
             SORT_FUN, SortKindData(SORT_FUN, MURXLA_MK_TERM_N_ARGS, THEORY_UF));

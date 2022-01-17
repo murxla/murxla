@@ -271,6 +271,7 @@ set_sigint_handler_stats(void)
   "  --quant                    quantifiers\n"                                 \
   "  --reals                    theory of reals\n"                             \
   "  --strings                  theory of strings\n"                           \
+  "  --trans                    theory of transcendentals\n"                   \
   "  --seq                      theory of sequences (default: disabled)\n"     \
   "  --sets                     theory of sets (default: disabled)\n"          \
   "  --uf                       uninterpreted functions\n"                     \
@@ -613,6 +614,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--reals")
     {
       options.enabled_theories.push_back(THEORY_REAL);
+    }
+    else if (arg == "--trans")
+    {
+      options.enabled_theories.push_back(THEORY_TRANSCENDENTAL);
     }
     else if (arg == "--linear")
     {

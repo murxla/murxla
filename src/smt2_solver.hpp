@@ -339,6 +339,21 @@ class Smt2Term : public AbsTerm
       {Op::RE_RANGE, "re.range"},
       {Op::RE_STAR, "re.*"},
       {Op::RE_UNION, "re.union"},
+      /* Transcendentals */
+      {Op::TRANS_PI, "real.pi"},
+      {Op::TRANS_SINE, "sin"},
+      {Op::TRANS_COSINE, "cos"},
+      {Op::TRANS_TANGENT, "tan"},
+      {Op::TRANS_COTANGENT, "cot"},
+      {Op::TRANS_SECANT, "sec"},
+      {Op::TRANS_COSECANT, "csc"},
+      {Op::TRANS_ARCSINE, "arcsin"},
+      {Op::TRANS_ARCCOSINE, "arccos"},
+      {Op::TRANS_ARCTANGENT, "arctan"},
+      {Op::TRANS_ARCCOSECANT, "arccsc"},
+      {Op::TRANS_ARCSECANT, "arcsec"},
+      {Op::TRANS_ARCCOTANGENT, "arccot"},
+      {Op::TRANS_SQRT, "sqrt"},
       /* UF */
       {Op::UF_APPLY, ""},
   };

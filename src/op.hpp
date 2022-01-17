@@ -188,6 +188,21 @@ struct Op
   inline static const Kind STR_TO_CODE        = "OP_STR_TO_CODE";
   inline static const Kind STR_TO_INT         = "OP_STR_TO_INT";
   inline static const Kind STR_TO_RE          = "OP_STR_TO_RE";
+  /* Transcendentals */
+  inline static const Kind TRANS_PI           = "OP_TRANS_PI";
+  inline static const Kind TRANS_SINE         = "OP_TRANS_SINE";
+  inline static const Kind TRANS_COSINE       = "OP_TRANS_COSINE";
+  inline static const Kind TRANS_TANGENT      = "OP_TRANS_TANGENT";
+  inline static const Kind TRANS_COTANGENT    = "OP_TRANS_COTANGENT";
+  inline static const Kind TRANS_SECANT       = "OP_TRANS_SECANT";
+  inline static const Kind TRANS_COSECANT     = "OP_TRANS_COSECANT";
+  inline static const Kind TRANS_ARCSINE      = "OP_TRANS_ARCSINE";
+  inline static const Kind TRANS_ARCCOSINE    = "OP_TRANS_ARCCOSINE";
+  inline static const Kind TRANS_ARCTANGENT   = "OP_TRANS_ARCTANGENT";
+  inline static const Kind TRANS_ARCCOSECANT  = "OP_TRANS_ARCCOSECANT";
+  inline static const Kind TRANS_ARCSECANT    = "OP_TRANS_ARCSECANT";
+  inline static const Kind TRANS_ARCCOTANGENT = "OP_TRANS_ARCCOTANGENT";
+  inline static const Kind TRANS_SQRT         = "OP_TRANS_SQRT";
   /* UF */
   inline static const Kind UF_APPLY = "OP_UF_APPLY";
   /* Operators of non-standardized theories. */

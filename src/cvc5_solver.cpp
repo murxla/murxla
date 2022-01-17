@@ -351,21 +351,6 @@ Cvc5Sort::cvc5_sorts_to_sorts(::cvc5::api::Solver* cvc5,
 //  POW,
 //  EXPONENTIAL,
 
-// ## Arithmetic transcendental
-//  SINE,
-//  COSINE,
-//  TANGENT,
-//  COSECANT,
-//  SECANT,
-//  COTANGENT,
-//  ARCSINE,
-//  ARCCOSINE,
-//  ARCTANGENT,
-//  ARCCOSECANT,
-//  ARCSECANT,
-//  ARCCOTANGENT,
-//  SQRT,
-
 // ## Arrays
 //  EQ_RANGE,
 
@@ -559,6 +544,22 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::RE_STAR, ::cvc5::api::Kind::REGEXP_STAR},
         {Op::RE_UNION, ::cvc5::api::Kind::REGEXP_UNION},
 
+        /* Transcendentals */
+        {Op::TRANS_PI, ::cvc5::api::Kind::PI},
+        {Op::TRANS_SINE, ::cvc5::api::Kind::SINE},
+        {Op::TRANS_COSINE, ::cvc5::api::Kind::COSINE},
+        {Op::TRANS_TANGENT, ::cvc5::api::Kind::TANGENT},
+        {Op::TRANS_COTANGENT, ::cvc5::api::Kind::COTANGENT},
+        {Op::TRANS_SECANT, ::cvc5::api::Kind::SECANT},
+        {Op::TRANS_COSECANT, ::cvc5::api::Kind::COSECANT},
+        {Op::TRANS_ARCSINE, ::cvc5::api::Kind::ARCSINE},
+        {Op::TRANS_ARCCOSINE, ::cvc5::api::Kind::ARCCOSINE},
+        {Op::TRANS_ARCTANGENT, ::cvc5::api::Kind::ARCTANGENT},
+        {Op::TRANS_ARCCOSECANT, ::cvc5::api::Kind::ARCCOSECANT},
+        {Op::TRANS_ARCSECANT, ::cvc5::api::Kind::ARCSECANT},
+        {Op::TRANS_ARCCOTANGENT, ::cvc5::api::Kind::ARCCOTANGENT},
+        {Op::TRANS_SQRT, ::cvc5::api::Kind::SQRT},
+
         /* UF */
         {Op::UF_APPLY, ::cvc5::api::Kind::APPLY_UF},
 
@@ -629,8 +630,6 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {OP_INT_IAND, ::cvc5::api::Kind::IAND},
         {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
         {OP_INT_POW2, ::cvc5::api::Kind::POW2},
-        // Real
-        {OP_REAL_PI, ::cvc5::api::Kind::PI},
         // Strings
         {OP_STRING_UPDATE, ::cvc5::api::Kind::STRING_UPDATE},
         {OP_STRING_TOLOWER, ::cvc5::api::Kind::STRING_TOLOWER},
@@ -827,6 +826,22 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::REGEXP_STAR, Op::RE_STAR},
         {::cvc5::api::Kind::REGEXP_UNION, Op::RE_UNION},
 
+        /* Transcendentals */
+        {::cvc5::api::Kind::PI, Op::TRANS_PI},
+        {::cvc5::api::Kind::SINE, Op::TRANS_SINE},
+        {::cvc5::api::Kind::COSINE, Op::TRANS_COSINE},
+        {::cvc5::api::Kind::TANGENT, Op::TRANS_TANGENT},
+        {::cvc5::api::Kind::COTANGENT, Op::TRANS_COTANGENT},
+        {::cvc5::api::Kind::SECANT, Op::TRANS_SECANT},
+        {::cvc5::api::Kind::COSECANT, Op::TRANS_COSECANT},
+        {::cvc5::api::Kind::ARCSINE, Op::TRANS_ARCSINE},
+        {::cvc5::api::Kind::ARCCOSINE, Op::TRANS_ARCCOSINE},
+        {::cvc5::api::Kind::ARCTANGENT, Op::TRANS_ARCTANGENT},
+        {::cvc5::api::Kind::ARCCOSECANT, Op::TRANS_ARCCOSECANT},
+        {::cvc5::api::Kind::ARCSECANT, Op::TRANS_ARCSECANT},
+        {::cvc5::api::Kind::ARCCOTANGENT, Op::TRANS_ARCCOTANGENT},
+        {::cvc5::api::Kind::SQRT, Op::TRANS_SQRT},
+
         /* UF */
         {::cvc5::api::Kind::APPLY_UF, Op::UF_APPLY},
 
@@ -906,7 +921,6 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
 
         /* Special value kinds that cvc5 introduces its own node kind for,
          * only used for getKind(). */
-        {::cvc5::api::Kind::PI, OP_REAL_PI},
         {::cvc5::api::Kind::REGEXP_STAR, OP_REGEXP_STAR},
         {::cvc5::api::Kind::SET_EMPTY, OP_SET_EMPTY},
         {::cvc5::api::Kind::SET_UNIVERSE, OP_SET_UNIVERSE},
@@ -2191,7 +2205,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     cvc5_res = d_solver->mkRegexpAllchar();
     goto DONE;
   }
-  else if (kind == Cvc5Term::OP_REAL_PI && d_rng.flip_coin())
+  else if (kind == Op::TRANS_PI && d_rng.flip_coin())
   {
     cvc5_res = d_solver->mkPi();
     goto DONE;
@@ -3220,9 +3234,6 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
       Cvc5Term::OP_INT_IAND, 2, 1, SORT_INT, {SORT_INT}, THEORY_INT);
   opmgr->add_op_kind(
       Cvc5Term::OP_INT_POW2, 1, 0, SORT_INT, {SORT_INT}, THEORY_INT);
-  // Real
-  opmgr->add_op_kind(
-      Cvc5Term::OP_REAL_PI, 0, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);
   // Strings
   opmgr->add_op_kind(Cvc5Term::OP_STRING_UPDATE,
                      3,

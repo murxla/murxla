@@ -306,6 +306,46 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::RE_POW, 1, 1, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
   add_op_kind(Op::RE_LOOP, 1, 2, SORT_REGLAN, {SORT_REGLAN}, THEORY_STRING);
 
+  /* Transcendentals */
+  add_op_kind(
+      Op::TRANS_PI, 0, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_SINE, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_COSINE, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_TANGENT, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_COTANGENT, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_SECANT, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_COSECANT, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_ARCSINE, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_ARCCOSINE, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(Op::TRANS_ARCTANGENT,
+              1,
+              0,
+              SORT_REAL,
+              {SORT_REAL},
+              THEORY_TRANSCENDENTAL);
+  add_op_kind(Op::TRANS_ARCCOSECANT,
+              1,
+              0,
+              SORT_REAL,
+              {SORT_REAL},
+              THEORY_TRANSCENDENTAL);
+  add_op_kind(
+      Op::TRANS_ARCSECANT, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_TRANSCENDENTAL);
+  add_op_kind(Op::TRANS_ARCCOTANGENT,
+              1,
+              0,
+              SORT_REAL,
+              {SORT_REAL},
+              THEORY_TRANSCENDENTAL);
+
   /* UF */
   add_op_kind(Op::UF_APPLY, n, 0, SORT_ANY, {SORT_FUN, SORT_ANY}, THEORY_UF);
 
