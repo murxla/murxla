@@ -329,6 +329,12 @@ YicesSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
   return {SORT_ARRAY, SORT_FUN};
 }
 
+SortKindSet
+YicesSolver::get_unsupported_get_value_sort_kinds() const
+{
+  return {SORT_ARRAY, SORT_FUN};
+}
+
 void
 YicesSolver::reset_sat()
 {
