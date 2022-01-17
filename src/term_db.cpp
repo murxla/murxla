@@ -503,6 +503,21 @@ TermDb::has_term(Sort sort, size_t level) const
 }
 
 bool
+TermDb::has_term(size_t level) const
+{
+  for (const auto& t : d_term_db)
+  {
+    const auto& smap = t.second;
+    for (const auto& s : smap)
+    {
+      if (smap.at(s.first).get_num_terms(level) > 0) return true;
+      ;
+    }
+  }
+  return false;
+}
+
+bool
 TermDb::has_term() const
 {
   return d_terms.size() > 0;
@@ -701,7 +716,7 @@ TermDb::pick_term()
 Term
 TermDb::pick_term(size_t level)
 {
-  assert(has_term());
+  assert(has_term(level));
   return pick_term(pick_sort_kind(level), level);
 }
 

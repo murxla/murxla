@@ -680,7 +680,6 @@ Term
 SolverManager::pick_term_min_level(Sort sort, size_t min_level)
 {
   size_t max_level = d_term_db.max_level();
-  std::cout << "min: " << min_level << ", max: " << max_level << std::endl;
   std::vector<size_t> levels;
   for (size_t i = min_level; i <= max_level; ++i)
   {
@@ -875,6 +874,12 @@ bool
 SolverManager::has_term() const
 {
   return d_term_db.has_term();
+}
+
+bool
+SolverManager::has_term(size_t level) const
+{
+  return d_term_db.has_term(level);
 }
 
 bool

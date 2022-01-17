@@ -250,6 +250,10 @@ class SolverManager
    */
   Term pick_term(size_t level);
 
+  /**
+   * Pick any term from any level from the given level to the max level.
+   * Requires that terms of any sort kind exist.
+   */
   Term pick_term_min_level(Sort sort, size_t level);
 
   /**
@@ -325,6 +329,8 @@ class SolverManager
 
   /** Return true if term database contains any term. */
   bool has_term() const;
+  /** Return true if term database contains any term on given level. */
+  bool has_term(size_t level) const;
   /**
    * Return true if term database contains any term of given sort kind at given
    * level.

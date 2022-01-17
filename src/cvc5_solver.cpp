@@ -3651,7 +3651,7 @@ class Cvc5ActionBlockModelValues : public Action
   bool run() override
   {
     assert(d_solver.is_initialized());
-    if (!d_smgr.has_term()) return false;
+    if (!d_smgr.has_term(0)) return false;
     if (!d_smgr.d_model_gen)
     {
       d_disable = true;
@@ -3668,7 +3668,7 @@ class Cvc5ActionBlockModelValues : public Action
     std::vector<Term> values;
     for (uint32_t i = 0; i < n_values; ++i)
     {
-      values.push_back(d_smgr.pick_term());
+      values.push_back(d_smgr.pick_term(0));
     }
     _run(values);
     return true;

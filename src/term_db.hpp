@@ -215,6 +215,8 @@ class TermDb
    *               SORT_INT or SORT_REAL at given or lower scope levels.
    */
   bool has_term(Sort sort, size_t level) const;
+  /** Return true if term database contains any term on given level. */
+  bool has_term(size_t level) const;
   /** Return true if term database contains any term. */
   bool has_term() const;
   /**
