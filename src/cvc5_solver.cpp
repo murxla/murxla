@@ -2907,11 +2907,6 @@ Cvc5Solver::check_value(Term term)
   {
     (void) cvc5_term.getUninterpretedSortValue();
   }
-  /* Note: It is necessary for sequences to call Solver::simplify() to turn a
-   *       sequence that is constructed by, e.g., concatenation of unit
-   *       sequences, into a sequence value.
-   */
-  MURXLA_TEST(!cvc5_term.isSequenceValue());
   /* Note: cvc5 considers a term a set value if it is a (canonical) constant
    *       set value
    *       (union
