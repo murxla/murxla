@@ -2120,9 +2120,10 @@ YicesSolver::configure_opmgr(OpKindManager* opmgr) const
 /* -------------------------------------------------------------------------- */
 
 void
-YicesSolver::configure_fsm(FSM* fsm) const
+YicesSolver::disable_unsupported_actions(FSM* fsm) const
 {
   fsm->disable_action(Action::MK_FUN);
+  fsm->disable_action(Action::GET_VALUE);
 }
 
 /* -------------------------------------------------------------------------- */
