@@ -216,8 +216,8 @@ mkdir -p "$deps_dir"
     then
       as="-fsanitize=address -fno-omit-frame-pointer -fsanitize-recover=address"
     fi
-    CCFLAGS="-g -g3 -ggdb $cov $as" ./configure --prefix="$deps_dir"
-    make -j $(nproc)
-    make install -j $(nproc)
+    CFLAGS="$cov $as" CPPFLAGS="$cov $as" ./configure --prefix="$deps_dir"
+    make -j $(nproc) MODE=debug
+    make install -j $(nproc) MODE=debug
   fi
 )
