@@ -18,7 +18,6 @@ SolverManager::SolverManager(Solver* solver,
                              SolverSeedGenerator& sng,
                              std::ostream& trace,
                              SolverOptions& options,
-                             bool arith_subtyping,
                              bool arith_linear,
                              bool trace_seeds,
                              bool simple_symbols,
@@ -26,7 +25,6 @@ SolverManager::SolverManager(Solver* solver,
                              const TheoryIdVector& enabled_theories,
                              const TheoryIdSet& disabled_theories)
     : d_mbt_stats(stats),
-      d_arith_subtyping(arith_subtyping),
       d_arith_linear(arith_linear),
       d_trace_seeds(trace_seeds),
       d_simple_symbols(simple_symbols),
@@ -316,12 +314,8 @@ SolverManager::add_sort(Sort& sort,
   }
   assert((sort_kind != SORT_INT && sort->get_kind() != SORT_INT)
          || sort->is_int());
-  assert((d_arith_subtyping && sort_kind == SORT_REAL
-          && sort->get_kind() == SORT_INT)
-         || (d_arith_subtyping && sort_kind == SORT_INT
-             && sort->get_kind() == SORT_REAL)
-         || (sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
-             && sort->get_bv_size() == 1)
+  assert((sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
+          && sort->get_bv_size() == 1)
          || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)
          || sort->get_kind() == sort_kind);
 
@@ -340,12 +334,8 @@ SolverManager::add_sort(Sort& sort,
     sort = *it;
     assert((sort_kind != SORT_INT && sort->get_kind() != SORT_INT)
            || sort->is_int());
-    assert((d_arith_subtyping && sort_kind == SORT_REAL
-            && sort->get_kind() == SORT_INT)
-           || (d_arith_subtyping && sort_kind == SORT_INT
-               && sort->get_kind() == SORT_REAL)
-           || (sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
-               && sort->get_bv_size() == 1)
+    assert((sort_kind == SORT_BOOL && sort->get_kind() == SORT_BV
+            && sort->get_bv_size() == 1)
            || (sort_kind == SORT_BV && sort->get_kind() == SORT_BOOL)
            || (sort_kind == SORT_ARRAY && sort->get_kind() == SORT_FUN
                && sort->get_sorts().size() == 2)

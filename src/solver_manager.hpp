@@ -41,7 +41,6 @@ class SolverManager
                 SolverSeedGenerator& sng,
                 std::ostream& trace,
                 SolverOptions& options,
-                bool arith_subtyping,
                 bool arith_linear,
                 bool trace_seeds,
                 bool simple_symbols,
@@ -553,8 +552,6 @@ class SolverManager
    * Config members are not cleared or reset on reset() / clear().
    */
 
-  /** True if solver treats Int as a subtype of Real. */
-  bool d_arith_subtyping = false;
   /** True to restrict arithmetic operators to linear fragment. */
   bool d_arith_linear = false;
 

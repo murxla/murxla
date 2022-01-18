@@ -156,7 +156,6 @@ class FSM
       Solver* solver,
       std::ostream& trace,
       SolverOptions& options,
-      bool arith_subtyping,
       bool arith_linear,
       bool trace_seeds,
       bool simple_symbols,

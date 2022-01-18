@@ -164,55 +164,29 @@ class TermDb
 
   /** Return true if term database has a value. */
   bool has_value() const;
-  /**
-   * Return true if term database has a value with given sort.
-   *
-   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
-   *               enabled , return true if term database has value of kind
-   *               SORT_INT or SORT_REAL.
-   */
+  /** Return true if term database has a value with given sort. */
   bool has_value(Sort sort) const;
 
   /**
    * Return true if term database has a term with given sort kind at given or
    * lower scope levels.
-   *
-   * Special case: if sort kind is SORT_REAL and arithmetic subtyping is
-   *               enabled, return true if term database has term of kind
-   *               SORT_INT or SORT_REAL at given or lower scope levels.
    */
   bool has_term(SortKind kind, size_t level) const;
   /**
    * Return true if term database has a term with given sort kind.
-   *
-   * Special case: if sort kind is SORT_REAL and arithmetic subtyping is
-   *               enabled, return true if term database has term of kind
-   *               SORT_INT or SORT_REAL.
    */
   bool has_term(SortKind kind) const;
   /**
    * Return true if term database has a term with any of the given sort kinds.
-   *
-   * Special case: if sort kind is SORT_REAL and arithmetic subtyping is
-   *               enabled, return true if term database has term of kind
-   *               SORT_INT or SORT_REAL.
    */
   bool has_term(const SortKindSet& kinds) const;
   /**
    * Return true if term database has a term with sort.
-   *
-   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
-   *               enabled, return true if term database has term of kind
-   *               SORT_INT or SORT_REAL.
    */
   bool has_term(Sort sort) const;
   /**
    * Return true if term database has a term with given sort at given or lower
    * scope levels.
-   *
-   * Special case: if sort kind is SORT_REAL and arithmetic subtyping is
-   *               enabled, return true if term database has term of kind
-   *               SORT_INT or SORT_REAL at given or lower scope levels.
    */
   bool has_term(Sort sort, size_t level) const;
   /** Return true if term database contains any term on given level. */
@@ -247,49 +221,27 @@ class TermDb
   /**
    * Pick a value of given sort.
    * Requires that values of this sort exist.
-   *
-   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
-   *               enabled, we pick either from SORT_INT or SORT_REAL, weighted
-   *               by number of terms of these sorts in the database.
    */
   Term pick_value(Sort sort) const;
 
   /**
    * Pick a term of given sort kind at scope level.
    * Requires that terms of this sort kind at given or lower scope levels exist.
-   *
-   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
-   *               enabled, we pick either from SORT_INT or SORT_REAL at given
-   *               or lower scope levels, weighted by number of terms of these
-   *               sorts in the database.
    */
   Term pick_term(SortKind kind, size_t level);
   /**
    * Pick a term of given sort at scope level.
    * Requires that terms of this sort at given or lower scope levels exist.
-   *
-   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
-   *               enabled, we pick either from SORT_INT or SORT_REAL at given
-   *               or lower scope levels, weighted by number of terms of these
-   *               sorts in the database.
    */
   Term pick_term(Sort sort, size_t level);
   /**
    * Pick a term of given sort kind.
    * Requires that terms of this sort kind exist.
-   *
-   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
-   *               enabled, we pick either from SORT_INT or SORT_REAL, weighted
-   *               by number of terms of these sorts in the database.
    */
   Term pick_term(SortKind kind);
   /**
    * Pick a term of given sort.
    * Requires that terms of this sort exist.
-   *
-   * Special case: if sort is of kind SORT_REAL and arithmetic subtyping is
-   *               enabled, we pick either from SORT_INT or SORT_REAL, weighted
-   *               by number of terms of these sorts in the database.
    */
   Term pick_term(Sort sort);
   /**
