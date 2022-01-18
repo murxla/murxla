@@ -1191,6 +1191,7 @@ Cvc5Solver::get_unsupported_op_kinds() const
 {
   return {Op::BAG_CHOOSE,
           Op::BAG_FROM_SET,
+          Op::BAG_MAP,
           Op::BAG_TO_SET,
           Op::BAG_IS_SINGLETON,
           Op::IFF};
