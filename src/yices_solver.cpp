@@ -296,8 +296,13 @@ YicesSolver::get_name() const
 TheoryIdVector
 YicesSolver::get_supported_theories() const
 {
-  return {
-      THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_INT, THEORY_REAL, THEORY_UF};
+  return {THEORY_ARRAY,
+          THEORY_BV,
+          THEORY_BOOL,
+          THEORY_INT,
+          THEORY_REAL,
+          THEORY_UF,
+          THEORY_QUANT};
 }
 
 SortKindSet
