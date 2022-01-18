@@ -91,8 +91,7 @@ YicesSort::is_int() const
 bool
 YicesSort::is_real() const
 {
-  bool res = yices_type_is_arithmetic(d_sort);
-  MURXLA_TEST(!res || yices_type_is_int(d_sort) || yices_type_is_real(d_sort));
+  bool res = yices_type_is_real(d_sort);
   return res;
 }
 
@@ -209,17 +208,13 @@ YicesTerm::is_fun() const
 bool
 YicesTerm::is_int() const
 {
-  bool res = yices_term_is_int(d_term);
-  MURXLA_TEST(!res || yices_term_is_arithmetic(d_term));
-  return res;
+  return yices_term_is_int(d_term);
 }
 
 bool
 YicesTerm::is_real() const
 {
-  bool res = yices_term_is_arithmetic(d_term);
-  MURXLA_TEST(!res || yices_term_is_int(d_term) || yices_term_is_real(d_term));
-  return res;
+  return yices_term_is_real(d_term);
 }
 
 uint32_t
