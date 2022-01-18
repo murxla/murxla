@@ -529,7 +529,7 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::STR_FROM_CODE, ::cvc5::api::Kind::STRING_FROM_CODE},
         {Op::STR_TO_INT, ::cvc5::api::Kind::STRING_TO_INT},
         {Op::STR_FROM_INT, ::cvc5::api::Kind::STRING_FROM_INT},
-        {Op::RE_ALL, ::cvc5::api::Kind::REGEXP_STAR},
+        {Op::RE_ALL, ::cvc5::api::Kind::INTERNAL_KIND},
         {Op::RE_ALLCHAR, ::cvc5::api::Kind::REGEXP_ALLCHAR},
         {Op::RE_COMP, ::cvc5::api::Kind::REGEXP_COMPLEMENT},
         {Op::RE_CONCAT, ::cvc5::api::Kind::REGEXP_CONCAT},
@@ -2121,6 +2121,44 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     cvc5_kind = ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC;
   }
 
+  if (kind == Op::FORALL || kind == Op::EXISTS)
+  {
+    assert(args.size() >= 2);
+    std::vector<::cvc5::api::Term> cvc5_vars;
+    for (size_t i = 0; i < args.size() - 1; ++i)
+    {
+      cvc5_vars.push_back(cvc5_args[i]);
+    }
+    ::cvc5::api::Term cvc5_bvl =
+        d_rng.flip_coin()
+            ? d_solver->mkTerm(::cvc5::api::Kind::VARIABLE_LIST, cvc5_vars)
+            : d_solver->mkTerm(d_solver->mkOp(::cvc5::api::Kind::VARIABLE_LIST),
+                               cvc5_vars);
+    ::cvc5::api::Term cvc5_body = Cvc5Term::get_cvc5_term(args.back());
+    cvc5_args                   = {cvc5_bvl, cvc5_body};
+    n_args                      = cvc5_args.size();
+  }
+  else if (kind == Op::RE_ALL)
+  {
+    cvc5_res = d_solver->mkRegexpAll();
+    goto DONE;
+  }
+  else if (kind == Op::RE_ALLCHAR && d_rng.flip_coin())
+  {
+    cvc5_res = d_solver->mkRegexpAllchar();
+    goto DONE;
+  }
+  else if (kind == Op::TRANS_PI && d_rng.flip_coin())
+  {
+    cvc5_res = d_solver->mkPi();
+    goto DONE;
+  }
+  else if (kind == Op::RE_NONE && d_rng.flip_coin())
+  {
+    cvc5_res = d_solver->mkRegexpNone();
+    goto DONE;
+  }
+
   /* Create Op. Flip a coin for non-indexed operators. */
   switch (n_indices)
   {
@@ -2179,44 +2217,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       }
   }
 
-  if (kind == Op::FORALL || kind == Op::EXISTS)
-  {
-    assert(args.size() >= 2);
-    std::vector<::cvc5::api::Term> cvc5_vars;
-    for (size_t i = 0; i < args.size() - 1; ++i)
-    {
-      cvc5_vars.push_back(cvc5_args[i]);
-    }
-    ::cvc5::api::Term cvc5_bvl =
-        d_rng.flip_coin()
-            ? d_solver->mkTerm(::cvc5::api::Kind::VARIABLE_LIST, cvc5_vars)
-            : d_solver->mkTerm(d_solver->mkOp(::cvc5::api::Kind::VARIABLE_LIST),
-                               cvc5_vars);
-    ::cvc5::api::Term cvc5_body = Cvc5Term::get_cvc5_term(args.back());
-    cvc5_args                   = {cvc5_bvl, cvc5_body};
-    n_args                      = cvc5_args.size();
-  }
-  else if (kind == Op::RE_ALL)
-  {
-    cvc5_res = d_solver->mkRegexpAll();
-    goto DONE;
-  }
-  else if (kind == Op::RE_ALLCHAR && d_rng.flip_coin())
-  {
-    cvc5_res = d_solver->mkRegexpAllchar();
-    goto DONE;
-  }
-  else if (kind == Op::TRANS_PI && d_rng.flip_coin())
-  {
-    cvc5_res = d_solver->mkPi();
-    goto DONE;
-  }
-  else if (kind == Op::RE_NONE && d_rng.flip_coin())
-  {
-    cvc5_res = d_solver->mkRegexpNone();
-    goto DONE;
-  }
-  else if (kind == Cvc5Term::OP_BV_ITE)
+  if (kind == Cvc5Term::OP_BV_ITE)
   {
     uint32_t size = cvc5_args[0].getSort().getBitVectorSize();
     /* if the first argument is of size greater than 1, slice random
@@ -2348,6 +2349,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
 DONE:
   MURXLA_TEST(!cvc5_res.isNull());
   MURXLA_TEST(cvc5_kind == cvc5_res.getKind()
+              || cvc5_kind == ::cvc5::api::Kind::INTERNAL_KIND
               || (cvc5_res.getSort().isBoolean()
                   && cvc5_res.getKind() == ::cvc5::api::Kind::AND));
   return std::shared_ptr<Cvc5Term>(new Cvc5Term(d_rng, d_solver, cvc5_res));
