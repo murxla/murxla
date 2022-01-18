@@ -2910,17 +2910,6 @@ Cvc5Solver::check_value(Term term)
   {
     (void) cvc5_term.getUninterpretedSortValue();
   }
-  /* Note: cvc5 considers a term a set value if it is a (canonical) constant
-   *       set value
-   *       (union
-   *         (singleton c1) ...
-   *         (union (singleton c_{n-1}) (singleton c_n))))
-   *       where c_1 ... c_n are values ordered by id s.t. c_1 > ... > c_n.
-   *       A universe set term is not considered a set value, in fact, no
-   *       term created via mk_value is.  Hence, we can't test these in
-   *       check_value() but must check them here.
-   */
-  MURXLA_TEST(!cvc5_term.isSetValue());
 }
 
 void
