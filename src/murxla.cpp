@@ -431,7 +431,12 @@ Murxla::test()
                                  err_file_name,
                                  api_trace_file_name,
                                  d_options.untrace_file_name);
-      assert(res == res_replay);
+      // Note: This may happen in few cases where the replay runs into a
+      // timeout, but the original run does not.
+      MURXLA_WARN(res != res_replay)
+          << "Replay did not return the same result as original run. "
+          << "Original run returned " << res << ", but replay returned "
+          << res_replay << ".";
     }
     std::cout << term.cr() << std::flush;
     /* Print new error message after it was found. */
