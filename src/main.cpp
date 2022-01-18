@@ -240,40 +240,34 @@ set_sigint_handler_stats(void)
   "                             names. use ^ to indicate a wildcard must\n"    \
   "                             match the beginning of an option name\n"       \
   "\n"                                                                         \
-  " enable disabled theories:\n"                                               \
-  "  --add-bags                 enable theory of bags in addition to \n"       \
-  "                             the default set of enabled theories (non-\n"   \
-  "                             standard theories are disabled by default)\n"  \
-  "  --add-seq                  enable theory of sequences in addition to \n"  \
-  "                             the default set of enabled theories (non-\n"   \
-  "                             standard theories are disabled by default)\n"  \
-  "  --add-sets                 enable theory of sets in addition to \n"       \
-  "                             the default set of enabled theories (non-\n"   \
-  "                             standard theories are disabled by default)\n"  \
-  "\n"                                                                         \
   " disable enabled theories:\n"                                               \
   "  --no-arrays                disable theory of arrays\n"                    \
+  "  --no-bags                  disable theory of bags\n"                      \
   "  --no-bv                    disable theory of bit-vectors\n"               \
   "  --no-dt                    disable theory of datatypes\n"                 \
   "  --no-fp                    disable theory of floating-points\n"           \
   "  --no-ints                  disable theory of integers\n"                  \
   "  --no-quant                 disable quantifiers\n"                         \
   "  --no-reals                 disable theory of reals\n"                     \
+  "  --no-seq                   disable theory of sequences\n"                 \
+  "  --no-sets                  disable theory of sets\n"                      \
   "  --no-strings               disable theory of strings\n"                   \
+  "  --no-trans                 disable theory of transcendentals\n"           \
+  "  --no-uf                    disable uninterpreted functions\n"             \
   "\n"                                                                         \
   " enable only specific theories:\n"                                          \
   "  --arrays                   theory of arrays\n"                            \
-  "  --bags                     theory of bags (default: disabled)\n"          \
+  "  --bags                     theory of bags\n"                              \
   "  --bv                       theory of bit-vectors\n"                       \
   "  --dt                       theory of datatypes\n"                         \
   "  --fp                       theory of floating-points\n"                   \
   "  --ints                     theory of integers\n"                          \
   "  --quant                    quantifiers\n"                                 \
   "  --reals                    theory of reals\n"                             \
+  "  --seq                      theory of sequences\n"                         \
+  "  --sets                     theory of sets\n"                              \
   "  --strings                  theory of strings\n"                           \
   "  --trans                    theory of transcendentals\n"                   \
-  "  --seq                      theory of sequences (default: disabled)\n"     \
-  "  --sets                     theory of sets (default: disabled)\n"          \
   "  --uf                       uninterpreted functions\n"                     \
   "\n"                                                                         \
   " constraining/extending features based for enabled theories:\n"             \
@@ -585,11 +579,6 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--bags")
     {
       options.enabled_theories.push_back(THEORY_BAG);
-      auto it = options.disabled_theories.find(THEORY_BAG);
-      if (it != options.disabled_theories.end())
-      {
-        options.disabled_theories.erase(it);
-      }
     }
     else if (arg == "--bv")
     {
@@ -626,20 +615,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--seq")
     {
       options.enabled_theories.push_back(THEORY_SEQ);
-      auto it = options.disabled_theories.find(THEORY_SEQ);
-      if (it != options.disabled_theories.end())
-      {
-        options.disabled_theories.erase(it);
-      }
     }
     else if (arg == "--sets")
     {
       options.enabled_theories.push_back(THEORY_SET);
-      auto it = options.disabled_theories.find(THEORY_SET);
-      if (it != options.disabled_theories.end())
-      {
-        options.disabled_theories.erase(it);
-      }
     }
     else if (arg == "--strings")
     {
@@ -649,30 +628,6 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.enabled_theories.push_back(THEORY_UF);
     }
-    else if (arg == "--add-bags")
-    {
-      auto it = options.disabled_theories.find(THEORY_BAG);
-      if (it != options.disabled_theories.end())
-      {
-        options.disabled_theories.erase(it);
-      }
-    }
-    else if (arg == "--add-seq")
-    {
-      auto it = options.disabled_theories.find(THEORY_SEQ);
-      if (it != options.disabled_theories.end())
-      {
-        options.disabled_theories.erase(it);
-      }
-    }
-    else if (arg == "--add-sets")
-    {
-      auto it = options.disabled_theories.find(THEORY_SET);
-      if (it != options.disabled_theories.end())
-      {
-        options.disabled_theories.erase(it);
-      }
-    }
     else if (arg == "--no-arrays")
     {
       options.disabled_theories.insert(THEORY_ARRAY);
@@ -680,6 +635,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--no-bv")
     {
       options.disabled_theories.insert(THEORY_BV);
+    }
+    else if (arg == "--no-bags")
+    {
+      options.disabled_theories.insert(THEORY_BAG);
     }
     else if (arg == "--no-dt")
     {
@@ -701,9 +660,25 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.disabled_theories.insert(THEORY_REAL);
     }
+    else if (arg == "--no-seq")
+    {
+      options.disabled_theories.insert(THEORY_SEQ);
+    }
+    else if (arg == "--no-sets")
+    {
+      options.disabled_theories.insert(THEORY_SET);
+    }
     else if (arg == "--no-strings")
     {
       options.disabled_theories.insert(THEORY_STRING);
+    }
+    else if (arg == "--no-trans")
+    {
+      options.disabled_theories.insert(THEORY_TRANSCENDENTAL);
+    }
+    else if (arg == "--no-uf")
+    {
+      options.disabled_theories.insert(THEORY_UF);
     }
     else
     {
