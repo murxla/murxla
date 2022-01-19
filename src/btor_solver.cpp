@@ -596,10 +596,12 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
   if (sort->get_kind() == SORT_ARRAY)
   {
     btor_res = boolector_array(d_solver, BtorSort::get_btor_sort(sort), cname);
+    d_have_array = true;
   }
   else if (sort->get_kind() == SORT_FUN)
   {
     btor_res = boolector_uf(d_solver, BtorSort::get_btor_sort(sort), cname);
+    d_have_uf = true;
   }
   else
   {
@@ -632,6 +634,7 @@ BtorSolver::mk_fun(const std::string& name,
   std::shared_ptr<BtorTerm> res(new BtorTerm(d_solver, btor_res));
   assert(res);
   boolector_release(d_solver, btor_res);
+  d_have_fun = true;
   return res;
 }
 
@@ -1122,6 +1125,7 @@ BtorSolver::mk_term(const Op::Kind& kind,
       btor_res = boolector_forall(
           d_solver, vars.data(), vars.size(), btor_args.back());
     }
+    d_have_quant = true;
   }
   else if (kind == Op::UF_APPLY)
   {
@@ -2260,6 +2264,106 @@ class BtorActionMisc : public Action
   }
 };
 
+class BtorActionPrintParse : public Action
+{
+ public:
+  BtorActionPrintParse(SolverManager& smgr)
+      : Action(smgr, BtorSolver::ACTION_PRINT_PARSE, NONE)
+  {
+  }
+
+  bool run() override
+  {
+    assert(d_solver.is_initialized());
+    if (d_solver.option_incremental_enabled()) return false;
+    _run();
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(0, tokens.size());
+    _run();
+    return {};
+  }
+
+ private:
+  void _run()
+  {
+    MURXLA_TRACE << get_kind();
+    BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
+    Btor* btor              = btor_solver.get_solver();
+    auto& rng               = btor_solver.get_rng();
+
+    bool parse_smt2 = false, parse_btor = false;
+    FILE* tmp_file = nullptr;
+
+    if (!btor_solver.d_have_uf && !btor_solver.d_have_fun
+        && !btor_solver.d_have_array && !btor_solver.d_have_quant
+        && rng.flip_coin())
+    {
+      if (rng.flip_coin())
+      {
+        boolector_dump_aiger_ascii(btor, stdout, rng.flip_coin());
+      }
+      else
+      {
+        boolector_dump_aiger_binary(btor, stdout, rng.flip_coin());
+      }
+    }
+    else
+    {
+      tmp_file = std::tmpfile();
+      if (rng.flip_coin() && !btor_solver.d_have_uf)
+      {
+        boolector_dump_btor(btor, tmp_file);
+        parse_btor = true;
+      }
+      else
+      {
+        boolector_dump_smt2(btor, tmp_file);
+        parse_smt2 = true;
+      }
+    }
+
+    if (tmp_file)
+    {
+      std::rewind(tmp_file);
+      Btor* btor_parse = boolector_new();
+      char* error_msg  = nullptr;
+      int32_t status   = 0;
+      if (rng.flip_coin())
+      {
+        bool parsed_smt2 = false;
+        boolector_parse(btor_parse,
+                        tmp_file,
+                        "tmpfile",
+                        stdout,
+                        &error_msg,
+                        &status,
+                        &parsed_smt2);
+        MURXLA_TEST(parse_smt2 == parsed_smt2);
+      }
+      else if (parse_smt2)
+      {
+        boolector_parse_smt2(
+            btor_parse, tmp_file, "tmpfile", stdout, &error_msg, &status);
+      }
+      else if (parse_btor)
+      {
+        if (!btor_solver.d_have_quant)
+        {
+          boolector_parse_btor(
+              btor_parse, tmp_file, "tmpfile", stdout, &error_msg, &status);
+        }
+      }
+      MURXLA_TEST(error_msg == nullptr) << error_msg;
+      boolector_delete(btor_parse);
+      std::fclose(tmp_file);
+    }
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -2352,6 +2456,8 @@ BtorSolver::configure_fsm(FSM* fsm) const
 
   auto a_misc = fsm->new_action<BtorActionMisc>();
   fsm->add_action_to_all_states(a_misc, 100000);
+  auto a_print_parse = fsm->new_action<BtorActionPrintParse>();
+  s_assert->add_action(a_print_parse, 100);
 
   /* Configure solver-specific states. */
   s_unknown->add_action(t_default, 1, s_check_sat);

@@ -117,6 +117,7 @@ class BtorSolver : public Solver
   inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
       "btor-fixate-assumptions";
   inline static const Action::Kind ACTION_MISC = "btor-misc";
+  inline static const Action::Kind ACTION_PRINT_PARSE = "btor-print-parse";
   inline static const Action::Kind ACTION_RESET_ASSUMPTIONS =
       "btor-reset-assumptions";
   inline static const Action::Kind ACTION_RELEASE_ALL = "btor-release-all";
@@ -240,6 +241,18 @@ class BtorSolver : public Solver
   // get_proof()
   //
   //
+
+  // Flags required for printing/parsing
+
+  /** Indicates whether current formula contains UF. */
+  bool d_have_uf = false;
+  /** Indicates whether current formula contains arrays. */
+  bool d_have_array = false;
+  /** Indicates whether current formula contains quantifiers. */
+  bool d_have_quant = false;
+  /** Indicates whether current formula contains functions/lambdas. */
+  bool d_have_fun = false;
+
  private:
   using BtorFunBoolUnary       = std::function<bool(Btor*, BoolectorNode*)>;
   using BtorFunBoolUnaryVector = std::vector<BtorFunBoolUnary>;
