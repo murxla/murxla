@@ -436,28 +436,28 @@ FSM::configure()
   /* State: sorts ........................................................ */
   s_sorts->add_action(a_mksort, 1);
   s_sorts->add_action(a_instsort, 2);
-  s_sorts->add_action(t_sorts, 5, s_inputs);
+  s_sorts->add_action(t_sorts, 3, s_inputs);
 
   /* State: create inputs ................................................ */
-  s_inputs->add_action(a_mksort, 100, s_sorts);
-  s_inputs->add_action(a_mkval, 10);
-  s_inputs->add_action(a_mksval, 5);
-  s_inputs->add_action(a_mkconst, 2);
+  s_inputs->add_action(a_mksort, 200, s_sorts);
+  s_inputs->add_action(a_mkval, 20);
+  s_inputs->add_action(a_mksval, 40);
+  s_inputs->add_action(a_mkconst, 10);
   const auto& enabled_theories = d_smgr.get_enabled_theories();
   if (enabled_theories.find(THEORY_QUANT) != enabled_theories.end())
   {
     s_inputs->add_action(a_mkvar, 20);
   }
-  s_inputs->add_action(t_inputs, 50, s_terms);
+  s_inputs->add_action(t_inputs, 25, s_terms);
   s_inputs->add_action(t_inputs, 5000, s_check_sat);
   s_inputs->add_action(t_inputs, 500, s_push_pop);
 
   /* State: create terms ................................................. */
-  s_terms->add_action(a_mkterm, 1);
+  s_terms->add_action(a_mkterm, 5);
   s_terms->add_action(a_mkfun, 50);
-  s_terms->add_action(a_termgetchildren, 10);
-  s_terms->add_action(t_default, 250, s_assert);
-  s_terms->add_action(t_default, 1000, s_check_sat);
+  s_terms->add_action(a_termgetchildren, 50);
+  s_terms->add_action(t_default, 100, s_assert);
+  s_terms->add_action(t_default, 500, s_check_sat);
   s_terms->add_action(t_inputs, 500, s_push_pop);
 
   /* State: assert/assume formula ........................................ */
