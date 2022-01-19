@@ -3631,7 +3631,7 @@ ActionMkFun::untrace(const std::vector<std::string>& tokens)
   MURXLA_CHECK_TRACE_NTOKENS_MIN(
       4, " (name, number of arguments, body) ", tokens.size());
 
-  const std::string& name = tokens[0];
+  const std::string& name = str_to_str(tokens[0]);
   uint32_t n_args         = str_to_uint32(tokens[1]);
 
   uint32_t id;
@@ -3655,8 +3655,8 @@ ActionMkFun::_run(const std::string& name,
                   const std::vector<Term>& args,
                   Term body)
 {
-  MURXLA_TRACE << get_kind() << " " << name << " " << args.size() << args << " "
-               << body;
+  MURXLA_TRACE << get_kind() << " \"" << name << "\" " << args.size() << args
+               << " " << body;
 
   // Pop variables beginning with top scope.
   for (auto it = args.rbegin(); it != args.rend(); ++it)
