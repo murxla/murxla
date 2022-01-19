@@ -2129,6 +2129,7 @@ YicesSolver::disable_unsupported_actions(FSM* fsm) const
 {
   fsm->disable_action(Action::MK_FUN);
   fsm->disable_action(Action::GET_VALUE);
+  fsm->disable_action(Action::INSTANTIATE_SORT);
 }
 
 /* -------------------------------------------------------------------------- */

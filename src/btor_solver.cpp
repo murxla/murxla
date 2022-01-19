@@ -2483,6 +2483,7 @@ void
 BtorSolver::disable_unsupported_actions(FSM* fsm) const
 {
   fsm->disable_action(Action::RESET_ASSERTIONS);
+  fsm->disable_action(Action::INSTANTIATE_SORT);
 }
 
 }  // namespace btor
