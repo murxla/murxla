@@ -3578,7 +3578,7 @@ ActionMkFun::run()
   {
     sorts.push_back(d_smgr.pick_sort_excluding(exclude_domain_sorts, false));
   }
-  Sort codomain_sort = d_smgr.pick_sort_excluding(exclude);
+  Sort codomain_sort = d_smgr.pick_sort_excluding(exclude, false);
   auto it            = sorts.begin();
   if (!sorts.empty())
   {
