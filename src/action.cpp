@@ -3549,6 +3549,8 @@ ActionMkFun::ActionMkFun(SolverManager& smgr)
 bool
 ActionMkFun::run()
 {
+  /* Avoid creating functions with quantified variables in the body. */
+  if (d_smgr.get_num_vars() > 0) return false;
   SortKindSet exclude_domain_sorts =
       d_solver.get_unsupported_fun_domain_sort_kinds();
   SortKindSet exclude_codomain_sorts =
