@@ -496,7 +496,7 @@ Smt2Term::get_repr() const
   std::vector<std::string> lets;
 
   std::unordered_set<Op::Kind> new_scope = {
-      Op::FORALL, Op::EXISTS, Op::SET_COMPREHENSION, Op::DT_MATCH};
+      Op::FORALL, Op::EXISTS, Op::SET_COMPREHENSION, Op::DT_MATCH, Op::FUN};
 
   // Compute references
   visit.push_back(this);
@@ -544,7 +544,8 @@ Smt2Term::get_repr() const
       std::stringstream res;
 
       size_t i = 0;
-      if (cur->get_leaf_kind() != AbsTerm::LeafKind::NONE)
+      if (cur->get_leaf_kind() != AbsTerm::LeafKind::NONE
+          || cur->get_kind() == Op::FUN)
       {
         assert(!cur->d_repr.empty());
         res << cur->d_repr;
@@ -1137,7 +1138,15 @@ Smt2Solver::mk_value(Sort sort, const std::string& value, Base base)
   switch (base)
   {
     case DEC:
-      val << "(_ bv" << value << " " << sort->get_bv_size() << ")";
+      if (value[0] == '-')
+      {
+        std::string abs_val(value.begin() + 1, value.end());
+        val << "(bvneg (_ bv" << abs_val << " " << sort->get_bv_size() << "))";
+      }
+      else
+      {
+        val << "(_ bv" << value << " " << sort->get_bv_size() << ")";
+      }
       break;
 
     case HEX:
