@@ -2103,7 +2103,6 @@ ActionMkTerm::_run(Op::Kind kind,
   }
 
   Term res = d_solver.mk_term(kind, args, indices);
-  res->set_sort(infer_sort(kind, sort_kind, args, indices));
   // MURXLA_TEST(res->get_sort() == nullptr
   //             || d_solver.get_sort(res, sort_kind)->equals(res->get_sort()));
 
@@ -2134,38 +2133,6 @@ ActionMkTerm::_run(Op::Kind kind,
   MURXLA_TRACE_RETURN << res << " " << res_sort;
   check_term(res);
   return {res->get_id(), res_sort->get_id()};
-}
-
-Sort
-ActionMkTerm::infer_sort(Op::Kind kind,
-                         SortKind sort_kind,
-                         const std::vector<Term>& args,
-                         const std::vector<uint32_t>& indices)
-{
-  Sort res;
-
-  if (kind == Op::ARRAY_STORE)
-  {
-    res = args[0]->get_sort();
-  }
-  else if (kind == Op::ARRAY_SELECT)
-  {
-    const auto& sorts = args[0]->get_sort()->get_sorts();
-    assert(sorts.size() == 2);
-    res = sorts[1];
-  }
-  else if (kind == Op::ITE)
-  {
-    res = args[1]->get_sort();
-  }
-  else
-  {
-    res = nullptr;
-  }
-
-  assert(res == nullptr || res->get_kind() == sort_kind);
-
-  return res;
 }
 
 std::vector<uint64_t>

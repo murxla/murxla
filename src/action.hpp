@@ -423,16 +423,6 @@ class ActionMkTerm : public Action
    */
   Term mk_set_value(const Sort& element_sort);
 
-  /**
-   * Sort inference used by ActionMkTer::_run().
-   *
-   * Implements sort inference for some operators instead of asking the solver.
-   */
-  Sort infer_sort(Op::Kind kind,
-                  SortKind sort_kind,
-                  const std::vector<Term>& args,
-                  const std::vector<uint32_t>& indices);
-
   std::vector<uint32_t> d_n_args_weights;
 };
 
