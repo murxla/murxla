@@ -2180,6 +2180,7 @@ class BtorActionSimplify : public Action
   void _run()
   {
     MURXLA_TRACE << get_kind();
+    reset_sat();
     boolector_simplify(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
   }
@@ -2380,7 +2381,6 @@ BtorSolver::configure_fsm(FSM* fsm) const
   State* s_opt              = fsm->get_state(State::OPT);
   State* s_push_pop         = fsm->get_state(State::PUSH_POP);
   State* s_sat              = fsm->get_state(State::SAT);
-  State* s_unsat            = fsm->get_state(State::UNSAT);
   State* s_decide_sat_unsat = fsm->get_state(State::DECIDE_SAT_UNSAT);
 
   /* Solver-specific states. */
@@ -2443,8 +2443,6 @@ BtorSolver::configure_fsm(FSM* fsm) const
   s_opt->add_action(a_simplify, 1000);
   s_push_pop->add_action(a_simplify, 1000);
   s_check_sat->add_action(a_simplify, 1000, s_assert);
-  s_sat->add_action(a_simplify, 1000, s_assert);
-  s_unsat->add_action(a_simplify, 1000, s_assert);
 
   // boolector_set_sat_solver
   auto a_set_sat_solver = fsm->new_action<BtorActionSetSatSolver>();
