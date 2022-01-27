@@ -2836,6 +2836,15 @@ Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
     throw MurxlaSolverOptionException("incompatible option");
   }
 
+  // TODO: remove after solver configuration refactor
+  if ((opt == "assign-function-values" && value == "false"
+       && d_solver->getOption("produce-models") == "true")
+      || (opt == "produce-models" && value == "true"
+          && d_solver->getOption("assign-function-values") == "false"))
+  {
+    throw MurxlaSolverOptionException("incompatible option");
+  }
+
   d_solver->setOption(opt, value);
   d_enabled_options.emplace_back(opt, value);
 }
@@ -3614,7 +3623,8 @@ class Cvc5ActionBlockModel : public Action
     }
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    if (cvc5->getOption("block-models") == "none")
+    if (cvc5->getOption("block-models") == "none"
+        || cvc5->getOption("assign-function-values") == "false")
     {
       d_disable = true;
       return false;
@@ -3663,7 +3673,8 @@ class Cvc5ActionBlockModelValues : public Action
     }
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    if (cvc5->getOption("produce-assertions") == "false")
+    if (cvc5->getOption("produce-assertions") == "false"
+        || cvc5->getOption("assign-function-values") == "false")
     {
       d_disable = true;
       return false;
