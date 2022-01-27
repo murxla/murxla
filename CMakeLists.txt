@@ -1,3 +1,12 @@
+###
+# Murxla: A Model-Based API Fuzzer for SMT solvers.
+#
+# This file is part of Murxla.
+#
+# Copyright (C) 2019-2022 by the authors listed in the AUTHORS file.
+#
+# See LICENSE for more information on using this software.
+##
 cmake_minimum_required(VERSION 3.3)
 
 #-----------------------------------------------------------------------------#
@@ -26,6 +35,7 @@ option(ENABLE_BITWUZLA "enable Bitwuzla" ON)
 option(ENABLE_CVC5 "enable cvc5" ON)
 option(ENABLE_YICES "enable Yices" ON)
 option(ASAN "compile with ASAN support" OFF)
+option(DOCS "build documentation" OFF)
 
 #-----------------------------------------------------------------------------#
 
@@ -68,6 +78,7 @@ if(WITH_TESTS)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Find enabled dependencies
 
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
 if(ENABLE_BOOLECTOR)
@@ -105,4 +116,13 @@ if(GCOV)
     DEPENDENCIES murxla)
 endif()
 
+#-----------------------------------------------------------------------------#
+# Add subdirectories
+
 add_subdirectory(src)
+
+if(DOCS)
+  find_package(PythonInterp 3 REQUIRED)
+  add_subdirectory(docs)
+endif()
+
