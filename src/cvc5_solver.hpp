@@ -1,3 +1,12 @@
+/***
+ * Murxla: A Model-Based API Fuzzer for SMT solvers.
+ *
+ * This file is part of Murxla.
+ *
+ * Copyright (C) 2019-2022 by the authors listed in the AUTHORS file.
+ *
+ * See LICENSE for more information on using this software.
+ */
 #ifdef MURXLA_USE_CVC5
 
 #ifndef __MURXLA__CVC5_SOLVER_H
