@@ -1989,7 +1989,7 @@ class BtorActionFixateAssumptions : public Action
   void _run()
   {
     MURXLA_TRACE << get_kind();
-    d_smgr.clear_assumptions();
+    reset_sat();
     boolector_fixate_assumptions(
         static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver());
   }
