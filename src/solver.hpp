@@ -942,23 +942,61 @@ class Solver
   /** Return all sort kinds for which we have special values. */
   const SortKindSet& get_special_values_sort_kinds() const;
 
+  /**
+   * Return a string representation that identifies the solver configuration
+   * for enabling/disabling incremental solving.
+   */
   virtual std::string get_option_name_incremental() const       = 0;
+  /**
+   * Return a string representation that identifies the solver configuration
+   * for enabling/disabling model production.
+   */
   virtual std::string get_option_name_model_gen() const         = 0;
+  /**
+   * Return a string representation that identifies the solver configuration
+   * for enabling/disabling unsat assumptions production.
+   */
   virtual std::string get_option_name_unsat_assumptions() const = 0;
+  /**
+   * Return a string representation that identifies the solver configuration
+   * for enabling/disabling unsat cores production.
+   */
   virtual std::string get_option_name_unsat_cores() const       = 0;
 
+  /** Return true if incremental solving is currently enabled. */
   virtual bool option_incremental_enabled() const       = 0;
+  /** Return true if model production is currently enabled. */
   virtual bool option_model_gen_enabled() const         = 0;
+  /** Return true if unsat assumptions production is currently enabled. */
   virtual bool option_unsat_assumptions_enabled() const = 0;
+  /** Return true if unsat cores production is currently enabled. */
   virtual bool option_unsat_cores_enabled() const       = 0;
 
+  /** Return true if given term is an unsat assumption. */
   virtual bool is_unsat_assumption(const Term& t) const = 0;
 
+  /**
+   * SMT-LIB: (assert <term>)
+   *
+   * Assert given formula.
+   */
   virtual void assert_formula(const Term& t) = 0;
 
+  /**
+   * SMT-LIB: (check-sat)
+   *
+   * Check satisfiability of currently asserted formulas.
+   */
   virtual Result check_sat()                                        = 0;
+  /**
+   * SMT-LIB: (check-sat-assuming)
+   *
+   * Check satisfiability of currently asserted formulas under the given set of
+   * assumptions.
+   */
   virtual Result check_sat_assuming(const std::vector<Term>& assumptions) = 0;
 
+  /** Return the current set of unsat assumptions. */
   virtual std::vector<Term> get_unsat_assumptions() = 0;
 
   /**
