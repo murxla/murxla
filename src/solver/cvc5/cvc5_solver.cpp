@@ -1575,7 +1575,7 @@ Cvc5Solver::mk_sort(
           {
             const std::string& symbol =
                 checked_cast<UnresolvedSort*>(ssort.get())->get_symbol();
-            const auto& it = symbol_to_cvc5_usorts.find(symbol);
+            const auto& it         = symbol_to_cvc5_usorts.find(symbol);
             const auto& inst_sorts = ssort->get_sorts();
             size_t arity           = inst_sorts.size();
             ::cvc5::api::Sort cvc5_unres_sort;
@@ -1781,7 +1781,7 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
 {
   ::cvc5::api::Term cvc5_res;
   ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
-  SortKind sort_kind        = sort->get_kind();
+  SortKind sort_kind          = sort->get_kind();
 
   switch (sort_kind)
   {
@@ -1895,7 +1895,7 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value, Base base)
 
   ::cvc5::api::Term cvc5_res;
   ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
-  uint32_t bw               = sort->get_bv_size();
+  uint32_t bw                 = sort->get_bv_size();
 
   switch (base)
   {
@@ -2968,9 +2968,8 @@ Cvc5Solver::check_sort(Sort sort)
     }
 
     ::cvc5::api::Term cvc5_ctor_term =
-        d_rng.flip_coin()
-            ? cvc5_dt.getConstructorTerm(ctor)
-            : cvc5_dt.getConstructor(ctor).getConstructorTerm();
+        d_rng.flip_coin() ? cvc5_dt.getConstructorTerm(ctor)
+                          : cvc5_dt.getConstructor(ctor).getConstructorTerm();
     MURXLA_TEST(cvc5_ctor_term.getSort().isConstructor());
 
     ::cvc5::api::Term cvc5_tester_term =
@@ -2998,9 +2997,8 @@ Cvc5Solver::check_sort(Sort sort)
           d_rng.pick_from_set<decltype(sel_names), std::string>(sel_names);
 
       ::cvc5::api::DatatypeSelector cvc5_sel =
-          d_rng.flip_coin()
-              ? cvc5_dt.getSelector(sel)
-              : cvc5_dt.getConstructor(ctor).getSelector(sel);
+          d_rng.flip_coin() ? cvc5_dt.getSelector(sel)
+                            : cvc5_dt.getConstructor(ctor).getSelector(sel);
 
       ::cvc5::api::Term cvc5_sel_term = cvc5_sel.getSelectorTerm();
 
@@ -3962,7 +3960,7 @@ class Cvc5ActionTermSubstitute : public Action
   {
     MURXLA_CHECK_TRACE_NTOKENS_MIN(5, "", tokens.size());
 
-    Term term          = get_untraced_term(untrace_str_to_id(tokens[0]));
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
 
     uint32_t idx              = 1;

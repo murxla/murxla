@@ -718,8 +718,8 @@ ShadowSolver::get_supported_theories() const
 {
   TheoryIdVector supported;
 
-  auto supported_orig = d_solver->get_supported_theories();
-  auto supported_shadow  = d_solver_shadow->get_supported_theories();
+  auto supported_orig   = d_solver->get_supported_theories();
+  auto supported_shadow = d_solver_shadow->get_supported_theories();
 
   /* Return intersection of supported theories. */
   for (auto theory : supported_orig)
@@ -739,8 +739,8 @@ TheoryIdVector
 ShadowSolver::get_unsupported_quant_theories() const
 {
   TheoryIdVector unsupported;
-  auto unsupported_orig = d_solver->get_unsupported_quant_theories();
-  auto unsupported_shadow  = d_solver_shadow->get_unsupported_quant_theories();
+  auto unsupported_orig   = d_solver->get_unsupported_quant_theories();
+  auto unsupported_shadow = d_solver_shadow->get_unsupported_quant_theories();
   unsupported.insert(
       unsupported.end(), unsupported_orig.begin(), unsupported_orig.end());
   unsupported.insert(
@@ -972,7 +972,7 @@ ShadowSolver::mk_sort(
 
       for (const auto& s : sels)
       {
-        const auto& sname = s.first;
+        const auto& sname  = s.first;
         auto& sel_sort     = s.second;
         Sort sel_sort_orig = sel_sort, sel_sort_shadow = sel_sort;
         if (sel_sort && !sel_sort->is_param_sort())
@@ -1162,7 +1162,7 @@ ShadowSolver::assert_formula(const Term& t)
 Solver::Result
 ShadowSolver::check_sat()
 {
-  Result res_orig = d_solver->check_sat();
+  Result res_orig   = d_solver->check_sat();
   Result res_shadow = d_solver_shadow->check_sat();
   if (res_orig != Result::UNKNOWN && res_shadow != Result::UNKNOWN)
   {
@@ -1178,8 +1178,8 @@ ShadowSolver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
   std::vector<Term> assumptions_orig, assumptions_shadow;
   get_terms_helper(assumptions, assumptions_orig, assumptions_shadow);
-  Result res_orig = d_solver->check_sat_assuming(assumptions_orig);
-  Result res_shadow  = d_solver_shadow->check_sat_assuming(assumptions_shadow);
+  Result res_orig   = d_solver->check_sat_assuming(assumptions_orig);
+  Result res_shadow = d_solver_shadow->check_sat_assuming(assumptions_shadow);
   if (res_orig != Result::UNKNOWN && res_shadow != Result::UNKNOWN)
   {
     MURXLA_TEST(res_orig == res_shadow)

@@ -10,7 +10,7 @@
 #include "statistics.hpp"
 
 #include "op.hpp"
-#include "solver.hpp"
+#include "solver/solver.hpp"
 
 namespace murxla {
 namespace statistics {

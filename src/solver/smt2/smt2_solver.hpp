@@ -11,7 +11,7 @@
 #define __MURXLA__SMT2_SOLVER_H
 
 #include "fsm.hpp"
-#include "solver.hpp"
+#include "solver/solver.hpp"
 #include "theory.hpp"
 
 /* -------------------------------------------------------------------------- */
@@ -479,16 +479,16 @@ class Smt2Solver : public Solver
   FILE* d_file_to     = nullptr;
   FILE* d_file_from   = nullptr;
 
-  bool d_initialized          = false;
-  bool d_incremental          = false;
-  bool d_model_gen            = false;
-  bool d_unsat_assumptions     = false;
-  bool d_unsat_cores           = false;
-  uint32_t d_n_unnamed_consts = 0;
-  uint32_t d_n_unnamed_ufs    = 0;
-  uint32_t d_n_unnamed_vars   = 0;
+  bool d_initialized               = false;
+  bool d_incremental               = false;
+  bool d_model_gen                 = false;
+  bool d_unsat_assumptions         = false;
+  bool d_unsat_cores               = false;
+  uint32_t d_n_unnamed_consts      = 0;
+  uint32_t d_n_unnamed_ufs         = 0;
+  uint32_t d_n_unnamed_vars        = 0;
   uint64_t d_define_sort_param_cnt = 0;
-  Solver::Result d_last_result = Solver::Result::UNKNOWN;
+  Solver::Result d_last_result     = Solver::Result::UNKNOWN;
 
   static constexpr int32_t SMT2_READ_END  = 0;
   static constexpr int32_t SMT2_WRITE_END = 1;

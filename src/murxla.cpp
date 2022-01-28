@@ -18,19 +18,19 @@
 #include <iomanip>
 #include <regex>
 
-#include "btor_solver.hpp"
-#include "bzla_solver.hpp"
-#include "check_solver.hpp"
-#include "cvc5_solver.hpp"
 #include "dd.hpp"
 #include "except.hpp"
 #include "fs.hpp"
 #include "fsm.hpp"
-#include "shadow_solver.hpp"
-#include "smt2_solver.hpp"
+#include "solver/btor/btor_solver.hpp"
+#include "solver/bzla/bzla_solver.hpp"
+#include "solver/cvc5/cvc5_solver.hpp"
+#include "solver/meta/check_solver.hpp"
+#include "solver/meta/shadow_solver.hpp"
+#include "solver/smt2/smt2_solver.hpp"
+#include "solver/yices/yices_solver.hpp"
 #include "statistics.hpp"
 #include "util.hpp"
-#include "yices_solver.hpp"
 
 namespace murxla {
 

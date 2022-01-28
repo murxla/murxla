@@ -100,7 +100,7 @@ bool
 BzlaSort::is_bool() const
 {
   const BitwuzlaSort* s = bitwuzla_mk_bool_sort(d_solver);
-  bool res        = s == d_sort;
+  bool res              = s == d_sort;
   return res && d_kind == SORT_BOOL;
 }
 
@@ -1117,7 +1117,7 @@ BzlaSolver::mk_value(Sort sort, const std::string& value, Base base)
 
   const BitwuzlaTerm* bzla_res;
   const BitwuzlaSort* bzla_sort = BzlaSort::get_bzla_sort(sort);
-  uint32_t bw             = sort->get_bv_size();
+  uint32_t bw                   = sort->get_bv_size();
   int32_t ibase;
   BitwuzlaBVBase cbase;
 
@@ -1259,9 +1259,9 @@ BzlaSolver::mk_term(const Op::Kind& kind,
       << "BzlaSolver: operator kind '" << kind << "' not configured";
 
   const BitwuzlaTerm* bzla_res = nullptr;
-  size_t n_args          = args.size();
+  size_t n_args                = args.size();
   size_t n_indices             = indices.size();
-  BitwuzlaKind bzla_kind = BzlaTerm::s_kinds_to_bzla_kinds.at(kind);
+  BitwuzlaKind bzla_kind       = BzlaTerm::s_kinds_to_bzla_kinds.at(kind);
   std::vector<BitwuzlaTerm*> vars;
   std::vector<const BitwuzlaTerm*> bzla_args =
       BzlaTerm::terms_to_bzla_terms(args);
@@ -1321,7 +1321,7 @@ BzlaSolver::mk_term(const Op::Kind& kind,
        * only from strings representing real or rational values. */
 
       const BitwuzlaSort* bzla_sort = bitwuzla_term_get_sort(bzla_args[1]);
-      auto choice             = d_rng.pick_one_of_three();
+      auto choice                   = d_rng.pick_one_of_three();
       if (choice == RNGenerator::Choice::FIRST)
       {
         bzla_res =

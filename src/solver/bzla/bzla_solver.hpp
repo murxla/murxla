@@ -14,7 +14,7 @@
 
 #include "bitwuzla/bitwuzla.h"
 #include "fsm.hpp"
-#include "solver.hpp"
+#include "solver/solver.hpp"
 #include "theory.hpp"
 
 namespace murxla {
@@ -57,7 +57,7 @@ class BzlaSort : public AbsSort
   std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
-  Bitwuzla* d_solver   = nullptr;
+  Bitwuzla* d_solver         = nullptr;
   const BitwuzlaSort* d_sort = nullptr;
 };
 
@@ -152,10 +152,10 @@ class BzlaSolver : public Solver
   /** Solver-specific actions. */
   inline static const Action::Kind ACTION_GET_ARRAY_VALUE =
       "bzla-get-array-value";
-  inline static const Action::Kind ACTION_GET_BV_VALUE = "bzla-get-bv-value";
-  inline static const Action::Kind ACTION_GET_FP_VALUE = "bzla-get-fp-value";
+  inline static const Action::Kind ACTION_GET_BV_VALUE  = "bzla-get-bv-value";
+  inline static const Action::Kind ACTION_GET_FP_VALUE  = "bzla-get-fp-value";
   inline static const Action::Kind ACTION_GET_FUN_VALUE = "bzla-get-fun-value";
-  inline static const Action::Kind ACTION_GET_RM_VALUE = "bzla-get-rm-value";
+  inline static const Action::Kind ACTION_GET_RM_VALUE  = "bzla-get-rm-value";
   inline static const Action::Kind ACTION_IS_UNSAT_ASSUMPTION =
       "bzla-is-unsat-assumption";
   inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =

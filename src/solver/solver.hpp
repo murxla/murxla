@@ -49,9 +49,9 @@ class AbsSort
   /* ---------------------------------------------------------------------- */
 
   /** Get the hash value of this sort. */
-  virtual size_t hash() const                                      = 0;
+  virtual size_t hash() const = 0;
   /** Get a string representation of this sort. */
-  virtual std::string to_string() const                            = 0;
+  virtual std::string to_string() const = 0;
   /** Return true if this sort is equal to the other sort. */
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
   /** Return true if this sort is not equal to the other sort. */
@@ -436,9 +436,9 @@ class AbsTerm
   virtual ~AbsTerm(){};
 
   /** Get the hash value of this term. */
-  virtual size_t hash() const                                      = 0;
+  virtual size_t hash() const = 0;
   /** Get a string representation of this term. */
-  virtual std::string to_string() const                            = 0;
+  virtual std::string to_string() const = 0;
   /** Return true if this term is equal to the other term. */
   virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
   /** Return true if this term is not equal to the other term. */
@@ -633,7 +633,7 @@ class AbsTerm
    * Special value kind.
    * SPECIAL_VALUE_NONE if not a value or no special value.
    */
-  SpecialValueKind d_value_kind  = SPECIAL_VALUE_NONE;
+  SpecialValueKind d_value_kind = SPECIAL_VALUE_NONE;
   /* Stores (sorted) list of unique scope levels of all subterms. */
   std::vector<uint64_t> d_levels = {};
 };
@@ -683,7 +683,7 @@ class Solver
   using OpKindSortKindMap = std::unordered_map<Op::Kind, SortKindSet>;
 
   Solver(SolverSeedGenerator& sng);
-  Solver() = delete;
+  Solver()          = delete;
   virtual ~Solver() = default;
 
   /** Create and initialize wrapped solver. */
@@ -784,7 +784,6 @@ class Solver
    * Get the set of sort kinds that are unsupported for get-value.
    */
   virtual SortKindSet get_unsupported_get_value_sort_kinds() const;
-
 
   virtual void configure_fsm(FSM* fsm) const;
   virtual void disable_unsupported_actions(FSM* fsm) const;
@@ -955,12 +954,12 @@ class Solver
    * Return a string representation that identifies the solver configuration
    * for enabling/disabling incremental solving.
    */
-  virtual std::string get_option_name_incremental() const       = 0;
+  virtual std::string get_option_name_incremental() const = 0;
   /**
    * Return a string representation that identifies the solver configuration
    * for enabling/disabling model production.
    */
-  virtual std::string get_option_name_model_gen() const         = 0;
+  virtual std::string get_option_name_model_gen() const = 0;
   /**
    * Return a string representation that identifies the solver configuration
    * for enabling/disabling unsat assumptions production.
@@ -970,16 +969,16 @@ class Solver
    * Return a string representation that identifies the solver configuration
    * for enabling/disabling unsat cores production.
    */
-  virtual std::string get_option_name_unsat_cores() const       = 0;
+  virtual std::string get_option_name_unsat_cores() const = 0;
 
   /** Return true if incremental solving is currently enabled. */
-  virtual bool option_incremental_enabled() const       = 0;
+  virtual bool option_incremental_enabled() const = 0;
   /** Return true if model production is currently enabled. */
-  virtual bool option_model_gen_enabled() const         = 0;
+  virtual bool option_model_gen_enabled() const = 0;
   /** Return true if unsat assumptions production is currently enabled. */
   virtual bool option_unsat_assumptions_enabled() const = 0;
   /** Return true if unsat cores production is currently enabled. */
-  virtual bool option_unsat_cores_enabled() const       = 0;
+  virtual bool option_unsat_cores_enabled() const = 0;
 
   /** Return true if given term is an unsat assumption. */
   virtual bool is_unsat_assumption(const Term& t) const = 0;
@@ -996,7 +995,7 @@ class Solver
    *
    * Check satisfiability of currently asserted formulas.
    */
-  virtual Result check_sat()                                        = 0;
+  virtual Result check_sat() = 0;
   /**
    * SMT-LIB: (check-sat-assuming)
    *

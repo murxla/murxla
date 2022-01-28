@@ -14,7 +14,7 @@
 
 #include "boolector/boolector.h"
 #include "fsm.hpp"
-#include "solver.hpp"
+#include "solver/solver.hpp"
 #include "theory.hpp"
 
 namespace murxla {
@@ -103,7 +103,7 @@ class BtorTerm : public AbsTerm
 
  private:
   /** The associated Boolector instance. */
-  Btor* d_solver        = nullptr;
+  Btor* d_solver = nullptr;
   /** The wrapped Boolector term. */
   BoolectorNode* d_term = nullptr;
 };
@@ -125,7 +125,7 @@ class BtorSolver : public Solver
   inline static const Action::Kind ACTION_FAILED        = "btor-failed";
   inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
       "btor-fixate-assumptions";
-  inline static const Action::Kind ACTION_MISC = "btor-misc";
+  inline static const Action::Kind ACTION_MISC        = "btor-misc";
   inline static const Action::Kind ACTION_PRINT_PARSE = "btor-print-parse";
   inline static const Action::Kind ACTION_RESET_ASSUMPTIONS =
       "btor-reset-assumptions";

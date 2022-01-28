@@ -15,7 +15,7 @@
 #include <bitset>
 
 #include "fsm.hpp"
-#include "solver.hpp"
+#include "solver/solver.hpp"
 #include "theory.hpp"
 #include "yices.h"
 

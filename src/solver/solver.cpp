@@ -7,7 +7,7 @@
  *
  * See LICENSE for more information on using this software.
  */
-#include "solver.hpp"
+#include "solver/solver.hpp"
 
 #include <algorithm>
 

@@ -16,7 +16,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "solver.hpp"
+#include "solver/solver.hpp"
 #include "solver_option.hpp"
 #include "sort.hpp"
 #include "term_db.hpp"

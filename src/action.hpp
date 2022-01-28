@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include "solver.hpp"
+#include "solver/solver.hpp"
 
 /* -------------------------------------------------------------------------- */
 
@@ -38,6 +38,7 @@ namespace murxla {
 /* -------------------------------------------------------------------------- */
 
 class RNGenerator;
+class Solver;
 class SolverManager;
 class State;
 

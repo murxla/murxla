@@ -1831,7 +1831,7 @@ YicesSolver::check_sat_assuming(const std::vector<Term>& assumptions)
   // TODO parameters?
   std::vector<term_t> yices_assumptions =
       YicesTerm::terms_to_yices_terms(assumptions);
-  smt_status_t res                      = yices_check_context_with_assumptions(
+  smt_status_t res = yices_check_context_with_assumptions(
       d_context, nullptr, yices_assumptions.size(), yices_assumptions.data());
   if (res == STATUS_SAT) return Result::SAT;
   if (res == STATUS_UNSAT) return Result::UNSAT;

@@ -14,7 +14,7 @@
 
 #include "cvc5/cvc5.h"
 #include "fsm.hpp"
-#include "solver.hpp"
+#include "solver/solver.hpp"
 
 namespace murxla {
 namespace cvc5 {
@@ -189,7 +189,7 @@ class Cvc5Solver : public Solver
   /** Solver-specific actions. */
   inline static const Action::Kind ACTION_CHECK_ENTAILED =
       "cvc5-check-entailed";
-  inline static const Action::Kind ACTION_SIMPLIFY = "cvc5-simplify";
+  inline static const Action::Kind ACTION_SIMPLIFY   = "cvc5-simplify";
   inline static const Action::Kind ACTION_GET_ABDUCT = "cvc5-get-abduct";
   inline static const Action::Kind ACTION_GET_DIFFICULTY =
       "cvc5-get-difficulty";
@@ -373,4 +373,3 @@ class Cvc5Solver : public Solver
 #endif
 
 #endif
-

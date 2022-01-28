@@ -1374,7 +1374,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       }
       ssort << ")";
       smt2 << ") ";
-      Sort codomain = sorts.back();
+      Sort codomain        = sorts.back();
       const auto smt2_sort = static_cast<Smt2Sort*>(codomain.get());
       if (sorts_map.find(codomain) == sorts_map.end())
       {

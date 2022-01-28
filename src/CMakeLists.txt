@@ -7,12 +7,9 @@
 #
 # See LICENSE for more information on using this software.
 ##
+
 set(murxla_src_files
   action.cpp
-  btor_solver.cpp
-  bzla_solver.cpp
-  check_solver.cpp
-  cvc5_solver.cpp
   dd.cpp
   except.cpp
   fsm.cpp
@@ -21,9 +18,6 @@ set(murxla_src_files
   op.cpp
   result.cpp
   rng.cpp
-  shadow_solver.cpp
-  smt2_solver.cpp
-  solver.cpp
   solver_manager.cpp
   solver_option.cpp
   sort.cpp
@@ -31,10 +25,19 @@ set(murxla_src_files
   term_db.cpp
   theory.cpp
   util.cpp
-  yices_solver.cpp
+  solver/solver.cpp
+  solver/btor/btor_solver.cpp
+  solver/bzla/bzla_solver.cpp
+  solver/cvc5/cvc5_solver.cpp
+  solver/yices/yices_solver.cpp
+  solver/smt2/smt2_solver.cpp
+  solver/meta/check_solver.cpp
+  solver/meta/shadow_solver.cpp
 )
 
 add_executable(murxla ${murxla_src_files})
+target_include_directories(murxla PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
 if(GCOV)
   target_compile_definitions(murxla PUBLIC MURXLA_COVERAGE)
 endif()

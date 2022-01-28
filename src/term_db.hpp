@@ -13,7 +13,7 @@
 #include <cstddef>
 #include <iterator>
 
-#include "solver.hpp"
+#include "solver/solver.hpp"
 
 namespace murxla {
 

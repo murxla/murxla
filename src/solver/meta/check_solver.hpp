@@ -10,7 +10,7 @@
 #ifndef __MURXLA__CHECK_SOLVER_H
 #define __MURXLA__CHECK_SOLVER_H
 
-#include "shadow_solver.hpp"
+#include "solver/meta/shadow_solver.hpp"
 
 namespace murxla {
 

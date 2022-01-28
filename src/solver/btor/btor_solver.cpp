@@ -21,7 +21,7 @@
 #include "util.hpp"
 
 extern "C" {
-void boolector_chkclone (Btor *);
+void boolector_chkclone(Btor*);
 }
 
 namespace murxla {
@@ -609,7 +609,7 @@ BtorSolver::mk_const(Sort sort, const std::string& name)
   }
   else if (sort->get_kind() == SORT_FUN)
   {
-    btor_res = boolector_uf(d_solver, BtorSort::get_btor_sort(sort), cname);
+    btor_res  = boolector_uf(d_solver, BtorSort::get_btor_sort(sort), cname);
     d_have_uf = true;
   }
   else
