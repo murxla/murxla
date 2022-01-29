@@ -17,6 +17,7 @@
 
 #include "action.hpp"
 #include "config.hpp"
+#include "solver/btor/profile.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
@@ -429,64 +430,10 @@ BtorSolver::get_name() const
   return "Boolector";
 }
 
-TheoryIdVector
-BtorSolver::get_supported_theories() const
+const std::string
+BtorSolver::get_profile() const
 {
-  return {THEORY_ARRAY, THEORY_BV, THEORY_BOOL, THEORY_QUANT, THEORY_UF};
-}
-
-TheoryIdVector
-BtorSolver::get_unsupported_quant_theories() const
-{
-  return {THEORY_ARRAY, THEORY_UF};
-}
-
-SortKindSet
-BtorSolver::get_unsupported_sort_kinds() const
-{
-  return {SORT_UNINTERPRETED};
-}
-
-SortKindSet
-BtorSolver::get_unsupported_var_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BtorSolver::get_unsupported_array_index_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BtorSolver::get_unsupported_array_element_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BtorSolver::get_unsupported_fun_sort_domain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BtorSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BtorSolver::get_unsupported_fun_domain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BtorSolver::get_unsupported_fun_codomain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
+  return s_profile;
 }
 
 Sort

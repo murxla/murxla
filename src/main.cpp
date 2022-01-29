@@ -35,6 +35,7 @@
 
 using namespace murxla;
 using namespace statistics;
+using namespace nlohmann;
 
 static std::string TMP_DIR = "";
 
@@ -207,6 +208,7 @@ set_sigint_handler_stats(void)
   "  -s, --seed <int>           seed for random number generator\n"            \
   "  -S, --trace-seeds          trace seed for each API call\n"                \
   "  -t, --time <double>        time limit for MBT runs\n"                     \
+  "  -p, --profile <profile>    load solver profile\n"                         \
   "  -v, --verbosity            increase verbosity\n"                          \
   "  -m, --max-runs <int>       limit number of test runs\n"                   \
   "\n"                                                                         \
@@ -401,6 +403,12 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "-v" || arg == "--verbosity")
     {
       options.verbosity += 1;
+    }
+    else if (arg == "-p" || arg == "--profile")
+    {
+      i += 1;
+      check_next_arg(arg, i, size);
+      options.solver_profile_filename = args[i];
     }
     else if (arg == "-a" || arg == "--api-trace")
     {

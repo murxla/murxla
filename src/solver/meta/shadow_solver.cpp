@@ -7,7 +7,9 @@
  *
  * See LICENSE for more information on using this software.
  */
-#include "shadow_solver.hpp"
+#include "solver/meta/shadow_solver.hpp"
+
+#include "solver/solver_profile.hpp"
 
 namespace murxla {
 namespace shadow {
@@ -712,94 +714,12 @@ ShadowSolver::get_name() const
          + d_solver_shadow->get_name() + ")";
 }
 
-/** Return intersection of supported theories. */
-TheoryIdVector
-ShadowSolver::get_supported_theories() const
+const std::string
+ShadowSolver::get_profile() const
 {
-  TheoryIdVector supported;
-
-  auto supported_orig   = d_solver->get_supported_theories();
-  auto supported_shadow = d_solver_shadow->get_supported_theories();
-
-  /* Return intersection of supported theories. */
-  for (auto theory : supported_orig)
-  {
-    if (std::find(supported_shadow.begin(), supported_shadow.end(), theory)
-        != supported_shadow.end())
-    {
-      supported.push_back(theory);
-    }
-  }
-
-  return supported;
+  return SolverProfile::merge(d_solver->get_profile(),
+                              d_solver_shadow->get_profile());
 }
-
-/** Return union of unsupported theories. */
-TheoryIdVector
-ShadowSolver::get_unsupported_quant_theories() const
-{
-  TheoryIdVector unsupported;
-  auto unsupported_orig   = d_solver->get_unsupported_quant_theories();
-  auto unsupported_shadow = d_solver_shadow->get_unsupported_quant_theories();
-  unsupported.insert(
-      unsupported.end(), unsupported_orig.begin(), unsupported_orig.end());
-  unsupported.insert(
-      unsupported.end(), unsupported_shadow.begin(), unsupported_shadow.end());
-  return unsupported;
-}
-
-#define IMPL_UNSUPPORTED_KINDS(T, func)                                       \
-  T ShadowSolver::func() const                                                \
-  {                                                                           \
-    T unsupported;                                                            \
-    auto unsupported_orig   = d_solver->func();                               \
-    auto unsupported_shadow = d_solver_shadow->func();                        \
-    unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());     \
-    unsupported.insert(unsupported_shadow.begin(), unsupported_shadow.end()); \
-    return unsupported;                                                       \
-  }
-
-/** Return union of unsupported operators kinds. */
-IMPL_UNSUPPORTED_KINDS(OpKindSet, get_unsupported_op_kinds);
-
-Solver::OpKindSortKindMap
-ShadowSolver::get_unsupported_op_sort_kinds() const
-{
-  Solver::OpKindSortKindMap unsupported;
-  auto unsupported_orig   = d_solver->get_unsupported_op_sort_kinds();
-  auto unsupported_shadow = d_solver_shadow->get_unsupported_op_sort_kinds();
-  unsupported.insert(unsupported_orig.begin(), unsupported_orig.end());
-  // Merge sort kind sets per operator kind.
-  for (const auto& [op_kind, sort_kinds] : unsupported_shadow)
-  {
-    const auto it = unsupported.find(op_kind);
-    if (it != unsupported.end())
-    {
-      it->second.insert(sort_kinds.begin(), sort_kinds.end());
-    }
-    else
-    {
-      unsupported.emplace(op_kind, sort_kinds);
-    }
-  }
-  return unsupported;
-}
-
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_var_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_sort_param_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_dt_sel_codomain_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_dt_match_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_fun_sort_domain_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet,
-                       get_unsupported_fun_sort_codomain_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_fun_domain_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_fun_codomain_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_array_index_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_array_element_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_bag_element_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_seq_element_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_set_element_sort_kinds);
-IMPL_UNSUPPORTED_KINDS(SortKindSet, get_unsupported_get_value_sort_kinds);
 
 Term
 ShadowSolver::mk_var(Sort sort, const std::string& name)

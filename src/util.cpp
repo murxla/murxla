@@ -454,6 +454,11 @@ Terminal::defaultcolor() const
   return code("\33[39m");
 }
 const std::string
+Terminal::gray() const
+{
+  return code("\33[37m");
+}
+const std::string
 Terminal::green() const
 {
   return code("\33[92m");

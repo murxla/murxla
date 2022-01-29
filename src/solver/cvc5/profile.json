@@ -1,0 +1,145 @@
+{
+  "theories": {
+    "include": [
+      "THEORY_ARRAY",
+      "THEORY_BAG",
+      "THEORY_BOOL",
+      "THEORY_BV",
+      "THEORY_DT",
+      "THEORY_FP",
+      "THEORY_INT",
+      "THEORY_QUANT",
+      "THEORY_REAL",
+      "THEORY_SEQ",
+      "THEORY_SET",
+      "THEORY_STRING",
+      "THEORY_TRANSCENDENTAL",
+      "THEORY_UF"
+    ]
+  },
+
+  "operators": {
+    "exclude": [
+      "OP_BAG_CHOOSE",
+      "OP_BAG_FROM_SET",
+      "OP_BAG_MAP",
+      "OP_BAG_TO_SET",
+      "OP_BAG_IS_SINGLETON",
+      "OP_IFF"
+    ],
+
+    "sort-restrictions": {
+      "OP_DISTINCT": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ],
+      "OP_EQUAL": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ],
+      "OP_ITE": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    }
+  },
+
+  "sorts": {
+    "array-index": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "array-element": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "bag-element": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "datatype-match": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "datatype-selector-codomain": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "fun-domain": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "fun-codomain": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "fun-sort-domain": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "fun-sort-codomain": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "get-value": {
+      "exclude": [
+        "SORT_REGLAN"
+      ]
+    },
+
+    "seq-element": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "set-element": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    },
+
+    "sort-param": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "var": {
+      "exclude": [
+        "SORT_FUN",
+        "SORT_REGLAN"
+      ]
+    }
+  }
+}

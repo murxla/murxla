@@ -168,16 +168,7 @@ class BtorSolver : public Solver
 
   const std::string get_name() const override;
 
-  TheoryIdVector get_supported_theories() const override;
-  TheoryIdVector get_unsupported_quant_theories() const override;
-  SortKindSet get_unsupported_sort_kinds() const override;
-  SortKindSet get_unsupported_var_sort_kinds() const override;
-  SortKindSet get_unsupported_array_index_sort_kinds() const override;
-  SortKindSet get_unsupported_array_element_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
+  const std::string get_profile() const override;
 
   void configure_fsm(FSM* fsm) const override;
   void disable_unsupported_actions(FSM* fsm) const override;

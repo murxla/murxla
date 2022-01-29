@@ -145,25 +145,7 @@ class ShadowSolver : public Solver
   void delete_solver() override;
   bool is_initialized() const override;
   const std::string get_name() const override;
-
-  TheoryIdVector get_supported_theories() const override;
-  TheoryIdVector get_unsupported_quant_theories() const override;
-  OpKindSet get_unsupported_op_kinds() const override;
-  OpKindSortKindMap get_unsupported_op_sort_kinds() const override;
-  SortKindSet get_unsupported_var_sort_kinds() const override;
-  SortKindSet get_unsupported_sort_param_sort_kinds() const override;
-  SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const override;
-  SortKindSet get_unsupported_dt_match_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
-  SortKindSet get_unsupported_array_index_sort_kinds() const override;
-  SortKindSet get_unsupported_array_element_sort_kinds() const override;
-  SortKindSet get_unsupported_bag_element_sort_kinds() const override;
-  SortKindSet get_unsupported_seq_element_sort_kinds() const override;
-  SortKindSet get_unsupported_set_element_sort_kinds() const override;
-  SortKindSet get_unsupported_get_value_sort_kinds() const override;
+  const std::string get_profile() const override;
 
   Term mk_var(Sort sort, const std::string& name) override;
   Term mk_const(Sort sort, const std::string& name) override;

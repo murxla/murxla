@@ -91,6 +91,7 @@ class Terminal
   void erase(std::ostream& out) const;
   const std::string blue() const;
   const std::string defaultcolor() const;
+  const std::string gray() const;
   const std::string green() const;
   const std::string red() const;
 

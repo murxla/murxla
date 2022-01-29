@@ -22,3 +22,6 @@ BreakBeforeBraces: Custom
 CommentPragmas: '^\w*(:param|:return|\.\. note)'
 ...
 
+---
+Language: Json
+...

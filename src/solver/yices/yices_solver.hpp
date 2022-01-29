@@ -144,13 +144,7 @@ class YicesSolver : public Solver
   void delete_solver() override;
   bool is_initialized() const override;
   const std::string get_name() const override;
-
-  TheoryIdVector get_supported_theories() const override;
-  SortKindSet get_unsupported_array_index_sort_kinds() const override;
-  SortKindSet get_unsupported_array_element_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const override;
-  SortKindSet get_unsupported_get_value_sort_kinds() const override;
+  const std::string get_profile() const override;
 
   void disable_unsupported_actions(FSM* fsm) const override;
   void configure_opmgr(OpKindManager* opmgr) const override;

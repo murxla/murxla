@@ -1,0 +1,80 @@
+{
+  "theories": {
+    "include": [
+      "THEORY_ARRAY",
+      "THEORY_BV",
+      "THEORY_BOOL",
+      "THEORY_QUANT",
+      "THEORY_UF"
+    ],
+
+    "exclude-combinations": {
+      "THEORY_QUANT": [
+        "THEORY_ARRAY",
+        "THEORY_UF"
+      ]
+    }
+  },
+
+  "sorts": {
+    "exclude": [
+      "SORT_UNINTERPRETED"
+    ],
+
+    "array-index": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "array-element": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-sort-domain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-sort-codomain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-domain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-codomain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "var": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    }
+  },
+
+  "errors": {
+    "exclude": [
+      "[boolector] boolector_ne: parameterized function equalities not supported",
+      "[boolector] boolector_eq: parameterized function equalities not supported"
+    ]
+  }
+}

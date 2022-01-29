@@ -77,6 +77,7 @@ class AbsSort
    * @return  True if this sort is equal to the other sort.
    */
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
+
   /**
    * Determine if this sort is not equal to the given sort.
    * @param other  The sort to compare this sort to.
@@ -1192,173 +1193,14 @@ class Solver
    * @return  The solver name.
    */
   virtual const std::string get_name() const = 0;
+  /** Return solver profile JSON string. */
+  virtual const std::string get_profile() const { return "{}"; };
 
   /**
    * Get the random number generator of this solver.
    * @return  The RNG of this solver.
    */
   RNGenerator& get_rng() { return d_rng; }
-
-  /**
-   * Determin if the wrapped solver supports a given theory.
-   * @param theory  The TheoryId of the theory.
-   * @return  True if solver supports the given theory.
-   */
-  bool supports_theory(TheoryId theory) const;
-  /**
-   * Get the set of supported theories of the wrapped solver.
-   * @return  A vector with the set of supported theories.
-   */
-  virtual TheoryIdVector get_supported_theories() const;
-  /**
-   * Get the set of theories that are unsupported when #THEORY_QUANT
-   * is enabled.
-   *
-   * This allows to restrict quantified formulas to a specific subset of the
-   * enabled theories.
-   *
-   * @return  A vector with the set of supported theories when #THEORY_QUANT is
-   *          enabled.
-   */
-  virtual TheoryIdVector get_unsupported_quant_theories() const;
-  /**
-   * Get the set of unsupported operator kinds (see Op::Kind).
-   * @return  A vector with the set of unsupported operator kinds.
-   */
-  virtual OpKindSet get_unsupported_op_kinds() const;
-  /**
-   * Get the set of unsupported sort kinds (see murxla::SortKind).
-   * @return  A vector with the set of unsupported sort kinds.
-   */
-  virtual SortKindSet get_unsupported_sort_kinds() const;
-
-  /**
-   * Get operator sort restrictions.
-   *
-   * Maps operator kind to a set of excluded sort kinds. This is only relevant
-   * for operators that allow kind #SORT_ANY.
-   *
-   * By default, this is configured to exclude sort kinds that would allow
-   * to create higher-order terms.
-   *
-   * @return  A map from operator kind (Op::Kind) to a set of excluded sort
-   *          kinds (murxla::SortKind).
-   */
-  virtual OpKindSortKindMap get_unsupported_op_sort_kinds() const;
-
-  /**
-   * Get the set of sort kinds that are unsupported for quantified variables.
-   *
-   * @note  This is different from get_unsupported_quant_sort_kinds() in that
-   *        it only disallows quantified variables of these sort kinds.
-   *        Other terms of these sort kinds may occur in quantified formulas.
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported for
-   *          quantified variables.
-   */
-  virtual SortKindSet get_unsupported_var_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported as sort parameters
-   * (e.g., for parametric datatype sorts).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported for
-   *          sort parameters.
-   */
-  virtual SortKindSet get_unsupported_sort_param_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported as datatype
-   * selector codomain sort.
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          for datatype selector codomain sorts.
-   */
-  virtual SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported as sort of match terms
-   * for operator Op::DT_MATCH.
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          for match terms of operator Op::DT_MATCH.
-   */
-  virtual SortKindSet get_unsupported_dt_match_sort_kinds() const;
-  /**
-   * Get set of unsupported domain sort kinds for function sorts
-   * (see mk_sort()).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as domain sorts for function sorts.
-   */
-  virtual SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const;
-  /**
-   * Get set of unsupported codomain sort kinds for function sorts
-   * (see mk_sort()).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as codomain sort for function sorts.
-   */
-  virtual SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const;
-  /**
-   * Get set of unsupported domain sort kinds for functions (see mk_fun()).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as domain sorts for function terms.
-   */
-  virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;
-  /**
-   * Get set of unsupported codomain sort kinds for functions (see mk_fun()).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as codomain sorts for function terms.
-   */
-  virtual SortKindSet get_unsupported_fun_codomain_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported as index sort of array
-   * sorts (see mk_sort()).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as array index sort.
-   */
-  virtual SortKindSet get_unsupported_array_index_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported as element sort of
-   * array sorts (see mk_sort()).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as array element sort.
-   */
-  virtual SortKindSet get_unsupported_array_element_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported as element sort of
-   * bag sorts (see mk_sort()).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as bag element sort.
-   */
-  virtual SortKindSet get_unsupported_bag_element_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported as element sort of
-   * sequence sorts (see mk_sort()).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as sequence element sort.
-   */
-  virtual SortKindSet get_unsupported_seq_element_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported as element sort for
-   * set sorts.
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          as set element sort.
-   */
-  virtual SortKindSet get_unsupported_set_element_sort_kinds() const;
-  /**
-   * Get the set of sort kinds that are unsupported for get-value
-   * (see ActionGetValue).
-   *
-   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
-   *          when querying the value of a term.
-   */
-  virtual SortKindSet get_unsupported_get_value_sort_kinds() const;
 
   /**
    * Configure the FSM with solver-specific extensions.

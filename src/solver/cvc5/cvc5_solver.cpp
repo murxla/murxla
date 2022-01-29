@@ -17,6 +17,7 @@
 #include "action.hpp"
 #include "config.hpp"
 #include "except.hpp"
+#include "solver/cvc5/profile.hpp"
 #include "solver_option.hpp"
 #include "theory.hpp"
 
@@ -1195,139 +1196,6 @@ Cvc5Term::get_fun_domain_sorts() const
 /* Cvc5Solver                                                                 */
 /* -------------------------------------------------------------------------- */
 
-OpKindSet
-Cvc5Solver::get_unsupported_op_kinds() const
-{
-  return {Op::BAG_CHOOSE,
-          Op::BAG_FROM_SET,
-          Op::BAG_MAP,
-          Op::BAG_TO_SET,
-          Op::BAG_IS_SINGLETON,
-          Op::IFF};
-}
-
-Solver::OpKindSortKindMap
-Cvc5Solver::get_unsupported_op_sort_kinds() const
-{
-  std::unordered_map<Op::Kind, SortKindSet> res =
-      Solver::get_unsupported_op_sort_kinds();
-  /* Disallow DISTINCT over REGLAN terms. */
-  {
-    const auto& it = res.find(Op::DISTINCT);
-    if (it == res.end())
-    {
-      res[Op::DISTINCT] = {SORT_REGLAN};
-    }
-    else
-    {
-      it->second.insert(SORT_REGLAN);
-    }
-  }
-  /* Disallow EQUAL over REGLAN terms. */
-  {
-    const auto& it = res.find(Op::EQUAL);
-    if (it == res.end())
-    {
-      res[Op::EQUAL] = {SORT_REGLAN};
-    }
-    else
-    {
-      it->second.insert(SORT_REGLAN);
-    }
-  }
-  /* Disallow ITE over REGLAN terms. */
-  {
-    const auto& it = res.find(Op::ITE);
-    if (it == res.end())
-    {
-      res[Op::ITE] = {SORT_REGLAN};
-    }
-    else
-    {
-      it->second.insert(SORT_REGLAN);
-    }
-  }
-  return res;
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_var_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_array_index_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_array_element_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_bag_element_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_seq_element_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_set_element_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_dt_sel_codomain_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_dt_match_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_fun_sort_domain_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_fun_sort_codomain_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_fun_domain_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_fun_codomain_sort_kinds() const
-{
-  return {SORT_FUN, SORT_REGLAN};
-}
-
-SortKindSet
-Cvc5Solver::get_unsupported_get_value_sort_kinds() const
-{
-  return {SORT_REGLAN};
-}
-
 Cvc5Solver::~Cvc5Solver()
 {
   if (d_solver)
@@ -1368,6 +1236,12 @@ const std::string
 Cvc5Solver::get_name() const
 {
   return "cvc5";
+}
+
+const std::string
+Cvc5Solver::get_profile() const
+{
+  return s_profile;
 }
 
 bool

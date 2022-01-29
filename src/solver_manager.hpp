@@ -17,6 +17,7 @@
 #include <unordered_set>
 
 #include "solver/solver.hpp"
+#include "solver/solver_profile.hpp"
 #include "solver_option.hpp"
 #include "sort.hpp"
 #include "term_db.hpp"
@@ -46,6 +47,7 @@ class SolverManager
   };
 
   SolverManager(Solver* solver,
+                SolverProfile& solver_profile,
                 RNGenerator& rng,
                 SolverSeedGenerator& sng,
                 std::ostream& trace,
@@ -553,6 +555,8 @@ class SolverManager
   /** Remove all solver options not matching filter. */
   void filter_solver_options(const std::string& filter);
 
+  SolverProfile& get_profile();
+
   /** Statistics. */
   Stats d_stats;
 
@@ -759,6 +763,8 @@ class SolverManager
 
   /** Is this solver manager already initialized? */
   bool d_initialized = false;
+
+  SolverProfile& d_profile;
 };
 
 /* -------------------------------------------------------------------------- */

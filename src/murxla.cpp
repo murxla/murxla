@@ -16,6 +16,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <nlohmann/json.hpp>
 #include <regex>
 
 #include "dd.hpp"
@@ -28,6 +29,7 @@
 #include "solver/meta/check_solver.hpp"
 #include "solver/meta/shadow_solver.hpp"
 #include "solver/smt2/smt2_solver.hpp"
+#include "solver/solver_profile.hpp"
 #include "solver/yices/yices_solver.hpp"
 #include "statistics.hpp"
 #include "util.hpp"
@@ -163,6 +165,7 @@ Murxla::Murxla(statistics::Statistics* stats,
 {
   assert(stats);
   assert(solver_options);
+  load_solver_profile();
 }
 
 Result
@@ -352,7 +355,7 @@ Murxla::test()
             smt2_offline ? TO_FILE : NONE);
 
     std::string errmsg;
-    bool duplicate = false;
+    ErrorKind errkind = ErrorKind::ERROR;
     /* report status */
     if (res == RESULT_OK)
     {
@@ -380,7 +383,7 @@ Murxla::test()
         }
         if (res == RESULT_ERROR)
         {
-          duplicate = add_error(errmsg, seed);
+          errkind = add_error(errmsg, seed);
         }
         else if (res == RESULT_ERROR_CONFIG)
         {
@@ -399,13 +402,17 @@ Murxla::test()
       switch (res)
       {
         case RESULT_ERROR:
-          if (duplicate)
+          if (errkind == ErrorKind::DUPLICATE)
           {
             info << term.green() << "duplicate";
           }
-          else
+          else if (errkind == ErrorKind::ERROR)
           {
             info << term.red() << "error";
+          }
+          else if (errkind == ErrorKind::FILTER)
+          {
+            info << term.gray() << "filtered";
           }
           break;
         case RESULT_ERROR_CONFIG: info << term.red() << "config error"; break;
@@ -449,7 +456,7 @@ Murxla::test()
     }
     std::cout << term.cr() << std::flush;
     /* Print new error message after it was found. */
-    if (res == RESULT_ERROR && !duplicate)
+    if (res == RESULT_ERROR && errkind == ErrorKind::ERROR)
     {
       std::cout << std::endl;
       std::cout << errmsg << std::endl;
@@ -560,6 +567,7 @@ Murxla::create_fsm(RNGenerator& rng,
   return FSM(rng,
              sng,
              create_solver(sng, smt2_out),
+             *d_solver_profile,
              trace,
              *d_solver_options,
              d_options.arith_linear,
@@ -815,11 +823,20 @@ Murxla::run_aux(uint32_t seed,
   return result;
 }
 
-bool
+Murxla::ErrorKind
 Murxla::add_error(const std::string& err, uint32_t seed)
 {
   bool duplicate       = false;
   std::string err_norm = normalize_asan_error(err);
+
+  /* Filter errors if specified in the solver profile. */
+  for (const auto& e : d_filter_errors)
+  {
+    if (err.find(e) != std::string::npos)
+    {
+      return ErrorKind::FILTER;
+    }
+  }
 
   for (auto& p : *d_errors)
   {
@@ -846,7 +863,30 @@ Murxla::add_error(const std::string& err, uint32_t seed)
     d_errors->emplace(err_norm, std::make_pair(err, seeds));
   }
 
-  return duplicate;
+  return duplicate ? ErrorKind::DUPLICATE : ErrorKind::ERROR;
+}
+
+void
+Murxla::load_solver_profile()
+{
+  // Create solver instance to query solver profile.
+  SolverSeedGenerator sng(0);
+  Solver* solver      = create_solver(sng);
+  std::string profile = solver->get_profile();
+  delete solver;
+
+  // Merge solver profiles if user specified one.
+  if (!d_options.solver_profile_filename.empty())
+  {
+    std::ifstream ifs(d_options.solver_profile_filename);
+    std::stringstream buf;
+    buf << ifs.rdbuf();
+    profile = SolverProfile::merge(profile, buf.str());
+  }
+
+  d_solver_profile.reset(new SolverProfile(profile));
+  auto errors = d_solver_profile->get_errors();
+  d_filter_errors.insert(errors.begin(), errors.end());
 }
 
 /* -------------------------------------------------------------------------- */

@@ -16,6 +16,7 @@
 
 #include "config.hpp"
 #include "except.hpp"
+#include "solver/solver_profile.hpp"
 #include "statistics.hpp"
 
 namespace murxla {
@@ -23,6 +24,7 @@ namespace murxla {
 /* -------------------------------------------------------------------------- */
 
 SolverManager::SolverManager(Solver* solver,
+                             SolverProfile& solver_profile,
                              RNGenerator& rng,
                              SolverSeedGenerator& sng,
                              std::ostream& trace,
@@ -45,7 +47,8 @@ SolverManager::SolverManager(Solver* solver,
       d_used_solver_options(),
       d_term_db(*this, rng),
       d_untraced_terms(),
-      d_untraced_sorts()
+      d_untraced_sorts(),
+      d_profile(solver_profile)
 {
   add_enabled_theories(enabled_theories, disabled_theories);
 }
@@ -59,8 +62,8 @@ SolverManager::initialize()
   add_sort_kinds();  // adds only sort kinds of enabled theories
   d_opmgr.reset(new OpKindManager(d_enabled_theories,
                                   d_sort_kinds,
-                                  d_solver->get_unsupported_op_kinds(),
-                                  d_solver->get_unsupported_op_sort_kinds(),
+                                  d_profile.get_unsupported_op_kinds(),
+                                  d_profile.get_unsupported_op_sort_kinds(),
                                   d_arith_linear,
                                   d_mbt_stats));
   d_solver->configure_opmgr(d_opmgr.get());
@@ -840,6 +843,12 @@ SolverManager::filter_solver_options(const std::string& filter)
   }
 }
 
+SolverProfile&
+SolverManager::get_profile()
+{
+  return d_profile;
+}
+
 void
 SolverManager::reset_sat()
 {
@@ -1395,7 +1404,7 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
                                     const TheoryIdSet& disabled_theories)
 {
   /* Get theories supported by enabled solver. */
-  TheoryIdVector solver_theories = d_solver->get_supported_theories();
+  TheoryIdVector solver_theories = d_profile.get_supported_theories();
 
   /* Get all theories supported by MBT. */
   TheoryIdVector all_theories;
@@ -1514,7 +1523,7 @@ SolverManager::add_sort_kinds()
   d_sort_kinds = get_sort_kind_data(d_enabled_theories);
 
   /* Remove sort kinds not supported by solver. */
-  for (const auto& k : d_solver->get_unsupported_sort_kinds())
+  for (const auto& k : d_profile.get_unsupported_sort_kinds())
   {
     d_sort_kinds.erase(k);
   }

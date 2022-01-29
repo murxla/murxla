@@ -33,10 +33,15 @@ set(murxla_src_files
   solver/smt2/smt2_solver.cpp
   solver/meta/check_solver.cpp
   solver/meta/shadow_solver.cpp
+  solver/solver_profile.cpp
 )
+
+# Setup JSON library
+include(${PROJECT_SOURCE_DIR}/cmake/json.cmake)
 
 add_executable(murxla ${murxla_src_files})
 target_include_directories(murxla PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(murxla PRIVATE nlohmann_json::nlohmann_json)
 
 if(GCOV)
   target_compile_definitions(murxla PUBLIC MURXLA_COVERAGE)
@@ -46,28 +51,61 @@ include(CheckIncludeFileCXX)
 # Workaround to support compilation with gcc7.
 check_include_file_cxx(<filesystem> HAVE_FILESYSTEM_INCLUDE)
 if(NOT HAVE_FILESYSTEM_INCLUDE)
-  target_link_libraries(murxla stdc++fs)
+  target_link_libraries(murxla PRIVATE stdc++fs)
 endif()
 
 if(Boolector_FOUND)
-  target_link_libraries(murxla Boolector::boolector)
+  target_link_libraries(murxla PRIVATE Boolector::boolector)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_BOOLECTOR)
 endif()
 
 if(Bitwuzla_FOUND)
-  target_link_libraries(murxla Bitwuzla::bitwuzla)
+  target_link_libraries(murxla PRIVATE Bitwuzla::bitwuzla)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_BITWUZLA)
-  # TODO: Bitwuzla options
 endif()
 
 if(cvc5_FOUND)
-  target_link_libraries(murxla cvc5::cvc5)
+  target_link_libraries(murxla PRIVATE cvc5::cvc5)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_CVC5)
 endif()
 
 if (Yices_FOUND)
   target_include_directories(murxla PRIVATE ${Yices_INCLUDE_DIR})
-  target_link_libraries(murxla ${Yices_LIBRARIES})
+  target_link_libraries(murxla PRIVATE ${Yices_LIBRARIES})
   target_compile_definitions(murxla PUBLIC MURXLA_USE_YICES)
-  # TODO: Yices options
 endif()
+
+# Generate solver profile headers
+file(GENERATE
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/gen_profile.cmake"
+  CONTENT [[
+file(READ ${PROFILE_INPUT_FILE} JSON)
+set(PROFILE "\
+#include <string>\n\
+namespace murxla {\n\
+namespace ${SOLVER} {\n\
+  static const std::string s_profile=R\"(${JSON})\";\n\
+}\n}\n")
+file(WRITE "${PROFILE_OUTPUT_FILE}" "${PROFILE}")]]
+)
+
+foreach(solver btor bzla cvc5 yices smt2)
+  set(JSON_FILE
+      "${CMAKE_CURRENT_SOURCE_DIR}/solver/${solver}/profile.json")
+  set(PROFILE_HEADER_FILE
+      "${CMAKE_CURRENT_BINARY_DIR}/solver/${solver}/profile.hpp")
+
+  add_custom_command(
+    OUTPUT ${PROFILE_HEADER_FILE}
+    COMMAND
+      ${CMAKE_COMMAND}
+        -DSOLVER="${solver}"
+        -DPROFILE_INPUT_FILE="${JSON_FILE}"
+        -DPROFILE_OUTPUT_FILE="${PROFILE_HEADER_FILE}"
+        -P gen_profile.cmake
+    DEPENDS ${JSON_FILE} gen_profile.cmake
+  )
+  add_custom_target(gen-profile-${solver} DEPENDS ${PROFILE_HEADER_FILE})
+  add_dependencies(murxla gen-profile-${solver})
+endforeach()
+target_include_directories(murxla PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

@@ -12,6 +12,7 @@
 #include "yices_solver.hpp"
 
 #include "config.hpp"
+#include "solver/yices/profile.hpp"
 
 namespace murxla {
 namespace yices {
@@ -302,46 +303,10 @@ YicesSolver::get_name() const
   return "Yices";
 }
 
-TheoryIdVector
-YicesSolver::get_supported_theories() const
+const std::string
+YicesSolver::get_profile() const
 {
-  return {THEORY_ARRAY,
-          THEORY_BV,
-          THEORY_BOOL,
-          THEORY_INT,
-          THEORY_REAL,
-          THEORY_UF,
-          THEORY_QUANT};
-}
-
-SortKindSet
-YicesSolver::get_unsupported_array_index_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-YicesSolver::get_unsupported_array_element_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-YicesSolver::get_unsupported_fun_sort_domain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-YicesSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-YicesSolver::get_unsupported_get_value_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
+  return s_profile;
 }
 
 void

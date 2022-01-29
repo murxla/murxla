@@ -18,6 +18,7 @@
 #include "action.hpp"
 #include "config.hpp"
 #include "except.hpp"
+#include "solver/bzla/profile.hpp"
 #include "solver_option.hpp"
 #include "theory.hpp"
 #include "util.hpp"
@@ -832,69 +833,10 @@ BzlaSolver::get_name() const
   return "Bitwuzla";
 }
 
-TheoryIdVector
-BzlaSolver::get_supported_theories() const
+const std::string
+BzlaSolver::get_profile() const
 {
-  // TODO enable when Mathias' bitwuzla quantifiers branch is merged back
-  return {THEORY_ARRAY,
-          THEORY_BV,
-          THEORY_BOOL,
-          THEORY_FP,
-          /*THEORY_QUANT,*/ THEORY_UF};
-}
-
-OpKindSet
-BzlaSolver::get_unsupported_op_kinds() const
-{
-  return {Op::FP_TO_REAL};
-}
-
-SortKindSet
-BzlaSolver::get_unsupported_sort_kinds() const
-{
-  return {SORT_UNINTERPRETED};
-}
-
-SortKindSet
-BzlaSolver::get_unsupported_var_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN, SORT_FP};
-}
-
-SortKindSet
-BzlaSolver::get_unsupported_array_index_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BzlaSolver::get_unsupported_array_element_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BzlaSolver::get_unsupported_fun_sort_domain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BzlaSolver::get_unsupported_fun_sort_codomain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN};
-}
-
-SortKindSet
-BzlaSolver::get_unsupported_fun_domain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN, SORT_FP, SORT_RM};
-}
-
-SortKindSet
-BzlaSolver::get_unsupported_fun_codomain_sort_kinds() const
-{
-  return {SORT_ARRAY, SORT_FUN, SORT_FP, SORT_RM};
+  return s_profile;
 }
 
 Sort

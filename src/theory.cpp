@@ -28,6 +28,7 @@ operator<<(std::ostream& out, TheoryId theory)
     case THEORY_SEQ: out << "THEORY_SEQ"; break;
     case THEORY_SET: out << "THEORY_SET"; break;
     case THEORY_STRING: out << "THEORY_STRING"; break;
+    case THEORY_TRANSCENDENTAL: out << "THEORY_TRANSCENDENTAL"; break;
     case THEORY_UF: out << "THEORY_UF"; break;
     default: out << "UNKNOWN THEORY!" << int(theory); break;
   }

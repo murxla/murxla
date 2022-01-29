@@ -1,0 +1,71 @@
+{
+  "theories": {
+    "include": [
+      "THEORY_ARRAY",
+      "THEORY_BOOL",
+      "THEORY_BV",
+      "THEORY_FP",
+      "THEORY_UF"
+    ]
+  },
+
+  "operators": {
+    "exclude": [
+      "OP_FP_TO_REAL"
+    ]
+  },
+
+  "sorts": {
+    "exclude": [
+      "SORT_UNINTERPRETED"
+    ],
+
+    "array-index": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "array-element": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-sort-domain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN",
+        "SORT_FP",
+        "SORT_RM"
+      ]
+    },
+
+    "fun-sort-codomain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-domain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN",
+        "SORT_FP",
+        "SORT_RM"
+      ]
+    },
+
+    "fun-codomain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN",
+        "SORT_FP",
+        "SORT_RM"
+      ]
+    }
+  }
+}

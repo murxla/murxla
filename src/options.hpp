@@ -11,6 +11,7 @@
 #define __MURXLA__OPTIONS_H
 
 #include <cstdint>
+#include <nlohmann/json.hpp>
 #include <string>
 
 #include "theory.hpp"
@@ -112,6 +113,9 @@ struct Options
 
   /** Command line options to be traced. */
   std::string cmd_line_trace;
+
+  /** Solver profile filename. */
+  std::string solver_profile_filename;
 };
 }  // namespace murxla
 #endif

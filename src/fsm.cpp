@@ -97,6 +97,7 @@ State::run(RNGenerator& rng)
 FSM::FSM(RNGenerator& rng,
          SolverSeedGenerator& sng,
          Solver* solver,
+         SolverProfile& solver_profile,
          std::ostream& trace,
          SolverOptions& options,
          bool arith_linear,
@@ -111,6 +112,7 @@ FSM::FSM(RNGenerator& rng,
          const std::vector<std::pair<std::string, std::string>> solver_options,
          bool in_untrace_replay_mode)
     : d_smgr(solver,
+             solver_profile,
              rng,
              sng,
              trace,
@@ -127,32 +129,37 @@ FSM::FSM(RNGenerator& rng,
       d_fuzz_options(fuzz_options),
       d_fuzz_options_filter(fuzz_options_filter),
       d_mbt_stats(stats),
-      d_solver_options(solver_options)
+      d_solver_options(solver_options),
+      d_solver_profile(solver_profile)
 {
   auto smgr_enabled_theories = d_smgr.get_enabled_theories();
-  if (smgr_enabled_theories.find(THEORY_QUANT) != smgr_enabled_theories.end())
+  auto unsupported_theory_combinations =
+      d_solver_profile.get_unsupported_theory_combinations();
+
+  for (const auto& [theory, theory_list] : unsupported_theory_combinations)
   {
-    bool force_quant_enabled =
-        std::find(
-            enabled_theories.begin(), enabled_theories.end(), THEORY_QUANT)
-        != enabled_theories.end();
-    auto disabled_quant_theories = solver->get_unsupported_quant_theories();
-    if (!disabled_quant_theories.empty())
+    if (smgr_enabled_theories.find(theory) != smgr_enabled_theories.end())
     {
-      /* In case that quantifiers were not explicitly enabled via command line
-       * and are not allowed in combination with a specific set of otherwise
-       * supported theories, we decide to enable THEORY_QUANT with a probability
-       * of 10%. */
-      if (force_quant_enabled || d_rng.pick_with_prob(100))
+      bool force_theory_enabled =
+          std::find(enabled_theories.begin(), enabled_theories.end(), theory)
+          != enabled_theories.end();
+      if (!theory_list.empty())
       {
-        for (TheoryId t : disabled_quant_theories)
+        /* In case that `theory` was not explicitly enabled via command line
+         * and is not allowed in combination with a specific set of otherwise
+         * supported theories, we decide to enable `theory` with a probability
+         * of 10%. */
+        if (force_theory_enabled || d_rng.pick_with_prob(100))
         {
-          d_smgr.disable_theory(t);
+          for (TheoryId t : theory_list)
+          {
+            d_smgr.disable_theory(t);
+          }
         }
-      }
-      else
-      {
-        d_smgr.disable_theory(THEORY_QUANT);
+        else
+        {
+          d_smgr.disable_theory(theory);
+        }
       }
     }
   }

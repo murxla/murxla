@@ -16,6 +16,7 @@
 #include "action.hpp"
 #include "options.hpp"
 #include "result.hpp"
+#include "solver/solver_profile.hpp"
 #include "solver_option.hpp"
 #include "theory.hpp"
 
@@ -116,6 +117,13 @@ class Murxla
   std::string d_error_msg;
 
  private:
+  enum class ErrorKind
+  {
+    DUPLICATE, /* Error message is a duplicate since it was already reported. */
+    ERROR,     /* Error message is new. */
+    FILTER,    /* Error message filtered out. */
+  };
+
   /**
    * Create solver.
    *
@@ -197,12 +205,19 @@ class Murxla
                 const std::string& untrace_file_name);
 
   /** Register error to d_errors. */
-  bool add_error(const std::string& err, uint32_t seed);
+  ErrorKind add_error(const std::string& err, uint32_t seed);
+
+  /** Load solver profile of currently configured solver. */
+  void load_solver_profile();
 
   /** Statistics of current test run(s). */
   statistics::Statistics* d_stats;
   /** Map normalized error message to pair (original error message, seeds). */
   ErrorMap* d_errors;
+
+  std::unordered_set<std::string> d_filter_errors;
+
+  std::unique_ptr<SolverProfile> d_solver_profile;
 };
 
 /* -------------------------------------------------------------------------- */

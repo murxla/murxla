@@ -163,6 +163,7 @@ class FSM
   FSM(RNGenerator& rng,
       SolverSeedGenerator& sng,
       Solver* solver,
+      SolverProfile& solver_profile,
       std::ostream& trace,
       SolverOptions& options,
       bool arith_linear,
@@ -389,6 +390,8 @@ class FSM
   statistics::Statistics* d_mbt_stats;
 
   std::vector<std::pair<std::string, std::string>> d_solver_options;
+
+  SolverProfile& d_solver_profile;
 };
 
 template <class T>

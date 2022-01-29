@@ -1,0 +1,103 @@
+{
+  "theories": {
+    "include": [
+      "THEORY_ARRAY",
+      "THEORY_BAG",
+      "THEORY_BOOL",
+      "THEORY_BV",
+      "THEORY_DT",
+      "THEORY_FP",
+      "THEORY_INT",
+      "THEORY_QUANT",
+      "THEORY_REAL",
+      "THEORY_SEQ",
+      "THEORY_SET",
+      "THEORY_STRING",
+      "THEORY_TRANSCENDENTAL",
+      "THEORY_UF"
+    ]
+  },
+
+  "operators": {
+    "sort-restrictions": {
+      "OP_DISTINCT": [
+        "SORT_FUN"
+      ],
+      "OP_EQUAL": [
+        "SORT_FUN"
+      ],
+      "OP_ITE": [
+        "SORT_FUN"
+      ]
+    }
+  },
+
+  "sorts": {
+    "array-index": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "bag-element": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "datatype-match": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "datatype-selector-codomain": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-domain": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-codomain": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-sort-domain": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-sort-codomain": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "set-element": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "sort-param": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    },
+
+    "var": {
+      "exclude": [
+        "SORT_FUN"
+      ]
+    }
+  }
+}

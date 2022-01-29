@@ -208,22 +208,6 @@ class Cvc5Solver : public Solver
   /** Destructor. */
   ~Cvc5Solver() override;
 
-  OpKindSet get_unsupported_op_kinds() const override;
-  OpKindSortKindMap get_unsupported_op_sort_kinds() const override;
-  SortKindSet get_unsupported_var_sort_kinds() const override;
-  SortKindSet get_unsupported_array_index_sort_kinds() const override;
-  SortKindSet get_unsupported_array_element_sort_kinds() const override;
-  SortKindSet get_unsupported_bag_element_sort_kinds() const override;
-  SortKindSet get_unsupported_seq_element_sort_kinds() const override;
-  SortKindSet get_unsupported_set_element_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_domain_sort_kinds() const override;
-  SortKindSet get_unsupported_fun_codomain_sort_kinds() const override;
-  SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const override;
-  SortKindSet get_unsupported_dt_match_sort_kinds() const override;
-  SortKindSet get_unsupported_get_value_sort_kinds() const override;
-
   void new_solver() override;
 
   void delete_solver() override;
@@ -233,6 +217,8 @@ class Cvc5Solver : public Solver
   bool is_initialized() const override;
 
   const std::string get_name() const override;
+
+  const std::string get_profile() const override;
 
   void configure_fsm(FSM* fsm) const override;
   void configure_opmgr(OpKindManager* opmgr) const override;

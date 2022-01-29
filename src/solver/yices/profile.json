@@ -1,0 +1,51 @@
+{
+  "theories": {
+    "include": [
+      "THEORY_ARRAY",
+      "THEORY_BOOL",
+      "THEORY_BV",
+      "THEORY_INT",
+      "THEORY_QUANT",
+      "THEORY_REAL",
+      "THEORY_UF"
+    ]
+  },
+
+  "sorts": {
+
+    "array-index": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "array-element": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-sort-domain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "fun-sort-codomain": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    },
+
+    "get-value": {
+      "exclude": [
+        "SORT_ARRAY",
+        "SORT_FUN"
+      ]
+    }
+  }
+}
