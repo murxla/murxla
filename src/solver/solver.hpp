@@ -34,60 +34,134 @@ class SolverManager;
 
 class AbsSort;
 
+/** The Murxla-internal representation of a sort. */
 using Sort = std::shared_ptr<AbsSort>;
 
+/**
+ * The abstract base class for sorts.
+ *
+ * A solver wrapper must implement a solver-specific sort wrapper class derived
+ * from this class.
+ */
 class AbsSort
 {
  public:
+   /**
+    * A map representation of the constructors of a datatype sort.
+    * Maps constructor names to vectors of selectors, represented as pairs of
+    * selector name and selector sort.
+    */
   using DatatypeConstructorMap =
       std::unordered_map<std::string,
                          std::vector<std::pair<std::string, Sort>>>;
 
+  /** Destructor. */
   virtual ~AbsSort(){};
 
   /* To be overriden, for testing the solver.                               */
   /* ---------------------------------------------------------------------- */
 
-  /** Get the hash value of this sort. */
+  /**
+   * Get the hash value of this sort.
+   * @return  The hash value of this sort.
+   */
   virtual size_t hash() const = 0;
-  /** Get a string representation of this sort. */
+  /**
+   * Get the string representation of this sort.
+   * @return  A string representation of this sort.
+   */
   virtual std::string to_string() const = 0;
-  /** Return true if this sort is equal to the other sort. */
+  /**
+   * Determine if this sort is equal to the given sort.
+   * @param other  The sort to compare this sort to.
+   * @return  True if this sort is equal to the other sort.
+   */
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
-  /** Return true if this sort is not equal to the other sort. */
+  /**
+   * Determine if this sort is not equal to the given sort.
+   * @param other  The sort to compare this sort to.
+   * @return  True if this sort is not equal to the other sort.
+   */
   virtual bool not_equals(const std::shared_ptr<AbsSort>& other) const;
 
-  /** Return true if this sort is an Array sort. */
+  /**
+   * Determine if this sort is an Array sort.
+   * @return  True if this sort is an Array sort.
+   */
   virtual bool is_array() const { return false; }
-  /** Return true if this sort is a Bag sort. */
+  /**
+   * Determine if this sort is a Bag sort.
+   * @return  True if this sort is a Bag sort.
+   */
   virtual bool is_bag() const { return false; }
-  /** Return true if this sort is a Boolean sort. */
+  /**
+   * Determine if this sort is a Boolean sort.
+   * @return  True if this sort is a Boolean sort.
+   */
   virtual bool is_bool() const { return false; }
-  /** Return true if this sort is a bit-vector sort. */
+  /**
+   * Determine if this sort is a bit-vector sort.
+   * @return  True if this sort is a bit-vector sort.
+   */
   virtual bool is_bv() const { return false; };
-  /** Return true if this sort is a datatype sort. */
+  /**
+   * Determine if this sort is a datatype sort.
+   * @return  True if this sort is a datatype sort.
+   */
   virtual bool is_dt() const { return false; }
-  /** Return true if this sort is a parametric datatype sort. */
+  /**
+   * Determine if this sort is a parametric datatype sort.
+   * @return  True if this sort is a parametric datatype sort.
+   */
   virtual bool is_dt_parametric() const { return false; }
-  /** Return true if this sort is a floating-point sort. */
+  /**
+   * Determine if this sort is a floating-point sort.
+   * @return  True if this sort is a floating-point sort.
+   */
   virtual bool is_fp() const { return false; }
-  /** Return true if this sort is a function sort. */
+  /**
+   * Determine if this sort is a function sort.
+   * @return  True if this sort is a function sort.
+   */
   virtual bool is_fun() const { return false; }
-  /** Return true if this sort is an Int sort. */
+  /**
+   * Determine if this sort is an integer sort.
+   * @return  True if this sort is an Int sort.
+   */
   virtual bool is_int() const { return false; }
-  /** Return true if this sort is a Real sort. */
+  /**
+   * Determine if this sort is a real sort.
+   * @return  True if this sort is a Real sort.
+   */
   virtual bool is_real() const { return false; }
-  /** Return true if this sort is a RoundingMode sort. */
+  /**
+   * Determine if this sort is a rounding mode sort.
+   * @return  True if this sort is a RoundingMode sort.
+   */
   virtual bool is_rm() const { return false; }
-  /** Return true if this sort is a RegLan sort. */
+  /**
+   * Determine if this sort is a regular language sort.
+   * @return  True if this sort is a RegLan sort. */
   virtual bool is_reglan() const { return false; }
-  /** Return true if this sort is a Sequence sort. */
+  /**
+   * Determine if this sort is a sequence sort.
+   * @return  True if this sort is a Sequence sort.
+   */
   virtual bool is_seq() const { return false; }
-  /** Return true if this sort is a Set sort. */
+  /**
+   * Determine if this sort is a set sort.
+   * @return  True if this sort is a Set sort.
+   */
   virtual bool is_set() const { return false; }
-  /** Return true if this sort is a String sort. */
+  /**
+   * Determine if this sort is a string sort.
+   * @return  True if this sort is a String sort.
+   */
   virtual bool is_string() const { return false; }
-  /** Return true if this sort is an uninterpreted sort. */
+  /**
+   * Determine if this sort is an uninterpreted sort.
+   * @return  True if this sort is an uninterpreted sort.
+   */
   virtual bool is_uninterpreted() const { return false; };
 
   /**
@@ -97,164 +171,281 @@ class AbsSort
    * Default returns always true, must be overriden by solver to actually
    * check if the datatype sort is well founded. If not, this may trigger
    * (properly handled) errors in the solver due to non-well-foundedness.
+   *
+   * @return  True if this datatype sort is well founded.
    */
   virtual bool is_dt_well_founded() const;
 
   /**
    * Get the array index sort of this sort.
-   * Returns nullptr by default.
+   * @return  The index sort of this array sort, or a nullptr by default.
    */
   virtual Sort get_array_index_sort() const;
   /**
    * Get the array element sort of this sort.
-   * Returns nullptr by default.
+   * @return  The element sort of this array sort, or a nullptr by default.
    */
   virtual Sort get_array_element_sort() const;
   /**
    * Get the bag element sort of this sort.
-   * Returns nullptr by default.
+   * @return  The element sort of this bag sort, or a nullptr by default.
    */
   virtual Sort get_bag_element_sort() const;
   /**
    * Get the bit-vector size of this sort.
-   * Returns 0 by default.
+   * @return  The size of this bit-vector sort, or 0 by default.
    */
   virtual uint32_t get_bv_size() const;
   /**
-   * Get the datatype constructor name of this sort.
-   * Returns an empty string by default.
+   * Get the datatype name of this sort.
+   * @return  The name of this datatype sort, or an empty string by default.
    */
   virtual std::string get_dt_name() const;
   /**
    * Get the number of datatype constructors of this sort.
-   * Returns 0 by default.
+   * @return  The number of constructors of this datatype sort, or 0 by default.
    */
   virtual uint32_t get_dt_num_cons() const;
   /**
    * Get the datatype constructor names of this sort.
-   * Returns an empty vector by default.
+   * @return  A vector with the constructor names of this datatype sort, or an
+   *          empty vector by default.
    */
   virtual std::vector<std::string> get_dt_cons_names() const;
   /**
    * Get the number of selectors of the given datatype constructor of this sort.
-   * Returns 0 by default.
+   * @return  The number of selectors of this datatype sort, or 0 by default.
    */
   virtual uint32_t get_dt_cons_num_sels(const std::string& name) const;
   /**
    * Get the selector names of the given datatype constructor of this sort.
-   * Returns an empty vector by default.
+   * @param name  The name of the constructor for which to get the selector
+   *              names.
+   * @return  A vector with the selector names of the given constructor of this
+   *          datatype sort, or an empty vector by default.
    */
   virtual std::vector<std::string> get_dt_cons_sel_names(
       const std::string& name) const;
   /**
    * Get the floating-point exponent size of this sort.
-   * Returns 0 by default.
+   * @return  The exponent size of this floating-point sort, or 0 by default.
    */
   virtual uint32_t get_fp_exp_size() const;
   /**
    * Get the floating-point significand size of this sort.
-   * Returns 0 by default.
+   * @return The significand size of this floating-point sort, or 0 by default.
    */
   virtual uint32_t get_fp_sig_size() const;
   /**
    * Get the function arity of this sort.
-   * Returns 0 by default.
+   * @return The arity of this function sort, or 0 by default.
    */
   virtual uint32_t get_fun_arity() const;
   /**
    * Get the function codomain sort of this sort.
-   * Returns nullptr by default.
+   * @return The codomain sort of this function sort, or a nullptr by default.
    */
   virtual Sort get_fun_codomain_sort() const;
   /**
    * Get the function domain sorts of this sort.
-   * Returns an empty vector by default.
+   * @return A vector with the domain sorts of this function sort, or an empty
+   *         vector by default.
    */
   virtual std::vector<Sort> get_fun_domain_sorts() const;
   /**
    * Get the sequence element sort of this sort.
-   * Returns nullptr by default.
+   * @return The element sort of this sequence sort, or a nullptr by default.
    */
   virtual Sort get_seq_element_sort() const;
   /**
    * Get the set element sort of this sort.
-   * Returns nullptr by default.
+   * @return The element sort of this set sort, or a nullptr by default.
    */
   virtual Sort get_set_element_sort() const;
 
   /* Only to be overriden in shadow solver, murxla level.                   */
   /* ---------------------------------------------------------------------- */
 
-  /** Set the kind of this sort. */
+  /**
+   * Set the kind of this sort.
+   * @param sort_kind  The kind of this sort.
+   */
   virtual void set_kind(SortKind sort_kind);
 
-  /** Set the sort parameters of this sort. */
+  /**
+   * Set the sort parameters of this sort.
+   *
+   * The given vector `sorts` consists of the following sorts, depending on the
+   * kind of this sort.
+   *
+   * - #SORT_ARRAY: A vector of size 2, with index and element sort.
+   *
+   * - #SORT_BAG:   A vector of size 1, with the element sort.
+   *
+   * - #SORT_DT (parametric):
+   *   - *non-instantiated*: A vector of size n, with sorts of type ParamSort.
+   *   - *instantiated*:     A vector of size n, with the sorts this sort is
+   *                         instantiated with. May be of type ParamSort or
+   *                         UnresolvedSort.
+   *
+   * - #SORT_FUN:   A vector of size n, with the function domain sorts.
+   *
+   * - #SORT_SEQ:   A vector of size 1, with the element sort.
+   * - #SORT_SET:   A vector of size 1, with the element sort.
+   *
+   * - UnresolvedSort: A vector of size n, with the sorts this (parametric)
+   *                   unresolved sort is to be instantiated with.
+   *                   UnresolvedSorts only occur when constructing mutually
+   *                   recursive datatype sorts.
+   *
+   *
+   * @param sorts  The sort parameters of this sort.
+   */
   virtual void set_sorts(const std::vector<Sort>& sorts);
 
-  /** Set the associated sort. */
+  /**
+   * Set the associated sort.
+   *
+   * This is for sorts of type ParamSort and UnresolvedSort to add a back
+   * reference to the associated sort. For ParamSort, this is the sort this
+   * sort has been assigned as a parameter to. For UnresolvedSort, this is the
+   * resolved DT sort this unresolved sort stands in for.
+   *
+   * @note  For solver wrappers, only the associated sort of ParamSort will be
+   *        relevant. The associated sort for UnresolvedSort is mainly required
+   *        for book keeping on the Murxla level.
+   *
+   * @param sort  The associated sort.
+   */
   virtual void set_associated_sort(Sort sort);
 
-  /** Set the datatype constructor map of this sort. */
+  /**
+   * Set the constructor map of this datatype sort.
+   *
+   * The constructor map maps constructor names to lists of selectors, which
+   * are represented as pairs of selector name and sort.
+   *
+   * @note  This is for book keeping on the Murxla level.
+   *
+   * @param ctors  The constructor map.
+   */
   virtual void set_dt_ctors(const DatatypeConstructorMap& ctors);
 
-  /** Set d_dt_is_instantiated to the given value. */
+  /**
+   * Mark this parametric datatype sort as instantiated sort.
+   *
+   * @note  This is for book keeping on the Murxla level.
+   *
+   * @param value  True if this datatype sort is an instantiated sort.
+   */
   virtual void set_dt_is_instantiated(bool value);
 
   /* Only to be overriden by ParamSort.                                     */
   /* ---------------------------------------------------------------------- */
 
+  /**
+   * Determine if this sort is of type ParamSort.
+   * @return True if this sort is of type ParamSort.
+   */
   virtual bool is_param_sort() const;
 
   /* Only to be overriden by UnresolvedSort.                                */
   /* ---------------------------------------------------------------------- */
 
+  /**
+   * Determine if this sort is of type UnresolvedSort.
+   * @return True if this sort is of type UnresolvedSort.
+   */
   virtual bool is_unresolved_sort() const;
 
   /* NOT to be overriden, murxla level.                                     */
   /* ---------------------------------------------------------------------- */
 
-  /** Set the (unique) id of this sort */
+  /**
+   * Set the (unique) id of this sort.
+   * @param id  The id of this sort.
+   */
   void set_id(uint64_t id);
-  /** Get the id of this sort. */
+  /**
+   * Get the id of this sort.
+   * @return The id of this sort.
+   */
   uint64_t get_id() const;
 
-  /** Get the kind of this sort. */
+  /**
+   * Get the kind of this sort.
+   * @return The kind of this sort.
+   */
   SortKind get_kind() const;
 
   /**
-   * Get the sort parameters of this sort.
-   *
-   * Note: If this is an UnresolvedSort that refers to a parametric DT, this
-   *       contains the set of sort parameters to instantiate the sort with.
+   * Get the sort parameters of this sort (see set_sorts()).
+   * @return The sort parameters of this sort.
    */
   const std::vector<Sort>& get_sorts() const;
 
-  /** Return the associated sort. */
+  /**
+   * Get the associated sort of this sort (see set_associated_sort()).
+   * @return  The associated sort of this sort.
+   */
   Sort get_associated_sort() const;
 
-  /** Get the datatype constructor map of this sort. */
+  /**
+   * Get the constructor map of this datatype sort (see set_dt_ctors()).
+   * @return  The datatype constructor map of this sort.
+   */
   DatatypeConstructorMap& get_dt_ctors();
-  /** Get the list of constructor names of this sort (murxla level). */
+  /**
+   * Get the list of constructor names of this sort, as recorded in the
+   * datatype constructor map (this does not query the solver!).
+   *
+   * @return  The list of constructor names of this datatype sort as recorded
+   *          on the Murxla level.
+   */
   std::vector<std::string> get_dt_ctor_names() const;
-  /** Get the list of selector names of the given constructor (murxla level). */
+  /**
+   * Get the list of selector names of the given constructor, as recorded in
+   * the datatype constructor map (this does not query the solver!).
+   *
+   * @param ctor  The constructor to retrieve the selector name list for.
+   * @return  The selector names for the given constructor of this datatype
+   *          sort.
+   */
   std::vector<std::string> get_dt_sel_names(const std::string& ctor) const;
   /**
    * Get the sort of the selector of the given datatype constructor.
-   * Returns 'dt_sort' in case of self selectors.
    *
-   * Note: 'dt_sort' must be the sort that this function is called on. We need
-   *       to pass this for handling the self selector case (where the selector
-   *       codomain sort is a nullptr).
+   * @param dt_sort  The datatype sort this function is called on.
+   * @param ctor  The name of the constructor.
+   * @param sel   The name of the selector of the given constructor.
+   * @return The sort of the given selector, or `dt_sort` in case of a self
+   *         selector.
+   *
+   * @note  Sort `dt_sort` must be the sort that this function is called on.
+   *        We need to pass this for handling the self selector case (where the
+   *        selector codomain sort is a nullptr).
    */
   Sort get_dt_sel_sort(Sort dt_sort,
                        const std::string& ctor,
                        const std::string& sel) const;
 
-  /** Instantiate datatype constructor map with 'sorts'.  */
+  /**
+   * Instantiate datatype constructor map of this parametric datatype sort
+   * with the given vector of sorts.
+   *
+   * @note  This is only for book keeping on the Murxla level.
+   *
+   * @param sorts  The sorts to instantiate this parametric datatype with.
+   * @return  The datatype constructor map of this sort instantiated with
+   *          the given sorts.
+   */
   DatatypeConstructorMap instantiate_dt_param_sort(
       const std::vector<Sort>& sorts) const;
 
-  /** Return true if this is an instantiated parametric datatype sort. */
+  /**
+   * Determine if this sort is an instantiated parametric datatype sort.
+   * @return True if this is an instantiated parametric datatype sort.
+   */
   bool is_dt_instantiated() const;
 
  protected:
@@ -263,9 +454,10 @@ class AbsSort
   /** The kind of this sort. */
   SortKind d_kind = SORT_ANY;
   /**
-   * The sort parameters for sorts parameterized over sorts (e.g., Array, Bag
-   * Sequence, and Set sorts).
-   * Note: For datatype sorts, this set is empty.
+   * The sort parameters for sorts parameterized over sorts (see set_sorts()).
+   * @Note  If this is an UnresolvedSort that refers to a parametric datatype,
+   *        this contains the set of sort parameters to instantiate the sort
+   *        with.
    */
   std::vector<Sort> d_sorts;
   /**
@@ -276,13 +468,14 @@ class AbsSort
   Sort d_associated_sort = nullptr;
   /**
    * The datatype constructors of this sort.
+   *
    * This is only used for datatype sorts and required for book keeping on
    * the murxla level.
    * Maps constructor names to vectors of selectors, which are represented
    * as pairs of selector name and codomain sort.
    */
   DatatypeConstructorMap d_dt_ctors;
-  /** True if this is an instantiated datatype sort. */
+  /** True if this is an instantiated parametric datatype sort. */
   bool d_dt_is_instantiated = false;
 };
 
@@ -388,6 +581,12 @@ class UnresolvedSort : public AbsSort
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * The abstract base class for terms.
+ *
+ * A solver wrapper must implement a solver-specific term wrapper class derived
+ * from this class.
+ */
 class AbsTerm
 {
  public:
@@ -638,6 +837,7 @@ class AbsTerm
   std::vector<uint64_t> d_levels = {};
 };
 
+/** The Murxla-internal representation of a term. */
 using Term = std::shared_ptr<AbsTerm>;
 
 bool operator==(const Term& a, const Term& b);

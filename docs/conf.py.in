@@ -63,6 +63,3 @@ html_extra_path = []
 breathe_default_project = "Murxla"
 breathe_domain_by_extension = {"hpp" : "cpp"}
 cpp_index_common_prefix = ["murxla::"]
-
-# where to look for include-build-file
-ibf_folders = ['${CMAKE_CURRENT_BINARY_DIR}']

@@ -13,7 +13,7 @@ check_python_module(breathe)
 set(SPHINX_INPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(SPHINX_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 
-add_subdirectory(solver)
+add_subdirectory(doxygen)
 
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
@@ -23,8 +23,8 @@ add_custom_target(
   COMMAND
     ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
-    -Dbreathe_projects.cvc5=${CPP_DOXYGEN_XML_DIR}
-    -Dbreathe_projects.std=${CPP_DOXYGEN_XML_DIR} ${SPHINX_INPUT_DIR}
+    -Dbreathe_projects.Murxla=${DOXYGEN_XML_DIR}
+    -Dbreathe_projects.std=${DOXYGEN_XML_DIR} ${SPHINX_INPUT_DIR}
     ${SPHINX_OUTPUT_DIR}
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   COMMENT "Generating docs"
