@@ -1036,26 +1036,36 @@ class AbsTerm
   const std::vector<uint64_t>& get_levels() const;
 
   /**
-   * Set leaf kind. Set to LeafKind::NONE if this term is not a leaf.
+   * Set leaf kind.
    *
-   * This is not to be overriden by any solver implementations except the
-   * shadow solver.
+   * Set to LeafKind::NONE if this term is not a leaf.
+   *
+   * @note  This is not to be overriden by any solver implementations except the
+   *        shadow solver.
+   *
+   * @param kind  The leaf kind.
    */
   virtual void set_leaf_kind(LeafKind kind);
   /**
    * Set special value kind.
-   * SPECIAL_VALUE_NONE if not a value or no special value.
    *
-   * This is not to be overriden by any solver implementations except the
-   * shadow solver.
+   * Set to SPECIAL_VALUE_NONE if not a value or no special value.
+   *
+   * @note  This is not to be overriden by any solver implementations except the
+   *        shadow solver.
+   *
+   * @param value_kind  The kind of the special value.
    */
   virtual void set_special_value_kind(const SpecialValueKind& value_kind);
   /**
-   * Return leaf kind of this term.
+   * Get the leaf kind of this term.
+   *
    * Kind is LeafKind::NONE if this term is not a leaf.
    *
-   * This is for Murxla level maintenance and not to be overriden with
-   * solver-specific implementations.
+   * @note  This is for Murxla level maintenance and not to be overriden with
+   *        solver-specific implementations.
+   *
+   * @return  The leaf kind of this term.
    */
   LeafKind get_leaf_kind() const;
 
@@ -1066,11 +1076,14 @@ class AbsTerm
   Sort d_sort = nullptr;
 
  private:
-  /** True if this term is a value. */
+  /**
+   * The leaf kind of this term.
+   * LeafKind::NONE if this is not a leaf term.
+   */
   LeafKind d_leaf_kind = LeafKind::NONE;
   /**
-   * Special value kind.
-   * SPECIAL_VALUE_NONE if not a value or no special value.
+   * The special value kind of this term..
+   * SPECIAL_VALUE_NONE if this term is not a value or no special value.
    */
   SpecialValueKind d_value_kind = SPECIAL_VALUE_NONE;
   /* Stores (sorted) list of unique scope levels of all subterms. */
