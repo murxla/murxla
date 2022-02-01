@@ -5,6 +5,8 @@ Solver Wrapper Interface: AbsSort
     :members:
     :undoc-members:
 
+----
+
 .. doxygenclass:: murxla::ParamSort
     :members:
     :undoc-members:

@@ -643,39 +643,84 @@ class UnresolvedSort : public AbsSort
 class AbsTerm
 {
  public:
+  /**
+   * The kind of a special value (see Solver::mk_special_value()).
+   *
+   * @note  This is an std::string rather than an enum to allow for solvers
+   *        to extend the set of special value kinds.
+   */
   using SpecialValueKind = std::string;
 
+  /** The kind of a term that is not a special value. */
   inline static const SpecialValueKind SPECIAL_VALUE_NONE =
       "not-a-special-value";
-  /** Special Bag values. */
+  // Special Bag values
+  /** The kind of a term representing the empty bag. */
   inline static const SpecialValueKind SPECIAL_VALUE_BAG_EMPTY = "bag.empty";
-  /** Special BV values. */
+  // Special BV values
+  /** The kind of a term representing a bit-vector zero value. */
   inline static const SpecialValueKind SPECIAL_VALUE_BV_ZERO = "bv.zero";
+  /** The kind of a term representing a bit-vector one value. */
   inline static const SpecialValueKind SPECIAL_VALUE_BV_ONE  = "bv.one";
+  /** The kind of a term representing a bit-vector ones value (all bits 1). */
   inline static const SpecialValueKind SPECIAL_VALUE_BV_ONES = "bv.ones";
+  /** The kind of a term representing a bit-vector minimum signed value. */
   inline static const SpecialValueKind SPECIAL_VALUE_BV_MIN_SIGNED =
       "bv-min-signed";
+  /** The kind of a term representing a bit-vector maximum signed value. */
   inline static const SpecialValueKind SPECIAL_VALUE_BV_MAX_SIGNED =
       "bv-max-signed";
-  /** Special FP values. */
+  // Special FP values
+  /** The kind of a term representing a floating-point not a number value. */
   inline static const SpecialValueKind SPECIAL_VALUE_FP_NAN      = "nan";
+  /**
+   * The kind of a term representing a floating-point positive infinity value.
+   */
   inline static const SpecialValueKind SPECIAL_VALUE_FP_POS_INF  = "+oo";
+  /**
+   * The kind of a term representing a floating-point negative infinity value.
+   */
   inline static const SpecialValueKind SPECIAL_VALUE_FP_NEG_INF  = "-oo";
+  /** The kind of a term representing a floating-point positive zero value. */
   inline static const SpecialValueKind SPECIAL_VALUE_FP_POS_ZERO = "+zero";
+  /** The kind of a term representing a floating-point negative zero value. */
   inline static const SpecialValueKind SPECIAL_VALUE_FP_NEG_ZERO = "-zero";
-  /** Special RM values. */
+  // Special RM values
+  /**
+   * The kind of a term representing a rounding mode round nearest ties to
+   * away value.
+   */
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RNA = "rna";
+  /**
+   * The kind of a term representing a rounding mode round nearest ties to
+   * even value.
+   */
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RNE = "rne";
+  /**
+   * The kind of a term representing a rounding mode round toward negative
+   * value.
+   */
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RTN = "rtn";
+  /**
+   * The kind of a term representing a rounding mode round toward positive
+   * value.
+   */
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RTP = "rtp";
+  /**
+   * The kind of a term representing a rounding mode round toward zero value.
+   */
   inline static const SpecialValueKind SPECIAL_VALUE_RM_RTZ = "rtz";
-  /** Special Sequence values. */
+  // Special Sequence values
+  /** The kind of a term representing the empty sequence. */
   inline static const SpecialValueKind SPECIAL_VALUE_SEQ_EMPTY = "seq.empty";
-  /** Special Sets values. */
+  // Special Sets values
+  /** The kind of a term representing the empty set. */
   inline static const SpecialValueKind SPECIAL_VALUE_SET_EMPTY = "set.empty";
+  /** The kind of a term representing the universe set. */
   inline static const SpecialValueKind SPECIAL_VALUE_SET_UNIVERSE =
       "set.universe";
 
+  /** The leaf kind of a term. */
   enum LeafKind
   {
     NONE,
@@ -684,86 +729,195 @@ class AbsTerm
     VARIABLE,
   };
 
+  /** Constructor. */
   AbsTerm(){};
+  /** Destructor. */
   virtual ~AbsTerm(){};
 
-  /** Get the hash value of this term. */
+  /**
+   * Get the hash value of this term.
+   * @return  The hash value of this term.
+   */
   virtual size_t hash() const = 0;
-  /** Get a string representation of this term. */
+  /**
+   * Get a string representation of this term.
+   * @return  A string representation of this term.
+   */
   virtual std::string to_string() const = 0;
-  /** Return true if this term is equal to the other term. */
+  /**
+   * Determine if this term is equal to the given term.
+   * @param other  The term to compare this term to.
+   * @return  True if this term is equal to the other term.
+   */
   virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
-  /** Return true if this term is not equal to the other term. */
+  /**
+   * Determine if this term is not equal to the given term.
+   * @param other  The term to compare this term to.
+   * @return  True if this term is not equal to the other term.
+   */
   virtual bool not_equals(const std::shared_ptr<AbsTerm>& other) const;
 
-  /** Return true if this term is an Array term. */
+  /**
+   * Determine if this term is an Array term.
+   * @return true if this term is an Array term.
+   */
   virtual bool is_array() const;
-  /** Return true if this term is a Bag term. */
+  /**
+   * Determine if this term is a Bag term.
+   * @return true if this term is a Bag term.
+   */
   virtual bool is_bag() const;
-  /** Return true if this term is a Boolean term. */
+  /**
+   * Determine if this term is a Boolean term.
+   * @return true if this term is a Boolean term.
+   */
   virtual bool is_bool() const;
-  /** Return true if this term is a bit-vector term. */
+  /**
+   * Determine if this term is a bit-vector term.
+   * @return true if this term is a bit-vector term.
+   */
   virtual bool is_bv() const;
-  /** Return true if this term is a datatype term. */
+  /**
+   * Determine if this term is a datatype term.
+   * @return true if this term is a datatype term.
+   */
   virtual bool is_dt() const;
-  /** Return true if this term is a floating-point term. */
+  /**
+   * Determine if this term is a floating-point term.
+   * @return true if this term is a floating-point term.
+   */
   virtual bool is_fp() const;
-  /** Return true if this term is a function term. */
+  /**
+   * Determine if this term is a function term.
+   * @return true if this term is a function term.
+   */
   virtual bool is_fun() const;
-  /** Return true if this term is an Int term. */
+  /**
+   * Determine if this term is an Int term.
+   * @return true if this term is an Int term.
+   */
   virtual bool is_int() const;
-  /** Return true if this term is a Real term. */
+  /**
+   * Determine if this term is a Real term.
+   * @return true if this term is a Real term.
+   */
   virtual bool is_real() const;
-  /** Return true if this term is a RoundingMode term. */
+  /**
+   * Determine if this term is a RoundingMode term.
+   * @return true if this term is a RoundingMode term.
+   */
   virtual bool is_rm() const;
-  /** Return true if this term is a RegLan term. */
+  /**
+   * Determine if this term is a RegLan term.
+   * @return true if this term is a RegLan term.
+   */
   virtual bool is_reglan() const;
-  /** Return true if this term is a Sequence term. */
+  /**
+   * Determine if this term is a Sequence term.
+   * @return true if this term is a Sequence term.
+   */
   virtual bool is_seq() const;
-  /** Return true if this term is a Set term. */
+  /**
+   * Determine if this term is a Set term.
+   * @return true if this term is a Set term.
+   */
   virtual bool is_set() const;
-  /** Return true if this term is a String term. */
+  /**
+   * Determine if this term is a String term.
+   * @return true if this term is a String term.
+   */
   virtual bool is_string() const;
-  /** Return true if this term is an uninterpreted term. */
+  /**
+   * Determine if this term is an uninterpreted term.
+   * @return true if this term is an uninterpreted term.
+   */
   virtual bool is_uninterpreted() const;
 
-  /** Return true if this term is a Bag value. */
+  /**
+   * Determine if this term is a Bag value.
+   * @return true if this term is a Bag value.
+   */
   virtual bool is_bag_value() const;
-  /** Return true if this term is a Boolean value. */
+  /**
+   * Determine if this term is a Boolean value.
+   * @return true if this term is a Boolean value.
+   */
   virtual bool is_bool_value() const;
-  /** Return true if this term is a bit-vector value. */
+  /**
+   * Determine if this term is a bit-vector value.
+   * @return true if this term is a bit-vector value.
+   */
   virtual bool is_bv_value() const;
-  /** Return true if this term is a datatype value. */
+  /**
+   * Determine if this term is a datatype value.
+   * @return true if this term is a datatype value.
+   */
   virtual bool is_dt_value() const;
-  /** Return true if this term is a floating-point value. */
+  /**
+   * Determine if this term is a floating-point value.
+   * @return true if this term is a floating-point value.
+   */
   virtual bool is_fp_value() const;
-  /** Return true if this term is an integer value. */
+  /**
+   * Determine if this term is an integer value.
+   * @return true if this term is an integer value.
+   */
   virtual bool is_int_value() const;
-  /** Return true if this term is a real value. */
+  /**
+   * Determine if this term is a real value.
+   * @return true if this term is a real value.
+   */
   virtual bool is_real_value() const;
-  /** Return true if this term is a RegLan value. */
+  /**
+   * Determine if this term is a RegLan value.
+   * @return true if this term is a RegLan value.
+   */
   virtual bool is_reglan_value() const;
-  /** Return true if this term is a rounding mode value. */
+  /**
+   * Determine if this term is a rounding mode value.
+   * @return true if this term is a rounding mode value.
+   */
   virtual bool is_rm_value() const;
-  /** Return true if this term is a Sequence value. */
+  /**
+   * Determine if this term is a Sequence value.
+   * @return true if this term is a Sequence value.
+   */
   virtual bool is_seq_value() const;
-  /** Return true if this term is a Sequence value. */
+  /**
+   * Determine if this term is a Sequence value.
+   * @return true if this term is a Sequence value.
+   */
   virtual bool is_set_value() const;
-  /** Return true if this term is a string value. */
+  /**
+   * Determine if this term is a string value.
+   * @return true if this term is a string value.
+   */
   virtual bool is_string_value() const;
 
-  /** Return true if this term is a special value of given kind. */
+  /**
+   * Determine if this term is a special value of given kind.
+   * @return true if this term is a special value of given kind.
+   */
   virtual bool is_special_value(const SpecialValueKind& kind) const;
 
-  /** Return true if this term is a first-order constant. */
+  /**
+   * Determine if this term is a first-order constant.
+   * @return true if this term is a first-order constant.
+   */
   virtual bool is_const() const;
-  /** Return true if this term is a value. */
+  /**
+   * Determine if this term is a value.
+   * @return true if this term is a value.
+   */
   virtual bool is_value() const;
-  /** Return true if this term is a variable. */
+  /**
+   * Determine if this term is a variable.
+   * @return true if this term is a variable.
+   */
   virtual bool is_var() const;
 
   /**
-   * Return the kind of the current term.
+   * Get the kind of this term.
    *
    * This kind is not a kind we cache on creation, but the kind that the
    * solver reports. May be Op::UNDEFINED.
@@ -771,27 +925,47 @@ class AbsTerm
    * Must be overriden and may not return Op::UNDEFINED if the solver supports
    * the theory of bags, sets and sequences (required for properly initializing
    * sorts that are implicitly created, e.g., sequence sorts for Op::SEQ_UNIT).
+   *
+   * @return The kind of this term.
    */
   virtual const Op::Kind& get_kind() const;
 
   /**
-   * Return the children of the current term.
-   * Note: As with Solver::mk_term, the returned terms are "raw" Terms, in the
-   *       sense that they are only wrapped into a Term, with no additional
-   *       book keeping information (all data members have default values).
+   * Get the children of this term.
+   *
+   * @note  As with Solver::mk_term, the returned terms are "raw" Terms, in the
+   *        sense that they are only wrapped into a Term, with no additional
+   *        book keeping information (all data members have default values).
+   *
+   * @return The children of this term.
    */
   virtual std::vector<std::shared_ptr<AbsTerm>> get_children() const;
 
-  /** Return true if this term is of an indexed operator kind. */
+  /**
+   * Determine if this term is of an indexed operator kind.
+   * @return True if this term is of an indexed operator kind.
+   */
   virtual bool is_indexed() const;
-  /** Get the number of indices of a term with an indexed operator kind. */
+  /**
+   * Get the number of indices of a term with an indexed operator kind.
+   * @return  The number of indices.
+   */
   virtual size_t get_num_indices() const;
-  /** Get the indices of a term with an indexed operator kind. */
+  /**
+   * Get the indices of a term with an indexed operator kind.
+   * @return The indinces of a term with an indexed operator kind.
+   */
   virtual std::vector<std::string> get_indices() const;
 
-  /** Set the id of this term. */
+  /**
+   * Set the id of this term.
+   * @param id  The id to be set.
+   */
   void set_id(uint64_t id);
-  /** Get the id of this term. */
+  /**
+   * Get the id of this term.
+   * @return  The id of this term.
+   */
   uint64_t get_id() const;
 
   /**
@@ -799,49 +973,62 @@ class AbsTerm
    *
    * This is not to be overriden by any solver implementations except the
    * shadow solver.
+   *
+   * @param sort  The sort to be set.
    */
   virtual void set_sort(Sort sort);
-  /** Get the sort of this term. */
+  /**
+   * Get the sort of this term.
+   * @return  The sort of this term.
+   */
   Sort get_sort() const;
 
   /**
    * Get the bit width of this term.
    * Asserts that it is a bit-vector term.
+   * @return  The size of this bit-vector term.
    */
   virtual uint32_t get_bv_size() const;
   /**
    * Get the exponent bit width of this term.
    * Asserts that it is a floating-point term.
+   * @return  The size of the exponent of this floating-point term.
    */
   virtual uint32_t get_fp_exp_size() const;
   /**
    * Get the significand bit width of this term.
    * Asserts that it is a floating-point term.
+   * @return  The size of the signifcand of this floating-point term.
    */
   virtual uint32_t get_fp_sig_size() const;
   /**
    * Get the array index sort of this term.
    * Asserts that it is an array term.
+   * @return  The index sort of this array term.
    */
   virtual Sort get_array_index_sort() const;
   /**
    * Get the array element sort of this term.
    * Asserts that it is an array term.
+   * @return  The element sort of this array term.
    */
   virtual Sort get_array_element_sort() const;
   /**
    * Get the function arity of this term.
    * Asserts that it is an function term.
+   * @return  The arity of this function term.
    */
   virtual uint32_t get_fun_arity() const;
   /**
    * Get the function codomain sort of this term.
    * Asserts that it is an function term.
+   * @return  The codomain sort of this function term.
    */
   virtual Sort get_fun_codomain_sort() const;
   /**
    * Get the function domain sorts of this term.
    * Asserts that it is an function term.
+   * @return  The domain sorts of this function term.
    */
   virtual std::vector<Sort> get_fun_domain_sorts() const;
 
