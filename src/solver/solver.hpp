@@ -525,16 +525,25 @@ std::ostream& operator<<(std::ostream& out, const std::vector<Sort>& vector);
 /**
  * Parameter sort.
  *
- * Only to be used for parameterizing datatypes. Instances of ParamSort may
- * never be added to the solver manager's sort database. No terms of ParamSort
- * may ever be created.
+ * A parameter sort is a sort place holder representing a sort parameter for
+ * parametric datatype sorts. Parameter sorts are *only* to be used for
+ * parametric datatypes.
  *
- * A back reference to the associated DT sort is stored in d_sorts.
+ * ParamSort is explicitly not a wrapper around a solver sort type, but a
+ * dedicated type that requires special handling in the solver wrapper.
+ *
+ * A back reference to the associated datatype sort is stored in
+ * `d_associated_sort` and can be accessed via get_associated_sort().
+ *
+ * @note  Instances of ParamSort may never be added to the solver manager's
+ *        sort database. No terms of ParamSort may ever be created.
  */
 class ParamSort : public AbsSort
 {
  public:
+  /** Constructor. */
   ParamSort(const std::string& symbol) : d_symbol(symbol) {}
+
   size_t hash() const override;
   std::string to_string() const override;
   bool equals(const Sort& other) const override;
@@ -556,22 +565,39 @@ class ParamSort : public AbsSort
 
   bool is_param_sort() const override { return true; }
 
+  /**
+   * Get the symbol of this parameter sort.
+   * @return The symbol.
+   */
   const std::string& get_symbol() const { return d_symbol; }
 
  private:
+  /** The symbol of this parameter sort. */
   std::string d_symbol;
 };
 
 /**
  * Unresolved sort.
- * Only to be used for mutually recursive datatypes. Instances of
- * UnresolvedSort may never be added to the solver manager's sort database.
- * No terms of UnresolvedSort may ever be created.
+ *
+ * An unresolved sort is a sort place holder for yet unresolved datatype sorts
+ * when constructing mutually recursive datatype sorts. Unresolved sorts are
+ * *only* to be used for mutually recursive datatypes.
+ *
+ * UnresolvedSort is explicitly not a wrapper around a solver sort type, but a
+ * dedicated type that requires special handling in the solver wrapper.
+ *
+ * A back reference to the associated datatype sort is stored in
+ * `d_associated_sort` and can be accessed via get_associated_sort().
+ *
+ * @note  Instances of UnresolvedSort may never be added to the solver manager's
+ *        sort database. No terms of UnresolvedSort may ever be created.
  */
 class UnresolvedSort : public AbsSort
 {
  public:
+  /** Constructor. */
   UnresolvedSort(const std::string& symbol) : d_symbol(symbol) {}
+
   size_t hash() const override;
   std::string to_string() const override;
   bool equals(const Sort& other) const override;
@@ -593,9 +619,14 @@ class UnresolvedSort : public AbsSort
 
   bool is_unresolved_sort() const override { return true; }
 
+  /**
+   * Get the symbol of this unresolved sort.
+   * @return The symbol.
+   */
   const std::string& get_symbol() const { return d_symbol; }
 
  private:
+  /** The symbol of this unresolved sort. */
   std::string d_symbol;
 };
 
