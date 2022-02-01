@@ -30,7 +30,10 @@ extensions = [
         'breathe',
         'sphinx.ext.autodoc',
         'sphinx.ext.autosectionlabel',
+        'sphinx.ext.todo',
 ]
+
+todo_include_todos = True
 
 # Make sure the target is unique
 autosectionlabel_prefix_document = True

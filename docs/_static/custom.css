@@ -1,0 +1,9 @@
+.rst-content a code.xref {
+  color: #2980b9;
+  font-size: 16px;
+  font-family: "Lato","proxima-nova","Helvetica Neue","Arial","sans-serif";
+  border: 0;
+  background: inherit;
+  padding: 0;
+  font-weight: 400;
+}

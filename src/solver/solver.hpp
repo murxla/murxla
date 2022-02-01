@@ -479,9 +479,23 @@ class AbsSort
   bool d_dt_is_instantiated = false;
 };
 
-/** Operator overload for equality over Sorts. */
+/**
+ * Operator overload for equality over Sorts.
+ *
+ * @param a  The sort to be compared with the other sort.
+ * @param b  The other sort.
+ * @return   True if AbsSort::equals() (which queries the solver) is true and
+ *           the kinds (murxla::SortKind) of `a` and `b` are equal.
+ */
 bool operator==(const Sort& a, const Sort& b);
-/** Operator overload for disequality over Sorts. */
+/**
+ * Operator overload for disequality over Sorts.
+ *
+ * @param a  The sort to be compared with the other sort.
+ * @param b  The other sort.
+ * @return   True if AbsSort::not_equals() (which queries the solver) is true
+ *           and the kinds (murxla::SortKind) of `a` and `b` are not equal.
+ */
 bool operator!=(const Sort& a, const Sort& b);
 
 /**
@@ -490,13 +504,21 @@ bool operator!=(const Sort& a, const Sort& b);
  * This represents a sort as 's' + its id and is mainly intended for tracing
  * purposes.  For a representation of a term as provided by the corresponding
  * solver, user AbsSort::to_string() insted.
+ *
+ * @param out  The output stream.
+ * @param s    The sort to be serialized.
+ * @return     The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const Sort s);
 /**
  * Serialize a vector of Sorts to given stream.
  *
- * As above, a sort is represented as 's' + its id, so this will yield a list
- * of space separated ids.
+ * As above, a sort is represented as `s` + its id, so this will yield a list
+ * of space separated `s<id>`s.
+ *
+ * @param out     The output stream.
+ * @param vector  The vector of sorts to be serialized.
+ * @return        The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const std::vector<Sort>& vector);
 
@@ -840,7 +862,23 @@ class AbsTerm
 /** The Murxla-internal representation of a term. */
 using Term = std::shared_ptr<AbsTerm>;
 
+/**
+ * Operator overload for equality over Terms.
+ *
+ * @param a  The term to be compared with the other term.
+ * @param b  The other term.
+ * @return   True if AbsTerm::equals() (which queries the solver) is true
+ *           and the sorts of `a` and `b` are equal.
+ */
 bool operator==(const Term& a, const Term& b);
+/**
+ * @param a  The term to be compared with the other term.
+ * @param b  The other term.
+ * Operator overload for disequality over Terms.
+ *
+ * @return   True if AbsTerm::not_equals() (which queries the solver) is true
+ *           and the sorts of `a` and `b` are not equal.
+ */
 bool operator!=(const Term& a, const Term& b);
 
 /**
@@ -848,14 +886,22 @@ bool operator!=(const Term& a, const Term& b);
  *
  * This represents a term as 't' + its id and is mainly intended for tracing
  * purposes.  For a representation of a term as provided by the corresponding
- * solver, user AbsTerm::to_string() insted.
+ * solver, use AbsTerm::to_string() instead.
+ *
+ * @param out  The output stream.
+ * @param t    The term to be serialized.
+ * @return     The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const Term t);
 /**
  * Serialize a vector of Terms to given stream.
  *
- * As above, a term is represented as 't' + its id, so this will yield a list
- * of space separated ids.
+ * As above, a term is represented as `t` + its id, so this will yield a list
+ * of space separated `t<id>`s.
+ *
+ * @param out     The output stream.
+ * @param vector  The vector of terms to be serialized.
+ * @return        The output stream.
  */
 std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
 
