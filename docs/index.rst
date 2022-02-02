@@ -11,3 +11,6 @@ Table of Contents
 
   sort_kind
   operator
+  theory
+
+  fsm/fsm

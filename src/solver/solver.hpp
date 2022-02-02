@@ -1140,9 +1140,19 @@ std::ostream& operator<<(std::ostream& out, const std::vector<Term>& vector);
 /* Solver                                                                     */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * The abstract base class for the solver implementation.
+ *
+ * A solver wrapper must implement a solver-specific solver wrapper class
+ * derived from this class.
+ */
 class Solver
 {
  public:
+  /** Map operator kind to a set of sort kinds. */
+  using OpKindSortKindMap = std::unordered_map<Op::Kind, SortKindSet>;
+
+  /** The result of a satisfiability check. */
   enum Result
   {
     UNKNOWN,
@@ -1150,131 +1160,262 @@ class Solver
     UNSAT,
   };
 
+  /** The numerical base of a string representing a number. */
   enum Base
   {
-    BIN = 2,
-    DEC = 10,
-    HEX = 16,
+    BIN = 2,    ///< binary
+    DEC = 10,   ///< decimal
+    HEX = 16,   ///< hexa-decimal
   };
 
-  using OpKindSortKindMap = std::unordered_map<Op::Kind, SortKindSet>;
-
+  /**
+   * Constructor.
+   * @param sng  The associated solver seed generator.
+   */
   Solver(SolverSeedGenerator& sng);
+  /** Default constructor is deleted. */
   Solver()          = delete;
+  /** Default destructor is deleted. */
   virtual ~Solver() = default;
 
   /** Create and initialize wrapped solver. */
   virtual void new_solver() = 0;
   /** Delete wrapped solver. */
   virtual void delete_solver() = 0;
-  /** Return true if wrapped solver is initialized. */
+  /**
+   * Determine if the wrapped solver is initialized.
+   * @return true if wrapped solver is initialized.
+   */
   virtual bool is_initialized() const = 0;
-  /** Return solver name. */
+  /**
+   * Get the name of the wrapped solver.
+   * @return  The solver name.
+   */
   virtual const std::string get_name() const = 0;
 
-  /** Get the RNG of this solver. */
+  /**
+   * Get the random number generator of this solver.
+   * @return  The RNG of this solver.
+   */
   RNGenerator& get_rng() { return d_rng; }
 
-  /** Return true if solver supports given theory. */
+  /**
+   * Determin if the wrapped solver supports a given theory.
+   * @param theory  The TheoryId of the theory.
+   * @return  True if solver supports the given theory.
+   */
   bool supports_theory(TheoryId theory) const;
-  /** Get the set of supported theories. */
+  /**
+   * Get the set of supported theories of the wrapped solver.
+   * @return  A vector with the set of supported theories.
+   */
   virtual TheoryIdVector get_supported_theories() const;
   /**
-   * Get the set of theories that are unsupported when THEORY_QUANT is selected.
+   * Get the set of theories that are unsupported when #THEORY_QUANT
+   * is enabled.
+   *
    * This allows to restrict quantified formulas to a specific subset of the
    * enabled theories.
+   *
+   * @return  A vector with the set of supported theories when #THEORY_QUANT is
+   *          enabled.
    */
   virtual TheoryIdVector get_unsupported_quant_theories() const;
-  /** Get the set of unsupported operator kinds. */
+  /**
+   * Get the set of unsupported operator kinds (see Op::Kind).
+   * @return  A vector with the set of unsupported operator kinds.
+   */
   virtual OpKindSet get_unsupported_op_kinds() const;
-  /** Get the set of unsupported sort kinds. */
+  /**
+   * Get the set of unsupported sort kinds (see murxla::SortKind).
+   * @return  A vector with the set of unsupported sort kinds.
+   */
   virtual SortKindSet get_unsupported_sort_kinds() const;
 
   /**
    * Get operator sort restrictions.
+   *
    * Maps operator kind to a set of excluded sort kinds. This is only relevant
-   * for operators that allow kind SORT_ANY.
-   * By default, this is configured to exclude sorts to not generate higher
-   * order terms.
+   * for operators that allow kind #SORT_ANY.
+   *
+   * By default, this is configured to exclude sort kinds that would allow
+   * to create higher-order terms.
+   *
+   * @return  A map from operator kind (Op::Kind) to a set of excluded sort
+   *          kinds (murxla::SortKind).
    */
   virtual OpKindSortKindMap get_unsupported_op_sort_kinds() const;
 
   /**
-   * Get the set of sorts that are unsupported for quantified variables.
-   * Note: This is different from get_unsupported_quant_sort_kinds in that it
-   *       only disallows quantified variables of that sort. Other terms of
-   *       that sort may occur in quantified formulas.
+   * Get the set of sort kinds that are unsupported for quantified variables.
+   *
+   * @note  This is different from get_unsupported_quant_sort_kinds() in that
+   *        it only disallows quantified variables of these sort kinds.
+   *        Other terms of these sort kinds may occur in quantified formulas.
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported for
+   *          quantified variables.
    */
   virtual SortKindSet get_unsupported_var_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported as parameter for other
-   * sorts (e.g., for parametric datatype sorts).
+   * Get the set of sort kinds that are unsupported as sort parameters
+   * (e.g., for parametric datatype sorts).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported for
+   *          sort parameters.
    */
   virtual SortKindSet get_unsupported_sort_param_sort_kinds() const;
   /**
    * Get the set of sort kinds that are unsupported as datatype
-   * selectorcodomain sort.
+   * selector codomain sort.
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          for datatype selector codomain sorts.
    */
   virtual SortKindSet get_unsupported_dt_sel_codomain_sort_kinds() const;
   /**
    * Get the set of sort kinds that are unsupported as sort of match terms
-   * for operator DT_MATCH.
+   * for operator Op::DT_MATCH.
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          for match terms of operator Op::DT_MATCH.
    */
   virtual SortKindSet get_unsupported_dt_match_sort_kinds() const;
   /**
-   * Get set of unsupported domain sort kinds for function sorts.
+   * Get set of unsupported domain sort kinds for function sorts
+   * (see mk_sort()).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as domain sorts for function sorts.
    */
   virtual SortKindSet get_unsupported_fun_sort_domain_sort_kinds() const;
   /**
-   * Get set of unsupported codomain sort kinds for function sorts.
+   * Get set of unsupported codomain sort kinds for function sorts
+   * (see mk_sort()).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as codomain sort for function sorts.
    */
   virtual SortKindSet get_unsupported_fun_sort_codomain_sort_kinds() const;
   /**
-   * Get set of unsupported domain sort kinds for functions (mk_fun).
+   * Get set of unsupported domain sort kinds for functions (see mk_fun()).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as domain sorts for function terms.
    */
   virtual SortKindSet get_unsupported_fun_domain_sort_kinds() const;
   /**
-   * Get set of unsupported codomain sort kinds for functions.
+   * Get set of unsupported codomain sort kinds for functions (see mk_fun()).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as codomain sorts for function terms.
    */
   virtual SortKindSet get_unsupported_fun_codomain_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported as array index sort.
+   * Get the set of sort kinds that are unsupported as index sort of array
+   * sorts (see mk_sort()).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as array index sort.
    */
   virtual SortKindSet get_unsupported_array_index_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported as array element sort.
+   * Get the set of sort kinds that are unsupported as element sort of
+   * array sorts (see mk_sort()).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as array element sort.
    */
   virtual SortKindSet get_unsupported_array_element_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported as bag element sort.
+   * Get the set of sort kinds that are unsupported as element sort of
+   * bag sorts (see mk_sort()).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as bag element sort.
    */
   virtual SortKindSet get_unsupported_bag_element_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported as sequence element sort.
+   * Get the set of sort kinds that are unsupported as element sort of
+   * sequence sorts (see mk_sort()).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as sequence element sort.
    */
   virtual SortKindSet get_unsupported_seq_element_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported as set element sort.
+   * Get the set of sort kinds that are unsupported as element sort for
+   * set sorts.
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          as set element sort.
    */
   virtual SortKindSet get_unsupported_set_element_sort_kinds() const;
   /**
-   * Get the set of sort kinds that are unsupported for get-value.
+   * Get the set of sort kinds that are unsupported for get-value
+   * (see ActionGetValue).
+   *
+   * @return  A set of sort kinds (murxla::SortKind) that are unsupported
+   *          when querying the value of a term.
    */
   virtual SortKindSet get_unsupported_get_value_sort_kinds() const;
 
-  virtual void configure_fsm(FSM* fsm) const;
-  virtual void disable_unsupported_actions(FSM* fsm) const;
-  virtual void configure_smgr(SolverManager* smgr) const;
-  virtual void configure_opmgr(OpKindManager* opmgr) const;
-  virtual void configure_options(SolverManager* smgr) const {};
+  /**
+   * Configure the FSM with solver-specific extensions.
+   *
+   * This is for adding solver-specific actions, states and transitions.
+   * Override for solver-specific configuration of the FSM.
+   *
+   * Does nothing by default.
+   *
+   * @param fsm  The fsm to configure with extensions.
+   */
+  virtual void configure_fsm(FSM* fsm) const {}
+
+  /**
+   * Disable unsupported actions of the base FSM configuration.
+   *
+   * Does nothing by default.
+   *
+   * @param fsm  The fsm to disable actions in.
+   */
+  virtual void disable_unsupported_actions(FSM* fsm) const {}
+
+  /**
+   * Configure the operator kind manager with solver-specific extensions.
+   *
+   * This is for adding and configuring solver-specific operator kinds.
+   *
+   * Does nothing by default.
+   *
+   * @param opmgr  The operator kind manager to configure.
+   */
+  virtual void configure_opmgr(OpKindManager* opmgr) const {}
+
+  /**
+   * Configure solver configuration options.
+   *
+   * This is for adding and configuring solver options (see
+   * SolverManager::add_option()).
+   *
+   * Does nothing by default.
+   *
+   * @param smgr  The solver manager maintaining the solver options to
+   *              configure.
+   */
+  virtual void configure_options(SolverManager* smgr) const {}
+
+  /**
+   * Add solver-specific special value kind.
+   *
+   * @note  As a style convention, solver-specific special value kinds should
+   *        be defined in the solver-specific implementation of AbsTerm.
+   *
+   * @param sort_kind  The sort kind of a term of given special value kind.
+   * @param kind       The solver-specific special value kind to add.
+   */
   void add_special_value(SortKind sort_kind,
                          const AbsTerm::SpecialValueKind& kind);
-
-  /** Set logic string. */
-  virtual void set_logic(const std::string& logic){};
-
-  /** Reset solver.  */
-  virtual void reset() = 0;
 
   /**
    * Reset solver state into assert mode.
@@ -1288,18 +1429,81 @@ class Solver
    */
   virtual void reset_sat();
 
+  /**
+   * Create variable.
+   *
+   * @param sort  The sort of the variable.
+   * @param name  The name of the variable.
+   * @return  The variable.
+   */
   virtual Term mk_var(Sort sort, const std::string& name)   = 0;
+
+  /**
+   * Create first order constant.
+   *
+   * @param sort  The sort of the constant.
+   * @param name  The name of the constant.
+   * @return  The constant.
+   */
   virtual Term mk_const(Sort sort, const std::string& name) = 0;
-  /** Create function `name` of sort `sort`. */
+
+  /**
+   * Create function.
+   *
+   * @param name  The name of the function.
+   * @param args  The function arguments.
+   * @param body  The function body.
+   * @return  The function.
+   */
   virtual Term mk_fun(const std::string& name,
                       const std::vector<Term>& args,
                       Term body) = 0;
 
+  /**
+   * Create value from Boolean value.
+   *
+   * This is mainly used for creating Boolean values.
+   *
+   * @param sort   The sort of the value.
+   * @param value  The value.
+   * @return  A term representing the value of given sort.
+   */
   virtual Term mk_value(Sort sort, bool value) = 0;
+
+  /**
+   * Create value from string.
+   *
+   * This is mainly used for floating-point, integer, real, regular language
+   * and string values.
+   *
+   * @param sort  The sort of the value.
+   * @param value  The string representation of the value.
+   * @return  A term representing the value of given sort.
+   */
   virtual Term mk_value(Sort sort, const std::string& value);
+
+  /**
+   * Create rational value.
+   *
+   * @param sort  The sort of the value.
+   * @param num   A decimal string representing the numerator.
+   * @param den   A decimal string representing the denominator.
+   * @return  A term representing the rational value.
+   */
   virtual Term mk_value(Sort sort,
                         const std::string& num,
                         const std::string& den);
+
+  /**
+   * Create value from string given in a specific base.
+   *
+   * This is mainly used for creating bit-vector values.
+   *
+   * @param sort   The sort of the value.
+   * @param value  The string representation of the value.
+   * @param base   The numerical base the `value` string is given in.
+   * @return  A term representing the value.
+   */
   virtual Term mk_value(Sort sort, const std::string& value, Base base);
 
   /**
@@ -1316,8 +1520,8 @@ class Solver
 
   /**
    * Create sort of given sort kind with no additional arguments.
-   * Examples are sorts of kind SORT_BOOL, SORT_INT, SORT_REAL, SORT_RM,
-   * SORT_REGLAN, and SORT_STRING.
+   * Examples are sorts of kind #SORT_BOOL, #SORT_INT, #SORT_REAL, #SORT_RM,
+   * #SORT_REGLAN, and #SORT_STRING.
    */
   virtual Sort mk_sort(SortKind kind) = 0;
   /**
@@ -1333,10 +1537,10 @@ class Solver
   /**
    * Create sort with given sort arguments.
    *
-   * SORT_ARRAY: First sort is index sort, second sort is element sort.
+   * #SORT_ARRAY: First sort is index sort, second sort is element sort.
    *
-   * SORT_FUN: First n - 1 sorts represent the domain, last (nth) sort is the
-   *           codomain.
+   * #SORT_FUN: First n - 1 sorts represent the domain, last (nth) sort is the
+   *            codomain.
    */
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
@@ -1409,7 +1613,7 @@ class Solver
    *
    * This is used for querying the sort of a freshly created term while
    * delegating sort inference to the solver. The returned sort will have
-   * sort kind SORT_ANY and id 0 (will be assigned in the FSM, before adding
+   * sort kind #SORT_ANY and id 0 (will be assigned in the FSM, before adding
    * the sort to the sort database). Given sort kind is typically unused, but
    * needed by the Smt2Solver.
    */
@@ -1461,6 +1665,24 @@ class Solver
   virtual bool is_unsat_assumption(const Term& t) const = 0;
 
   /**
+   * Set the logic.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-logic <logic>)
+   * \endverbatim
+   *
+   * Does nothing by default.
+   *
+   * @param logic  A string representing the logic to configure, as defined
+   *               in the SMT-LIB standard.
+   */
+  virtual void set_logic(const std::string& logic) {}
+
+  /**
    * SMT-LIB: (assert <term>)
    *
    * Assert given formula.
@@ -1498,6 +1720,19 @@ class Solver
   virtual void pop(uint32_t n_levels)  = 0;
 
   virtual void print_model() = 0;
+
+  /**
+   * Reset solver.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (reset)
+   * \endverbatim
+   */
+  virtual void reset() = 0;
 
   virtual void reset_assertions() = 0;
 
@@ -1544,7 +1779,7 @@ class Solver
    *
    * By default, this includes special values defined in SMT-LIB, and common
    * special values for BV (which don't have an SMT-LIB equivalent). The entry
-   * for SORT_ANY is a dummy entry for sort kinds with no special values.
+   * for #SORT_ANY is a dummy entry for sort kinds with no special values.
    *
    * Note that special values for BV must be converted to binary, decimal or
    * hexadecimal strings or integer values if the solver does not provide

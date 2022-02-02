@@ -947,30 +947,6 @@ Solver::get_unsupported_get_value_sort_kinds() const
 }
 
 void
-Solver::configure_fsm(FSM* fsm) const
-{
-  // default: do nothing
-}
-
-void
-Solver::disable_unsupported_actions(FSM* fsm) const
-{
-  // default: do nothing
-}
-
-void
-Solver::configure_smgr(SolverManager* smgr) const
-{
-  // default: do nothing
-}
-
-void
-Solver::configure_opmgr(OpKindManager* opmgr) const
-{
-  // default: do nothing
-}
-
-void
 Solver::add_special_value(SortKind sort_kind,
                           const AbsTerm::SpecialValueKind& kind)
 {

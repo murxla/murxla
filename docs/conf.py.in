@@ -14,6 +14,9 @@
 import os
 import sys
 
+# add path to enable extensions
+sys.path.insert(0, '${CMAKE_CURRENT_SOURCE_DIR}/ext/')
+
 # -- Project information -----------------------------------------------------
 
 project = 'Murxla'
@@ -66,3 +69,8 @@ html_extra_path = []
 breathe_default_project = "Murxla"
 breathe_domain_by_extension = {"hpp" : "cpp"}
 cpp_index_common_prefix = ["murxla::"]
+
+# -- SMT-LIB syntax highlighting ---------------------------------------------
+from smtliblexer import SmtLibLexer
+from sphinx.highlighting import lexers
+lexers['smtlib'] = SmtLibLexer()

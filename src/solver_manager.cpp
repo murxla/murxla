@@ -63,7 +63,6 @@ SolverManager::initialize()
                                   d_solver->get_unsupported_op_sort_kinds(),
                                   d_arith_linear,
                                   d_mbt_stats));
-  d_solver->configure_smgr(this);
   d_solver->configure_opmgr(d_opmgr.get());
   reset_op_cache();
   d_initialized = true;
