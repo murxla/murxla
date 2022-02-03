@@ -4,6 +4,7 @@ Solver Wrapper Interface: AbsSort
 .. doxygenclass:: murxla::AbsSort
     :members:
     :undoc-members:
+    :protected-members:
 
 ----
 

@@ -1507,72 +1507,105 @@ class Solver
   virtual Term mk_value(Sort sort, const std::string& value, Base base);
 
   /**
-   * Make special value (as defined in SMT-LIB, or as added as solver-specific
-   * special values).
+   * Create a special value (as defined in SMT-LIB, or as added as
+   * solver-specific special values).
+   *
+   * @param sort   The sort of the special value.
+   * @param value  The kind of the special value.
+   * @return  A term representing the special value.
    */
   virtual Term mk_special_value(Sort sort,
                                 const AbsTerm::SpecialValueKind& value);
 
   /**
    * Create uninterpreted sort.
+   *
+   * @param name  The name of the uninterpreted sort.
+   * @return  An uninterpreted sort.
    */
   virtual Sort mk_sort(const std::string& name) { return nullptr; }
 
   /**
-   * Create sort of given sort kind with no additional arguments.
+   * Create sort with no additional arguments.
+   *
    * Examples are sorts of kind #SORT_BOOL, #SORT_INT, #SORT_REAL, #SORT_RM,
    * #SORT_REGLAN, and #SORT_STRING.
+   *
+   * @param kind  The kind of the sort.
+   * @return  The created sort.
    */
   virtual Sort mk_sort(SortKind kind) = 0;
   /**
-   * Create sort of given kind with given size argument.
+   * Create sort with one unsigned integer argument.
+   *
    * This is mainly for creating bit-vector sorts.
+   *
+   * @param size  The size of the bit-vector sort.
+   * @return  The created sort.
    */
   virtual Sort mk_sort(SortKind kind, uint32_t size);
   /**
-   * Create sort of given kind with given size arguments.
+   * Create sort with two unsigned integer arguments.
+   *
    * This is mainly for creating floating-point sorts.
+   *
+   * @param esize  The size of the exponent.
+   * @param ssize  The size of the significand.
+   * @return  The created sort.
    */
   virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize);
   /**
    * Create sort with given sort arguments.
    *
-   * #SORT_ARRAY: First sort is index sort, second sort is element sort.
+   * The sort arguments are given as:
    *
-   * #SORT_FUN: First n - 1 sorts represent the domain, last (nth) sort is the
-   *            codomain.
+   * - #SORT_ARRAY: `{<index sort>, <element sort>}`
+   *
+   * - #SORT_BAG: `{<element sort>}`
+   *
+   * - #SORT_FUN: `{<domain sort 1>, ..., <domain sort n>, <codomain sort>}`
+   *
+   * - #SORT_SET: `{<element sort>}`
+   *
+   * - #SORT_SEQ: `{<element sort>}`
    */
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
   /**
    * Create one or more datatype sorts.
    *
+   * Selectors may return a term of
+   * 1. a regular Sort
+   * 2. a parameter sort (ParamSort)
+   * 3. a yet unresolved dataype sort (UnresolvedSort)
+   * 4. the sort that is currently being created, indicated by passing a
+   *    `nullptr` for the selector codomain sort
    *
-   * dt_names    : A vector with the names of the datatypes.
-   * param_sorts : A vector with the lists of parameter sorts in case of
-   *               parametric datatype sorts. The list of parameter sorts for a
-   *               datatype may be empty.
-   * constructors: A vector with the lists of datatype constructors, wich are
-   *               given as maps of constructor name to vector of selectors
-   *               (which are given as a pair of name and sort).
+   * ParamSort and UnresolvedSort do not wrap actual sorts but are sort
+   * placeholders. Thus, solvers must special case cases 1-3 accordingly.
    *
-   * Note: Selectors may return a term of the sort that is currently be
-   *       created. We indicate this by passing a nullptr for the selector
-   *       codomain sort. Solvers must special case this accordingly.
+   * ParamSort keeps a back reference to the associated datatype sort in
+   * ParamSort::d_sorts (inherited from AbsSort, see AbsSort::get_sorts()).
    *
-   *       Parameter sorts keep a back reference to the associated DT sort
-   *       in ParamSort::d_sorts (inherited from AbsSort).
+   * For mutually recursive datatypes, we use instances of UnresolvedSort as
+   * place holders. These instances are not unique, we create a new instance of
+   * UnresolvedSort for every occurence of an unresolved sort.  Solvers must
+   * distinguish these sorts via their names (see UnresolvedSort::get_symbol()).
    *
-   *       For mutually recursive datatypes, we use instances of UnresolvedSort
-   *       as place holders. These instances are not unique, we create a new
-   *       instance of UnresolvedSort for every occurence of an unresolved sort.
-   *       Solvers must distinguish these sorts via their names
-   *       (see UnresolvedSort::get_symbol()).
+   * If the mutually recursive datatypes are parametric, then we specify sorts
+   * for instantiating these parameters, and store them in
+   * UnresolvedSort::d_sorts (inherited from AbsSort). These sorts can be
+   * retrieved via UnresolvedSort::get_sorts() (inherited).
    *
-   *       If the mutually recursive datatypes are parametric, then
-   *       we specify sorts for instantiating these parameters, and store them
-   *       in UnresolvedSort::d_sorts (inherited from AbsSort). These sorts can
-   *       be retrieved via UnresolvedSort::get_sorts() (inherited).
+   * @param dt_names      A vector with the names of the datatypes.
+   * @param param_sorts   A vector with the lists of parameter sorts in case of
+   *                      parametric datatype sorts. The list of parameter
+   *                      sorts for a datatype may be empty.
+   * @param constructors  A vector with the lists of datatype constructors,
+   *                      wich are given as maps of constructor name to vector
+   *                      of selectors (which are given as a pair of name and
+   *                      sort).
+   * @return  The created sort.
    */
   virtual std::vector<Sort> mk_sort(
       SortKind kind,
@@ -1580,12 +1613,23 @@ class Solver
       const std::vector<std::vector<Sort>>& param_sorts,
       const std::vector<AbsSort::DatatypeConstructorMap>& constructors);
 
-  /** Instantiate parametric sort 'param_sort' with given sorts. */
+  /**
+   * Instantiate parametric sort `param_sort` with given sorts
+   * @param param_sort  The parametric sort to be instantiated.
+   * @param sorts       The sorts to instantiate the sort parameters of
+   *                    `param_sort` with.
+   * @return  The instantiated sort.
+   */
   virtual Sort instantiate_sort(Sort param_sort,
                                 const std::vector<Sort>& sorts);
 
   /**
    * Create term with given term arguments and indices.
+   *
+   * @param kind  The kind of the term (Op::Kind).
+   * @param args  The argument terms.
+   * @param indices  The index arguments.
+   * @return  The created term.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,
@@ -1593,15 +1637,39 @@ class Solver
 
   /**
    * Create term with given string and term arguments.
+   *
    * This is mainly intended for Op::DT_APPLY_SEL, Op::DT_APPLY_TESTER and
    * Op::DT_APPLY_UPDATER.
+   *
+   * The string arguments identify constructors and selectors by name and
+   * are given for the following kinds as follows:
+   * - Op::DT_APPLY_SEL: `{<constructor name>, <selector name>}`
+   * - Op::DT_APPLY_TESTER: `{<constructor name>}`
+   * - Op::DT_APPLY_UPDATER: `{<constructor name>, <selector name>}`
+   *
+   * @param kind  The kind of the term (Op::Kind).
+   * @param str_args  The names of constructors/selectors as indicated above.
+   * @param args  The argument terms.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<std::string>& str_args,
                        const std::vector<Term>& args);
   /**
    * Create term with given Sort, string and term arguments.
-   * This is mainly intended for Op::DT_APPLY_CONS.
+   *
+   * This is mainly intended for Op::DT_APPLY_CONS, Op::DT_MATCH_BIND_CASE and
+   * Op::DT_MATCH_CASE.
+   *
+   * The string arguments identify constructors and selectors by name and
+   * are given for the following kinds as follows:
+   * - Op::DT_APPLY_CONS: `{<constructor name>}`
+   * - Op::DT_MATCH_BIND_CASE: `{<constructor name>}`
+   * - Op::DT_MATCH_CASE: `{<constructor name>}`
+   *
+   * @param kind  The kind of the term (Op::Kind).
+   * @param sort  The datatype sort to apply the given kind on.
+   * @param str_args  The names of constructors/selectors as indicated above.
+   * @param args  The argument terms.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        Sort sort,
@@ -1616,6 +1684,10 @@ class Solver
    * sort kind #SORT_ANY and id 0 (will be assigned in the FSM, before adding
    * the sort to the sort database). Given sort kind is typically unused, but
    * needed by the Smt2Solver.
+   *
+   * @param term       The term to query for its sort.
+   * @param sort_kind  The kind of the term's sort.
+   * @return  The sort of the given term.
    */
   virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
 
