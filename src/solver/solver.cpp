@@ -968,12 +968,6 @@ Solver::reset_sat()
   // default: do nothing
 }
 
-const std::vector<Solver::Base>&
-Solver::get_bases() const
-{
-  return d_bases;
-}
-
 const std::unordered_set<AbsTerm::SpecialValueKind>&
 Solver::get_special_values(SortKind sort_kind) const
 {

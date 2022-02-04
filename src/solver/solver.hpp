@@ -1691,8 +1691,6 @@ class Solver
    */
   virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
 
-  const std::vector<Base>& get_bases() const;
-
   /**
    * Return special values for given sort kind.
    * If not special values are defined, return empty set.
@@ -1843,8 +1841,6 @@ class Solver
 
  protected:
   RNGenerator d_rng;
-
-  std::vector<Base> d_bases = {Base::BIN, Base::DEC, Base::HEX};
 
   /**
    * Map sort kind to special values.

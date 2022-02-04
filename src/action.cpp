@@ -2563,7 +2563,7 @@ ActionMkValue::run(Sort sort)
       uint32_t bw = sort->get_bv_size();
 
       std::vector<Solver::Base> bases;
-      for (auto b : d_solver.get_bases())
+      for (auto b : {Solver::Base::BIN, Solver::Base::DEC, Solver::Base::HEX})
       {
         /* can not be expressed in hex */
         if (b == Solver::Base::HEX && bw % 4) continue;
