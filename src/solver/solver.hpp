@@ -165,7 +165,7 @@ class AbsSort
   virtual bool is_uninterpreted() const { return false; };
 
   /**
-   * Return true if this datatype sort is well founded.
+   * Determine if this datatype sort is well founded.
    *
    * We use this to filter out datatype sorts that are not well founded.
    * Default returns always true, must be overriden by solver to actually
@@ -759,160 +759,160 @@ class AbsTerm
 
   /**
    * Determine if this term is an Array term.
-   * @return true if this term is an Array term.
+   * @return True if this term is an Array term.
    */
   virtual bool is_array() const;
   /**
    * Determine if this term is a Bag term.
-   * @return true if this term is a Bag term.
+   * @return True if this term is a Bag term.
    */
   virtual bool is_bag() const;
   /**
    * Determine if this term is a Boolean term.
-   * @return true if this term is a Boolean term.
+   * @return True if this term is a Boolean term.
    */
   virtual bool is_bool() const;
   /**
    * Determine if this term is a bit-vector term.
-   * @return true if this term is a bit-vector term.
+   * @return True if this term is a bit-vector term.
    */
   virtual bool is_bv() const;
   /**
    * Determine if this term is a datatype term.
-   * @return true if this term is a datatype term.
+   * @return True if this term is a datatype term.
    */
   virtual bool is_dt() const;
   /**
    * Determine if this term is a floating-point term.
-   * @return true if this term is a floating-point term.
+   * @return True if this term is a floating-point term.
    */
   virtual bool is_fp() const;
   /**
    * Determine if this term is a function term.
-   * @return true if this term is a function term.
+   * @return True if this term is a function term.
    */
   virtual bool is_fun() const;
   /**
    * Determine if this term is an Int term.
-   * @return true if this term is an Int term.
+   * @return True if this term is an Int term.
    */
   virtual bool is_int() const;
   /**
    * Determine if this term is a Real term.
-   * @return true if this term is a Real term.
+   * @return True if this term is a Real term.
    */
   virtual bool is_real() const;
   /**
    * Determine if this term is a RoundingMode term.
-   * @return true if this term is a RoundingMode term.
+   * @return True if this term is a RoundingMode term.
    */
   virtual bool is_rm() const;
   /**
    * Determine if this term is a RegLan term.
-   * @return true if this term is a RegLan term.
+   * @return True if this term is a RegLan term.
    */
   virtual bool is_reglan() const;
   /**
    * Determine if this term is a Sequence term.
-   * @return true if this term is a Sequence term.
+   * @return True if this term is a Sequence term.
    */
   virtual bool is_seq() const;
   /**
    * Determine if this term is a Set term.
-   * @return true if this term is a Set term.
+   * @return True if this term is a Set term.
    */
   virtual bool is_set() const;
   /**
    * Determine if this term is a String term.
-   * @return true if this term is a String term.
+   * @return True if this term is a String term.
    */
   virtual bool is_string() const;
   /**
    * Determine if this term is an uninterpreted term.
-   * @return true if this term is an uninterpreted term.
+   * @return True if this term is an uninterpreted term.
    */
   virtual bool is_uninterpreted() const;
 
   /**
    * Determine if this term is a Bag value.
-   * @return true if this term is a Bag value.
+   * @return True if this term is a Bag value.
    */
   virtual bool is_bag_value() const;
   /**
    * Determine if this term is a Boolean value.
-   * @return true if this term is a Boolean value.
+   * @return True if this term is a Boolean value.
    */
   virtual bool is_bool_value() const;
   /**
    * Determine if this term is a bit-vector value.
-   * @return true if this term is a bit-vector value.
+   * @return True if this term is a bit-vector value.
    */
   virtual bool is_bv_value() const;
   /**
    * Determine if this term is a datatype value.
-   * @return true if this term is a datatype value.
+   * @return True if this term is a datatype value.
    */
   virtual bool is_dt_value() const;
   /**
    * Determine if this term is a floating-point value.
-   * @return true if this term is a floating-point value.
+   * @return True if this term is a floating-point value.
    */
   virtual bool is_fp_value() const;
   /**
    * Determine if this term is an integer value.
-   * @return true if this term is an integer value.
+   * @return True if this term is an integer value.
    */
   virtual bool is_int_value() const;
   /**
    * Determine if this term is a real value.
-   * @return true if this term is a real value.
+   * @return True if this term is a real value.
    */
   virtual bool is_real_value() const;
   /**
    * Determine if this term is a RegLan value.
-   * @return true if this term is a RegLan value.
+   * @return True if this term is a RegLan value.
    */
   virtual bool is_reglan_value() const;
   /**
    * Determine if this term is a rounding mode value.
-   * @return true if this term is a rounding mode value.
+   * @return True if this term is a rounding mode value.
    */
   virtual bool is_rm_value() const;
   /**
    * Determine if this term is a Sequence value.
-   * @return true if this term is a Sequence value.
+   * @return True if this term is a Sequence value.
    */
   virtual bool is_seq_value() const;
   /**
    * Determine if this term is a Sequence value.
-   * @return true if this term is a Sequence value.
+   * @return True if this term is a Sequence value.
    */
   virtual bool is_set_value() const;
   /**
    * Determine if this term is a string value.
-   * @return true if this term is a string value.
+   * @return True if this term is a string value.
    */
   virtual bool is_string_value() const;
 
   /**
    * Determine if this term is a special value of given kind.
-   * @return true if this term is a special value of given kind.
+   * @return True if this term is a special value of given kind.
    */
   virtual bool is_special_value(const SpecialValueKind& kind) const;
 
   /**
    * Determine if this term is a first-order constant.
-   * @return true if this term is a first-order constant.
+   * @return True if this term is a first-order constant.
    */
   virtual bool is_const() const;
   /**
    * Determine if this term is a value.
-   * @return true if this term is a value.
+   * @return True if this term is a value.
    */
   virtual bool is_value() const;
   /**
    * Determine if this term is a variable.
-   * @return true if this term is a variable.
+   * @return True if this term is a variable.
    */
   virtual bool is_var() const;
 
@@ -1184,7 +1184,7 @@ class Solver
   virtual void delete_solver() = 0;
   /**
    * Determine if the wrapped solver is initialized.
-   * @return true if wrapped solver is initialized.
+   * @return True if wrapped solver is initialized.
    */
   virtual bool is_initialized() const = 0;
   /**
