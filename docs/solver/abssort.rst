@@ -6,6 +6,9 @@ Solver Wrapper Interface: AbsSort
     :undoc-members:
     :protected-members:
 
+.. doxygenstruct:: std::hash< murxla::Sort >
+  :members:
+
 ----
 
 .. doxygenclass:: murxla::ParamSort

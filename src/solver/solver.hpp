@@ -1563,7 +1563,7 @@ class Solver
    *
    * - #SORT_BAG: `{<element sort>}`
    *
-   * - #SORT_FUN: `{<domain sort 1>, ..., <domain sort n>, <codomain sort>}`
+   * - #SORT_FUN: `{<domain sort_1>, ..., <domain sort_n>, <codomain sort>}`
    *
    * - #SORT_SET: `{<element sort>}`
    *
@@ -1692,46 +1692,81 @@ class Solver
   virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
 
   /**
-   * Return special values for given sort kind.
-   * If not special values are defined, return empty set.
+   * Get the set of special value kinds registered with this solver for a given
+   * sort kind.
+   *
+   * @return  The special values for given sort kind. If no special values are
+   *           defined, return an empty set.
    */
   const std::unordered_set<AbsTerm::SpecialValueKind>& get_special_values(
       SortKind sort_kind) const;
 
-  /** Return all sort kinds for which we have special values. */
+  /**
+   * Get the sort kinds for which special value kinds are registered with this
+   * solver.
+   * @return  The set of sort kinds for which this solver has special value
+   *          kinds defined.
+   */
   const SortKindSet& get_special_values_sort_kinds() const;
 
   /**
-   * Return a string representation that identifies the solver configuration
-   * for enabling/disabling incremental solving.
+   * Get the string representation that identifies the solver configuration
+   * option for enabling/disabling incremental solving.
+   *
+   * @return  Return the string representation of the solver option for
+   *          enabling/disabling incremental solving.
    */
   virtual std::string get_option_name_incremental() const = 0;
   /**
-   * Return a string representation that identifies the solver configuration
-   * for enabling/disabling model production.
+   * Get the string representation that identifies the solver configuration
+   * option for enabling/disabling model production.
+   *
+   * @return  Return the string representation of the solver option for
+   *          enabling/disabling model production.
    */
   virtual std::string get_option_name_model_gen() const = 0;
   /**
-   * Return a string representation that identifies the solver configuration
-   * for enabling/disabling unsat assumptions production.
+   * Get the string representation that identifies the solver configuration
+   * option for enabling/disabling unsat assumptions production.
+   *
+   * @return  Return the string representation of the solver option for
+   *          enabling/disabling unsat assumption production.
    */
   virtual std::string get_option_name_unsat_assumptions() const = 0;
   /**
-   * Return a string representation that identifies the solver configuration
-   * for enabling/disabling unsat cores production.
+   * Get the string representation that identifies the solver configuration
+   * option for enabling/disabling unsat cores production.
+   *
+   * @return  Return the string representation of the solver option for
+   *          enabling/disabling unsat core production.
    */
   virtual std::string get_option_name_unsat_cores() const = 0;
 
-  /** Return true if incremental solving is currently enabled. */
+  /**
+   * Determine if incremental solving is currently enabled.
+   * @return  True if incremental solving is currently enabled.
+   */
   virtual bool option_incremental_enabled() const = 0;
-  /** Return true if model production is currently enabled. */
+  /**
+   * Determine if model production is currently enabled.
+   * @return  True if model production is currently enabled.
+   */
   virtual bool option_model_gen_enabled() const = 0;
-  /** Return true if unsat assumptions production is currently enabled. */
+  /**
+   * Determine if unsat assumptions production is currently enabled.
+   * @return  True if unsat assumptions production is currently enabled.
+   */
   virtual bool option_unsat_assumptions_enabled() const = 0;
-  /** Return true if unsat cores production is currently enabled. */
+  /**
+   * Determine if unsat cores production is currently enabled.
+   * @return  True if unsat cores production is currently enabled.
+   */
   virtual bool option_unsat_cores_enabled() const = 0;
 
-  /** Return true if given term is an unsat assumption. */
+  /**
+   * Determine if given term is an unsat assumption.
+   * @return  True if given term is an unsat assumption.
+   */
   virtual bool is_unsat_assumption(const Term& t) const = 0;
 
   /**
@@ -1753,42 +1788,126 @@ class Solver
   virtual void set_logic(const std::string& logic) {}
 
   /**
-   * SMT-LIB: (assert <term>)
-   *
    * Assert given formula.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (assert <term>)
+   * \endverbatim
+   *
+   * @param t  The formula to assert.
    */
   virtual void assert_formula(const Term& t) = 0;
 
   /**
-   * SMT-LIB: (check-sat)
-   *
    * Check satisfiability of currently asserted formulas.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat)
+   * \endverbatim
+   * @return  The satisfiability Result.
    */
   virtual Result check_sat() = 0;
   /**
-   * SMT-LIB: (check-sat-assuming)
-   *
    * Check satisfiability of currently asserted formulas under the given set of
    * assumptions.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (check-sat-assuming)
+   * \endverbatim
+   *
+   * @param assumptions  The set of assumptions.
+   * @return  The satisfiability Result.
    */
   virtual Result check_sat_assuming(const std::vector<Term>& assumptions) = 0;
 
-  /** Return the current set of unsat assumptions. */
+  /**
+   * Get the current set of unsat assumptions.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-assumptions)
+   * \endverbatim
+   *
+   * @return  The current set of unsat assumptions. */
   virtual std::vector<Term> get_unsat_assumptions() = 0;
 
   /**
-   * SMT-LIB: (get-unsat-core)
-   *
    * Retrieve the unsat core after an unsat check-sat call.
    *
-   * Returns an empty vector by default. Do not override if solver does not
-   * support unsat cores.
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-core)
+   * \endverbatim
+   *
+   * @return  A set of terms represnting the unsat core. Returns an empty
+   *          vector by default.
+   *
+   * @note Do not override if solver does not support unsat cores.
    */
   virtual std::vector<Term> get_unsat_core();
 
+  /**
+   * Push the given number of assertion levels.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (push <n>)
+   * \endverbatim
+   *
+   * @param n_levels  The number of assertion levels to push.
+   */
   virtual void push(uint32_t n_levels) = 0;
+
+  /**
+   * Pop the given number of assertion levels.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (pop <n>)
+   * \endverbatim
+   *
+   * @param n_levels  The number of assertion levels to pop.
+   */
   virtual void pop(uint32_t n_levels)  = 0;
 
+  /**
+   * Print model after a sat check-sat call.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-core)
+   * \endverbatim
+   *
+   * @return  A set of terms represnting the unsat core. Returns an empty
+   *          vector by default.
+   */
   virtual void print_model() = 0;
 
   /**
@@ -1804,14 +1923,53 @@ class Solver
    */
   virtual void reset() = 0;
 
+  /**
+   * Reset assertion stack.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (reset-assertions)
+   * \endverbatim
+   */
   virtual void reset_assertions() = 0;
 
   /**
+   * Configure solver option.
+   *
    * Should throw a MurxlaSolverOptionException if opt=value is not valid with
-   * the currently set options.
+   * the currently configured options.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-option :<option> <value>)
+   * \endverbatim
+   *
+   * @param opt  A string identifying the solver configuration option.
+   * @param value  A string representation of the option value to configure.
    */
   virtual void set_opt(const std::string& opt, const std::string& value) = 0;
 
+  /**
+   * Get a term representation of the values of the given terms after a
+   * sat check-sat query.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-value (<term_1>... <term_n>)
+   * \endverbatim
+   *
+   * @param terms  The terms to query the value for.
+   * @return  A set of terms representing the values of the given terms.
+   */
   virtual std::vector<Term> get_value(const std::vector<Term>& terms) = 0;
 
   //
@@ -1820,19 +1978,47 @@ class Solver
   //
   //
 
-  /** Solver-specific term checks. */
+  /**
+   * Solver-specific term checks.
+   * @param term  The term to perform solver-specific checks for.
+   */
   virtual void check_term(Term term) {}
+  /**
+   * Solver-specific term checks.
+   * @param term      The term to perform solver-specific checks for.
+   * @param str_args  The string arguments used to create `term`
+   *                  (see
+   *                    Solver::mk_term(const Op::Kind&,
+   *                            Sort,
+   *                            const std::vector<std::string>&,
+   *                            const std::vector<Term>&)
+   *                   and
+   *                    Solver::mk_term(const Op::Kind& kind,
+   *                            const std::vector<std::string>& str_args,
+   *                            const std::vector<Term>& args).
+   */
   virtual void check_term(Term term, const std::vector<std::string>& str_args)
   {
   }
 
-  /** Solver-specific value checks. */
+  /**
+   * Solver-specific value checks.
+   * @param term  The value term to perform solver-specific checks for.
+   */
   virtual void check_value(Term term) {}
 
-  /** Solver-specific sort checks. */
+  /**
+   * Solver-specific sort checks.
+   * @param sort  The sort to perform solver-specific checks for.
+   */
   virtual void check_sort(Sort sort) {}
 
-  /** Query solver options that need to be enabled for a given theory. */
+  /**
+   * Query solver options that need to be enabled for a given theory.
+   * @param theory  The theory for which to query solver options for.
+   * @return  A map from option string to option value string of enabled
+   *          options for a given theory.
+   */
   virtual std::unordered_map<std::string, std::string> get_required_options(
       TheoryId theory) const
   {
@@ -1840,10 +2026,21 @@ class Solver
   }
 
  protected:
+  /**
+   * The random number generator instance of this solver.
+   *
+   * This RNG is independent from the main RNG (FSM::d_rng, the RNG associated
+   * with the FSM). It is seeded in each action by a seed from a dedicated
+   * SolverSeedGenerator (SolverManager::d_sng, the SolverSeedGenerator
+   * associated with the SolverManager).
+   *
+   * This RNG is seeded when the action is executed (Action::execute) via
+   * macro MURXLA_TRACE, which must always be called first in Action::execute.
+   */
   RNGenerator d_rng;
 
   /**
-   * Map sort kind to special values.
+   * Map sort kind to special value kinds.
    *
    * By default, this includes special values defined in SMT-LIB, and common
    * special values for BV (which don't have an SMT-LIB equivalent). The entry
@@ -1886,11 +2083,19 @@ class Solver
           {SORT_ANY, {}},
   };
 
-  /** Contains all sort kinds for which we have special values. */
+  /**
+   * Contains all sort kinds for have special value kinds have been registered.
+   */
   SortKindSet d_special_values_sort_kinds;
 };
 
-/** Serialize a solver result to given stream.  */
+/**
+ * Serialize a solver result to given stream.
+ *
+ * @param out  The output stream.
+ * @param r    The solver result to be serialized.
+ * @return     The output stream.
+ */
 std::ostream& operator<<(std::ostream& out, const Solver::Result& r);
 
 /* -------------------------------------------------------------------------- */
@@ -1899,15 +2104,27 @@ std::ostream& operator<<(std::ostream& out, const Solver::Result& r);
 
 namespace std {
 
+/** Specialization of std::hash for Sort. */
 template <>
 struct hash<murxla::Sort>
 {
+  /**
+   * Operator overload to get the hash value of a sort.
+   * @param s  The sort to compute the hash value for.
+   * @return  The hash value of a sort.
+   */
   size_t operator()(const murxla::Sort& s) const;
 };
 
+/** Specialization of std::hash for Term. */
 template <>
 struct hash<murxla::Term>
 {
+  /**
+   * Operator overload to get the hash value of a term.
+   * @param t  The term to compute the hash value for.
+   * @return  The hash value of a term.
+   */
   size_t operator()(const murxla::Term& t) const;
 };
 

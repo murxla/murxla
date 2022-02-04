@@ -52,6 +52,7 @@ struct hash<murxla::SortKind>
 {
   /**
    * Operator overload to get the hash value of a sort kind.
+   * @param k  The sort kind to compute the hash value for.
    * @return  The hash value of a sort kind.
    */
   size_t operator()(const murxla::SortKind& k) const;

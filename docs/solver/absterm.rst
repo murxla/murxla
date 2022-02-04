@@ -5,3 +5,6 @@ Solver Wrapper Interface: AbsTerm
     :members:
     :undoc-members:
 
+.. doxygenstruct:: std::hash< murxla::Term >
+  :members:
+
