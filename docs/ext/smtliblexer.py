@@ -48,8 +48,9 @@ class SmtLibLexer(RegexLexer):
         'divisible', 'to_real', 'to_int', 'is_int',
         # string
         'char', 'str\.\+\+', 'str\.len', 'str\.<', 'str\.to_re', 'str\.in_re',
-        're\.none', 're\.all', 're\.allchar', 're\.\+\+', 're\.union',
-        're\.inter', 're\.*', 'str\.<=', 'str\.at', 'str\.substr',
+        're\.none', 're\.all', 're\.allchar', 're\.comp', 're\.concat',
+        're\.\^', 're\.\+\+', 're\.union', 're\.inter', 're\.\*', 'str\.<=',
+        'str\.at', 'str\.substr',
         'str\.prefixof', 'str\.suffixof', 'str\.contains', 'str\.indexof',
         'str\.replace', 'str\.replace_all', 'str\.replace_re',
         'str\.replace_re_all', 're\.comp', 're\.diff', 're\.\+', 're\.opt',

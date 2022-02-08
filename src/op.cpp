@@ -248,7 +248,6 @@ OpKindManager::add_op_kinds()
 
   /* Strings */
   add_op_kind(Op::STR_CONCAT, n, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);
-  add_op_kind(Op::STR_LEN, 1, 0, SORT_INT, {SORT_STRING}, THEORY_STRING);
   add_op_kind(Op::STR_LT, 2, 0, SORT_BOOL, {SORT_STRING}, THEORY_STRING);
   add_op_kind(Op::STR_TO_RE, 1, 0, SORT_REGLAN, {SORT_STRING}, THEORY_STRING);
   add_op_kind(Op::STR_CONCAT, n, 0, SORT_STRING, {SORT_STRING}, THEORY_STRING);

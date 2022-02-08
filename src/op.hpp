@@ -679,8 +679,7 @@ struct Op
    */
   inline static const Kind DT_MATCH = "OP_DT_MATCH";
   /**
-   * The operator kind representing the datatypes match case without binders
-   * operator.
+   * The operator kind representing the datatypes match case without binders.
    *
    * @note This match case operator is used for constructors without selectors.
    *
@@ -694,8 +693,7 @@ struct Op
    */
   inline static const Kind DT_MATCH_CASE = "OP_DT_MATCH_CASE";
   /**
-   * The operator kind representing the datatypes match with binders
-   * operator.
+   * The operator kind representing the datatypes match with binders.
    *
    * @note This match case operator is used for constructors with selectors.
    *
@@ -705,6 +703,7 @@ struct Op
    * .. code:: smtlib
    *
    *     ((<cons> <binder_1> ... <binder_n>) (const <term_1> ... <term_n>))
+   *
    *     (<binder> <term>)
    * \endverbatim
    */
@@ -880,7 +879,7 @@ struct Op
    */
   inline static const Kind FP_FP = "OP_FP_FP";
   /**
-   * The operator kind representing the floating-point is normal tester
+   * The operator kind representing the floating-point isNormal tester
    * operator.
    *
    * SMT-LIB:
@@ -893,7 +892,7 @@ struct Op
    */
   inline static const Kind FP_IS_NORMAL = "OP_FP_IS_NORMAL";
   /**
-   * The operator kind representing the floating-point is subnormal tester
+   * The operator kind representing the floating-point isSubnormal tester
    * operator.
    *
    * SMT-LIB:
@@ -906,7 +905,7 @@ struct Op
    */
   inline static const Kind FP_IS_SUBNORMAL = "OP_FP_IS_SUBNORMAL";
   /**
-   * The operator kind representing the floating-point is infinite tester
+   * The operator kind representing the floating-point isInfinite tester
    * operator.
    *
    * SMT-LIB:
@@ -919,7 +918,7 @@ struct Op
    */
   inline static const Kind FP_IS_INF = "OP_FP_IS_INF";
   /**
-   * The operator kind representing the floating-point is NaN tester
+   * The operator kind representing the floating-point isNaN tester
    * operator.
    *
    * SMT-LIB:
@@ -932,7 +931,7 @@ struct Op
    */
   inline static const Kind FP_IS_NAN = "OP_FP_IS_NAN";
   /**
-   * The operator kind representing the floating-point is negative tester
+   * The operator kind representing the floating-point isNegative tester
    * operator.
    *
    * SMT-LIB:
@@ -945,7 +944,7 @@ struct Op
    */
   inline static const Kind FP_IS_NEG = "OP_FP_IS_NEG";
   /**
-   * The operator kind representing the floating-point is positive tester
+   * The operator kind representing the floating-point isPositive tester
    * operator.
    *
    * SMT-LIB:
@@ -958,7 +957,7 @@ struct Op
    */
   inline static const Kind FP_IS_POS = "OP_FP_IS_POS";
   /**
-   * The operator kind representing the floating-point is zero tester
+   * The operator kind representing the floating-point isZero tester
    * operator.
    *
    * SMT-LIB:
@@ -1434,64 +1433,513 @@ struct Op
    */
   inline static const Kind REAL_TO_INT = "OP_REAL_TO_INT";
 
-  /* Quantifiers */
+  //// Quantifiers
+  /**
+   * The operator kind representing the a universal quantifier operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (forall ((<binder_1> <sort_1>) ... (<binder_n> <sort_n>)) <body>)
+   * \endverbatim
+   */
   inline static const Kind FORALL = "OP_FORALL";
+  /**
+   * The operator kind representing the a existential quantifier operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (exists ((<binder_1> <sort_1>) ... (<binder_n> <sort_n>)) <body>)
+   * \endverbatim
+   */
   inline static const Kind EXISTS = "OP_EXISTS";
-  /* Strings */
-  inline static const Kind RE_ALL             = "OP_RE_ALL";
-  inline static const Kind RE_ALLCHAR         = "OP_RE_ALLCHAR";
-  inline static const Kind RE_COMP            = "OP_RE_COMP";
-  inline static const Kind RE_CONCAT          = "OP_RE_CONCAT";
-  inline static const Kind RE_DIFF            = "OP_RE_DIFF";
-  inline static const Kind RE_NONE            = "OP_RE_NONE";
-  inline static const Kind RE_INTER           = "OP_RE_INTER";
-  inline static const Kind RE_LOOP            = "OP_RE_LOOP";
-  inline static const Kind RE_OPT             = "OP_RE_OPT";
-  inline static const Kind RE_PLUS            = "OP_RE_PLUS";
-  inline static const Kind RE_POW             = "OP_RE_POW";
-  inline static const Kind RE_RANGE           = "OP_RE_RANGE";
-  inline static const Kind RE_STAR            = "OP_RE_STAR";
-  inline static const Kind RE_UNION           = "OP_RE_UNION";
-  inline static const Kind STR_AT             = "OP_STR_AT";
-  inline static const Kind STR_CONCAT         = "OP_STR_CONCAT";
-  inline static const Kind STR_CONTAINS       = "OP_STR_CONTAINS";
-  inline static const Kind STR_FROM_CODE      = "OP_STR_FROM_CODE";
-  inline static const Kind STR_FROM_INT       = "OP_STR_FROM_INT";
-  inline static const Kind STR_INDEXOF        = "OP_STR_INDEXOF";
-  inline static const Kind STR_IN_RE          = "OP_STR_IN_RE";
-  inline static const Kind STR_IS_DIGIT       = "OP_STR_IS_DIGIT";
-  inline static const Kind STR_LE             = "OP_STR_LE";
-  inline static const Kind STR_LEN            = "OP_STR_LEN";
-  inline static const Kind STR_LT             = "OP_STR_LT";
-  inline static const Kind STR_PREFIXOF       = "OP_STR_PREFIXOF";
-  inline static const Kind STR_REPLACE        = "OP_STR_REPLACE";
-  inline static const Kind STR_REPLACE_ALL    = "OP_STR_REPLACE_ALL";
-  inline static const Kind STR_REPLACE_RE     = "OP_STR_REPLACE_RE";
+
+  //// Strings
+  /**
+   * The operator kind representing the constant denoting the set of all
+   * strings.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     re.all
+   * \endverbatim
+   */
+  inline static const Kind RE_ALL = "OP_RE_ALL";
+  /**
+   * The operator kind representing the constant denoting the set of all
+   * strings of length 1.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     re.allchar
+   * \endverbatim
+   */
+  inline static const Kind RE_ALLCHAR = "OP_RE_ALLCHAR";
+  /**
+   * The operator kind representing the regular expression complement operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.comp <term>)
+   * \endverbatim
+   */
+  inline static const Kind RE_COMP = "OP_RE_COMP";
+  /**
+   * The operator kind representing the regular expression concatenation
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.concat <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind RE_CONCAT = "OP_RE_CONCAT";
+  /**
+   * The operator kind representing the regular expression difference operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.diff <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind RE_DIFF = "OP_RE_DIFF";
+  /**
+   * The operator kind representing the constant the empty string.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     re.none
+   * \endverbatim
+   */
+  inline static const Kind RE_NONE = "OP_RE_NONE";
+  /**
+   * The operator kind representing the regular expression intersection
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.inter <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind RE_INTER = "OP_RE_INTER";
+  /**
+   * The operator kind representing the regular expression loop operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ re.loop n m) <term>)
+   * \endverbatim
+   */
+  inline static const Kind RE_LOOP = "OP_RE_LOOP";
+  /**
+   * The operator kind representing the regular expression option operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.opt <term>)
+   * \endverbatim
+   */
+  inline static const Kind RE_OPT = "OP_RE_OPT";
+  /**
+   * The operator kind representing the regular expression Kleene cross
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.+ <term>)
+   * \endverbatim
+   */
+  inline static const Kind RE_PLUS = "OP_RE_PLUS";
+  /**
+   * The operator kind representing the regular expression power operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ re.^ n) <term>)
+   * \endverbatim
+   */
+  inline static const Kind RE_POW = "OP_RE_POW";
+  /**
+   * The operator kind representing the regular expression range operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.range <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind RE_RANGE = "OP_RE_RANGE";
+  /**
+   * The operator kind representing the regular expression Kleene closure
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.* <term>)
+   * \endverbatim
+   */
+  inline static const Kind RE_STAR = "OP_RE_STAR";
+  /**
+   * The operator kind representing the regular expression union operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (re.union <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind RE_UNION = "OP_RE_UNION";
+  /**
+   * The operator kind representing the string at operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.at <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind STR_AT = "OP_STR_AT";
+  /**
+   * The operator kind representing the string concatenation operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.at <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind STR_CONCAT = "OP_STR_CONCAT";
+  /**
+   * The operator kind representing the string contains operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.contains <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind STR_CONTAINS = "OP_STR_CONTAINS";
+  /**
+   * The operator kind representing the string from code conversion operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.from_code <term>)
+   * \endverbatim
+   */
+  inline static const Kind STR_FROM_CODE = "OP_STR_FROM_CODE";
+  /**
+   * The operator kind representing the string from integer conversion operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.from_int <term>)
+   * \endverbatim
+   */
+  inline static const Kind STR_FROM_INT = "OP_STR_FROM_INT";
+  /**
+   * The operator kind representing the string index of operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.indexof <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind STR_INDEXOF = "OP_STR_INDEXOF";
+  /**
+   * The operator kind representing the string regular expression membership
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.in_re <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind STR_IN_RE = "OP_STR_IN_RE";
+  /**
+   * The operator kind representing the string is_digit tester operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.is_digit <term>)
+   * \endverbatim
+   */
+  inline static const Kind STR_IS_DIGIT = "OP_STR_IS_DIGIT";
+  /**
+   * The operator kind representing the string less or equal operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.<= <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind STR_LE = "OP_STR_LE";
+  /**
+   * The operator kind representing the string length operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.len <term>)
+   * \endverbatim
+   */
+  inline static const Kind STR_LEN = "OP_STR_LEN";
+  /**
+   * The operator kind representing the string less than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.< <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind STR_LT = "OP_STR_LT";
+  /**
+   * The operator kind representing the string prefix of operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.prefixof <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind STR_PREFIXOF = "OP_STR_PREFIXOF";
+  /**
+   * The operator kind representing the string replace operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.replace <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind STR_REPLACE = "OP_STR_REPLACE";
+  /**
+   * The operator kind representing the string replace all operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.replace_all <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind STR_REPLACE_ALL = "OP_STR_REPLACE_ALL";
+  /**
+   * The operator kind representing the string `replace_re` operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.replace_re <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind STR_REPLACE_RE = "OP_STR_REPLACE_RE";
+  /**
+   * The operator kind representing the string `replace_re_all` operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.replace_re_all <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
   inline static const Kind STR_REPLACE_RE_ALL = "OP_STR_REPLACE_RE_ALL";
-  inline static const Kind STR_SUBSTR         = "OP_STR_SUBSTR";
-  inline static const Kind STR_SUFFIXOF       = "OP_STR_SUFFIXOF";
-  inline static const Kind STR_TO_CODE        = "OP_STR_TO_CODE";
-  inline static const Kind STR_TO_INT         = "OP_STR_TO_INT";
-  inline static const Kind STR_TO_RE          = "OP_STR_TO_RE";
-  /* Transcendentals */
-  inline static const Kind TRANS_PI           = "OP_TRANS_PI";
-  inline static const Kind TRANS_SINE         = "OP_TRANS_SINE";
-  inline static const Kind TRANS_COSINE       = "OP_TRANS_COSINE";
-  inline static const Kind TRANS_TANGENT      = "OP_TRANS_TANGENT";
-  inline static const Kind TRANS_COTANGENT    = "OP_TRANS_COTANGENT";
-  inline static const Kind TRANS_SECANT       = "OP_TRANS_SECANT";
-  inline static const Kind TRANS_COSECANT     = "OP_TRANS_COSECANT";
-  inline static const Kind TRANS_ARCSINE      = "OP_TRANS_ARCSINE";
-  inline static const Kind TRANS_ARCCOSINE    = "OP_TRANS_ARCCOSINE";
-  inline static const Kind TRANS_ARCTANGENT   = "OP_TRANS_ARCTANGENT";
+  /**
+   * The operator kind representing the string substring operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.substr <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind STR_SUBSTR = "OP_STR_SUBSTR";
+  /**
+   * The operator kind representing the string suffix of operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.suffixof <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind STR_SUFFIXOF = "OP_STR_SUFFIXOF";
+  /**
+   * The operator kind representing the string to code conversion operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.to_code <term>)
+   * \endverbatim
+   */
+  inline static const Kind STR_TO_CODE = "OP_STR_TO_CODE";
+  /**
+   * The operator kind representing the string to code integer conversion
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.to_int <term>)
+   * \endverbatim
+   */
+  inline static const Kind STR_TO_INT = "OP_STR_TO_INT";
+  /**
+   * The operator kind representing the string to regular expression conversion
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (str.to_re <term>)
+   * \endverbatim
+   */
+  inline static const Kind STR_TO_RE = "OP_STR_TO_RE";
+
+  //// Transcendentals
+  /** The operator kind representing the transcendentals constant pi. */
+  inline static const Kind TRANS_PI = "OP_TRANS_PI";
+  /** The operator kind representing the transcendentals sine operator. */
+  inline static const Kind TRANS_SINE = "OP_TRANS_SINE";
+  /** The operator kind representing the transcendentals cosine operator. */
+  inline static const Kind TRANS_COSINE = "OP_TRANS_COSINE";
+  /** The operator kind representing the transcendentals tangent operator. */
+  inline static const Kind TRANS_TANGENT = "OP_TRANS_TANGENT";
+  /** The operator kind representing the transcendentals cotangent operator. */
+  inline static const Kind TRANS_COTANGENT = "OP_TRANS_COTANGENT";
+  /** The operator kind representing the transcendentals secant operator. */
+  inline static const Kind TRANS_SECANT = "OP_TRANS_SECANT";
+  /** The operator kind representing the transcendentals secant operator. */
+  inline static const Kind TRANS_COSECANT = "OP_TRANS_COSECANT";
+  /** The operator kind representing the transcendentals arcsine operator. */
+  inline static const Kind TRANS_ARCSINE = "OP_TRANS_ARCSINE";
+  /** The operator kind representing the transcendentals arccosine operator. */
+  inline static const Kind TRANS_ARCCOSINE = "OP_TRANS_ARCCOSINE";
+  /** The operator kind representing the transcendentals arctangent operator. */
+  inline static const Kind TRANS_ARCTANGENT = "OP_TRANS_ARCTANGENT";
+  /** The operator kind representing the transcendentals arccosine operator. */
   inline static const Kind TRANS_ARCCOSECANT  = "OP_TRANS_ARCCOSECANT";
-  inline static const Kind TRANS_ARCSECANT    = "OP_TRANS_ARCSECANT";
+  /** The operator kind representing the transcendentals arcsecant operator. */
+  inline static const Kind TRANS_ARCSECANT = "OP_TRANS_ARCSECANT";
+  /**
+   * The operator kind representing the transcendentals arccotangent operator.
+   */
   inline static const Kind TRANS_ARCCOTANGENT = "OP_TRANS_ARCCOTANGENT";
-  inline static const Kind TRANS_SQRT         = "OP_TRANS_SQRT";
-  /* UF */
+  /**
+   * The operator kind representing the transcendentals square root operator.
+   */
+  inline static const Kind TRANS_SQRT = "OP_TRANS_SQRT";
+
+  //// UF
+  /**
+   * The operator kind representing the function application operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (<fun> <args...)
+   * \endverbatim
+   */
   inline static const Kind UF_APPLY = "OP_UF_APPLY";
+
   /* Operators of non-standardized theories. */
-  // Bags
+  //// Bags
   inline static const Kind BAG_UNION_MAX        = "OP_BAG_UNION_MAX";
   inline static const Kind BAG_UNION_DISJOINT   = "OP_BAG_UNION_DISJOINT";
   inline static const Kind BAG_INTERSECTION_MIN = "OP_BAG_INTERSECTION_MIN";
@@ -1509,7 +1957,7 @@ struct Op
   inline static const Kind BAG_FROM_SET          = "OP_BAG_FROM_SET";
   inline static const Kind BAG_TO_SET            = "OP_BAG_TO_SET";
   inline static const Kind BAG_MAP               = "OP_BAG_MAP";
-  // Sequences
+  //// Sequences
   inline static const Kind SEQ_CONCAT      = "OP_SEQ_CONCAT";
   inline static const Kind SEQ_LENGTH      = "OP_SEQ_LENGTH";
   inline static const Kind SEQ_EXTRACT     = "OP_SEQ_EXTRACT";
@@ -1524,7 +1972,7 @@ struct Op
   inline static const Kind SEQ_SUFFIX      = "OP_SEQ_SUFFIX";
   inline static const Kind SEQ_UNIT        = "OP_SEQ_UNIT";
   inline static const Kind SEQ_NTH         = "OP_SEQ_NTH";
-  // Sets
+  //// Sets
   inline static const Kind SET_CARD          = "OP_SET_CARD";
   inline static const Kind SET_COMPLEMENT    = "OP_SET_COMPLEMENT";
   inline static const Kind SET_COMPREHENSION = "OP_SET_COMPREHENSION";
@@ -1537,7 +1985,7 @@ struct Op
   inline static const Kind SET_MINUS         = "OP_SET_MINUS";
   inline static const Kind SET_SINGLETON     = "OP_SET_SINGLETON";
   inline static const Kind SET_SUBSET        = "OP_SET_SUBSET";
-  // Relations
+  //// Relations
   inline static const Kind REL_JOIN       = "OP_REL_JOIN";
   inline static const Kind REL_JOIN_IMAGE = "OP_REL_JOIN_IMAGE";
   inline static const Kind REL_IDEN       = "OP_REL_IDEN";
