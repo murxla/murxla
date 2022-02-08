@@ -491,7 +491,26 @@ ActionSetOptionReq::init(
 
 /* -------------------------------------------------------------------------- */
 
-ActionMkSort::ActionMkSort(SolverManager& smgr) : Action(smgr, MK_SORT, ID_LIST)
+ActionMkSort::ActionMkSort(SolverManager& smgr)
+    : Action(smgr, MK_SORT, ID_LIST),
+      d_exclude_array_element_sort_kinds(
+          smgr.get_profile().get_unsupported_array_element_sort_kinds()),
+      d_exclude_array_index_sort_kinds(
+          smgr.get_profile().get_unsupported_array_index_sort_kinds()),
+      d_exclude_bag_element_sort_kinds(
+          smgr.get_profile().get_unsupported_bag_element_sort_kinds()),
+      d_exclude_dt_sel_codomain_sort_kinds(
+          smgr.get_profile().get_unsupported_dt_sel_codomain_sort_kinds()),
+      d_exclude_fun_sort_codomain_sort_kinds(
+          smgr.get_profile().get_unsupported_fun_sort_codomain_sort_kinds()),
+      d_exclude_fun_sort_domain_sort_kinds(
+          smgr.get_profile().get_unsupported_fun_sort_domain_sort_kinds()),
+      d_exclude_seq_element_sort_kinds(
+          smgr.get_profile().get_unsupported_seq_element_sort_kinds()),
+      d_exclude_set_element_sort_kinds(
+          smgr.get_profile().get_unsupported_set_element_sort_kinds()),
+      d_exclude_sort_param_sort_kinds(
+          smgr.get_profile().get_unsupported_sort_param_sort_kinds())
 {
   d_n_args_weights.push_back(0);
   for (uint32_t i = 0; i < MURXLA_MK_TERM_N_ARGS_MAX; ++i)
@@ -514,32 +533,28 @@ ActionMkSort::run()
   {
     case SORT_ARRAY:
     {
-      SortKindSet exclude_index_sorts =
-          d_smgr.get_profile().get_unsupported_array_index_sort_kinds();
-      SortKindSet exclude_element_sorts =
-          d_smgr.get_profile().get_unsupported_array_element_sort_kinds();
-
-      if (!d_smgr.has_sort_excluding(exclude_index_sorts, false))
+      if (!d_smgr.has_sort_excluding(d_exclude_array_index_sort_kinds, false))
       {
         return false;
       }
-      Sort index_sort = d_smgr.pick_sort_excluding(exclude_index_sorts, false);
-      if (!d_smgr.has_sort_excluding(exclude_element_sorts, false))
+      Sort index_sort =
+          d_smgr.pick_sort_excluding(d_exclude_array_index_sort_kinds, false);
+      if (!d_smgr.has_sort_excluding(d_exclude_array_element_sort_kinds, false))
       {
         return false;
       }
       Sort element_sort =
-          d_smgr.pick_sort_excluding(exclude_element_sorts, false);
+          d_smgr.pick_sort_excluding(d_exclude_array_element_sort_kinds, false);
       _run(kind, {index_sort, element_sort});
       break;
     }
 
     case SORT_BAG:
     {
-      SortKindSet exclude_sorts =
-          d_smgr.get_profile().get_unsupported_bag_element_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
-      auto sort = d_smgr.pick_sort_excluding(exclude_sorts, false);
+      if (!d_smgr.has_sort_excluding(d_exclude_bag_element_sort_kinds, false))
+        return false;
+      auto sort =
+          d_smgr.pick_sort_excluding(d_exclude_bag_element_sort_kinds, false);
       _run(kind, {sort});
     }
     break;
@@ -552,9 +567,8 @@ ActionMkSort::run()
     {
       if (!d_smgr.has_sort()) return false;
 
-      SortKindSet exclude_sorts =
-          d_smgr.get_profile().get_unsupported_dt_sel_codomain_sort_kinds();
-      bool no_sel_sorts = !d_smgr.has_sort_excluding(exclude_sorts, false);
+      bool no_sel_sorts = !d_smgr.has_sort_excluding(
+          d_exclude_dt_sel_codomain_sort_kinds, false);
 
       uint32_t n_dt_sorts = d_rng.pick<uint32_t>(1, MURXLA_DT_MAX_N_DTYPES);
       bool mutual_rec     = n_dt_sorts > 1 && d_rng.flip_coin();
@@ -642,11 +656,8 @@ ActionMkSort::run()
                     }
                     else
                     {
-                      SortKindSet excl =
-                          d_smgr.get_profile()
-                              .get_unsupported_sort_param_sort_kinds();
-                      inst_sorts.push_back(
-                          d_smgr.pick_sort_excluding(excl, false));
+                      inst_sorts.push_back(d_smgr.pick_sort_excluding(
+                          d_exclude_sort_param_sort_kinds, false));
                     }
                   }
                   s->set_sorts(inst_sorts);
@@ -654,7 +665,8 @@ ActionMkSort::run()
               }
               else if (!no_sel_sorts)
               {
-                s = d_smgr.pick_sort_excluding(exclude_sorts, false);
+                s = d_smgr.pick_sort_excluding(
+                    d_exclude_dt_sel_codomain_sort_kinds, false);
               }
             }
             sels.emplace_back(sname, s);
@@ -713,12 +725,10 @@ ActionMkSort::run()
     case SORT_FUN:
     {
       std::vector<Sort> sorts;
-      SortKindSet exclude_domain_sorts =
-          d_smgr.get_profile().get_unsupported_fun_sort_domain_sort_kinds();
-      SortKindSet exclude_codomain_sorts =
-          d_smgr.get_profile().get_unsupported_fun_sort_codomain_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_domain_sorts, false)
-          || !d_smgr.has_sort_excluding(exclude_codomain_sorts, false))
+      if (!d_smgr.has_sort_excluding(d_exclude_fun_sort_domain_sort_kinds,
+                                     false)
+          || !d_smgr.has_sort_excluding(d_exclude_fun_sort_codomain_sort_kinds,
+                                        false))
       {
         return false;
       }
@@ -726,31 +736,31 @@ ActionMkSort::run()
                                                       d_n_args_weights.end());
       for (uint32_t i = 0; i < nsorts; ++i)
       {
-        sorts.push_back(
-            d_smgr.pick_sort_excluding(exclude_domain_sorts, false));
+        sorts.push_back(d_smgr.pick_sort_excluding(
+            d_exclude_fun_sort_domain_sort_kinds, false));
       }
-      sorts.push_back(
-          d_smgr.pick_sort_excluding(exclude_codomain_sorts, false));
+      sorts.push_back(d_smgr.pick_sort_excluding(
+          d_exclude_fun_sort_codomain_sort_kinds, false));
       _run(kind, sorts);
     }
     break;
 
     case SORT_SEQ:
     {
-      SortKindSet exclude_sorts =
-          d_smgr.get_profile().get_unsupported_seq_element_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
-      auto sort = d_smgr.pick_sort_excluding(exclude_sorts, false);
+      if (!d_smgr.has_sort_excluding(d_exclude_seq_element_sort_kinds, false))
+        return false;
+      auto sort =
+          d_smgr.pick_sort_excluding(d_exclude_seq_element_sort_kinds, false);
       _run(kind, {sort});
     }
     break;
 
     case SORT_SET:
     {
-      SortKindSet exclude_sorts =
-          d_smgr.get_profile().get_unsupported_set_element_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_sorts, false)) return false;
-      auto sort = d_smgr.pick_sort_excluding(exclude_sorts, false);
+      if (!d_smgr.has_sort_excluding(d_exclude_set_element_sort_kinds, false))
+        return false;
+      auto sort =
+          d_smgr.pick_sort_excluding(d_exclude_set_element_sort_kinds, false);
       _run(kind, {sort});
     }
     break;
@@ -1544,12 +1554,12 @@ ActionMkTerm::run(Op::Kind kind)
     else if (kind == Op::SEQ_UNIT)
     {
       assert(!n_indices);
-      SortKindSet exclude_sorts =
-          d_smgr.get_profile().get_unsupported_seq_element_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
-      Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
-      assert(exclude_sorts.find(element_sort->get_kind())
-             == exclude_sorts.end());
+      if (!d_smgr.has_sort_excluding(d_exclude_seq_element_sort_kinds))
+        return false;
+      Sort element_sort =
+          d_smgr.pick_sort_excluding(d_exclude_seq_element_sort_kinds);
+      assert(d_exclude_seq_element_sort_kinds.find(element_sort->get_kind())
+             == d_exclude_seq_element_sort_kinds.end());
       args.push_back(d_smgr.pick_term(element_sort));
     }
     else if (kind == Op::BAG_CHOOSE || kind == Op::SET_CHOOSE)
@@ -1565,12 +1575,12 @@ ActionMkTerm::run(Op::Kind kind)
     else if (kind == Op::SET_SINGLETON)
     {
       assert(!n_indices);
-      SortKindSet exclude_sorts =
-          d_smgr.get_profile().get_unsupported_set_element_sort_kinds();
-      if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
-      Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
-      assert(exclude_sorts.find(element_sort->get_kind())
-             == exclude_sorts.end());
+      if (!d_smgr.has_sort_excluding(d_exclude_set_element_sort_kinds))
+        return false;
+      Sort element_sort =
+          d_smgr.pick_sort_excluding(d_exclude_set_element_sort_kinds);
+      assert(d_exclude_set_element_sort_kinds.find(element_sort->get_kind())
+             == d_exclude_set_element_sort_kinds.end());
       args.push_back(d_smgr.pick_term(element_sort));
     }
     else if (kind == Op::SET_INSERT)
@@ -1657,11 +1667,11 @@ ActionMkTerm::run(Op::Kind kind)
     else if (kind == Op::BAG_MAKE)
     {
       assert(!n_indices);
-      const auto& exclude_sorts =
-          d_smgr.get_profile().get_unsupported_bag_element_sort_kinds();
       if (!d_smgr.has_term(SORT_INT)) return false;
-      if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
-      Sort element_sort = d_smgr.pick_sort_excluding(exclude_sorts);
+      if (!d_smgr.has_sort_excluding(d_exclude_bag_element_sort_kinds))
+        return false;
+      Sort element_sort =
+          d_smgr.pick_sort_excluding(d_exclude_bag_element_sort_kinds);
       args.push_back(d_smgr.pick_term(element_sort));
       args.push_back(d_smgr.pick_term(SORT_INT));
     }
@@ -1850,7 +1860,17 @@ ActionMkTerm::run(Op::Kind kind)
   return true;
 }
 
-ActionMkTerm::ActionMkTerm(SolverManager& smgr) : Action(smgr, MK_TERM, ID)
+ActionMkTerm::ActionMkTerm(SolverManager& smgr)
+    : Action(smgr, MK_TERM, ID),
+      d_exclude_bag_element_sort_kinds(
+          smgr.get_profile().get_unsupported_bag_element_sort_kinds()),
+      d_exclude_dt_match_sort_kinds(
+          smgr.get_profile().get_unsupported_dt_match_sort_kinds()),
+      d_exclude_seq_element_sort_kinds(
+          smgr.get_profile().get_unsupported_seq_element_sort_kinds()),
+      d_exclude_set_element_sort_kinds(
+          smgr.get_profile().get_unsupported_set_element_sort_kinds())
+
 {
   for (uint32_t i = 0; i < MURXLA_MK_TERM_N_ARGS_MAX; ++i)
   {
@@ -1895,10 +1915,9 @@ ActionMkTerm::run()
     args.push_back(dt_term);
 
     const auto& cons_names = dt_sort->get_dt_ctor_names();
-    auto exclude_sorts =
-        d_smgr.get_profile().get_unsupported_dt_match_sort_kinds();
     /* Pick sort with terms. */
-    SortKind sort_kind = d_smgr.pick_sort_kind_excluding(exclude_sorts);
+    SortKind sort_kind =
+        d_smgr.pick_sort_kind_excluding(d_exclude_dt_match_sort_kinds);
     Sort sort          = d_smgr.pick_sort(sort_kind);
 
     ActionMkVar mkvar(d_smgr);  // to create variables on demand
@@ -2488,13 +2507,19 @@ ActionMkConst::check_const(RNGenerator& rng, Term term)
 
 /* -------------------------------------------------------------------------- */
 
+ActionMkVar::ActionMkVar(SolverManager& smgr)
+    : Action(smgr, MK_VAR, ID),
+      d_unsupported_sorts_kinds(
+          smgr.get_profile().get_unsupported_var_sort_kinds())
+{
+}
+
 bool
 ActionMkVar::run()
 {
   assert(d_solver.is_initialized());
-  // FIXME(profile): this call should be cached
-  SortKindSet exclude_sorts =
-      d_smgr.get_profile().get_unsupported_var_sort_kinds();
+  SortKindSet exclude_sorts = d_unsupported_sorts_kinds;
+
   /* Deemphasize picking of Boolean sort. */
   if (d_rng.pick_with_prob(800))
   {
@@ -3001,20 +3026,26 @@ ActionMkSpecialValue::check_special_value(RNGenerator& rng,
 
 /* -------------------------------------------------------------------------- */
 
+ActionInstantiateSort::ActionInstantiateSort(SolverManager& smgr)
+    : Action(smgr, INSTANTIATE_SORT, ID),
+      d_exclude_sort_param_sort_kinds(
+          smgr.get_profile().get_unsupported_sort_param_sort_kinds())
+{
+}
+
 bool
 ActionInstantiateSort::run()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.has_sort_dt_parametric()) return false;
-  auto exclude_sorts =
-      d_smgr.get_profile().get_unsupported_sort_param_sort_kinds();
-  if (!d_smgr.has_sort_excluding(exclude_sorts)) return false;
+  if (!d_smgr.has_sort_excluding(d_exclude_sort_param_sort_kinds)) return false;
   Sort param_sort   = d_smgr.pick_sort_dt_param();
   uint32_t n_params = param_sort->get_sorts().size();
   std::vector<Sort> sorts;
   for (uint32_t i = 0; i < n_params; ++i)
   {
-    sorts.push_back(d_smgr.pick_sort_excluding(exclude_sorts));
+    sorts.push_back(
+        d_smgr.pick_sort_excluding(d_exclude_sort_param_sort_kinds));
   }
   _run(param_sort, sorts);
   return true;
@@ -3314,6 +3345,13 @@ ActionGetUnsatCore::_run()
 
 /* -------------------------------------------------------------------------- */
 
+ActionGetValue::ActionGetValue(SolverManager& smgr)
+    : Action(smgr, GET_VALUE, NONE),
+      d_exclude_sort_kinds(
+          smgr.get_profile().get_unsupported_get_value_sort_kinds())
+{
+}
+
 bool
 ActionGetValue::run()
 {
@@ -3329,12 +3367,10 @@ ActionGetValue::run()
 
   uint32_t n_terms = d_rng.pick<uint32_t>(1, MURXLA_MAX_N_TERMS_GET_VALUE);
   std::vector<Term> terms;
-  auto exclude_sorts =
-      d_smgr.get_profile().get_unsupported_get_value_sort_kinds();
-  if (!d_smgr.has_sort_excluding(exclude_sorts, true)) return false;
+  if (!d_smgr.has_sort_excluding(d_exclude_sort_kinds, true)) return false;
   for (uint32_t i = 0; i < n_terms; ++i)
   {
-    SortKind sort_kind = d_smgr.pick_sort_kind(0, exclude_sorts);
+    SortKind sort_kind = d_smgr.pick_sort_kind(0, d_exclude_sort_kinds);
     terms.push_back(d_smgr.pick_term(sort_kind, 0));
   }
   _run(terms);
@@ -3524,7 +3560,13 @@ ActionPrintModel::_run()
 /* -------------------------------------------------------------------------- */
 
 ActionMkFun::ActionMkFun(SolverManager& smgr)
-    : Action(smgr, MK_FUN, ID), d_mkterm(smgr), d_mkvar(smgr)
+    : Action(smgr, MK_FUN, ID),
+      d_mkterm(smgr),
+      d_mkvar(smgr),
+      d_exclude_fun_domain_sort_kinds(
+          smgr.get_profile().get_unsupported_fun_domain_sort_kinds()),
+      d_exclude_fun_codomain_sort_kinds(
+          smgr.get_profile().get_unsupported_fun_codomain_sort_kinds())
 {
 }
 
@@ -3533,18 +3575,16 @@ ActionMkFun::run()
 {
   /* Avoid creating functions with quantified variables in the body. */
   if (d_smgr.get_num_vars() > 0) return false;
-  SortKindSet exclude_domain_sorts =
-      d_smgr.get_profile().get_unsupported_fun_domain_sort_kinds();
-  SortKindSet exclude_codomain_sorts =
-      d_smgr.get_profile().get_unsupported_fun_codomain_sort_kinds();
-  if (!d_smgr.has_sort_excluding(exclude_domain_sorts, false)
-      || !d_smgr.has_sort_excluding(exclude_codomain_sorts, false))
+  if (!d_smgr.has_sort_excluding(d_exclude_fun_domain_sort_kinds, false)
+      || !d_smgr.has_sort_excluding(d_exclude_fun_codomain_sort_kinds, false))
   {
     return false;
   }
 
-  SortKindSet exclude(exclude_domain_sorts.begin(), exclude_domain_sorts.end());
-  exclude.insert(exclude_codomain_sorts.begin(), exclude_codomain_sorts.end());
+  SortKindSet exclude(d_exclude_fun_domain_sort_kinds.begin(),
+                      d_exclude_fun_domain_sort_kinds.end());
+  exclude.insert(d_exclude_fun_codomain_sort_kinds.begin(),
+                 d_exclude_fun_codomain_sort_kinds.end());
 
   if (!d_smgr.has_sort_excluding(exclude, false))
   {
@@ -3560,7 +3600,8 @@ ActionMkFun::run()
   uint32_t nsorts = d_rng.pick(0, MURXLA_MK_FUN_MAX_ARGS - 1);
   for (uint32_t i = 0; i < nsorts; ++i)
   {
-    sorts.push_back(d_smgr.pick_sort_excluding(exclude_domain_sorts, false));
+    sorts.push_back(
+        d_smgr.pick_sort_excluding(d_exclude_fun_domain_sort_kinds, false));
   }
   Sort codomain_sort = d_smgr.pick_sort_excluding(exclude, false);
   auto it            = sorts.begin();

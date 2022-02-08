@@ -383,6 +383,16 @@ class ActionMkSort : public Action
   void check_sort(Sort sort) const;
 
   std::vector<uint32_t> d_n_args_weights;
+
+  SortKindSet d_exclude_array_element_sort_kinds;
+  SortKindSet d_exclude_array_index_sort_kinds;
+  SortKindSet d_exclude_bag_element_sort_kinds;
+  SortKindSet d_exclude_dt_sel_codomain_sort_kinds;
+  SortKindSet d_exclude_fun_sort_codomain_sort_kinds;
+  SortKindSet d_exclude_fun_sort_domain_sort_kinds;
+  SortKindSet d_exclude_seq_element_sort_kinds;
+  SortKindSet d_exclude_set_element_sort_kinds;
+  SortKindSet d_exclude_sort_param_sort_kinds;
 };
 
 class ActionMkTerm : public Action
@@ -434,6 +444,11 @@ class ActionMkTerm : public Action
   Term mk_set_value(const Sort& element_sort);
 
   std::vector<uint32_t> d_n_args_weights;
+
+  SortKindSet d_exclude_bag_element_sort_kinds;
+  SortKindSet d_exclude_dt_match_sort_kinds;
+  SortKindSet d_exclude_seq_element_sort_kinds;
+  SortKindSet d_exclude_set_element_sort_kinds;
 };
 
 class ActionMkConst : public Action
@@ -461,7 +476,7 @@ class ActionMkConst : public Action
 class ActionMkVar : public Action
 {
  public:
-  ActionMkVar(SolverManager& smgr) : Action(smgr, MK_VAR, ID) {}
+  ActionMkVar(SolverManager& smgr);
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -470,6 +485,9 @@ class ActionMkVar : public Action
  private:
   /** Perform checks on the created variable. */
   void check_variable(RNGenerator& rng, Term term);
+
+  /** Unsupported variable sort kinds. */
+  SortKindSet d_unsupported_sorts_kinds;
 };
 
 class ActionMkValue : public Action
@@ -531,10 +549,7 @@ class ActionMkSpecialValue : public Action
 class ActionInstantiateSort : public Action
 {
  public:
-  ActionInstantiateSort(SolverManager& smgr)
-      : Action(smgr, INSTANTIATE_SORT, ID)
-  {
-  }
+  ActionInstantiateSort(SolverManager& smgr);
 
   bool run() override;
   std::vector<uint64_t> untrace(
@@ -548,6 +563,8 @@ class ActionInstantiateSort : public Action
       std::unordered_map<Sort, std::vector<std::pair<std::vector<Sort>, Sort>>>&
           cache,
       std::vector<std::pair<std::string, Sort>>& to_trace);
+
+  SortKindSet d_exclude_sort_param_sort_kinds;
 };
 
 class ActionAssertFormula : public Action
@@ -627,13 +644,15 @@ class ActionGetUnsatCore : public Action
 class ActionGetValue : public Action
 {
  public:
-  ActionGetValue(SolverManager& smgr) : Action(smgr, GET_VALUE, NONE) {}
+  ActionGetValue(SolverManager& smgr);
   bool run() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
 
  private:
   void _run(const std::vector<Term>& terms);
+
+  SortKindSet d_exclude_sort_kinds;
 };
 
 class ActionPush : public Action
@@ -736,6 +755,9 @@ class ActionMkFun : public Action
 
   ActionMkTerm d_mkterm;
   ActionMkVar d_mkvar;
+
+  SortKindSet d_exclude_fun_domain_sort_kinds;
+  SortKindSet d_exclude_fun_codomain_sort_kinds;
 };
 
 /* -------------------------------------------------------------------------- */
