@@ -25,139 +25,1415 @@ struct Statistics;
 
 /* -------------------------------------------------------------------------- */
 
+/** The struct representing an operator. */
 struct Op
 {
+  /** The kind of an operator. */
   using Kind = std::string;
 
+  /** The operator kind representing an undefined kind. */
   inline static const Kind UNDEFINED = "OP_UNDEFINED";
+  /** The operator kind representing an internal kind. */
   inline static const Kind INTERNAL = "OP_INTERNAL";
-  /* Leaf kinds (only needed for Term::get_kind) */
-  inline static const Kind CONSTANT    = "OP_CONSTANT";
+
+  //// Leaf kinds (only needed for Term::get_kind)
+  /** The operator kind representing a first order constant. */
+  inline static const Kind CONSTANT = "OP_CONSTANT";
+  /** The operator kind representing a const array. */
   inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
-  inline static const Kind VALUE       = "OP_VALUE";
-  inline static const Kind VARIABLE    = "OP_VARIABLE";
-  inline static const Kind FUN         = "OP_FUN";
-  /* Special cases */
+  /** The operator kind representing a value. */
+  inline static const Kind VALUE = "OP_VALUE";
+  /** The operator kind representing a variable. */
+  inline static const Kind VARIABLE = "OP_VARIABLE";
+  /** The operator kind representing a function. */
+  inline static const Kind FUN = "OP_FUN";
+
+  //// Special cases
+  /**
+   * The operator kind representing the distinct operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (distinct <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind DISTINCT = "OP_DISTINCT";
-  inline static const Kind EQUAL    = "OP_EQUAL";
-  inline static const Kind ITE      = "OP_ITE";
-  /* Arrays */
+  /**
+   * The operator kind representing the equality operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (= <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind EQUAL = "OP_EQUAL";
+  /**
+   * The operator kind representing the if-then-else operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (ite <condition> <then> <else>)
+   * \endverbatim
+   */
+  inline static const Kind ITE = "OP_ITE";
+
+  //// Arrays
+  /**
+   * The operator kind representing the select operator on arrays.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (select <array> <index term>)
+   * \endverbatim
+   */
   inline static const Kind ARRAY_SELECT = "OP_ARRAY_SELECT";
-  inline static const Kind ARRAY_STORE  = "OP_ARRAY_STORE";
-  /* Boolean */
-  inline static const Kind AND     = "OP_AND";
-  inline static const Kind IFF     = "OP_IFF";
+  /**
+   * The operator kind representing the store operator on arrays.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (store <array> <index term> <value term>)
+   * \endverbatim
+   */
+  inline static const Kind ARRAY_STORE = "OP_ARRAY_STORE";
+
+  //// Boolean
+  /**
+   * The operator kind representing the Boolean and operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (and <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind AND = "OP_AND";
+  /**
+   * The operator kind representing the Boolean if-and-only-if operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (= <boolean term_1> ... <boolean term_n>)
+   * \endverbatim
+   */
+  inline static const Kind IFF = "OP_IFF";
+  /**
+   * The operator kind representing the Boolean implies operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (=> <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind IMPLIES = "OP_IMPLIES";
-  inline static const Kind NOT     = "OP_NOT";
-  inline static const Kind OR      = "OP_OR";
-  inline static const Kind XOR     = "OP_XOR";
-  /* BV */
-  inline static const Kind BV_EXTRACT      = "OP_BV_EXTRACT";
-  inline static const Kind BV_REPEAT       = "OP_BV_REPEAT";
-  inline static const Kind BV_ROTATE_LEFT  = "OP_BV_ROTATE_LEFT";
+  /**
+   * The operator kind representing the Boolean not operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (not <term_1>)
+   * \endverbatim
+   */
+  inline static const Kind NOT = "OP_NOT";
+  /**
+   * The operator kind representing the Boolean or operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (or <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind OR = "OP_OR";
+  /**
+   * The operator kind representing the Boolean xor operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (xor <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind XOR = "OP_XOR";
+
+  //// BV
+  /**
+   * The operator kind representing the bit-vector extract operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ extract <hi> <lo>) <term>)
+   * \endverbatim
+   */
+  inline static const Kind BV_EXTRACT = "OP_BV_EXTRACT";
+  /**
+   * The operator kind representing the bit-vector repeat operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ repeat <n>) <term>)
+   * \endverbatim
+   */
+  inline static const Kind BV_REPEAT = "OP_BV_REPEAT";
+  /**
+   * The operator kind representing the bit-vector rotate left operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ rotate_left <n>) <term>)
+   * \endverbatim
+   */
+  inline static const Kind BV_ROTATE_LEFT = "OP_BV_ROTATE_LEFT";
+  /**
+   * The operator kind representing the bit-vector rotate right operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ rotate_right <n>) <term>)
+   * \endverbatim
+   */
   inline static const Kind BV_ROTATE_RIGHT = "OP_BV_ROTATE_RIGHT";
-  inline static const Kind BV_SIGN_EXTEND  = "OP_BV_SIGN_EXTEND";
-  inline static const Kind BV_ZERO_EXTEND  = "OP_BV_ZERO_EXTEND";
-  inline static const Kind BV_ADD          = "OP_BV_ADD";
-  inline static const Kind BV_AND          = "OP_BV_AND";
-  inline static const Kind BV_ASHR         = "OP_BV_ASHR";
-  inline static const Kind BV_COMP         = "OP_BV_COMP";
-  inline static const Kind BV_CONCAT       = "OP_BV_CONCAT";
-  inline static const Kind BV_LSHR         = "OP_BV_LSHR";
-  inline static const Kind BV_MULT         = "OP_BV_MULT";
-  inline static const Kind BV_NAND         = "OP_BV_NAND";
-  inline static const Kind BV_NEG          = "OP_BV_NEG";
-  inline static const Kind BV_NOR          = "OP_BV_NOR";
-  inline static const Kind BV_NOT          = "OP_BV_NOT";
-  inline static const Kind BV_OR           = "OP_BV_OR";
-  inline static const Kind BV_SDIV         = "OP_BV_SDIV";
-  inline static const Kind BV_SGE          = "OP_BV_SGE";
-  inline static const Kind BV_SGT          = "OP_BV_SGT";
-  inline static const Kind BV_SHL          = "OP_BV_SHL";
-  inline static const Kind BV_SLE          = "OP_BV_SLE";
-  inline static const Kind BV_SLT          = "OP_BV_SLT";
-  inline static const Kind BV_SMOD         = "OP_BV_SMOD";
-  inline static const Kind BV_SREM         = "OP_BV_SREM";
-  inline static const Kind BV_SUB          = "OP_BV_SUB";
-  inline static const Kind BV_UDIV         = "OP_BV_UDIV";
-  inline static const Kind BV_UGE          = "OP_BV_UGE";
-  inline static const Kind BV_UGT          = "OP_BV_UGT";
-  inline static const Kind BV_ULE          = "OP_BV_ULE";
-  inline static const Kind BV_ULT          = "OP_BV_ULT";
-  inline static const Kind BV_UREM         = "OP_BV_UREM";
-  inline static const Kind BV_XNOR         = "OP_BV_XNOR";
-  inline static const Kind BV_XOR          = "OP_BV_XOR";
-  /* Datatypes */
-  inline static const Kind DT_APPLY_CONS      = "OP_DT_APPLY_CONS";
-  inline static const Kind DT_APPLY_SEL       = "OP_DT_APPLY_SEL";
-  inline static const Kind DT_APPLY_TESTER    = "OP_DT_APPLY_TESTER";
-  inline static const Kind DT_APPLY_UPDATER   = "OP_DT_APPLY_UPDATER";
-  inline static const Kind DT_MATCH           = "OP_DT_MATCH";
-  inline static const Kind DT_MATCH_CASE      = "OP_DT_MATCH_CASE";
+  /**
+   * The operator kind representing the bit-vector signed extension operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ sign_extend <n>) <term>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SIGN_EXTEND = "OP_BV_SIGN_EXTEND";
+  /**
+   * The operator kind representing the bit-vector zero extension operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ zero_extend <n>) <term>)
+   * \endverbatim
+   */
+  inline static const Kind BV_ZERO_EXTEND = "OP_BV_ZERO_EXTEND";
+  /**
+   * The operator kind representing the bit-vector addition operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvadd <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind BV_ADD = "OP_BV_ADD";
+  /**
+   * The operator kind representing the bit-vector and operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvand <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind BV_AND = "OP_BV_AND";
+  /**
+   * The operator kind representing the bit-vector arithmetic right shift
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvashr <term> <shift>)
+   * \endverbatim
+   */
+  inline static const Kind BV_ASHR = "OP_BV_ASHR";
+  /**
+   * The operator kind representing the bit-vector comparison operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvcomp <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_COMP = "OP_BV_COMP";
+  /**
+   * The operator kind representing the bit-vector concatenation operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (concat <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_CONCAT = "OP_BV_CONCAT";
+  /**
+   * The operator kind representing the bit-vector logical right shift operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvlshr <term> <shift>)
+   * \endverbatim
+   */
+  inline static const Kind BV_LSHR = "OP_BV_LSHR";
+  /**
+   * The operator kind representing the bit-vector multiplication operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvmul <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind BV_MULT = "OP_BV_MULT";
+  /**
+   * The operator kind representing the bit-vector nand operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvnand <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_NAND = "OP_BV_NAND";
+  /**
+   * The operator kind representing the bit-vector negation (two's complement)
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvneg <term>)
+   * \endverbatim
+   */
+  inline static const Kind BV_NEG = "OP_BV_NEG";
+  /**
+   * The operator kind representing the bit-vector nor operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvnor <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_NOR = "OP_BV_NOR";
+  /**
+   * The operator kind representing the bit-vector not operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvnot <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_NOT = "OP_BV_NOT";
+  /**
+   * The operator kind representing the bit-vector or operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvor <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind BV_OR = "OP_BV_OR";
+  /**
+   * The operator kind representing the bit-vector signed division operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvsdiv <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SDIV = "OP_BV_SDIV";
+  /**
+   * The operator kind representing the bit-vector signed greater or equal
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvsge <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SGE = "OP_BV_SGE";
+  /**
+   * The operator kind representing the bit-vector signed greater than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvsgt <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SGT = "OP_BV_SGT";
+  /**
+   * The operator kind representing the bit-vector left shift operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvshl <term> <shift>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SHL = "OP_BV_SHL";
+  /**
+   * The operator kind representing the bit-vector signed less or equal
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvsle <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SLE = "OP_BV_SLE";
+  /**
+   * The operator kind representing the bit-vector signed less than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvslt <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SLT = "OP_BV_SLT";
+  /**
+   * The operator kind representing the bit-vector signed remainder operator
+   * (sign follows divisor).
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvsmod <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SMOD = "OP_BV_SMOD";
+  /**
+   * The operator kind representing the bit-vector signed remainder operator
+   * (sign follows dividend).
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvsrem <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SREM = "OP_BV_SREM";
+  /**
+   * The operator kind representing the bit-vector subtraction operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvsub <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SUB = "OP_BV_SUB";
+  /**
+   * The operator kind representing the bit-vector unsigned division operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvudiv <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_UDIV = "OP_BV_UDIV";
+  /**
+   * The operator kind representing the bit-vector unsigned greater or equal
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvuge <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_UGE = "OP_BV_UGE";
+  /**
+   * The operator kind representing the bit-vector unsigned greater than
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvugt <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_UGT = "OP_BV_UGT";
+  /**
+   * The operator kind representing the bit-vector unsigned less or equal
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvule <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_ULE = "OP_BV_ULE";
+  /**
+   * The operator kind representing the bit-vector unsigned less than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvult <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_ULT = "OP_BV_ULT";
+  /**
+   * The operator kind representing the bit-vector unsigned remainder operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvurem <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_UREM = "OP_BV_UREM";
+  /**
+   * The operator kind representing the bit-vector xnor operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvxnor <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_XNOR = "OP_BV_XNOR";
+  /**
+   * The operator kind representing the bit-vector xor operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (bvxor <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind BV_XOR = "OP_BV_XOR";
+
+  //// Datatypes
+  /**
+   * The operator kind representing the datatypes apply constructor operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (<cons> <args...>)
+   * \endverbatim
+   */
+  inline static const Kind DT_APPLY_CONS = "OP_DT_APPLY_CONS";
+  /**
+   * The operator kind representing the datatypes apply selector operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (<sel> <term>)
+   * \endverbatim
+   */
+  inline static const Kind DT_APPLY_SEL = "OP_DT_APPLY_SEL";
+  /**
+   * The operator kind representing the datatypes tester operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ is <cons>) <term>)
+   * \endverbatim
+   */
+  inline static const Kind DT_APPLY_TESTER = "OP_DT_APPLY_TESTER";
+  /**
+   * The operator kind representing the datatypes updater operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ update <sel>) <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind DT_APPLY_UPDATER = "OP_DT_APPLY_UPDATER";
+  /**
+   * The operator kind representing the datatypes match operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (match <term> <match_case_1> ... <match_case_n>)
+   * \endverbatim
+   */
+  inline static const Kind DT_MATCH = "OP_DT_MATCH";
+  /**
+   * The operator kind representing the datatypes match case without binders
+   * operator.
+   *
+   * @note This match case operator is used for constructors without selectors.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (<cons> <term>)
+   * \endverbatim
+   */
+  inline static const Kind DT_MATCH_CASE = "OP_DT_MATCH_CASE";
+  /**
+   * The operator kind representing the datatypes match with binders
+   * operator.
+   *
+   * @note This match case operator is used for constructors with selectors.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((<cons> <binder_1> ... <binder_n>) (const <term_1> ... <term_n>))
+   *     (<binder> <term>)
+   * \endverbatim
+   */
   inline static const Kind DT_MATCH_BIND_CASE = "OP_DT_MATCH_BIND_CASE";
-  inline static const Kind DT_TUPLE_PROJECT   = "OP_DT_TUPLE_PROJECT";
-  /* FP */
-  inline static const Kind FP_TO_FP_FROM_BV   = "OP_FP_TO_FP_FROM_BV";
-  inline static const Kind FP_TO_FP_FROM_SBV  = "OP_FP_TO_FP_FROM_SBV";
-  inline static const Kind FP_TO_FP_FROM_FP   = "OP_FP_TO_FP_FROM_FP";
-  inline static const Kind FP_TO_FP_FROM_UBV  = "OP_FP_TO_FP_FROM_UBV";
+  // inline static const Kind DT_TUPLE_PROJECT   = "OP_DT_TUPLE_PROJECT";
+
+  //// FP
+  /**
+   * The operator kind representing the floating-point to floating-point
+   * conversion operator from a bit-vector in in IEEE 754-2008 interchange
+   * format.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ to_fp eb sb) <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_TO_FP_FROM_BV = "OP_FP_TO_FP_FROM_BV";
+  /**
+   * The operator kind representing the floating-point to floating-point
+   * conversion operator from a signed machine integer, represented as two's
+   * complement bit-vector.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ to_fp eb sb) <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_TO_FP_FROM_SBV = "OP_FP_TO_FP_FROM_SBV";
+  /**
+   * The operator kind representing the floating-point to floating-point
+   * conversion operator from a floating-point term.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ to_fp eb sb) <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_TO_FP_FROM_FP = "OP_FP_TO_FP_FROM_FP";
+  /**
+   * The operator kind representing the floating-point to floating-point
+   * conversion operator from an unsigned machine integer, represented as a
+   * bit-vector.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ to_fp eb sb) <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_TO_FP_FROM_UBV = "OP_FP_TO_FP_FROM_UBV";
+  /**
+   * The operator kind representing the floating-point to floating-point
+   * conversion operator from a real term.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ to_fp eb sb) <term>)
+   * \endverbatim
+   */
   inline static const Kind FP_TO_FP_FROM_REAL = "OP_FP_TO_FP_FROM_REAL";
-  inline static const Kind FP_TO_SBV          = "OP_FP_TO_SBV";
-  inline static const Kind FP_TO_UBV          = "OP_FP_TO_UBV";
-  inline static const Kind FP_ABS             = "OP_FP_ABS";
-  inline static const Kind FP_ADD             = "OP_FP_ADD";
-  inline static const Kind FP_DIV             = "OP_FP_DIV";
-  inline static const Kind FP_EQ              = "OP_FP_EQ";
-  inline static const Kind FP_FMA             = "OP_FP_FMA";
-  inline static const Kind FP_FP              = "OP_FP_FP";
-  inline static const Kind FP_IS_NORMAL       = "OP_FP_IS_NORMAL";
-  inline static const Kind FP_IS_SUBNORMAL    = "OP_FP_IS_SUBNORMAL";
-  inline static const Kind FP_IS_INF          = "OP_FP_IS_INF";
-  inline static const Kind FP_IS_NAN          = "OP_FP_IS_NAN";
-  inline static const Kind FP_IS_NEG          = "OP_FP_IS_NEG";
-  inline static const Kind FP_IS_POS          = "OP_FP_IS_POS";
-  inline static const Kind FP_IS_ZERO         = "OP_FP_IS_ZERO";
-  inline static const Kind FP_LT              = "OP_FP_LT";
-  inline static const Kind FP_LEQ             = "OP_FP_LEQ";
-  inline static const Kind FP_GT              = "OP_FP_GT";
-  inline static const Kind FP_GEQ             = "OP_FP_GEQ";
-  inline static const Kind FP_MAX             = "OP_FP_MAX";
-  inline static const Kind FP_MIN             = "OP_FP_MIN";
-  inline static const Kind FP_MUL             = "OP_FP_MUL";
-  inline static const Kind FP_NEG             = "OP_FP_NEG";
-  inline static const Kind FP_REM             = "OP_FP_REM";
-  inline static const Kind FP_RTI             = "OP_FP_RTI";
-  inline static const Kind FP_SQRT            = "OP_FP_SQRT";
-  inline static const Kind FP_SUB             = "OP_FP_SUB";
-  inline static const Kind FP_TO_REAL         = "OP_FP_TO_REAL";
-  /* Ints */
+  /**
+   * The operator kind representing the floating-point to signed bit-vector
+   * conversion operator from a floating-point term.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ fp.to_sbv m) <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_TO_SBV = "OP_FP_TO_SBV";
+  /**
+   * The operator kind representing the floating-point to unsigned bit-vector
+   * conversion operator from a floating-point term.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ fp.to_ubv m) <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_TO_UBV = "OP_FP_TO_UBV";
+  /**
+   * The operator kind representing the floating-point absolute value operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.abs <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_ABS = "OP_FP_ABS";
+  /**
+   * The operator kind representing the floating-point addition operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.abs <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind FP_ADD = "OP_FP_ADD";
+  /**
+   * The operator kind representing the floating-point division operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.div <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind FP_DIV = "OP_FP_DIV";
+  /**
+   * The operator kind representing the floating-point equality operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.eq <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind FP_EQ = "OP_FP_EQ";
+  /**
+   * The operator kind representing the floating-point fused multiplication and
+   * addition operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.fma <term_1> <term_2> <term_3> <term_4>)
+   * \endverbatim
+   */
+  inline static const Kind FP_FMA = "OP_FP_FMA";
+  /**
+   * The operator kind representing the floating-point `fp` operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind FP_FP = "OP_FP_FP";
+  /**
+   * The operator kind representing the floating-point is normal tester
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.isNormal <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_IS_NORMAL = "OP_FP_IS_NORMAL";
+  /**
+   * The operator kind representing the floating-point is subnormal tester
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.isSubnormal <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_IS_SUBNORMAL = "OP_FP_IS_SUBNORMAL";
+  /**
+   * The operator kind representing the floating-point is infinite tester
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.isInfinite <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_IS_INF = "OP_FP_IS_INF";
+  /**
+   * The operator kind representing the floating-point is NaN tester
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.isNaN <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_IS_NAN = "OP_FP_IS_NAN";
+  /**
+   * The operator kind representing the floating-point is negative tester
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.isNegative <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_IS_NEG = "OP_FP_IS_NEG";
+  /**
+   * The operator kind representing the floating-point is positive tester
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.isPositive <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_IS_POS = "OP_FP_IS_POS";
+  /**
+   * The operator kind representing the floating-point is zero tester
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.isZero <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_IS_ZERO = "OP_FP_IS_ZERO";
+  /**
+   * The operator kind representing the floating-point less than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.lt <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind FP_LT = "OP_FP_LT";
+  /**
+   * The operator kind representing the floating-point less or equal operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.leq <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind FP_LEQ = "OP_FP_LEQ";
+  /**
+   * The operator kind representing the floating-point greater than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.gt <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind FP_GT = "OP_FP_GT";
+  /**
+   * The operator kind representing the floating-point greater or equal
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.geq <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind FP_GEQ = "OP_FP_GEQ";
+  /**
+   * The operator kind representing the floating-point max operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.max <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind FP_MAX = "OP_FP_MAX";
+  /**
+   * The operator kind representing the floating-point min operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.min <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind FP_MIN = "OP_FP_MIN";
+  /**
+   * The operator kind representing the floating-point multiplication operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.mul <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind FP_MUL = "OP_FP_MUL";
+  /**
+   * The operator kind representing the floating-point negation operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.neg <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_NEG = "OP_FP_NEG";
+  /**
+   * The operator kind representing the floating-point remainder operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.rem <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind FP_REM = "OP_FP_REM";
+  /**
+   * The operator kind representing the floating-point round to integral
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.roundToIntegral <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_RTI = "OP_FP_RTI";
+  /**
+   * The operator kind representing the floating-point square root operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.sqrt <term_1> <term_2>)
+   * \endverbatim
+   */
+  inline static const Kind FP_SQRT = "OP_FP_SQRT";
+  /**
+   * The operator kind representing the floating-point subtraction operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.sub <term_1> <term_2> <term_3>)
+   * \endverbatim
+   */
+  inline static const Kind FP_SUB = "OP_FP_SUB";
+  /**
+   * The operator kind representing the floating-point to real conversion
+   * operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (fp.to_real <term>)
+   * \endverbatim
+   */
+  inline static const Kind FP_TO_REAL = "OP_FP_TO_REAL";
+
+  //// Ints
+  /**
+   * The operator kind representing the integer divisible operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((_ divisible n) <term>)
+   * \endverbatim
+   */
   inline static const Kind INT_IS_DIV = "OP_INT_IS_DIV";
+  /**
+   * The operator kind representing the integer negation operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (- <term>)
+   * \endverbatim
+   */
   inline static const Kind INT_NEG    = "OP_INT_NEG";
+  /**
+   * The operator kind representing the integer subtraction operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (- <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind INT_SUB    = "OP_INT_SUB";
+  /**
+   * The operator kind representing the integer addition operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (+ <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind INT_ADD    = "OP_INT_ADD";
+  /**
+   * The operator kind representing the integer multiplication operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (* <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind INT_MUL    = "OP_INT_MUL";
+  /**
+   * The operator kind representing the integer division operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (div <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind INT_DIV    = "OP_INT_DIV";
+  /**
+   * The operator kind representing the integer modulus operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (mod <term_1> <term_2>)
+   * \endverbatim
+   */
   inline static const Kind INT_MOD    = "OP_INT_MOD";
+  /**
+   * The operator kind representing the integer absolute value operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (abs <term>)
+   * \endverbatim
+   */
   inline static const Kind INT_ABS    = "OP_INT_ABS";
+  /**
+   * The operator kind representing the integer less than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (< <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind INT_LT     = "OP_INT_LT";
+  /**
+   * The operator kind representing the integer less or equal operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (<= <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind INT_LTE    = "OP_INT_LTE";
+  /**
+   * The operator kind representing the integer greater than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (> <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind INT_GT     = "OP_INT_GT";
+  /**
+   * The operator kind representing the integer greater or equal operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (>= <term_1> ... <term_n>)
+   * \endverbatim
+   */
   inline static const Kind INT_GTE    = "OP_INT_GTE";
-  /* Reals */
-  inline static const Kind REAL_NEG    = "OP_REAL_NEG";
-  inline static const Kind REAL_SUB    = "OP_REAL_SUB";
-  inline static const Kind REAL_ADD    = "OP_REAL_ADD";
-  inline static const Kind REAL_MUL    = "OP_REAL_MUL";
-  inline static const Kind REAL_DIV    = "OP_REAL_DIV";
-  inline static const Kind REAL_LT     = "OP_REAL_LT";
-  inline static const Kind REAL_LTE    = "OP_REAL_LTE";
-  inline static const Kind REAL_GT     = "OP_REAL_GT";
-  inline static const Kind REAL_GTE    = "OP_REAL_GTE";
-  /* Reals and Ints */
+  /**
+   * The operator kind representing the integer is integer tester operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (is_int <term>)
+   * \endverbatim
+   */
   inline static const Kind INT_IS_INT  = "OP_INT_IS_INT";
+  /**
+   * The operator kind representing the integer to real conversion operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (to_real <term>)
+   * \endverbatim
+   */
   inline static const Kind INT_TO_REAL = "OP_INT_TO_REAL";
+
+  //// Reals
+  /**
+   * The operator kind representing the reals negation operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (- <term>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_NEG    = "OP_REAL_NEG";
+  /**
+   * The operator kind representing the reals subtraction operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (- <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_SUB    = "OP_REAL_SUB";
+  /**
+   * The operator kind representing the reals addition operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (+ <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_ADD    = "OP_REAL_ADD";
+  /**
+   * The operator kind representing the reals multiplication operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (* <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_MUL    = "OP_REAL_MUL";
+  /**
+   * The operator kind representing the reals division operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (/ <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_DIV    = "OP_REAL_DIV";
+  /**
+   * The operator kind representing the reals less than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (< <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_LT     = "OP_REAL_LT";
+  /**
+   * The operator kind representing the reals less or equal operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (<= <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_LTE    = "OP_REAL_LTE";
+  /**
+   * The operator kind representing the reals greater than operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (> <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_GT     = "OP_REAL_GT";
+  /**
+   * The operator kind representing the reals greater or equal operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (>= <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind REAL_GTE    = "OP_REAL_GTE";
+  /**
+   * The operator kind representing the reals is integer tester operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (is_int <term>)
+   * \endverbatim
+   */
   inline static const Kind REAL_IS_INT = "OP_REAL_IS_INT";
+  /**
+   * The operator kind representing the reals to integer conversion operator.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (to_real <term>)
+   * \endverbatim
+   */
   inline static const Kind REAL_TO_INT = "OP_REAL_TO_INT";
+
   /* Quantifiers */
   inline static const Kind FORALL = "OP_FORALL";
   inline static const Kind EXISTS = "OP_EXISTS";
