@@ -1617,6 +1617,11 @@ struct Op
   /**
    * The operator kind representing the integer divisible operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_INT}`
+   * - **indices**: `{uint32_t}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1628,6 +1633,11 @@ struct Op
   inline static const Kind INT_IS_DIV = "OP_INT_IS_DIV";
   /**
    * The operator kind representing the integer negation operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_INT}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1641,6 +1651,11 @@ struct Op
   /**
    * The operator kind representing the integer subtraction operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_INT, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1652,6 +1667,11 @@ struct Op
   inline static const Kind INT_SUB    = "OP_INT_SUB";
   /**
    * The operator kind representing the integer addition operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_INT, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1665,6 +1685,11 @@ struct Op
   /**
    * The operator kind representing the integer multiplication operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_INT, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1676,6 +1701,11 @@ struct Op
   inline static const Kind INT_MUL    = "OP_INT_MUL";
   /**
    * The operator kind representing the integer division operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_INT, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1689,6 +1719,11 @@ struct Op
   /**
    * The operator kind representing the integer modulus operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_INT, SORT_INT}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1700,6 +1735,11 @@ struct Op
   inline static const Kind INT_MOD    = "OP_INT_MOD";
   /**
    * The operator kind representing the integer absolute value operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_INT}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1713,6 +1753,11 @@ struct Op
   /**
    * The operator kind representing the integer less than operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_INT, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1724,6 +1769,11 @@ struct Op
   inline static const Kind INT_LT     = "OP_INT_LT";
   /**
    * The operator kind representing the integer less or equal operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_INT, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1737,6 +1787,11 @@ struct Op
   /**
    * The operator kind representing the integer greater than operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_INT, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1749,6 +1804,11 @@ struct Op
   /**
    * The operator kind representing the integer greater or equal operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_INT, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1759,19 +1819,12 @@ struct Op
    */
   inline static const Kind INT_GTE    = "OP_INT_GTE";
   /**
-   * The operator kind representing the integer is integer tester operator.
-   *
-   * SMT-LIB:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (is_int <term>)
-   * \endverbatim
-   */
-  inline static const Kind INT_IS_INT  = "OP_INT_IS_INT";
-  /**
    * The operator kind representing the integer to real conversion operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_INT}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1787,6 +1840,11 @@ struct Op
   /**
    * The operator kind representing the reals negation operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1798,6 +1856,11 @@ struct Op
   inline static const Kind REAL_NEG    = "OP_REAL_NEG";
   /**
    * The operator kind representing the reals subtraction operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REAL, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1811,6 +1874,11 @@ struct Op
   /**
    * The operator kind representing the reals addition operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REAL, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1822,6 +1890,11 @@ struct Op
   inline static const Kind REAL_ADD    = "OP_REAL_ADD";
   /**
    * The operator kind representing the reals multiplication operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REAL, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1835,6 +1908,11 @@ struct Op
   /**
    * The operator kind representing the reals division operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REAL, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1846,6 +1924,11 @@ struct Op
   inline static const Kind REAL_DIV    = "OP_REAL_DIV";
   /**
    * The operator kind representing the reals less than operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REAL, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1859,6 +1942,11 @@ struct Op
   /**
    * The operator kind representing the reals less or equal operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REAL, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1870,6 +1958,11 @@ struct Op
   inline static const Kind REAL_LTE    = "OP_REAL_LTE";
   /**
    * The operator kind representing the reals greater than operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REAL, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1883,6 +1976,11 @@ struct Op
   /**
    * The operator kind representing the reals greater or equal operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REAL, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1895,6 +1993,11 @@ struct Op
   /**
    * The operator kind representing the reals is integer tester operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1906,6 +2009,11 @@ struct Op
   inline static const Kind REAL_IS_INT = "OP_REAL_IS_INT";
   /**
    * The operator kind representing the reals to integer conversion operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1921,6 +2029,11 @@ struct Op
   /**
    * The operator kind representing the a universal quantifier operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_ANY, ..., SORT_BOOL}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1932,6 +2045,11 @@ struct Op
   inline static const Kind FORALL = "OP_FORALL";
   /**
    * The operator kind representing the a existential quantifier operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_ANY, ..., SORT_BOOL}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1948,6 +2066,11 @@ struct Op
    * The operator kind representing the constant denoting the set of all
    * strings.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 0
+   * - **args**: `{}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1961,6 +2084,11 @@ struct Op
    * The operator kind representing the constant denoting the set of all
    * strings of length 1.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 0
+   * - **args**: `{}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1972,6 +2100,11 @@ struct Op
   inline static const Kind RE_ALLCHAR = "OP_RE_ALLCHAR";
   /**
    * The operator kind representing the regular expression complement operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REGLAN}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1986,6 +2119,11 @@ struct Op
    * The operator kind representing the regular expression concatenation
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REGLAN, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1998,6 +2136,11 @@ struct Op
   /**
    * The operator kind representing the regular expression difference operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REGLAN, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2009,6 +2152,11 @@ struct Op
   inline static const Kind RE_DIFF = "OP_RE_DIFF";
   /**
    * The operator kind representing the constant the empty string.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 0
+   * - **args**: `{}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2023,6 +2171,11 @@ struct Op
    * The operator kind representing the regular expression intersection
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REGLAN, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2034,6 +2187,11 @@ struct Op
   inline static const Kind RE_INTER = "OP_RE_INTER";
   /**
    * The operator kind representing the regular expression loop operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REGLAN}`
+   * - **indices**: `{uint32_t, uint32_t}`
    *
    * SMT-LIB:
    *

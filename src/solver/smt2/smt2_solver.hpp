@@ -259,7 +259,6 @@ class Smt2Term : public AbsTerm
       {Op::INT_LTE, "<="},
       {Op::INT_GT, ">"},
       {Op::INT_GTE, ">="},
-      {Op::INT_IS_INT, "is_int"},
 
       /* Reals */
       {Op::REAL_NEG, "-"},
@@ -274,7 +273,6 @@ class Smt2Term : public AbsTerm
       {Op::REAL_IS_INT, "is_int"},
 
       /* Reals and Ints */
-      {Op::INT_IS_INT, "is_int"},
       {Op::INT_TO_REAL, "to_real"},
       {Op::REAL_IS_INT, "is_int"},
       {Op::REAL_TO_INT, "to_int"},

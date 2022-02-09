@@ -1414,7 +1414,7 @@ YicesSolver::mk_term(const std::string& kind,
     }
   }
   /* Ints, Reals */
-  else if (kind == Op::INT_IS_INT || kind == Op::REAL_IS_INT)
+  else if (kind == Op::REAL_IS_INT)
   {
     assert(n_args == 1);
     yices_res = yices_is_int_atom(yices_args[0]);

@@ -240,7 +240,6 @@ OpKindManager::add_op_kinds()
   if (d_enabled_theories.find(THEORY_REAL) != d_enabled_theories.end()
       && d_enabled_theories.find(THEORY_INT) != d_enabled_theories.end())
   {
-    add_op_kind(Op::INT_IS_INT, 1, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
     add_op_kind(Op::INT_TO_REAL, 1, 0, SORT_REAL, {SORT_INT}, THEORY_INT);
     add_op_kind(Op::REAL_IS_INT, 1, 0, SORT_BOOL, {SORT_REAL}, THEORY_REAL);
     add_op_kind(Op::REAL_TO_INT, 1, 0, SORT_INT, {SORT_REAL}, THEORY_REAL);

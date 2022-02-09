@@ -497,7 +497,6 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::INT_LTE, ::cvc5::api::Kind::LEQ},
         {Op::INT_GT, ::cvc5::api::Kind::GT},
         {Op::INT_GTE, ::cvc5::api::Kind::GEQ},
-        {Op::INT_IS_INT, ::cvc5::api::Kind::IS_INTEGER},
         {Op::INT_TO_REAL, ::cvc5::api::Kind::TO_REAL},
 
         /* Reals */
@@ -780,7 +779,6 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::LEQ, Op::INT_LTE},
         {::cvc5::api::Kind::GT, Op::INT_GT},
         {::cvc5::api::Kind::GEQ, Op::INT_GTE},
-        {::cvc5::api::Kind::IS_INTEGER, Op::INT_IS_INT},
         {::cvc5::api::Kind::TO_REAL, Op::INT_TO_REAL},
 
         /* Reals */
