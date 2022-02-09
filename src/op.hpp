@@ -37,20 +37,41 @@ struct Op
   inline static const Kind INTERNAL = "OP_INTERNAL";
 
   //// Leaf kinds (only needed for Term::get_kind)
-  /** The operator kind representing a first order constant. */
+  /**
+   * The operator kind representing a first order constant.
+   *
+   * Created with Solver::mk_const().
+   */
   inline static const Kind CONSTANT = "OP_CONSTANT";
   /** The operator kind representing a const array. */
-  inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
-  /** The operator kind representing a value. */
+  // inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
+  /**
+   * The operator kind representing a value.
+   *
+   * Created with Solver::mk_value().
+   */
   inline static const Kind VALUE = "OP_VALUE";
-  /** The operator kind representing a variable. */
+  /**
+   * The operator kind representing a variable.
+   *
+   * Created with Solver::mk_var().
+   */
   inline static const Kind VARIABLE = "OP_VARIABLE";
-  /** The operator kind representing a function. */
+  /**
+   * The operator kind representing a function.
+   *
+   * Created with Solver::mk_fun().
+   */
   inline static const Kind FUN = "OP_FUN";
 
   //// Special cases
   /**
    * The operator kind representing the distinct operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_ANY, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -64,6 +85,11 @@ struct Op
   /**
    * The operator kind representing the equality operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_ANY, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -75,6 +101,11 @@ struct Op
   inline static const Kind EQUAL = "OP_EQUAL";
   /**
    * The operator kind representing the if-then-else operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_BOOL, SORT_ANY, SORT_ANY}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -90,6 +121,11 @@ struct Op
   /**
    * The operator kind representing the select operator on arrays.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_ARRAY, SORT_ANY}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -101,6 +137,14 @@ struct Op
   inline static const Kind ARRAY_SELECT = "OP_ARRAY_SELECT";
   /**
    * The operator kind representing the store operator on arrays.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_ARRAY, SORT_ANY, SORT_ANY}`
+   *   - [0]: array term
+   *   - [1]: index term
+   *   - [2]: value term
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -116,6 +160,11 @@ struct Op
   /**
    * The operator kind representing the Boolean and operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BOOL, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -127,6 +176,11 @@ struct Op
   inline static const Kind AND = "OP_AND";
   /**
    * The operator kind representing the Boolean if-and-only-if operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BOOL, SORT_BOOL}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -140,6 +194,11 @@ struct Op
   /**
    * The operator kind representing the Boolean implies operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BOOL, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -151,6 +210,11 @@ struct Op
   inline static const Kind IMPLIES = "OP_IMPLIES";
   /**
    * The operator kind representing the Boolean not operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BOOL}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -164,6 +228,11 @@ struct Op
   /**
    * The operator kind representing the Boolean or operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BOOL, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -175,6 +244,11 @@ struct Op
   inline static const Kind OR = "OP_OR";
   /**
    * The operator kind representing the Boolean xor operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BOOL, SORT_BOOL}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -190,6 +264,13 @@ struct Op
   /**
    * The operator kind representing the bit-vector extract operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{uint32_t, uint32_t}`
+   *   - [0]: upper index
+   *   - [1]: lower index
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -201,6 +282,11 @@ struct Op
   inline static const Kind BV_EXTRACT = "OP_BV_EXTRACT";
   /**
    * The operator kind representing the bit-vector repeat operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{uint32_t}`
    *
    * SMT-LIB:
    *
@@ -214,6 +300,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector rotate left operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{uint32_t}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -225,6 +316,11 @@ struct Op
   inline static const Kind BV_ROTATE_LEFT = "OP_BV_ROTATE_LEFT";
   /**
    * The operator kind representing the bit-vector rotate right operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{uint32_t}`
    *
    * SMT-LIB:
    *
@@ -238,6 +334,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector signed extension operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{uint32_t}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -249,6 +350,11 @@ struct Op
   inline static const Kind BV_SIGN_EXTEND = "OP_BV_SIGN_EXTEND";
   /**
    * The operator kind representing the bit-vector zero extension operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{uint32_t}`
    *
    * SMT-LIB:
    *
@@ -262,6 +368,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector addition operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BV, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -273,6 +384,11 @@ struct Op
   inline static const Kind BV_ADD = "OP_BV_ADD";
   /**
    * The operator kind representing the bit-vector and operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BV, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -287,6 +403,13 @@ struct Op
    * The operator kind representing the bit-vector arithmetic right shift
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   *   - [0]: the term to shift
+   *   - [1]: the shift term
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -298,6 +421,11 @@ struct Op
   inline static const Kind BV_ASHR = "OP_BV_ASHR";
   /**
    * The operator kind representing the bit-vector comparison operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -311,6 +439,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector concatenation operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BV, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -322,6 +455,13 @@ struct Op
   inline static const Kind BV_CONCAT = "OP_BV_CONCAT";
   /**
    * The operator kind representing the bit-vector logical right shift operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   *   - [0]: the term to shift
+   *   - [1]: the shift term
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -335,6 +475,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector multiplication operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BV, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -346,6 +491,11 @@ struct Op
   inline static const Kind BV_MULT = "OP_BV_MULT";
   /**
    * The operator kind representing the bit-vector nand operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -360,6 +510,11 @@ struct Op
    * The operator kind representing the bit-vector negation (two's complement)
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -371,6 +526,11 @@ struct Op
   inline static const Kind BV_NEG = "OP_BV_NEG";
   /**
    * The operator kind representing the bit-vector nor operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -384,6 +544,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector not operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -396,6 +561,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector or operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BV, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -407,6 +577,11 @@ struct Op
   inline static const Kind BV_OR = "OP_BV_OR";
   /**
    * The operator kind representing the bit-vector signed division operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -421,6 +596,11 @@ struct Op
    * The operator kind representing the bit-vector signed greater or equal
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -433,6 +613,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector signed greater than operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -444,6 +629,13 @@ struct Op
   inline static const Kind BV_SGT = "OP_BV_SGT";
   /**
    * The operator kind representing the bit-vector left shift operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   *   - [0]: the term to shift
+   *   - [1]: the shift term
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -458,6 +650,11 @@ struct Op
    * The operator kind representing the bit-vector signed less or equal
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -469,6 +666,11 @@ struct Op
   inline static const Kind BV_SLE = "OP_BV_SLE";
   /**
    * The operator kind representing the bit-vector signed less than operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -483,6 +685,11 @@ struct Op
    * The operator kind representing the bit-vector signed remainder operator
    * (sign follows divisor).
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -496,6 +703,11 @@ struct Op
    * The operator kind representing the bit-vector signed remainder operator
    * (sign follows dividend).
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -508,6 +720,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector subtraction operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -519,6 +736,11 @@ struct Op
   inline static const Kind BV_SUB = "OP_BV_SUB";
   /**
    * The operator kind representing the bit-vector unsigned division operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -533,6 +755,11 @@ struct Op
    * The operator kind representing the bit-vector unsigned greater or equal
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -545,6 +772,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector unsigned greater than
    * operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -559,6 +791,11 @@ struct Op
    * The operator kind representing the bit-vector unsigned less or equal
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -570,6 +807,11 @@ struct Op
   inline static const Kind BV_ULE = "OP_BV_ULE";
   /**
    * The operator kind representing the bit-vector unsigned less than operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -583,6 +825,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector unsigned remainder operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -595,6 +842,11 @@ struct Op
   /**
    * The operator kind representing the bit-vector xnor operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_BV, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -606,6 +858,11 @@ struct Op
   inline static const Kind BV_XNOR = "OP_BV_XNOR";
   /**
    * The operator kind representing the bit-vector xor operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BV, SORT_BV}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -621,6 +878,14 @@ struct Op
   /**
    * The operator kind representing the datatypes apply constructor operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **sort**: SORT_DT
+   * - **str_args**: `{<constructor name>}`
+   * - **args**: `{SORT_ANY, ...}`
+   *   - [0..n-1]: terms of selector codomain sort for each selector, in
+   *               declaration order
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -632,6 +897,12 @@ struct Op
   inline static const Kind DT_APPLY_CONS = "OP_DT_APPLY_CONS";
   /**
    * The operator kind representing the datatypes apply selector operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **str_args**: `{<constructor name>, <selector name>}`
+   * - **args**: `{SORT_ANY}`
+   *   - [0]: term of selector codomain sort
    *
    * SMT-LIB:
    *
@@ -645,6 +916,12 @@ struct Op
   /**
    * The operator kind representing the datatypes tester operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **str_args**: `{<constructor name>}`
+   * - **args**: `{SORT_DT}`
+   *   - [0]: term of selector codomain sort
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -656,6 +933,12 @@ struct Op
   inline static const Kind DT_APPLY_TESTER = "OP_DT_APPLY_TESTER";
   /**
    * The operator kind representing the datatypes updater operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **str_args**: `{<constructor name>, <selector name>}`
+   * - **args**: `{SORT_DT}`
+   *   - [0]: term of selector codomain sort
    *
    * SMT-LIB:
    *
@@ -669,6 +952,11 @@ struct Op
   /**
    * The operator kind representing the datatypes match operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_ANY, ...}`
+   *   - [0..n-1]: match (binder) case terms
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -680,6 +968,13 @@ struct Op
   inline static const Kind DT_MATCH = "OP_DT_MATCH";
   /**
    * The operator kind representing the datatypes match case without binders.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **sort**: SORT_DT
+   * - **str_args**: `{<constructor name>}`
+   * - **args**: `{SORT_ANY}`
+   *   - [0]: match term
    *
    * @note This match case operator is used for constructors without selectors.
    *
@@ -694,6 +989,15 @@ struct Op
   inline static const Kind DT_MATCH_CASE = "OP_DT_MATCH_CASE";
   /**
    * The operator kind representing the datatypes match with binders.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **sort**: SORT_DT
+   * - **str_args**: `{<constructor name>}` (regular pattern) or `{}` (variable
+   *                 pattern)
+   * - **args**: `{SORT_ANY}`
+   *   - [0..n-2]: variables (one per selector for regular pattern)
+   *   - [n-1]: match term
    *
    * @note This match case operator is used for constructors with selectors.
    *
@@ -716,6 +1020,13 @@ struct Op
    * conversion operator from a bit-vector in in IEEE 754-2008 interchange
    * format.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{uint32_t, uint32_t}`
+   *   - [0]: exponent size
+   *   - [1]: signifcand size
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -730,6 +1041,13 @@ struct Op
    * conversion operator from a signed machine integer, represented as two's
    * complement bit-vector.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_RM, SORT_BV}`
+   * - **indices**: `{uint32_t, uint32_t}`
+   *   - [0]: exponent size
+   *   - [1]: signifcand size
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -742,6 +1060,13 @@ struct Op
   /**
    * The operator kind representing the floating-point to floating-point
    * conversion operator from a floating-point term.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_RM, SORT_FP}`
+   * - **indices**: `{uint32_t, uint32_t}`
+   *   - [0]: exponent size
+   *   - [1]: signifcand size
    *
    * SMT-LIB:
    *
@@ -757,6 +1082,13 @@ struct Op
    * conversion operator from an unsigned machine integer, represented as a
    * bit-vector.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_RM, SORT_BV}`
+   * - **indices**: `{uint32_t, uint32_t}`
+   *   - [0]: exponent size
+   *   - [1]: signifcand size
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -769,6 +1101,13 @@ struct Op
   /**
    * The operator kind representing the floating-point to floating-point
    * conversion operator from a real term.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_RM, SORT_REAL}`
+   * - **indices**: `{uint32_t, uint32_t}`
+   *   - [0]: exponent size
+   *   - [1]: signifcand size
    *
    * SMT-LIB:
    *
@@ -783,6 +1122,12 @@ struct Op
    * The operator kind representing the floating-point to signed bit-vector
    * conversion operator from a floating-point term.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_RM, SORT_FP}`
+   * - **indices**: `{uint32_t}`
+   *   - [0]: bit-vector size
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -796,6 +1141,12 @@ struct Op
    * The operator kind representing the floating-point to unsigned bit-vector
    * conversion operator from a floating-point term.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_RM, SORT_FP}`
+   * - **indices**: `{uint32_t}`
+   *   - [0]: bit-vector size
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -807,6 +1158,11 @@ struct Op
   inline static const Kind FP_TO_UBV = "OP_FP_TO_UBV";
   /**
    * The operator kind representing the floating-point absolute value operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -820,6 +1176,11 @@ struct Op
   /**
    * The operator kind representing the floating-point addition operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_RM, SORT_FP, SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -832,6 +1193,11 @@ struct Op
   /**
    * The operator kind representing the floating-point division operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_RM, SORT_FP, SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -843,6 +1209,11 @@ struct Op
   inline static const Kind FP_DIV = "OP_FP_DIV";
   /**
    * The operator kind representing the floating-point equality operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_FP, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -857,6 +1228,11 @@ struct Op
    * The operator kind representing the floating-point fused multiplication and
    * addition operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 4
+   * - **args**: `{SORT_RM, SORT_FP, SORT_FP, SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -868,6 +1244,14 @@ struct Op
   inline static const Kind FP_FMA = "OP_FP_FMA";
   /**
    * The operator kind representing the floating-point `fp` operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_RM, SORT_BV, SORT_BV, SORT_BV}`
+   *   - [0]: the sign bit
+   *   - [1]: the exponent
+   *   - [2]: the signifcand
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -882,6 +1266,11 @@ struct Op
    * The operator kind representing the floating-point isNormal tester
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -894,6 +1283,11 @@ struct Op
   /**
    * The operator kind representing the floating-point isSubnormal tester
    * operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -908,6 +1302,11 @@ struct Op
    * The operator kind representing the floating-point isInfinite tester
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -920,6 +1319,11 @@ struct Op
   /**
    * The operator kind representing the floating-point isNaN tester
    * operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -934,6 +1338,11 @@ struct Op
    * The operator kind representing the floating-point isNegative tester
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -946,6 +1355,11 @@ struct Op
   /**
    * The operator kind representing the floating-point isPositive tester
    * operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -960,6 +1374,11 @@ struct Op
    * The operator kind representing the floating-point isZero tester
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -971,6 +1390,11 @@ struct Op
   inline static const Kind FP_IS_ZERO = "OP_FP_IS_ZERO";
   /**
    * The operator kind representing the floating-point less than operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_FP, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -984,6 +1408,11 @@ struct Op
   /**
    * The operator kind representing the floating-point less or equal operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_FP, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -995,6 +1424,11 @@ struct Op
   inline static const Kind FP_LEQ = "OP_FP_LEQ";
   /**
    * The operator kind representing the floating-point greater than operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_FP, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1009,6 +1443,11 @@ struct Op
    * The operator kind representing the floating-point greater or equal
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_FP, ...}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1020,6 +1459,11 @@ struct Op
   inline static const Kind FP_GEQ = "OP_FP_GEQ";
   /**
    * The operator kind representing the floating-point max operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_FP, SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1033,6 +1477,11 @@ struct Op
   /**
    * The operator kind representing the floating-point min operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_FP, SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1044,6 +1493,11 @@ struct Op
   inline static const Kind FP_MIN = "OP_FP_MIN";
   /**
    * The operator kind representing the floating-point multiplication operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_RM, SORT_FP, SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1057,6 +1511,11 @@ struct Op
   /**
    * The operator kind representing the floating-point negation operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1068,6 +1527,11 @@ struct Op
   inline static const Kind FP_NEG = "OP_FP_NEG";
   /**
    * The operator kind representing the floating-point remainder operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_FP, SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1082,6 +1546,11 @@ struct Op
    * The operator kind representing the floating-point round to integral
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_RM, SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1093,6 +1562,11 @@ struct Op
   inline static const Kind FP_RTI = "OP_FP_RTI";
   /**
    * The operator kind representing the floating-point square root operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_RM, SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1106,6 +1580,11 @@ struct Op
   /**
    * The operator kind representing the floating-point subtraction operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_RM, SORT_FP, SORT_FP}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -1118,6 +1597,11 @@ struct Op
   /**
    * The operator kind representing the floating-point to real conversion
    * operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FP}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -1933,7 +2417,7 @@ struct Op
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (<fun> <args...)
+   *     (<fun> <args...>)
    * \endverbatim
    */
   inline static const Kind UF_APPLY = "OP_UF_APPLY";

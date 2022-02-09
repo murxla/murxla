@@ -652,7 +652,7 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::INTERNAL_KIND, Op::INTERNAL},
         /* Leaf Kinds */
         {::cvc5::api::Kind::CONSTANT, Op::CONSTANT},
-        {::cvc5::api::Kind::CONST_ARRAY, Op::CONST_ARRAY},
+        //{::cvc5::api::Kind::CONST_ARRAY, Op::CONST_ARRAY},
         {::cvc5::api::Kind::CONST_BOOLEAN, Op::VALUE},
         {::cvc5::api::Kind::CONST_BITVECTOR, Op::VALUE},
         {::cvc5::api::Kind::CONST_FLOATINGPOINT, Op::VALUE},
