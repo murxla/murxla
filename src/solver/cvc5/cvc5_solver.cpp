@@ -619,12 +619,12 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::SET_MINUS, ::cvc5::api::Kind::SET_MINUS},
         {Op::SET_SINGLETON, ::cvc5::api::Kind::SET_SINGLETON},
         {Op::SET_SUBSET, ::cvc5::api::Kind::SET_SUBSET},
-        {Op::REL_JOIN, ::cvc5::api::Kind::RELATION_JOIN},
-        {Op::REL_JOIN_IMAGE, ::cvc5::api::Kind::RELATION_JOIN_IMAGE},
-        {Op::REL_IDEN, ::cvc5::api::Kind::RELATION_IDEN},
-        {Op::REL_PRODUCT, ::cvc5::api::Kind::RELATION_PRODUCT},
-        {Op::REL_TCLOSURE, ::cvc5::api::Kind::RELATION_TCLOSURE},
-        {Op::REL_TRANSPOSE, ::cvc5::api::Kind::RELATION_TRANSPOSE},
+        //{Op::REL_JOIN, ::cvc5::api::Kind::RELATION_JOIN},
+        //{Op::REL_JOIN_IMAGE, ::cvc5::api::Kind::RELATION_JOIN_IMAGE},
+        //{Op::REL_IDEN, ::cvc5::api::Kind::RELATION_IDEN},
+        //{Op::REL_PRODUCT, ::cvc5::api::Kind::RELATION_PRODUCT},
+        //{Op::REL_TCLOSURE, ::cvc5::api::Kind::RELATION_TCLOSURE},
+        //{Op::REL_TRANSPOSE, ::cvc5::api::Kind::RELATION_TRANSPOSE},
 
         /* Solver-specific operators */
         // BV
@@ -902,12 +902,12 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::SET_MINUS, Op::SET_MINUS},
         {::cvc5::api::Kind::SET_SINGLETON, Op::SET_SINGLETON},
         {::cvc5::api::Kind::SET_SUBSET, Op::SET_SUBSET},
-        {::cvc5::api::Kind::RELATION_JOIN, Op::REL_JOIN},
-        {::cvc5::api::Kind::RELATION_JOIN_IMAGE, Op::REL_JOIN_IMAGE},
-        {::cvc5::api::Kind::RELATION_IDEN, Op::REL_IDEN},
-        {::cvc5::api::Kind::RELATION_PRODUCT, Op::REL_PRODUCT},
-        {::cvc5::api::Kind::RELATION_TCLOSURE, Op::REL_TCLOSURE},
-        {::cvc5::api::Kind::RELATION_TRANSPOSE, Op::REL_TRANSPOSE},
+        //{::cvc5::api::Kind::RELATION_JOIN, Op::REL_JOIN},
+        //{::cvc5::api::Kind::RELATION_JOIN_IMAGE, Op::REL_JOIN_IMAGE},
+        //{::cvc5::api::Kind::RELATION_IDEN, Op::REL_IDEN},
+        //{::cvc5::api::Kind::RELATION_PRODUCT, Op::REL_PRODUCT},
+        //{::cvc5::api::Kind::RELATION_TCLOSURE, Op::REL_TCLOSURE},
+        //{::cvc5::api::Kind::RELATION_TRANSPOSE, Op::REL_TRANSPOSE},
 
         /* Solver-specific operators */
         {::cvc5::api::Kind::BITVECTOR_REDOR, OP_BV_REDOR},

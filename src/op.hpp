@@ -1940,58 +1940,111 @@ struct Op
 
   /* Operators of non-standardized theories. */
   //// Bags
-  inline static const Kind BAG_UNION_MAX        = "OP_BAG_UNION_MAX";
-  inline static const Kind BAG_UNION_DISJOINT   = "OP_BAG_UNION_DISJOINT";
+  /** The operator kind representing the bag union operator. */
+  inline static const Kind BAG_UNION_MAX = "OP_BAG_UNION_MAX";
+  /** The operator kind representing the bag disjoint union operator. */
+  inline static const Kind BAG_UNION_DISJOINT = "OP_BAG_UNION_DISJOINT";
+  /** The operator kind representing the bag intersection operator. */
   inline static const Kind BAG_INTERSECTION_MIN = "OP_BAG_INTERSECTION_MIN";
+  /** The operator kind representing the bag difference subtract operator. */
   inline static const Kind BAG_DIFFERENCE_SUBTRACT =
       "OP_BAG_DIFFERENCE_SUBTRACT";
+  /** The operator kind representing the bag difference remove operator. */
   inline static const Kind BAG_DIFFERENCE_REMOVE = "OP_BAG_DIFFERENCE_REMOVE";
-  inline static const Kind BAG_SUBBAG            = "OP_BAG_SUBBAG";
-  inline static const Kind BAG_COUNT             = "OP_BAG_COUNT";
+  /** The operator kind representing the bag subbag operator. */
+  inline static const Kind BAG_SUBBAG = "OP_BAG_SUBBAG";
+  /** The operator kind representing the bag count operator. */
+  inline static const Kind BAG_COUNT = "OP_BAG_COUNT";
+  /** The operator kind representing the bag duplicate removal operator. */
   inline static const Kind BAG_DUPLICATE_REMOVAL = "OP_BAG_DUPLICATE_REMOVAL";
-  inline static const Kind BAG_MAKE              = "OP_BAG_MAKE";
-  inline static const Kind BAG_EMPTY             = "OP_BAG_EMPTY";
-  inline static const Kind BAG_CARD              = "OP_BAG_CARD";
-  inline static const Kind BAG_CHOOSE            = "OP_BAG_CHOOSE";
-  inline static const Kind BAG_IS_SINGLETON      = "OP_BAG_IS_SINGLETON";
-  inline static const Kind BAG_FROM_SET          = "OP_BAG_FROM_SET";
-  inline static const Kind BAG_TO_SET            = "OP_BAG_TO_SET";
-  inline static const Kind BAG_MAP               = "OP_BAG_MAP";
+  /** The operator kind representing the bag make operator. */
+  inline static const Kind BAG_MAKE = "OP_BAG_MAKE";
+  /** The operator kind representing the empty bag constant. */
+  inline static const Kind BAG_EMPTY = "OP_BAG_EMPTY";
+  /** The operator kind representing the bag cardinality operator. */
+  inline static const Kind BAG_CARD = "OP_BAG_CARD";
+  /** The operator kind representing the bag choose operator. */
+  inline static const Kind BAG_CHOOSE = "OP_BAG_CHOOSE";
+  /** The operator kind representing the bag is singleton tester operator. */
+  inline static const Kind BAG_IS_SINGLETON = "OP_BAG_IS_SINGLETON";
+  /** The operator kind representing the bag from set conversion operator. */
+  inline static const Kind BAG_FROM_SET = "OP_BAG_FROM_SET";
+  /** The operator kind representing the bag to set conversion operator. */
+  inline static const Kind BAG_TO_SET = "OP_BAG_TO_SET";
+  /** The operator kind representing the bag map operator. */
+  inline static const Kind BAG_MAP = "OP_BAG_MAP";
+
   //// Sequences
-  inline static const Kind SEQ_CONCAT      = "OP_SEQ_CONCAT";
-  inline static const Kind SEQ_LENGTH      = "OP_SEQ_LENGTH";
-  inline static const Kind SEQ_EXTRACT     = "OP_SEQ_EXTRACT";
-  inline static const Kind SEQ_UPDATE      = "OP_SEQ_UPDATE";
-  inline static const Kind SEQ_AT          = "OP_SEQ_AT";
-  inline static const Kind SEQ_CONTAINS    = "OP_SEQ_CONTAINS";
-  inline static const Kind SEQ_INDEXOF     = "OP_SEQ_INDEXOF";
-  inline static const Kind SEQ_REPLACE     = "OP_SEQ_REPLACE";
+  /** The operator kind representing the sequence concatenation operator. */
+  inline static const Kind SEQ_CONCAT = "OP_SEQ_CONCAT";
+  /** The operator kind representing the sequence length operator. */
+  inline static const Kind SEQ_LENGTH = "OP_SEQ_LENGTH";
+  /** The operator kind representing the sequence extract operator. */
+  inline static const Kind SEQ_EXTRACT = "OP_SEQ_EXTRACT";
+  /** The operator kind representing the sequence update operator. */
+  inline static const Kind SEQ_UPDATE = "OP_SEQ_UPDATE";
+  /** The operator kind representing the sequence at operator. */
+  inline static const Kind SEQ_AT = "OP_SEQ_AT";
+  /** The operator kind representing the sequence update operator. */
+  inline static const Kind SEQ_CONTAINS = "OP_SEQ_CONTAINS";
+  /** The operator kind representing the sequence index of operator. */
+  inline static const Kind SEQ_INDEXOF = "OP_SEQ_INDEXOF";
+  /** The operator kind representing the sequence replace operator. */
+  inline static const Kind SEQ_REPLACE = "OP_SEQ_REPLACE";
+  /** The operator kind representing the sequence replace all operator. */
   inline static const Kind SEQ_REPLACE_ALL = "OP_SEQ_REPLACE_ALL";
-  inline static const Kind SEQ_REV         = "OP_SEQ_REV";
-  inline static const Kind SEQ_PREFIX      = "OP_SEQ_PREFIX";
-  inline static const Kind SEQ_SUFFIX      = "OP_SEQ_SUFFIX";
-  inline static const Kind SEQ_UNIT        = "OP_SEQ_UNIT";
-  inline static const Kind SEQ_NTH         = "OP_SEQ_NTH";
+  /** The operator kind representing the sequence reverse operator. */
+  inline static const Kind SEQ_REV = "OP_SEQ_REV";
+  /** The operator kind representing the sequence prefix operator. */
+  inline static const Kind SEQ_PREFIX = "OP_SEQ_PREFIX";
+  /** The operator kind representing the sequence suffix operator. */
+  inline static const Kind SEQ_SUFFIX = "OP_SEQ_SUFFIX";
+  /** The operator kind representing the sequence unit operator. */
+  inline static const Kind SEQ_UNIT = "OP_SEQ_UNIT";
+  /** The operator kind representing the sequence nth operator. */
+  inline static const Kind SEQ_NTH = "OP_SEQ_NTH";
+
   //// Sets
-  inline static const Kind SET_CARD          = "OP_SET_CARD";
-  inline static const Kind SET_COMPLEMENT    = "OP_SET_COMPLEMENT";
+  /** The operator kind representing the set cardinality operator. */
+  inline static const Kind SET_CARD = "OP_SET_CARD";
+  /** The operator kind representing the set complement operator. */
+  inline static const Kind SET_COMPLEMENT = "OP_SET_COMPLEMENT";
+  /** The operator kind representing the set comprehension operator. */
   inline static const Kind SET_COMPREHENSION = "OP_SET_COMPREHENSION";
-  inline static const Kind SET_CHOOSE        = "OP_SET_CHOOSE";
+  /** The operator kind representing the set choose operator. */
+  inline static const Kind SET_CHOOSE = "OP_SET_CHOOSE";
+  /** The operator kind representing the set intersection operator. */
   inline static const Kind SET_INTERSECTION  = "OP_SET_INTERSECTION";
-  inline static const Kind SET_INSERT        = "OP_SET_INSERT";
-  inline static const Kind SET_IS_SINGLETON  = "OP_SET_IS_SINGLETON";
-  inline static const Kind SET_UNION         = "OP_SET_UNION";
-  inline static const Kind SET_MEMBER        = "OP_SET_MEMBER";
-  inline static const Kind SET_MINUS         = "OP_SET_MINUS";
-  inline static const Kind SET_SINGLETON     = "OP_SET_SINGLETON";
-  inline static const Kind SET_SUBSET        = "OP_SET_SUBSET";
+  /** The operator kind representing the set insert operator. */
+  inline static const Kind SET_INSERT = "OP_SET_INSERT";
+  /** The operator kind representing the set is singleton tester operator. */
+  inline static const Kind SET_IS_SINGLETON = "OP_SET_IS_SINGLETON";
+  /** The operator kind representing the set union operator. */
+  inline static const Kind SET_UNION = "OP_SET_UNION";
+  /** The operator kind representing the set member operator. */
+  inline static const Kind SET_MEMBER = "OP_SET_MEMBER";
+  /** The operator kind representing the set minus operator. */
+  inline static const Kind SET_MINUS = "OP_SET_MINUS";
+  /** The operator kind representing the set singleton operator. */
+  inline static const Kind SET_SINGLETON = "OP_SET_SINGLETON";
+  /** The operator kind representing the set subset operator. */
+  inline static const Kind SET_SUBSET = "OP_SET_SUBSET";
+
   //// Relations
-  inline static const Kind REL_JOIN       = "OP_REL_JOIN";
-  inline static const Kind REL_JOIN_IMAGE = "OP_REL_JOIN_IMAGE";
-  inline static const Kind REL_IDEN       = "OP_REL_IDEN";
-  inline static const Kind REL_PRODUCT    = "OP_REL_PRODUCT";
-  inline static const Kind REL_TCLOSURE   = "OP_REL_TCLOSURE";
-  inline static const Kind REL_TRANSPOSE  = "OP_REL_TRANSPOSE";
+  ///** The operator kind representing the relations join operator. */
+  // inline static const Kind REL_JOIN = "OP_REL_JOIN";
+  ///** The operator kind representing the relations join image operator. */
+  // inline static const Kind REL_JOIN_IMAGE = "OP_REL_JOIN_IMAGE";
+  ///** The operator kind representing the relations identity operator. */
+  // inline static const Kind REL_IDEN = "OP_REL_IDEN";
+  ///** The operator kind representing the relations product operator. */
+  // inline static const Kind REL_PRODUCT = "OP_REL_PRODUCT";
+  ///**
+  // * The operator kind representing the relations transitive closure operator.
+  // */
+  // inline static const Kind REL_TCLOSURE = "OP_REL_TCLOSURE";
+  ///** The operator kind representing the relations transpose operator. */
+  // inline static const Kind REL_TRANSPOSE = "OP_REL_TRANSPOSE";
 
   Op(uint64_t id,
      const Kind& kind,
