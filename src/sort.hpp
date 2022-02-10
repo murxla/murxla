@@ -87,7 +87,15 @@ static std::unordered_map<SortKind, std::string> sort_kinds_to_str{
  */
 struct SortKindData
 {
-  /** Constructor. */
+  /**
+   * Constructor.
+   *
+   * @param kind    The sort kind.
+   * @param arity   The number of sort parameters of this sort kind (not to be
+   *                confused with integer paramters like for bit-vector and
+   *                floating-point sorts).
+   * @param theory  The associated theory.
+   */
   SortKindData(SortKind kind   = SORT_BOOL,
                int32_t arity   = 0,
                TheoryId theory = THEORY_BOOL)
@@ -95,11 +103,11 @@ struct SortKindData
   {
   }
 
-  /* The sort kind. */
+  /** The sort kind. */
   SortKind d_kind;
-  /* The arity of this kind. */
+  /** The arity of this kind. */
   int32_t d_arity;
-  /* The theory of a sort of this kind. */
+  /** The theory of a sort of this kind. */
   TheoryId d_theory;
 };
 

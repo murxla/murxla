@@ -94,17 +94,19 @@
 /** Maximum number of argument terms for get-value commands. */
 #define MURXLA_MAX_N_TERMS_GET_VALUE 5
 
-/* mk_term: at least one argument */
+/** Arity of n-ary operators that expect at least one argument. */
 #define MURXLA_MK_TERM_N_ARGS -1
-/* mk_term: at least two arguments */
+/** Arity of n-ary operators that expect at least two arguments. */
 #define MURXLA_MK_TERM_N_ARGS_BIN -2
-/* mk_term: min number of arguments */
+/** Minimum number of arguments to be picked for Solver::mk_term(). */
 #define MURXLA_MK_TERM_N_ARGS_MIN(arity) ((arity) < 0 ? -(arity) : (arity))
-/* mk_term: max number of arguments */
+/** Maximum number of arguments to be picked for Solver::mk_term(). */
 #define MURXLA_MK_TERM_N_ARGS_MAX 5
 
-/* Minimum number of quantified terms on the current level before binding
- * a variable. */
+/**
+ * Minimum number of quantified terms on the current level before binding
+ * a variable.
+ */
 #define MURXLA_MIN_N_QUANT_TERMS 5
 
 /** Maximum number of nested stores created in ActionMkTerm::mk_store. */

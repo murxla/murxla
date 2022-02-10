@@ -69,7 +69,7 @@ struct Op
    * The operator kind representing the distinct operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_ANY, ...}`
    * - **indices**: `{}`
    *
@@ -86,7 +86,7 @@ struct Op
    * The operator kind representing the equality operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_ANY, ...}`
    * - **indices**: `{}`
    *
@@ -161,7 +161,7 @@ struct Op
    * The operator kind representing the Boolean and operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BOOL, ...}`
    * - **indices**: `{}`
    *
@@ -195,7 +195,7 @@ struct Op
    * The operator kind representing the Boolean implies operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BOOL, ...}`
    * - **indices**: `{}`
    *
@@ -229,7 +229,7 @@ struct Op
    * The operator kind representing the Boolean or operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BOOL, ...}`
    * - **indices**: `{}`
    *
@@ -369,7 +369,7 @@ struct Op
    * The operator kind representing the bit-vector addition operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BV, ...}`
    * - **indices**: `{}`
    *
@@ -386,7 +386,7 @@ struct Op
    * The operator kind representing the bit-vector and operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BV, ...}`
    * - **indices**: `{}`
    *
@@ -440,7 +440,7 @@ struct Op
    * The operator kind representing the bit-vector concatenation operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BV, ...}`
    * - **indices**: `{}`
    *
@@ -476,7 +476,7 @@ struct Op
    * The operator kind representing the bit-vector multiplication operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BV, ...}`
    * - **indices**: `{}`
    *
@@ -562,7 +562,7 @@ struct Op
    * The operator kind representing the bit-vector or operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BV, ...}`
    * - **indices**: `{}`
    *
@@ -843,7 +843,7 @@ struct Op
    * The operator kind representing the bit-vector xnor operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_BV, ...}`
    * - **indices**: `{}`
    *
@@ -879,7 +879,7 @@ struct Op
    * The operator kind representing the datatypes apply constructor operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **sort**: SORT_DT
    * - **str_args**: `{<constructor name>}`
    * - **args**: `{SORT_ANY, ...}`
@@ -953,7 +953,7 @@ struct Op
    * The operator kind representing the datatypes match operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_ANY, ...}`
    *   - [0..n-1]: match (binder) case terms
    *
@@ -991,7 +991,7 @@ struct Op
    * The operator kind representing the datatypes match with binders.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **sort**: SORT_DT
    * - **str_args**: `{<constructor name>}` (regular pattern) or `{}` (variable
    *                 pattern)
@@ -1211,7 +1211,7 @@ struct Op
    * The operator kind representing the floating-point equality operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_FP, ...}`
    * - **indices**: `{}`
    *
@@ -1392,7 +1392,7 @@ struct Op
    * The operator kind representing the floating-point less than operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_FP, ...}`
    * - **indices**: `{}`
    *
@@ -1409,7 +1409,7 @@ struct Op
    * The operator kind representing the floating-point less or equal operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_FP, ...}`
    * - **indices**: `{}`
    *
@@ -1426,7 +1426,7 @@ struct Op
    * The operator kind representing the floating-point greater than operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_FP, ...}`
    * - **indices**: `{}`
    *
@@ -1444,7 +1444,7 @@ struct Op
    * operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_FP, ...}`
    * - **indices**: `{}`
    *
@@ -1652,7 +1652,7 @@ struct Op
    * The operator kind representing the integer subtraction operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_INT, ...}`
    * - **indices**: `{}`
    *
@@ -1669,7 +1669,7 @@ struct Op
    * The operator kind representing the integer addition operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_INT, ...}`
    * - **indices**: `{}`
    *
@@ -1686,7 +1686,7 @@ struct Op
    * The operator kind representing the integer multiplication operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_INT, ...}`
    * - **indices**: `{}`
    *
@@ -1703,7 +1703,7 @@ struct Op
    * The operator kind representing the integer division operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_INT, ...}`
    * - **indices**: `{}`
    *
@@ -1754,7 +1754,7 @@ struct Op
    * The operator kind representing the integer less than operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_INT, ...}`
    * - **indices**: `{}`
    *
@@ -1771,7 +1771,7 @@ struct Op
    * The operator kind representing the integer less or equal operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_INT, ...}`
    * - **indices**: `{}`
    *
@@ -1788,7 +1788,7 @@ struct Op
    * The operator kind representing the integer greater than operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_INT, ...}`
    * - **indices**: `{}`
    *
@@ -1805,7 +1805,7 @@ struct Op
    * The operator kind representing the integer greater or equal operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_INT, ...}`
    * - **indices**: `{}`
    *
@@ -1858,7 +1858,7 @@ struct Op
    * The operator kind representing the reals subtraction operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REAL, ...}`
    * - **indices**: `{}`
    *
@@ -1875,7 +1875,7 @@ struct Op
    * The operator kind representing the reals addition operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REAL, ...}`
    * - **indices**: `{}`
    *
@@ -1892,7 +1892,7 @@ struct Op
    * The operator kind representing the reals multiplication operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REAL, ...}`
    * - **indices**: `{}`
    *
@@ -1909,7 +1909,7 @@ struct Op
    * The operator kind representing the reals division operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REAL, ...}`
    * - **indices**: `{}`
    *
@@ -1926,7 +1926,7 @@ struct Op
    * The operator kind representing the reals less than operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REAL, ...}`
    * - **indices**: `{}`
    *
@@ -1943,7 +1943,7 @@ struct Op
    * The operator kind representing the reals less or equal operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REAL, ...}`
    * - **indices**: `{}`
    *
@@ -1960,7 +1960,7 @@ struct Op
    * The operator kind representing the reals greater than operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REAL, ...}`
    * - **indices**: `{}`
    *
@@ -1977,7 +1977,7 @@ struct Op
    * The operator kind representing the reals greater or equal operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REAL, ...}`
    * - **indices**: `{}`
    *
@@ -2030,7 +2030,7 @@ struct Op
    * The operator kind representing the a universal quantifier operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_ANY, ..., SORT_BOOL}`
    * - **indices**: `{}`
    *
@@ -2047,7 +2047,7 @@ struct Op
    * The operator kind representing the a existential quantifier operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_ANY, ..., SORT_BOOL}`
    * - **indices**: `{}`
    *
@@ -2120,7 +2120,7 @@ struct Op
    * operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REGLAN, ...}`
    * - **indices**: `{}`
    *
@@ -2137,7 +2137,7 @@ struct Op
    * The operator kind representing the regular expression difference operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REGLAN, ...}`
    * - **indices**: `{}`
    *
@@ -2172,7 +2172,7 @@ struct Op
    * operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REGLAN, ...}`
    * - **indices**: `{}`
    *
@@ -2293,7 +2293,7 @@ struct Op
    * The operator kind representing the regular expression union operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_REGLAN, ...}`
    * - **indices**: `{}`
    *
@@ -2327,7 +2327,7 @@ struct Op
    * The operator kind representing the string concatenation operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_STRING, ...}`
    * - **indices**: `{}`
    *
@@ -2801,7 +2801,7 @@ struct Op
    * The operator kind representing the function application operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_FUN, SORT_ANY, ...}`
    * - **indices**: `{}`
    *
@@ -2966,7 +2966,7 @@ struct Op
    * The operator kind representing the sequence concatenation operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_SEQ, ...}`
    * - **indices**: `{}`
    */
@@ -3139,7 +3139,7 @@ struct Op
    * The operator kind representing the set insert operator.
    *
    * Created with Solver::mk_term() with
-   * - **arity**: n
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
    * - **args**: `{SORT_SET, SORT_ANY, ...}`
    * - **indices**: `{}`
    */
@@ -3200,21 +3200,54 @@ struct Op
   inline static const Kind SET_SUBSET = "OP_SET_SUBSET";
 
   //// Relations
-  ///** The operator kind representing the relations join operator. */
-  // inline static const Kind REL_JOIN = "OP_REL_JOIN";
-  ///** The operator kind representing the relations join image operator. */
-  // inline static const Kind REL_JOIN_IMAGE = "OP_REL_JOIN_IMAGE";
-  ///** The operator kind representing the relations identity operator. */
-  // inline static const Kind REL_IDEN = "OP_REL_IDEN";
-  ///** The operator kind representing the relations product operator. */
-  // inline static const Kind REL_PRODUCT = "OP_REL_PRODUCT";
-  ///**
-  // * The operator kind representing the relations transitive closure operator.
-  // */
-  // inline static const Kind REL_TCLOSURE = "OP_REL_TCLOSURE";
-  ///** The operator kind representing the relations transpose operator. */
-  // inline static const Kind REL_TRANSPOSE = "OP_REL_TRANSPOSE";
+  /**
+   * The operator kind representing the relations join operator.
+   * @note  Not yet supported.
+   */
+  inline static const Kind REL_JOIN = "OP_REL_JOIN";
+  /**
+   * The operator kind representing the relations join image operator.
+   * @note  Not yet supported.
+   */
+  inline static const Kind REL_JOIN_IMAGE = "OP_REL_JOIN_IMAGE";
+  /**
+   * The operator kind representing the relations identity operator.
+   * @note  Not yet supported.
+   */
+  inline static const Kind REL_IDEN = "OP_REL_IDEN";
+  /**
+   * The operator kind representing the relations product operator.
+   * @note  Not yet supported.
+   */
+  inline static const Kind REL_PRODUCT = "OP_REL_PRODUCT";
+  /**
+   * The operator kind representing the relations transitive closure operator.
+   * @note  Not yet supported.
+   */
+  inline static const Kind REL_TCLOSURE = "OP_REL_TCLOSURE";
+  /**
+   * The operator kind representing the relations transpose operator.
+   * @note  Not yet supported.
+   */
+  inline static const Kind REL_TRANSPOSE = "OP_REL_TRANSPOSE";
 
+  /**
+   * Constructor.
+   *
+   * @param id               The unique id of the operator.
+   * @param kind             The kind of the operator.
+   * @param arity            The arity of the operator. Use
+   *                         #MURXLA_MK_TERM_N_ARGS for n-ary operators that
+   *                         expect at least one argument, and
+   *                         #MURXLA_MK_TERM_N_ARGS_BIN for n-ary operators that
+   *                         expect at least two arguments.
+   * @param nidxs            The number of indices of the operator.
+   * @param sort_kinds       The sort kind of the operator.
+   * @param sort_kinds_args  A vector of sorts of the operators' arguments. If
+   *                         all or the remaining kinds are the same, it's
+   *                         sufficient to only list it once.
+   * @param theory           The associated theory.
+   */
   Op(uint64_t id,
      const Kind& kind,
      int32_t arity,
@@ -3223,19 +3256,45 @@ struct Op
      const std::vector<SortKindSet>& sort_kinds_args,
      TheoryId theory);
 
+  /**
+   * Operator overload for equality over operators.
+   *
+   * @param other  The operator to be compared with this operator.
+   * @return  True if both operators are equal.
+   */
   bool operator==(const Op& other) const;
 
+  /**
+   * Get the argument sort kind at index `i`.
+   * @param i  The index of the argument sort kinds vector to query.
+   * @return  The sort kind of the operator argument at given index.
+   */
   SortKindSet get_arg_sort_kind(size_t i) const;
 
-  /** Op id, assigned in the order they have been created. */
+  /** The operator id, assigned in the order operators have been created. */
   uint64_t d_id = 0u;
-  /** The Kind. */
+  /** The operator kind. */
   const Kind& d_kind = UNDEFINED;
-  /** The arity of this kind. */
+  /**
+   * The arity (number of arguments) of this operator kind.
+   *
+   * Is MURXLA_MK_TERM_N_ARGS for n-ary operators that expect at least
+   * one argument, and MURXLA_MK_TERM_N_ARGS_BIN for n-ary operators that
+   * expect at least two arguments.
+   */
   int32_t d_arity;
-  /** The number of parameters if parameterized. */
+  /** The number of indices if indexed. */
   uint32_t d_nidxs;
-  /** The sort kind of a term of this kind. */
+  /**
+   * The sort kind of a term of this kind.
+   *
+   * Will contain more than one sort kind for operators that can be of
+   * SORT_ANY, which is expanded via get_all_sort_kinds_for_any() with all sort
+   * kinds supported by the solver when operators are added to the
+   * OpKindManager via OpKindManager::add_op_kind().
+   *
+   * May not contain SORT_ANY.
+   */
   SortKindSet d_sort_kinds;
   /** The theory to which the operator belongs to. */
   TheoryId d_theory;
@@ -3248,15 +3307,22 @@ struct Op
 
 /* -------------------------------------------------------------------------- */
 
+/** A std::vector of operator kinds. */
 using OpKindVector = std::vector<Op::Kind>;
+/** A std::unordered_set of operator kinds. */
 using OpKindSet    = std::unordered_set<Op::Kind>;
+/** A std::unordered_map mapping operator kind to operator. */
 using OpKindMap    = std::unordered_map<Op::Kind, Op>;
+/**
+ * A std::unordered_map mapping sort kind of an operator to operator kinds of
+ * that sort kind.
+ */
 using OpKinds = std::unordered_map<SortKind, OpKindVector>;
 
 /* -------------------------------------------------------------------------- */
 
 /**
- * The operator kind manager.
+ * The operator kinds manager.
  *
  * Maintains the current set of operator kinds, based on enabled theories
  * and unsupported operator kinds.
@@ -3264,7 +3330,20 @@ using OpKinds = std::unordered_map<SortKind, OpKindVector>;
 class OpKindManager
 {
  public:
-  /** Constructor. */
+  /**
+   * Constructor.
+   *
+   * @param enabled_theories           The set of enabled theories.
+   * @param enabled_sort_kinds         The enabled sort kinds. Maps sort kind
+   *                                   to sort kind data.
+   * @param disabled_op_kinds          The set of disabled operator kinds.
+   * @param unsupported_op_kind_sorts  The unsupported sorts for operator kinds.
+   *                                   Maps operator kind to set of unsupported
+   *                                   sort kinds.
+   * @param arith_linear               True to restrict arithmetic operators to
+   *                                   linear fragment.
+   * @param stats                      The associated statistics object.
+   */
   OpKindManager(const TheoryIdSet& enabled_theories,
                 const SortKindMap& enabled_sort_kinds,
                 const OpKindSet& disabled_op_kinds,
@@ -3295,22 +3374,27 @@ class OpKindManager
 
   /**
    * Add operator kind to operator kinds database.
-   * kind           : The operator kind
-   * arity          : The arity of the operator
-   * nparams        : The number of parameters of the operator
-   * sort_kind      : The sort kind of the operator
-   * sort_kind_args : A vector of sorts of the operators' arguments. if all or
-   *                  the remaining kinds are the same, it's sufficient to only
-   *                  list it once.
+   *
+   * @param kind             The kind of the operator.
+   * @param arity            The arity of the operator
+   * @param nidxs            The number of indices of the operator.
+   * @param sort_kinds       The sort kind of the operator.
+   * @param sort_kinds_args  A vector of sorts of the operators' arguments. If
+   *                         all or the remaining kinds are the same, it's
+   *                         sufficient to only list it once.
+   * @param theory           The associated theory.
    */
   void add_op_kind(const Op::Kind& kind,
                    int32_t arity,
-                   uint32_t nparams,
+                   uint32_t nidxs,
                    SortKind sort_kind,
                    const std::vector<SortKind>& sort_kind_args,
                    TheoryId theory);
 
-  /** Get a map of enabled operator kinds to their corresponding Op. */
+  /**
+   * Get a map of enabled operator kinds to their corresponding operator.
+   * @return  A map mapping enabled operator kinds to their corresponding Op.
+   */
   const OpKindMap& get_op_kinds() { return d_op_kinds; }
 
  private:
@@ -3319,6 +3403,7 @@ class OpKindManager
    * Operator kinds are enabled based on the set of enabled theories.
    */
   void add_op_kinds();
+
   /** The set of enabled operator kinds. Maps Op::Kind to Op. */
   OpKindMap d_op_kinds;
   /** The set of enabled theories. */
@@ -3338,7 +3423,8 @@ class OpKindManager
    * to d_op_kinds, to be returned via get_op(). This is for operators that
    * are explicitly not added to the op kind database because they should not
    * be randomly picked but only created on demand. Examples are DT_MATCH_CASE
-   * and DT_MATCH_BIND_CASE. */
+   * and DT_MATCH_BIND_CASE.
+   **/
   Op d_op_undefined;
 };
 
