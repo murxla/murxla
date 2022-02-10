@@ -377,12 +377,7 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::BAG_TO_SET, 1, 0, SORT_SET, {SORT_BAG}, THEORY_BAG);
   add_op_kind(Op::BAG_MAP, 2, 0, SORT_BAG, {SORT_BAG, SORT_FUN}, THEORY_BAG);
   // Sequences
-  add_op_kind(Op::SEQ_CONCAT,
-              MURXLA_MK_TERM_N_ARGS_BIN,
-              0,
-              SORT_SEQ,
-              {SORT_SEQ},
-              THEORY_SEQ);
+  add_op_kind(Op::SEQ_CONCAT, n, 0, SORT_SEQ, {SORT_SEQ}, THEORY_SEQ);
   add_op_kind(Op::SEQ_LENGTH, 1, 0, SORT_INT, {SORT_SEQ}, THEORY_SEQ);
   add_op_kind(Op::SEQ_EXTRACT,
               3,

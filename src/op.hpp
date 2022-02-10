@@ -2205,6 +2205,11 @@ struct Op
   /**
    * The operator kind representing the regular expression option operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REGLAN}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2218,6 +2223,11 @@ struct Op
    * The operator kind representing the regular expression Kleene cross
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REGLAN}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2230,6 +2240,11 @@ struct Op
   /**
    * The operator kind representing the regular expression power operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REGLAN}`
+   * - **indices**: `{uint32_t}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2241,6 +2256,11 @@ struct Op
   inline static const Kind RE_POW = "OP_RE_POW";
   /**
    * The operator kind representing the regular expression range operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_STRING}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2255,6 +2275,11 @@ struct Op
    * The operator kind representing the regular expression Kleene closure
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REGLAN}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2266,6 +2291,11 @@ struct Op
   inline static const Kind RE_STAR = "OP_RE_STAR";
   /**
    * The operator kind representing the regular expression union operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_REGLAN, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2279,6 +2309,11 @@ struct Op
   /**
    * The operator kind representing the string at operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_STRING, SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2290,6 +2325,11 @@ struct Op
   inline static const Kind STR_AT = "OP_STR_AT";
   /**
    * The operator kind representing the string concatenation operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_STRING, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2303,6 +2343,11 @@ struct Op
   /**
    * The operator kind representing the string contains operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_STRING, SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2314,6 +2359,11 @@ struct Op
   inline static const Kind STR_CONTAINS = "OP_STR_CONTAINS";
   /**
    * The operator kind representing the string from code conversion operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_INT}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2327,6 +2377,11 @@ struct Op
   /**
    * The operator kind representing the string from integer conversion operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2338,6 +2393,11 @@ struct Op
   inline static const Kind STR_FROM_INT = "OP_STR_FROM_INT";
   /**
    * The operator kind representing the string index of operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_STRING, SORT_STRING, SORT_INT}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2352,6 +2412,11 @@ struct Op
    * The operator kind representing the string regular expression membership
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_STRING, SORT_REGLAN}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2363,6 +2428,11 @@ struct Op
   inline static const Kind STR_IN_RE = "OP_STR_IN_RE";
   /**
    * The operator kind representing the string is_digit tester operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_STRING}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2376,6 +2446,11 @@ struct Op
   /**
    * The operator kind representing the string less or equal operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_STRING, SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2387,6 +2462,12 @@ struct Op
   inline static const Kind STR_LE = "OP_STR_LE";
   /**
    * The operator kind representing the string length operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_STRING}`
+   * - **indices**: `{}`
+   *
    *
    * SMT-LIB:
    *
@@ -2400,6 +2481,11 @@ struct Op
   /**
    * The operator kind representing the string less than operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_STRING, SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2411,6 +2497,11 @@ struct Op
   inline static const Kind STR_LT = "OP_STR_LT";
   /**
    * The operator kind representing the string prefix of operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_STRING, SORT_STRING}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2424,6 +2515,11 @@ struct Op
   /**
    * The operator kind representing the string replace operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_STRING, SORT_STRING, SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2435,6 +2531,11 @@ struct Op
   inline static const Kind STR_REPLACE = "OP_STR_REPLACE";
   /**
    * The operator kind representing the string replace all operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_STRING, SORT_STRING, SORT_STRING}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2448,6 +2549,11 @@ struct Op
   /**
    * The operator kind representing the string `replace_re` operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_STRING, SORT_REGLAN, SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2459,6 +2565,11 @@ struct Op
   inline static const Kind STR_REPLACE_RE = "OP_STR_REPLACE_RE";
   /**
    * The operator kind representing the string `replace_re_all` operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_STRING, SORT_REGLAN, SORT_STRING}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2472,6 +2583,11 @@ struct Op
   /**
    * The operator kind representing the string substring operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_STRING, SORT_INT, SORT_INT}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2484,6 +2600,11 @@ struct Op
   /**
    * The operator kind representing the string suffix of operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_STRING, SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2495,6 +2616,11 @@ struct Op
   inline static const Kind STR_SUFFIXOF = "OP_STR_SUFFIXOF";
   /**
    * The operator kind representing the string to code conversion operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_STRING}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2509,6 +2635,11 @@ struct Op
    * The operator kind representing the string to code integer conversion
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2522,6 +2653,11 @@ struct Op
    * The operator kind representing the string to regular expression conversion
    * operator.
    *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_STRING}`
+   * - **indices**: `{}`
+   *
    * SMT-LIB:
    *
    * \verbatim embed:rst:leading-asterisk
@@ -2533,42 +2669,141 @@ struct Op
   inline static const Kind STR_TO_RE = "OP_STR_TO_RE";
 
   //// Transcendentals
-  /** The operator kind representing the transcendentals constant pi. */
+  /**
+   * The operator kind representing the transcendentals constant pi.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 0
+   * - **args**: `{}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_PI = "OP_TRANS_PI";
-  /** The operator kind representing the transcendentals sine operator. */
+  /**
+   * The operator kind representing the transcendentals sine operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_SINE = "OP_TRANS_SINE";
-  /** The operator kind representing the transcendentals cosine operator. */
+  /**
+   * The operator kind representing the transcendentals cosine operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_COSINE = "OP_TRANS_COSINE";
-  /** The operator kind representing the transcendentals tangent operator. */
+  /**
+   * The operator kind representing the transcendentals tangent operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_TANGENT = "OP_TRANS_TANGENT";
-  /** The operator kind representing the transcendentals cotangent operator. */
+  /**
+   * The operator kind representing the transcendentals cotangent operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_COTANGENT = "OP_TRANS_COTANGENT";
-  /** The operator kind representing the transcendentals secant operator. */
+  /**
+   * The operator kind representing the transcendentals secant operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_SECANT = "OP_TRANS_SECANT";
-  /** The operator kind representing the transcendentals secant operator. */
+  /**
+   * The operator kind representing the transcendentals secant operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_COSECANT = "OP_TRANS_COSECANT";
-  /** The operator kind representing the transcendentals arcsine operator. */
+  /**
+   * The operator kind representing the transcendentals arcsine operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_ARCSINE = "OP_TRANS_ARCSINE";
-  /** The operator kind representing the transcendentals arccosine operator. */
+  /**
+   * The operator kind representing the transcendentals arccosine operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_ARCCOSINE = "OP_TRANS_ARCCOSINE";
-  /** The operator kind representing the transcendentals arctangent operator. */
+  /**
+   * The operator kind representing the transcendentals arctangent operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_ARCTANGENT = "OP_TRANS_ARCTANGENT";
-  /** The operator kind representing the transcendentals arccosine operator. */
+  /**
+   * The operator kind representing the transcendentals arccosine operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_ARCCOSECANT  = "OP_TRANS_ARCCOSECANT";
-  /** The operator kind representing the transcendentals arcsecant operator. */
+  /**
+   * The operator kind representing the transcendentals arcsecant operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
+   */
   inline static const Kind TRANS_ARCSECANT = "OP_TRANS_ARCSECANT";
   /**
    * The operator kind representing the transcendentals arccotangent operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
    */
   inline static const Kind TRANS_ARCCOTANGENT = "OP_TRANS_ARCCOTANGENT";
   /**
    * The operator kind representing the transcendentals square root operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_REAL}`
+   * - **indices**: `{}`
    */
   inline static const Kind TRANS_SQRT = "OP_TRANS_SQRT";
 
   //// UF
   /**
    * The operator kind representing the function application operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_FUN, SORT_ANY, ...}`
+   * - **indices**: `{}`
    *
    * SMT-LIB:
    *
@@ -2582,94 +2817,386 @@ struct Op
 
   /* Operators of non-standardized theories. */
   //// Bags
-  /** The operator kind representing the bag union operator. */
+  /**
+   * The operator kind representing the bag union operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BAG, SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_UNION_MAX = "OP_BAG_UNION_MAX";
-  /** The operator kind representing the bag disjoint union operator. */
+  /**
+   * The operator kind representing the bag disjoint union operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BAG, SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_UNION_DISJOINT = "OP_BAG_UNION_DISJOINT";
-  /** The operator kind representing the bag intersection operator. */
+  /**
+   * The operator kind representing the bag intersection operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BAG, SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_INTERSECTION_MIN = "OP_BAG_INTERSECTION_MIN";
-  /** The operator kind representing the bag difference subtract operator. */
+  /**
+   * The operator kind representing the bag difference subtract operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BAG, SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_DIFFERENCE_SUBTRACT =
       "OP_BAG_DIFFERENCE_SUBTRACT";
-  /** The operator kind representing the bag difference remove operator. */
+  /**
+   * The operator kind representing the bag difference remove operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BAG, SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_DIFFERENCE_REMOVE = "OP_BAG_DIFFERENCE_REMOVE";
-  /** The operator kind representing the bag subbag operator. */
+  /**
+   * The operator kind representing the bag subbag operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BAG, SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_SUBBAG = "OP_BAG_SUBBAG";
-  /** The operator kind representing the bag count operator. */
+  /**
+   * The operator kind representing the bag count operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_BAG, SORT_ANY}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_COUNT = "OP_BAG_COUNT";
-  /** The operator kind representing the bag duplicate removal operator. */
+  /**
+   * The operator kind representing the bag duplicate removal operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_DUPLICATE_REMOVAL = "OP_BAG_DUPLICATE_REMOVAL";
-  /** The operator kind representing the bag make operator. */
+  /**
+   * The operator kind representing the bag make operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_ANY, SORT_INT}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_MAKE = "OP_BAG_MAKE";
-  /** The operator kind representing the empty bag constant. */
+  /**
+   * The operator kind representing the empty bag constant.
+   *
+   * Created with Solver::mk_special_value() with
+   * AbsTerm::SPECIAL_VALUE_BAG_EMPTY.
+   */
   inline static const Kind BAG_EMPTY = "OP_BAG_EMPTY";
-  /** The operator kind representing the bag cardinality operator. */
+  /**
+   * The operator kind representing the bag cardinality operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_CARD = "OP_BAG_CARD";
-  /** The operator kind representing the bag choose operator. */
+  /**
+   * The operator kind representing the bag choose operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_CHOOSE = "OP_BAG_CHOOSE";
-  /** The operator kind representing the bag is singleton tester operator. */
+  /**
+   * The operator kind representing the bag is singleton tester operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_IS_SINGLETON = "OP_BAG_IS_SINGLETON";
-  /** The operator kind representing the bag from set conversion operator. */
+  /**
+   * The operator kind representing the bag from set conversion operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_FROM_SET = "OP_BAG_FROM_SET";
-  /** The operator kind representing the bag to set conversion operator. */
+  /**
+   * The operator kind representing the bag to set conversion operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BAG}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_TO_SET = "OP_BAG_TO_SET";
-  /** The operator kind representing the bag map operator. */
+  /**
+   * The operator kind representing the bag map operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BAG, SORT_FUN}`
+   * - **indices**: `{}`
+   */
   inline static const Kind BAG_MAP = "OP_BAG_MAP";
 
   //// Sequences
-  /** The operator kind representing the sequence concatenation operator. */
+  /**
+   * The operator kind representing the sequence concatenation operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_SEQ, ...}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_CONCAT = "OP_SEQ_CONCAT";
-  /** The operator kind representing the sequence length operator. */
+  /**
+   * The operator kind representing the sequence length operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SEQ}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_LENGTH = "OP_SEQ_LENGTH";
-  /** The operator kind representing the sequence extract operator. */
+  /**
+   * The operator kind representing the sequence extract operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_SEQ, SORT_INT, SORT_INT}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_EXTRACT = "OP_SEQ_EXTRACT";
-  /** The operator kind representing the sequence update operator. */
+  /**
+   * The operator kind representing the sequence update operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_SEQ, SORT_INT, SORT_SEQ}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_UPDATE = "OP_SEQ_UPDATE";
-  /** The operator kind representing the sequence at operator. */
+  /**
+   * The operator kind representing the sequence at operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SEQ, SORT_INT}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_AT = "OP_SEQ_AT";
-  /** The operator kind representing the sequence update operator. */
+  /**
+   * The operator kind representing the sequence update operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SEQ, SORT_SEQ}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_CONTAINS = "OP_SEQ_CONTAINS";
-  /** The operator kind representing the sequence index of operator. */
+  /**
+   * The operator kind representing the sequence index of operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_SEQ, SORT_SEQ, SORT_INT}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_INDEXOF = "OP_SEQ_INDEXOF";
-  /** The operator kind representing the sequence replace operator. */
+  /**
+   * The operator kind representing the sequence replace operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_SEQ, SORT_SEQ, SORT_SEQ}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_REPLACE = "OP_SEQ_REPLACE";
-  /** The operator kind representing the sequence replace all operator. */
+  /**
+   * The operator kind representing the sequence replace all operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_SEQ, SORT_SEQ, SORT_SEQ}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_REPLACE_ALL = "OP_SEQ_REPLACE_ALL";
-  /** The operator kind representing the sequence reverse operator. */
+  /**
+   * The operator kind representing the sequence reverse operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SEQ}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_REV = "OP_SEQ_REV";
-  /** The operator kind representing the sequence prefix operator. */
+  /**
+   * The operator kind representing the sequence prefix operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SEQ, SORT_SEQ}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_PREFIX = "OP_SEQ_PREFIX";
-  /** The operator kind representing the sequence suffix operator. */
+  /**
+   * The operator kind representing the sequence suffix operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SEQ, SORT_SEQ}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_SUFFIX = "OP_SEQ_SUFFIX";
-  /** The operator kind representing the sequence unit operator. */
+  /**
+   * The operator kind representing the sequence unit operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_ANY}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_UNIT = "OP_SEQ_UNIT";
-  /** The operator kind representing the sequence nth operator. */
+  /**
+   * The operator kind representing the sequence nth operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SEQ, SORT_INT}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SEQ_NTH = "OP_SEQ_NTH";
 
   //// Sets
-  /** The operator kind representing the set cardinality operator. */
+  /**
+   * The operator kind representing the set cardinality operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_CARD = "OP_SET_CARD";
-  /** The operator kind representing the set complement operator. */
+  /**
+   * The operator kind representing the set complement operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_COMPLEMENT = "OP_SET_COMPLEMENT";
-  /** The operator kind representing the set comprehension operator. */
+  /**
+   * The operator kind representing the set comprehension operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 3
+   * - **args**: `{SORT_BOOL, SORT_ANY, SORT_ANY}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_COMPREHENSION = "OP_SET_COMPREHENSION";
-  /** The operator kind representing the set choose operator. */
+  /**
+   * The operator kind representing the set choose operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_CHOOSE = "OP_SET_CHOOSE";
-  /** The operator kind representing the set intersection operator. */
+  /**
+   * The operator kind representing the set intersection operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SET, SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_INTERSECTION  = "OP_SET_INTERSECTION";
-  /** The operator kind representing the set insert operator. */
+  /**
+   * The operator kind representing the set insert operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: n
+   * - **args**: `{SORT_SET, SORT_ANY, ...}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_INSERT = "OP_SET_INSERT";
-  /** The operator kind representing the set is singleton tester operator. */
+  /**
+   * The operator kind representing the set is singleton tester operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_IS_SINGLETON = "OP_SET_IS_SINGLETON";
-  /** The operator kind representing the set union operator. */
+  /**
+   * The operator kind representing the set union operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SET, SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_UNION = "OP_SET_UNION";
-  /** The operator kind representing the set member operator. */
+  /**
+   * The operator kind representing the set member operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SET, SORT_ANY}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_MEMBER = "OP_SET_MEMBER";
-  /** The operator kind representing the set minus operator. */
+  /**
+   * The operator kind representing the set minus operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SET, SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_MINUS = "OP_SET_MINUS";
-  /** The operator kind representing the set singleton operator. */
+  /**
+   * The operator kind representing the set singleton operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_SINGLETON = "OP_SET_SINGLETON";
-  /** The operator kind representing the set subset operator. */
+  /**
+   * The operator kind representing the set subset operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 2
+   * - **args**: `{SORT_SET, SORT_SET}`
+   * - **indices**: `{}`
+   */
   inline static const Kind SET_SUBSET = "OP_SET_SUBSET";
 
   //// Relations
