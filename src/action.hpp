@@ -45,9 +45,13 @@ class State;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Transition from current state to next state (which may be the same as the
- * current state) while performing an action (one or more calls to the solver
- * API), with or without preconditions.
+ * The base class for actions.
+ *
+ * An action defines an interaction with the solver under test, .
+ * Actions are responsible for (1) randomly generating API call arguments
+ * (Action::generate()); (2) executing API calls with a given set of arguments
+ * (member `run()` of derived actions); and (3) replaying a traced copy of
+ * the action (Action::untrace()).
  */
 class Action
 {

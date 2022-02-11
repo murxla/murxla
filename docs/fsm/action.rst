@@ -1,16 +1,48 @@
 FSM: Actions
 ============
 
-.. todo::
-   Mention conventions:
-     - define static variable s_name
-     - split execution out to reuse for untrace
+.. contents::
+  :local:
+
+An action defines a specific interaction with the solver under test.
+The actual interaction with the solver happens via one or more calls to the
+API of the :ref:`solver wrapper <solver-wrappers>`.
+
+Actions perform **three tasks**:
+
+(1) randomly **generating** API call arguments
+    (implemented in :cpp:func:`murxla::Action::generate()`)
+(2) **executing** solver wrapper API calls with the generated set of arguments
+    while tracing this execution (implemented in member function ``run()`` of
+    an action)
+(3) **replaying** the trace of an action (implemented in
+    :cpp:func:`murxla::Action::untrace()`)
+
+
+As a **convention**, an action derived from :cpp:class:`murxla::Action`
+
+- defines its identifier as a public static member `s_name` of type
+  :cpp:type:`murxla::Action::Kind`, which is then used for
+  :cpp:member:`murxla::Action::d_kind`
+- split out the actual execution of the solver wrapper API calls into a member
+  function ``run()`` to ensure that :cpp:func:`murxla::Action::generate()`
+  and :cpp:func:`murxla::Action::untrace()` execute an action in the same way
+
+.. note::
+   Solver-specific actions derived from :cpp:class:`murxla::Action` access
+   the API of the solver under test directly, without going through the
+   solver wrapper API.
+
+
+The Base Class for Actions
+--------------------------
 
 .. doxygenclass:: murxla::Action
     :members:
     :undoc-members:
 
-----
+The Base Set of Actions
+-----------------------
 
 .. doxygenclass:: murxla::ActionNew
     :members:

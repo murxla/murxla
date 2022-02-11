@@ -1,3 +1,5 @@
+.. _solver-wrappers:
+
 Solver Wrappers
 ===============
 
