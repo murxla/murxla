@@ -122,7 +122,6 @@ SolverProfile::get_supported_theories() const
   // THEORY_BOOL is always enabled.
   solver_theories.insert(THEORY_BOOL);
 
-  // TODO: exclude
   return TheoryIdVector(solver_theories.begin(), solver_theories.end());
 }
 
@@ -146,7 +145,10 @@ SolverProfile::get_unsupported_theory_combinations() const
         std::unordered_set<TheoryId> theories;
         for (const auto& t : i.value())
         {
-          theories.insert(to_theory(t.get<std::string>()));
+          TheoryId tid = to_theory(t.get<std::string>());
+          MURXLA_EXIT_ERROR(tid == THEORY_BOOL)
+              << tid << " cannot be excluded.";
+          theories.insert(tid);
         }
         unsupported.emplace(
             tid, std::vector<TheoryId>(theories.begin(), theories.end()));
