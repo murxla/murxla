@@ -41,6 +41,18 @@ The Base Class for Actions
     :members:
     :undoc-members:
 
+Default Transitions
+-------------------
+
+A murxla::Transition is an empty action, i.e., an action that does not generate
+and execute solver API calls. It is used to simply transition from the current
+state to the next state.
+
+.. doxygenclass:: murxla::Transition
+.. doxygenclass:: murxla::TransitionDefault
+.. doxygenclass:: murxla::TransitionCreateInputs
+.. doxygenclass:: murxla::TransitionCreateSorts
+
 The Base Set of Actions
 -----------------------
 

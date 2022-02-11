@@ -261,11 +261,19 @@ class Action
   uint64_t d_id = 0u;
 };
 
+/** A tuple of action and associated next state. */
 struct ActionTuple
 {
+  /**
+   * Constructor.
+   * @param a     The action.
+   * @param next  The associated next state.
+   */
   ActionTuple(Action* a, State* next) : d_action(a), d_next(next){};
 
+  /** The action. */
   Action* d_action;
+  /** The next state. */
   State* d_next;
 };
 
@@ -290,12 +298,7 @@ class Transition : public Action
   }
 };
 
-/**
- * Default (generic) transition.
- *
- * State:      create inputs
- * Transition: if there exists at least one input
- */
+/** Default (generic) transition. */
 class TransitionDefault : public Transition
 {
  public:
@@ -312,10 +315,8 @@ class TransitionDefault : public Transition
 /* -------------------------------------------------------------------------- */
 
 /**
- * Transition from creating inputs to the next state.
- *
- * State:      create inputs
- * Transition: if there exists at least one input
+ * Transition from creating inputs to the next state if there exists at least
+ * one input.
  */
 class TransitionCreateInputs : public Transition
 {
@@ -328,9 +329,14 @@ class TransitionCreateInputs : public Transition
    * @param smgr  The associated solver manager.
    */
   TransitionCreateInputs(SolverManager& smgr) : Transition(smgr, s_name) {}
+
   bool generate() override;
 };
 
+/**
+ * Transition from creating sorts to the next state if there exists at least
+ * one sort.
+ */
 class TransitionCreateSorts : public Transition
 {
  public:
@@ -342,6 +348,7 @@ class TransitionCreateSorts : public Transition
    * @param smgr  The associated solver manager.
    */
   TransitionCreateSorts(SolverManager& smgr) : Transition(smgr, s_name) {}
+
   bool generate() override;
 };
 
