@@ -2488,8 +2488,8 @@ BzlaSolver::configure_fsm(FSM* fsm) const
 void
 BzlaSolver::disable_unsupported_actions(FSM* fsm) const
 {
-  fsm->disable_action(Action::RESET_ASSERTIONS);
-  fsm->disable_action(Action::INSTANTIATE_SORT);
+  fsm->disable_action(ActionResetAssertions::s_name);
+  fsm->disable_action(ActionInstantiateSort::s_name);
 }
 
 }  // namespace bzla

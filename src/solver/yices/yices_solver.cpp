@@ -2101,9 +2101,9 @@ YicesSolver::configure_opmgr(OpKindManager* opmgr) const
 void
 YicesSolver::disable_unsupported_actions(FSM* fsm) const
 {
-  fsm->disable_action(Action::MK_FUN);
-  fsm->disable_action(Action::GET_VALUE);
-  fsm->disable_action(Action::INSTANTIATE_SORT);
+  fsm->disable_action(ActionMkFun::s_name);
+  fsm->disable_action(ActionGetValue::s_name);
+  fsm->disable_action(ActionInstantiateSort::s_name);
 }
 
 /* -------------------------------------------------------------------------- */

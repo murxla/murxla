@@ -1241,9 +1241,9 @@ ShadowSolver::disable_unsupported_actions(FSM* fsm) const
 
   if (!d_same_solver)
   {
-    fsm->disable_action(Action::GET_VALUE);
-    fsm->disable_action(Action::GET_UNSAT_CORE);
-    fsm->disable_action(Action::GET_UNSAT_ASSUMPTIONS);
+    fsm->disable_action(ActionGetValue::s_name);
+    fsm->disable_action(ActionGetUnsatCore::s_name);
+    fsm->disable_action(ActionGetUnsatAssumptions::s_name);
   }
 }
 

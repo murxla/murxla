@@ -761,8 +761,8 @@ FSM::untrace(const std::string& trace_file_name)
 
             if (action->returns() == Action::ReturnValue::ID)
             {
-              if (ret_action->get_kind() == Action::MK_TERM
-                  || ret_action->get_kind() == Action::MK_FUN)
+              if (ret_action->get_kind() == ActionMkTerm::s_name
+                  || ret_action->get_kind() == ActionMkFun::s_name)
               {
                 if (next_tokens_size != 2)
                 {

@@ -492,7 +492,7 @@ ActionSetOptionReq::init(
 /* -------------------------------------------------------------------------- */
 
 ActionMkSort::ActionMkSort(SolverManager& smgr)
-    : Action(smgr, MK_SORT, ID_LIST),
+    : Action(smgr, s_name, ID_LIST),
       d_exclude_array_element_sort_kinds(
           smgr.get_profile().get_unsupported_array_element_sort_kinds()),
       d_exclude_array_index_sort_kinds(
@@ -1863,7 +1863,7 @@ ActionMkTerm::generate(Op::Kind kind)
 }
 
 ActionMkTerm::ActionMkTerm(SolverManager& smgr)
-    : Action(smgr, MK_TERM, ID),
+    : Action(smgr, s_name, ID),
       d_exclude_bag_element_sort_kinds(
           smgr.get_profile().get_unsupported_bag_element_sort_kinds()),
       d_exclude_dt_match_sort_kinds(
@@ -2510,7 +2510,7 @@ ActionMkConst::check_const(RNGenerator& rng, Term term)
 /* -------------------------------------------------------------------------- */
 
 ActionMkVar::ActionMkVar(SolverManager& smgr)
-    : Action(smgr, MK_VAR, ID),
+    : Action(smgr, s_name, ID),
       d_unsupported_sorts_kinds(
           smgr.get_profile().get_unsupported_var_sort_kinds())
 {
@@ -3029,7 +3029,7 @@ ActionMkSpecialValue::check_special_value(RNGenerator& rng,
 /* -------------------------------------------------------------------------- */
 
 ActionInstantiateSort::ActionInstantiateSort(SolverManager& smgr)
-    : Action(smgr, INSTANTIATE_SORT, ID),
+    : Action(smgr, s_name, ID),
       d_exclude_sort_param_sort_kinds(
           smgr.get_profile().get_unsupported_sort_param_sort_kinds())
 {
@@ -3348,7 +3348,7 @@ ActionGetUnsatCore::run()
 /* -------------------------------------------------------------------------- */
 
 ActionGetValue::ActionGetValue(SolverManager& smgr)
-    : Action(smgr, GET_VALUE, NONE),
+    : Action(smgr, s_name, NONE),
       d_exclude_sort_kinds(
           smgr.get_profile().get_unsupported_get_value_sort_kinds())
 {
@@ -3562,7 +3562,7 @@ ActionPrintModel::run()
 /* -------------------------------------------------------------------------- */
 
 ActionMkFun::ActionMkFun(SolverManager& smgr)
-    : Action(smgr, MK_FUN, ID),
+    : Action(smgr, s_name, ID),
       d_mkterm(smgr),
       d_mkvar(smgr),
       d_exclude_fun_domain_sort_kinds(

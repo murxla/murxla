@@ -63,35 +63,6 @@ class Action
 
   /** The undefined action. */
   inline static const Kind UNDEFINED             = "undefined";
-  inline static const Kind NEW                   = "new";
-  inline static const Kind DELETE                = "delete";
-  inline static const Kind SET_LOGIC             = "set-logic";
-  inline static const Kind MK_SORT               = "mk-sort";
-  inline static const Kind MK_VALUE              = "mk-value";
-  inline static const Kind MK_SPECIAL_VALUE      = "mk-special-value";
-  inline static const Kind MK_CONST              = "mk-const";
-  inline static const Kind MK_VAR                = "mk-var";
-  inline static const Kind MK_TERM               = "mk-term";
-  inline static const Kind MK_FUN                = "mk-fun";
-  inline static const Kind INSTANTIATE_SORT      = "instantiate-sort";
-  inline static const Kind TERM_GET_CHILDREN     = "term-get-children";
-  inline static const Kind ASSERT_FORMULA        = "assert-formula";
-  inline static const Kind GET_UNSAT_ASSUMPTIONS = "get-unsat-assumptions";
-  inline static const Kind GET_UNSAT_CORE        = "get-unsat-core";
-  inline static const Kind GET_VALUE             = "get-value";
-  inline static const Kind PRINT_MODEL           = "print-model";
-  inline static const Kind CHECK_SAT             = "check-sat";
-  inline static const Kind CHECK_SAT_ASSUMING    = "check-sat-assuming";
-  inline static const Kind PUSH                  = "push";
-  inline static const Kind POP                   = "pop";
-  inline static const Kind RESET                 = "reset";
-  inline static const Kind RESET_ASSERTIONS      = "reset-assertions";
-  inline static const Kind SET_OPTION            = "set-option";
-  inline static const Kind SET_OPTION_REQ        = "set-option-req";
-  inline static const Kind TRANS                 = "t_default";
-  inline static const Kind TRANS_CREATE_INPUTS   = "t_inputs";
-  inline static const Kind TRANS_CREATE_SORTS    = "t_sorts";
-  inline static const Kind TRANS_MODEL           = "t_model";
 
   /**
    * Convert untraced sort or term id string to uint64_t.
@@ -256,7 +227,14 @@ class Transition : public Action
 class TransitionDefault : public Transition
 {
  public:
-  TransitionDefault(SolverManager& smgr) : Transition(smgr, TRANS) {}
+  /** The name of this transition. */
+  inline static const Kind s_name = "t_default";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  TransitionDefault(SolverManager& smgr) : Transition(smgr, s_name) {}
 };
 
 /* -------------------------------------------------------------------------- */
@@ -270,20 +248,28 @@ class TransitionDefault : public Transition
 class TransitionCreateInputs : public Transition
 {
  public:
-  TransitionCreateInputs(SolverManager& smgr)
-      : Transition(smgr, TRANS_CREATE_INPUTS)
-  {
-  }
+  /** The name of this transition. */
+  inline static const Kind s_name = "t_inputs";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  TransitionCreateInputs(SolverManager& smgr) : Transition(smgr, s_name) {}
   bool generate() override;
 };
 
 class TransitionCreateSorts : public Transition
 {
  public:
-  TransitionCreateSorts(SolverManager& smgr)
-      : Transition(smgr, TRANS_CREATE_SORTS)
-  {
-  }
+  /** The name of this transition. */
+  inline static const Kind s_name = "t_sorts";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  TransitionCreateSorts(SolverManager& smgr) : Transition(smgr, s_name) {}
   bool generate() override;
 };
 
@@ -292,19 +278,36 @@ class TransitionCreateSorts : public Transition
 class ActionNew : public Action
 {
  public:
-  ActionNew(SolverManager& smgr) : Action(smgr, NEW, NONE) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "new";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionNew(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
+
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
 
  private:
+  /** The actual execution of the action. */
   void run();
 };
 
 class ActionDelete : public Action
 {
  public:
-  ActionDelete(SolverManager& smgr) : Action(smgr, DELETE, NONE) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "delete";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionDelete(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
+
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -316,7 +319,15 @@ class ActionDelete : public Action
 class ActionSetLogic : public Action
 {
  public:
-  ActionSetLogic(SolverManager& smgr) : Action(smgr, SET_LOGIC, NONE) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "set-logic";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionSetLogic(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
+
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -330,7 +341,14 @@ class ActionSetOption : public Action
   friend class ActionSetOptionReq;
 
  public:
-  ActionSetOption(SolverManager& smgr) : Action(smgr, SET_OPTION, NONE) {}
+  /** The name this action. */
+  inline static const Kind s_name = "set-option";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionSetOption(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -343,9 +361,14 @@ class ActionSetOption : public Action
 class ActionSetOptionReq : public Action
 {
  public:
-  ActionSetOptionReq(SolverManager& smgr) : Action(smgr, SET_OPTION_REQ, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "set-option-req";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionSetOptionReq(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -363,6 +386,13 @@ class ActionSetOptionReq : public Action
 class ActionMkSort : public Action
 {
  public:
+  /** The name of this action. */
+  inline static const Kind s_name = "mk-sort";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
   ActionMkSort(SolverManager& smgr);
 
   bool generate() override;
@@ -403,6 +433,13 @@ class ActionMkSort : public Action
 class ActionMkTerm : public Action
 {
  public:
+  /** The name of this action. */
+  inline static const Kind s_name = "mk-term";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
   ActionMkTerm(SolverManager& smgr);
 
   bool generate() override;
@@ -459,7 +496,15 @@ class ActionMkTerm : public Action
 class ActionMkConst : public Action
 {
  public:
-  ActionMkConst(SolverManager& smgr) : Action(smgr, MK_CONST, ID) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "mk-const";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionMkConst(SolverManager& smgr) : Action(smgr, s_name, ID) {}
+
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -481,7 +526,15 @@ class ActionMkConst : public Action
 class ActionMkVar : public Action
 {
  public:
+  /** The name of this action. */
+  inline static const Kind s_name = "mk-var";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
   ActionMkVar(SolverManager& smgr);
+
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -498,7 +551,15 @@ class ActionMkVar : public Action
 class ActionMkValue : public Action
 {
  public:
-  ActionMkValue(SolverManager& smgr) : Action(smgr, MK_VALUE, ID) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "mk-value";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionMkValue(SolverManager& smgr) : Action(smgr, s_name, ID) {}
+
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -531,9 +592,14 @@ class ActionMkValue : public Action
 class ActionMkSpecialValue : public Action
 {
  public:
-  ActionMkSpecialValue(SolverManager& smgr) : Action(smgr, MK_SPECIAL_VALUE, ID)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "mk-special-value";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionMkSpecialValue(SolverManager& smgr) : Action(smgr, s_name, ID) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -554,6 +620,13 @@ class ActionMkSpecialValue : public Action
 class ActionInstantiateSort : public Action
 {
  public:
+  /** The name of this action. */
+  inline static const Kind s_name = "instantiate-sort";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
   ActionInstantiateSort(SolverManager& smgr);
 
   bool generate() override;
@@ -575,9 +648,14 @@ class ActionInstantiateSort : public Action
 class ActionAssertFormula : public Action
 {
  public:
-  ActionAssertFormula(SolverManager& smgr) : Action(smgr, ASSERT_FORMULA, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "assert-formula";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionAssertFormula(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -590,7 +668,14 @@ class ActionAssertFormula : public Action
 class ActionCheckSat : public Action
 {
  public:
-  ActionCheckSat(SolverManager& smgr) : Action(smgr, CHECK_SAT, NONE) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "check-sat";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionCheckSat(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -602,10 +687,14 @@ class ActionCheckSat : public Action
 class ActionCheckSatAssuming : public Action
 {
  public:
-  ActionCheckSatAssuming(SolverManager& smgr)
-      : Action(smgr, CHECK_SAT_ASSUMING, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "check-sat-assuming";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionCheckSatAssuming(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -618,10 +707,14 @@ class ActionCheckSatAssuming : public Action
 class ActionGetUnsatAssumptions : public Action
 {
  public:
-  ActionGetUnsatAssumptions(SolverManager& smgr)
-      : Action(smgr, GET_UNSAT_ASSUMPTIONS, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "get-unsat-assumptions";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionGetUnsatAssumptions(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -634,9 +727,14 @@ class ActionGetUnsatAssumptions : public Action
 class ActionGetUnsatCore : public Action
 {
  public:
-  ActionGetUnsatCore(SolverManager& smgr) : Action(smgr, GET_UNSAT_CORE, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "get-unsat-core";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionGetUnsatCore(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -649,7 +747,15 @@ class ActionGetUnsatCore : public Action
 class ActionGetValue : public Action
 {
  public:
+  /** The name of this action. */
+  inline static const Kind s_name = "get-value";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
   ActionGetValue(SolverManager& smgr);
+
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -663,7 +769,14 @@ class ActionGetValue : public Action
 class ActionPush : public Action
 {
  public:
-  ActionPush(SolverManager& smgr) : Action(smgr, PUSH, NONE) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "push";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionPush(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
   bool generate() override;
   std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) override;
@@ -675,7 +788,14 @@ class ActionPush : public Action
 class ActionPop : public Action
 {
  public:
-  ActionPop(SolverManager& smgr) : Action(smgr, POP, NONE) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "pop";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionPop(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -688,7 +808,14 @@ class ActionPop : public Action
 class ActionReset : public Action
 {
  public:
-  ActionReset(SolverManager& smgr) : Action(smgr, RESET, NONE) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "reset";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionReset(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -701,10 +828,14 @@ class ActionReset : public Action
 class ActionResetAssertions : public Action
 {
  public:
-  ActionResetAssertions(SolverManager& smgr)
-      : Action(smgr, RESET_ASSERTIONS, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "reset-assertions";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionResetAssertions(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -717,7 +848,14 @@ class ActionResetAssertions : public Action
 class ActionPrintModel : public Action
 {
  public:
-  ActionPrintModel(SolverManager& smgr) : Action(smgr, PRINT_MODEL, NONE) {}
+  /** The name of this action. */
+  inline static const Kind s_name = "print-model";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionPrintModel(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -730,10 +868,14 @@ class ActionPrintModel : public Action
 class ActionTermGetChildren : public Action
 {
  public:
-  ActionTermGetChildren(SolverManager& smgr)
-      : Action(smgr, TERM_GET_CHILDREN, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "term-get-children";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionTermGetChildren(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override;
   std::vector<uint64_t> untrace(
@@ -746,6 +888,13 @@ class ActionTermGetChildren : public Action
 class ActionMkFun : public Action
 {
  public:
+  /** The name of this action. */
+  inline static const Kind s_name = "mk-fun";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
   ActionMkFun(SolverManager& smgr);
 
   bool generate() override;

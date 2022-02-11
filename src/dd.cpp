@@ -413,11 +413,11 @@ update_lines(std::vector<std::vector<std::string>>& lines,
     std::vector<std::string> pre;
     std::vector<std::string> post;
 
-    if (kind == Action::MK_SORT)
+    if (kind == ActionMkSort::s_name)
     {
       post.push_back(tokens[tokens.size() - 1]);
     }
-    else if (kind == Action::MK_TERM && tokens[0] == Op::UF_APPLY)
+    else if (kind == ActionMkTerm::s_name && tokens[0] == Op::UF_APPLY)
     {
       pre.push_back(std::to_string((included_args.size() + 1)));
       pre.push_back(tokens[idx - 1]);
@@ -435,7 +435,7 @@ update_lines(std::vector<std::vector<std::string>>& lines,
 
 /**
  * Collect all lines that have to be minimized simultaneously when minimizing a
- * MK_SORT trace line.
+ * ActionMkSort trace line.
  *
  * lines         : The set of trace lines representing the full (unminimized)
  *                 trace.  A line is represented as a vector of strings with at
@@ -464,10 +464,10 @@ collect_to_minimize_lines_sort_fun(
 {
   /* Add function sort trace line. */
   to_minimize.emplace_back(
-      std::make_tuple(seed, line_idx, Action::MK_SORT, line_tokens, 1));
+      std::make_tuple(seed, line_idx, ActionMkSort::s_name, line_tokens, 1));
 
   /* Collect all function terms that can occur as an argument to apply
-   * (MK_CONST of the function sort 'sort_id' and ITE over function
+   * (mk_const of the function sort 'sort_id' and ITE over function
    * constants of that sort). Further, collect all applies that need to be
    * updated simultaneously, together with the update of the function sort. */
 
@@ -492,7 +492,7 @@ collect_to_minimize_lines_sort_fun(
     size_t _n_tokens = tokens.size();
     if (_n_tokens > 0)
     {
-      if (action_kind == Action::MK_CONST && tokens[0] == sort_id)
+      if (action_kind == ActionMkConst::s_name && tokens[0] == sort_id)
       {
         assert(lines[_line_idx].size() == 2);
         const auto& [seed_return, action_kind_return, tokens_return] =
@@ -501,7 +501,7 @@ collect_to_minimize_lines_sort_fun(
         assert(tokens_return.size() == 1);
         funs.insert(tokens_return[0]);
       }
-      else if (action_kind == Action::MK_TERM && tokens[0] == Op::ITE)
+      else if (action_kind == ActionMkTerm::s_name && tokens[0] == Op::ITE)
       {
         assert(str_to_uint32(tokens[2]) == 3);
         for (size_t j = 4; j < 6; ++j)
@@ -517,7 +517,7 @@ collect_to_minimize_lines_sort_fun(
           }
         }
       }
-      else if (action_kind == Action::MK_TERM && tokens[0] == Op::UF_APPLY
+      else if (action_kind == ActionMkTerm::s_name && tokens[0] == Op::UF_APPLY
                && funs.find(tokens[3]) != funs.end())
       {
         assert(tokens.size() == line_tokens.size() + 2);
@@ -577,7 +577,7 @@ collect_to_update_lines_mk_const(
   for (size_t line_idx : included_lines)
   {
     const auto& [seed, action_kind, tokens] = tokenize(lines[line_idx][0]);
-    if (action_kind == Action::MK_CONST) continue;
+    if (action_kind == ActionMkConst::s_name) continue;
     for (size_t i = 0, n = tokens.size(); i < n; ++i)
     {
       if (tokens[i] == term_id)
@@ -614,7 +614,8 @@ collect_terms_by_sort(
   {
     const auto& [seed, action_kind, tokens] = tokenize(lines[line_idx][0]);
 
-    if (action_kind != Action::MK_CONST && action_kind != Action::MK_TERM)
+    if (action_kind != ActionMkConst::s_name
+        && action_kind != ActionMkTerm::s_name)
       continue;
 
     std::string sort_id, term_id;
@@ -628,7 +629,7 @@ collect_terms_by_sort(
         tokenize(lines[line_idx][1]);
     assert(action_kind_return == "return");
 
-    if (action_kind == Action::MK_CONST)
+    if (action_kind == ActionMkConst::s_name)
     {
       sort_id = tokens[0];
       assert(tokens_return.size() == 1);
@@ -771,7 +772,7 @@ DD::minimize_line_aux(Result golden_exit,
 
   /* We minimize based on the first line of the lines to update. For example,
    * when minimizing function sorts, that would be the line to create the sort
-   * with MK_SORT. */
+   * with ActionMkSort::s_name. */
   size_t line_idx_first   = std::get<1>(to_minimize[0]);
   Action::Kind kind_first = std::get<2>(to_minimize[0]);
   auto tokens_first       = std::get<3>(to_minimize[0]);
@@ -796,7 +797,7 @@ DD::minimize_line_aux(Result golden_exit,
       std::vector<size_t> included_args = remove_subsets(subsets, ex);
       size_t n_included_args            = included_args.size();
       if (n_included_args == 0) continue;
-      if (kind_first == Action::MK_TERM && n_included_args < 2)
+      if (kind_first == ActionMkTerm::s_name && n_included_args < 2)
       {
         continue;
       }
@@ -876,7 +877,7 @@ DD::minimize_line(Result golden_exit,
 
   /* The set of actions that we consider for this minimization strategy. */
   std::unordered_set<Action::Kind> actions = {
-      Action::GET_VALUE, Action::MK_SORT, Action::MK_TERM};
+      ActionGetValue::s_name, ActionMkSort::s_name, ActionMkTerm::s_name};
 
   /* Minimize. */
   size_t line_number = 0;
@@ -903,7 +904,7 @@ DD::minimize_line(Result golden_exit,
                            size_t>>
         to_minimize;
 
-    if (action == Action::MK_SORT)
+    if (action == ActionMkSort::s_name)
     {
       if (Action::get_sort_kind_from_str(tokens[0]) != SORT_FUN) continue;
 
@@ -917,7 +918,7 @@ DD::minimize_line(Result golden_exit,
     {
       MURXLA_MESSAGE_DD << "trying to minimize line "
                         << (line_number - lines[line_idx].size() + 1) << " ...";
-      if (action == Action::MK_TERM)
+      if (action == ActionMkTerm::s_name)
       {
         Op::Kind op_kind = tokens[0];
         Op& op           = opmgr.get_op(op_kind);
