@@ -66,42 +66,83 @@ class Action
   using Kind = std::string;
 
   /** The undefined action. */
-  inline static const Kind UNDEFINED             = "undefined";
+  inline static const Kind UNDEFINED = "undefined";
 
   /**
-   * Convert untraced sort or term id string to uint64_t.
+   * Convert traced sort id (`"s<id>"`) or term id (`"t<id>"`) string to id.
+   *
    * Throws a MurxlaUntraceIdException if given string does not represent
    * a valid sort or term id.
+   *
+   * @param s  The sort or term id string.
+   * @return  The sort or term id.
    */
   static uint64_t untrace_str_to_id(const std::string& s);
 
-  /** Helper to convert a sort kind string to a SortKind. */
+  /**
+   * Convert a sort kind string to a SortKind.
+   *
+   * @param s  The sort kind string.
+   * @return  The sort kind.
+   */
   static SortKind get_sort_kind_from_str(const std::string& s);
 
+  /**
+   * The kind of value this action is expected to return.
+   *
+   * This indicates how the return value of this action is traced, which is
+   * mainly relevant for error checking when untracing.
+   */
   enum ReturnValue
   {
-    NONE,
-    ID,
-    ID_LIST,
+    NONE,     ///> No return trace statement expected.
+    ID,       ///> Returns a single sort or term id.
+    ID_LIST,  ///> Returns a list of sort or term ids.
   };
 
+  /** The output stream wrapper for tracing actions. */
   class TraceStream
   {
    public:
+    /**
+     * Constructor.
+     * @param smgr  The associated solver manager.
+     */
     TraceStream(SolverManager& smgr);
+    /** Destructor. */
     ~TraceStream();
+    /**
+     * Copy constructor.
+     * @param astream  The trace stream to copy.
+     */
     TraceStream(const TraceStream& astream) = default;
 
+    /**
+     * Get the wrapped output stream.
+     * @return  The output stream.
+     */
     std::ostream& stream();
 
    private:
+    /** Flush the output stream. */
     void flush();
+    /** The associated solver manager. */
     SolverManager& d_smgr;
   };
 
   /** Disallow default constructor. */
   Action() = delete;
-  /** Constructor. */
+  /**
+   * Constructor.
+   * @param smgr     The associated solver manager.
+   * @param kind     The kind of the action. By convention, the static
+   *                 identifier `s_name` of a derived action should be passed
+   *                 as the kind.
+   * @param returns  The expected value this action traces as return statement.
+   * @param empty    True if this action does not execute any solver API calls.
+   *                 This is intended for transitions from one state to another
+   *                 that don't perform an actual action.
+   */
   Action(SolverManager& smgr,
          const Kind& kind,
          ReturnValue returns,
@@ -110,34 +151,57 @@ class Action
   /** Destructor. */
   virtual ~Action() = default;
 
-  /** Execute the action. */
+  /**
+   * Generate API call arguments and execute the action.
+   * @return  True if the generation and execution was successful. False
+   *          if no arguments can be generated or the action cannot be executed
+   *          in the current configuration or state of the solver under test.
+   */
   virtual bool generate() = 0;
 
-  /** Indicates whether action should be disabled after generate() returns
-   * false. */
-  bool disable() const { return d_disable; }
+  /**
+   * Indicates whether an action should be disabled after generate() has
+   * returned false.
+   * @return  True if the action should be disabled.
+   */
+  bool disabled() const { return d_disable; }
 
   /**
    * Replay an action.
    *
-   * Return a vector of ids of created objects, if objects have been created,
-   * and an empty vector otherwise. Needed to be able to compare ids of created
-   * objects to the traced ids in the trace's return statement.
+   * @param tokens  The tokens of the trace statement to replay.
+   * @return  A vector of ids of created objects, if objects have been created,
+   *          and an empty vector otherwise. Needed to be able to compare ids
+   *          of created objects to the traced ids in the trace's return
+   *          statement.
    */
   virtual std::vector<uint64_t> untrace(
       const std::vector<std::string>& tokens) = 0;
 
-  /** Return the string representing the kind of this action. */
+  /**
+   * Get the string representing the kind of this action.
+   * @return  The kind of this action.
+   */
   const Kind& get_kind() const { return d_kind; }
-  /** Return the id of this action. */
+  /**
+   * Get the id of this action.
+   * @return  The id of this action.
+   */
   const uint64_t get_id() const { return d_id; }
-  /** Set the id of this action. */
+  /**
+   * Set the id of this action.
+   * @param id  The id of this action to set.
+   */
   void set_id(uint64_t id) { d_id = id; }
-  /** Return the kind of return value this action returns. */
+  /**
+   * Get the kind of return value this action returns.
+   * @return  The return value of this action.
+   */
   ReturnValue returns() const { return d_returns; }
   /**
-   * Returns true if this action is empty, i.e., a transition without
-   * performing any API calls.
+   * Determine if this action is empty.
+   * @return  True if this action is empty, i.e., a transition without
+   *          performing any API calls.
    */
   bool empty() const { return d_is_empty; }
 
@@ -150,11 +214,15 @@ class Action
   /**
    * Get the untraced term with the given id.
    * Checks that such a term exists.
+   * @param id  The id of the untraced term.
+   * @return  The untraced term.
    */
   Term get_untraced_term(uint64_t id);
   /**
    * Get the untraced sort with the given id.
    * Checks that such a sort exists.
+   * @param id  The id of the untraced sort.
+   * @return  The untraced sort.
    */
   Sort get_untraced_sort(uint64_t id);
 
@@ -183,13 +251,13 @@ class Action
   ReturnValue d_returns = NONE;
   /** True if this is an empty transition. */
   bool d_is_empty = false;
-
+  /** True if this action should be disabled after generate() returns false. */
   bool d_disable = false;
 
  private:
-  /* Action kind. */
+  /* The kind of this action. */
   const Kind& d_kind = UNDEFINED;
-  /* Action id, assigned in the order they have been created. */
+  /* The id of this action, assigned in the order they have been created. */
   uint64_t d_id = 0u;
 };
 

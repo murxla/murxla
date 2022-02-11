@@ -82,7 +82,7 @@ State::run(RNGenerator& rng)
    * called, then it doesn't make sense to call check-sat again in this run.
    * The disable flag is set dynamically for an action based on certain
    * conditions in the current run. */
-  else if (atup.d_action->disable())
+  else if (atup.d_action->disabled())
   {
     d_weights[idx] = 0;
   }
