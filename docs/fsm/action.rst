@@ -1,6 +1,11 @@
 FSM: Actions
 ============
 
+.. todo::
+   Mention conventions:
+     - define static variable s_name
+     - split execution out to reuse for untrace
+
 .. doxygenclass:: murxla::Action
     :members:
     :undoc-members:

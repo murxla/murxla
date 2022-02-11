@@ -45,19 +45,23 @@ class State;
 /* -------------------------------------------------------------------------- */
 
 /**
- * Transition from current state to next state while performing an action
- * (a call to the solver API), with or without preconditions.
+ * Transition from current state to next state (which may be the same as the
+ * current state) while performing an action (one or more calls to the solver
+ * API), with or without preconditions.
  */
 class Action
 {
  public:
+  /**
+   * The kind of an action.
+   *
+   * This is used as action identifier when tracing.
+   * We further use strings here to make FSM::d_actions easily extensible
+   * with solver-specific actions.
+   */
   using Kind = std::string;
 
-  /**
-   * Default action kinds / trace strings.
-   * We use strings here to make FSM::d_actions easily extendible with
-   * solver-specific actions.
-   */
+  /** The undefined action. */
   inline static const Kind UNDEFINED             = "undefined";
   inline static const Kind NEW                   = "new";
   inline static const Kind DELETE                = "delete";
