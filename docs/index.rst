@@ -8,6 +8,7 @@ Table of Contents
   :maxdepth: 2
 
   solver_wrapper
+  solver_profile
 
   sort_kind
   operator
