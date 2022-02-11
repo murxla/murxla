@@ -1,6 +1,8 @@
 Operators
 =========
 
+.. todo:: How to add solver-specific operators
+
 .. contents::
   :local:
 
