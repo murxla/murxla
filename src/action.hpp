@@ -354,6 +354,10 @@ class TransitionCreateSorts : public Transition
 
 /* ------------------------------------------------------------------------- */
 
+/**
+ * The action to create and initialize a solver instance of the solver under
+ * test.
+ */
 class ActionNew : public Action
 {
  public:
@@ -375,6 +379,9 @@ class ActionNew : public Action
   void run();
 };
 
+/**
+ * The action to delete the solver instance of the solver under test.
+ */
 class ActionDelete : public Action
 {
  public:
@@ -395,6 +402,7 @@ class ActionDelete : public Action
   void run();
 };
 
+/** The action to constrain the logic of created formulas. */
 class ActionSetLogic : public Action
 {
  public:
@@ -415,6 +423,7 @@ class ActionSetLogic : public Action
   void run(const std::string& logic);
 };
 
+/** The action to configure solver options. */
 class ActionSetOption : public Action
 {
   friend class ActionSetOptionReq;
@@ -437,6 +446,12 @@ class ActionSetOption : public Action
   void run(const std::string& opt, const std::string& value);
 };
 
+/**
+ * The action to configure solver options that are required for the current
+ * solver configuration (see Solver::get_required_options()).
+ *
+ * This further includes options enforced via command line option `-o`.
+ */
 class ActionSetOptionReq : public Action
 {
  public:
@@ -462,6 +477,7 @@ class ActionSetOptionReq : public Action
   ActionSetOption* d_setoption;
 };
 
+/** The action to create a sort. */
 class ActionMkSort : public Action
 {
  public:
@@ -509,6 +525,7 @@ class ActionMkSort : public Action
   SortKindSet d_exclude_sort_param_sort_kinds;
 };
 
+/** The action to create a term. */
 class ActionMkTerm : public Action
 {
  public:
@@ -572,6 +589,7 @@ class ActionMkTerm : public Action
   SortKindSet d_exclude_set_element_sort_kinds;
 };
 
+/** The action to create a first-order constant. */
 class ActionMkConst : public Action
 {
  public:
@@ -602,6 +620,7 @@ class ActionMkConst : public Action
   SortKindSet d_exclude_sort_kinds = {SORT_REGLAN};
 };
 
+/** The action to create a variable. */
 class ActionMkVar : public Action
 {
  public:
@@ -627,6 +646,7 @@ class ActionMkVar : public Action
   SortKindSet d_unsupported_sorts_kinds;
 };
 
+/** The action to create a value. */
 class ActionMkValue : public Action
 {
  public:
@@ -668,6 +688,7 @@ class ActionMkValue : public Action
                                       SORT_UNINTERPRETED};
 };
 
+/** The action to create a special value. */
 class ActionMkSpecialValue : public Action
 {
  public:
@@ -696,6 +717,7 @@ class ActionMkSpecialValue : public Action
   uint64_t run(Sort sort, const AbsTerm::SpecialValueKind& val);
 };
 
+/** The action to instanitate a parametric sort. */
 class ActionInstantiateSort : public Action
 {
  public:
@@ -724,6 +746,7 @@ class ActionInstantiateSort : public Action
   SortKindSet d_exclude_sort_param_sort_kinds;
 };
 
+/** The action to assert a formula. */
 class ActionAssertFormula : public Action
 {
  public:
@@ -744,6 +767,7 @@ class ActionAssertFormula : public Action
   void run(Term assertion);
 };
 
+/** The action to check satisfiability of the currently asserted formulas. */
 class ActionCheckSat : public Action
 {
  public:
@@ -763,6 +787,10 @@ class ActionCheckSat : public Action
   void run();
 };
 
+/**
+ * The action to check satisfiability of the currently asserted formulas under
+ * a set of assumptions.
+ */
 class ActionCheckSatAssuming : public Action
 {
  public:
@@ -783,6 +811,7 @@ class ActionCheckSatAssuming : public Action
   void run(const std::vector<Term>& assumptions);
 };
 
+/** The action to get the set of unsat assumptions. */
 class ActionGetUnsatAssumptions : public Action
 {
  public:
@@ -803,6 +832,7 @@ class ActionGetUnsatAssumptions : public Action
   void run();
 };
 
+/** The action to get the unsat core. */
 class ActionGetUnsatCore : public Action
 {
  public:
@@ -823,6 +853,7 @@ class ActionGetUnsatCore : public Action
   void run();
 };
 
+/** The action to get the value of a set of terms. */
 class ActionGetValue : public Action
 {
  public:
@@ -845,6 +876,7 @@ class ActionGetValue : public Action
   SortKindSet d_exclude_sort_kinds;
 };
 
+/** The action to push one or more context levels. */
 class ActionPush : public Action
 {
  public:
@@ -864,6 +896,7 @@ class ActionPush : public Action
   void run(uint32_t n_levels);
 };
 
+/** The action to pop one or more context levels. */
 class ActionPop : public Action
 {
  public:
@@ -884,6 +917,7 @@ class ActionPop : public Action
   void run(uint32_t n_levels);
 };
 
+/** The action to reset the solver. */
 class ActionReset : public Action
 {
  public:
@@ -904,6 +938,7 @@ class ActionReset : public Action
   void run();
 };
 
+/** The action to reset the set of currently asserted formulas. */
 class ActionResetAssertions : public Action
 {
  public:
@@ -924,6 +959,7 @@ class ActionResetAssertions : public Action
   void run();
 };
 
+/** The action to print model. */
 class ActionPrintModel : public Action
 {
  public:
@@ -944,6 +980,7 @@ class ActionPrintModel : public Action
   void run();
 };
 
+/** The action to get the children of a term. */
 class ActionTermGetChildren : public Action
 {
  public:
@@ -964,6 +1001,7 @@ class ActionTermGetChildren : public Action
   void run(Term term);
 };
 
+/** The action to create a function. */
 class ActionMkFun : public Action
 {
  public:
