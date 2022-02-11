@@ -1563,10 +1563,14 @@ BtorSolver::configure_opmgr(OpKindManager* opmgr) const
 class BtorActionArrayAssignment : public Action
 {
  public:
-  BtorActionArrayAssignment(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_ARRAY_ASSIGNMENT, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-array-assignment";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionArrayAssignment(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1633,10 +1637,14 @@ class BtorActionArrayAssignment : public Action
 class BtorActionBvAssignment : public Action
 {
  public:
-  BtorActionBvAssignment(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_BV_ASSIGNMENT, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-bv-assignment";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionBvAssignment(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1683,10 +1691,14 @@ class BtorActionBvAssignment : public Action
 class BtorActionUFAssignment : public Action
 {
  public:
-  BtorActionUFAssignment(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_UF_ASSIGNMENT, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-uf-assignment";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionUFAssignment(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1759,10 +1771,14 @@ class BtorActionUFAssignment : public Action
 class BtorActionClone : public Action
 {
  public:
-  BtorActionClone(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_CLONE, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-clone";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionClone(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1882,10 +1898,14 @@ class BtorActionClone : public Action
 class BtorActionFailed : public Action
 {
  public:
-  BtorActionFailed(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_FAILED, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-failed";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionFailed(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1921,8 +1941,14 @@ class BtorActionFailed : public Action
 class BtorActionFixateAssumptions : public Action
 {
  public:
-  BtorActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_FIXATE_ASSUMPTIONS, NONE)
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-fixate-assumptions";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionFixateAssumptions(SolverManager& smgr) : Action(smgr, s_name, NONE)
   {
   }
 
@@ -1954,10 +1980,14 @@ class BtorActionFixateAssumptions : public Action
 class BtorActionOptIterator : public Action
 {
  public:
-  BtorActionOptIterator(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_OPT_ITERATOR, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-opt-iterator";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionOptIterator(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2010,10 +2040,14 @@ class BtorActionOptIterator : public Action
 class BtorActionReleaseAll : public Action
 {
  public:
-  BtorActionReleaseAll(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_RELEASE_ALL, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-release-all";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionReleaseAll(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2042,8 +2076,14 @@ class BtorActionReleaseAll : public Action
 class BtorActionResetAssumptions : public Action
 {
  public:
-  BtorActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_RESET_ASSUMPTIONS, NONE)
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-reset-assumptions";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionResetAssumptions(SolverManager& smgr) : Action(smgr, s_name, NONE)
   {
   }
 
@@ -2075,10 +2115,14 @@ class BtorActionResetAssumptions : public Action
 class BtorActionSetSatSolver : public Action
 {
  public:
-  BtorActionSetSatSolver(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_SET_SAT_SOLVER, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-set-sat-solver";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionSetSatSolver(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2111,10 +2155,14 @@ class BtorActionSetSatSolver : public Action
 class BtorActionSimplify : public Action
 {
  public:
-  BtorActionSimplify(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_SIMPLIFY, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-simplify";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionSimplify(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2145,10 +2193,14 @@ class BtorActionSimplify : public Action
 class BtorActionSetSymbol : public Action
 {
  public:
-  BtorActionSetSymbol(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_SET_SYMBOL, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-set-symbol";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionSetSymbol(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2184,10 +2236,14 @@ class BtorActionSetSymbol : public Action
 class BtorActionMisc : public Action
 {
  public:
-  BtorActionMisc(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_MISC, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-misc";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionMisc(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2224,10 +2280,14 @@ class BtorActionMisc : public Action
 class BtorActionPrintParse : public Action
 {
  public:
-  BtorActionPrintParse(SolverManager& smgr)
-      : Action(smgr, BtorSolver::ACTION_PRINT_PARSE, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "btor-print-parse";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BtorActionPrintParse(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {

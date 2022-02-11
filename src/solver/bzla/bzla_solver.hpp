@@ -149,27 +149,6 @@ class BzlaTerm : public AbsTerm
 class BzlaSolver : public Solver
 {
  public:
-  /** Solver-specific actions. */
-  inline static const Action::Kind ACTION_GET_ARRAY_VALUE =
-      "bzla-get-array-value";
-  inline static const Action::Kind ACTION_GET_BV_VALUE  = "bzla-get-bv-value";
-  inline static const Action::Kind ACTION_GET_FP_VALUE  = "bzla-get-fp-value";
-  inline static const Action::Kind ACTION_GET_FUN_VALUE = "bzla-get-fun-value";
-  inline static const Action::Kind ACTION_GET_RM_VALUE  = "bzla-get-rm-value";
-  inline static const Action::Kind ACTION_IS_UNSAT_ASSUMPTION =
-      "bzla-is-unsat-assumption";
-  inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
-      "bzla-fixate-assumptions";
-  inline static const Action::Kind ACTION_MISC = "bzla-misc";
-  inline static const Action::Kind ACTION_RESET_ASSUMPTIONS =
-      "bzla-reset-assumptions";
-  inline static const Action::Kind ACTION_SIMPLIFY = "bzla-simplify";
-  inline static const Action::Kind ACTION_SUBSTITUTE_TERM =
-      "bzla-substitute-term";
-  inline static const Action::Kind ACTION_TERM_SET_SYMBOL =
-      "bzla-term-set-symbol";
-  inline static const Action::Kind ACTION_TERM_IS_EQUAL_SORT =
-      "bzla-term-is-equal-sort";
   /* Solver-specific states. */
   inline static const State::Kind STATE_FIX_RESET_ASSUMPTIONS =
       "bzla-fix-reset-assumptions";

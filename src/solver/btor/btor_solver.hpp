@@ -115,26 +115,6 @@ class BtorTerm : public AbsTerm
 class BtorSolver : public Solver
 {
  public:
-  /** Solver-specific actions. */
-  inline static const Action::Kind ACTION_OPT_ITERATOR = "btor-opt-iterator";
-  inline static const Action::Kind ACTION_ARRAY_ASSIGNMENT =
-      "btor-array-assignment";
-  inline static const Action::Kind ACTION_BV_ASSIGNMENT = "btor-bv-assignment";
-  inline static const Action::Kind ACTION_UF_ASSIGNMENT = "btor-uf-assignment";
-  inline static const Action::Kind ACTION_CLONE         = "btor-clone";
-  inline static const Action::Kind ACTION_FAILED        = "btor-failed";
-  inline static const Action::Kind ACTION_FIXATE_ASSUMPTIONS =
-      "btor-fixate-assumptions";
-  inline static const Action::Kind ACTION_MISC        = "btor-misc";
-  inline static const Action::Kind ACTION_PRINT_PARSE = "btor-print-parse";
-  inline static const Action::Kind ACTION_RESET_ASSUMPTIONS =
-      "btor-reset-assumptions";
-  inline static const Action::Kind ACTION_RELEASE_ALL = "btor-release-all";
-  inline static const Action::Kind ACTION_SIMPLIFY    = "btor-simplify";
-  inline static const Action::Kind ACTION_SET_SAT_SOLVER =
-      "btor-set-sat-solver";
-  inline static const Action::Kind ACTION_SET_SYMBOL = "btor-set-symbol";
-
   /** Solver-specific operators. */
   inline static const Op::Kind OP_DEC    = "btor-OP_DEC";
   inline static const Op::Kind OP_INC    = "btor-OP_INC";

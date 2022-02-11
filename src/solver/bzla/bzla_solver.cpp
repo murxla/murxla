@@ -1666,10 +1666,14 @@ BzlaSolver::configure_options(SolverManager* smgr) const
 class BzlaActionGetArrayValue : public Action
 {
  public:
-  BzlaActionGetArrayValue(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_GET_ARRAY_VALUE, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-get-array-value";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionGetArrayValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1726,10 +1730,14 @@ class BzlaActionGetArrayValue : public Action
 class BzlaActionGetBvValue : public Action
 {
  public:
-  BzlaActionGetBvValue(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_GET_BV_VALUE, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-get-bv-value";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionGetBvValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1776,10 +1784,14 @@ class BzlaActionGetBvValue : public Action
 class BzlaActionGetFpValue : public Action
 {
  public:
-  BzlaActionGetFpValue(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_GET_FP_VALUE, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-get-fp-value";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionGetFpValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1829,10 +1841,14 @@ class BzlaActionGetFpValue : public Action
 class BzlaActionGetFunValue : public Action
 {
  public:
-  BzlaActionGetFunValue(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_GET_FUN_VALUE, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-get-fun-value";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionGetFunValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1895,10 +1911,14 @@ class BzlaActionGetFunValue : public Action
 class BzlaActionGetRmValue : public Action
 {
  public:
-  BzlaActionGetRmValue(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_GET_RM_VALUE, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-get-rm-value";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionGetRmValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1966,8 +1986,14 @@ class BzlaActionGetRmValue : public Action
 class BzlaActionIsUnsatAssumption : public Action
 {
  public:
-  BzlaActionIsUnsatAssumption(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_IS_UNSAT_ASSUMPTION, NONE)
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-is-unsat-assumption";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionIsUnsatAssumption(SolverManager& smgr) : Action(smgr, s_name, NONE)
   {
   }
 
@@ -2005,8 +2031,14 @@ class BzlaActionIsUnsatAssumption : public Action
 class BzlaActionFixateAssumptions : public Action
 {
  public:
-  BzlaActionFixateAssumptions(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_FIXATE_ASSUMPTIONS, NONE)
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-fixate-assumptions";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionFixateAssumptions(SolverManager& smgr) : Action(smgr, s_name, NONE)
   {
   }
 
@@ -2038,8 +2070,14 @@ class BzlaActionFixateAssumptions : public Action
 class BzlaActionResetAssumptions : public Action
 {
  public:
-  BzlaActionResetAssumptions(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_RESET_ASSUMPTIONS, NONE)
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-reset-assumptions";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionResetAssumptions(SolverManager& smgr) : Action(smgr, s_name, NONE)
   {
   }
 
@@ -2071,10 +2109,14 @@ class BzlaActionResetAssumptions : public Action
 class BzlaActionSimplify : public Action
 {
  public:
-  BzlaActionSimplify(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_SIMPLIFY, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-simplify";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionSimplify(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2108,11 +2150,14 @@ class BzlaActionSubstituteTerm : public Action
   static constexpr uint32_t MAX_N_TERMS = 3;
   /** The maximum number of terms to be substituted. */
   static constexpr uint32_t MAX_N_SUBST_TERMS = 3;
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-substitute-term";
 
-  BzlaActionSubstituteTerm(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_SUBSTITUTE_TERM, NONE)
-  {
-  }
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionSubstituteTerm(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2277,10 +2322,14 @@ class BzlaActionSubstituteTerm : public Action
 class BzlaActionTermSetSymbol : public Action
 {
  public:
-  BzlaActionTermSetSymbol(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_TERM_SET_SYMBOL, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-term-set-symbol";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionTermSetSymbol(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2317,10 +2366,14 @@ class BzlaActionTermSetSymbol : public Action
 class BzlaActionTermIsEqualSort : public Action
 {
  public:
-  BzlaActionTermIsEqualSort(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_TERM_IS_EQUAL_SORT, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-term-is-equal-sort";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionTermIsEqualSort(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -2359,10 +2412,14 @@ class BzlaActionTermIsEqualSort : public Action
 class BzlaActionMisc : public Action
 {
  public:
-  BzlaActionMisc(SolverManager& smgr)
-      : Action(smgr, BzlaSolver::ACTION_MISC, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "bzla-misc";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BzlaActionMisc(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {

@@ -3145,10 +3145,14 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
 class Cvc5ActionCheckEntailed : public Action
 {
  public:
-  Cvc5ActionCheckEntailed(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_CHECK_ENTAILED, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-check-entailed";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionCheckEntailed(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -3274,10 +3278,14 @@ class Cvc5ActionCheckEntailed : public Action
 class Cvc5ActionSimplify : public Action
 {
  public:
-  Cvc5ActionSimplify(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_SIMPLIFY, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-simplify";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionSimplify(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -3330,10 +3338,14 @@ class Cvc5ActionSimplify : public Action
 class Cvc5ActionGetDifficulty : public Action
 {
  public:
-  Cvc5ActionGetDifficulty(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_GET_DIFFICULTY, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-get-difficulty";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionGetDifficulty(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -3370,10 +3382,14 @@ class Cvc5ActionGetDifficulty : public Action
 class Cvc5ActionGetInterpolant : public Action
 {
  public:
-  Cvc5ActionGetInterpolant(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_GET_INTERPOLANT, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-get-interpolant";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionGetInterpolant(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -3429,10 +3445,14 @@ class Cvc5ActionGetInterpolant : public Action
 class Cvc5ActionGetAbduct : public Action
 {
  public:
-  Cvc5ActionGetAbduct(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_GET_ABDUCT, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-get-abduct";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionGetAbduct(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -3487,10 +3507,14 @@ class Cvc5ActionGetAbduct : public Action
 class Cvc5ActionBlockModel : public Action
 {
  public:
-  Cvc5ActionBlockModel(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_BLOCK_MODEL, NONE)
-  {
-  }
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-block-model";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionBlockModel(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -3535,9 +3559,14 @@ class Cvc5ActionBlockModelValues : public Action
  public:
   /** The maximum number of model values to block. */
   static constexpr uint32_t MAX_N_VALUES = 5;
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-block-model-values";
 
-  Cvc5ActionBlockModelValues(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_BLOCK_MODEL_VALUES, NONE)
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionBlockModelValues(SolverManager& smgr) : Action(smgr, s_name, NONE)
   {
   }
 
@@ -3602,11 +3631,14 @@ class Cvc5ActionSortSubstitute : public Action
  public:
   /** The maximum number of sorts to be substituted. */
   static constexpr uint32_t MAX_N_SUBST_SORTS = 3;
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-sort-substitute";
 
-  Cvc5ActionSortSubstitute(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_SORT_SUBSTITUTE, NONE)
-  {
-  }
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionSortSubstitute(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -3796,11 +3828,14 @@ class Cvc5ActionTermSubstitute : public Action
  public:
   /** The maximum number of terms to be substituted. */
   static constexpr uint32_t MAX_N_SUBST_TERMS = 3;
+  /** The name of this action. */
+  inline static const Kind s_name = "cvc5-term-substitute";
 
-  Cvc5ActionTermSubstitute(SolverManager& smgr)
-      : Action(smgr, Cvc5Solver::ACTION_TERM_SUBSTITUTE, NONE)
-  {
-  }
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  Cvc5ActionTermSubstitute(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
