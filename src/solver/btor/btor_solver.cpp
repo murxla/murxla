@@ -1568,7 +1568,7 @@ class BtorActionArrayAssignment : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
@@ -1576,7 +1576,7 @@ class BtorActionArrayAssignment : public Action
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_ARRAY, 0)) return false;
     Term term = d_smgr.pick_term(SORT_ARRAY, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1585,12 +1585,12 @@ class BtorActionArrayAssignment : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BoolectorNode* btor_term = BtorTerm::get_btor_term(term);
@@ -1638,7 +1638,7 @@ class BtorActionBvAssignment : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
@@ -1646,7 +1646,7 @@ class BtorActionBvAssignment : public Action
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_BV, 0)) return false;
     Term term = d_smgr.pick_term(SORT_BV, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1655,12 +1655,12 @@ class BtorActionBvAssignment : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
@@ -1688,7 +1688,7 @@ class BtorActionUFAssignment : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
@@ -1696,7 +1696,7 @@ class BtorActionUFAssignment : public Action
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_FUN, 0)) return false;
     Term term = d_smgr.pick_term(SORT_FUN, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1705,12 +1705,12 @@ class BtorActionUFAssignment : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BoolectorNode* btor_term = BtorTerm::get_btor_term(term);
@@ -1764,22 +1764,22 @@ class BtorActionClone : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
@@ -1887,7 +1887,7 @@ class BtorActionFailed : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_sat_called) return false;
@@ -1895,7 +1895,7 @@ class BtorActionFailed : public Action
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_assumed()) return false;
     Term term = d_smgr.pick_assumed_assumption();
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1904,12 +1904,12 @@ class BtorActionFailed : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
@@ -1926,23 +1926,23 @@ class BtorActionFixateAssumptions : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     reset_sat();
@@ -1959,22 +1959,22 @@ class BtorActionOptIterator : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     Btor* btor = static_cast<BtorSolver&>(d_smgr.get_solver()).get_solver();
@@ -2015,22 +2015,22 @@ class BtorActionReleaseAll : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     d_smgr.clear();
@@ -2047,23 +2047,23 @@ class BtorActionResetAssumptions : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     d_smgr.clear_assumptions();
@@ -2080,14 +2080,14 @@ class BtorActionSetSatSolver : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     std::string sat_solver =
         d_rng.pick_from_set<std::vector<std::string>, std::string>(
             solver.get_supported_sat_solvers());
-    _run(sat_solver);
+    run(sat_solver);
     return true;
   }
 
@@ -2095,12 +2095,12 @@ class BtorActionSetSatSolver : public Action
   {
     assert(tokens.size() == 1);
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    _run(tokens[0]);
+    run(tokens[0]);
     return {};
   }
 
  private:
-  void _run(std::string sat_solver)
+  void run(std::string sat_solver)
   {
     MURXLA_TRACE << get_kind() << " " << sat_solver;
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
@@ -2116,24 +2116,24 @@ class BtorActionSimplify : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     BtorSolver& solver = static_cast<BtorSolver&>(d_smgr.get_solver());
     if (solver.get_solver() == nullptr) return false;
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     reset_sat();
@@ -2150,13 +2150,13 @@ class BtorActionSetSymbol : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term()) return false;
     Term term          = d_smgr.pick_term();
     std::string symbol = d_smgr.pick_symbol();
-    _run(term, symbol);
+    run(term, symbol);
     return true;
   }
 
@@ -2166,12 +2166,12 @@ class BtorActionSetSymbol : public Action
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
-    _run(term, symbol);
+    run(term, symbol);
     return {};
   }
 
  private:
-  void _run(Term term, std::string symbol)
+  void run(Term term, std::string symbol)
   {
     MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
@@ -2189,22 +2189,22 @@ class BtorActionMisc : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(0, tokens.size());
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());
@@ -2229,23 +2229,23 @@ class BtorActionPrintParse : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (d_solver.option_incremental_enabled()) return false;
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(0, tokens.size());
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     BtorSolver& btor_solver = static_cast<BtorSolver&>(d_smgr.get_solver());

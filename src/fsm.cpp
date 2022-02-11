@@ -69,7 +69,7 @@ State::run(RNGenerator& rng)
 
   /* run action */
   atup.d_action->seed_solver_rng();
-  if (atup.d_action->run()
+  if (atup.d_action->generate()
       && (atup.d_next->f_precond == nullptr || atup.d_next->f_precond()))
   {
     /* record action statistics */
@@ -77,10 +77,10 @@ State::run(RNGenerator& rng)
 
     return d_actions[idx].d_next;
   }
-  /* disable action if run() will always return false for this run. this
-   * happens e.g., when incremental is disabled and check-sat was already
+  /* Disable action if generate() will always return false for this run.
+   * This happens e.g., when incremental is disabled and check-sat was already
    * called, then it doesn't make sense to call check-sat again in this run.
-   * the disable flag is set dynamically for an action based on certain
+   * The disable flag is set dynamically for an action based on certain
    * conditions in the current run. */
   else if (atup.d_action->disable())
   {

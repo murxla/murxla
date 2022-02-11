@@ -1876,8 +1876,8 @@ class Solver
    * SolverSeedGenerator (SolverManager::d_sng, the SolverSeedGenerator
    * associated with the SolverManager).
    *
-   * This RNG is seeded when the action is executed (Action::execute) via
-   * macro MURXLA_TRACE, which must always be called first in Action::execute.
+   * This RNG is seeded when the action is executed (Action::run()) via
+   * macro MURXLA_TRACE, which must always be called first in Action::run().
    */
   RNGenerator d_rng;
 

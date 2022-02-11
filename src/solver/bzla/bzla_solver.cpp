@@ -1671,7 +1671,7 @@ class BzlaActionGetArrayValue : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
@@ -1679,7 +1679,7 @@ class BzlaActionGetArrayValue : public Action
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_ARRAY, 0)) return false;
     Term term = d_smgr.pick_term(SORT_ARRAY, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1688,12 +1688,12 @@ class BzlaActionGetArrayValue : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
@@ -1731,7 +1731,7 @@ class BzlaActionGetBvValue : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
@@ -1739,7 +1739,7 @@ class BzlaActionGetBvValue : public Action
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_BV, 0)) return false;
     Term term = d_smgr.pick_term(SORT_BV, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1748,12 +1748,12 @@ class BzlaActionGetBvValue : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
@@ -1781,7 +1781,7 @@ class BzlaActionGetFpValue : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
@@ -1789,7 +1789,7 @@ class BzlaActionGetFpValue : public Action
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_FP, 0)) return false;
     Term term = d_smgr.pick_term(SORT_FP, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1798,12 +1798,12 @@ class BzlaActionGetFpValue : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
@@ -1834,7 +1834,7 @@ class BzlaActionGetFunValue : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
@@ -1842,7 +1842,7 @@ class BzlaActionGetFunValue : public Action
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_FUN, 0)) return false;
     Term term = d_smgr.pick_term(SORT_FUN, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1851,12 +1851,12 @@ class BzlaActionGetFunValue : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
@@ -1900,7 +1900,7 @@ class BzlaActionGetRmValue : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen) return false;
@@ -1908,7 +1908,7 @@ class BzlaActionGetRmValue : public Action
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
     if (!d_smgr.has_term(SORT_RM, 0)) return false;
     Term term = d_smgr.pick_term(SORT_RM, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1917,12 +1917,12 @@ class BzlaActionGetRmValue : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver       = dynamic_cast<BzlaSolver&>(d_solver);
@@ -1971,7 +1971,7 @@ class BzlaActionIsUnsatAssumption : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_sat_called) return false;
@@ -1979,7 +1979,7 @@ class BzlaActionIsUnsatAssumption : public Action
     if (!d_smgr.d_incremental) return false;
     if (!d_smgr.has_assumed()) return false;
     Term term = d_smgr.pick_assumed_assumption();
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -1988,12 +1988,12 @@ class BzlaActionIsUnsatAssumption : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     BzlaSolver& bzla_solver = dynamic_cast<BzlaSolver&>(d_solver);
@@ -2010,23 +2010,23 @@ class BzlaActionFixateAssumptions : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     d_smgr.clear_assumptions();
@@ -2043,23 +2043,23 @@ class BzlaActionResetAssumptions : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental) return false;
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     d_smgr.clear_assumptions();
@@ -2076,24 +2076,24 @@ class BzlaActionSimplify : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     BzlaSolver& solver = dynamic_cast<BzlaSolver&>(d_solver);
     if (solver.get_solver() == nullptr) return false;
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     reset_sat();
@@ -2114,7 +2114,7 @@ class BzlaActionSubstituteTerm : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term()) return false;
@@ -2144,7 +2144,7 @@ class BzlaActionSubstituteTerm : public Action
       }
     }
 
-    _run(terms, to_subst_terms, subst_terms);
+    run(terms, to_subst_terms, subst_terms);
     return true;
   }
 
@@ -2183,14 +2183,14 @@ class BzlaActionSubstituteTerm : public Action
       idx += 1;
     }
 
-    _run(terms, to_subst_terms, subst_terms);
+    run(terms, to_subst_terms, subst_terms);
     return {};
   }
 
  private:
-  void _run(std::vector<Term> terms,
-            std::vector<Term> to_subst_terms,
-            std::vector<Term> subst_terms)
+  void run(std::vector<Term> terms,
+           std::vector<Term> to_subst_terms,
+           std::vector<Term> subst_terms)
   {
     MURXLA_TRACE << get_kind() << " " << terms.size() << terms << " "
                  << to_subst_terms.size() << to_subst_terms << " "
@@ -2282,13 +2282,13 @@ class BzlaActionTermSetSymbol : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term()) return false;
     Term term          = d_smgr.pick_term();
     std::string symbol = d_smgr.pick_symbol();
-    _run(term, symbol);
+    run(term, symbol);
     return true;
   }
 
@@ -2298,12 +2298,12 @@ class BzlaActionTermSetSymbol : public Action
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
     std::string symbol = str_to_str(tokens[1]);
-    _run(term, symbol);
+    run(term, symbol);
     return {};
   }
 
  private:
-  void _run(Term term, std::string symbol)
+  void run(Term term, std::string symbol)
   {
     MURXLA_TRACE << get_kind() << " " << term << " \"" << symbol << "\"";
     (void) bitwuzla_term_set_symbol(BzlaTerm::get_bzla_term(term),
@@ -2322,13 +2322,13 @@ class BzlaActionTermIsEqualSort : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term()) return false;
     Term term0 = d_smgr.pick_term();
     Term term1 = d_smgr.pick_term();
-    _run(term0, term1);
+    run(term0, term1);
     return true;
   }
 
@@ -2339,12 +2339,12 @@ class BzlaActionTermIsEqualSort : public Action
     Term term1 = get_untraced_term(untrace_str_to_id(tokens[1]));
     MURXLA_CHECK_TRACE_TERM(term0, tokens[0]);
     MURXLA_CHECK_TRACE_TERM(term1, tokens[1]);
-    _run(term0, term1);
+    run(term0, term1);
     return {};
   }
 
  private:
-  void _run(Term term0, Term term1)
+  void run(Term term0, Term term1)
   {
     MURXLA_TRACE << get_kind() << " " << term0 << " " << term1;
     const BitwuzlaTerm* bzla_term0 = BzlaTerm::get_bzla_term(term0);
@@ -2364,22 +2364,22 @@ class BzlaActionMisc : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_NTOKENS(0, tokens.size());
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     BzlaSolver& bzla_solver = dynamic_cast<BzlaSolver&>(d_smgr.get_solver());

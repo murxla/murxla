@@ -122,7 +122,7 @@ Action::TraceStream::flush()
 /* -------------------------------------------------------------------------- */
 
 bool
-TransitionCreateInputs::run()
+TransitionCreateInputs::generate()
 {
   return d_smgr.d_stats.inputs > 0;
 }
@@ -130,7 +130,7 @@ TransitionCreateInputs::run()
 /* -------------------------------------------------------------------------- */
 
 bool
-TransitionCreateSorts::run()
+TransitionCreateSorts::generate()
 {
   return d_smgr.d_stats.sorts > 0;
 }
@@ -138,12 +138,12 @@ TransitionCreateSorts::run()
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionTermGetChildren::run()
+ActionTermGetChildren::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.has_term()) return false;
   Term term = d_smgr.pick_term();
-  _run(term);
+  run(term);
   return true;
 }
 
@@ -153,12 +153,12 @@ ActionTermGetChildren::untrace(const std::vector<std::string>& tokens)
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   Term t = get_untraced_term(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
-  _run(t);
+  run(t);
   return {};
 }
 
 void
-ActionTermGetChildren::_run(Term term)
+ActionTermGetChildren::run(Term term)
 {
   MURXLA_TRACE << get_kind() << " " << term;
 
@@ -215,10 +215,10 @@ ActionTermGetChildren::_run(Term term)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionNew::run()
+ActionNew::generate()
 {
   if (d_solver.is_initialized()) d_solver.delete_solver();
-  _run();
+  run();
   return true;
 }
 
@@ -226,12 +226,12 @@ std::vector<uint64_t>
 ActionNew::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
-  _run();
+  run();
   return {};
 }
 
 void
-ActionNew::_run()
+ActionNew::run()
 {
   MURXLA_TRACE << get_kind();
 
@@ -246,10 +246,10 @@ ActionNew::_run()
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionDelete::run()
+ActionDelete::generate()
 {
   assert(d_solver.is_initialized());
-  _run();
+  run();
   return true;
 }
 
@@ -257,12 +257,12 @@ std::vector<uint64_t>
 ActionDelete::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
-  _run();
+  run();
   return {};
 }
 
 void
-ActionDelete::_run()
+ActionDelete::run()
 {
   MURXLA_TRACE << get_kind();
   d_smgr.clear();
@@ -272,7 +272,7 @@ ActionDelete::_run()
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionSetLogic::run()
+ActionSetLogic::generate()
 {
   assert(d_solver.is_initialized());
 
@@ -360,7 +360,7 @@ ActionSetLogic::run()
     logic = "QF_" + logic;
   }
 
-  _run(logic);
+  run(logic);
   return true;
 }
 
@@ -368,12 +368,12 @@ std::vector<uint64_t>
 ActionSetLogic::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-  _run(tokens[0]);
+  run(tokens[0]);
   return {};
 }
 
 void
-ActionSetLogic::_run(const std::string& logic)
+ActionSetLogic::run(const std::string& logic)
 {
   MURXLA_TRACE << get_kind() << " " << logic;
   d_solver.set_logic(logic);
@@ -382,7 +382,7 @@ ActionSetLogic::_run(const std::string& logic)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionSetOption::run()
+ActionSetOption::generate()
 {
   assert(d_solver.is_initialized());
   std::string opt, value;
@@ -431,7 +431,7 @@ ActionSetOption::run()
     return false;
   }
 
-  _run(opt, value);
+  run(opt, value);
   return true;
 }
 
@@ -439,12 +439,12 @@ std::vector<uint64_t>
 ActionSetOption::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
-  _run(tokens[0], tokens[1]);
+  run(tokens[0], tokens[1]);
   return {};
 }
 
 void
-ActionSetOption::_run(const std::string& opt, const std::string& value)
+ActionSetOption::run(const std::string& opt, const std::string& value)
 {
   MURXLA_TRACE << get_kind() << " " << opt << " " << value;
   try
@@ -464,11 +464,11 @@ ActionSetOption::_run(const std::string& opt, const std::string& value)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionSetOptionReq::run()
+ActionSetOptionReq::generate()
 {
   for (const auto& [name, value] : d_solver_options)
   {
-    d_setoption->_run(name, value);
+    d_setoption->run(name, value);
   }
   return true;
 }
@@ -521,7 +521,7 @@ ActionMkSort::ActionMkSort(SolverManager& smgr)
 }
 
 bool
-ActionMkSort::run()
+ActionMkSort::generate()
 {
   assert(d_solver.is_initialized());
   SortKind kind = d_smgr.pick_sort_kind_data().d_kind;
@@ -545,7 +545,7 @@ ActionMkSort::run()
       }
       Sort element_sort =
           d_smgr.pick_sort_excluding(d_exclude_array_element_sort_kinds, false);
-      _run(kind, {index_sort, element_sort});
+      run(kind, {index_sort, element_sort});
       break;
     }
 
@@ -555,12 +555,12 @@ ActionMkSort::run()
         return false;
       auto sort =
           d_smgr.pick_sort_excluding(d_exclude_bag_element_sort_kinds, false);
-      _run(kind, {sort});
+      run(kind, {sort});
     }
     break;
 
     case SORT_BV:
-      _run(kind, d_rng.pick<uint32_t>(MURXLA_BW_MIN, MURXLA_BW_MAX));
+      run(kind, d_rng.pick<uint32_t>(MURXLA_BW_MIN, MURXLA_BW_MAX));
       break;
 
     case SORT_DT:
@@ -681,7 +681,7 @@ ActionMkSort::run()
         }
         constructors.push_back(ctors);
       }
-      _run(kind, dt_names, param_sorts, constructors);
+      run(kind, dt_names, param_sorts, constructors);
     }
     break;
 
@@ -710,15 +710,15 @@ ActionMkSort::run()
           ew = 15;
           sw = 113;
       }
-      _run(kind, ew, sw);
+      run(kind, ew, sw);
       /* Operator fp expects three bit-vector terms of size 1, ew and sw - 1 as
        * arguments. Operator to_fp from IEEE BV expects a bit-vector of size
        * ew + sw. To increase the probability that terms of these sizes are
        * available, we also generate the corresponding bit-vector sorts. */
-      _run(SORT_BV, 1);
-      _run(SORT_BV, ew);
-      _run(SORT_BV, sw - 1);
-      _run(SORT_BV, ew + sw);
+      run(SORT_BV, 1);
+      run(SORT_BV, ew);
+      run(SORT_BV, sw - 1);
+      run(SORT_BV, ew + sw);
     }
     break;
 
@@ -741,7 +741,7 @@ ActionMkSort::run()
       }
       sorts.push_back(d_smgr.pick_sort_excluding(
           d_exclude_fun_sort_codomain_sort_kinds, false));
-      _run(kind, sorts);
+      run(kind, sorts);
     }
     break;
 
@@ -751,7 +751,7 @@ ActionMkSort::run()
         return false;
       auto sort =
           d_smgr.pick_sort_excluding(d_exclude_seq_element_sort_kinds, false);
-      _run(kind, {sort});
+      run(kind, {sort});
     }
     break;
 
@@ -761,7 +761,7 @@ ActionMkSort::run()
         return false;
       auto sort =
           d_smgr.pick_sort_excluding(d_exclude_set_element_sort_kinds, false);
-      _run(kind, {sort});
+      run(kind, {sort});
     }
     break;
 
@@ -770,12 +770,14 @@ ActionMkSort::run()
     case SORT_REAL:
     case SORT_REGLAN:
     case SORT_STRING:
-    case SORT_RM: _run(kind); break;
-
-      _run(kind);
+    case SORT_RM:
+      run(kind);
       break;
 
-    case SORT_UNINTERPRETED: _run(kind, d_smgr.pick_symbol("_u")); break;
+      run(kind);
+      break;
+
+    case SORT_UNINTERPRETED: run(kind, d_smgr.pick_symbol("_u")); break;
 
     default: assert(false);
   }
@@ -807,7 +809,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
       std::vector<Sort> sorts;
       sorts.push_back(get_untraced_sort(untrace_str_to_id(tokens[1])));
       sorts.push_back(get_untraced_sort(untrace_str_to_id(tokens[2])));
-      res = _run(kind, sorts);
+      res = run(kind, sorts);
       break;
     }
 
@@ -816,12 +818,12 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_BAG) != theories.end())
           << "solver does not support theory of bags";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, {get_untraced_sort(untrace_str_to_id(tokens[1]))});
+      res = run(kind, {get_untraced_sort(untrace_str_to_id(tokens[1]))});
       break;
 
     case SORT_BOOL:
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
-      res = _run(kind);
+      res = run(kind);
       break;
 
     case SORT_BV:
@@ -829,7 +831,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_BV) != theories.end())
           << "solver does not support theory of bit-vectors";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, str_to_uint32(tokens[1]));
+      res = run(kind, str_to_uint32(tokens[1]));
       break;
 
     case SORT_DT:
@@ -919,7 +921,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
         constructors.push_back(ctors);
       }
 
-      res = _run(kind, dt_names, param_sorts, constructors);
+      res = run(kind, dt_names, param_sorts, constructors);
     }
     break;
 
@@ -928,7 +930,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_FP) != theories.end())
           << "solver does not support theory of floating-point arithmetic";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(3, n_tokens, kind);
-      res = _run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
+      res = run(kind, str_to_uint32(tokens[1]), str_to_uint32(tokens[2]));
       break;
 
     case SORT_FUN:
@@ -944,7 +946,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
             << "unknown sort id '" << *it << "' as argument to " << get_kind();
         sorts.push_back(s);
       }
-      res = _run(kind, sorts);
+      res = run(kind, sorts);
       break;
     }
 
@@ -953,7 +955,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_INT) != theories.end())
           << "solver does not support theory of integers";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
-      res = _run(kind);
+      res = run(kind);
       break;
 
     case SORT_REAL:
@@ -961,7 +963,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_REAL) != theories.end())
           << "solver does not support theory of reals";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
-      res = _run(kind);
+      res = run(kind);
       break;
 
     case SORT_REGLAN:
@@ -969,7 +971,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_STRING) != theories.end())
           << "solver does not support theory of strings";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
-      res = _run(kind);
+      res = run(kind);
       break;
 
     case SORT_RM:
@@ -977,7 +979,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_FP) != theories.end())
           << "solver does not support theory of floating-point arithmetic";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
-      res = _run(kind);
+      res = run(kind);
       break;
 
     case SORT_SEQ:
@@ -985,7 +987,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_SEQ) != theories.end())
           << "solver does not support theory of sequences";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, {get_untraced_sort(untrace_str_to_id(tokens[1]))});
+      res = run(kind, {get_untraced_sort(untrace_str_to_id(tokens[1]))});
       break;
 
     case SORT_SET:
@@ -993,7 +995,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_SET) != theories.end())
           << "solver does not support theory of sets";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, {get_untraced_sort(untrace_str_to_id(tokens[1]))});
+      res = run(kind, {get_untraced_sort(untrace_str_to_id(tokens[1]))});
       break;
 
     case SORT_STRING:
@@ -1001,14 +1003,14 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
                          || theories.find(THEORY_STRING) != theories.end())
           << "solver does not support theory of strings";
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(1, n_tokens, kind);
-      res = _run(kind);
+      res = run(kind);
       break;
 
     case SORT_UNINTERPRETED:
       MURXLA_CHECK_TRACE(theories.find(THEORY_ALL) != theories.end()
                          || theories.find(THEORY_BOOL) != theories.end());
       MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
-      res = _run(kind, tokens[1]);
+      res = run(kind, tokens[1]);
       break;
 
     default: MURXLA_CHECK_TRACE(false) << "unknown sort kind " << tokens[0];
@@ -1017,7 +1019,7 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
 }
 
 std::vector<uint64_t>
-ActionMkSort::_run(SortKind kind)
+ActionMkSort::run(SortKind kind)
 {
   MURXLA_TRACE << get_kind() << " " << kind;
   Sort res = d_solver.mk_sort(kind);
@@ -1028,7 +1030,7 @@ ActionMkSort::_run(SortKind kind)
 }
 
 std::vector<uint64_t>
-ActionMkSort::_run(SortKind kind, const std::string& name)
+ActionMkSort::run(SortKind kind, const std::string& name)
 {
   assert(kind == SORT_UNINTERPRETED);
   MURXLA_TRACE << get_kind() << " " << kind << " " << name;
@@ -1040,7 +1042,7 @@ ActionMkSort::_run(SortKind kind, const std::string& name)
 }
 
 std::vector<uint64_t>
-ActionMkSort::_run(SortKind kind, uint32_t bw)
+ActionMkSort::run(SortKind kind, uint32_t bw)
 {
   MURXLA_TRACE << get_kind() << " " << kind << " " << bw;
   assert(kind == SORT_BV);
@@ -1053,7 +1055,7 @@ ActionMkSort::_run(SortKind kind, uint32_t bw)
 }
 
 std::vector<uint64_t>
-ActionMkSort::_run(SortKind kind, uint32_t ew, uint32_t sw)
+ActionMkSort::run(SortKind kind, uint32_t ew, uint32_t sw)
 {
   MURXLA_TRACE << get_kind() << " " << kind << " " << ew << " " << sw;
   assert(kind == SORT_FP);
@@ -1067,7 +1069,7 @@ ActionMkSort::_run(SortKind kind, uint32_t ew, uint32_t sw)
 }
 
 std::vector<uint64_t>
-ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
+ActionMkSort::run(SortKind kind, const std::vector<Sort>& sorts)
 {
   MURXLA_TRACE << get_kind() << " " << kind << sorts;
   assert(sorts.size() >= 1);
@@ -1081,10 +1083,10 @@ ActionMkSort::_run(SortKind kind, const std::vector<Sort>& sorts)
 }
 
 std::vector<uint64_t>
-ActionMkSort::_run(SortKind kind,
-                   const std::vector<std::string>& dt_names,
-                   const std::vector<std::vector<Sort>>& param_sorts,
-                   std::vector<AbsSort::DatatypeConstructorMap>& constructors)
+ActionMkSort::run(SortKind kind,
+                  const std::vector<std::string>& dt_names,
+                  const std::vector<std::vector<Sort>>& param_sorts,
+                  std::vector<AbsSort::DatatypeConstructorMap>& constructors)
 {
   size_t n_dt_sorts = dt_names.size();
 
@@ -1205,7 +1207,7 @@ ActionMkSort::_run(SortKind kind,
             if (!has_param_sort)
             {
               ActionInstantiateSort instantiate_sort(d_smgr);
-              ssort = instantiate_sort._run(associated_sort, inst_sorts);
+              ssort = instantiate_sort.run(associated_sort, inst_sorts);
             }
             else
             {
@@ -1273,7 +1275,7 @@ ActionMkSort::check_sort(Sort sort) const
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionMkTerm::run(Op::Kind kind)
+ActionMkTerm::generate(Op::Kind kind)
 {
   assert(kind != Op::UNDEFINED);
 
@@ -1308,7 +1310,7 @@ ActionMkTerm::run(Op::Kind kind)
       args.push_back(d_smgr.pick_term(codomain_sort));
     }
     assert(sort_kind != SORT_ANY);
-    _run(kind, sort_kind, dt_sort, {ctor}, args);
+    run(kind, sort_kind, dt_sort, {ctor}, args);
   }
   else if (kind == Op::DT_APPLY_SEL)
   {
@@ -1326,7 +1328,7 @@ ActionMkTerm::run(Op::Kind kind)
     Sort codomain_sort = dt_sort->get_dt_sel_sort(dt_sort, ctor, sel);
     sort_kind          = codomain_sort->get_kind();
     assert(sort_kind != SORT_ANY);
-    _run(kind, sort_kind, {ctor, sel}, {arg});
+    run(kind, sort_kind, {ctor, sel}, {arg});
   }
   else if (kind == Op::DT_APPLY_TESTER)
   {
@@ -1338,7 +1340,7 @@ ActionMkTerm::run(Op::Kind kind)
     const std::string& ctor =
         d_rng.pick_from_set<std::vector<std::string>, std::string>(cons_names);
     assert(sort_kind != SORT_ANY);
-    _run(kind, sort_kind, {ctor}, {arg});
+    run(kind, sort_kind, {ctor}, {arg});
   }
   else if (kind == Op::DT_APPLY_UPDATER)
   {
@@ -1357,7 +1359,7 @@ ActionMkTerm::run(Op::Kind kind)
     Sort codomain_sort = dt_sort->get_dt_sel_sort(dt_sort, ctor, sel);
     if (!d_smgr.has_term(codomain_sort)) return false;
     args.push_back(d_smgr.pick_term(codomain_sort));
-    _run(kind, sort_kind, {ctor, sel}, args);
+    run(kind, sort_kind, {ctor, sel}, args);
   }
   else
   {
@@ -1852,7 +1854,7 @@ ActionMkTerm::run(Op::Kind kind)
     {
       sort_kind = args[0]->get_sort()->get_kind();
     }
-    _run(kind, sort_kind, args, indices);
+    run(kind, sort_kind, args, indices);
   }
 
   ++d_smgr.d_mbt_stats->d_ops_ok[op.d_id];
@@ -1880,7 +1882,7 @@ ActionMkTerm::ActionMkTerm(SolverManager& smgr)
 }
 
 bool
-ActionMkTerm::run()
+ActionMkTerm::generate()
 {
   /* Op is only picked if there exist terms that can be used as operands. */
   Op::Kind kind = d_smgr.pick_op_kind();
@@ -1940,7 +1942,7 @@ ActionMkTerm::run()
       /* Pick variable pattern with 10% probability. */
       if (d_rng.pick_with_prob(10))
       {
-        uint32_t var_id = mkvar._run(dt_sort, d_smgr.pick_symbol())[0];
+        uint32_t var_id = mkvar.run(dt_sort, d_smgr.pick_symbol())[0];
         match_case_args.push_back(d_smgr.get_term(var_id));
         match_case_kind = Op::DT_MATCH_BIND_CASE;
         match_var       = true;
@@ -1956,8 +1958,8 @@ ActionMkTerm::run()
           {
             /* Create variable of selector codomain sort for each selector. */
             uint32_t var_id =
-                mkvar._run(dt_sort->get_dt_sel_sort(dt_sort, ctor, sel),
-                           d_smgr.pick_symbol())[0];
+                mkvar.run(dt_sort->get_dt_sel_sort(dt_sort, ctor, sel),
+                          d_smgr.pick_symbol())[0];
             match_case_args.push_back(d_smgr.get_term(var_id));
           }
           /* Create some terms that (possibly) use these variables. */
@@ -1975,7 +1977,7 @@ ActionMkTerm::run()
             /* Do not create quantifiers since this would bind the variables
              * created above. */
             if (op_kind == Op::FORALL || op_kind == Op::EXISTS) continue;
-            if (run(op_kind)) n_terms_created += 1;
+            if (generate(op_kind)) n_terms_created += 1;
           }
           match_case_kind = Op::DT_MATCH_BIND_CASE;
         }
@@ -1988,32 +1990,32 @@ ActionMkTerm::run()
       assert(match_term->get_kind() != Op::DT_MATCH_CASE);
       assert(match_term->get_kind() != Op::DT_MATCH_BIND_CASE);
       match_case_args.push_back(match_term);
-      match_case_id = _run(match_case_kind,
-                           sort_kind,
-                           dt_sort,
-                           match_case_ctor,
-                           match_case_args)[0];
+      match_case_id = run(match_case_kind,
+                          sort_kind,
+                          dt_sort,
+                          match_case_ctor,
+                          match_case_args)[0];
       args.push_back(d_smgr.get_term(match_case_id));
     }
 
     /* We need at least one variable pattern if not all cases are matched. */
     if (!match_all && !match_var)
     {
-      uint32_t var_id = mkvar._run(dt_sort, d_smgr.pick_symbol())[0];
+      uint32_t var_id = mkvar.run(dt_sort, d_smgr.pick_symbol())[0];
       std::vector<Term> match_case_args{d_smgr.get_term(var_id),
                                         d_smgr.pick_term(sort)};
-      uint32_t match_case_id = _run(
+      uint32_t match_case_id = run(
           Op::DT_MATCH_BIND_CASE, sort_kind, dt_sort, {}, match_case_args)[0];
       args.push_back(d_smgr.get_term(match_case_id));
     }
 
     assert(sort_kind != SORT_ANY);
-    _run(kind, sort_kind, args, {});
+    run(kind, sort_kind, args, {});
 
     ++d_smgr.d_mbt_stats->d_ops[op.d_id];
     return true;
   }
-  return run(kind);
+  return generate(kind);
 }
 
 std::vector<uint64_t>
@@ -2086,23 +2088,23 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   if (op_kind == Op::DT_APPLY_SEL || op_kind == Op::DT_APPLY_TESTER
       || op_kind == Op::DT_APPLY_UPDATER)
   {
-    return _run(op_kind, sort_kind, str_args, args);
+    return run(op_kind, sort_kind, str_args, args);
   }
 
   if (op_kind == Op::DT_APPLY_CONS || op_kind == Op::DT_MATCH_CASE
       || op_kind == Op::DT_MATCH_BIND_CASE)
   {
-    return _run(op_kind, sort_kind, sort, str_args, args);
+    return run(op_kind, sort_kind, sort, str_args, args);
   }
 
-  return _run(op_kind, sort_kind, args, indices);
+  return run(op_kind, sort_kind, args, indices);
 }
 
 std::vector<uint64_t>
-ActionMkTerm::_run(Op::Kind kind,
-                   SortKind sort_kind,
-                   std::vector<Term>& args,
-                   const std::vector<uint32_t>& indices)
+ActionMkTerm::run(Op::Kind kind,
+                  SortKind sort_kind,
+                  std::vector<Term>& args,
+                  const std::vector<uint32_t>& indices)
 {
   std::stringstream trace_str;
   trace_str << " " << kind << " " << sort_kind;
@@ -2115,7 +2117,7 @@ ActionMkTerm::_run(Op::Kind kind,
   reset_sat();
 
   std::vector<Term> bargs;
-  /* Note: We pop the variable scopes in _run instead of run so that we
+  /* Note: We pop the variable scopes in run() instead of generate() so that we
    *       correctly handle this case for untracing. */
   if (kind == Op::FORALL || kind == Op::EXISTS)
   {
@@ -2166,10 +2168,10 @@ ActionMkTerm::_run(Op::Kind kind,
 }
 
 std::vector<uint64_t>
-ActionMkTerm::_run(Op::Kind kind,
-                   SortKind sort_kind,
-                   const std::vector<std::string> str_args,
-                   const std::vector<Term>& args)
+ActionMkTerm::run(Op::Kind kind,
+                  SortKind sort_kind,
+                  const std::vector<std::string> str_args,
+                  const std::vector<Term>& args)
 {
   std::stringstream trace_str;
   trace_str << " " << kind << " " << sort_kind;
@@ -2192,11 +2194,11 @@ ActionMkTerm::_run(Op::Kind kind,
 }
 
 std::vector<uint64_t>
-ActionMkTerm::_run(Op::Kind kind,
-                   SortKind sort_kind,
-                   Sort sort,
-                   const std::vector<std::string> str_args,
-                   std::vector<Term>& args)
+ActionMkTerm::run(Op::Kind kind,
+                  SortKind sort_kind,
+                  Sort sort,
+                  const std::vector<std::string> str_args,
+                  std::vector<Term>& args)
 {
   std::stringstream trace_str;
   trace_str << " " << kind << " " << sort_kind << " " << sort;
@@ -2209,7 +2211,7 @@ ActionMkTerm::_run(Op::Kind kind,
   MURXLA_TRACE << get_kind() << trace_str.str();
   reset_sat();
 
-  /* Note: We pop the variable scopes in _run instead of run so that we
+  /* Note: We pop the variable scopes in run instead of generate so that we
    *       correctly handle this case for untracing. */
   if (kind == Op::DT_MATCH_BIND_CASE)
   {
@@ -2383,7 +2385,7 @@ ActionMkTerm::mk_store(const Sort& array_sort,
     args.push_back(result);
     args.push_back(d_smgr.pick_term(index_sort));
     args.push_back(d_smgr.pick_term(element_sort));
-    auto ret = _run(Op::ARRAY_STORE, SortKind::SORT_ARRAY, args, {});
+    auto ret = run(Op::ARRAY_STORE, SortKind::SORT_ARRAY, args, {});
     assert(ret.size() == 2);
     result = d_smgr.get_term(ret[0]);
   }
@@ -2419,24 +2421,24 @@ ActionMkTerm::mk_set_value(const Sort& element_sort)
   }
   std::vector<Term> args1 = {val1};
   std::vector<Term> args0 = {val0};
-  Term arg1               = d_smgr.get_term(
-      _run(Op::SET_SINGLETON, SortKind::SORT_SET, args1, {})[0]);
+  Term arg1 =
+      d_smgr.get_term(run(Op::SET_SINGLETON, SortKind::SORT_SET, args1, {})[0]);
   Term arg0        = val1 == val0
                          ? arg1
-                         : d_smgr.get_term(_run(
-                      Op::SET_SINGLETON, SortKind::SORT_SET, args0, {})[0]);
+                         : d_smgr.get_term(
+                      run(Op::SET_SINGLETON, SortKind::SORT_SET, args0, {})[0]);
   std::vector args = {arg0, arg1};
   Term result =
-      d_smgr.get_term(_run(Op::SET_UNION, SortKind::SORT_SET, args, {})[0]);
+      d_smgr.get_term(run(Op::SET_UNION, SortKind::SORT_SET, args, {})[0]);
   while (!values_sorted.empty())
   {
     args0 = {values_sorted.back()};
     values_sorted.pop_back();
     args = {d_smgr.get_term(
-                _run(Op::SET_SINGLETON, SortKind::SORT_SET, args0, {})[0]),
+                run(Op::SET_SINGLETON, SortKind::SORT_SET, args0, {})[0]),
             result};
     result =
-        d_smgr.get_term(_run(Op::SET_UNION, SortKind::SORT_SET, args, {})[0]);
+        d_smgr.get_term(run(Op::SET_UNION, SortKind::SORT_SET, args, {})[0]);
   }
   return result;
 }
@@ -2444,7 +2446,7 @@ ActionMkTerm::mk_set_value(const Sort& element_sort)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionMkConst::run(Sort sort)
+ActionMkConst::generate(Sort sort)
 {
   assert(d_solver.is_initialized());
   if (d_exclude_sort_kinds.find(sort->get_kind()) != d_exclude_sort_kinds.end())
@@ -2452,12 +2454,12 @@ ActionMkConst::run(Sort sort)
     return false;
   }
   std::string symbol = d_smgr.pick_symbol();
-  _run(sort, symbol);
+  run(sort, symbol);
   return true;
 }
 
 bool
-ActionMkConst::run()
+ActionMkConst::generate()
 {
   assert(d_solver.is_initialized());
   SortKindSet exclude(d_exclude_sort_kinds);
@@ -2468,7 +2470,7 @@ ActionMkConst::run()
   }
   if (!d_smgr.has_sort_excluding(exclude, false)) return false;
   Sort sort = d_smgr.pick_sort_excluding(exclude, false);
-  return run(sort);
+  return generate(sort);
 }
 
 std::vector<uint64_t>
@@ -2478,11 +2480,11 @@ ActionMkConst::untrace(const std::vector<std::string>& tokens)
   Sort sort = get_untraced_sort(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
   std::string symbol = str_to_str(tokens[1]);
-  return _run(sort, symbol);
+  return run(sort, symbol);
 }
 
 std::vector<uint64_t>
-ActionMkConst::_run(Sort sort, const std::string& symbol)
+ActionMkConst::run(Sort sort, const std::string& symbol)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   reset_sat();
@@ -2515,7 +2517,7 @@ ActionMkVar::ActionMkVar(SolverManager& smgr)
 }
 
 bool
-ActionMkVar::run()
+ActionMkVar::generate()
 {
   assert(d_solver.is_initialized());
   SortKindSet exclude_sorts = d_unsupported_sorts_kinds;
@@ -2531,7 +2533,7 @@ ActionMkVar::run()
   Sort sort          = d_smgr.pick_sort_excluding(exclude_sorts, false);
   std::string symbol = d_smgr.pick_symbol();
   /* Create var. */
-  _run(sort, symbol);
+  run(sort, symbol);
   return true;
 }
 
@@ -2542,11 +2544,11 @@ ActionMkVar::untrace(const std::vector<std::string>& tokens)
   Sort sort = get_untraced_sort(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_SORT(sort, tokens[0]);
   std::string symbol = str_to_str(tokens[1]);
-  return _run(sort, symbol);
+  return run(sort, symbol);
 }
 
 std::vector<uint64_t>
-ActionMkVar::_run(Sort sort, const std::string& symbol)
+ActionMkVar::run(Sort sort, const std::string& symbol)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << symbol << "\"";
   Term res = d_solver.mk_var(sort, symbol);
@@ -2572,7 +2574,7 @@ ActionMkVar::check_variable(RNGenerator& rng, Term term)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionMkValue::run(Sort sort)
+ActionMkValue::generate(Sort sort)
 {
   assert(d_solver.is_initialized());
 
@@ -2585,7 +2587,7 @@ ActionMkValue::run(Sort sort)
   /* Pick value. */
   switch (sort_kind)
   {
-    case SORT_BOOL: _run(sort, d_rng.flip_coin()); break;
+    case SORT_BOOL: run(sort, d_rng.flip_coin()); break;
 
     case SORT_BV:
     {
@@ -2612,7 +2614,7 @@ ActionMkValue::run(Sort sort)
           assert(base == Solver::Base::BIN);
           val = d_rng.pick_bin_string(bw);
       }
-      _run(sort, val, base);
+      run(sort, val, base);
     }
     break;
 
@@ -2621,14 +2623,14 @@ ActionMkValue::run(Sort sort)
       uint32_t ew     = sort->get_fp_exp_size();
       uint32_t sw     = sort->get_fp_sig_size();
       std::string val = d_rng.pick_bin_string(ew + sw);
-      _run(sort, val);
+      run(sort, val);
     }
     break;
 
     case SORT_INT:
-      _run(sort,
-           d_rng.pick_dec_int_string(
-               d_rng.pick<uint32_t>(1, MURXLA_INT_LEN_MAX)));
+      run(sort,
+          d_rng.pick_dec_int_string(
+              d_rng.pick<uint32_t>(1, MURXLA_INT_LEN_MAX)));
       break;
 
     case SORT_REAL:
@@ -2637,24 +2639,24 @@ ActionMkValue::run(Sort sort)
        * arguments with probability 50%. */
       if (d_rng.pick_with_prob(500))
       {
-        _run(sort, d_rng.pick_real_string());
+        run(sort, d_rng.pick_real_string());
       }
       else
       {
         if (d_rng.flip_coin())
         {
-          _run(sort,
-               d_rng.pick_dec_rational_string(
-                   d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX),
-                   d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
+          run(sort,
+              d_rng.pick_dec_rational_string(
+                  d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX),
+                  d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
         }
         else
         {
-          _run(sort,
-               d_rng.pick_dec_int_string(
-                   d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)),
-               d_rng.pick_dec_int_string(
-                   d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
+          run(sort,
+              d_rng.pick_dec_int_string(
+                  d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)),
+              d_rng.pick_dec_int_string(
+                  d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
         }
       }
       break;
@@ -2667,7 +2669,7 @@ ActionMkValue::run(Sort sort)
       {
         d_rng.pick_string_literal(len);
       }
-      _run(sort, value);
+      run(sort, value);
     }
     break;
 
@@ -2678,7 +2680,7 @@ ActionMkValue::run(Sort sort)
 }
 
 bool
-ActionMkValue::run()
+ActionMkValue::generate()
 {
   SortKindSet exclude(d_exclude_sort_kinds);
   /* Deemphasize picking of Boolean sort. */
@@ -2689,7 +2691,7 @@ ActionMkValue::run()
   /* Pick sort of value. */
   if (!d_smgr.has_sort_excluding(exclude)) return false;
   Sort sort = d_smgr.pick_sort_excluding(exclude);
-  return run(sort);
+  return generate(sort);
 }
 
 std::vector<uint64_t>
@@ -2705,14 +2707,14 @@ ActionMkValue::untrace(const std::vector<std::string>& tokens)
     case 3:
       if (sort->is_bv())
       {
-        res = _run(sort,
-                   str_to_str(tokens[1]),
-                   static_cast<Solver::Base>(str_to_uint32(tokens[2])));
+        res = run(sort,
+                  str_to_str(tokens[1]),
+                  static_cast<Solver::Base>(str_to_uint32(tokens[2])));
       }
       else
       {
         assert(sort->is_real());
-        res = _run(sort, str_to_str(tokens[1]), str_to_str(tokens[2]));
+        res = run(sort, str_to_str(tokens[1]), str_to_str(tokens[2]));
       }
       break;
 
@@ -2725,15 +2727,15 @@ ActionMkValue::untrace(const std::vector<std::string>& tokens)
       MURXLA_CHECK_TRACE_NTOKENS(2, tokens.size());
       if (tokens[1] == "true")
       {
-        res = _run(sort, true);
+        res = run(sort, true);
       }
       else if (tokens[1] == "false")
       {
-        res = _run(sort, false);
+        res = run(sort, false);
       }
       else
       {
-        res = _run(sort, str_to_str(tokens[1]));
+        res = run(sort, str_to_str(tokens[1]));
       }
   }
 
@@ -2741,7 +2743,7 @@ ActionMkValue::untrace(const std::vector<std::string>& tokens)
 }
 
 uint64_t
-ActionMkValue::_run(Sort sort, bool val)
+ActionMkValue::run(Sort sort, bool val)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " " << (val ? "true" : "false");
   reset_sat();
@@ -2753,7 +2755,7 @@ ActionMkValue::_run(Sort sort, bool val)
 }
 
 uint64_t
-ActionMkValue::_run(Sort sort, const std::string& val)
+ActionMkValue::run(Sort sort, const std::string& val)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
   reset_sat();
@@ -2766,7 +2768,7 @@ ActionMkValue::_run(Sort sort, const std::string& val)
 }
 
 uint64_t
-ActionMkValue::_run(Sort sort, const std::string& val, size_t len)
+ActionMkValue::run(Sort sort, const std::string& val, size_t len)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
   reset_sat();
@@ -2783,7 +2785,7 @@ ActionMkValue::_run(Sort sort, const std::string& val, size_t len)
 }
 
 uint64_t
-ActionMkValue::_run(Sort sort, const std::string& v0, const std::string& v1)
+ActionMkValue::run(Sort sort, const std::string& v0, const std::string& v1)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << v0 << "\""
                << " \"" << v1 << "\"";
@@ -2796,7 +2798,7 @@ ActionMkValue::_run(Sort sort, const std::string& v0, const std::string& v1)
 }
 
 uint64_t
-ActionMkValue::_run(Sort sort, const std::string& val, Solver::Base base)
+ActionMkValue::run(Sort sort, const std::string& val, Solver::Base base)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\""
                << " " << base;
@@ -2877,25 +2879,25 @@ ActionMkValue::check_value(Term term)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionMkSpecialValue::run(Sort sort)
+ActionMkSpecialValue::generate(Sort sort)
 {
   assert(d_solver.is_initialized());
   SortKind sort_kind         = sort->get_kind();
   const auto& special_values = d_solver.get_special_values(sort_kind);
   assert(!special_values.empty());
-  _run(sort,
-       d_rng.pick_from_set<std::unordered_set<AbsTerm::SpecialValueKind>,
-                           AbsTerm::SpecialValueKind>(special_values));
+  run(sort,
+      d_rng.pick_from_set<std::unordered_set<AbsTerm::SpecialValueKind>,
+                          AbsTerm::SpecialValueKind>(special_values));
   return true;
 }
 
 bool
-ActionMkSpecialValue::run()
+ActionMkSpecialValue::generate()
 {
   /* Pick sort of value. */
   if (!d_smgr.has_sort(d_solver.get_special_values_sort_kinds())) return false;
   Sort sort = d_smgr.pick_sort(d_solver.get_special_values_sort_kinds(), false);
-  return run(sort);
+  return generate(sort);
 }
 
 std::vector<uint64_t>
@@ -2914,13 +2916,13 @@ ActionMkSpecialValue::untrace(const std::vector<std::string>& tokens)
       << "unknown special value " << value << " of sort kind "
       << sort->get_kind();
 
-  res = _run(sort, value);
+  res = run(sort, value);
 
   return {res};
 }
 
 uint64_t
-ActionMkSpecialValue::_run(Sort sort, const AbsTerm::SpecialValueKind& val)
+ActionMkSpecialValue::run(Sort sort, const AbsTerm::SpecialValueKind& val)
 {
   MURXLA_TRACE << get_kind() << " " << sort << " \"" << val << "\"";
   Term res;
@@ -3034,7 +3036,7 @@ ActionInstantiateSort::ActionInstantiateSort(SolverManager& smgr)
 }
 
 bool
-ActionInstantiateSort::run()
+ActionInstantiateSort::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.has_sort_dt_parametric()) return false;
@@ -3047,7 +3049,7 @@ ActionInstantiateSort::run()
     sorts.push_back(
         d_smgr.pick_sort_excluding(d_exclude_sort_param_sort_kinds));
   }
-  _run(param_sort, sorts);
+  run(param_sort, sorts);
   return true;
 }
 
@@ -3061,17 +3063,17 @@ ActionInstantiateSort::untrace(const std::vector<std::string>& tokens)
   {
     sorts.push_back(get_untraced_sort(untrace_str_to_id(tokens[i])));
   }
-  return {_run(param_sort, sorts)->get_id()};
+  return {run(param_sort, sorts)->get_id()};
 }
 
 Sort
-ActionInstantiateSort::_run(Sort param_sort, const std::vector<Sort>& sorts)
+ActionInstantiateSort::run(Sort param_sort, const std::vector<Sort>& sorts)
 {
   MURXLA_TRACE << get_kind() << " " << param_sort << sorts;
   std::unordered_map<Sort, std::vector<std::pair<std::vector<Sort>, Sort>>>
       cache;
   std::vector<std::pair<std::string, Sort>> to_trace;
-  Sort res = _run(param_sort, sorts, cache, to_trace);
+  Sort res = run(param_sort, sorts, cache, to_trace);
   MURXLA_TRACE_RETURN << res;
   for (const auto& p : to_trace)
   {
@@ -3082,7 +3084,7 @@ ActionInstantiateSort::_run(Sort param_sort, const std::vector<Sort>& sorts)
 }
 
 Sort
-ActionInstantiateSort::_run(
+ActionInstantiateSort::run(
     Sort param_sort,
     const std::vector<Sort>& sorts,
     std::unordered_map<Sort, std::vector<std::pair<std::vector<Sort>, Sort>>>&
@@ -3132,7 +3134,7 @@ ActionInstantiateSort::_run(
           }
           if (!cached)
           {
-            ssort = _run(associated_sort, inst_sorts, cache, to_trace);
+            ssort = run(associated_sort, inst_sorts, cache, to_trace);
             assert(ssort->get_id());
             cache[associated_sort].emplace_back(inst_sorts, ssort);
             std::stringstream ss;
@@ -3155,13 +3157,13 @@ ActionInstantiateSort::_run(
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionAssertFormula::run()
+ActionAssertFormula::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
   Term assertion = d_smgr.pick_term(SORT_BOOL, 0);
 
-  _run(assertion);
+  run(assertion);
   return true;
 }
 
@@ -3171,12 +3173,12 @@ ActionAssertFormula::untrace(const std::vector<std::string>& tokens)
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   Term t = get_untraced_term(untrace_str_to_id(tokens[0]));
   MURXLA_CHECK_TRACE_TERM(t, tokens[0]);
-  _run(t);
+  run(t);
   return {};
 }
 
 void
-ActionAssertFormula::_run(Term assertion)
+ActionAssertFormula::run(Term assertion)
 {
   MURXLA_TRACE << get_kind() << " " << assertion;
   reset_sat();
@@ -3186,7 +3188,7 @@ ActionAssertFormula::_run(Term assertion)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionCheckSat::run()
+ActionCheckSat::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.d_incremental && d_smgr.d_n_sat_calls > 0)
@@ -3196,7 +3198,7 @@ ActionCheckSat::run()
   }
   /* Only call action immediately again with low priority. */
   if (d_smgr.d_sat_called && d_rng.pick_with_prob(95)) return false;
-  _run();
+  run();
   return true;
 }
 
@@ -3204,12 +3206,12 @@ std::vector<uint64_t>
 ActionCheckSat::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
-  _run();
+  run();
   return {};
 }
 
 void
-ActionCheckSat::_run()
+ActionCheckSat::run()
 {
   MURXLA_TRACE << get_kind();
   reset_sat();
@@ -3219,7 +3221,7 @@ ActionCheckSat::_run()
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionCheckSatAssuming::run()
+ActionCheckSatAssuming::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.d_incremental)
@@ -3237,7 +3239,7 @@ ActionCheckSatAssuming::run()
   {
     assumptions.push_back(d_smgr.pick_term(SORT_BOOL, 0));
   }
-  _run(assumptions);
+  run(assumptions);
   return true;
 }
 
@@ -3254,12 +3256,12 @@ ActionCheckSatAssuming::untrace(const std::vector<std::string>& tokens)
     MURXLA_CHECK_TRACE_TERM(t, id);
     assumptions.push_back(t);
   }
-  _run(assumptions);
+  run(assumptions);
   return {};
 }
 
 void
-ActionCheckSatAssuming::_run(const std::vector<Term>& assumptions)
+ActionCheckSatAssuming::run(const std::vector<Term>& assumptions)
 {
   MURXLA_TRACE << get_kind() << " " << assumptions.size() << assumptions;
   reset_sat();
@@ -3273,7 +3275,7 @@ ActionCheckSatAssuming::_run(const std::vector<Term>& assumptions)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionGetUnsatAssumptions::run()
+ActionGetUnsatAssumptions::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.d_unsat_assumptions)
@@ -3289,7 +3291,7 @@ ActionGetUnsatAssumptions::run()
     return false;
   }
   if (!d_smgr.has_assumed()) return false;
-  _run();
+  run();
   return true;
 }
 
@@ -3297,12 +3299,12 @@ std::vector<uint64_t>
 ActionGetUnsatAssumptions::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
-  _run();
+  run();
   return {};
 }
 
 void
-ActionGetUnsatAssumptions::_run()
+ActionGetUnsatAssumptions::run()
 {
   MURXLA_TRACE << get_kind();
   /* Note: Unsat assumptions are checked in the checker solver. */
@@ -3312,7 +3314,7 @@ ActionGetUnsatAssumptions::_run()
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionGetUnsatCore::run()
+ActionGetUnsatCore::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.d_unsat_cores)
@@ -3322,7 +3324,7 @@ ActionGetUnsatCore::run()
   }
   if (!d_smgr.d_sat_called) return false;
   if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
-  _run();
+  run();
   return true;
 }
 
@@ -3330,12 +3332,12 @@ std::vector<uint64_t>
 ActionGetUnsatCore::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
-  _run();
+  run();
   return {};
 }
 
 void
-ActionGetUnsatCore::_run()
+ActionGetUnsatCore::run()
 {
   MURXLA_TRACE << get_kind();
   /* Note: The Terms in this vector are solver terms wrapped into Term,
@@ -3353,7 +3355,7 @@ ActionGetValue::ActionGetValue(SolverManager& smgr)
 }
 
 bool
-ActionGetValue::run()
+ActionGetValue::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.has_term()) return false;
@@ -3373,7 +3375,7 @@ ActionGetValue::run()
     SortKind sort_kind = d_smgr.pick_sort_kind(0, d_exclude_sort_kinds);
     terms.push_back(d_smgr.pick_term(sort_kind, 0));
   }
-  _run(terms);
+  run(terms);
   return true;
 }
 
@@ -3390,12 +3392,12 @@ ActionGetValue::untrace(const std::vector<std::string>& tokens)
     MURXLA_CHECK_TRACE_TERM(t, id);
     terms.push_back(t);
   }
-  _run(terms);
+  run(terms);
   return {};
 }
 
 void
-ActionGetValue::_run(const std::vector<Term>& terms)
+ActionGetValue::run(const std::vector<Term>& terms)
 {
   MURXLA_TRACE << get_kind() << " " << terms.size() << terms;
   /* Note: The Terms in this vector are solver terms wrapped into Term,
@@ -3406,7 +3408,7 @@ ActionGetValue::_run(const std::vector<Term>& terms)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionPush::run()
+ActionPush::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.d_incremental)
@@ -3415,7 +3417,7 @@ ActionPush::run()
     return false;
   }
   uint32_t n_levels = d_rng.pick<uint32_t>(1, MURXLA_MAX_N_PUSH_LEVELS);
-  _run(n_levels);
+  run(n_levels);
   return true;
 }
 
@@ -3424,12 +3426,12 @@ ActionPush::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   uint32_t n_levels = str_to_uint32(tokens[0]);
-  _run(n_levels);
+  run(n_levels);
   return {};
 }
 
 void
-ActionPush::_run(uint32_t n_levels)
+ActionPush::run(uint32_t n_levels)
 {
   MURXLA_TRACE << get_kind() << " " << n_levels;
   reset_sat();
@@ -3440,7 +3442,7 @@ ActionPush::_run(uint32_t n_levels)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionPop::run()
+ActionPop::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.d_incremental)
@@ -3450,7 +3452,7 @@ ActionPop::run()
   }
   if (d_smgr.d_n_push_levels == 0) return false;
   uint32_t n_levels = d_rng.pick<uint32_t>(1, d_smgr.d_n_push_levels);
-  _run(n_levels);
+  run(n_levels);
   return true;
 }
 
@@ -3459,12 +3461,12 @@ ActionPop::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
   uint32_t n_levels = str_to_uint32(tokens[0]);
-  _run(n_levels);
+  run(n_levels);
   return {};
 }
 
 void
-ActionPop::_run(uint32_t n_levels)
+ActionPop::run(uint32_t n_levels)
 {
   MURXLA_TRACE << get_kind() << " " << n_levels;
   reset_sat();
@@ -3475,10 +3477,10 @@ ActionPop::_run(uint32_t n_levels)
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionReset::run()
+ActionReset::generate()
 {
   assert(d_solver.is_initialized());
-  _run();
+  run();
   return true;
 }
 
@@ -3486,12 +3488,12 @@ std::vector<uint64_t>
 ActionReset::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
-  _run();
+  run();
   return {};
 }
 
 void
-ActionReset::_run()
+ActionReset::run()
 {
   MURXLA_TRACE << get_kind();
   d_smgr.reset();
@@ -3501,10 +3503,10 @@ ActionReset::_run()
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionResetAssertions::run()
+ActionResetAssertions::generate()
 {
   assert(d_solver.is_initialized());
-  _run();
+  run();
   return true;
 }
 
@@ -3512,12 +3514,12 @@ std::vector<uint64_t>
 ActionResetAssertions::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
-  _run();
+  run();
   return {};
 }
 
 void
-ActionResetAssertions::_run()
+ActionResetAssertions::run()
 {
   MURXLA_TRACE << get_kind();
   reset_sat();
@@ -3528,7 +3530,7 @@ ActionResetAssertions::_run()
 /* -------------------------------------------------------------------------- */
 
 bool
-ActionPrintModel::run()
+ActionPrintModel::generate()
 {
   assert(d_solver.is_initialized());
   if (!d_smgr.d_model_gen)
@@ -3538,7 +3540,7 @@ ActionPrintModel::run()
   }
   if (!d_smgr.d_sat_called) return false;
   if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-  _run();
+  run();
   return true;
 }
 
@@ -3546,12 +3548,12 @@ std::vector<uint64_t>
 ActionPrintModel::untrace(const std::vector<std::string>& tokens)
 {
   MURXLA_CHECK_TRACE_EMPTY(tokens);
-  _run();
+  run();
   return {};
 }
 
 void
-ActionPrintModel::_run()
+ActionPrintModel::run()
 {
   MURXLA_TRACE << get_kind();
   d_solver.print_model();
@@ -3571,7 +3573,7 @@ ActionMkFun::ActionMkFun(SolverManager& smgr)
 }
 
 bool
-ActionMkFun::run()
+ActionMkFun::generate()
 {
   /* Avoid creating functions with quantified variables in the body. */
   if (d_smgr.get_num_vars() > 0) return false;
@@ -3618,7 +3620,7 @@ ActionMkFun::run()
   {
     std::stringstream ss;
     ss << name << "_" << i++;
-    id = d_mkvar._run(s, ss.str())[0];
+    id = d_mkvar.run(s, ss.str())[0];
     args.push_back(d_smgr.get_term(id));
   }
 
@@ -3639,14 +3641,14 @@ ActionMkFun::run()
     {
       continue;
     }
-    d_mkterm.run(op_kind);
+    d_mkterm.generate(op_kind);
     ncreated++;
   }
 
   // Make sure to pick a term that is in the scope of this function.
   size_t min_level = d_smgr.get_num_vars() - args.size() + 1;
   Term body        = d_smgr.pick_term_min_level(codomain_sort, min_level);
-  _run(name, args, body);
+  run(name, args, body);
   return true;
 }
 
@@ -3672,13 +3674,13 @@ ActionMkFun::untrace(const std::vector<std::string>& tokens)
   id        = untrace_str_to_id(tokens[2 + n_args]);
   Term body = get_untraced_term(id);
 
-  return _run(name, args, body);
+  return run(name, args, body);
 }
 
 std::vector<uint64_t>
-ActionMkFun::_run(const std::string& name,
-                  const std::vector<Term>& args,
-                  Term body)
+ActionMkFun::run(const std::string& name,
+                 const std::vector<Term>& args,
+                 Term body)
 {
   MURXLA_TRACE << get_kind() << " \"" << name << "\" " << args.size() << args
                << " " << body;

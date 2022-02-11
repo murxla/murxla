@@ -3150,7 +3150,7 @@ class Cvc5ActionCheckEntailed : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_incremental && d_smgr.d_n_sat_calls > 0) return false;
@@ -3159,7 +3159,7 @@ class Cvc5ActionCheckEntailed : public Action
     if (d_rng.flip_coin())
     {
       Term term = d_smgr.pick_term(SORT_BOOL, 0);
-      _run(term);
+      run(term);
     }
     else
     {
@@ -3172,7 +3172,7 @@ class Cvc5ActionCheckEntailed : public Action
         assert(t->get_sort()->get_kind() == SORT_BOOL);
         terms.push_back(t);
       }
-      _run(terms);
+      run(terms);
     }
     return true;
   }
@@ -3184,7 +3184,7 @@ class Cvc5ActionCheckEntailed : public Action
     {
       Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
       MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-      _run(term);
+      run(term);
     }
     else
     {
@@ -3197,13 +3197,13 @@ class Cvc5ActionCheckEntailed : public Action
         MURXLA_CHECK_TRACE_TERM(term, id);
         terms.push_back(term);
       }
-      _run(terms);
+      run(terms);
     }
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
@@ -3237,7 +3237,7 @@ class Cvc5ActionCheckEntailed : public Action
     }
   }
 
-  void _run(std::vector<Term> terms)
+  void run(std::vector<Term> terms)
   {
     MURXLA_TRACE << get_kind() << " " << terms.size() << terms;
     d_smgr.reset_sat();
@@ -3279,12 +3279,12 @@ class Cvc5ActionSimplify : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term()) return false;
     Term term = d_smgr.pick_term();
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -3293,12 +3293,12 @@ class Cvc5ActionSimplify : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
@@ -3335,7 +3335,7 @@ class Cvc5ActionGetDifficulty : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_sat_called) return false;
@@ -3346,19 +3346,19 @@ class Cvc5ActionGetDifficulty : public Action
       d_disable = true;
       return false;
     }
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
@@ -3375,7 +3375,7 @@ class Cvc5ActionGetInterpolant : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
@@ -3387,7 +3387,7 @@ class Cvc5ActionGetInterpolant : public Action
       return false;
     }
     Term term = d_smgr.pick_term(SORT_BOOL, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -3396,12 +3396,12 @@ class Cvc5ActionGetInterpolant : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
@@ -3434,7 +3434,7 @@ class Cvc5ActionGetAbduct : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
@@ -3446,7 +3446,7 @@ class Cvc5ActionGetAbduct : public Action
       return false;
     }
     Term term = d_smgr.pick_term(SORT_BOOL, 0);
-    _run(term);
+    run(term);
     return true;
   }
 
@@ -3455,12 +3455,12 @@ class Cvc5ActionGetAbduct : public Action
     MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
     Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
     MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    _run(term);
+    run(term);
     return {};
   }
 
  private:
-  void _run(Term term)
+  void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
@@ -3492,7 +3492,7 @@ class Cvc5ActionBlockModel : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.d_model_gen)
@@ -3508,19 +3508,19 @@ class Cvc5ActionBlockModel : public Action
       d_disable = true;
       return false;
     }
-    _run();
+    run();
     return true;
   }
 
   std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
   {
     MURXLA_CHECK_TRACE_EMPTY(tokens);
-    _run();
+    run();
     return {};
   }
 
  private:
-  void _run()
+  void run()
   {
     MURXLA_TRACE << get_kind();
     d_smgr.reset_sat();
@@ -3541,7 +3541,7 @@ class Cvc5ActionBlockModelValues : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term(0)) return false;
@@ -3564,7 +3564,7 @@ class Cvc5ActionBlockModelValues : public Action
     {
       values.push_back(d_smgr.pick_term(0));
     }
-    _run(values);
+    run(values);
     return true;
   }
 
@@ -3580,12 +3580,12 @@ class Cvc5ActionBlockModelValues : public Action
       MURXLA_CHECK_TRACE_TERM(t, id);
       values.push_back(t);
     }
-    _run(values);
+    run(values);
     return {};
   }
 
  private:
-  void _run(const std::vector<Term>& values)
+  void run(const std::vector<Term>& values)
   {
     MURXLA_TRACE << get_kind() << " " << values.size() << values;
     d_smgr.reset_sat();
@@ -3608,7 +3608,7 @@ class Cvc5ActionSortSubstitute : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_sort_with_sort_params()) return false;
@@ -3629,7 +3629,7 @@ class Cvc5ActionSortSubstitute : public Action
       subst_sorts.push_back(subst_sort);
     }
 
-    _run(sort, to_subst_sorts, subst_sorts);
+    run(sort, to_subst_sorts, subst_sorts);
     return true;
   }
 
@@ -3660,14 +3660,14 @@ class Cvc5ActionSortSubstitute : public Action
       idx += 1;
     }
 
-    _run(sort, to_subst_sorts, subst_sorts);
+    run(sort, to_subst_sorts, subst_sorts);
     return {};
   }
 
  private:
-  void _run(Sort sort,
-            std::vector<Sort> to_subst_sorts,
-            std::vector<Sort> subst_sorts)
+  void run(Sort sort,
+           std::vector<Sort> to_subst_sorts,
+           std::vector<Sort> subst_sorts)
   {
     MURXLA_TRACE << get_kind() << " " << sort << " " << to_subst_sorts.size()
                  << to_subst_sorts << " " << subst_sorts.size() << subst_sorts;
@@ -3802,7 +3802,7 @@ class Cvc5ActionTermSubstitute : public Action
   {
   }
 
-  bool run() override
+  bool generate() override
   {
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term()) return false;
@@ -3824,7 +3824,7 @@ class Cvc5ActionTermSubstitute : public Action
       subst_terms.push_back(subst_term);
     }
 
-    _run(term, to_subst_terms, subst_terms);
+    run(term, to_subst_terms, subst_terms);
     return true;
   }
 
@@ -3855,14 +3855,14 @@ class Cvc5ActionTermSubstitute : public Action
       idx += 1;
     }
 
-    _run(term, to_subst_terms, subst_terms);
+    run(term, to_subst_terms, subst_terms);
     return {};
   }
 
  private:
-  void _run(Term term,
-            std::vector<Term> to_subst_terms,
-            std::vector<Term> subst_terms)
+  void run(Term term,
+           std::vector<Term> to_subst_terms,
+           std::vector<Term> subst_terms)
   {
     MURXLA_TRACE << get_kind() << " " << term << " " << to_subst_terms.size()
                  << to_subst_terms << " " << subst_terms.size() << subst_terms;
