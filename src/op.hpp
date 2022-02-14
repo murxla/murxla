@@ -3278,8 +3278,8 @@ struct Op
   /**
    * The arity (number of arguments) of this operator kind.
    *
-   * Is MURXLA_MK_TERM_N_ARGS for n-ary operators that expect at least
-   * one argument, and MURXLA_MK_TERM_N_ARGS_BIN for n-ary operators that
+   * Is #MURXLA_MK_TERM_N_ARGS for n-ary operators that expect at least
+   * one argument, and #MURXLA_MK_TERM_N_ARGS_BIN for n-ary operators that
    * expect at least two arguments.
    */
   int32_t d_arity;
