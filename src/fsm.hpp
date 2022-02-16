@@ -173,8 +173,8 @@ class FSM
       bool fuzz_options,
       std::string fuzz_options_filter,
       statistics::Statistics* stats,
-      const TheoryIdVector& enabled_theories,
-      const TheoryIdSet& disabled_theories,
+      const TheoryVector& enabled_theories,
+      const TheorySet& disabled_theories,
       const std::vector<std::pair<std::string, std::string>> solver_options,
       bool in_untrace_replay_mode);
 

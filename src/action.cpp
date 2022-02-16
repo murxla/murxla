@@ -276,7 +276,7 @@ ActionSetLogic::generate()
 {
   assert(d_solver.is_initialized());
 
-  TheoryIdSet enabled_theories = d_smgr.get_enabled_theories();
+  TheorySet enabled_theories = d_smgr.get_enabled_theories();
   enabled_theories.erase(THEORY_BOOL);
 
   auto it = enabled_theories.find(THEORY_QUANT);

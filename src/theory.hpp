@@ -16,7 +16,7 @@
 
 namespace murxla {
 
-enum TheoryId
+enum Theory
 {
   /**
    * Theory of
@@ -154,9 +154,9 @@ enum TheoryId
 };
 
 /** A `std::vector` of theories. */
-using TheoryIdVector = std::vector<TheoryId>;
+using TheoryVector = std::vector<Theory>;
 /** A `std::unordered_set` of theories. */
-using TheoryIdSet    = std::unordered_set<TheoryId>;
+using TheorySet = std::unordered_set<Theory>;
 
 /**
  * Serialize a theory to given stream.
@@ -165,7 +165,7 @@ using TheoryIdSet    = std::unordered_set<TheoryId>;
  * @param theory  The theory to be serialized.
  * @return     The output stream.
  */
-std::ostream& operator<<(std::ostream& out, TheoryId theory);
+std::ostream& operator<<(std::ostream& out, Theory theory);
 
 }  // namespace murxla
 #endif

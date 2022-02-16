@@ -27,7 +27,7 @@ Op::Op(uint64_t id,
        uint32_t nidxs,
        SortKindSet sort_kinds,
        const std::vector<SortKindSet>& sort_kinds_args,
-       TheoryId theory)
+       Theory theory)
     : d_id(id),
       d_kind(kind),
       d_arity(arity),
@@ -437,7 +437,7 @@ OpKindManager::add_op_kind(const Op::Kind& kind,
                            uint32_t nidxs,
                            SortKind sort_kind,
                            const std::vector<SortKind>& sort_kind_args,
-                           TheoryId theory)
+                           Theory theory)
 {
   /* Operator was disabled. */
   if (d_disabled_op_kinds.find(kind) != d_disabled_op_kinds.end())

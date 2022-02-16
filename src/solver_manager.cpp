@@ -33,8 +33,8 @@ SolverManager::SolverManager(Solver* solver,
                              bool trace_seeds,
                              bool simple_symbols,
                              statistics::Statistics* stats,
-                             const TheoryIdVector& enabled_theories,
-                             const TheoryIdSet& disabled_theories)
+                             const TheoryVector& enabled_theories,
+                             const TheorySet& disabled_theories)
     : d_mbt_stats(stats),
       d_arith_linear(arith_linear),
       d_trace_seeds(trace_seeds),
@@ -138,14 +138,14 @@ SolverManager::get_trace()
 
 /* -------------------------------------------------------------------------- */
 
-const TheoryIdSet&
+const TheorySet&
 SolverManager::get_enabled_theories() const
 {
   return d_enabled_theories;
 }
 
 void
-SolverManager::disable_theory(TheoryId theory)
+SolverManager::disable_theory(Theory theory)
 {
   auto it = d_enabled_theories.find(theory);
   if (it == d_enabled_theories.end()) return;
@@ -449,7 +449,7 @@ SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
 {
   if (with_terms)
   {
-    std::unordered_map<TheoryId, OpKindSet> kinds(d_enabled_op_kinds);
+    std::unordered_map<Theory, OpKindSet> kinds(d_enabled_op_kinds);
     std::vector<Op::Kind> remove;
     for (const auto& [kind, op] : d_available_op_kinds)
     {
@@ -541,12 +541,12 @@ SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
         prob -= 100;
       }
 
-      TheoryId theory = THEORY_ALL;
+      Theory theory = THEORY_ALL;
       if (kinds.size() > min_size && d_rng.pick_with_prob(prob))
       {
         do
         {
-          theory = d_rng.pick_from_map<decltype(kinds), TheoryId>(kinds);
+          theory = d_rng.pick_from_map<decltype(kinds), Theory>(kinds);
         } while (theory == THEORY_ALL || theory == THEORY_BOOL);
       }
       else if (have_bool && d_rng.flip_coin())
@@ -597,12 +597,12 @@ SolverManager::has_theory(bool with_terms)
   return d_enabled_theories.size() > 0;
 }
 
-TheoryId
+Theory
 SolverManager::pick_theory(bool with_terms)
 {
   if (with_terms)
   {
-    TheoryIdSet theories;
+    TheorySet theories;
     for (uint32_t i = 0; i < static_cast<uint32_t>(SORT_ANY); ++i)
     {
       SortKind sort_kind = static_cast<SortKind>(i);
@@ -614,14 +614,14 @@ SolverManager::pick_theory(bool with_terms)
 
       if (has_term(sort_kind))
       {
-        TheoryId theory = d_sort_kinds.find(sort_kind)->second.d_theory;
+        Theory theory = d_sort_kinds.find(sort_kind)->second.d_theory;
         assert(d_enabled_theories.find(theory) != d_enabled_theories.end());
         theories.insert(theory);
       }
     }
-    return d_rng.pick_from_set<decltype(theories), TheoryId>(theories);
+    return d_rng.pick_from_set<decltype(theories), Theory>(theories);
   }
-  return d_rng.pick_from_set<decltype(d_enabled_theories), TheoryId>(
+  return d_rng.pick_from_set<decltype(d_enabled_theories), Theory>(
       d_enabled_theories);
 }
 
@@ -791,7 +791,7 @@ SolverManager::report_result(Solver::Result res)
 }
 
 std::unordered_map<std::string, std::string>
-SolverManager::get_required_options(TheoryId theory) const
+SolverManager::get_required_options(Theory theory) const
 {
   return d_solver->get_required_options(theory);
 }
@@ -1400,19 +1400,19 @@ SolverManager::pick_option(std::string name, std::string val)
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
-                                    const TheoryIdSet& disabled_theories)
+SolverManager::add_enabled_theories(const TheoryVector& enabled_theories,
+                                    const TheorySet& disabled_theories)
 {
   /* Get theories supported by enabled solver. */
-  TheoryIdVector solver_theories = d_profile.get_supported_theories();
+  TheoryVector solver_theories = d_profile.get_supported_theories();
 
   /* Get all theories supported by MBT. */
-  TheoryIdVector all_theories;
+  TheoryVector all_theories;
   if (enabled_theories.empty())
   {
     for (int32_t t = 0; t < THEORY_ALL; ++t)
     {
-      all_theories.push_back(static_cast<TheoryId>(t));
+      all_theories.push_back(static_cast<Theory>(t));
     }
   }
   else
@@ -1430,7 +1430,7 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
   std::sort(solver_theories.begin(), solver_theories.end());
 
   /* Filter out theories not supported by solver. */
-  TheoryIdVector tmp(all_theories.size());
+  TheoryVector tmp(all_theories.size());
   auto it = std::set_intersection(all_theories.begin(),
                                   all_theories.end(),
                                   solver_theories.begin(),
@@ -1439,7 +1439,7 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
 
   /* Resize to intersection size. */
   tmp.resize(it - tmp.begin());
-  d_enabled_theories = TheoryIdSet(tmp.begin(), tmp.end());
+  d_enabled_theories = TheorySet(tmp.begin(), tmp.end());
 
   /* Remove disabled theories. */
   for (auto t : disabled_theories)
@@ -1449,10 +1449,10 @@ SolverManager::add_enabled_theories(const TheoryIdVector& enabled_theories,
 }
 
 SortKindMap
-SolverManager::get_sort_kind_data(const TheoryIdSet& theories)
+SolverManager::get_sort_kind_data(const TheorySet& theories)
 {
   SortKindMap sort_kinds;
-  for (TheoryId theory : theories)
+  for (Theory theory : theories)
   {
     switch (theory)
     {

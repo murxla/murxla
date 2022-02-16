@@ -1282,7 +1282,7 @@ BtorSolver::reset_assertions()
 }
 
 std::unordered_map<std::string, std::string>
-BtorSolver::get_required_options(TheoryId theory) const
+BtorSolver::get_required_options(Theory theory) const
 {
   std::unordered_map<std::string, std::string> reqopts;
   if (theory == THEORY_QUANT)

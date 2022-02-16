@@ -1206,7 +1206,7 @@ ShadowSolver::set_opt(const std::string& opt, const std::string& value)
 }
 
 std::unordered_map<std::string, std::string>
-ShadowSolver::get_required_options(TheoryId theory) const
+ShadowSolver::get_required_options(Theory theory) const
 {
   auto req_opts = d_solver->get_required_options(theory);
 

@@ -34,7 +34,7 @@ class SolverProfile
    * Get the set of supported theories of the wrapped solver.
    * @return  A vector with the set of supported theories.
    */
-  TheoryIdVector get_supported_theories() const;
+  TheoryVector get_supported_theories() const;
 
   /** Get list of unsupported theory combinations. */
   /**
@@ -44,7 +44,7 @@ class SolverProfile
    *
    * @return  A map of theories to a list of unsupported theory combinations.
    */
-  std::unordered_map<TheoryId, std::vector<TheoryId>>
+  std::unordered_map<Theory, std::vector<Theory>>
   get_unsupported_theory_combinations() const;
 
   /**
@@ -222,7 +222,7 @@ class SolverProfile
 
   bool has_key(const std::string& key) const;
 
-  TheoryId to_theory(const std::string& str) const;
+  Theory to_theory(const std::string& str) const;
   SortKind to_sort_kind(const std::string& str) const;
 
   std::vector<std::string> get_array(const std::vector<std::string>& keys,
@@ -234,7 +234,7 @@ class SolverProfile
   std::string d_json_str;
   nlohmann::json d_json;
 
-  std::unordered_map<std::string, TheoryId> d_str_to_theory;
+  std::unordered_map<std::string, Theory> d_str_to_theory;
   std::unordered_map<std::string, SortKind> d_str_to_sort_kind;
 };
 

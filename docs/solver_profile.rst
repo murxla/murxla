@@ -14,7 +14,7 @@ However, the JSON file can be arbitrarily extended with solver-specific keys.
   - ``errors`` (`<Filtering Errors_>`_)
 
 In the following ``<THEORY>`` refers to theories defined in
-:cpp:enum:`murxla::TheoryId`,
+:cpp:enum:`murxla::Theory`,
 ``<SORT>`` refers to any sort kind :cpp:enum:`murxla::SortKind`,
 and ``<OP>`` refers to any operator :cpp:type:`murxla::Op::Kind`.
 
@@ -24,7 +24,7 @@ Theory Restrictions
 The ``theories`` key restricts how Murxla enables/disables theories.
 
 **Available keys:**
-  - ``include``: List of supported theories. (see :cpp:enum:`murxla::TheoryId`)
+  - ``include``: List of supported theories. (see :cpp:enum:`murxla::Theory`)
   - ``exclude-combinations``: Dictionary of unsupported theory combinations.
 
 Supported Theories (required)
@@ -48,7 +48,7 @@ as described below
 
 .. note::
    - The `include` attribute is a required attribute for `theories`.
-   - Any theory from :cpp:enum:`murxla::TheoryId` can be included except
+   - Any theory from :cpp:enum:`murxla::Theory` can be included except
      `THEORY_ALL`.
    - `THEORY_BOOL` is always implicitly included.
 

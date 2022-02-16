@@ -96,9 +96,9 @@ struct SortKindData
    *                floating-point sorts).
    * @param theory  The associated theory.
    */
-  SortKindData(SortKind kind   = SORT_BOOL,
-               int32_t arity   = 0,
-               TheoryId theory = THEORY_BOOL)
+  SortKindData(SortKind kind = SORT_BOOL,
+               int32_t arity = 0,
+               Theory theory = THEORY_BOOL)
       : d_kind(kind), d_arity(arity), d_theory(theory)
   {
   }
@@ -108,7 +108,7 @@ struct SortKindData
   /** The arity of this kind. */
   int32_t d_arity;
   /** The theory of a sort of this kind. */
-  TheoryId d_theory;
+  Theory d_theory;
 };
 
 /** A std::vector of sort kinds. */

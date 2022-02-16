@@ -12,7 +12,7 @@
 namespace murxla {
 
 std::ostream&
-operator<<(std::ostream& out, TheoryId theory)
+operator<<(std::ostream& out, Theory theory)
 {
   switch (theory)
   {

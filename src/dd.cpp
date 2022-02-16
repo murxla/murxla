@@ -857,11 +857,11 @@ DD::minimize_line(Result golden_exit,
 
   /* Create OpKindManager to query Op configuration. */
   statistics::Statistics opmgr_stats;
-  TheoryIdSet opmgr_enabled_theories;
+  TheorySet opmgr_enabled_theories;
   for (int32_t t = 0; t < THEORY_ALL; ++t)
   {
     /* we enable all theories for delta debugging */
-    opmgr_enabled_theories.insert(static_cast<TheoryId>(t));
+    opmgr_enabled_theories.insert(static_cast<Theory>(t));
   }
   OpKindManager opmgr(opmgr_enabled_theories,
                       SolverManager::get_sort_kind_data(opmgr_enabled_theories),

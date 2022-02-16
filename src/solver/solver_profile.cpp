@@ -14,7 +14,7 @@ SolverProfile::SolverProfile(const std::string& json_str) : d_json_str(json_str)
   for (int32_t i = 0; i < THEORY_ALL; ++i)
   {
     std::stringstream ss;
-    TheoryId tid = static_cast<TheoryId>(i);
+    Theory tid = static_cast<Theory>(i);
     ss << tid;
     d_str_to_theory.emplace(ss.str(), tid);
   }
@@ -111,10 +111,10 @@ SolverProfile::merge(const std::string& json_str1, const std::string& json_str2)
   return j1.dump();
 }
 
-TheoryIdVector
+TheoryVector
 SolverProfile::get_supported_theories() const
 {
-  TheoryIdSet solver_theories;
+  TheorySet solver_theories;
   for (const std::string& t : get_array({KEY_THEORIES, "include"}, true))
   {
     solver_theories.insert(to_theory(t));
@@ -122,13 +122,13 @@ SolverProfile::get_supported_theories() const
   // THEORY_BOOL is always enabled.
   solver_theories.insert(THEORY_BOOL);
 
-  return TheoryIdVector(solver_theories.begin(), solver_theories.end());
+  return TheoryVector(solver_theories.begin(), solver_theories.end());
 }
 
-std::unordered_map<TheoryId, std::vector<TheoryId>>
+std::unordered_map<Theory, std::vector<Theory>>
 SolverProfile::get_unsupported_theory_combinations() const
 {
-  std::unordered_map<TheoryId, std::vector<TheoryId>> unsupported;
+  std::unordered_map<Theory, std::vector<Theory>> unsupported;
 
   auto it = d_json.find(KEY_THEORIES);
   if (it != d_json.end())
@@ -138,20 +138,20 @@ SolverProfile::get_unsupported_theory_combinations() const
     {
       for (auto i = itt->begin(); i != itt->end(); ++i)
       {
-        TheoryId tid = to_theory(i.key());
+        Theory tid = to_theory(i.key());
         MURXLA_EXIT_ERROR(!i.value().is_array())
             << "Expected list for " << KEY_THEORIES
             << "::" << KEY_THEORY_COMBINATIONS << "::" << tid;
-        std::unordered_set<TheoryId> theories;
+        std::unordered_set<Theory> theories;
         for (const auto& t : i.value())
         {
-          TheoryId tid = to_theory(t.get<std::string>());
+          Theory tid = to_theory(t.get<std::string>());
           MURXLA_EXIT_ERROR(tid == THEORY_BOOL)
               << tid << " cannot be excluded.";
           theories.insert(tid);
         }
         unsupported.emplace(
-            tid, std::vector<TheoryId>(theories.begin(), theories.end()));
+            tid, std::vector<Theory>(theories.begin(), theories.end()));
       }
     }
   }
@@ -333,7 +333,7 @@ SolverProfile::has_key(const std::string& key) const
   return d_json.find(key) != d_json.end();
 }
 
-TheoryId
+Theory
 SolverProfile::to_theory(const std::string& str) const
 {
   auto it = d_str_to_theory.find(str);

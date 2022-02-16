@@ -107,9 +107,9 @@ struct Options
   std::vector<std::pair<std::string, std::string>> solver_options;
 
   /** The list of currently enabled theories. */
-  TheoryIdVector enabled_theories;
+  TheoryVector enabled_theories;
   /** The list of currently disabled theories. */
-  TheoryIdSet disabled_theories;
+  TheorySet disabled_theories;
 
   /** Command line options to be traced. */
   std::string cmd_line_trace;

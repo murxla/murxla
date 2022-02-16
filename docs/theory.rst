@@ -1,8 +1,8 @@
 Theories
 ========
 
-.. doxygenenum:: murxla::TheoryId
+.. doxygenenum:: murxla::Theory
 
-.. doxygentypedef:: murxla::TheoryIdVector
-.. doxygentypedef:: murxla::TheoryIdSet
-.. doxygenfunction:: murxla::operator<<(std::ostream& out, TheoryId theory)
+.. doxygentypedef:: murxla::TheoryVector
+.. doxygentypedef:: murxla::TheorySet
+.. doxygenfunction:: murxla::operator<<(std::ostream& out, Theory theory)

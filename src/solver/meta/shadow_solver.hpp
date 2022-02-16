@@ -222,7 +222,7 @@ class ShadowSolver : public Solver
   void set_opt(const std::string& opt, const std::string& value) override;
 
   std::unordered_map<std::string, std::string> get_required_options(
-      TheoryId theory) const override;
+      Theory theory) const override;
 
   std::vector<Term> get_value(const std::vector<Term>& terms) override;
 

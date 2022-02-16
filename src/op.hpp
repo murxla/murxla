@@ -3254,7 +3254,7 @@ struct Op
      uint32_t nidxs,
      SortKindSet sort_kinds,
      const std::vector<SortKindSet>& sort_kinds_args,
-     TheoryId theory);
+     Theory theory);
 
   /**
    * Operator overload for equality over operators.
@@ -3297,7 +3297,7 @@ struct Op
    */
   SortKindSet d_sort_kinds;
   /** The theory to which the operator belongs to. */
-  TheoryId d_theory;
+  Theory d_theory;
 
  private:
   /** The sort kind of the term arguments of this kind. */
@@ -3344,7 +3344,7 @@ class OpKindManager
    *                                   linear fragment.
    * @param stats                      The associated statistics object.
    */
-  OpKindManager(const TheoryIdSet& enabled_theories,
+  OpKindManager(const TheorySet& enabled_theories,
                 const SortKindMap& enabled_sort_kinds,
                 const OpKindSet& disabled_op_kinds,
                 const std::unordered_map<Op::Kind, SortKindSet>&
@@ -3389,7 +3389,7 @@ class OpKindManager
                    uint32_t nidxs,
                    SortKind sort_kind,
                    const std::vector<SortKind>& sort_kind_args,
-                   TheoryId theory);
+                   Theory theory);
 
   /**
    * Get a map of enabled operator kinds to their corresponding operator.
@@ -3407,7 +3407,7 @@ class OpKindManager
   /** The set of enabled operator kinds. Maps Op::Kind to Op. */
   OpKindMap d_op_kinds;
   /** The set of enabled theories. */
-  TheoryIdSet d_enabled_theories;
+  TheorySet d_enabled_theories;
   /** Enabled sort kinds. */
   SortKindSet d_enabled_sort_kinds;
   /** The set of disabled operator kinds. */

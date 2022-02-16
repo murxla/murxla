@@ -56,8 +56,8 @@ class SolverManager
                 bool trace_seeds,
                 bool simple_symbols,
                 statistics::Statistics* stats,
-                const TheoryIdVector& enabled_theories,
-                const TheoryIdSet& disabled_theories);
+                const TheoryVector& enabled_theories,
+                const TheorySet& disabled_theories);
   ~SolverManager() = default;
 
   /**
@@ -69,7 +69,7 @@ class SolverManager
   statistics::Statistics* d_mbt_stats;
 
   /** Get sort kind data for specified theories. */
-  static SortKindMap get_sort_kind_data(const TheoryIdSet& theories);
+  static SortKindMap get_sort_kind_data(const TheorySet& theories);
 
   /**
    * Clear all data.
@@ -99,10 +99,10 @@ class SolverManager
   std::string trace_seed() const;
 
   /** Get set of enabled theories. */
-  const TheoryIdSet& get_enabled_theories() const;
+  const TheorySet& get_enabled_theories() const;
 
   /** Remove theory from set of enabled theories. */
-  void disable_theory(TheoryId theory);
+  void disable_theory(Theory theory);
 
   std::ostream& get_trace();
 
@@ -215,7 +215,7 @@ class SolverManager
    */
   bool has_theory(bool with_terms = true);
   /** Pick any of the enabled theories. */
-  TheoryId pick_theory(bool with_terms = true);
+  Theory pick_theory(bool with_terms = true);
 
   /**
    * Pick a value of any sort.
@@ -550,7 +550,7 @@ class SolverManager
 
   /** Get options required for a given theory. */
   std::unordered_map<std::string, std::string> get_required_options(
-      TheoryId theory) const;
+      Theory theory) const;
 
   /** Remove all solver options not matching filter. */
   void filter_solver_options(const std::string& filter);
@@ -630,8 +630,8 @@ class SolverManager
    * All theories supported by a solvers are by default enabled and can
    * optionally be disabled.
    */
-  void add_enabled_theories(const TheoryIdVector& enabled_theories,
-                            const TheoryIdSet& disabled_theories);
+  void add_enabled_theories(const TheoryVector& enabled_theories,
+                            const TheorySet& disabled_theories);
 
   /**
    * Populate sort kinds database with enabled sort kinds.
@@ -690,7 +690,7 @@ class SolverManager
   std::unique_ptr<OpKindManager> d_opmgr;
 
   /** The set of enabled theories. */
-  TheoryIdSet d_enabled_theories;
+  TheorySet d_enabled_theories;
 
   /** Map of available solver options */
   SolverOptions& d_solver_options;
@@ -753,7 +753,7 @@ class SolverManager
    * Cache used by pick_op_kind. Caches operator kinds that are currently
    * safe to pick since the required terms to create an operator already exist.
    */
-  std::unordered_map<TheoryId, OpKindSet> d_enabled_op_kinds;
+  std::unordered_map<Theory, OpKindSet> d_enabled_op_kinds;
 
   /**
    * Cache used by pick_op_kind. Caches available operator kinds reported

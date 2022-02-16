@@ -3013,7 +3013,7 @@ Cvc5Solver::check_term(Term term)
 }
 
 std::unordered_map<std::string, std::string>
-Cvc5Solver::get_required_options(TheoryId theory) const
+Cvc5Solver::get_required_options(Theory theory) const
 {
   std::unordered_map<std::string, std::string> reqopts;
   if (theory == THEORY_BAG)

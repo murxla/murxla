@@ -1862,7 +1862,7 @@ class Solver
    *          options for a given theory.
    */
   virtual std::unordered_map<std::string, std::string> get_required_options(
-      TheoryId theory) const
+      Theory theory) const
   {
     return {};
   }

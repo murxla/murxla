@@ -107,8 +107,8 @@ FSM::FSM(RNGenerator& rng,
          bool fuzz_options,
          std::string fuzz_options_filter,
          statistics::Statistics* stats,
-         const TheoryIdVector& enabled_theories,
-         const TheoryIdSet& disabled_theories,
+         const TheoryVector& enabled_theories,
+         const TheorySet& disabled_theories,
          const std::vector<std::pair<std::string, std::string>> solver_options,
          bool in_untrace_replay_mode)
     : d_smgr(solver,
@@ -151,7 +151,7 @@ FSM::FSM(RNGenerator& rng,
          * of 10%. */
         if (force_theory_enabled || d_rng.pick_with_prob(100))
         {
-          for (TheoryId t : theory_list)
+          for (Theory t : theory_list)
           {
             d_smgr.disable_theory(t);
           }
@@ -169,7 +169,7 @@ FSM::FSM(RNGenerator& rng,
   if (!in_untrace_replay_mode && enabled_theories.empty())
   {
     smgr_enabled_theories = d_smgr.get_enabled_theories();
-    std::vector<TheoryId> enabled;
+    std::vector<Theory> enabled;
     for (auto t : smgr_enabled_theories)
     {
       /* Always keep THEORY_BOOL. */
