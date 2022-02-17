@@ -33,6 +33,17 @@ As a **convention**, an action derived from :cpp:class:`murxla::Action`
    the API of the solver under test directly, without going through the
    solver wrapper API.
 
+Actions are added to states of the FSM via
+:cpp:func:`murxla::State::add_action()` while optionally defining a next
+state to transition into (or remaining in the state it's been added to).
+We further derive a class :cpp:class:`murxla::Transition` from
+:cpp:class:`murxla::Action`, which represents a transition from one state to
+the next without executing any solver API calls (an *empty* action).
+
+Each action added to a state via :cpp:func:`murxla::State::add_action()` has a
+weight, which is defined via its ``priority``, with ``1`` as the highest
+priority, ``UINT32_MAX`` the lowest priority, and ``0`` corresponding to
+disabling the action.
 
 The Base Class for Actions
 --------------------------

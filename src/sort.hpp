@@ -46,7 +46,7 @@ enum SortKind
 
 namespace std {
 
-/** Specialization of std::hash for SortKind. */
+/** Specialization of `std::hash` for SortKind. */
 template <>
 struct hash<murxla::SortKind>
 {
@@ -111,11 +111,11 @@ struct SortKindData
   Theory d_theory;
 };
 
-/** A std::vector of sort kinds. */
+/** A `std::vector` of sort kinds. */
 using SortKindVector = std::vector<SortKind>;
-/** A std::unordered_set of sort kinds. */
+/** A `std::unordered_set` of sort kinds. */
 using SortKindSet    = std::unordered_set<SortKind>;
-/** A std::unordered_map mapping sort kind to its data. */
+/** A `std::unordered_map` mapping sort kind to its data. */
 using SortKindMap    = std::unordered_map<SortKind, SortKindData>;
 
 /**

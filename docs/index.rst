@@ -14,4 +14,4 @@ Table of Contents
   operator
   theory
 
-  fsm/fsm
+  fsm/index

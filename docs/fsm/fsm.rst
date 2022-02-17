@@ -1,7 +1,6 @@
 FSM
 ===
 
-.. toctree::
-  :maxdepth: 2
-
-  action
+.. doxygenclass:: murxla::FSM
+    :members:
+    :undoc-members:

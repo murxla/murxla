@@ -24,7 +24,9 @@ file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
 add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
                    DEPENDS
                      ${PROJECT_SOURCE_DIR}/src/action.hpp
+                     ${PROJECT_SOURCE_DIR}/src/fsm.hpp
                      ${PROJECT_SOURCE_DIR}/src/op.hpp
+                     ${PROJECT_SOURCE_DIR}/src/theory.hpp
                      ${PROJECT_SOURCE_DIR}/src/solver/solver.hpp
                    COMMAND Doxygen::doxygen ${DOXYFILE_OUT}
                    WORKING_DIRECTORY ${DOXYGEN_BIN_DIR}
