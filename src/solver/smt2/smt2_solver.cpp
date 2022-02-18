@@ -18,6 +18,7 @@
 
 #include "exit.hpp"
 #include "murxla.hpp"
+#include "solver/smt2/profile.hpp"
 
 namespace murxla {
 namespace smt2 {
@@ -983,6 +984,12 @@ const std::string
 Smt2Solver::get_name() const
 {
   return "Smt2";
+}
+
+const std::string
+Smt2Solver::get_profile() const
+{
+  return s_profile;
 }
 
 Term

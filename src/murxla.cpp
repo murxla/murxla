@@ -873,6 +873,7 @@ Murxla::load_solver_profile()
   SolverSeedGenerator sng(0);
   Solver* solver      = create_solver(sng);
   std::string profile = solver->get_profile();
+  std::cout << "solver profile: " << profile << std::endl;
   delete solver;
 
   // Merge solver profiles if user specified one.

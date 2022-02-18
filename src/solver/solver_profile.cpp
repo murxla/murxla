@@ -317,6 +317,8 @@ SolverProfile::get_errors() const
 void
 SolverProfile::parse()
 {
+  MURXLA_EXIT_ERROR_CONFIG(d_json_str.empty() || d_json_str == "{}")
+      << "Specified solver profile is empty.";
   try
   {
     d_json = nlohmann::json::parse(d_json_str);
@@ -375,8 +377,7 @@ SolverProfile::get_array(const std::vector<std::string>& keys,
   }
   else if (required)
   {
-    MURXLA_EXIT_ERROR_CONFIG(!it->is_array())
-        << "Expected list for " << join(keys, "::");
+    MURXLA_EXIT_ERROR_CONFIG(true) << "Expected list for " << join(keys, "::");
   }
   return res;
 }
