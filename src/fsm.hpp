@@ -313,6 +313,72 @@ class State
   statistics::Statistics* d_mbt_stats;
 };
 
+/**
+ * The finite-state machine (FSM).
+ *
+ * Valid API call sequences are generated based on an API model which is
+ * implemented as a weighted finite-state machine (FSM).
+ * States correspond to the current state of the SMT solver, and transitions
+ * have a weight, a pre-condition, and an associated action.
+ *
+ * Each State of the FSM may provide a pre-condition that defines when it is
+ * legal to transition into that state. Taking a transition also executes its
+ * action. The associated action of a transition may be empty, in which case it
+ * leads to the next state without calling the solver. The pre-condition of a
+ * transition and the pre-condition of its next state define the conditions
+ * under which the transition can be selected, whereas its weight determines
+ * the probability of it being taken in cases where multiple transitions are
+ * enabled at the same time.
+ *
+ * The weight of a transition is defined via its *priority* when adding
+ * transitions to a state via :cpp:func:`murxla::State::add_action()`. A
+ * priority of ``1`` indicates highest priority, ``UINT32_MAX`` lowest
+ * priority, and ``0`` disables the transition.
+ *
+ * A transition with an associated action is defined by adding a
+ * :cpp:class:`murxla::Action` to a state via
+ * :cpp:func:`murxla::State::add_action()` while defining its priority and next
+ * state. Similarly, empty transitions are added as instances of
+ * :cpp:class:`murxla::Transition`.
+ *
+ * By default, the FSM implements an API model that captures the functionality
+ * and constraints defined in the SMT-LIB standard. Its associated actions call
+ * the Generic Solver API.
+ * Solver wrappers may extend the model with solver-specific states and actions.
+ *
+ * We distinguish three configuration kinds (State::ConfigKind) of states:
+ * **regular** states, **decision** states and **choice** states (see State
+ * for more information).
+ * We further identify one state as the *initial* state, and one state as
+ * the *final* state.
+ *
+ * A **decision state** is a state that only serves as decision point with a
+ * single point of entrance and only specific transitions (the choices to be
+ * made) out of the state. A decision state is not to be extended with any
+ * other actions other than the transitions that represent the choices this
+ * decision state has been created for. From a decision state, we may only
+ * transition into the choice states that represent the valid choices for
+ * this decision.
+ *
+ * A **choice state** is a state that represents a valid choice for a specific
+ * decision. It represents a very specific solver state that is a precondition
+ * for specific actions (solver API calls) to be executed.
+ * Choice states may only be transitioned into from their corresponding
+ * decision state.
+ *
+ * As an example, we use a decision state State::DECIDE_SAT_UNSAT for handling
+ * different solver states after a satisfiability check in state
+ * State::CHECK_SAT. From State::CHECK_SAT, we transition into
+ * State::DECIDE_SAT_UNSAT, from where we transition into either choice state
+ * State::SAT (when the result is *sat* or *unknown*) or State::UNSAT (when the
+ * result is *unsat*). Each choice state configure actions to make additional
+ * queries to the solver under the specific premise that a check-sat call has
+ * been issued and the satisfiability result is either sat or unsat.
+ *
+ * Use FSM::new_decision_state() for creating decision states,
+ * FSM::new_choice_state() for creating choice states,
+ * and FSM::new_final_state for creating the final state.
+ */
 class FSM
 {
  public:
