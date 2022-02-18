@@ -36,43 +36,170 @@ namespace statistics {
 struct Statistics;
 }
 
+/**
+ * A state of the FSM.
+ *
+ * Corresponds to a state of the solver under test.
+ *
+ * We distinguish three configuration kinds (State::ConfigKind) of states:
+ * - **regular** states
+ * - **decision** states
+ * - **choice** states
+ *
+ * We further identify one state as the *initial* state, and one state as
+ * the *final* state.
+ *
+ * A **decision state** is a state that only serves as decision point with a
+ * single point of entrance and only specific transitions (the choices to be
+ * made) out of the state. A decision state is not to be extended with any
+ * other actions other than the transitions that represent the choices this
+ * decision state has been created for. From a decision state, we may only
+ * transition into the choice states that represent the valid choices for
+ * this decision.
+ *
+ * A **choice state** is a state that represents a valid choice for a specific
+ * decision. It represents a very specific solver state that is a precondition
+ * for specific actions (solver API calls) to be executed.
+ * Choice states may only be transitioned into from their corresponding
+ * decision state.
+ *
+ * As an example, we use a decision state #DECIDE_SAT_UNSAT for handling
+ * different solver states after a satisfiability check in state #CHECK_SAT.
+ * From #CHECK_SAT, we transition into #DECIDE_SAT_UNSAT, from where we
+ * transition into either choice state #SAT (when the result is *sat* or
+ * *unknown*) or #UNSAT (when the result is *unsat*).
+ * Each choice state configure actions to make additional queries to the
+ * solver under the specific premise that a check-sat call has been issued and
+ * the satisfiability result is either sat or unsat.
+ */
 class State
 {
   friend class FSM;
 
  public:
+  /**
+   * The kind of a state.
+   *
+   * This is used a state identifier when retrieving states that have been
+   * added to the FSM via FSM::get_state().
+   * We use strings here to make the set of state kinds easily extensible
+   * with solver-specific states.
+   */
   using Kind = std::string;
 
-  /** States of the SMT-LIB API model. */
-  inline static const Kind UNDEFINED     = "undefined";
-  inline static const Kind NEW           = "new";
-  inline static const Kind SET_LOGIC     = "set_logic";
-  inline static const Kind OPT           = "opt";
-  inline static const Kind OPT_REQ       = "opt_req";
-  inline static const Kind DELETE        = "delete";
-  inline static const Kind FINAL         = "final";
-  inline static const Kind CREATE_SORTS  = "create_sorts";
+  /** The undefined state. */
+  inline static const Kind UNDEFINED = "undefined";
+  /**
+   * The state where an instance of the solver under test is created and
+   * initialized.
+   *
+   * By default, this is configured as the **initial** state.
+   */
+  inline static const Kind NEW = "new";
+  /** The state where the logic of the formulas to be created is configured. */
+  inline static const Kind SET_LOGIC = "set_logic";
+  /** The state where solver options are configured. */
+  inline static const Kind OPT = "opt";
+  /**
+   * The state where solver options that are required based on the current
+   * solver configuration are configured (see Solver::get_required_options()).
+   */
+  inline static const Kind OPT_REQ = "opt_req";
+  /**
+   * The state where the instance of the solver under test is deleted (**not**
+   * the final state).
+   */
+  inline static const Kind DELETE = "delete";
+  /**
+   * The final state.
+   *
+   * By default, no actions are performed in this state.
+   */
+  inline static const Kind FINAL = "final";
+  /** The state where sorts of enabled theories are created. */
+  inline static const Kind CREATE_SORTS = "create_sorts";
+  /** The state where inputs with avaible sorts are created. */
   inline static const Kind CREATE_INPUTS = "create_inputs";
-  inline static const Kind CREATE_TERMS  = "create_terms";
-  inline static const Kind ASSERT        = "assert";
-  inline static const Kind MODEL         = "model";
-  inline static const Kind CHECK_SAT     = "check_sat";
-  inline static const Kind SAT           = "sat";
-  inline static const Kind UNSAT         = "unsat";
+  /**
+   * The state where terms are created from available inputs and terms.
+   *
+   * **Precondition:** At least one term (input) must already have been
+   *                   created.
+   */
+  inline static const Kind CREATE_TERMS = "create_terms";
+  /**
+   * The state where formulas (boolean terms) are asserted.
+   *
+   * **Precondition:** At least one boolean term must already have been created.
+   */
+  inline static const Kind ASSERT = "assert";
+  /**
+   * The state where satisfiability is checked, optionally under a given
+   * set of assumptions.
+   * formulas (boolean terms) are asserted.
+   *
+   * Depending on the result of the satisfiability check, by default, from this
+   * state we *always* transition into the #DECIDE_SAT_UNSAT decision state.
+   */
+  inline static const Kind CHECK_SAT = "check_sat";
+  /**
+   * The choice state representing the solver state after a *sat* or *unknown*
+   * result.
+   *
+   * @note If a solver disallows querying model values after an *unknown*
+   * result, introduce a solver-specific choice state for *unknown* and
+   * add a transition from #DECIDE_SAT_UNSAT to this new solver-specific state
+   * accordingly.
+   *
+   * This state may only be entered from the #DECIDE_SAT_UNSAT decision state.
+   */
+  inline static const Kind SAT = "sat";
+  /**
+   * The choice state representing the solver state after an *unsat* result.
+   *
+   * This state may only be entered from the #DECIDE_SAT_UNSAT decision state.
+   */
+  inline static const Kind UNSAT = "unsat";
+  /** The state where context levels are pushed and popped. */
   inline static const Kind PUSH_POP      = "push_pop";
-  /** Decision states of this API model. */
+  /**
+   * The decision state that is reached immediately after an action is executed
+   * in state #CHECK_SAT.
+   * This state is where it is decided which one of the corresponding choice
+   * states #SAT and #UNSAT to enter, depending on the satisfiability result.
+   *
+   * As a decision state, it only serves as decision point for which choice
+   * state to transition into, with a single point of entrance (from state
+   * #CHECK_SAT) and only specific transitions (the choices to be made) out of
+   * the state.
+   */
   inline static const Kind DECIDE_SAT_UNSAT = "decide-sat_unsat";
 
+  /** The configuration kind of a state. */
   enum ConfigKind
   {
+    /** Regular state. */
     REGULAR,
+    /** Decision state. */
     DECISION,
+    /** Choice state. */
     CHOICE,
   };
 
   /** Default constructor. */
   State() : d_kind(UNDEFINED), d_is_final(false) {}
-  /** Constructor. */
+  /**
+   * Constructor.
+   *
+   * @param kind      The kind of the state.
+   * @param fun       The precondition of the state.
+   * @param ignore    True if the state should be ignored when adding actions
+   *                  to all states (add_action_to_all_states), or adding all
+   *                  configured states as next state for a transition
+   *                  (add_action_to_all_states_next).
+   * @param is_final  True if state is a final state.
+   * @param config    The configuration kind of the state.
+   */
   State(const Kind& kind,
         std::function<bool(void)> fun,
         bool ignore,
@@ -90,39 +217,69 @@ class State
            "adjusting value of macro MURXLA_MAX_KIND_LEN in config.hpp";
   }
 
-  /** Return the identifier of this state. */
+  /**
+   * Get the kind of this state.
+   * @return  The kind of this state.
+   */
   const Kind& get_kind() { return d_kind; }
 
-  /** Return the configuration of this state. */
+  /**
+   * Get the configuration kind of this state.
+   * @return  The configuration kind of this state.
+   */
   ConfigKind get_config() { return d_config; }
 
-  /** Return the id of this state. */
+  /**
+   * Get the id of this state.
+   * @return  The id of this state.
+   */
   const uint64_t get_id() const { return d_id; }
-  /** Set the id of this state. */
+  /**
+   * Set the id of this state.
+   * @param id  The unique identifier of this state.
+   */
   void set_id(uint64_t id) { d_id = id; }
 
-  /** Returns true if state is a final state. */
+  /**
+   * Determine if this state is a final state.
+   * @return  True if this state is a final state.
+   */
   bool is_final() { return d_is_final; }
 
-  /** Update the function defining the precondition for entering the state. */
+  /**
+   * Update the function defining the precondition for entering the state.
+   * @param fun  The new precondition.
+   */
   void update_precondition(std::function<bool(void)> fun) { f_precond = fun; }
 
-  /** Runs actions associated with this state. */
+  /**
+   * Take one of the transitions (and execute its associated action) associated
+   * with this state. Transitions with higher weight, are picked with a higher
+   * probability.
+   *
+   * @param rng  The associated random number generator.
+   * @return  The next state.
+   */
   State* run(RNGenerator& rng);
 
   /**
    * Add action to this state.
-   * action  : The action to add.
-   * priority: The priority of the action, determines the weight, and thus the
-   *           probability to choose running the action. The actual weight of
-   *           the action is computed as sum/priority, with <sum> being the
-   *           sum of the priorities of all actions in that state.
-   * next    : The state to transition into after running the action. Optional,
-   *           if not set, we stay in the current state.
+   *
+   * @param action    The action to add.
+   * @param priority  The priority of the action, determines the weight, and
+   *                  thus the probability to choose running the action. The
+   *                  actual weight of the action is computed as
+   *                  `sum/priority`, with `sum` being the sum of the
+   *                  priorities of all actions in that state.
+   * @param next      The state to transition into after running the action.
+   *                  Optional, if not set, we stay in the current state.
    */
   void add_action(Action* action, uint32_t priority, State* next = nullptr);
 
-  /** Disable action of given `kind`. This will set the priority to 0. */
+  /**
+   * Disable action of given `kind`. This will set the priority to 0.
+   * @param kind  The kind of the action to disable.
+   */
   void disable_action(Action::Kind kind);
 
  private:
@@ -195,19 +352,26 @@ class FSM
 
   /**
    * Create and add a new state.
-   * kind    : A unique string identifying the state.
-   * fun     : The precondition for transitioning to the next state.
-   * ignore  : True if this state should be ignored when adding actions to
-   *           all states (add_action_to_all_states), or adding all configured
-   *           states as next state for a transition
-   *           (add_action_to_all_states_next).
-   * is_final: True if this is the final state.
+   *
+   * Use FSM::new_decision_state() for creating decision states,
+   * FSM::new_choice_state() for creating choice states,
+   * and FSM::new_final_state for creating the final state.
+   *
+   * @param kind      The kind of the state.
+   * @param fun       The precondition of the state.
+   * @param ignore    True if the state should be ignored when adding actions
+   *                  to all states (add_action_to_all_states), or adding all
+   *                  configured states as next state for a transition
+   *                  (add_action_to_all_states_next).
+   * @param is_final  True if state is a final state.
+   * @param config    The configuration kind of the state.
+   * @return  The created state.
    */
-  State* new_state(const std::string& kind,
+  State* new_state(const State::Kind& kind,
                    std::function<bool(void)> fun = nullptr,
                    bool ignore                   = false,
                    bool is_final                 = false,
-                   State::ConfigKind             = State::ConfigKind::REGULAR);
+                   State::ConfigKind config      = State::ConfigKind::REGULAR);
   /**
    * Create and add a new decision state.
    *
@@ -216,16 +380,23 @@ class FSM
    * made) out of the state. A decision state is not to be extended with any
    * other actions other than the transitions that represent the choices this
    * decision state has been created for.
+   * From a decision state, we may only transition into the choice states that
+   * represent the valid choices for this decision.
    *
-   * As an example, we use a decision state from the check-sat state to
-   * transition into two states, a sat and an unsat state, which allow
-   * additional queries under the specific premise that a check-sat call has
-   * been issued and the sat result is either sat or unsat.
+   * As an example, we use a decision state #DECIDE_SAT_UNSAT for handling
+   * different solver states after a satisfiability check in state #CHECK_SAT.
+   * From #CHECK_SAT, we transition into #DECIDE_SAT_UNSAT, from where we
+   * transition into either choice state #SAT (when the result is *sat* or
+   * *unknown*) or #UNSAT (when the result is *unsat*).
+   * Each choice state configure actions to make additional queries to the
+   * solver under the specific premise that a check-sat call has been issued and
+   * the satisfiability result is either sat or unsat.
    *
-   * Note: A decision state is never final.
+   * @note  A decision state is never final.
    *
-   * kind: A unique string identifying the state.
-   * fun : The precondition for transitioning to the next state.
+   * @param kind  A unique string identifying the state.
+   * @param fun   The precondition for transitioning into the state.
+   * @return  The created decision state.
    */
   State* new_decision_state(const std::string& kind,
                             std::function<bool(void)> fun = nullptr);
@@ -233,14 +404,19 @@ class FSM
   /**
    * Create and add a new choice state.
    *
-   * A choice is a state that we transition into from a decision state.
+   * A choice state is a state that represents a valid choice for a specific
+   * decision. It represents a very specific solver state that is a precondition
+   * for specific actions (solver API calls) to be executed.
+   * Choice states may only be transitioned into from their corresponding
+   * decision state.
    *
-   * As an example, the sat and unsat states are choice states.
+   * As an example, states #SAT and #UNSAT are choice states.
    *
-   * Note: A choice state can be final.
+   * @note  A choice state can be final.
    *
-   * kind: A unique string identifying the state.
-   * fun : The precondition for transitioning to the next state.
+   * @param kind  The kind of the state.
+   * @param fun   The precondition for transitioning into the state.
+   * @return  The created choice state.
    */
   State* new_choice_state(const std::string& kind,
                           std::function<bool(void)> fun = nullptr,
@@ -252,10 +428,11 @@ class FSM
    * (add_action_to_all_states), or adding all configured stats as next state
    * for a transition (add_action_to_all_states_next).
    *
-   * Note: A final state is never a decision state.
+   * @note  A final state is never a decision state.
    *
-   * kind: A unique string identifying the state.
-   * fun : The precondition for transitioning to the next state.
+   * @param kind  The kind of the state.
+   * @param fun   The precondition for transitioning into the state.
+   * @return  The created choice state.
    */
   State* new_final_state(const std::string& kind,
                          std::function<bool(void)> fun = nullptr);
@@ -326,7 +503,7 @@ class FSM
   /** Check configured states for unreachable states and infinite loops. */
   void check_states();
   /** Get state with given id. */
-  State* get_state(const std::string& kind) const;
+  State* get_state(const State::Kind& kind) const;
   /** Run state machine. */
   void run();
   /** Configure state machine with base configuration. */
