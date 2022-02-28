@@ -130,7 +130,7 @@ class TermDb
   size_t max_level() const;
 
   /** Get the number of available variables. */
-  uint32_t get_num_vars() const;
+  size_t get_num_vars() const;
 
   /**
    * Add term to database.
@@ -279,7 +279,7 @@ class TermDb
    * Pick 'num_vars' variables.
    * Requires that at least 'num_vars' variables exist.
    */
-  std::vector<Term> pick_vars(uint32_t num_vars) const;
+  std::vector<Term> pick_vars(size_t num_vars) const;
   /**
    * Pick Boolean term from current scope.
    * Requires that a Boolean term exists at the current scope level.
@@ -372,7 +372,7 @@ class TermDb
   std::unordered_map<uint64_t, Term> d_terms_intermediate;
 
   /** Maps function term arity to function terms. */
-  std::unordered_map<uint32_t, std::unordered_set<Term>> d_funs;
+  std::unordered_map<size_t, std::unordered_set<Term>> d_funs;
 
   /** Maps scope level to variable that opened the scope. */
   std::vector<Term> d_vars;

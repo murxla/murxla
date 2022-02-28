@@ -100,7 +100,7 @@ mult_unbounded_bin_str(std::string a, std::string b)
   size_t rsize = asize + bsize;
 
   std::string res(rsize, '0');
-  for (uint32_t i = 0, n = a.size(); i < n; ++i) res[bsize + i] = a[i];
+  for (size_t i = 0, n = a.size(); i < n; ++i) res[bsize + i] = a[i];
 
   for (size_t i = 0; i < asize; ++i)
   {
@@ -173,7 +173,7 @@ str_bin_to_hex(const std::string& str_bin)
   std::vector<std::string> stack;
   for (size_t i = 0, n = str_bin.size(); i < n; i += 4)
   {
-    uint32_t len = n - i >= 4 ? 4 : n - i;
+    size_t len = n - i >= 4 ? 4 : n - i;
     std::string chunk(len, 0);
     for (uint32_t j = 0; j <= len; ++j) chunk[len - j] = str_bin[n - i - j];
     stack.push_back(s_hex_lookup.at(chunk));
@@ -204,7 +204,7 @@ str_bin_to_dec(const std::string& str_bin, bool sign)
     {
       uint32_t d = digit * 2 + carry;
       carry      = d > 9;
-      digit      = d % 10;
+      digit      = static_cast<char>(d % 10);
     }
     // add new bit
     if (c == '1') digits[0] |= 1;
@@ -389,7 +389,8 @@ str_to_uint32(const std::string& s)
 {
   assert(!s.empty());
   assert(s[0] != '-');
-  return std::stoul(s);  // throws exception if conversion not successful
+  // throws exception if conversion not successful
+  return static_cast<uint32_t>(std::stoul(s));
 }
 
 uint64_t

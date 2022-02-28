@@ -669,7 +669,7 @@ Murxla::run_aux(uint64_t seed,
   {
     /* If a time limit is given, fork another process that kills the pid_solver
      * after time seconds. (https://stackoverflow.com/a/8020324) */
-    if (time)
+    if (time != 0)
     {
       pid_timeout = fork();
 
@@ -678,7 +678,7 @@ Murxla::run_aux(uint64_t seed,
       if (pid_timeout == 0)
       {
         signal(SIGINT, SIG_DFL);  // reset stats signal handler
-        usleep(time * 1000000);
+        usleep(static_cast<__useconds_t>(time * 1000000));
         exit(EXIT_OK);
       }
     }
@@ -836,7 +836,7 @@ Murxla::add_error(const std::string& err, uint64_t seed)
 
     size_t len   = std::max(err_norm.size(), e_norm.size());
     size_t diff  = str_diff(err_norm, e_norm);
-    double pdiff = diff / static_cast<double>(len);
+    double pdiff = static_cast<double>(diff) / static_cast<double>(len);
 
     /* Errors are classified as the same error if they differ in at most 5% of
      * characters. */

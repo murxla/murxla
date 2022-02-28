@@ -905,8 +905,10 @@ BzlaSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       {
         domain.push_back(BzlaSort::get_bzla_sort(*it));
       }
-      bzla_res = bitwuzla_mk_fun_sort(
-          d_solver, domain.size(), domain.data(), codomain);
+      bzla_res = bitwuzla_mk_fun_sort(d_solver,
+                                      static_cast<uint32_t>(domain.size()),
+                                      domain.data(),
+                                      codomain);
       break;
     }
 
@@ -979,8 +981,11 @@ BzlaSolver::mk_fun(const std::string& name,
       BzlaTerm::terms_to_bzla_terms(args);
   bzla_args.push_back(BzlaTerm::get_bzla_term(body));
 
-  const BitwuzlaTerm* bzla_res = bitwuzla_mk_term(
-      d_solver, BITWUZLA_KIND_LAMBDA, bzla_args.size(), bzla_args.data());
+  const BitwuzlaTerm* bzla_res =
+      bitwuzla_mk_term(d_solver,
+                       BITWUZLA_KIND_LAMBDA,
+                       static_cast<uint32_t>(bzla_args.size()),
+                       bzla_args.data());
   bitwuzla_term_set_symbol(bzla_res, name.c_str());
 
   MURXLA_TEST(bzla_res);
@@ -1249,9 +1254,9 @@ BzlaSolver::mk_term(const Op::Kind& kind,
     {
       bzla_res = bitwuzla_mk_term_indexed(d_solver,
                                           bzla_kind,
-                                          n_args,
+                                          static_cast<uint32_t>(n_args),
                                           bzla_args.data(),
-                                          n_indices,
+                                          static_cast<uint32_t>(n_indices),
                                           indices.data());
     }
   }
@@ -1309,8 +1314,10 @@ BzlaSolver::mk_term(const Op::Kind& kind,
       }
       else
       {
-        bzla_res =
-            bitwuzla_mk_term(d_solver, bzla_kind, n_args, bzla_args.data());
+        bzla_res = bitwuzla_mk_term(d_solver,
+                                    bzla_kind,
+                                    static_cast<uint32_t>(n_args),
+                                    bzla_args.data());
       }
     }
   }
@@ -1486,7 +1493,9 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   if (info.is_numeric)
   {
     uint32_t val =
-        value == "true" ? 1 : (value == "false" ? 0 : std::stoul(value));
+        value == "true"
+            ? 1
+            : (value == "false" ? 0 : static_cast<uint32_t>(std::stoul(value)));
 
     if (bzla_opt == BITWUZLA_OPT_INCREMENTAL)
     {
@@ -1896,8 +1905,11 @@ class BzlaActionGetFunValue : public Action
         {
           fun_args.push_back(bzla_args[i][j]);
         }
-        const BitwuzlaTerm* bzla_apply = bitwuzla_mk_term(
-            bzla, BITWUZLA_KIND_APPLY, fun_args.size(), fun_args.data());
+        const BitwuzlaTerm* bzla_apply =
+            bitwuzla_mk_term(bzla,
+                             BITWUZLA_KIND_APPLY,
+                             static_cast<uint32_t>(fun_args.size()),
+                             fun_args.data());
         const BitwuzlaTerm* bzla_eq = bitwuzla_mk_term2(
             bzla, BITWUZLA_KIND_EQUAL, bzla_apply, bzla_vals[i]);
         assumptions.push_back(std::shared_ptr<BzlaTerm>(new BzlaTerm(bzla_eq)));
@@ -2176,9 +2188,9 @@ class BzlaActionSubstituteTerm : public Action
       /* Pick term to substitute. */
       std::vector<Term> sub_terms = get_sub_terms(term);
       if (sub_terms.empty()) return false;
-      uint32_t n_subst_terms = d_rng.pick<uint32_t>(
+      size_t n_subst_terms = d_rng.pick<size_t>(
           1, std::min<size_t>(sub_terms.size(), MAX_N_SUBST_TERMS));
-      for (uint32_t j = 0; j < n_subst_terms; ++j)
+      for (size_t j = 0; j < n_subst_terms; ++j)
       {
         Term to_subst_term =
             d_rng.pick_from_set<decltype(sub_terms), Term>(sub_terms);

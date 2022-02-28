@@ -52,15 +52,15 @@ remove_subsets(std::vector<std::vector<size_t>>& subsets,
  * does not divide superset.size().
  */
 std::vector<std::vector<size_t>>
-split_superset(const std::vector<size_t> superset, uint32_t subset_size)
+split_superset(const std::vector<size_t> superset, size_t subset_size)
 {
   std::vector<std::vector<size_t>> subsets;
-  uint32_t superset_size = superset.size();
+  size_t superset_size   = superset.size();
   auto begin             = superset.begin();
   auto end               = superset.begin();
-  for (int64_t lo = 0; end != superset.end(); lo += subset_size)
+  for (size_t lo = 0; end != superset.end(); lo += subset_size)
   {
-    int64_t hi = lo + subset_size;
+    size_t hi  = lo + subset_size;
     end        = hi > superset_size || (superset_size - hi) < subset_size
                      ? superset.end()
                      : begin + hi;
@@ -246,9 +246,9 @@ DD::run(const std::string& input_trace_file_name,
 
     MURXLA_MESSAGE_DD << "written to: " << reduced_trace_file_name.c_str();
     MURXLA_MESSAGE_DD << "file reduced to "
-                      << ((double) filesystem::file_size(
-                              reduced_trace_file_name)
-                          / size * 100)
+                      << (static_cast<double>(
+                              filesystem::file_size(reduced_trace_file_name))
+                          / static_cast<double>(size) * 100)
                       << "% of original size";
   }
   else
@@ -307,7 +307,8 @@ DD::minimize_lines(Result golden_exit,
       subset_size    = n_lines_cur / 2;
       MURXLA_MESSAGE_DD << ">> number of lines reduced to " << std::fixed
                         << std::setprecision(2)
-                        << (((double) included_lines.size()) / n_lines * 100)
+                        << (static_cast<double>(included_lines.size())
+                            / static_cast<double>(n_lines) * 100)
                         << "% of original number";
     }
   }
@@ -781,7 +782,7 @@ DD::minimize_line_aux(Result golden_exit,
   size_t line_size = lines[line_idx_first][0].size();
   std::vector<size_t> line_superset(n_args);
   std::iota(line_superset.begin(), line_superset.end(), 0);
-  uint32_t subset_size = n_args / 2;
+  size_t subset_size = n_args / 2;
 
   while (subset_size > 0)
   {
@@ -837,8 +838,8 @@ DD::minimize_line_aux(Result golden_exit,
       res           = true;
       MURXLA_MESSAGE_DD << ">> line " << line_idx_first << " reduced to "
                         << std::fixed << std::setprecision(2)
-                        << (((double) lines[line_idx_first][0].size())
-                            / line_size * 100)
+                        << (static_cast<double>(lines[line_idx_first][0].size())
+                            / static_cast<double>(line_size) * 100)
                         << "% of original size";
     }
   }

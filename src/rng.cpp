@@ -51,11 +51,11 @@ RNGenerator::RNGenerator(uint64_t seed) : d_seed(seed)
 
   /* generate set of printable characters */
   uint32_t i = 32;
-  for (uint32_t i = 32; i < 256; ++i)
+  for (; i < 256; ++i)
   {
     // Skip characters not allowed in SMT2 symbols
     if (i == '|' || i == '\\' || i == 127) continue;
-    d_printable_chars.push_back(i);
+    d_printable_chars.push_back(static_cast<char>(i));
   }
 
   /* A-F */
@@ -141,7 +141,7 @@ RNGenerator::pick_string(std::string& chars, uint32_t len)
   if (len == 0) return "";
   std::string str(len, 0);
   std::generate_n(str.begin(), len, [this, &chars]() {
-    return chars[pick<uint32_t>(0, chars.size() - 1)];
+    return chars[pick<size_t>(0, chars.size() - 1)];
   });
   return str;
 }
@@ -333,7 +333,7 @@ RNGenerator::pick_unicode_character()
   bool use_braces = true;
   if (len == 5)
   {
-    digits.push_back(pick<uint32_t>('0', '2'));
+    digits.push_back(pick<char>('0', '2'));
   }
   else if (len == 4)
   {

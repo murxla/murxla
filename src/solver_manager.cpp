@@ -174,7 +174,7 @@ SolverManager::get_num_terms_max_level() const
   return d_term_db.get_num_terms(d_term_db.max_level());
 }
 
-uint32_t
+size_t
 SolverManager::get_num_vars() const
 {
   return d_term_db.get_num_vars();
@@ -708,7 +708,7 @@ SolverManager::pick_var()
 }
 
 std::vector<Term>
-SolverManager::pick_vars(uint32_t num_vars) const
+SolverManager::pick_vars(size_t num_vars) const
 {
   return d_term_db.pick_vars(num_vars);
 }

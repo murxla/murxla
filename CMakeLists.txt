@@ -52,6 +52,7 @@ elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 add_check_cxx_flag("-Wall")
+add_check_cxx_flag("-Wconversion")
 
 if(ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,

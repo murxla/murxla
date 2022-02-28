@@ -215,7 +215,7 @@ TermDb::max_level() const
   return d_vars.size() - 1;
 }
 
-uint32_t
+size_t
 TermDb::get_num_vars() const
 {
   return d_vars.size() - 1;
@@ -302,7 +302,7 @@ TermDb::add_term(Term& term,
       if (sort_kind == SORT_FUN)
       {
         // last sort in get_sorts() is codomain sort
-        uint32_t arity = term->get_sort()->get_sorts().size() - 1;
+        size_t arity = term->get_sort()->get_sorts().size() - 1;
         d_funs[arity].insert(term);
       }
     }
@@ -512,7 +512,7 @@ TermDb::has_term() const
 bool
 TermDb::has_fun(const std::vector<Sort>& domain_sorts) const
 {
-  uint32_t arity = domain_sorts.size();
+  size_t arity = domain_sorts.size();
   if (d_funs.find(arity) == d_funs.end()) return false;
   for (const auto& t : d_funs.at(arity))
   {
@@ -710,7 +710,7 @@ Term
 TermDb::pick_fun(const std::vector<Sort>& domain_sorts)
 {
   assert(has_fun(domain_sorts));
-  uint32_t arity = domain_sorts.size();
+  size_t arity = domain_sorts.size();
   std::vector<Term> funs;
   for (const auto& t : d_funs.at(arity))
   {
@@ -821,7 +821,7 @@ TermDb::pick_var() const
 }
 
 std::vector<Term>
-TermDb::pick_vars(uint32_t num_vars) const
+TermDb::pick_vars(size_t num_vars) const
 {
   assert(d_vars.size() > num_vars);
   std::vector<Term> res;

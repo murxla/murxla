@@ -326,7 +326,7 @@ uint32_t
 Smt2Sort::get_fun_arity() const
 {
   assert(is_fun());
-  return d_sorts.size() - 1;
+  return static_cast<uint32_t>(d_sorts.size() - 1);
 }
 
 Sort

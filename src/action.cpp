@@ -1475,7 +1475,7 @@ ActionMkTerm::generate(Op::Kind kind)
       assert(d_smgr.has_var());
       assert(d_smgr.has_quant_body());
       Term body = d_smgr.pick_quant_body();
-      uint32_t n_vars = d_rng.pick<uint32_t>(1, d_smgr.get_num_vars());
+      size_t n_vars = d_rng.pick<size_t>(1, d_smgr.get_num_vars());
       if (n_vars > 1)
       {
         std::vector<Term> vars = d_smgr.pick_vars(n_vars);
@@ -1622,7 +1622,7 @@ ActionMkTerm::generate(Op::Kind kind)
       Term term = d_smgr.pick_quant_term();
       args.push_back(body);
       args.push_back(term);
-      uint32_t n_vars = d_rng.pick<uint32_t>(1, d_smgr.get_num_vars());
+      size_t n_vars = d_rng.pick<size_t>(1, d_smgr.get_num_vars());
       if (n_vars > 1)
       {
         args.push_back(d_smgr.pick_var());
@@ -1936,13 +1936,13 @@ ActionMkTerm::generate()
       const auto& sel_names = dt_sort->get_dt_sel_names(ctor);
       std::vector<Term> match_case_args;
       std::vector<std::string> match_case_ctor;
-      uint32_t match_case_id;
+      uint64_t match_case_id;
       Op::Kind match_case_kind;
 
       /* Pick variable pattern with 10% probability. */
       if (d_rng.pick_with_prob(10))
       {
-        uint32_t var_id = mkvar.run(dt_sort, d_smgr.pick_symbol())[0];
+        auto var_id = mkvar.run(dt_sort, d_smgr.pick_symbol())[0];
         match_case_args.push_back(d_smgr.get_term(var_id));
         match_case_kind = Op::DT_MATCH_BIND_CASE;
         match_var       = true;
@@ -1957,7 +1957,7 @@ ActionMkTerm::generate()
           for (const auto& sel : sel_names)
           {
             /* Create variable of selector codomain sort for each selector. */
-            uint32_t var_id =
+            auto var_id =
                 mkvar.run(dt_sort->get_dt_sel_sort(dt_sort, ctor, sel),
                           d_smgr.pick_symbol())[0];
             match_case_args.push_back(d_smgr.get_term(var_id));
@@ -2001,10 +2001,10 @@ ActionMkTerm::generate()
     /* We need at least one variable pattern if not all cases are matched. */
     if (!match_all && !match_var)
     {
-      uint32_t var_id = mkvar.run(dt_sort, d_smgr.pick_symbol())[0];
+      auto var_id = mkvar.run(dt_sort, d_smgr.pick_symbol())[0];
       std::vector<Term> match_case_args{d_smgr.get_term(var_id),
                                         d_smgr.pick_term(sort)};
-      uint32_t match_case_id = run(
+      auto match_case_id = run(
           Op::DT_MATCH_BIND_CASE, sort_kind, dt_sort, {}, match_case_args)[0];
       args.push_back(d_smgr.get_term(match_case_id));
     }
@@ -2026,7 +2026,7 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
 
   std::vector<Term> args;
   std::vector<uint32_t> indices;
-  uint32_t n_tokens  = tokens.size();
+  size_t n_tokens    = tokens.size();
   Op::Kind op_kind   = tokens[0];
   SortKind sort_kind = get_sort_kind_from_str(tokens[1]);
   Sort sort;
@@ -2047,7 +2047,7 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   else if (op_kind == Op::DT_APPLY_CONS || op_kind == Op::DT_MATCH_CASE
            || op_kind == Op::DT_MATCH_BIND_CASE)
   {
-    uint32_t id = untrace_str_to_id(tokens[2]);
+    auto id     = untrace_str_to_id(tokens[2]);
     sort        = get_untraced_sort(id);
     n_str_args  = str_to_uint32(tokens[idx++]);
     for (uint32_t i = 0; i < n_str_args; ++i, ++idx)
@@ -2066,7 +2066,7 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
 
   for (uint32_t i = 0; i < n_args; ++i, ++idx)
   {
-    uint32_t id = untrace_str_to_id(tokens[idx]);
+    auto id     = untrace_str_to_id(tokens[idx]);
     Term t      = get_untraced_term(id);
     MURXLA_CHECK_TRACE_TERM(t, id);
     args.push_back(t);
@@ -3042,9 +3042,9 @@ ActionInstantiateSort::generate()
   if (!d_smgr.has_sort_dt_parametric()) return false;
   if (!d_smgr.has_sort_excluding(d_exclude_sort_param_sort_kinds)) return false;
   Sort param_sort   = d_smgr.pick_sort_dt_param();
-  uint32_t n_params = param_sort->get_sorts().size();
+  size_t n_params   = param_sort->get_sorts().size();
   std::vector<Sort> sorts;
-  for (uint32_t i = 0; i < n_params; ++i)
+  for (size_t i = 0; i < n_params; ++i)
   {
     sorts.push_back(
         d_smgr.pick_sort_excluding(d_exclude_sort_param_sort_kinds));
@@ -3251,7 +3251,7 @@ ActionCheckSatAssuming::untrace(const std::vector<std::string>& tokens)
   uint32_t n_args = str_to_uint32(tokens[0]);
   for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
   {
-    uint32_t id = untrace_str_to_id(tokens[idx]);
+    auto id     = untrace_str_to_id(tokens[idx]);
     Term t      = get_untraced_term(id);
     MURXLA_CHECK_TRACE_TERM(t, id);
     assumptions.push_back(t);
@@ -3387,7 +3387,7 @@ ActionGetValue::untrace(const std::vector<std::string>& tokens)
   uint32_t n_args = str_to_uint32(tokens[0]);
   for (uint32_t i = 0, idx = 1; i < n_args; ++i, ++idx)
   {
-    uint32_t id = untrace_str_to_id(tokens[idx]);
+    auto id     = untrace_str_to_id(tokens[idx]);
     Term t      = get_untraced_term(id);
     MURXLA_CHECK_TRACE_TERM(t, id);
     terms.push_back(t);
@@ -3613,7 +3613,7 @@ ActionMkFun::generate()
   }
   sorts.insert(it, codomain_sort);
 
-  uint32_t id;
+  uint64_t id;
   std::vector<Term> args;
   size_t i = 0;
   for (const auto& s : sorts)
@@ -3628,7 +3628,7 @@ ActionMkFun::generate()
   OpKindSet skip_op_kinds = {
       Op::DT_MATCH, Op::FORALL, Op::EXISTS, Op::SET_COMPREHENSION};
 
-  uint32_t nterms = d_rng.pick(1, MURXLA_MK_FUN_MAX_TERMS);
+  uint32_t nterms = d_rng.pick<uint32_t>(1, MURXLA_MK_FUN_MAX_TERMS);
   size_t ncreated = 0;
   for (uint32_t i = 0; i < nterms; ++i)
   {
@@ -3661,7 +3661,7 @@ ActionMkFun::untrace(const std::vector<std::string>& tokens)
   const std::string& name = str_to_str(tokens[0]);
   uint32_t n_args         = str_to_uint32(tokens[1]);
 
-  uint32_t id;
+  uint64_t id;
   std::vector<Term> args;
   for (uint32_t i = 0; i < n_args; ++i)
   {

@@ -115,7 +115,7 @@ class SolverManager
   uint64_t get_num_terms_max_level() const;
 
   /** Get the number of available variables. */
-  uint32_t get_num_vars() const;
+  size_t get_num_vars() const;
 
   /**
    * Add sort to sort database.
@@ -281,7 +281,7 @@ class SolverManager
    * Pick 'num_vars' variables.
    * Requires that at least 'num_vars' variables exist.
    */
-  std::vector<Term> pick_vars(uint32_t num_vars) const;
+  std::vector<Term> pick_vars(size_t num_vars) const;
 
   /**
    * Remove variable from current scope level.
