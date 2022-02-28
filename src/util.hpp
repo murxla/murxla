@@ -111,9 +111,6 @@ std::string prepend_path(const std::string& prefix,
 std::string prepend_prefix_to_file_name(const std::string& prefix,
                                         const std::string& file_name);
 
-std::string get_smt2_file_name(uint32_t seed,
-                               const std::string& untrace_file_name);
-
 std::ifstream open_input_file(const std::string& file_name, bool is_forked);
 
 std::ofstream open_output_file(const std::string& file_name, bool is_forked);

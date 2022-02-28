@@ -136,7 +136,7 @@ print_error_summary()
         std::cout << "\"" << escape_csv(err) << "\",";
         for (auto seed : seeds)
         {
-          std::cout << seed << " ";
+          std::cout << std::hex << seed << " ";
         }
         std::cout << std::endl;
       }
@@ -156,7 +156,7 @@ print_error_summary()
           {
             std::cout << " ";
           }
-          std::cout << seeds[i];
+          std::cout << std::hex << seeds[i];
         }
         std::cout << "\n" << err << "\n" << std::endl;
       }
@@ -391,7 +391,19 @@ parse_options(Options& options, int argc, char* argv[])
       ss << args[i];
       MURXLA_EXIT_ERROR(ss.str().find('-') != std::string::npos)
           << "invalid argument to option '" << arg << "': " << ss.str();
-      ss >> options.seed;
+
+      // Check if given seed is hexadecimal
+      auto seed_str = ss.str();
+      if (std::all_of(seed_str.begin(), seed_str.end(), [](unsigned char c) {
+            return std::isxdigit(c);
+          }))
+      {
+        ss >> std::hex >> options.seed;
+      }
+      else
+      {
+        ss >> options.seed;
+      }
       options.is_seeded = true;
     }
     else if (arg == "-t" || arg == "--time")

@@ -26,13 +26,13 @@ class SeedGenerator
   /** Default Constructor. Starts from seed 0. */
   SeedGenerator() { next(); }
   /** Default Constructor. Starts from given seed. */
-  explicit SeedGenerator(uint32_t s) : d_seed(s) {}
+  explicit SeedGenerator(uint64_t s) : d_seed(s) {}
   /** Generate and return the next seed. */
-  uint32_t next();
+  uint64_t next();
 
  private:
   /** The current seed. */
-  uint32_t d_seed = 0;
+  uint64_t d_seed = 0;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -54,14 +54,14 @@ class RNGenerator
   };
 
   /** Constructor. */
-  explicit RNGenerator(uint32_t seed = 0);
+  explicit RNGenerator(uint64_t seed = 0);
 
   /** Get the seed used for seeding the RNG on construction. */
-  uint32_t get_seed() const { return d_seed; }
+  uint64_t get_seed() const { return d_seed; }
   /** Seed RNG with new seed. */
-  void reseed(uint32_t seed);
+  void reseed(uint64_t seed);
   /** Get the RNG Mersenne Twister engine. */
-  std::mt19937& get_engine() { return d_rng; }
+  std::mt19937_64& get_engine() { return d_rng; }
 
   /** Pick an integral number with type T. */
   template <typename T,
@@ -168,8 +168,8 @@ class RNGenerator
   TPicked pick_from_set(const TSet& data);
 
  private:
-  uint32_t d_seed;
-  std::mt19937 d_rng;
+  uint64_t d_seed;
+  std::mt19937_64 d_rng;
 
   /** The character set for binary strings. */
   std::string d_bin_char_set = "01";
@@ -193,13 +193,13 @@ class SolverSeedGenerator : public RNGenerator
 {
  public:
   /** Constructor. */
-  SolverSeedGenerator(uint32_t seed) : RNGenerator(seed) {}
+  SolverSeedGenerator(uint64_t seed) : RNGenerator(seed) {}
   /** Generate and return the next seed for the solver RNG. */
-  uint32_t next_solver_seed();
+  uint64_t next_solver_seed();
   /** Get the current seed. */
-  uint32_t seed() const { return d_cur_seed; }
+  uint64_t seed() const { return d_cur_seed; }
   /** Set the current seed. */
-  void set_seed(uint32_t s) { d_cur_seed = s; }
+  void set_seed(uint64_t s) { d_cur_seed = s; }
   /** Set to true if we are currently untracing. */
   void set_untrace_mode(bool b) { d_is_untrace_mode = b; }
   /** Return true if we are currently untracing. */
@@ -211,7 +211,7 @@ class SolverSeedGenerator : public RNGenerator
    * Not to be confused with the seed used for seeding the generator on
    * construction (which is RnGenerator::d_seed).
    */
-  uint32_t d_cur_seed = 0;
+  uint64_t d_cur_seed = 0;
   /** True if we are currently untracing. */
   bool d_is_untrace_mode = false;
 };

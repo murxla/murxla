@@ -63,14 +63,14 @@ handle_abort(int sig)
 namespace {
 
 std::string
-get_api_trace_file_name(uint32_t seed,
+get_api_trace_file_name(uint64_t seed,
                         bool is_dd,
                         std::string untrace_file_name = "")
 {
   if (untrace_file_name.empty())
   {
     std::stringstream ss;
-    ss << "murxla-" << seed << ".trace";
+    ss << "murxla-" << std::hex << seed << ".trace";
     return ss.str();
   }
   if (is_dd)
@@ -169,7 +169,7 @@ Murxla::Murxla(statistics::Statistics* stats,
 }
 
 Result
-Murxla::run(uint32_t seed,
+Murxla::run(uint64_t seed,
             double time,
             const std::string& file_out,
             const std::string& file_err,
@@ -213,27 +213,12 @@ Murxla::run(uint32_t seed,
     /* For the SMT2 solver, we only write the SMT2 file (not the trace). */
     if (!d_options.dd && d_options.solver == SOLVER_SMT2)
     {
-      std::string smt2_file_name = d_options.smt2_file_name;
-      if (smt2_file_name.empty())
-      {
-        smt2_file_name = get_smt2_file_name(seed, untrace_file_name);
-        if (!d_options.out_dir.empty())
-        {
-          smt2_file_name = prepend_path(d_options.out_dir, smt2_file_name);
-        }
-      }
+      std::string smt2_file_name = get_smt2_file_name(seed, untrace_file_name);
       std::string tmp_smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
       assert(filesystem::exists(tmp_smt2_file_name));
       filesystem::copy(tmp_smt2_file_name,
                        smt2_file_name,
                        filesystem::copy_options::overwrite_existing);
-      if (!d_options.dd)
-      {
-        if (res != RESULT_OK && res != RESULT_TIMEOUT)
-        {
-          std::cout << smt2_file_name << std::endl;
-        }
-      }
     }
     /* For all other solvers, we write the trace file. */
     else if (api_trace_file_name != DEVNULL)
@@ -244,11 +229,6 @@ Murxla::run(uint32_t seed,
         filesystem::copy(tmp_api_trace_file_name,
                          api_trace_file_name,
                          filesystem::copy_options::overwrite_existing);
-      }
-      if (!d_options.dd)
-      {
-        std::cout << (run_forked ? "" : "api trace file: ")
-                  << api_trace_file_name << std::endl;
       }
     }
   }
@@ -288,11 +268,11 @@ Murxla::test()
   {
     double cur_time = get_cur_wall_time();
 
-    uint32_t seed = sg.next();
+    uint64_t seed = sg.next();
 
     if (num_printed_lines % 100 == 0)
     {
-      std::cout << std::setw(10) << "seed";
+      std::cout << std::setw(16) << "seed";
       std::cout << " " << std::setw(5) << "runs";
       std::cout << " " << std::setw(8) << "r/s";
       std::cout << " " << std::setw(5) << "sat";
@@ -305,7 +285,7 @@ Murxla::test()
       ++num_printed_lines;
     }
 
-    std::cout << std::setw(10) << seed;
+    std::cout << std::setw(16) << std::hex << seed << std::dec;
     std::cout << " " << std::setw(5) << num_runs;
     std::cout << " " << std::setw(8) << std::setprecision(2) << std::fixed;
     std::cout << num_runs / (cur_time - start_time);
@@ -440,19 +420,30 @@ Murxla::test()
      * If SMT2 solver with online solver configured, dump smt2 on replay.
      * If SMT2 solver configured without an online solver, we'll never enter
      * here (the SMT2 solver should never return an error result). */
-    if (res != RESULT_OK && res != RESULT_TIMEOUT && !smt2_offline)
+    if (res != RESULT_OK && res != RESULT_TIMEOUT)
     {
-      Result res_replay = replay(seed,
-                                 out_file_name,
-                                 err_file_name,
-                                 api_trace_file_name,
-                                 d_options.untrace_file_name);
-      // Note: This may happen in few cases where the replay runs into a
-      // timeout, but the original run does not.
-      MURXLA_WARN(res != res_replay)
-          << "Replay did not return the same result as original run. "
-          << "Original run returned " << res << ", but replay returned "
-          << res_replay << ".";
+      // No need to replay SMT2 since we already have the SMT2 problem.
+      if (smt2_offline)
+      {
+        std::cout << get_smt2_file_name(seed, api_trace_file_name) << std::endl;
+      }
+      else
+      {
+        Result res_replay = replay(seed,
+                                   out_file_name,
+                                   err_file_name,
+                                   api_trace_file_name,
+                                   d_options.untrace_file_name);
+
+        std::cout << api_trace_file_name << std::endl;
+
+        // Note: This may happen in few cases where the replay runs into a
+        // timeout, but the original run does not.
+        MURXLA_WARN(res != res_replay)
+            << "Replay did not return the same result as original run. "
+            << "Original run returned " << res << ", but replay returned "
+            << res_replay << ".";
+      }
     }
     std::cout << term.cr() << std::flush;
     /* Print new error message after it was found. */
@@ -466,7 +457,7 @@ Murxla::test()
 }
 
 Result
-Murxla::replay(uint32_t seed,
+Murxla::replay(uint64_t seed,
                const std::string& out_file_name,
                const std::string& err_file_name,
                const std::string& api_trace_file_name,
@@ -597,7 +588,7 @@ Murxla::print_fsm() const
 }
 
 Result
-Murxla::run_aux(uint32_t seed,
+Murxla::run_aux(uint64_t seed,
                 double time,
                 const std::string& file_out,
                 const std::string& file_err,
@@ -824,7 +815,7 @@ Murxla::run_aux(uint32_t seed,
 }
 
 Murxla::ErrorKind
-Murxla::add_error(const std::string& err, uint32_t seed)
+Murxla::add_error(const std::string& err, uint64_t seed)
 {
   bool duplicate       = false;
   std::string err_norm = normalize_asan_error(err);
@@ -859,7 +850,7 @@ Murxla::add_error(const std::string& err, uint32_t seed)
 
   if (!duplicate)
   {
-    std::vector<uint32_t> seeds = {seed};
+    std::vector<uint64_t> seeds = {seed};
     d_errors->emplace(err_norm, std::make_pair(err, seeds));
   }
 
@@ -887,6 +878,32 @@ Murxla::load_solver_profile()
   d_solver_profile.reset(new SolverProfile(profile));
   auto errors = d_solver_profile->get_errors();
   d_filter_errors.insert(errors.begin(), errors.end());
+}
+
+std::string
+Murxla::get_smt2_file_name(uint64_t seed,
+                           const std::string& untrace_file_name) const
+{
+  std::string smt2_file_name = d_options.smt2_file_name;
+  if (smt2_file_name.empty())
+  {
+    std::stringstream ss;
+    if (untrace_file_name.empty())
+    {
+      ss << "murxla-" << std::hex << seed << ".smt2";
+    }
+    else
+    {
+      auto path = filesystem::path(untrace_file_name);
+      ss << path.replace_extension(".smt2").c_str();
+    }
+    smt2_file_name = ss.str();
+    if (!d_options.out_dir.empty())
+    {
+      smt2_file_name = prepend_path(d_options.out_dir, smt2_file_name);
+    }
+  }
+  return smt2_file_name;
 }
 
 /* -------------------------------------------------------------------------- */

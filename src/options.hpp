@@ -28,7 +28,7 @@ const SolverKind SOLVER_YICES = "yices";
 struct Options
 {
   /** The seed for the random number generator. */
-  uint32_t seed = 0;
+  uint64_t seed = 0;
   /** The verbosity level. */
   uint32_t verbosity = 0;
   /** The time limit for one test run (one API sequence). */

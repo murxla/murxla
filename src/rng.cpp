@@ -29,10 +29,10 @@ namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
-uint32_t
+uint64_t
 SeedGenerator::next()
 {
-  uint32_t cur_seed;
+  uint64_t cur_seed;
   cur_seed = d_seed;
   d_seed   = getpid();
   d_seed *= 129685499;
@@ -45,7 +45,7 @@ SeedGenerator::next()
 
 /* -------------------------------------------------------------------------- */
 
-RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
+RNGenerator::RNGenerator(uint64_t seed) : d_seed(seed)
 {
   d_rng.seed(seed);
 
@@ -70,7 +70,7 @@ RNGenerator::RNGenerator(uint32_t seed) : d_seed(seed)
 }
 
 void
-RNGenerator::reseed(uint32_t seed)
+RNGenerator::reseed(uint64_t seed)
 {
   d_rng.seed(seed);
   d_seed = seed;
@@ -397,7 +397,7 @@ RNGenerator::pick_string_literal(uint32_t len)
 
 /* -------------------------------------------------------------------------- */
 
-uint32_t
+uint64_t
 SolverSeedGenerator::next_solver_seed()
 {
   d_cur_seed = pick<uint32_t>() % 100000;

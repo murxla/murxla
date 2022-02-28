@@ -36,7 +36,7 @@ class Murxla
  public:
   using ErrorMap =
       std::unordered_map<std::string,
-                         std::pair<std::string, std::vector<uint32_t>>>;
+                         std::pair<std::string, std::vector<uint64_t>>>;
 
   enum TraceMode
   {
@@ -76,7 +76,7 @@ class Murxla
    *
    * Returns a result that indicates the status of the test run.
    */
-  Result run(uint32_t seed,
+  Result run(uint64_t seed,
              double time,
              const std::string& file_out,
              const std::string& file_err,
@@ -176,7 +176,7 @@ class Murxla
    *
    * Returns a result that indicates the status of the test run.
    */
-  Result run_aux(uint32_t seed,
+  Result run_aux(uint64_t seed,
                  double time,
                  const std::string& file_out,
                  const std::string& file_err,
@@ -198,17 +198,20 @@ class Murxla
    *
    * Returns a result that indicates the status of the test run.
    */
-  Result replay(uint32_t seed,
+  Result replay(uint64_t seed,
                 const std::string& out_file_name,
                 const std::string& err_file_name,
                 const std::string& api_trace_file_name,
                 const std::string& untrace_file_name);
 
   /** Register error to d_errors. */
-  ErrorKind add_error(const std::string& err, uint32_t seed);
+  ErrorKind add_error(const std::string& err, uint64_t seed);
 
   /** Load solver profile of currently configured solver. */
   void load_solver_profile();
+
+  std::string get_smt2_file_name(uint64_t seed,
+                                 const std::string& untrace_file_name) const;
 
   /** Statistics of current test run(s). */
   statistics::Statistics* d_stats;

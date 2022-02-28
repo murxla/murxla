@@ -36,7 +36,7 @@ class DD
    * seed  : The seed for the RNG.
    * time  : The time limit for one test run.
    */
-  DD(Murxla* murxla, uint32_t seed, double time);
+  DD(Murxla* murxla, uint64_t seed, double time);
 
   /**
    * Delta debug a given api trace.
@@ -64,7 +64,7 @@ class DD
                          const std::vector<size_t>& included_lines,
                          const std::string& input_trace_file_name,
                          size_t n_args,
-                         const std::vector<std::tuple<uint32_t,
+                         const std::vector<std::tuple<uint64_t,
                                                       size_t,
                                                       Action::Kind,
                                                       std::vector<std::string>,
@@ -107,7 +107,7 @@ class DD
   /** The directory for temp files. */
   std::string d_tmp_dir;
   /** The current seed for the RNG. */
-  uint32_t d_seed;
+  uint64_t d_seed;
   /** The time limit for one test run. */
   double d_time;
 

@@ -512,22 +512,6 @@ prepend_prefix_to_file_name(const std::string& prefix,
   return ss.str();
 }
 
-std::string
-get_smt2_file_name(uint32_t seed, const std::string& untrace_file_name)
-{
-  std::stringstream ss;
-  if (untrace_file_name.empty())
-  {
-    ss << "murxla-" << seed << ".smt2";
-  }
-  else
-  {
-    auto path = filesystem::path(untrace_file_name);
-    ss << path.replace_extension(".smt2").c_str();
-  }
-  return ss.str();
-}
-
 std::ifstream
 open_input_file(const std::string& file_name, bool is_forked)
 {

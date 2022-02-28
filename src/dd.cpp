@@ -74,7 +74,7 @@ split_superset(const std::vector<size_t> superset, uint32_t subset_size)
 
 /* -------------------------------------------------------------------------- */
 
-DD::DD(Murxla* murxla, uint32_t seed, double time)
+DD::DD(Murxla* murxla, uint64_t seed, double time)
     : d_murxla(murxla), d_seed(seed), d_time(time)
 {
   assert(d_murxla);
@@ -338,7 +338,7 @@ namespace {
  *                the domain sort for an action that creates a function sort.
  */
 std::string
-generate_minimized_line(uint32_t seed,
+generate_minimized_line(uint64_t seed,
                         Action::Kind action_kind,
                         const std::vector<std::string>& tokens,
                         const std::vector<size_t>& included_args,
@@ -390,7 +390,7 @@ generate_minimized_line(uint32_t seed,
 std::unordered_map<size_t, std::string>
 update_lines(std::vector<std::vector<std::string>>& lines,
              const std::vector<size_t>& included_args,
-             const std::vector<std::tuple<uint32_t,
+             const std::vector<std::tuple<uint64_t,
                                           size_t,
                                           Action::Kind,
                                           std::vector<std::string>,
@@ -400,7 +400,7 @@ update_lines(std::vector<std::vector<std::string>>& lines,
 
   for (const auto& t : to_update)
   {
-    uint32_t seed      = std::get<0>(t);
+    uint64_t seed      = std::get<0>(t);
     size_t line_idx    = std::get<1>(t);
     Action::Kind kind  = std::get<2>(t);
     const auto& tokens = std::get<3>(t);
@@ -453,10 +453,10 @@ void
 collect_to_minimize_lines_sort_fun(
     const std::vector<std::vector<std::string>>& lines,
     const std::vector<size_t>& included_lines,
-    uint32_t seed,
+    uint64_t seed,
     size_t line_idx,
     const std::vector<std::string>& line_tokens,
-    std::vector<std::tuple<uint32_t,
+    std::vector<std::tuple<uint64_t,
                            size_t,
                            Action::Kind,
                            std::vector<std::string>,
@@ -760,7 +760,7 @@ DD::minimize_line_aux(Result golden_exit,
                       const std::vector<size_t>& included_lines,
                       const std::string& input_trace_file_name,
                       size_t n_args,
-                      const std::vector<std::tuple<uint32_t,
+                      const std::vector<std::tuple<uint64_t,
                                                    size_t,
                                                    Action::Kind,
                                                    std::vector<std::string>,
@@ -897,7 +897,7 @@ DD::minimize_line(Result golden_exit,
      * We have to record the original tokens here -- we can't retokenize these
      * lines on the fly while delta debugging, the set of tokens has to match
      * the indices of the included_args set. */
-    std::vector<std::tuple<uint32_t,
+    std::vector<std::tuple<uint64_t,
                            size_t,
                            Action::Kind,
                            std::vector<std::string>,

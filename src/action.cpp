@@ -88,7 +88,7 @@ void
 Action::seed_solver_rng() const
 {
   assert(!d_sng.is_untrace_mode());
-  uint32_t seed = d_sng.next_solver_seed();
+  uint64_t seed = d_sng.next_solver_seed();
   d_solver.get_rng().reseed(seed);
 }
 
