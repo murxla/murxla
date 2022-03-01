@@ -538,6 +538,12 @@ Murxla::create_solver(SolverSeedGenerator& sng, std::ostream& smt2_out) const
   return solver;
 }
 
+const std::unordered_set<std::string>&
+Murxla::get_filter_errors() const
+{
+  return d_filter_errors;
+}
+
 FSM
 Murxla::create_fsm(RNGenerator& rng,
                    SolverSeedGenerator& sng,

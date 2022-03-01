@@ -104,6 +104,8 @@ class Murxla
   Solver* create_solver(SolverSeedGenerator& sng,
                         std::ostream& smt2_out = std::cout) const;
 
+  const std::unordered_set<std::string>& get_filter_errors() const;
+
   /** The set of configuration options. */
   const Options& d_options;
   /** The set of configured solver options. */
