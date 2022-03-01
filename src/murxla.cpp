@@ -166,6 +166,12 @@ Murxla::Murxla(statistics::Statistics* stats,
   assert(stats);
   assert(solver_options);
   load_solver_profile();
+
+  if (!d_options.export_errors_filename.empty())
+  {
+    d_export_errors.insert(
+        d_export_errors.end(), d_filter_errors.begin(), d_filter_errors.end());
+  }
 }
 
 Result
@@ -538,12 +544,6 @@ Murxla::create_solver(SolverSeedGenerator& sng, std::ostream& smt2_out) const
   return solver;
 }
 
-const std::unordered_set<std::string>&
-Murxla::get_filter_errors() const
-{
-  return d_filter_errors;
-}
-
 FSM
 Murxla::create_fsm(RNGenerator& rng,
                    SolverSeedGenerator& sng,
@@ -858,6 +858,16 @@ Murxla::add_error(const std::string& err, uint64_t seed)
   {
     std::vector<uint64_t> seeds = {seed};
     d_errors->emplace(err_norm, std::make_pair(err, seeds));
+
+    // Export errors to JSON file.
+    if (!d_options.export_errors_filename.empty())
+    {
+      d_export_errors.push_back(err);
+      nlohmann::json j;
+      j["errors"]["exclude"] = d_export_errors;
+      std::ofstream o(d_options.export_errors_filename);
+      o << std::setw(2) << j << std::endl;
+    }
   }
 
   return duplicate ? ErrorKind::DUPLICATE : ErrorKind::ERROR;

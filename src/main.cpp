@@ -41,9 +41,6 @@ static std::string TMP_DIR = "";
 
 /* -------------------------------------------------------------------------- */
 
-/** Used for exporting errors to JSON via --export-errors. */
-static std::vector<std::string> g_error_msgs;
-static std::string g_export_errors = "";
 /** Map normalized error message to pair (original error message, seeds). */
 static Murxla::ErrorMap g_errors;
 static bool g_errors_print_csv = false;
@@ -164,19 +161,6 @@ print_error_summary()
         std::cout << "\n" << err << "\n" << std::endl;
       }
     }
-  }
-
-  // Export errors to JSON file.
-  if (!g_export_errors.empty())
-  {
-    json j;
-    for (const auto& p : g_errors)
-    {
-      g_error_msgs.push_back(p.second.first);
-    }
-    j["errors"]["exclude"] = g_error_msgs;
-    std::ofstream o(g_export_errors);
-    o << j << std::endl;
   }
 }
 
@@ -599,7 +583,7 @@ parse_options(Options& options, int argc, char* argv[])
     {
       i += 1;
       check_next_arg(arg, i, size);
-      g_export_errors = args[i];
+      options.export_errors_filename = args[i];
     }
     else if (arg == "-m" || arg == "--max-runs")
     {
@@ -804,13 +788,6 @@ main(int argc, char* argv[])
   try
   {
     Murxla murxla(stats, options, &solver_options, &g_errors, TMP_DIR);
-
-    if (!g_export_errors.empty())
-    {
-      const auto& filter_errors = murxla.get_filter_errors();
-      g_error_msgs.insert(
-          g_error_msgs.end(), filter_errors.begin(), filter_errors.end());
-    }
 
     if (options.print_fsm)
     {

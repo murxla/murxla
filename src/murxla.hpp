@@ -104,8 +104,6 @@ class Murxla
   Solver* create_solver(SolverSeedGenerator& sng,
                         std::ostream& smt2_out = std::cout) const;
 
-  const std::unordered_set<std::string>& get_filter_errors() const;
-
   /** The set of configuration options. */
   const Options& d_options;
   /** The set of configured solver options. */
@@ -223,6 +221,9 @@ class Murxla
   std::unordered_set<std::string> d_filter_errors;
 
   std::unique_ptr<SolverProfile> d_solver_profile;
+
+  /** Stores error messages to be exported when --export-errors is enabled. */
+  std::vector<std::string> d_export_errors;
 };
 
 /* -------------------------------------------------------------------------- */

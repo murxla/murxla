@@ -116,6 +116,9 @@ struct Options
 
   /** Solver profile filename. */
   std::string solver_profile_filename;
+
+  /** Output file for exporting errors in JSON format. */
+  std::string export_errors_filename = "";
 };
 }  // namespace murxla
 #endif
