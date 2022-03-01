@@ -1242,6 +1242,25 @@ SolverManager::has_sort_excluding(
 }
 
 bool
+SolverManager::has_sort_excluding(
+    uint32_t level,
+    const std::unordered_set<SortKind>& exclude_sort_kinds) const
+{
+  const SortSet& sorts = d_term_db.get_sorts();
+  for (const auto& s : sorts)
+  {
+    if (exclude_sort_kinds.find(s->get_kind()) == exclude_sort_kinds.end())
+    {
+      if (d_term_db.get_num_terms(s->get_kind(), level) > 0)
+      {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool
 SolverManager::has_sort_with_sort_params() const
 {
   if (!d_sorts_dt_parametric.empty()) return true;

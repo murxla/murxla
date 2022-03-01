@@ -492,6 +492,14 @@ class SolverManager
       bool with_terms = true) const;
 
   /**
+   * Return true if terms with sorts of a kind other than the kinds given in
+   * exclude_sort_kinds have been created.
+   */
+  bool has_sort_excluding(
+      uint32_t level,
+      const std::unordered_set<SortKind>& exclude_sort_kinds) const;
+
+  /**
    * Return true if sorts that have sort parameters have been created.
    * This includes non-parametric datatypes.
    */

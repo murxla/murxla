@@ -327,6 +327,12 @@ class TermDb
   /** Get the number of terms at a given level stored in the database. */
   size_t get_num_terms(size_t level) const;
 
+  /**
+   * Get the number of terms of given sort kind stored in the database up
+   * to and including given level.
+   */
+  size_t get_num_terms(SortKind sort_kind, size_t level) const;
+
  private:
   /** Intermediate op kinds. */
   inline static std::unordered_set<Op::Kind> d_intermediate_op_kinds{
@@ -337,11 +343,6 @@ class TermDb
   void pop(const Term& var);
   /** Get the number of terms of given sort kind stored in the database. */
   size_t get_num_terms(SortKind sort_kind) const;
-  /**
-   * Get the number of terms of given sort kind stored in the database up
-   * to and includinv given level.
-   */
-  size_t get_num_terms(SortKind sort_kind, size_t level) const;
 
   SolverManager& d_smgr;
 

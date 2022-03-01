@@ -3369,7 +3369,7 @@ ActionGetValue::generate()
 
   uint32_t n_terms = d_rng.pick<uint32_t>(1, MURXLA_MAX_N_TERMS_GET_VALUE);
   std::vector<Term> terms;
-  if (!d_smgr.has_sort_excluding(d_exclude_sort_kinds, true)) return false;
+  if (!d_smgr.has_sort_excluding(0, d_exclude_sort_kinds)) return false;
   for (uint32_t i = 0; i < n_terms; ++i)
   {
     SortKind sort_kind = d_smgr.pick_sort_kind(0, d_exclude_sort_kinds);
