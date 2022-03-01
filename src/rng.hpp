@@ -27,6 +27,10 @@ class SeedGenerator
   SeedGenerator() { next(); }
   /** Default Constructor. Starts from given seed. */
   explicit SeedGenerator(uint64_t s) : d_seed(s) {}
+
+  /** Set seed. */
+  void set_seed(uint64_t s);
+
   /** Generate and return the next seed. */
   uint64_t next();
 

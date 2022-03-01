@@ -29,6 +29,12 @@ namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
+void
+SeedGenerator::set_seed(uint64_t s)
+{
+  d_seed = s;
+}
+
 uint64_t
 SeedGenerator::next()
 {

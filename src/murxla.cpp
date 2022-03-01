@@ -265,7 +265,11 @@ Murxla::test()
   uint32_t num_runs         = 0;
   double start_time         = get_cur_wall_time();
   std::string out_file_name = DEVNULL;
-  SeedGenerator sg(d_options.seed);
+  SeedGenerator sg;
+  if (d_options.is_seeded)
+  {
+    sg.set_seed(d_options.seed);
+  }
 
   std::string err_file_name = get_tmp_file_path("tmp.err", d_tmp_dir);
   Terminal term;
