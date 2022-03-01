@@ -489,8 +489,10 @@ BtorSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       {
         domain.push_back(BtorSort::get_btor_sort(*it));
       }
-      btor_res =
-          boolector_fun_sort(d_solver, domain.data(), domain.size(), codomain);
+      btor_res = boolector_fun_sort(d_solver,
+                                    domain.data(),
+                                    static_cast<uint32_t>(domain.size()),
+                                    codomain);
       break;
     }
 
@@ -583,7 +585,10 @@ BtorSolver::mk_fun(const std::string& name,
   BoolectorNode* btor_body              = BtorTerm::get_btor_term(body);
 
   BoolectorNode* btor_res =
-      boolector_fun(d_solver, btor_args.data(), btor_args.size(), btor_body);
+      boolector_fun(d_solver,
+                    btor_args.data(),
+                    static_cast<uint32_t>(btor_args.size()),
+                    btor_body);
   boolector_set_symbol(d_solver, btor_res, name.c_str());
 
   MURXLA_TEST(btor_res);
@@ -682,8 +687,8 @@ BtorSolver::mk_value(Sort sort, const std::string& value, Base base)
     case HEX:
       if (bw <= 32 && d_rng.flip_coin())
       {
-        btor_res =
-            mk_value_bv_uint32(sort, strtoull(value.c_str(), nullptr, 16));
+        btor_res = mk_value_bv_uint32(
+            sort, static_cast<uint32_t>(strtoul(value.c_str(), nullptr, 16)));
       }
       else
       {
@@ -700,8 +705,8 @@ BtorSolver::mk_value(Sort sort, const std::string& value, Base base)
     case DEC:
       if (bw <= 32 && d_rng.flip_coin())
       {
-        btor_res =
-            mk_value_bv_uint32(sort, strtoull(value.c_str(), nullptr, 10));
+        btor_res = mk_value_bv_uint32(
+            sort, static_cast<uint32_t>(strtoul(value.c_str(), nullptr, 10)));
       }
       else
       {
@@ -719,8 +724,8 @@ BtorSolver::mk_value(Sort sort, const std::string& value, Base base)
       assert(base == BIN);
       if (bw <= 32 && d_rng.flip_coin())
       {
-        btor_res =
-            mk_value_bv_uint32(sort, strtoull(value.c_str(), nullptr, 2));
+        btor_res = mk_value_bv_uint32(
+            sort, static_cast<uint32_t>(strtoul(value.c_str(), nullptr, 2)));
       }
       else
       {
@@ -1073,20 +1078,26 @@ BtorSolver::mk_term(const Op::Kind& kind,
     }
     if (kind == Op::EXISTS)
     {
-      btor_res = boolector_exists(
-          d_solver, vars.data(), vars.size(), btor_args.back());
+      btor_res = boolector_exists(d_solver,
+                                  vars.data(),
+                                  static_cast<uint32_t>(vars.size()),
+                                  btor_args.back());
     }
     else
     {
-      btor_res = boolector_forall(
-          d_solver, vars.data(), vars.size(), btor_args.back());
+      btor_res = boolector_forall(d_solver,
+                                  vars.data(),
+                                  static_cast<uint32_t>(vars.size()),
+                                  btor_args.back());
     }
     d_have_quant = true;
   }
   else if (kind == Op::UF_APPLY)
   {
-    btor_res = boolector_apply(
-        d_solver, btor_args.data() + 1, n_args - 1, btor_args[0]);
+    btor_res = boolector_apply(d_solver,
+                               btor_args.data() + 1,
+                               static_cast<uint32_t>(n_args - 1),
+                               btor_args[0]);
   }
   else
   {
@@ -1320,7 +1331,7 @@ BtorSolver::mk_term_left_assoc(std::vector<BoolectorNode*>& args,
   BoolectorNode *res, *tmp;
 
   res = fun(d_solver, args[0], args[1]);
-  for (uint32_t i = 2, n_args = args.size(); i < n_args; ++i)
+  for (size_t i = 2, n_args = args.size(); i < n_args; ++i)
   {
     tmp = fun(d_solver, res, args[i]);
     boolector_release(d_solver, res);
@@ -1336,11 +1347,11 @@ BtorSolver::mk_term_right_assoc(std::vector<BoolectorNode*>& args,
                                                       BoolectorNode*,
                                                       BoolectorNode*) ) const
 {
-  uint32_t n_args = args.size();
+  size_t n_args = args.size();
   assert(n_args >= 2);
   BoolectorNode *res, *tmp;
   res = boolector_copy(d_solver, args[n_args - 1]);
-  for (uint32_t i = 1; i < n_args; ++i)
+  for (size_t i = 1; i < n_args; ++i)
   {
     tmp = fun(d_solver, args[n_args - i - 1], res);
     boolector_release(d_solver, res);
@@ -1360,9 +1371,9 @@ BtorSolver::mk_term_pairwise(std::vector<BoolectorNode*>& args,
   BoolectorNode *res, *tmp, *old;
 
   res = 0;
-  for (uint32_t i = 0, n_args = args.size(); i < n_args - 1; ++i)
+  for (size_t i = 0, n_args = args.size(); i < n_args - 1; ++i)
   {
-    for (uint32_t j = i + 1; j < n_args; ++j)
+    for (size_t j = i + 1; j < n_args; ++j)
     {
       tmp = fun(d_solver, args[i], args[j]);
       if (res)
@@ -1392,7 +1403,7 @@ BtorSolver::mk_term_chained(std::vector<BoolectorNode*>& args,
   BoolectorNode *res, *tmp, *old;
 
   res = 0;
-  for (uint32_t i = 0, j = 1, n_args = args.size(); j < n_args; ++i, ++j)
+  for (size_t i = 0, j = 1, n_args = args.size(); j < n_args; ++i, ++j)
   {
     tmp = fun(d_solver, args[i], args[j]);
     if (res)
@@ -1443,7 +1454,7 @@ BtorSolver::set_opt(const std::string& opt, const std::string& value)
   }
   else if (value != "false")
   {
-    val = std::stoul(value);
+    val = static_cast<uint32_t>(std::stoul(value));
   }
   BtorOption btor_opt = d_option_name_to_enum.at(opt);
   MURXLA_TEST(val >= boolector_get_opt_min(d_solver, btor_opt));
@@ -1741,10 +1752,10 @@ class BtorActionUFAssignment : public Action
       for (size_t i = 0; i < size; ++i)
       {
         std::vector<std::string> _args = split(args[i], ' ');
-        uint32_t arity                 = _args.size();
+        size_t arity                   = _args.size();
         std::vector<Term> apply_args{term};
         MURXLA_TEST(arity == domain.size());
-        for (uint32_t j = 0; j < arity; ++j)
+        for (size_t j = 0; j < arity; ++j)
         {
           apply_args.push_back(
               d_solver.mk_value(domain[j], _args[j], Solver::Base::BIN));

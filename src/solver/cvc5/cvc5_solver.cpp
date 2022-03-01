@@ -209,7 +209,7 @@ Cvc5Sort::get_dt_name() const
 uint32_t
 Cvc5Sort::get_dt_num_cons() const
 {
-  return d_sort.getDatatype().getNumConstructors();
+  return static_cast<uint32_t>(d_sort.getDatatype().getNumConstructors());
 }
 
 std::vector<std::string>
@@ -232,7 +232,7 @@ Cvc5Sort::get_dt_cons_num_sels(const std::string& name) const
   assert(is_dt());
   ::cvc5::api::DatatypeConstructor cvc5_cons =
       d_sort.getDatatype().getConstructor(name);
-  return cvc5_cons.getNumSelectors();
+  return static_cast<uint32_t>(cvc5_cons.getNumSelectors());
 }
 
 std::vector<std::string>
@@ -283,7 +283,7 @@ uint32_t
 Cvc5Sort::get_fun_arity() const
 {
   assert(is_fun());
-  return d_sort.getFunctionArity();
+  return static_cast<uint32_t>(d_sort.getFunctionArity());
 }
 
 Sort
@@ -1170,7 +1170,7 @@ uint32_t
 Cvc5Term::get_fun_arity() const
 {
   assert(is_fun());
-  return d_term.getSort().getFunctionArity();
+  return static_cast<uint32_t>(d_term.getSort().getFunctionArity());
 }
 
 Sort
@@ -1997,8 +1997,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       Cvc5Term::terms_to_cvc5_terms(args);
 
   std::vector<uint32_t> iindices = indices;  // copy to modify
-  int32_t n_args                 = args.size();
-  uint32_t n_indices             = indices.size();
+  int32_t n_args                 = static_cast<int32_t>(args.size());
+  size_t n_indices               = indices.size();
 
   if ((kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_FP
        || kind == Op::FP_TO_FP_FROM_SBV || kind == Op::FP_TO_FP_FROM_UBV
@@ -2023,7 +2023,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
                                cvc5_vars);
     ::cvc5::api::Term cvc5_body = Cvc5Term::get_cvc5_term(args.back());
     cvc5_args                   = {cvc5_bvl, cvc5_body};
-    n_args                      = cvc5_args.size();
+    n_args                      = static_cast<int32_t>(cvc5_args.size());
   }
   else if (kind == Op::RE_ALL)
   {
@@ -3196,7 +3196,7 @@ class Cvc5ActionCheckEntailed : public Action
       uint32_t n_terms = str_to_uint32(tokens[0]);
       for (uint32_t i = 0, idx = 1; i < n_terms; ++i, ++idx)
       {
-        uint32_t id = untrace_str_to_id(tokens[idx]);
+        auto id     = untrace_str_to_id(tokens[idx]);
         Term term   = get_untraced_term(id);
         MURXLA_CHECK_TRACE_TERM(term, id);
         terms.push_back(term);
@@ -3604,7 +3604,7 @@ class Cvc5ActionBlockModelValues : public Action
     uint32_t n_values = str_to_uint32(tokens[0]);
     for (uint32_t i = 0, idx = 1; i < n_values; ++i, ++idx)
     {
-      uint32_t id = untrace_str_to_id(tokens[idx]);
+      auto id     = untrace_str_to_id(tokens[idx]);
       Term t      = get_untraced_term(id);
       MURXLA_CHECK_TRACE_TERM(t, id);
       values.push_back(t);
@@ -3648,7 +3648,7 @@ class Cvc5ActionSortSubstitute : public Action
     /* Pick sort to substitute. */
     std::vector<Sort> sub_sorts = get_sub_sorts(sort);
     if (sub_sorts.empty()) return false;
-    uint32_t n_sorts = d_rng.pick<uint32_t>(
+    size_t n_sorts = d_rng.pick<size_t>(
         1, std::min<size_t>(sub_sorts.size(), MAX_N_SUBST_SORTS));
     std::vector<Sort> to_subst_sorts;
     std::vector<Sort> subst_sorts;
@@ -3845,7 +3845,7 @@ class Cvc5ActionTermSubstitute : public Action
     /* Pick term to substitute. */
     std::vector<Term> sub_terms = get_sub_terms(term);
     if (sub_terms.empty()) return false;
-    uint32_t n_terms = d_rng.pick<uint32_t>(
+    size_t n_terms = d_rng.pick<size_t>(
         1, std::min<size_t>(sub_terms.size(), MAX_N_SUBST_TERMS));
     std::vector<Term> to_subst_terms;
     std::vector<Term> subst_terms;

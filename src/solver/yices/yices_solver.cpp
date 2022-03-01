@@ -661,7 +661,7 @@ YicesSolver::mk_value(Sort sort, const std::string& value, Base base)
     }
     else
     {
-      val32 = tmp;
+      val32 = static_cast<uint32_t>(tmp);
     }
   }
   catch (std::out_of_range& e)
@@ -875,8 +875,10 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       yices_sorts.pop_back();
       if (d_rng.flip_coin() || kind != SORT_ARRAY)
       {
-        yices_res = yices_function_type(
-            yices_sorts.size(), yices_sorts.data(), yices_range);
+        yices_res =
+            yices_function_type(static_cast<uint32_t>(yices_sorts.size()),
+                                yices_sorts.data(),
+                                yices_range);
       }
       else
       {
@@ -924,7 +926,7 @@ YicesSolver::mk_term(const std::string& kind,
                      const std::vector<uint32_t>& indices)
 {
   term_t yices_res               = -1;
-  size_t n_args                  = args.size();
+  uint32_t n_args                = static_cast<uint32_t>(args.size());
   size_t n_indices               = indices.size();
   std::vector<term_t> yices_args = YicesTerm::terms_to_yices_terms(args);
   std::vector<term_t> vars;
@@ -1519,18 +1521,20 @@ YicesSolver::mk_term(const std::string& kind,
   /* Quantifiers */
   else if (kind == Op::FORALL || kind == Op::EXISTS)
   {
-    uint32_t n = yices_args.size() - 1;
-    for (uint32_t i = 0; i < n; ++i)
+    size_t n = yices_args.size() - 1;
+    for (size_t i = 0; i < n; ++i)
     {
       vars.push_back(yices_args[i]);
     }
     if (kind == Op::EXISTS)
     {
-      yices_res = yices_exists(n, vars.data(), yices_args.back());
+      yices_res = yices_exists(
+          static_cast<uint32_t>(n), vars.data(), yices_args.back());
     }
     else
     {
-      yices_res = yices_forall(n, vars.data(), yices_args.back());
+      yices_res = yices_forall(
+          static_cast<uint32_t>(n), vars.data(), yices_args.back());
     }
   }
   /* UF */
@@ -1797,7 +1801,10 @@ YicesSolver::check_sat_assuming(const std::vector<Term>& assumptions)
   std::vector<term_t> yices_assumptions =
       YicesTerm::terms_to_yices_terms(assumptions);
   smt_status_t res = yices_check_context_with_assumptions(
-      d_context, nullptr, yices_assumptions.size(), yices_assumptions.data());
+      d_context,
+      nullptr,
+      static_cast<uint32_t>(yices_assumptions.size()),
+      yices_assumptions.data());
   if (res == STATUS_SAT) return Result::SAT;
   if (res == STATUS_UNSAT) return Result::UNSAT;
   return Result::UNKNOWN;
@@ -1914,7 +1921,7 @@ YicesSolver::mk_term_left_assoc(std::vector<term_t>& args,
   term_t res, tmp;
 
   res = fun(args[0], args[1]);
-  for (uint32_t i = 2, n_args = args.size(); i < n_args; ++i)
+  for (size_t i = 2, n_args = args.size(); i < n_args; ++i)
   {
     tmp = fun(res, args[i]);
     MURXLA_TEST(is_valid_term(tmp));
@@ -1928,11 +1935,11 @@ term_t
 YicesSolver::mk_term_right_assoc(std::vector<term_t>& args,
                                  term_t (*fun)(term_t, term_t)) const
 {
-  uint32_t n_args = args.size();
+  size_t n_args = args.size();
   assert(n_args >= 2);
   term_t res, tmp;
   res = args[n_args - 1];
-  for (uint32_t i = 1; i < n_args; ++i)
+  for (size_t i = 1; i < n_args; ++i)
   {
     tmp = fun(args[n_args - i - 1], res);
     MURXLA_TEST(is_valid_term(tmp));
@@ -1950,9 +1957,9 @@ YicesSolver::mk_term_pairwise(std::vector<term_t>& args,
   term_t res, tmp, old;
 
   res = 0;
-  for (uint32_t i = 0, n_args = args.size(); i < n_args - 1; ++i)
+  for (size_t i = 0, n_args = args.size(); i < n_args - 1; ++i)
   {
-    for (uint32_t j = i + 1; j < n_args; ++j)
+    for (size_t j = i + 1; j < n_args; ++j)
     {
       tmp = fun(args[i], args[j]);
       if (res)
@@ -1978,7 +1985,7 @@ YicesSolver::mk_term_chained(std::vector<term_t>& args,
   term_t res, tmp, old;
 
   res = 0;
-  for (uint32_t i = 0, j = 1, n_args = args.size(); j < n_args; ++i, ++j)
+  for (size_t i = 0, j = 1, n_args = args.size(); j < n_args; ++i, ++j)
   {
     tmp = fun(args[i], args[j]);
     if (res)
