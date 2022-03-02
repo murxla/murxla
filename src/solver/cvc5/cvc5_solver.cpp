@@ -452,13 +452,13 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::FP_EQ, ::cvc5::api::Kind::FLOATINGPOINT_EQ},
         {Op::FP_FMA, ::cvc5::api::Kind::FLOATINGPOINT_FMA},
         {Op::FP_FP, ::cvc5::api::Kind::FLOATINGPOINT_FP},
-        {Op::FP_IS_NORMAL, ::cvc5::api::Kind::FLOATINGPOINT_ISN},
-        {Op::FP_IS_SUBNORMAL, ::cvc5::api::Kind::FLOATINGPOINT_ISSN},
-        {Op::FP_IS_INF, ::cvc5::api::Kind::FLOATINGPOINT_ISINF},
-        {Op::FP_IS_NAN, ::cvc5::api::Kind::FLOATINGPOINT_ISNAN},
-        {Op::FP_IS_NEG, ::cvc5::api::Kind::FLOATINGPOINT_ISNEG},
-        {Op::FP_IS_POS, ::cvc5::api::Kind::FLOATINGPOINT_ISPOS},
-        {Op::FP_IS_ZERO, ::cvc5::api::Kind::FLOATINGPOINT_ISZ},
+        {Op::FP_IS_NORMAL, ::cvc5::api::Kind::FLOATINGPOINT_IS_NORMAL},
+        {Op::FP_IS_SUBNORMAL, ::cvc5::api::Kind::FLOATINGPOINT_IS_SUBNORMAL},
+        {Op::FP_IS_INF, ::cvc5::api::Kind::FLOATINGPOINT_IS_INF},
+        {Op::FP_IS_NAN, ::cvc5::api::Kind::FLOATINGPOINT_IS_NAN},
+        {Op::FP_IS_NEG, ::cvc5::api::Kind::FLOATINGPOINT_IS_NEG},
+        {Op::FP_IS_POS, ::cvc5::api::Kind::FLOATINGPOINT_IS_POS},
+        {Op::FP_IS_ZERO, ::cvc5::api::Kind::FLOATINGPOINT_IS_ZERO},
         {Op::FP_LT, ::cvc5::api::Kind::FLOATINGPOINT_LT},
         {Op::FP_LEQ, ::cvc5::api::Kind::FLOATINGPOINT_LEQ},
         {Op::FP_GT, ::cvc5::api::Kind::FLOATINGPOINT_GT},
@@ -486,9 +486,9 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
 
         /* Ints */
         {Op::INT_IS_DIV, ::cvc5::api::Kind::DIVISIBLE},
-        {Op::INT_NEG, ::cvc5::api::Kind::UMINUS},
-        {Op::INT_SUB, ::cvc5::api::Kind::MINUS},
-        {Op::INT_ADD, ::cvc5::api::Kind::PLUS},
+        {Op::INT_NEG, ::cvc5::api::Kind::NEG},
+        {Op::INT_SUB, ::cvc5::api::Kind::SUB},
+        {Op::INT_ADD, ::cvc5::api::Kind::ADD},
         {Op::INT_MUL, ::cvc5::api::Kind::MULT},
         {Op::INT_DIV, ::cvc5::api::Kind::INTS_DIVISION},
         {Op::INT_MOD, ::cvc5::api::Kind::INTS_MODULUS},
@@ -500,9 +500,9 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::INT_TO_REAL, ::cvc5::api::Kind::TO_REAL},
 
         /* Reals */
-        {Op::REAL_NEG, ::cvc5::api::Kind::UMINUS},
-        {Op::REAL_SUB, ::cvc5::api::Kind::MINUS},
-        {Op::REAL_ADD, ::cvc5::api::Kind::PLUS},
+        {Op::REAL_NEG, ::cvc5::api::Kind::NEG},
+        {Op::REAL_SUB, ::cvc5::api::Kind::SUB},
+        {Op::REAL_ADD, ::cvc5::api::Kind::ADD},
         {Op::REAL_MUL, ::cvc5::api::Kind::MULT},
         {Op::REAL_DIV, ::cvc5::api::Kind::DIVISION},
         {Op::REAL_LT, ::cvc5::api::Kind::LT},
@@ -733,13 +733,13 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::FLOATINGPOINT_EQ, Op::FP_EQ},
         {::cvc5::api::Kind::FLOATINGPOINT_FMA, Op::FP_FMA},
         {::cvc5::api::Kind::FLOATINGPOINT_FP, Op::FP_FP},
-        {::cvc5::api::Kind::FLOATINGPOINT_ISN, Op::FP_IS_NORMAL},
-        {::cvc5::api::Kind::FLOATINGPOINT_ISSN, Op::FP_IS_SUBNORMAL},
-        {::cvc5::api::Kind::FLOATINGPOINT_ISINF, Op::FP_IS_INF},
-        {::cvc5::api::Kind::FLOATINGPOINT_ISNAN, Op::FP_IS_NAN},
-        {::cvc5::api::Kind::FLOATINGPOINT_ISNEG, Op::FP_IS_NEG},
-        {::cvc5::api::Kind::FLOATINGPOINT_ISPOS, Op::FP_IS_POS},
-        {::cvc5::api::Kind::FLOATINGPOINT_ISZ, Op::FP_IS_ZERO},
+        {::cvc5::api::Kind::FLOATINGPOINT_IS_NORMAL, Op::FP_IS_NORMAL},
+        {::cvc5::api::Kind::FLOATINGPOINT_IS_SUBNORMAL, Op::FP_IS_SUBNORMAL},
+        {::cvc5::api::Kind::FLOATINGPOINT_IS_INF, Op::FP_IS_INF},
+        {::cvc5::api::Kind::FLOATINGPOINT_IS_NAN, Op::FP_IS_NAN},
+        {::cvc5::api::Kind::FLOATINGPOINT_IS_NEG, Op::FP_IS_NEG},
+        {::cvc5::api::Kind::FLOATINGPOINT_IS_POS, Op::FP_IS_POS},
+        {::cvc5::api::Kind::FLOATINGPOINT_IS_ZERO, Op::FP_IS_ZERO},
         {::cvc5::api::Kind::FLOATINGPOINT_LT, Op::FP_LT},
         {::cvc5::api::Kind::FLOATINGPOINT_LEQ, Op::FP_LEQ},
         {::cvc5::api::Kind::FLOATINGPOINT_GT, Op::FP_GT},
@@ -768,9 +768,9 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
 
         /* Ints */
         {::cvc5::api::Kind::DIVISIBLE, Op::INT_IS_DIV},
-        {::cvc5::api::Kind::UMINUS, Op::INT_NEG},
-        {::cvc5::api::Kind::MINUS, Op::INT_SUB},
-        {::cvc5::api::Kind::PLUS, Op::INT_ADD},
+        {::cvc5::api::Kind::NEG, Op::INT_NEG},
+        {::cvc5::api::Kind::SUB, Op::INT_SUB},
+        {::cvc5::api::Kind::ADD, Op::INT_ADD},
         {::cvc5::api::Kind::MULT, Op::INT_MUL},
         {::cvc5::api::Kind::INTS_DIVISION, Op::INT_DIV},
         {::cvc5::api::Kind::INTS_MODULUS, Op::INT_MOD},
@@ -782,9 +782,9 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::TO_REAL, Op::INT_TO_REAL},
 
         /* Reals */
-        {::cvc5::api::Kind::UMINUS, Op::REAL_NEG},
-        {::cvc5::api::Kind::MINUS, Op::REAL_SUB},
-        {::cvc5::api::Kind::PLUS, Op::REAL_ADD},
+        {::cvc5::api::Kind::NEG, Op::REAL_NEG},
+        {::cvc5::api::Kind::SUB, Op::REAL_SUB},
+        {::cvc5::api::Kind::ADD, Op::REAL_ADD},
         {::cvc5::api::Kind::MULT, Op::REAL_MUL},
         {::cvc5::api::Kind::DIVISION, Op::REAL_DIV},
         {::cvc5::api::Kind::LT, Op::REAL_LT},
@@ -1889,24 +1889,24 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       uint32_t sw = sort->get_fp_sig_size();
       if (value == AbsTerm::SPECIAL_VALUE_FP_POS_INF)
       {
-        cvc5_res = d_solver->mkPosInf(ew, sw);
+        cvc5_res = d_solver->mkFloatingPointPosInf(ew, sw);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_INF)
       {
-        cvc5_res = d_solver->mkNegInf(ew, sw);
+        cvc5_res = d_solver->mkFloatingPointNegInf(ew, sw);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_FP_POS_ZERO)
       {
-        cvc5_res = d_solver->mkPosZero(ew, sw);
+        cvc5_res = d_solver->mkFloatingPointPosZero(ew, sw);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_ZERO)
       {
-        cvc5_res = d_solver->mkNegZero(ew, sw);
+        cvc5_res = d_solver->mkFloatingPointNegZero(ew, sw);
       }
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_FP_NAN);
-        cvc5_res = d_solver->mkNaN(ew, sw);
+        cvc5_res = d_solver->mkFloatingPointNaN(ew, sw);
       }
     }
     break;
