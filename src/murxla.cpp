@@ -148,6 +148,14 @@ str_diff(const std::string& s1, const std::string& s2)
   return diff;
 }
 
+double
+error_diff(const std::string& e1, const std::string& e2)
+{
+  size_t len  = std::max(e1.size(), e2.size());
+  size_t diff = str_diff(e1, e2);
+  return static_cast<double>(diff) / static_cast<double>(len);
+}
+
 }  // namespace
 
 /* -------------------------------------------------------------------------- */
@@ -827,13 +835,19 @@ Murxla::run_aux(uint64_t seed,
 Murxla::ErrorKind
 Murxla::add_error(const std::string& err, uint64_t seed)
 {
-  bool duplicate       = false;
   std::string err_norm = normalize_asan_error(err);
 
   /* Filter errors if specified in the solver profile. */
   for (const auto& e : d_filter_errors)
   {
     if (err.find(e) != std::string::npos)
+    {
+      return ErrorKind::FILTER;
+    }
+
+    /* Errors are classified as the same error if they differ in at most 5% of
+     * characters. */
+    if (error_diff(err_norm, e) <= 0.05)
     {
       return ErrorKind::FILTER;
     }
@@ -844,37 +858,29 @@ Murxla::add_error(const std::string& err, uint64_t seed)
     const auto& e_norm = p.first;
     auto& seeds        = p.second.second;
 
-    size_t len   = std::max(err_norm.size(), e_norm.size());
-    size_t diff  = str_diff(err_norm, e_norm);
-    double pdiff = static_cast<double>(diff) / static_cast<double>(len);
-
     /* Errors are classified as the same error if they differ in at most 5% of
      * characters. */
-    if (pdiff <= 0.05)
+    if (error_diff(err_norm, e_norm) <= 0.05)
     {
       seeds.push_back(seed);
-      duplicate = true;
-      break;
+      return ErrorKind::DUPLICATE;
     }
   }
 
-  if (!duplicate)
+  std::vector<uint64_t> seeds = {seed};
+  d_errors->emplace(err_norm, std::make_pair(err, seeds));
+
+  // Export errors to JSON file.
+  if (!d_options.export_errors_filename.empty())
   {
-    std::vector<uint64_t> seeds = {seed};
-    d_errors->emplace(err_norm, std::make_pair(err, seeds));
-
-    // Export errors to JSON file.
-    if (!d_options.export_errors_filename.empty())
-    {
-      d_export_errors.push_back(err);
-      nlohmann::json j;
-      j["errors"]["exclude"] = d_export_errors;
-      std::ofstream o(d_options.export_errors_filename);
-      o << std::setw(2) << j << std::endl;
-    }
+    d_export_errors.push_back(err);
+    nlohmann::json j;
+    j["errors"]["exclude"] = d_export_errors;
+    std::ofstream o(d_options.export_errors_filename);
+    o << std::setw(2) << j << std::endl;
   }
 
-  return duplicate ? ErrorKind::DUPLICATE : ErrorKind::ERROR;
+  return ErrorKind::ERROR;
 }
 
 void
