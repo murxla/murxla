@@ -237,7 +237,7 @@ set_sigint_handler_stats(void)
   "  --print-fsm                print FSM configuration, may be combined\n"    \
   "                             with solver option to show config for "        \
   "  --csv                      print error summary in csv format\n"           \
-  "  --export-errors <out>      export found errors to JSON file <out>\n"      \
+  "  -e, --export-errors <out>  export found errors to JSON file <out>\n"      \
   "solver\n"                                                                   \
   "\n"                                                                         \
   "  --btor                     test Boolector\n"                              \
@@ -373,7 +373,7 @@ get_options(Options& options,
 void
 parse_options(Options& options, int argc, char* argv[])
 {
-  std::vector<std::string> args;
+  std::vector<std::string> args, record_args;
   get_options(options, argc, argv, args);
 
   for (size_t i = 0, size = args.size(); i < size; ++i)
@@ -477,15 +477,18 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "--check")
     {
+      record_args.push_back(arg);
       options.check_solver = true;
       if (size > i && is_valid_solver_str(args[i + 1]))
       {
         options.check_solver_name = args[i + 1];
+        record_args.push_back(args[i + 1]);
         i += 1;
       }
     }
     else if (arg == "--no-check")
     {
+      record_args.push_back(arg);
       options.check_solver = false;
     }
     else if (arg == "-y" || arg == "--random-symbols")
@@ -512,30 +515,36 @@ parse_options(Options& options, int argc, char* argv[])
     {
       check_solver(SOLVER_BTOR);
       options.solver = SOLVER_BTOR;
+      record_args.push_back(arg);
     }
     else if (arg == "--bzla")
     {
       check_solver(SOLVER_BZLA);
       options.solver = SOLVER_BZLA;
+      record_args.push_back(arg);
     }
     else if (arg == "--cvc5")
     {
       check_solver(SOLVER_CVC5);
       options.solver = SOLVER_CVC5;
+      record_args.push_back(arg);
     }
     else if (arg == "--yices")
     {
       check_solver(SOLVER_YICES);
       options.solver = SOLVER_YICES;
+      record_args.push_back(arg);
     }
     else if (arg == "--smt2")
     {
+      record_args.push_back(arg);
       if (i + 1 < size && args[i + 1][0] != '-')
       {
         MURXLA_EXIT_ERROR(!options.solver.empty())
             << "multiple solvers defined";
         i += 1;
         options.solver_binary = args[i];
+        record_args.push_back(args[i]);
       }
       options.solver = SOLVER_SMT2;
     }
@@ -547,11 +556,13 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "-o" || arg == "--cross-check-opts")
     {
+      record_args.push_back(arg);
       i += 1;
       check_next_arg(arg, i, size);
       const std::string prefix =
           arg == "--cross-check-opts" ? MURXLA_CHECK_SOLVER_OPT_PREFIX : "";
       auto solver_options = split(args[i], ',');
+      record_args.push_back(args[i]);
       for (auto opt : solver_options)
       {
         auto split_opt = split(opt, '=');
@@ -579,7 +590,7 @@ parse_options(Options& options, int argc, char* argv[])
     {
       g_errors_print_csv = true;
     }
-    else if (arg == "--export-errors")
+    else if (arg == "-e" || arg == "--export-errors")
     {
       i += 1;
       check_next_arg(arg, i, size);
@@ -743,21 +754,9 @@ parse_options(Options& options, int argc, char* argv[])
   /* Record command line options for tracing. */
   std::stringstream ss;
   ss << "set-murxla-options";
-  for (size_t i = 0; i < args.size(); ++i)
+  for (const auto& arg : record_args)
   {
-    assert(args[i] != "-u");
-    assert(args[i] != "--untrace");
-    if (args[i] == "-s" || args[i] == "--seed" || args[i] == "-a"
-        || args[i] == "--api-trace")
-    {
-      ++i;
-      continue;
-    }
-    else if (args[i] == "-d" || args[i] == "--dd")
-    {
-      continue;
-    }
-    ss << " " << args[i];
+    ss << " " << arg;
   }
   options.cmd_line_trace = ss.str();
 }
