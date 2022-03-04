@@ -143,6 +143,9 @@ std::tuple<uint32_t, std::string, std::vector<std::string>> tokenize(
 /** Split string 's' by character 'delim'. */
 std::vector<std::string> split(const std::string& s, const char delim);
 
+/** Remove trailing whitespaces. */
+std::string& rstrip(std::string& s);
+
 /* -------------------------------------------------------------------------- */
 
 template <typename T, typename P>

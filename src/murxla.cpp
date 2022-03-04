@@ -271,6 +271,7 @@ void
 Murxla::test()
 {
   uint64_t num_timeouts = 0, num_printed_lines = 0;
+  uint64_t error_id = 0, error_nduplicates = 0;
   uint32_t num_runs         = 0;
   double start_time         = get_cur_wall_time();
   std::string out_file_name = DEVNULL;
@@ -382,7 +383,8 @@ Murxla::test()
         }
         if (res == RESULT_ERROR)
         {
-          errkind = add_error(errmsg, seed, errmsg_filtered);
+          std::tie(errkind, errmsg_filtered, error_id, error_nduplicates) =
+              add_error(errmsg, seed);
         }
         else if (res == RESULT_ERROR_CONFIG)
         {
@@ -403,11 +405,11 @@ Murxla::test()
         case RESULT_ERROR:
           if (errkind == ErrorKind::DUPLICATE)
           {
-            info << term.green() << "duplicate";
+            info << term.green() << "duplicate:" << error_id;
           }
           else if (errkind == ErrorKind::ERROR)
           {
-            info << term.red() << "error";
+            info << term.red() << "error:" << error_id;
           }
           else if (errkind == ErrorKind::FILTER)
           {
@@ -425,52 +427,54 @@ Murxla::test()
       info << term.defaultcolor() << "]";
 
       std::cout << info.str() << std::flush;
-      if (res == RESULT_ERROR)
+      if (res == RESULT_ERROR && errkind != ErrorKind::FILTER)
+      {
         std::cout << " ";
+      }
       else
       {
         std::cout << std::endl;
         ++num_printed_lines;
       }
-    }
 
-    /* Replay and trace on error.
-     *
-     * If SMT2 solver with online solver configured, dump smt2 on replay.
-     * If SMT2 solver configured without an online solver, we'll never enter
-     * here (the SMT2 solver should never return an error result). */
-    if (res != RESULT_OK && res != RESULT_TIMEOUT)
-    {
-      // No need to replay SMT2 since we already have the SMT2 problem.
-      if (smt2_offline)
+      /* Replay and trace on error.
+       *
+       * If SMT2 solver with online solver configured, dump smt2 on replay.
+       * If SMT2 solver configured without an online solver, we'll never enter
+       * here (the SMT2 solver should never return an error result). */
+      if (res != RESULT_TIMEOUT && errkind != ErrorKind::FILTER)
       {
-        std::cout << get_smt2_file_name(seed, api_trace_file_name) << std::endl;
+        // No need to replay SMT2 since we already have the SMT2 problem.
+        if (smt2_offline)
+        {
+          std::cout << get_smt2_file_name(seed, api_trace_file_name)
+                    << std::endl;
+        }
+        else
+        {
+          Result res_replay = replay(seed,
+                                     out_file_name,
+                                     err_file_name,
+                                     api_trace_file_name,
+                                     d_options.untrace_file_name);
+
+          std::cout << api_trace_file_name << std::endl;
+
+          // Note: This may happen in few cases where the replay runs into a
+          // timeout, but the original run does not.
+          MURXLA_WARN(res != res_replay)
+              << "Replay did not return the same result as original run. "
+              << "Original run returned " << res << ", but replay returned "
+              << res_replay << ".";
+        }
       }
-      else
+      /* Print new error message after it was found. */
+      if (res == RESULT_ERROR && errkind == ErrorKind::ERROR)
       {
-        Result res_replay = replay(seed,
-                                   out_file_name,
-                                   err_file_name,
-                                   api_trace_file_name,
-                                   d_options.untrace_file_name);
-
-        std::cout << api_trace_file_name << std::endl;
-
-        // Note: This may happen in few cases where the replay runs into a
-        // timeout, but the original run does not.
-        MURXLA_WARN(res != res_replay)
-            << "Replay did not return the same result as original run. "
-            << "Original run returned " << res << ", but replay returned "
-            << res_replay << ".";
+        std::cout << std::endl;
+        std::cout << rstrip(errmsg_filtered) << "\n" << std::endl;
+        num_printed_lines = 0;  // print header again after error
       }
-    }
-    std::cout << term.cr() << std::flush;
-    /* Print new error message after it was found. */
-    if (res == RESULT_ERROR && errkind == ErrorKind::ERROR)
-    {
-      std::cout << std::endl;
-      std::cout << errmsg_filtered << std::endl;
-      num_printed_lines = 0; // print header again after error
     }
   } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
 }
@@ -850,12 +854,10 @@ Murxla::filter_error(const std::string& err)
   return res.empty() ? err : res;
 }
 
-Murxla::ErrorKind
-Murxla::add_error(const std::string& err,
-                  uint64_t seed,
-                  std::string& filtered_err)
+std::tuple<Murxla::ErrorKind, const std::string, uint64_t, uint64_t>
+Murxla::add_error(const std::string& err, uint64_t seed)
 {
-  filtered_err         = filter_error(err);
+  std::string filtered_err = filter_error(err);
   std::string err_norm = normalize_asan_error(filtered_err);
 
   /* Filter errors if specified in the solver profile. */
@@ -863,33 +865,34 @@ Murxla::add_error(const std::string& err,
   {
     if (filtered_err.find(e) != std::string::npos)
     {
-      return ErrorKind::FILTER;
+      return std::make_tuple(ErrorKind::FILTER, filtered_err, 0, 0);
     }
 
     /* Errors are classified as the same error if they differ in at most 5% of
      * characters. */
     if (error_diff(err_norm, e) <= 0.05)
     {
-      return ErrorKind::FILTER;
+      return std::make_tuple(ErrorKind::FILTER, filtered_err, 0, 0);
     }
   }
 
   for (auto& p : *d_errors)
   {
     const auto& e_norm = p.first;
-    auto& seeds        = p.second.second;
+    auto& e_info       = p.second;
 
     /* Errors are classified as the same error if they differ in at most 5% of
      * characters. */
     if (error_diff(err_norm, e_norm) <= 0.05)
     {
-      seeds.push_back(seed);
-      return ErrorKind::DUPLICATE;
+      e_info.seeds.push_back(seed);
+      return std::make_tuple(
+          ErrorKind::DUPLICATE, filtered_err, e_info.id, e_info.seeds.size());
     }
   }
 
-  std::vector<uint64_t> seeds = {seed};
-  d_errors->emplace(err_norm, std::make_pair(filtered_err, seeds));
+  d_errors->emplace(err_norm,
+                    ErrorInfo(d_errors->size() + 1, filtered_err, {seed}));
 
   // Export errors to JSON file.
   if (!d_options.export_errors_filename.empty())
@@ -901,7 +904,7 @@ Murxla::add_error(const std::string& err,
     o << std::setw(2) << j << std::endl;
   }
 
-  return ErrorKind::ERROR;
+  return std::make_tuple(ErrorKind::ERROR, filtered_err, d_errors->size(), 1);
 }
 
 void

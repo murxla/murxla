@@ -31,12 +31,22 @@ class Solver;
 
 /* -------------------------------------------------------------------------- */
 
+struct ErrorInfo
+{
+  ErrorInfo(uint64_t id,
+            const std::string& errmsg,
+            const std::vector<uint64_t>& seeds)
+      : id(id), errmsg(errmsg), seeds(seeds){};
+
+  uint64_t id;
+  std::string errmsg;
+  std::vector<uint64_t> seeds;
+};
+
 class Murxla
 {
  public:
-  using ErrorMap =
-      std::unordered_map<std::string,
-                         std::pair<std::string, std::vector<uint64_t>>>;
+  using ErrorMap = std::unordered_map<std::string, ErrorInfo>;
 
   enum TraceMode
   {
@@ -208,9 +218,8 @@ class Murxla
   std::string filter_error(const std::string& err);
 
   /** Register error to d_errors. */
-  ErrorKind add_error(const std::string& err,
-                      uint64_t seed,
-                      std::string& filtered_err);
+  std::tuple<Murxla::ErrorKind, const std::string, uint64_t, uint64_t>
+  add_error(const std::string& err, uint64_t seed);
 
   /** Load solver profile of currently configured solver. */
   void load_solver_profile();

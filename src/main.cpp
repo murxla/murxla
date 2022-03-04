@@ -128,13 +128,11 @@ print_error_summary()
 
     if (g_errors_print_csv)
     {
-      for (const auto& p : g_errors)
+      for (const auto& [e_norm, e_info] : g_errors)
       {
-        std::string err(p.second.first);
-        const auto& seeds = p.second.second;
-        std::cout << "murxla:csv:" << seeds.size() << ",";
-        std::cout << "\"" << escape_csv(err) << "\",";
-        for (auto seed : seeds)
+        std::cout << "murxla:csv:" << e_info.seeds.size() << ",";
+        std::cout << "\"" << escape_csv(e_info.errmsg) << "\",";
+        for (auto seed : e_info.seeds)
         {
           std::cout << std::hex << seed << " ";
         }
@@ -144,21 +142,19 @@ print_error_summary()
     else
     {
       Terminal term;
-      for (const auto& p : g_errors)
+      for (const auto& [e_norm, e_info] : g_errors)
       {
-        const auto& err   = p.second.first;
-        const auto& seeds = p.second.second;
-        std::cout << term.red() << seeds.size()
+        std::cout << term.red() << e_info.seeds.size()
                   << " errors: " << term.defaultcolor();
-        for (size_t i = 0; i < std::min<size_t>(seeds.size(), 10); ++i)
+        for (size_t i = 0; i < std::min<size_t>(e_info.seeds.size(), 10); ++i)
         {
           if (i > 0)
           {
             std::cout << " ";
           }
-          std::cout << std::hex << seeds[i];
+          std::cout << std::hex << e_info.seeds[i];
         }
-        std::cout << "\n" << err << "\n" << std::endl;
+        std::cout << "\n" << e_info.errmsg << "\n" << std::endl;
       }
     }
   }

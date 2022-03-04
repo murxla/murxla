@@ -144,7 +144,9 @@
   },
 
   "errors": {
-    "exclude": [],
+    "exclude": [
+      "The exponent of the POW(^) operator can only be a positive integral"
+    ],
     "filter": [
       "Fatal failure within [\\S\\s]+",
       "terminate called after throwing an instance of [\\S\\s]+what\\(\\):.*"

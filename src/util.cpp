@@ -686,6 +686,17 @@ split(const std::string& s, const char delim)
   return res;
 }
 
+std::string&
+rstrip(std::string& s)
+{
+  s.erase(std::find_if(s.rbegin(),
+                       s.rend(),
+                       [](unsigned char c) { return !std::isspace(c); })
+              .base(),
+          s.end());
+  return s;
+}
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace murxla
