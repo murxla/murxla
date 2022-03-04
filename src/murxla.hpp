@@ -227,6 +227,9 @@ class Murxla
   std::string get_smt2_file_name(uint64_t seed,
                                  const std::string& untrace_file_name) const;
 
+  std::string get_api_trace_file_name(uint64_t seed,
+                                      uint64_t error_id = 0) const;
+
   /** Statistics of current test run(s). */
   statistics::Statistics* d_stats;
   /** Map normalized error message to pair (original error message, seeds). */

@@ -503,8 +503,6 @@ parse_options(Options& options, int argc, char* argv[])
     {
       i += 1;
       check_next_arg(arg, i, size);
-      MURXLA_EXIT_ERROR(!path_is_dir(args[i]))
-          << "given path is not a directory '" << args[i] << "'";
       options.out_dir = args[i];
     }
     else if (arg == "--btor")

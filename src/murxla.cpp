@@ -62,26 +62,6 @@ handle_abort(int sig)
 
 namespace {
 
-std::string
-get_api_trace_file_name(uint64_t seed,
-                        bool is_dd,
-                        std::string untrace_file_name = "")
-{
-  if (untrace_file_name.empty())
-  {
-    std::stringstream ss;
-    ss << "murxla-" << std::hex << seed << ".trace";
-    return ss.str();
-  }
-  if (is_dd)
-  {
-    std::stringstream ss;
-    ss << "murxla-dd-tmp-" << untrace_file_name;
-    return ss.str();
-  }
-  return DEVNULL;
-}
-
 /**
  * Removes memory addresses and ==...== from ASAN messages.
  */
@@ -225,26 +205,33 @@ Murxla::run(uint64_t seed,
 
   if (trace_mode == TO_FILE)
   {
+    std::string copy_from, copy_to;
+
     /* For the SMT2 solver, we only write the SMT2 file (not the trace). */
     if (!d_options.dd && d_options.solver == SOLVER_SMT2)
     {
-      std::string smt2_file_name = get_smt2_file_name(seed, untrace_file_name);
-      std::string tmp_smt2_file_name = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
-      assert(filesystem::exists(tmp_smt2_file_name));
-      filesystem::copy(tmp_smt2_file_name,
-                       smt2_file_name,
-                       filesystem::copy_options::overwrite_existing);
+      copy_from = get_tmp_file_path(SMT2_FILE, d_tmp_dir);
+      copy_to   = get_smt2_file_name(seed, untrace_file_name);
     }
     /* For all other solvers, we write the trace file. */
     else if (api_trace_file_name != DEVNULL)
     {
-      assert(filesystem::exists(tmp_api_trace_file_name));
-      if (tmp_api_trace_file_name != api_trace_file_name)
+      copy_from = tmp_api_trace_file_name;
+      copy_to   = api_trace_file_name;
+    }
+
+    if (copy_from != copy_to)
+    {
+      assert(filesystem::exists(copy_from));
+
+      // Create parent directories if they do not exist yet.
+      std::filesystem::path fp(copy_to);
+      if (fp.has_parent_path() && !std::filesystem::exists(fp.parent_path()))
       {
-        filesystem::copy(tmp_api_trace_file_name,
-                         api_trace_file_name,
-                         filesystem::copy_options::overwrite_existing);
+        std::filesystem::create_directories(fp.parent_path());
       }
+      filesystem::copy(
+          copy_from, copy_to, filesystem::copy_options::overwrite_existing);
     }
   }
 
@@ -329,17 +316,7 @@ Murxla::test()
      * trace to stdout here, which is redirected to /dev/null).
      * If error encountered, replay and trace below. */
 
-    std::string api_trace_file_name = d_options.api_trace_file_name;
-    if (api_trace_file_name.empty())
-    {
-      api_trace_file_name = get_api_trace_file_name(
-          seed, d_options.dd, d_options.untrace_file_name);
-      if (!d_options.out_dir.empty())
-      {
-        api_trace_file_name =
-            prepend_path(d_options.out_dir, api_trace_file_name);
-      }
-    }
+    std::string api_trace_file_name = get_api_trace_file_name(seed);
     bool smt2_offline =
         (d_options.solver == SOLVER_SMT2 && d_options.solver_binary.empty());
     Result res =
@@ -452,6 +429,8 @@ Murxla::test()
         }
         else
         {
+          assert(error_id > 0);
+          api_trace_file_name = get_api_trace_file_name(seed, error_id);
           Result res_replay = replay(seed,
                                      out_file_name,
                                      err_file_name,
@@ -474,6 +453,14 @@ Murxla::test()
         std::cout << std::endl;
         std::cout << rstrip(errmsg_filtered) << "\n" << std::endl;
         num_printed_lines = 0;  // print header again after error
+
+        // If it is the first error, we also store the error message in a text
+        // file.
+        assert(error_nduplicates == 1);
+        std::filesystem::path fp(api_trace_file_name);
+        std::string text_file = prepend_path(fp.parent_path(), "error.txt");
+        std::ofstream os(text_file);
+        os << errmsg_filtered << "\n";
       }
     }
   } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
@@ -957,6 +944,43 @@ Murxla::get_smt2_file_name(uint64_t seed,
     }
   }
   return smt2_file_name;
+}
+
+std::string
+Murxla::get_api_trace_file_name(uint64_t seed, uint64_t error_id) const
+{
+  std::string api_trace_file_name = d_options.api_trace_file_name;
+  if (api_trace_file_name.empty())
+  {
+    if (d_options.untrace_file_name.empty())
+    {
+      std::stringstream ss;
+      ss << "murxla-" << std::hex << seed << ".trace";
+      api_trace_file_name = ss.str();
+    }
+    else if (d_options.dd)
+    {
+      std::stringstream ss;
+      ss << "murxla-dd-tmp-" << d_options.untrace_file_name;
+      api_trace_file_name = ss.str();
+    }
+    else
+    {
+      api_trace_file_name = DEVNULL;
+    }
+    if (error_id > 0)
+    {
+      std::stringstream ss;
+      ss << error_id;
+      api_trace_file_name = prepend_path(ss.str(), api_trace_file_name);
+    }
+    if (!d_options.out_dir.empty())
+    {
+      api_trace_file_name =
+          prepend_path(d_options.out_dir, api_trace_file_name);
+    }
+  }
+  return api_trace_file_name;
 }
 
 /* -------------------------------------------------------------------------- */
