@@ -74,13 +74,8 @@ merge_json(json& merged, json& other, const std::string& key = "")
   // Merge arrays
   else if (merged.is_array() && other.is_array())
   {
-    // Union of values
-    if (key == "exclude")
-    {
-      merged.insert(merged.end(), other.begin(), other.end());
-    }
     // Intersection of values
-    else if (key == "include")
+    if (key == "include")
     {
       auto vm = merged.get<std::unordered_set<std::string>>();
       auto vo = other.get<std::unordered_set<std::string>>();
@@ -93,7 +88,11 @@ merge_json(json& merged, json& other, const std::string& key = "")
         }
       }
     }
-    // Ignore other keys
+    // Union of values: exclude, filter, ...
+    else
+    {
+      merged.insert(merged.end(), other.begin(), other.end());
+    }
   }
 }
 
@@ -295,7 +294,7 @@ SolverProfile::get_unsupported_sort_param_sort_kinds() const
 }
 
 std::vector<std::string>
-SolverProfile::get_errors() const
+SolverProfile::get_excluded_errors() const
 {
   std::vector<std::string> errors;
   // Load excluded errors
@@ -312,6 +311,26 @@ SolverProfile::get_errors() const
     }
   }
   return errors;
+}
+
+std::vector<std::string>
+SolverProfile::get_error_filters() const
+{
+  std::vector<std::string> filters;
+  // Load error filters
+  auto it = d_json.find(KEY_ERRORS);
+  if (it != d_json.end())
+  {
+    auto itt = it->find("filter");
+    if (itt != it->end() && itt->is_array())
+    {
+      for (const auto& err : *itt)
+      {
+        filters.emplace_back(err.get<std::string>());
+      }
+    }
+  }
+  return filters;
 }
 
 void

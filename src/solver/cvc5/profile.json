@@ -141,5 +141,13 @@
         "SORT_REGLAN"
       ]
     }
+  },
+
+  "errors": {
+    "exclude": [],
+    "filter": [
+      "Fatal failure within [\\S\\s]+",
+      "terminate called after throwing an instance of [\\S\\s]+what\\(\\):.*"
+    ]
   }
 }

@@ -177,8 +177,9 @@ Murxla::Murxla(statistics::Statistics* stats,
 
   if (!d_options.export_errors_filename.empty())
   {
-    d_export_errors.insert(
-        d_export_errors.end(), d_filter_errors.begin(), d_filter_errors.end());
+    d_export_errors.insert(d_export_errors.end(),
+                           d_exclude_errors.begin(),
+                           d_exclude_errors.end());
   }
 }
 
@@ -352,7 +353,7 @@ Murxla::test()
             // for the SMT2 offline mode we want to store all SMT2 files
             smt2_offline ? TO_FILE : NONE);
 
-    std::string errmsg;
+    std::string errmsg, errmsg_filtered;
     ErrorKind errkind = ErrorKind::ERROR;
     /* report status */
     if (res == RESULT_OK)
@@ -381,17 +382,17 @@ Murxla::test()
         }
         if (res == RESULT_ERROR)
         {
-          errkind = add_error(errmsg, seed);
+          errkind = add_error(errmsg, seed, errmsg_filtered);
         }
         else if (res == RESULT_ERROR_CONFIG)
         {
           term.erase(std::cout);
-          MURXLA_CHECK_CONFIG(false) << errmsg << " " << d_error_msg;
+          MURXLA_CHECK_CONFIG(false) << errmsg_filtered << " " << d_error_msg;
         }
         else
         {
           assert(res == RESULT_ERROR_UNTRACE);
-          MURXLA_CHECK_TRACE(false) << errmsg << " " << d_error_msg;
+          MURXLA_CHECK_TRACE(false) << errmsg_filtered << " " << d_error_msg;
         }
       }
 
@@ -468,7 +469,7 @@ Murxla::test()
     if (res == RESULT_ERROR && errkind == ErrorKind::ERROR)
     {
       std::cout << std::endl;
-      std::cout << errmsg << std::endl;
+      std::cout << errmsg_filtered << std::endl;
       num_printed_lines = 0; // print header again after error
     }
   } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
@@ -832,15 +833,35 @@ Murxla::run_aux(uint64_t seed,
   return result;
 }
 
-Murxla::ErrorKind
-Murxla::add_error(const std::string& err, uint64_t seed)
+std::string
+Murxla::filter_error(const std::string& err)
 {
-  std::string err_norm = normalize_asan_error(err);
+  std::string res;
+  for (const auto& re : d_error_filters)
+  {
+    std::smatch sm;
+    std::regex_search(err, sm, std::regex(re));
+    if (sm.size() == 1)
+    {
+      res = sm[0];
+      break;
+    }
+  }
+  return res.empty() ? err : res;
+}
+
+Murxla::ErrorKind
+Murxla::add_error(const std::string& err,
+                  uint64_t seed,
+                  std::string& filtered_err)
+{
+  filtered_err         = filter_error(err);
+  std::string err_norm = normalize_asan_error(filtered_err);
 
   /* Filter errors if specified in the solver profile. */
-  for (const auto& e : d_filter_errors)
+  for (const auto& e : d_exclude_errors)
   {
-    if (err.find(e) != std::string::npos)
+    if (filtered_err.find(e) != std::string::npos)
     {
       return ErrorKind::FILTER;
     }
@@ -868,12 +889,12 @@ Murxla::add_error(const std::string& err, uint64_t seed)
   }
 
   std::vector<uint64_t> seeds = {seed};
-  d_errors->emplace(err_norm, std::make_pair(err, seeds));
+  d_errors->emplace(err_norm, std::make_pair(filtered_err, seeds));
 
   // Export errors to JSON file.
   if (!d_options.export_errors_filename.empty())
   {
-    d_export_errors.push_back(err);
+    d_export_errors.push_back(filtered_err);
     nlohmann::json j;
     j["errors"]["exclude"] = d_export_errors;
     std::ofstream o(d_options.export_errors_filename);
@@ -902,8 +923,11 @@ Murxla::load_solver_profile()
   }
 
   d_solver_profile.reset(new SolverProfile(profile));
-  auto errors = d_solver_profile->get_errors();
-  d_filter_errors.insert(errors.begin(), errors.end());
+  auto errors = d_solver_profile->get_excluded_errors();
+  d_exclude_errors.insert(errors.begin(), errors.end());
+  auto error_filters = d_solver_profile->get_error_filters();
+  d_error_filters.insert(
+      d_error_filters.end(), error_filters.begin(), error_filters.end());
 }
 
 std::string

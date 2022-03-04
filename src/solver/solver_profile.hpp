@@ -201,7 +201,10 @@ class SolverProfile
   SortKindSet get_unsupported_sort_param_sort_kinds() const;
 
   /** Get list of errors to be filtered out (ignored).*/
-  std::vector<std::string> get_errors() const;
+  std::vector<std::string> get_excluded_errors() const;
+
+  /** Get list of error filters.*/
+  std::vector<std::string> get_error_filters() const;
 
  private:
   static inline const std::string KEY_THEORIES = "theories";

@@ -204,8 +204,13 @@ class Murxla
                 const std::string& api_trace_file_name,
                 const std::string& untrace_file_name);
 
+  /** Filter error messages based on filter regex provided in solver profile. */
+  std::string filter_error(const std::string& err);
+
   /** Register error to d_errors. */
-  ErrorKind add_error(const std::string& err, uint64_t seed);
+  ErrorKind add_error(const std::string& err,
+                      uint64_t seed,
+                      std::string& filtered_err);
 
   /** Load solver profile of currently configured solver. */
   void load_solver_profile();
@@ -218,7 +223,8 @@ class Murxla
   /** Map normalized error message to pair (original error message, seeds). */
   ErrorMap* d_errors;
 
-  std::unordered_set<std::string> d_filter_errors;
+  std::unordered_set<std::string> d_exclude_errors;
+  std::vector<std::string> d_error_filters;
 
   std::unique_ptr<SolverProfile> d_solver_profile;
 
