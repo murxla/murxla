@@ -842,8 +842,7 @@ main(int argc, char* argv[])
 
       if (options.dd)
       {
-        DD(&murxla, options.seed, options.time)
-            .run(api_trace_file_name, dd_trace_file_name);
+        DD(&murxla, options.seed).run(api_trace_file_name, dd_trace_file_name);
       }
     }
   }

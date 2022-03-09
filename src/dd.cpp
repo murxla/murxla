@@ -9,6 +9,7 @@
  */
 #include "dd.hpp"
 
+#include <chrono>
 #include <fstream>
 
 #include "except.hpp"
@@ -74,8 +75,8 @@ split_superset(const std::vector<size_t> superset, size_t subset_size)
 
 /* -------------------------------------------------------------------------- */
 
-DD::DD(Murxla* murxla, uint64_t seed, double time)
-    : d_murxla(murxla), d_seed(seed), d_time(time)
+DD::DD(Murxla* murxla, uint64_t seed)
+    : d_murxla(murxla), d_seed(seed), d_time(0)
 {
   assert(d_murxla);
   d_gold_out_file_name =
@@ -103,8 +104,9 @@ DD::run(const std::string& input_trace_file_name,
                     << input_trace_file_name.c_str() << "'";
 
   /* golden run */
-  gold_exit = d_murxla->run(d_seed,
-                            d_time,
+  auto start = std::chrono::system_clock::now();
+  gold_exit  = d_murxla->run(d_seed,
+                            0,
                             d_gold_out_file_name,
                             d_gold_err_file_name,
                             tmp_input_trace_file_name,
@@ -112,6 +114,10 @@ DD::run(const std::string& input_trace_file_name,
                             true,
                             false,
                             Murxla::TraceMode::TO_FILE);
+  auto end   = std::chrono::system_clock::now();
+  // Compute time limit for delta-debugging tests (3 * golden runtime).
+  auto gold_time = std::chrono::duration<double>(end - start).count();
+  d_time         = gold_time * 3;
 
   MURXLA_EXIT_ERROR(gold_exit == RESULT_ERROR_UNTRACE) << d_murxla->d_error_msg;
 

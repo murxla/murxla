@@ -485,7 +485,7 @@ Murxla::replay(uint64_t seed,
 
   if (d_options.dd)
   {
-    DD(this, seed, 0).run(api_trace_file_name, d_options.dd_trace_file_name);
+    DD(this, seed).run(api_trace_file_name, d_options.dd_trace_file_name);
   }
   return res;
 }

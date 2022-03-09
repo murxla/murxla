@@ -36,7 +36,7 @@ class DD
    * seed  : The seed for the RNG.
    * time  : The time limit for one test run.
    */
-  DD(Murxla* murxla, uint64_t seed, double time);
+  DD(Murxla* murxla, uint64_t seed);
 
   /**
    * Delta debug a given api trace.
