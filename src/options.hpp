@@ -43,7 +43,7 @@ struct Options
   /** True to use simple instead of completely random symbols for inputs. */
   bool simple_symbols = true;
   /** True to only generate SMT-LIB compliant API traces. */
-  bool smt = false;
+  bool smtlib_compliant = false;
   /** True to print statistics. */
   bool print_stats = false;
   /** True to print FSM configuration. */

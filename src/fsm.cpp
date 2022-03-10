@@ -103,7 +103,7 @@ FSM::FSM(RNGenerator& rng,
          bool arith_linear,
          bool trace_seeds,
          bool simple_symbols,
-         bool smt,
+         bool smtlib_compliant,
          bool fuzz_options,
          std::string fuzz_options_filter,
          statistics::Statistics* stats,
@@ -125,7 +125,7 @@ FSM::FSM(RNGenerator& rng,
              disabled_theories),
       d_rng(rng),
       d_arith_linear(arith_linear),
-      d_smt(smt),
+      d_smtlib_compliant(smtlib_compliant),
       d_fuzz_options(fuzz_options),
       d_fuzz_options_filter(fuzz_options_filter),
       d_mbt_stats(stats),
@@ -198,7 +198,7 @@ FSM::FSM(RNGenerator& rng,
     }
   }
 
-  d_smgr.initialize();
+  d_smgr.initialize(d_smtlib_compliant);
 }
 
 SolverManager&
@@ -532,7 +532,7 @@ FSM::configure()
   /* Configure solver specific actions/states                              */
   /* --------------------------------------------------------------------- */
 
-  if (!d_smt)
+  if (!d_smtlib_compliant)
   {
     d_smgr.get_solver().configure_fsm(this);
     if (d_fuzz_options)

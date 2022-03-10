@@ -64,7 +64,7 @@ class SolverManager
    * Finalize initialization of SolverManager. Configures sort kinds,
    * operators, etc. based on currently configured theories.
    */
-  void initialize();
+  void initialize(bool smtlib_compliant);
 
   statistics::Statistics* d_mbt_stats;
 

@@ -392,7 +392,7 @@ class FSM
       bool arith_linear,
       bool trace_seeds,
       bool simple_symbols,
-      bool smt,
+      bool smtlib_compliant,
       bool fuzz_options,
       std::string fuzz_options_filter,
       statistics::Statistics* stats,
@@ -624,7 +624,7 @@ class FSM
   /** True to restrict arithmetic to the linear fragment. */
   bool d_arith_linear = false;
   /** True to generate SMT-LIB compliant traces only. */
-  bool d_smt = false;
+  bool d_smtlib_compliant = false;
   /** True to enable option fuzzing. */
   bool d_fuzz_options = false;
   /** Filter options to be fuzzed. */

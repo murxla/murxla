@@ -56,7 +56,7 @@ SolverManager::SolverManager(Solver* solver,
 /* -------------------------------------------------------------------------- */
 
 void
-SolverManager::initialize()
+SolverManager::initialize(bool smtlib_compliant)
 {
   assert(!d_initialized);
   add_sort_kinds();  // adds only sort kinds of enabled theories
@@ -66,7 +66,10 @@ SolverManager::initialize()
                                   d_profile.get_unsupported_op_sort_kinds(),
                                   d_arith_linear,
                                   d_mbt_stats));
-  d_solver->configure_opmgr(d_opmgr.get());
+  if (!smtlib_compliant)
+  {
+    d_solver->configure_opmgr(d_opmgr.get());
+  }
   reset_op_cache();
   d_initialized = true;
 }

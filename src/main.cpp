@@ -598,7 +598,7 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "-l" || arg == "--smt-lib")
     {
-      options.smt = true;
+      options.smtlib_compliant = true;
     }
     else if (arg == "--fuzz-opts")
     {
