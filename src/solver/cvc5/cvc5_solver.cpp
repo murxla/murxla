@@ -3425,20 +3425,19 @@ class Cvc5ActionGetInterpolant : public Action
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
     ::cvc5::api::Term cvc5_res;
-    bool success =
-        cvc5->getInterpolant(Cvc5Term::get_cvc5_term(term), cvc5_res);
+    cvc5_res = cvc5->getInterpolant(Cvc5Term::get_cvc5_term(term));
     /* Note: We don't add the interpolant to the term db for now, since this
      *       requires refactoring untrace to support optional results. In
      *       this case we would trace "return t(nil) s(nil)" when the
      *       command was not successful (result of getInterpolant() is false),
      *       which is currently not supported by the untracer.
      */
-    if (d_smgr.d_incremental && success)
+    if (d_smgr.d_incremental && !cvc5_res.isNull())
     {
       do
       {
-        success = cvc5->getInterpolantNext(cvc5_res);
-      } while (success && d_solver.get_rng().flip_coin());
+        cvc5_res = cvc5->getInterpolantNext();
+      } while (!cvc5_res.isNull() && d_solver.get_rng().flip_coin());
     }
   }
 };
@@ -3488,19 +3487,19 @@ class Cvc5ActionGetAbduct : public Action
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::api::Solver* cvc5 = solver.get_solver();
     ::cvc5::api::Term cvc5_res;
-    bool success = cvc5->getAbduct(Cvc5Term::get_cvc5_term(term), cvc5_res);
+    cvc5_res = cvc5->getAbduct(Cvc5Term::get_cvc5_term(term));
     /* Note: We don't add the abduct to the term db for now, since this
      *       requires refactoring untrace to support optional results. In
      *       this case we would trace "return t(nil) s(nil)" when the
      *       command was not successful (result of getAbduct() is false),
      *       which is currently not supported by the untracer.
      */
-    if (d_smgr.d_incremental && success)
+    if (d_smgr.d_incremental && !cvc5_res.isNull())
     {
       do
       {
-        success = cvc5->getAbductNext(cvc5_res);
-      } while (success && d_rng.flip_coin());
+        cvc5_res = cvc5->getAbductNext();
+      } while (!cvc5_res.isNull() && d_rng.flip_coin());
     }
   }
 };
