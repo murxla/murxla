@@ -234,6 +234,7 @@ set_sigint_handler_stats(void)
   "                             with solver option to show config for "        \
   "  --csv                      print error summary in csv format\n"           \
   "  -e, --export-errors <out>  export found errors to JSON file <out>\n"      \
+  " --solver-trace              print native solver API trace to stdout\n"     \
   "solver\n"                                                                   \
   "\n"                                                                         \
   "  --btor                     test Boolector\n"                              \
@@ -589,6 +590,10 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, size);
       options.export_errors_filename = args[i];
+    }
+    else if (arg == "--solver-trace")
+    {
+      options.solver_trace = true;
     }
     else if (arg == "-m" || arg == "--max-runs")
     {

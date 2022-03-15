@@ -234,6 +234,11 @@ Murxla::run(uint64_t seed,
           copy_from, copy_to, filesystem::copy_options::overwrite_existing);
     }
   }
+  // Print terminating "}" for main() function of native API traces.
+  else if (trace_mode == TO_STDOUT && d_options.solver_trace)
+  {
+    std::cout << "}" << std::endl;
+  }
 
   if (run_forked)
   {
@@ -510,7 +515,7 @@ Murxla::new_solver(SolverSeedGenerator& sng,
   else if (solver_kind == SOLVER_CVC5)
   {
 #if MURXLA_USE_CVC5
-    return new cvc5::Cvc5Solver(sng);
+    return new cvc5::Cvc5Solver(sng, d_options.solver_trace);
 #endif
   }
   else if (solver_kind == SOLVER_YICES)
@@ -647,8 +652,9 @@ Murxla::run_aux(uint64_t seed,
   else
   {
     assert(trace_mode == TO_STDOUT);
-    /* Disable trace output since we only want SMT2 output on stdout. */
-    if (d_options.solver == SOLVER_SMT2)
+    /* Disable API trace output if we only want SMT2 or native API calls to
+     * stdout. */
+    if (d_options.solver == SOLVER_SMT2 || d_options.solver_trace)
     {
       file_trace = open_output_file(DEVNULL, false);
       trace.rdbuf(file_trace.rdbuf());

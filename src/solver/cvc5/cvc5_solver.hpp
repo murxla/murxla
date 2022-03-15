@@ -14,6 +14,7 @@
 
 #include "cvc5/cvc5.h"
 #include "fsm.hpp"
+#include "solver/cvc5/cvc5_tracer.hpp"
 #include "solver/solver.hpp"
 
 namespace murxla {
@@ -187,7 +188,10 @@ class Cvc5Solver : public Solver
 {
  public:
   /** Constructor. */
-  Cvc5Solver(SolverSeedGenerator& sng) : Solver(sng), d_solver(nullptr) {}
+  Cvc5Solver(SolverSeedGenerator& sng, bool trace_api_calls)
+      : Solver(sng), d_solver(nullptr), d_tracer(trace_api_calls)
+  {
+  }
   /** Destructor. */
   ~Cvc5Solver() override;
 
@@ -328,6 +332,9 @@ class Cvc5Solver : public Solver
 
   /** The wrapped cvc5 solver instance. */
   ::cvc5::api::Solver* d_solver;
+
+  /** C++ API tracer. */
+  Tracer d_tracer;
 
   /** Options set via set_opt(). */
   std::vector<std::pair<std::string, std::string>> d_enabled_options;

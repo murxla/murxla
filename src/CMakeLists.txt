@@ -29,6 +29,7 @@ set(murxla_src_files
   solver/btor/btor_solver.cpp
   solver/bzla/bzla_solver.cpp
   solver/cvc5/cvc5_solver.cpp
+  solver/cvc5/cvc5_tracer.cpp
   solver/yices/yices_solver.cpp
   solver/smt2/smt2_solver.cpp
   solver/meta/check_solver.cpp
