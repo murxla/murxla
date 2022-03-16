@@ -24,8 +24,6 @@
 namespace murxla {
 namespace cvc5 {
 
-#define MURXLA_CVC5_MAX_N_TERMS_CHECK_ENTAILED 5
-
 /* -------------------------------------------------------------------------- */
 /* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
@@ -472,14 +470,14 @@ std::unordered_map<Op::Kind, ::cvc5::api::Kind>
         {Op::FP_SQRT, ::cvc5::api::Kind::FLOATINGPOINT_SQRT},
         {Op::FP_SUB, ::cvc5::api::Kind::FLOATINGPOINT_SUB},
         {Op::FP_TO_FP_FROM_BV,
-         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR},
+         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
         {Op::FP_TO_FP_FROM_SBV,
-         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR},
-        {Op::FP_TO_FP_FROM_FP,
-         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT},
+         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_SBV},
+        {Op::FP_TO_FP_FROM_FP, ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_FP},
         {Op::FP_TO_FP_FROM_UBV,
-         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR},
-        {Op::FP_TO_FP_FROM_REAL, ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_REAL},
+         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_UBV},
+        {Op::FP_TO_FP_FROM_REAL,
+         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_REAL},
         {Op::FP_TO_REAL, ::cvc5::api::Kind::FLOATINGPOINT_TO_REAL},
         {Op::FP_TO_SBV, ::cvc5::api::Kind::FLOATINGPOINT_TO_SBV},
         {Op::FP_TO_UBV, ::cvc5::api::Kind::FLOATINGPOINT_TO_UBV},
@@ -752,15 +750,15 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
         {::cvc5::api::Kind::FLOATINGPOINT_RTI, Op::FP_RTI},
         {::cvc5::api::Kind::FLOATINGPOINT_SQRT, Op::FP_SQRT},
         {::cvc5::api::Kind::FLOATINGPOINT_SUB, Op::FP_SUB},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
          Op::FP_TO_FP_FROM_BV},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
+        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
          Op::FP_TO_FP_FROM_SBV},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
-         Op::FP_TO_FP_FROM_FP},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
+        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_FP, Op::FP_TO_FP_FROM_FP},
+        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
          Op::FP_TO_FP_FROM_UBV},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_REAL, Op::FP_TO_FP_FROM_REAL},
+        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
+         Op::FP_TO_FP_FROM_REAL},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC, Op::INTERNAL},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_REAL, Op::FP_TO_REAL},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_SBV, Op::FP_TO_SBV},
@@ -2607,9 +2605,6 @@ Cvc5Solver::check_sat_assuming(const std::vector<Term>& assumptions)
   MURXLA_TEST(!res.isNull());
   MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
   MURXLA_TEST(res != ::cvc5::api::Result());
-  MURXLA_TEST(!res.isEntailed());
-  MURXLA_TEST(!res.isNotEntailed());
-  MURXLA_TEST(!res.isEntailmentUnknown());
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
   MURXLA_TEST(res.isSatUnknown());
@@ -2945,8 +2940,6 @@ Cvc5Solver::check_sort(Sort sort)
   }
   else if (cvc5_sort.isUninterpretedSort())
   {
-    (void) cvc5_sort.getUninterpretedSortName();
-
     if (cvc5_sort.isUninterpretedSortParameterized())
     {
       (void) cvc5_sort.getUninterpretedSortParamSorts();
@@ -2954,13 +2947,10 @@ Cvc5Solver::check_sort(Sort sort)
   }
   else if (cvc5_sort.isSortConstructor())
   {
-    (void) cvc5_sort.getSortConstructorName();
     (void) cvc5_sort.getSortConstructorArity();
-    MURXLA_TEST(cvc5_sort.isFunctionLike());
   }
   if (cvc5_sort.isFunction())
   {
-    MURXLA_TEST(cvc5_sort.isFunctionLike());
     MURXLA_TEST(!cvc5_sort.getFunctionCodomainSort().isBoolean()
                 || cvc5_sort.isPredicate());
   }
@@ -2968,7 +2958,6 @@ Cvc5Solver::check_sort(Sort sort)
   {
     MURXLA_TEST(!cvc5_sort.isPredicate());
   }
-  MURXLA_TEST(cvc5_sort.isSubsortOf(cvc5_sort));
   MURXLA_TEST(cvc5_sort >= cvc5_sort);
   MURXLA_TEST(cvc5_sort <= cvc5_sort);
   MURXLA_TEST(!(cvc5_sort > cvc5_sort));
@@ -3142,139 +3131,6 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
 /* -------------------------------------------------------------------------- */
 /* FSM configuration.                                                         */
 /* -------------------------------------------------------------------------- */
-
-class Cvc5ActionCheckEntailed : public Action
-{
- public:
-  /** The name of this action. */
-  inline static const Kind s_name = "cvc5-check-entailed";
-
-  /**
-   * Constructor.
-   * @param smgr  The associated solver manager.
-   */
-  Cvc5ActionCheckEntailed(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
-
-  bool generate() override
-  {
-    assert(d_solver.is_initialized());
-    if (!d_smgr.d_incremental && d_smgr.d_n_sat_calls > 0) return false;
-    if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
-
-    if (d_rng.flip_coin())
-    {
-      Term term = d_smgr.pick_term(SORT_BOOL, 0);
-      run(term);
-    }
-    else
-    {
-      uint32_t n_terms =
-          d_rng.pick<uint32_t>(1, MURXLA_CVC5_MAX_N_TERMS_CHECK_ENTAILED);
-      std::vector<Term> terms;
-      for (uint32_t i = 0; i < n_terms; ++i)
-      {
-        Term t = d_smgr.pick_term(SORT_BOOL, 0);
-        assert(t->get_sort()->get_kind() == SORT_BOOL);
-        terms.push_back(t);
-      }
-      run(terms);
-    }
-    return true;
-  }
-
-  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
-  {
-    MURXLA_CHECK_TRACE_NTOKENS_MIN(1, "", tokens.size());
-    if (tokens.size() == 1)
-    {
-      Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
-      MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-      run(term);
-    }
-    else
-    {
-      std::vector<Term> terms;
-      uint32_t n_terms = str_to_uint32(tokens[0]);
-      for (uint32_t i = 0, idx = 1; i < n_terms; ++i, ++idx)
-      {
-        auto id     = untrace_str_to_id(tokens[idx]);
-        Term term   = get_untraced_term(id);
-        MURXLA_CHECK_TRACE_TERM(term, id);
-        terms.push_back(term);
-      }
-      run(terms);
-    }
-    return {};
-  }
-
- private:
-  void run(Term term)
-  {
-    MURXLA_TRACE << get_kind() << " " << term;
-    d_smgr.reset_sat();
-    Cvc5Solver& solver          = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5   = solver.get_solver();
-    ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
-    MURXLA_TEST(!cvc5_term.isNull());
-    ::cvc5::api::Result res = cvc5->checkEntailed(cvc5_term);
-    MURXLA_TEST(!res.isNull());
-    MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
-    MURXLA_TEST(res != ::cvc5::api::Result());
-    MURXLA_TEST(!res.isSat());
-    MURXLA_TEST(!res.isUnsat());
-    MURXLA_TEST(!res.isSatUnknown());
-    if (res.isEntailmentUnknown())
-    {
-      if (d_rng.pick_with_prob(1))
-      {
-        (void) res.getUnknownExplanation();
-      }
-      d_smgr.report_result(Solver::Result::UNKNOWN);
-    }
-    else if (res.isEntailed())
-    {
-      d_smgr.report_result(Solver::Result::UNSAT);
-    }
-    else
-    {
-      MURXLA_TEST(res.isNotEntailed());
-      d_smgr.report_result(Solver::Result::SAT);
-    }
-  }
-
-  void run(std::vector<Term> terms)
-  {
-    MURXLA_TRACE << get_kind() << " " << terms.size() << terms;
-    d_smgr.reset_sat();
-    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    std::vector<::cvc5::api::Term> cvc5_terms =
-        Cvc5Term::terms_to_cvc5_terms(terms);
-    ::cvc5::api::Result res = cvc5->checkEntailed(cvc5_terms);
-    MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
-    MURXLA_TEST(res != ::cvc5::api::Result());
-    MURXLA_TEST(!res.isSat());
-    MURXLA_TEST(!res.isUnsat());
-    MURXLA_TEST(!res.isSatUnknown());
-    if (res.isEntailmentUnknown())
-    {
-      if (d_rng.pick_with_prob(1))
-      {
-        (void) res.getUnknownExplanation();
-      }
-      d_smgr.report_result(Solver::Result::UNKNOWN);
-    }
-    else if (res.isEntailed())
-    {
-      d_smgr.report_result(Solver::Result::UNSAT);
-    }
-    else
-    {
-      MURXLA_TEST(res.isNotEntailed());
-      d_smgr.report_result(Solver::Result::SAT);
-    }
-  }
-};
 
 class Cvc5ActionSimplify : public Action
 {
@@ -4056,11 +3912,6 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   // Solver::simplify(const Term& term)
   auto a_simplify = fsm->new_action<Cvc5ActionSimplify>();
   fsm->add_action_to_all_states(a_simplify, 100);
-
-  // Solver::checkEntailed(Term term)
-  // Solver::checkEntailed(std::vector<Term> terms)
-  auto a_check_entailed = fsm->new_action<Cvc5ActionCheckEntailed>();
-  s_check_sat->add_action(a_check_entailed, 2);
 
   // Solver::blockModel()
   auto a_block_model = fsm->new_action<Cvc5ActionBlockModel>();
