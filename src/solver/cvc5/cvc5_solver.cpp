@@ -24,8 +24,6 @@
 namespace murxla {
 namespace cvc5 {
 
-#define MURXLA_CVC5_MAX_N_TERMS_CHECK_ENTAILED 5
-
 #define TRACE_SOLVER(FUNC, ...)                                             \
   d_tracer(                                                                 \
       #FUNC,                                                                \
@@ -778,7 +776,6 @@ std::unordered_map<::cvc5::api::Kind, Op::Kind>
          Op::FP_TO_FP_FROM_UBV},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
          Op::FP_TO_FP_FROM_REAL},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC, Op::INTERNAL},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_REAL, Op::FP_TO_REAL},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_SBV, Op::FP_TO_SBV},
         {::cvc5::api::Kind::FLOATINGPOINT_TO_UBV, Op::FP_TO_UBV},
@@ -1053,20 +1050,7 @@ Cvc5Term::is_string_value() const
 const Op::Kind&
 Cvc5Term::get_kind() const
 {
-  ::cvc5::api::Kind cvc5_kind = d_term.getKind();
-  if (cvc5_kind == ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC)
-  {
-    if (d_term.getNumChildren() == 1)
-    {
-      return Op::FP_TO_FP_FROM_BV;
-    }
-    if (d_term[1].getSort().isFloatingPoint())
-    {
-      return Op::FP_TO_FP_FROM_FP;
-    }
-    return Op::FP_TO_FP_FROM_SBV;
-  }
-  return s_cvc5_kinds_to_kinds.at(cvc5_kind);
+  return s_cvc5_kinds_to_kinds.at(d_term.getKind());
 }
 
 std::vector<Term>
@@ -1106,43 +1090,12 @@ Cvc5Term::get_indices() const
   assert(is_indexed());
   std::vector<std::string> res;
   Op::Kind kind = get_kind();
+  auto op       = d_term.getOp();
   size_t n_idxs = get_num_indices();
-  if (d_rng.flip_coin())
+  for (size_t i = 0; i < n_idxs; ++i)
   {
-    if (kind == Op::INT_IS_DIV)
-    {
-      res.push_back(d_term.getOp().getIndices<std::string>());
-    }
-    else if (n_idxs == 2)
-    {
-      auto cvc5_res =
-          d_term.getOp().getIndices<std::pair<uint32_t, uint32_t>>();
-      res.push_back(std::to_string(cvc5_res.first));
-      res.push_back(std::to_string(cvc5_res.second));
-    }
-    else
-    {
-      MURXLA_TEST(n_idxs == 1);
-      res.push_back(std::to_string(d_term.getOp().getIndices<uint32_t>()));
-    }
-  }
-  else
-  {
-    auto cvc5_res = d_term.getOp().getIndices<std::vector<::cvc5::api::Term>>();
-    if (kind == Op::INT_IS_DIV)
-    {
-      MURXLA_TEST(cvc5_res.size() == 1);
-      MURXLA_TEST(cvc5_res[0].isIntegerValue());
-      res.push_back(cvc5_res[0].getIntegerValue());
-    }
-    else
-    {
-      for (auto& t : cvc5_res)
-      {
-        MURXLA_TEST(t.isIntegerValue());
-        res.push_back(t.getIntegerValue());
-      }
-    }
+    MURXLA_TEST(op[i].isIntegerValue());
+    res.push_back(op[i].getIntegerValue());
   }
   return res;
 }
@@ -2036,14 +1989,6 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   int32_t n_args                 = static_cast<int32_t>(args.size());
   size_t n_indices               = indices.size();
 
-  if ((kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_FP
-       || kind == Op::FP_TO_FP_FROM_SBV || kind == Op::FP_TO_FP_FROM_UBV
-       || kind == Op::FP_TO_FP_FROM_REAL)
-      && d_rng.flip_coin())
-  {
-    cvc5_kind = ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_GENERIC;
-  }
-
   if (kind == Op::FORALL || kind == Op::EXISTS)
   {
     assert(args.size() >= 2);
@@ -2106,17 +2051,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
       MURXLA_TEST(cvc5_opterm.isIndexed());
       MURXLA_TEST(cvc5_opterm.getKind() == cvc5_kind);
-      uint32_t idx;
-      if (kind == Op::INT_IS_DIV)
-      {
-        std::string sidx = cvc5_opterm.getIndices<std::string>();
-        /* we only generate 32 bit indices, so this shouldn't throw */
-        idx = str_to_uint32(sidx);
-      }
-      else
-      {
-        idx = cvc5_opterm.getIndices<uint32_t>();
-      }
+      uint32_t idx = cvc5_opterm[0].getUInt32Value();
       MURXLA_TEST(idx == iindices[0]);
       break;
     }
@@ -2128,10 +2063,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
       MURXLA_TEST(cvc5_opterm.isIndexed());
       MURXLA_TEST(cvc5_opterm.getKind() == cvc5_kind);
-      std::pair<uint32_t, uint32_t> res_idxs =
-          cvc5_opterm.getIndices<std::pair<uint32_t, uint32_t>>();
-      MURXLA_TEST(res_idxs.first == iindices[0]);
-      MURXLA_TEST(res_idxs.second == iindices[1]);
+      MURXLA_TEST(cvc5_opterm[0].getUInt32Value() == iindices[0]);
+      MURXLA_TEST(cvc5_opterm[1].getUInt32Value() == iindices[1]);
       break;
     }
     default:
@@ -2153,7 +2086,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       uint32_t lo = hi;
       ::cvc5::api::Op op =
           TRACE_SOLVER(mkOp, ::cvc5::api::Kind::BITVECTOR_EXTRACT, hi, lo);
-      cvc5_args[0] = TRACE_SOLVER(mkTerm, op, cvc5_args[0]);
+      cvc5_args[0] = TRACE_SOLVER(mkTerm, op, std::vector{cvc5_args[0]});
     }
   }
   else if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
@@ -2208,8 +2141,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       else
       {
         cvc5_res = cvc5_opterm.isNull()
-                       ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args[0])
-                       : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args[0]);
+                       ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args)
+                       : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
       }
       break;
 
@@ -2241,10 +2174,9 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       }
       else
       {
-        cvc5_res =
-            cvc5_opterm.isNull()
-                ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args[0], cvc5_args[1])
-                : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args[0], cvc5_args[1]);
+        cvc5_res = cvc5_opterm.isNull()
+                       ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args)
+                       : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
       }
       break;
 
@@ -2254,17 +2186,13 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
         assert(!n_indices);
         cvc5_res =
             TRACE_TERM(iteTerm, cvc5_args[0], cvc5_args[1], cvc5_args[2]);
+        break;
       }
       else
       {
-        cvc5_res =
-            cvc5_opterm.isNull() ? TRACE_SOLVER(
-                mkTerm, cvc5_kind, cvc5_args[0], cvc5_args[1], cvc5_args[2])
-                                 : TRACE_SOLVER(mkTerm,
-                                                cvc5_opterm,
-                                                cvc5_args[0],
-                                                cvc5_args[1],
-                                                cvc5_args[2]);
+        cvc5_res = cvc5_opterm.isNull()
+                       ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args)
+                       : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
       }
       break;
 
@@ -2480,8 +2408,10 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
         getDatatypeSelectorTerm(cvc5_dt_sort, str_args[0], str_args[1]);
     cvc5_res =
         cvc5_opterm.isNull()
-            ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_sel_term, cvc5_args[0])
-            : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_sel_term, cvc5_args[0]);
+            ? TRACE_SOLVER(
+                mkTerm, cvc5_kind, std::vector{cvc5_sel_term, cvc5_args[0]})
+            : TRACE_SOLVER(
+                mkTerm, cvc5_opterm, std::vector{cvc5_sel_term, cvc5_args[0]});
   }
   else
   {
@@ -2491,12 +2421,15 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       assert(args.size() == 1);
       ::cvc5::api::DatatypeConstructor cvc5_ctor =
           getDatatypeConstructor(cvc5_dt_sort, str_args[0]);
-      cvc5_res =
-          cvc5_opterm.isNull()
-              ? TRACE_SOLVER(
-                  mkTerm, cvc5_kind, cvc5_ctor.getTesterTerm(), cvc5_args[0])
-              : TRACE_SOLVER(
-                  mkTerm, cvc5_opterm, cvc5_ctor.getTesterTerm(), cvc5_args[0]);
+      cvc5_res = cvc5_opterm.isNull()
+                     ? TRACE_SOLVER(
+                         mkTerm,
+                         cvc5_kind,
+                         std::vector{cvc5_ctor.getTesterTerm(), cvc5_args[0]})
+                     : TRACE_SOLVER(
+                         mkTerm,
+                         cvc5_opterm,
+                         std::vector{cvc5_ctor.getTesterTerm(), cvc5_args[0]});
     }
     else
     {
@@ -2506,16 +2439,17 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
 
       ::cvc5::api::DatatypeSelector cvc5_sel =
           getDatatypeSelector(cvc5_dt_sort, str_args[0], str_args[1]);
-      cvc5_res = cvc5_opterm.isNull() ? TRACE_SOLVER(mkTerm,
-                                                     cvc5_kind,
-                                                     cvc5_sel.getUpdaterTerm(),
-                                                     cvc5_args[0],
-                                                     cvc5_args[1])
-                                      : TRACE_SOLVER(mkTerm,
-                                                     cvc5_opterm,
-                                                     cvc5_sel.getUpdaterTerm(),
-                                                     cvc5_args[0],
-                                                     cvc5_args[1]);
+      cvc5_res = cvc5_opterm.isNull()
+                     ? TRACE_SOLVER(mkTerm,
+                                    cvc5_kind,
+                                    std::vector{cvc5_sel.getUpdaterTerm(),
+                                                cvc5_args[0],
+                                                cvc5_args[1]})
+                     : TRACE_SOLVER(mkTerm,
+                                    cvc5_opterm,
+                                    std::vector{cvc5_sel.getUpdaterTerm(),
+                                                cvc5_args[0],
+                                                cvc5_args[1]});
     }
   }
   MURXLA_TEST(!cvc5_res.isNull());
@@ -2630,7 +2564,7 @@ Cvc5Solver::check_sat()
   MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
-  MURXLA_TEST(res.isSatUnknown());
+  MURXLA_TEST(res.isUnknown());
   if (d_rng.pick_with_prob(1))
   {
     (void) res.getUnknownExplanation();
@@ -2655,7 +2589,7 @@ Cvc5Solver::check_sat_assuming(const std::vector<Term>& assumptions)
   MURXLA_TEST(res != ::cvc5::api::Result());
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
-  MURXLA_TEST(res.isSatUnknown());
+  MURXLA_TEST(res.isUnknown());
   if (d_rng.pick_with_prob(1))
   {
     (void) res.getUnknownExplanation();
