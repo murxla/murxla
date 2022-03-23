@@ -56,6 +56,23 @@ class Tracer
   }
 
   template <typename T>
+  Tracer& operator<<(const std::set<T>& args)
+  {
+    *this << "{";
+    size_t i = 0;
+    for (const auto& a : args)
+    {
+      if (i++ > 0)
+      {
+        *this << ", ";
+      }
+      *this << a;
+    }
+    *this << "}";
+    return *this;
+  }
+
+  template <typename T>
   Tracer& operator<<(T x)
   {
     d_trace << x;
@@ -81,12 +98,18 @@ class Tracer
     uint64_t id       = 0;
     if constexpr (!std::is_same_v<result_type, void>)
     {
-      id = new_id<result_type>();
+      if (d_print_trace)
+      {
+        id = new_id<result_type>();
+      }
     }
-    trace_func(*this, std::forward<Args>(args)...);
-    *this << "(";
-    trace(std::forward<Args>(args)...);
-    *this << ");\n";
+    if (d_print_trace)
+    {
+      trace_func(*this, std::forward<Args>(args)...);
+      *this << "(";
+      trace(std::forward<Args>(args)...);
+      *this << ");\n";
+    }
     if constexpr (std::is_same_v<result_type, void>)
     {
       func(std::forward<Args>(args)...);
@@ -94,7 +117,10 @@ class Tracer
     else
     {
       auto res = func(std::forward<Args>(args)...);
-      register_id(id, res);
+      if (d_print_trace)
+      {
+        register_id(id, res);
+      }
       return res;
     }
   }
@@ -114,6 +140,7 @@ class Tracer
   uint64_t d_op_id      = 0;
   uint64_t d_sort_id    = 0;
   uint64_t d_dt_decl_id = 0;
+  uint64_t d_vec_id     = 0;
 
   std::unordered_map<::cvc5::api::Term, uint64_t> d_term_map;
   std::unordered_map<::cvc5::api::Op, uint64_t> d_op_map;

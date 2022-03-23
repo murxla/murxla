@@ -1515,11 +1515,11 @@ Cvc5Solver::mk_sort(
   std::vector<::cvc5::api::Sort> cvc5_res;
   if (cvc5_usorts.empty() && d_rng.flip_coin())
   {
-    cvc5_res = d_solver->mkDatatypeSorts(cvc5_dtypedecls);
+    cvc5_res = TRACE_SOLVER(mkDatatypeSorts, cvc5_dtypedecls);
   }
   else
   {
-    cvc5_res = d_solver->mkDatatypeSorts(cvc5_dtypedecls, cvc5_usorts);
+    cvc5_res = TRACE_SOLVER(mkDatatypeSorts, cvc5_dtypedecls, cvc5_usorts);
   }
   size_t idx = d_rng.pick<size_t>(0, cvc5_res.size() - 1);
   MURXLA_TEST(!cvc5_res[idx].isNull());

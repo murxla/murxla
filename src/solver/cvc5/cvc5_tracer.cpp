@@ -100,7 +100,7 @@ Tracer::operator<<(const char* s)
 
   // Writes and flushes to stdout if '\n' is encountered.
   size_t len = strlen(s);
-  if (d_print_trace && s[len - 1] == '\n')
+  if (s[len - 1] == '\n')
   {
     std::cout << d_trace.str() << std::flush;
     d_trace.str("");
@@ -119,10 +119,13 @@ Tracer::operator<<(bool b)
 void
 Tracer::init()
 {
-  *this << "#include <cvc5/cvc5.h>\n\n";
-  *this << "using namespace cvc5::api;\n";
-  *this << "int main(void)\n{\n";
-  *this << "Solver solver;\n";
+  if (d_print_trace)
+  {
+    *this << "#include <cvc5/cvc5.h>\n\n";
+    *this << "using namespace cvc5::api;\n";
+    *this << "int main(void)\n{\n";
+    *this << "Solver solver;\n";
+  }
 }
 
 // new_id specializations
@@ -155,6 +158,15 @@ Tracer::new_id<Sort>()
 
 template <>
 uint64_t
+Tracer::new_id<std::vector<Sort>>()
+{
+  uint64_t id = d_vec_id++;
+  *this << "std::vector<Sort> v" << id << " = ";
+  return id;
+}
+
+template <>
+uint64_t
 Tracer::new_id<DatatypeDecl>()
 {
   uint64_t id = d_dt_decl_id++;
@@ -169,6 +181,18 @@ void
 Tracer::register_id(uint64_t id, Sort& sort)
 {
   d_sort_map.emplace(sort, id);
+}
+
+template <>
+void
+Tracer::register_id(uint64_t vecid, std::vector<Sort>& sorts)
+{
+  for (size_t i = 0; i < sorts.size(); ++i)
+  {
+    uint64_t id = d_sort_id++;
+    d_sort_map.emplace(sorts[i], id);
+    *this << "Sort s" << id << " = v" << vecid << "[" << i << "];\n";
+  }
 }
 
 template <>
