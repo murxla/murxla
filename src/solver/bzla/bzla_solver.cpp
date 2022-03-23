@@ -1328,7 +1328,7 @@ BzlaSolver::mk_term(const Op::Kind& kind,
 }
 
 Sort
-BzlaSolver::get_sort(Term term, SortKind sort_kind) const
+BzlaSolver::get_sort(Term term, SortKind sort_kind)
 {
   (void) sort_kind;
   return std::shared_ptr<BzlaSort>(new BzlaSort(

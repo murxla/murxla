@@ -33,13 +33,15 @@ class Cvc5Sort : public AbsSort
   static ::cvc5::api::Sort& get_cvc5_sort(Sort sort);
   /** Convert vector of cvc5 sorts to vector of Murxla sorts. */
   static std::vector<Sort> cvc5_sorts_to_sorts(
-      ::cvc5::api::Solver* cvc5, const std::vector<::cvc5::api::Sort>& sorts);
+      Tracer& tracer,
+      ::cvc5::api::Solver* cvc5,
+      const std::vector<::cvc5::api::Sort>& sorts);
   /** Convert vector of Murxla sorts to vector of cvc5 sorts. */
   static std::vector<::cvc5::api::Sort> sorts_to_cvc5_sorts(
       const std::vector<Sort>& sorts);
 
-  Cvc5Sort(::cvc5::api::Solver* cvc5, ::cvc5::api::Sort sort)
-      : d_solver(cvc5), d_sort(sort)
+  Cvc5Sort(Tracer& tracer, ::cvc5::api::Solver* cvc5, ::cvc5::api::Sort sort)
+      : d_tracer(tracer), d_solver(cvc5), d_sort(sort)
   {
   }
 
@@ -84,6 +86,7 @@ class Cvc5Sort : public AbsSort
   Sort get_set_element_sort() const override;
 
  private:
+  Tracer& d_tracer;
   ::cvc5::api::Solver* d_solver;
   ::cvc5::api::Sort d_sort;
 };
@@ -101,6 +104,7 @@ class Cvc5Term : public AbsTerm
   static ::cvc5::api::Term& get_cvc5_term(Term term);
   /** Convert vector of cvc5 terms to vector of Murxla terms. */
   static std::vector<Term> cvc5_terms_to_terms(
+      Tracer& tracer,
       RNGenerator& rng,
       ::cvc5::api::Solver* cvc5,
       const std::vector<::cvc5::api::Term>& terms);
@@ -140,8 +144,11 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_SET_EMPTY    = "cvc5-OP_SET_EMPTY";
   inline static const Op::Kind OP_SET_UNIVERSE = "cvc5-OP_SET_UNIVERSE";
 
-  Cvc5Term(RNGenerator& rng, ::cvc5::api::Solver* cvc5, ::cvc5::api::Term term)
-      : d_rng(rng), d_solver(cvc5), d_term(term)
+  Cvc5Term(Tracer& tracer,
+           RNGenerator& rng,
+           ::cvc5::api::Solver* cvc5,
+           ::cvc5::api::Term term)
+      : d_tracer(tracer), d_rng(rng), d_solver(cvc5), d_term(term)
   {
   }
 
@@ -172,6 +179,7 @@ class Cvc5Term : public AbsTerm
   std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
+  Tracer& d_tracer;
   /** The associated solver RNG. */
   RNGenerator& d_rng;
   /** The associated cvc5 solver instance. */
@@ -265,7 +273,7 @@ class Cvc5Solver : public Solver
                const std::vector<std::string>& str_args,
                const std::vector<Term>& args) override;
 
-  Sort get_sort(Term term, SortKind sort_kind) const override;
+  Sort get_sort(Term term, SortKind sort_kind) override;
 
   void assert_formula(const Term& t) override;
 
@@ -301,6 +309,8 @@ class Cvc5Solver : public Solver
 
   std::unordered_map<std::string, std::string> get_required_options(
       Theory theory) const override;
+
+  Tracer& get_tracer() { return d_tracer; }
 
  private:
   /**

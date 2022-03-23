@@ -188,7 +188,7 @@ class ShadowSolver : public Solver
                const std::vector<std::string>& str_args,
                const std::vector<Term>& args) override;
 
-  Sort get_sort(Term term, SortKind sort_kind) const override;
+  Sort get_sort(Term term, SortKind sort_kind) override;
 
   std::string get_option_name_incremental() const override;
   std::string get_option_name_model_gen() const override;

@@ -1768,7 +1768,7 @@ YicesSolver::mk_term(const std::string& kind,
 }
 
 Sort
-YicesSolver::get_sort(Term term, SortKind sort_kind) const
+YicesSolver::get_sort(Term term, SortKind sort_kind)
 {
   (void) sort_kind;
   return std::shared_ptr<YicesSort>(

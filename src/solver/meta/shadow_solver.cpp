@@ -994,7 +994,7 @@ ShadowSolver::mk_term(const Op::Kind& kind,
 }
 
 Sort
-ShadowSolver::get_sort(Term term, SortKind sort_kind) const
+ShadowSolver::get_sort(Term term, SortKind sort_kind)
 {
   ShadowTerm* t = checked_cast<ShadowTerm*>(term.get());
   assert(t);

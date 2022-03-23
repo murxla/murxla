@@ -1621,7 +1621,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
 }
 
 Sort
-Smt2Solver::get_sort(Term term, SortKind sort_kind) const
+Smt2Solver::get_sort(Term term, SortKind sort_kind)
 {
   /* Already computed sort for `term`.*/
   if (term->get_sort() != nullptr)

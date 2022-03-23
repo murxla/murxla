@@ -35,6 +35,10 @@ class Tracer
   Tracer& operator<<(const ::cvc5::api::Op& op);
   Tracer& operator<<(const ::cvc5::api::Sort& sort);
   Tracer& operator<<(const ::cvc5::api::DatatypeDecl& decl);
+  Tracer& operator<<(const ::cvc5::api::DatatypeConstructor& cons);
+  Tracer& operator<<(const ::cvc5::api::DatatypeConstructorDecl& decl);
+  Tracer& operator<<(const ::cvc5::api::DatatypeSelector& sel);
+  Tracer& operator<<(const ::cvc5::api::Datatype& dt);
   Tracer& operator<<(const std::string& s);
   Tracer& operator<<(const char* s);
   Tracer& operator<<(bool b);
@@ -127,25 +131,28 @@ class Tracer
 
  private:
   template <typename T>
-  uint64_t new_id()
-  {
-    return 0;
-  }
+  uint64_t new_id();
   template <typename T>
-  void register_id(uint64_t id, T& o)
-  {
-  }
+  void register_id(uint64_t id, T& o);
 
-  uint64_t d_term_id    = 0;
-  uint64_t d_op_id      = 0;
-  uint64_t d_sort_id    = 0;
-  uint64_t d_dt_decl_id = 0;
-  uint64_t d_vec_id     = 0;
+  uint64_t d_term_id         = 0;
+  uint64_t d_op_id           = 0;
+  uint64_t d_sort_id         = 0;
+  uint64_t d_dt_id           = 0;
+  uint64_t d_dt_decl_id      = 0;
+  uint64_t d_dt_sel_id       = 0;
+  uint64_t d_dt_cons_id      = 0;
+  uint64_t d_dt_cons_decl_id = 0;
+  uint64_t d_vec_id          = 0;
 
   std::unordered_map<::cvc5::api::Term, uint64_t> d_term_map;
   std::unordered_map<::cvc5::api::Op, uint64_t> d_op_map;
   std::unordered_map<::cvc5::api::Sort, uint64_t> d_sort_map;
   std::unordered_map<std::string, uint64_t> d_dt_decl_map;
+  std::unordered_map<std::string, uint64_t> d_dt_sel_map;
+  std::unordered_map<std::string, uint64_t> d_dt_cons_map;
+  std::unordered_map<std::string, uint64_t> d_dt_cons_decl_map;
+  std::unordered_map<std::string, uint64_t> d_dt_map;
 
   /** Used as line buffer for writing the trace. */
   std::stringstream d_trace;

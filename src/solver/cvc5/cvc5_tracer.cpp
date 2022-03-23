@@ -58,6 +58,50 @@ Tracer::get_id(const DatatypeDecl& decl)
   return it->second;
 }
 
+template <>
+uint64_t
+Tracer::get_id(const DatatypeConstructor& cons)
+{
+  auto it = d_dt_cons_map.find(cons.getName());
+  assert(it != d_dt_cons_map.end());
+  return it->second;
+}
+
+template <>
+uint64_t
+Tracer::get_id(const DatatypeConstructorDecl& decl)
+{
+  std::string s = decl.toString();
+  // String representation of constructor declarations change as soon as
+  // selectors are added. We only use the name of the constructor.
+  auto pos = s.find('(');
+  if (pos != std::string::npos)
+  {
+    s = s.substr(0, pos);
+  }
+  auto it = d_dt_cons_decl_map.find(s);
+  assert(it != d_dt_cons_decl_map.end());
+  return it->second;
+}
+
+template <>
+uint64_t
+Tracer::get_id(const DatatypeSelector& sel)
+{
+  auto it = d_dt_sel_map.find(sel.getName());
+  assert(it != d_dt_sel_map.end());
+  return it->second;
+}
+
+template <>
+uint64_t
+Tracer::get_id(const Datatype& dt)
+{
+  auto it = d_dt_map.find(dt.getName());
+  assert(it != d_dt_map.end());
+  return it->second;
+}
+
 Tracer&
 Tracer::operator<<(const Term& term)
 {
@@ -83,6 +127,34 @@ Tracer&
 Tracer::operator<<(const DatatypeDecl& decl)
 {
   d_trace << "d" << get_id(decl);
+  return *this;
+}
+
+Tracer&
+Tracer::operator<<(const DatatypeConstructor& cons)
+{
+  d_trace << "dtc" << get_id(cons);
+  return *this;
+}
+
+Tracer&
+Tracer::operator<<(const DatatypeConstructorDecl& decl)
+{
+  d_trace << "dtcd" << get_id(decl);
+  return *this;
+}
+
+Tracer&
+Tracer::operator<<(const DatatypeSelector& sel)
+{
+  d_trace << "dts" << get_id(sel);
+  return *this;
+}
+
+Tracer&
+Tracer::operator<<(const Datatype& dt)
+{
+  d_trace << "dt" << get_id(dt);
   return *this;
 }
 
@@ -140,6 +212,15 @@ Tracer::new_id<Term>()
 
 template <>
 uint64_t
+Tracer::new_id<std::vector<Term>>()
+{
+  uint64_t id = d_vec_id++;
+  *this << "std::vector<Term> v" << id << " = ";
+  return id;
+}
+
+template <>
+uint64_t
 Tracer::new_id<Op>()
 {
   uint64_t id = d_op_id++;
@@ -174,6 +255,42 @@ Tracer::new_id<DatatypeDecl>()
   return id;
 }
 
+template <>
+uint64_t
+Tracer::new_id<DatatypeConstructor>()
+{
+  uint64_t id = d_dt_cons_id++;
+  *this << "DatatypeConstructor dtc" << id << " = ";
+  return id;
+}
+
+template <>
+uint64_t
+Tracer::new_id<DatatypeConstructorDecl>()
+{
+  uint64_t id = d_dt_cons_decl_id++;
+  *this << "DatatypeConstructorDecl dtcd" << id << " = ";
+  return id;
+}
+
+template <>
+uint64_t
+Tracer::new_id<DatatypeSelector>()
+{
+  uint64_t id = d_dt_sel_id++;
+  *this << "DatatypeSelector dts" << id << " = ";
+  return id;
+}
+
+template <>
+uint64_t
+Tracer::new_id<Datatype>()
+{
+  uint64_t id = d_dt_id++;
+  *this << "Datatype dt" << id << " = ";
+  return id;
+}
+
 // register_id specializations
 
 template <>
@@ -192,6 +309,18 @@ Tracer::register_id(uint64_t vecid, std::vector<Sort>& sorts)
     uint64_t id = d_sort_id++;
     d_sort_map.emplace(sorts[i], id);
     *this << "Sort s" << id << " = v" << vecid << "[" << i << "];\n";
+  }
+}
+
+template <>
+void
+Tracer::register_id(uint64_t vecid, std::vector<Term>& terms)
+{
+  for (size_t i = 0; i < terms.size(); ++i)
+  {
+    uint64_t id = d_term_id++;
+    d_term_map.emplace(terms[i], id);
+    *this << "Term t" << id << " = v" << vecid << "[" << i << "];\n";
   }
 }
 
@@ -224,6 +353,47 @@ void
 Tracer::register_id(uint64_t id, DatatypeDecl& decl)
 {
   d_dt_decl_map.emplace(decl.getName(), id);
+}
+
+template <>
+void
+Tracer::register_id(uint64_t id, DatatypeConstructor& cons)
+{
+  d_dt_cons_map.emplace(cons.getName(), id);
+}
+
+template <>
+void
+Tracer::register_id(uint64_t id, DatatypeConstructorDecl& decl)
+{
+  d_dt_cons_decl_map.emplace(decl.toString(), id);
+}
+
+template <>
+void
+Tracer::register_id(uint64_t id, DatatypeSelector& sel)
+{
+  d_dt_sel_map.emplace(sel.getName(), id);
+}
+
+template <>
+void
+Tracer::register_id(uint64_t id, Datatype& dt)
+{
+  d_dt_map.emplace(dt.getName(), id);
+}
+
+// Ignore types
+template <>
+uint64_t
+Tracer::new_id<Result>()
+{
+  return 0;
+}
+template <>
+void
+Tracer::register_id(uint64_t id, Result& r)
+{
 }
 
 }  // namespace cvc5

@@ -1531,7 +1531,7 @@ class Solver
    * @param sort_kind  The kind of the term's sort.
    * @return  The sort of the given term.
    */
-  virtual Sort get_sort(Term term, SortKind sort_kind) const = 0;
+  virtual Sort get_sort(Term term, SortKind sort_kind) = 0;
 
   /**
    * Get the set of special value kinds registered with this solver for a given

@@ -1177,7 +1177,7 @@ BtorSolver::mk_term(const Op::Kind& kind,
 }
 
 Sort
-BtorSolver::get_sort(Term term, SortKind sort_kind) const
+BtorSolver::get_sort(Term term, SortKind sort_kind)
 {
   (void) sort_kind;
   return std::shared_ptr<BtorSort>(new BtorSort(

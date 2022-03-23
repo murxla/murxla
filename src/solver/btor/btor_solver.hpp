@@ -194,7 +194,7 @@ class BtorSolver : public Solver
                const std::vector<Term>& args,
                const std::vector<uint32_t>& indices) override;
 
-  Sort get_sort(Term term, SortKind sort_kind) const override;
+  Sort get_sort(Term term, SortKind sort_kind) override;
 
   void assert_formula(const Term& t) override;
 
