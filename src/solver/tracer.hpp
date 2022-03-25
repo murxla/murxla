@@ -24,9 +24,6 @@ template <class TData>
 class Tracer;
 
 template <class TData>
-Tracer<TData>& operator<<(Tracer<TData>& tracer, const std::string& s);
-
-template <class TData>
 Tracer<TData>& operator<<(Tracer<TData>& tracer, const char* s);
 
 template <class TData>
@@ -97,7 +94,18 @@ class Tracer
   template <typename First, typename... Args>
   void trace(First&& first, Args&&... args)
   {
-    *this << first;
+    using first_type = std::decay_t<
+        std::remove_const_t<std::remove_reference_t<decltype(first)>>>;
+    if constexpr (std::is_same_v<first_type, std:: string>
+                  || std::is_same_v<first_type, char const*>
+                  || std::is_same_v<first_type, char*>)
+    {
+      *this << "\"" << first << "\"";
+    }
+    else
+    {
+      *this << first;
+    }
     if constexpr (sizeof...(args) > 0)
     {
       *this << ", ";
@@ -106,7 +114,7 @@ class Tracer
   }
 
   template <typename FT, typename FF, typename... Args>
-  auto operator()(const char* name, FT&& trace_func, FF&& func, Args&&... args)
+  auto operator()(FT&& trace_func, FF&& func, Args&&... args)
   {
     using result_type = decltype(func(std::forward<Args>(args)...));
     uint64_t id       = 0;
@@ -157,14 +165,6 @@ Tracer<TData>&
 operator<<(Tracer<TData>& tracer, T x)
 {
   tracer.get_trace() << x;
-  return tracer;
-}
-
-template <class TData>
-Tracer<TData>&
-operator<<(Tracer<TData>& tracer, const std::string& s)
-{
-  tracer.get_trace() << "\"" << s << "\"";
   return tracer;
 }
 

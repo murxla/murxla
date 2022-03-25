@@ -26,7 +26,6 @@ namespace cvc5 {
 
 #define TRACE_SOLVER(FUNC, ...)                            \
   d_tracer(                                                \
-      #FUNC,                                               \
       [](Tracer<Cvc5TracerData>& tracer, auto&&... args) { \
         tracer << "solver." << #FUNC;                      \
       },                                                   \
@@ -36,7 +35,6 @@ namespace cvc5 {
 
 #define TRACE_METHOD(FUNC, FIRST, ...)                      \
   d_tracer(                                                 \
-      #FUNC,                                                \
       [=](Tracer<Cvc5TracerData>& tracer, auto&&... args) { \
         tracer << FIRST << "." << #FUNC;                    \
       },                                                    \
