@@ -36,3 +36,35 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Preview docs in browser: file://localhost${SPHINX_OUTPUT_DIR}/index.html"
 )
+
+set(SPHINX_GH_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/sphinx-gh)
+add_custom_target(docs-gh ALL
+                  DEPENDS docs
+                  COMMAND ${CMAKE_COMMAND} -E remove_directory
+                    ${SPHINX_GH_OUTPUT_DIR}
+                  COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    ${SPHINX_OUTPUT_DIR} ${SPHINX_GH_OUTPUT_DIR}
+                  COMMAND ${CMAKE_COMMAND} -E remove_directory
+                    ${SPHINX_GH_OUTPUT_DIR}/_sources
+                  COMMAND ${CMAKE_COMMAND} -E remove
+                    ${SPHINX_GH_OUTPUT_DIR}/objects.inv
+                  COMMAND ${CMAKE_COMMAND} -E rename
+                    ${SPHINX_GH_OUTPUT_DIR}/_static
+                    ${SPHINX_GH_OUTPUT_DIR}/static
+                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f |
+                    xargs sed -i'orig' 's/_static/static/g'
+                  COMMAND ${CMAKE_COMMAND} -E rename
+                    ${SPHINX_GH_OUTPUT_DIR}/_images
+                    ${SPHINX_GH_OUTPUT_DIR}/images
+                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -type f |
+                    xargs sed -i'orig' 's/_images/images/g'
+                  COMMAND find ${SPHINX_GH_OUTPUT_DIR} -name '*orig' -delete
+                  COMMENT "Generating GitHub Api docs")
+
+add_custom_command(
+  TARGET docs-gh
+  POST_BUILD
+  COMMAND
+    ${CMAKE_COMMAND} -E cmake_echo_color --cyan "Preview GH docs in browser: file://localhost${SPHINX_GH_OUTPUT_DIR}/index.html"
+)
+
