@@ -7,11 +7,9 @@ Table of Contents
 .. toctree::
   :maxdepth: 2
 
-  solver_wrapper
-  solver_profile
+  install
+  usage
+  solver_integration
+  advanced
 
-  sort_kind
-  operator
-  theory
 
-  fsm/index
