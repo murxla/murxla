@@ -24,22 +24,24 @@
 namespace murxla {
 namespace cvc5 {
 
-#define TRACE_SOLVER(FUNC, ...)                                             \
-  d_tracer(                                                                 \
-      #FUNC,                                                                \
-      [](Tracer& tracer, auto&&... args) { tracer << "solver." << #FUNC; }, \
-      [this](auto&&... args) {                                              \
-        return d_solver->FUNC(args...);                                     \
+#define TRACE_SOLVER(FUNC, ...)                            \
+  d_tracer(                                                \
+      #FUNC,                                               \
+      [](Tracer<Cvc5TracerData>& tracer, auto&&... args) { \
+        tracer << "solver." << #FUNC;                      \
+      },                                                   \
+      [this](auto&&... args) {                             \
+        return d_solver->FUNC(args...);                    \
       } __VA_OPT__(, ) __VA_ARGS__)
 
-#define TRACE_METHOD(FUNC, FIRST, ...)      \
-  d_tracer(                                 \
-      #FUNC,                                \
-      [=](Tracer& tracer, auto&&... args) { \
-        tracer << FIRST << "." << #FUNC;    \
-      },                                    \
-      [=](auto&&... args) mutable {         \
-        return FIRST.FUNC(args...);         \
+#define TRACE_METHOD(FUNC, FIRST, ...)                      \
+  d_tracer(                                                 \
+      #FUNC,                                                \
+      [=](Tracer<Cvc5TracerData>& tracer, auto&&... args) { \
+        tracer << FIRST << "." << #FUNC;                    \
+      },                                                    \
+      [=](auto&&... args) mutable {                         \
+        return FIRST.FUNC(args...);                         \
       } __VA_OPT__(, ) __VA_ARGS__)
 
 /* -------------------------------------------------------------------------- */
@@ -350,7 +352,7 @@ Cvc5Sort::sorts_to_cvc5_sorts(const std::vector<Sort>& sorts)
 }
 
 std::vector<Sort>
-Cvc5Sort::cvc5_sorts_to_sorts(Tracer& tracer,
+Cvc5Sort::cvc5_sorts_to_sorts(Tracer<Cvc5TracerData>& tracer,
                               ::cvc5::api::Solver* cvc5,
                               const std::vector<::cvc5::api::Sort>& sorts)
 {
@@ -958,7 +960,7 @@ Cvc5Term::get_cvc5_term(Term term)
 }
 
 std::vector<Term>
-Cvc5Term::cvc5_terms_to_terms(Tracer& tracer,
+Cvc5Term::cvc5_terms_to_terms(Tracer<Cvc5TracerData>& tracer,
                               RNGenerator& rng,
                               ::cvc5::api::Solver* cvc5,
                               const std::vector<::cvc5::api::Term>& terms)
