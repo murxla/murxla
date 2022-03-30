@@ -16,7 +16,7 @@
 #include <cstring>
 #include <type_traits>
 
-using namespace cvc5::api;
+using namespace cvc5;
 
 namespace murxla {
 
@@ -396,7 +396,7 @@ Tracer<cvc5::Cvc5TracerData>::init()
   if (d_print_trace)
   {
     *this << "#include <cvc5/cvc5.h>\n\n";
-    *this << "using namespace cvc5::api;\n";
+    *this << "using namespace cvc5;\n";
     *this << "int main(void)\n{\n";
     *this << "Solver solver;\n";
   }

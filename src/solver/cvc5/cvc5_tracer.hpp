@@ -35,9 +35,9 @@ class Cvc5TracerData
   auto& get_dt_map() { return d_dt_map; }
 
  private:
-  std::unordered_map<::cvc5::api::Term, uint64_t> d_term_map;
-  std::unordered_map<::cvc5::api::Op, uint64_t> d_op_map;
-  std::unordered_map<::cvc5::api::Sort, uint64_t> d_sort_map;
+  std::unordered_map<::cvc5::Term, uint64_t> d_term_map;
+  std::unordered_map<::cvc5::Op, uint64_t> d_op_map;
+  std::unordered_map<::cvc5::Sort, uint64_t> d_sort_map;
   std::unordered_map<std::string, uint64_t> d_dt_decl_map;
   std::unordered_map<std::string, uint64_t> d_dt_sel_map;
   std::unordered_map<std::string, uint64_t> d_dt_cons_map;
@@ -48,24 +48,23 @@ class Cvc5TracerData
 }  // namespace cvc5
 
 Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
-                                         const ::cvc5::api::Term& term);
+                                         const ::cvc5::Term& term);
 Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
-                                         const ::cvc5::api::Op& op);
+                                         const ::cvc5::Op& op);
 Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
-                                         const ::cvc5::api::Sort& sort);
+                                         const ::cvc5::Sort& sort);
 Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
-                                         const ::cvc5::api::DatatypeDecl& decl);
+                                         const ::cvc5::DatatypeDecl& decl);
 Tracer<cvc5::Cvc5TracerData>& operator<<(
     Tracer<cvc5::Cvc5TracerData>& tracer,
-    const ::cvc5::api::DatatypeConstructor& cons);
+    const ::cvc5::DatatypeConstructor& cons);
 Tracer<cvc5::Cvc5TracerData>& operator<<(
     Tracer<cvc5::Cvc5TracerData>& tracer,
-    const ::cvc5::api::DatatypeConstructorDecl& decl);
-Tracer<cvc5::Cvc5TracerData>& operator<<(
-    Tracer<cvc5::Cvc5TracerData>& tracer,
-    const ::cvc5::api::DatatypeSelector& sel);
+    const ::cvc5::DatatypeConstructorDecl& decl);
 Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
-                                         const ::cvc5::api::Datatype& dt);
+                                         const ::cvc5::DatatypeSelector& sel);
+Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
+                                         const ::cvc5::Datatype& dt);
 
 }  // namespace murxla
 

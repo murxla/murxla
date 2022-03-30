@@ -46,7 +46,7 @@ namespace cvc5 {
 /* Cvc5Sort                                                                   */
 /* -------------------------------------------------------------------------- */
 
-::cvc5::api::Sort&
+::cvc5::Sort&
 Cvc5Sort::get_cvc5_sort(Sort sort)
 {
   return checked_cast<Cvc5Sort*>(sort.get())->d_sort;
@@ -55,7 +55,7 @@ Cvc5Sort::get_cvc5_sort(Sort sort)
 size_t
 Cvc5Sort::hash() const
 {
-  return std::hash<::cvc5::api::Sort>{}(d_sort);
+  return std::hash<::cvc5::Sort>{}(d_sort);
 }
 
 bool
@@ -119,7 +119,11 @@ Cvc5Sort::is_dt() const
 bool
 Cvc5Sort::is_dt_parametric() const
 {
-  return d_sort.isParametricDatatype();
+  if (d_sort.isDatatype())
+  {
+    return d_sort.getDatatype().isParametric();
+  }
+  return false;
 }
 
 bool
@@ -233,7 +237,7 @@ Cvc5Sort::get_dt_cons_names() const
 {
   assert(is_dt());
   std::vector<std::string> res;
-  ::cvc5::api::Datatype cvc5_dt = d_sort.getDatatype();
+  ::cvc5::Datatype cvc5_dt      = d_sort.getDatatype();
   uint32_t n_ctors              = get_dt_num_cons();
   for (uint32_t i = 0; i < n_ctors; ++i)
   {
@@ -246,7 +250,7 @@ uint32_t
 Cvc5Sort::get_dt_cons_num_sels(const std::string& name) const
 {
   assert(is_dt());
-  ::cvc5::api::DatatypeConstructor cvc5_cons =
+  ::cvc5::DatatypeConstructor cvc5_cons =
       d_sort.getDatatype().getConstructor(name);
   return static_cast<uint32_t>(cvc5_cons.getNumSelectors());
 }
@@ -256,7 +260,7 @@ Cvc5Sort::get_dt_cons_sel_names(const std::string& name) const
 {
   assert(is_dt());
   std::vector<std::string> res;
-  ::cvc5::api::DatatypeConstructor cvc5_cons =
+  ::cvc5::DatatypeConstructor cvc5_cons =
       d_sort.getDatatype().getConstructor(name);
   uint32_t n_sels = get_dt_cons_num_sels(name);
   for (uint32_t i = 0; i < n_sels; ++i)
@@ -270,7 +274,7 @@ Sort
 Cvc5Sort::get_array_index_sort() const
 {
   assert(is_array());
-  ::cvc5::api::Sort cvc5_res = d_sort.getArrayIndexSort();
+  ::cvc5::Sort cvc5_res = d_sort.getArrayIndexSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
   MURXLA_TEST(res);
   return res;
@@ -280,7 +284,7 @@ Sort
 Cvc5Sort::get_array_element_sort() const
 {
   assert(is_array());
-  ::cvc5::api::Sort cvc5_res = d_sort.getArrayElementSort();
+  ::cvc5::Sort cvc5_res = d_sort.getArrayElementSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
   MURXLA_TEST(res);
   return res;
@@ -289,7 +293,7 @@ Cvc5Sort::get_array_element_sort() const
 Sort
 Cvc5Sort::get_bag_element_sort() const
 {
-  ::cvc5::api::Sort cvc5_res = d_sort.getBagElementSort();
+  ::cvc5::Sort cvc5_res = d_sort.getBagElementSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
   MURXLA_TEST(res);
   return res;
@@ -306,7 +310,7 @@ Sort
 Cvc5Sort::get_fun_codomain_sort() const
 {
   assert(is_fun());
-  ::cvc5::api::Sort cvc5_res = d_sort.getFunctionCodomainSort();
+  ::cvc5::Sort cvc5_res = d_sort.getFunctionCodomainSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
   MURXLA_TEST(res);
   return res;
@@ -316,14 +320,14 @@ std::vector<Sort>
 Cvc5Sort::get_fun_domain_sorts() const
 {
   assert(is_fun());
-  std::vector<::cvc5::api::Sort> cvc5_res = d_sort.getFunctionDomainSorts();
+  std::vector<::cvc5::Sort> cvc5_res = d_sort.getFunctionDomainSorts();
   return cvc5_sorts_to_sorts(d_tracer, d_solver, cvc5_res);
 }
 
 Sort
 Cvc5Sort::get_seq_element_sort() const
 {
-  ::cvc5::api::Sort cvc5_res = d_sort.getSequenceElementSort();
+  ::cvc5::Sort cvc5_res = d_sort.getSequenceElementSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
   MURXLA_TEST(res);
   return res;
@@ -332,16 +336,16 @@ Cvc5Sort::get_seq_element_sort() const
 Sort
 Cvc5Sort::get_set_element_sort() const
 {
-  ::cvc5::api::Sort cvc5_res = d_sort.getSetElementSort();
+  ::cvc5::Sort cvc5_res = d_sort.getSetElementSort();
   std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
   MURXLA_TEST(res);
   return res;
 }
 
-std::vector<::cvc5::api::Sort>
+std::vector<::cvc5::Sort>
 Cvc5Sort::sorts_to_cvc5_sorts(const std::vector<Sort>& sorts)
 {
-  std::vector<::cvc5::api::Sort> res;
+  std::vector<::cvc5::Sort> res;
   for (auto& s : sorts)
   {
     res.emplace_back(get_cvc5_sort(s));
@@ -351,8 +355,8 @@ Cvc5Sort::sorts_to_cvc5_sorts(const std::vector<Sort>& sorts)
 
 std::vector<Sort>
 Cvc5Sort::cvc5_sorts_to_sorts(Tracer<Cvc5TracerData>& tracer,
-                              ::cvc5::api::Solver* cvc5,
-                              const std::vector<::cvc5::api::Sort>& sorts)
+                              ::cvc5::Solver* cvc5,
+                              const std::vector<::cvc5::Sort>& sorts)
 {
   std::vector<Sort> res;
   for (auto& s : sorts)
@@ -395,563 +399,551 @@ Cvc5Sort::cvc5_sorts_to_sorts(Tracer<Cvc5TracerData>& tracer,
 //  INST_ATTRIBUTE,
 //  INST_PATTERN_LIST,
 
-std::unordered_map<Op::Kind, ::cvc5::api::Kind>
-    Cvc5Term::s_kinds_to_cvc5_kinds = {
-        /* Special Cases */
-        {Op::UNDEFINED, ::cvc5::api::Kind::UNDEFINED_KIND},
-        {Op::DISTINCT, ::cvc5::api::Kind::DISTINCT},
-        {Op::EQUAL, ::cvc5::api::Kind::EQUAL},
-        {Op::ITE, ::cvc5::api::Kind::ITE},
+std::unordered_map<Op::Kind, ::cvc5::Kind> Cvc5Term::s_kinds_to_cvc5_kinds = {
+    /* Special Cases */
+    {Op::UNDEFINED, ::cvc5::Kind::UNDEFINED_KIND},
+    {Op::DISTINCT, ::cvc5::Kind::DISTINCT},
+    {Op::EQUAL, ::cvc5::Kind::EQUAL},
+    {Op::ITE, ::cvc5::Kind::ITE},
 
-        /* Bool */
-        {Op::AND, ::cvc5::api::Kind::AND},
-        {Op::OR, ::cvc5::api::Kind::OR},
-        {Op::NOT, ::cvc5::api::Kind::NOT},
-        {Op::XOR, ::cvc5::api::Kind::XOR},
-        {Op::IMPLIES, ::cvc5::api::Kind::IMPLIES},
+    /* Bool */
+    {Op::AND, ::cvc5::Kind::AND},
+    {Op::OR, ::cvc5::Kind::OR},
+    {Op::NOT, ::cvc5::Kind::NOT},
+    {Op::XOR, ::cvc5::Kind::XOR},
+    {Op::IMPLIES, ::cvc5::Kind::IMPLIES},
 
-        /* Arrays */
-        {Op::ARRAY_SELECT, ::cvc5::api::Kind::SELECT},
-        {Op::ARRAY_STORE, ::cvc5::api::Kind::STORE},
+    /* Arrays */
+    {Op::ARRAY_SELECT, ::cvc5::Kind::SELECT},
+    {Op::ARRAY_STORE, ::cvc5::Kind::STORE},
 
-        /* BV */
-        {Op::BV_EXTRACT, ::cvc5::api::Kind::BITVECTOR_EXTRACT},
-        {Op::BV_REPEAT, ::cvc5::api::Kind::BITVECTOR_REPEAT},
-        {Op::BV_ROTATE_LEFT, ::cvc5::api::Kind::BITVECTOR_ROTATE_LEFT},
-        {Op::BV_ROTATE_RIGHT, ::cvc5::api::Kind::BITVECTOR_ROTATE_RIGHT},
-        {Op::BV_SIGN_EXTEND, ::cvc5::api::Kind::BITVECTOR_SIGN_EXTEND},
-        {Op::BV_ZERO_EXTEND, ::cvc5::api::Kind::BITVECTOR_ZERO_EXTEND},
+    /* BV */
+    {Op::BV_EXTRACT, ::cvc5::Kind::BITVECTOR_EXTRACT},
+    {Op::BV_REPEAT, ::cvc5::Kind::BITVECTOR_REPEAT},
+    {Op::BV_ROTATE_LEFT, ::cvc5::Kind::BITVECTOR_ROTATE_LEFT},
+    {Op::BV_ROTATE_RIGHT, ::cvc5::Kind::BITVECTOR_ROTATE_RIGHT},
+    {Op::BV_SIGN_EXTEND, ::cvc5::Kind::BITVECTOR_SIGN_EXTEND},
+    {Op::BV_ZERO_EXTEND, ::cvc5::Kind::BITVECTOR_ZERO_EXTEND},
 
-        {Op::BV_CONCAT, ::cvc5::api::Kind::BITVECTOR_CONCAT},
-        {Op::BV_AND, ::cvc5::api::Kind::BITVECTOR_AND},
-        {Op::BV_OR, ::cvc5::api::Kind::BITVECTOR_OR},
-        {Op::BV_XOR, ::cvc5::api::Kind::BITVECTOR_XOR},
-        {Op::BV_MULT, ::cvc5::api::Kind::BITVECTOR_MULT},
-        {Op::BV_ADD, ::cvc5::api::Kind::BITVECTOR_ADD},
-        {Op::BV_NOT, ::cvc5::api::Kind::BITVECTOR_NOT},
-        {Op::BV_NEG, ::cvc5::api::Kind::BITVECTOR_NEG},
-        {Op::BV_NAND, ::cvc5::api::Kind::BITVECTOR_NAND},
-        {Op::BV_NOR, ::cvc5::api::Kind::BITVECTOR_NOR},
-        {Op::BV_XNOR, ::cvc5::api::Kind::BITVECTOR_XNOR},
-        {Op::BV_COMP, ::cvc5::api::Kind::BITVECTOR_COMP},
-        {Op::BV_SUB, ::cvc5::api::Kind::BITVECTOR_SUB},
-        {Op::BV_UDIV, ::cvc5::api::Kind::BITVECTOR_UDIV},
-        {Op::BV_UREM, ::cvc5::api::Kind::BITVECTOR_UREM},
-        {Op::BV_UREM, ::cvc5::api::Kind::BITVECTOR_UREM},
-        {Op::BV_SDIV, ::cvc5::api::Kind::BITVECTOR_SDIV},
-        {Op::BV_SREM, ::cvc5::api::Kind::BITVECTOR_SREM},
-        {Op::BV_SMOD, ::cvc5::api::Kind::BITVECTOR_SMOD},
-        {Op::BV_SHL, ::cvc5::api::Kind::BITVECTOR_SHL},
-        {Op::BV_LSHR, ::cvc5::api::Kind::BITVECTOR_LSHR},
-        {Op::BV_ASHR, ::cvc5::api::Kind::BITVECTOR_ASHR},
-        {Op::BV_ULT, ::cvc5::api::Kind::BITVECTOR_ULT},
-        {Op::BV_ULE, ::cvc5::api::Kind::BITVECTOR_ULE},
-        {Op::BV_UGT, ::cvc5::api::Kind::BITVECTOR_UGT},
-        {Op::BV_UGE, ::cvc5::api::Kind::BITVECTOR_UGE},
-        {Op::BV_SLT, ::cvc5::api::Kind::BITVECTOR_SLT},
-        {Op::BV_SLE, ::cvc5::api::Kind::BITVECTOR_SLE},
-        {Op::BV_SGT, ::cvc5::api::Kind::BITVECTOR_SGT},
-        {Op::BV_SGE, ::cvc5::api::Kind::BITVECTOR_SGE},
+    {Op::BV_CONCAT, ::cvc5::Kind::BITVECTOR_CONCAT},
+    {Op::BV_AND, ::cvc5::Kind::BITVECTOR_AND},
+    {Op::BV_OR, ::cvc5::Kind::BITVECTOR_OR},
+    {Op::BV_XOR, ::cvc5::Kind::BITVECTOR_XOR},
+    {Op::BV_MULT, ::cvc5::Kind::BITVECTOR_MULT},
+    {Op::BV_ADD, ::cvc5::Kind::BITVECTOR_ADD},
+    {Op::BV_NOT, ::cvc5::Kind::BITVECTOR_NOT},
+    {Op::BV_NEG, ::cvc5::Kind::BITVECTOR_NEG},
+    {Op::BV_NAND, ::cvc5::Kind::BITVECTOR_NAND},
+    {Op::BV_NOR, ::cvc5::Kind::BITVECTOR_NOR},
+    {Op::BV_XNOR, ::cvc5::Kind::BITVECTOR_XNOR},
+    {Op::BV_COMP, ::cvc5::Kind::BITVECTOR_COMP},
+    {Op::BV_SUB, ::cvc5::Kind::BITVECTOR_SUB},
+    {Op::BV_UDIV, ::cvc5::Kind::BITVECTOR_UDIV},
+    {Op::BV_UREM, ::cvc5::Kind::BITVECTOR_UREM},
+    {Op::BV_UREM, ::cvc5::Kind::BITVECTOR_UREM},
+    {Op::BV_SDIV, ::cvc5::Kind::BITVECTOR_SDIV},
+    {Op::BV_SREM, ::cvc5::Kind::BITVECTOR_SREM},
+    {Op::BV_SMOD, ::cvc5::Kind::BITVECTOR_SMOD},
+    {Op::BV_SHL, ::cvc5::Kind::BITVECTOR_SHL},
+    {Op::BV_LSHR, ::cvc5::Kind::BITVECTOR_LSHR},
+    {Op::BV_ASHR, ::cvc5::Kind::BITVECTOR_ASHR},
+    {Op::BV_ULT, ::cvc5::Kind::BITVECTOR_ULT},
+    {Op::BV_ULE, ::cvc5::Kind::BITVECTOR_ULE},
+    {Op::BV_UGT, ::cvc5::Kind::BITVECTOR_UGT},
+    {Op::BV_UGE, ::cvc5::Kind::BITVECTOR_UGE},
+    {Op::BV_SLT, ::cvc5::Kind::BITVECTOR_SLT},
+    {Op::BV_SLE, ::cvc5::Kind::BITVECTOR_SLE},
+    {Op::BV_SGT, ::cvc5::Kind::BITVECTOR_SGT},
+    {Op::BV_SGE, ::cvc5::Kind::BITVECTOR_SGE},
 
-        /* Datatypes */
-        {Op::DT_APPLY_CONS, ::cvc5::api::Kind::APPLY_CONSTRUCTOR},
-        {Op::DT_APPLY_SEL, ::cvc5::api::Kind::APPLY_SELECTOR},
-        {Op::DT_APPLY_TESTER, ::cvc5::api::Kind::APPLY_TESTER},
-        {Op::DT_APPLY_UPDATER, ::cvc5::api::Kind::APPLY_UPDATER},
-        {Op::DT_MATCH, ::cvc5::api::Kind::MATCH},
-        {Op::DT_MATCH_BIND_CASE, ::cvc5::api::Kind::MATCH_BIND_CASE},
-        {Op::DT_MATCH_CASE, ::cvc5::api::Kind::MATCH_CASE},
+    /* Datatypes */
+    {Op::DT_APPLY_CONS, ::cvc5::Kind::APPLY_CONSTRUCTOR},
+    {Op::DT_APPLY_SEL, ::cvc5::Kind::APPLY_SELECTOR},
+    {Op::DT_APPLY_TESTER, ::cvc5::Kind::APPLY_TESTER},
+    {Op::DT_APPLY_UPDATER, ::cvc5::Kind::APPLY_UPDATER},
+    {Op::DT_MATCH, ::cvc5::Kind::MATCH},
+    {Op::DT_MATCH_BIND_CASE, ::cvc5::Kind::MATCH_BIND_CASE},
+    {Op::DT_MATCH_CASE, ::cvc5::Kind::MATCH_CASE},
 
-        /* FP */
-        {Op::FP_ABS, ::cvc5::api::Kind::FLOATINGPOINT_ABS},
-        {Op::FP_ADD, ::cvc5::api::Kind::FLOATINGPOINT_ADD},
-        {Op::FP_DIV, ::cvc5::api::Kind::FLOATINGPOINT_DIV},
-        {Op::FP_EQ, ::cvc5::api::Kind::FLOATINGPOINT_EQ},
-        {Op::FP_FMA, ::cvc5::api::Kind::FLOATINGPOINT_FMA},
-        {Op::FP_FP, ::cvc5::api::Kind::FLOATINGPOINT_FP},
-        {Op::FP_IS_NORMAL, ::cvc5::api::Kind::FLOATINGPOINT_IS_NORMAL},
-        {Op::FP_IS_SUBNORMAL, ::cvc5::api::Kind::FLOATINGPOINT_IS_SUBNORMAL},
-        {Op::FP_IS_INF, ::cvc5::api::Kind::FLOATINGPOINT_IS_INF},
-        {Op::FP_IS_NAN, ::cvc5::api::Kind::FLOATINGPOINT_IS_NAN},
-        {Op::FP_IS_NEG, ::cvc5::api::Kind::FLOATINGPOINT_IS_NEG},
-        {Op::FP_IS_POS, ::cvc5::api::Kind::FLOATINGPOINT_IS_POS},
-        {Op::FP_IS_ZERO, ::cvc5::api::Kind::FLOATINGPOINT_IS_ZERO},
-        {Op::FP_LT, ::cvc5::api::Kind::FLOATINGPOINT_LT},
-        {Op::FP_LEQ, ::cvc5::api::Kind::FLOATINGPOINT_LEQ},
-        {Op::FP_GT, ::cvc5::api::Kind::FLOATINGPOINT_GT},
-        {Op::FP_GEQ, ::cvc5::api::Kind::FLOATINGPOINT_GEQ},
-        {Op::FP_MAX, ::cvc5::api::Kind::FLOATINGPOINT_MAX},
-        {Op::FP_MIN, ::cvc5::api::Kind::FLOATINGPOINT_MIN},
-        {Op::FP_MUL, ::cvc5::api::Kind::FLOATINGPOINT_MULT},
-        {Op::FP_NEG, ::cvc5::api::Kind::FLOATINGPOINT_NEG},
-        {Op::FP_REM, ::cvc5::api::Kind::FLOATINGPOINT_REM},
-        {Op::FP_RTI, ::cvc5::api::Kind::FLOATINGPOINT_RTI},
-        {Op::FP_SQRT, ::cvc5::api::Kind::FLOATINGPOINT_SQRT},
-        {Op::FP_SUB, ::cvc5::api::Kind::FLOATINGPOINT_SUB},
-        {Op::FP_TO_FP_FROM_BV,
-         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
-        {Op::FP_TO_FP_FROM_SBV,
-         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_SBV},
-        {Op::FP_TO_FP_FROM_FP, ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_FP},
-        {Op::FP_TO_FP_FROM_UBV,
-         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_UBV},
-        {Op::FP_TO_FP_FROM_REAL,
-         ::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_REAL},
-        {Op::FP_TO_REAL, ::cvc5::api::Kind::FLOATINGPOINT_TO_REAL},
-        {Op::FP_TO_SBV, ::cvc5::api::Kind::FLOATINGPOINT_TO_SBV},
-        {Op::FP_TO_UBV, ::cvc5::api::Kind::FLOATINGPOINT_TO_UBV},
+    /* FP */
+    {Op::FP_ABS, ::cvc5::Kind::FLOATINGPOINT_ABS},
+    {Op::FP_ADD, ::cvc5::Kind::FLOATINGPOINT_ADD},
+    {Op::FP_DIV, ::cvc5::Kind::FLOATINGPOINT_DIV},
+    {Op::FP_EQ, ::cvc5::Kind::FLOATINGPOINT_EQ},
+    {Op::FP_FMA, ::cvc5::Kind::FLOATINGPOINT_FMA},
+    {Op::FP_FP, ::cvc5::Kind::FLOATINGPOINT_FP},
+    {Op::FP_IS_NORMAL, ::cvc5::Kind::FLOATINGPOINT_IS_NORMAL},
+    {Op::FP_IS_SUBNORMAL, ::cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL},
+    {Op::FP_IS_INF, ::cvc5::Kind::FLOATINGPOINT_IS_INF},
+    {Op::FP_IS_NAN, ::cvc5::Kind::FLOATINGPOINT_IS_NAN},
+    {Op::FP_IS_NEG, ::cvc5::Kind::FLOATINGPOINT_IS_NEG},
+    {Op::FP_IS_POS, ::cvc5::Kind::FLOATINGPOINT_IS_POS},
+    {Op::FP_IS_ZERO, ::cvc5::Kind::FLOATINGPOINT_IS_ZERO},
+    {Op::FP_LT, ::cvc5::Kind::FLOATINGPOINT_LT},
+    {Op::FP_LEQ, ::cvc5::Kind::FLOATINGPOINT_LEQ},
+    {Op::FP_GT, ::cvc5::Kind::FLOATINGPOINT_GT},
+    {Op::FP_GEQ, ::cvc5::Kind::FLOATINGPOINT_GEQ},
+    {Op::FP_MAX, ::cvc5::Kind::FLOATINGPOINT_MAX},
+    {Op::FP_MIN, ::cvc5::Kind::FLOATINGPOINT_MIN},
+    {Op::FP_MUL, ::cvc5::Kind::FLOATINGPOINT_MULT},
+    {Op::FP_NEG, ::cvc5::Kind::FLOATINGPOINT_NEG},
+    {Op::FP_REM, ::cvc5::Kind::FLOATINGPOINT_REM},
+    {Op::FP_RTI, ::cvc5::Kind::FLOATINGPOINT_RTI},
+    {Op::FP_SQRT, ::cvc5::Kind::FLOATINGPOINT_SQRT},
+    {Op::FP_SUB, ::cvc5::Kind::FLOATINGPOINT_SUB},
+    {Op::FP_TO_FP_FROM_BV, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV},
+    {Op::FP_TO_FP_FROM_SBV, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV},
+    {Op::FP_TO_FP_FROM_FP, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP},
+    {Op::FP_TO_FP_FROM_UBV, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV},
+    {Op::FP_TO_FP_FROM_REAL, ::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL},
+    {Op::FP_TO_REAL, ::cvc5::Kind::FLOATINGPOINT_TO_REAL},
+    {Op::FP_TO_SBV, ::cvc5::Kind::FLOATINGPOINT_TO_SBV},
+    {Op::FP_TO_UBV, ::cvc5::Kind::FLOATINGPOINT_TO_UBV},
 
-        /* Ints */
-        {Op::INT_IS_DIV, ::cvc5::api::Kind::DIVISIBLE},
-        {Op::INT_NEG, ::cvc5::api::Kind::NEG},
-        {Op::INT_SUB, ::cvc5::api::Kind::SUB},
-        {Op::INT_ADD, ::cvc5::api::Kind::ADD},
-        {Op::INT_MUL, ::cvc5::api::Kind::MULT},
-        {Op::INT_DIV, ::cvc5::api::Kind::INTS_DIVISION},
-        {Op::INT_MOD, ::cvc5::api::Kind::INTS_MODULUS},
-        {Op::INT_ABS, ::cvc5::api::Kind::ABS},
-        {Op::INT_LT, ::cvc5::api::Kind::LT},
-        {Op::INT_LTE, ::cvc5::api::Kind::LEQ},
-        {Op::INT_GT, ::cvc5::api::Kind::GT},
-        {Op::INT_GTE, ::cvc5::api::Kind::GEQ},
-        {Op::INT_TO_REAL, ::cvc5::api::Kind::TO_REAL},
+    /* Ints */
+    {Op::INT_IS_DIV, ::cvc5::Kind::DIVISIBLE},
+    {Op::INT_NEG, ::cvc5::Kind::NEG},
+    {Op::INT_SUB, ::cvc5::Kind::SUB},
+    {Op::INT_ADD, ::cvc5::Kind::ADD},
+    {Op::INT_MUL, ::cvc5::Kind::MULT},
+    {Op::INT_DIV, ::cvc5::Kind::INTS_DIVISION},
+    {Op::INT_MOD, ::cvc5::Kind::INTS_MODULUS},
+    {Op::INT_ABS, ::cvc5::Kind::ABS},
+    {Op::INT_LT, ::cvc5::Kind::LT},
+    {Op::INT_LTE, ::cvc5::Kind::LEQ},
+    {Op::INT_GT, ::cvc5::Kind::GT},
+    {Op::INT_GTE, ::cvc5::Kind::GEQ},
+    {Op::INT_TO_REAL, ::cvc5::Kind::TO_REAL},
 
-        /* Reals */
-        {Op::REAL_NEG, ::cvc5::api::Kind::NEG},
-        {Op::REAL_SUB, ::cvc5::api::Kind::SUB},
-        {Op::REAL_ADD, ::cvc5::api::Kind::ADD},
-        {Op::REAL_MUL, ::cvc5::api::Kind::MULT},
-        {Op::REAL_DIV, ::cvc5::api::Kind::DIVISION},
-        {Op::REAL_LT, ::cvc5::api::Kind::LT},
-        {Op::REAL_LTE, ::cvc5::api::Kind::LEQ},
-        {Op::REAL_GT, ::cvc5::api::Kind::GT},
-        {Op::REAL_GTE, ::cvc5::api::Kind::GEQ},
-        {Op::REAL_IS_INT, ::cvc5::api::Kind::IS_INTEGER},
-        {Op::REAL_TO_INT, ::cvc5::api::Kind::TO_INTEGER},
+    /* Reals */
+    {Op::REAL_NEG, ::cvc5::Kind::NEG},
+    {Op::REAL_SUB, ::cvc5::Kind::SUB},
+    {Op::REAL_ADD, ::cvc5::Kind::ADD},
+    {Op::REAL_MUL, ::cvc5::Kind::MULT},
+    {Op::REAL_DIV, ::cvc5::Kind::DIVISION},
+    {Op::REAL_LT, ::cvc5::Kind::LT},
+    {Op::REAL_LTE, ::cvc5::Kind::LEQ},
+    {Op::REAL_GT, ::cvc5::Kind::GT},
+    {Op::REAL_GTE, ::cvc5::Kind::GEQ},
+    {Op::REAL_IS_INT, ::cvc5::Kind::IS_INTEGER},
+    {Op::REAL_TO_INT, ::cvc5::Kind::TO_INTEGER},
 
-        /* Quantifiers */
-        {Op::FORALL, ::cvc5::api::Kind::FORALL},
-        {Op::EXISTS, ::cvc5::api::Kind::EXISTS},
+    /* Quantifiers */
+    {Op::FORALL, ::cvc5::Kind::FORALL},
+    {Op::EXISTS, ::cvc5::Kind::EXISTS},
 
-        /* Strings */
-        {Op::STR_CONCAT, ::cvc5::api::Kind::STRING_CONCAT},
-        {Op::STR_LEN, ::cvc5::api::Kind::STRING_LENGTH},
-        {Op::STR_LT, ::cvc5::api::Kind::STRING_LT},
-        {Op::STR_TO_RE, ::cvc5::api::Kind::STRING_TO_REGEXP},
-        {Op::STR_IN_RE, ::cvc5::api::Kind::STRING_IN_REGEXP},
-        {Op::STR_LE, ::cvc5::api::Kind::STRING_LEQ},
-        {Op::STR_AT, ::cvc5::api::Kind::STRING_CHARAT},
-        {Op::STR_SUBSTR, ::cvc5::api::Kind::STRING_SUBSTR},
-        {Op::STR_PREFIXOF, ::cvc5::api::Kind::STRING_PREFIX},
-        {Op::STR_SUFFIXOF, ::cvc5::api::Kind::STRING_SUFFIX},
-        {Op::STR_CONTAINS, ::cvc5::api::Kind::STRING_CONTAINS},
-        {Op::STR_INDEXOF, ::cvc5::api::Kind::STRING_INDEXOF},
-        {Op::STR_REPLACE, ::cvc5::api::Kind::STRING_REPLACE},
-        {Op::STR_REPLACE_ALL, ::cvc5::api::Kind::STRING_REPLACE_ALL},
-        {Op::STR_REPLACE_RE, ::cvc5::api::Kind::STRING_REPLACE_RE},
-        {Op::STR_REPLACE_RE_ALL, ::cvc5::api::Kind::STRING_REPLACE_RE_ALL},
-        {Op::STR_IS_DIGIT, ::cvc5::api::Kind::STRING_IS_DIGIT},
-        {Op::STR_TO_CODE, ::cvc5::api::Kind::STRING_TO_CODE},
-        {Op::STR_FROM_CODE, ::cvc5::api::Kind::STRING_FROM_CODE},
-        {Op::STR_TO_INT, ::cvc5::api::Kind::STRING_TO_INT},
-        {Op::STR_FROM_INT, ::cvc5::api::Kind::STRING_FROM_INT},
-        {Op::RE_ALL, ::cvc5::api::Kind::REGEXP_ALL},
-        {Op::RE_ALLCHAR, ::cvc5::api::Kind::REGEXP_ALLCHAR},
-        {Op::RE_COMP, ::cvc5::api::Kind::REGEXP_COMPLEMENT},
-        {Op::RE_CONCAT, ::cvc5::api::Kind::REGEXP_CONCAT},
-        {Op::RE_DIFF, ::cvc5::api::Kind::REGEXP_DIFF},
-        {Op::RE_INTER, ::cvc5::api::Kind::REGEXP_INTER},
-        {Op::RE_LOOP, ::cvc5::api::Kind::REGEXP_LOOP},
-        {Op::RE_NONE, ::cvc5::api::Kind::REGEXP_NONE},
-        {Op::RE_OPT, ::cvc5::api::Kind::REGEXP_OPT},
-        {Op::RE_PLUS, ::cvc5::api::Kind::REGEXP_PLUS},
-        {Op::RE_POW, ::cvc5::api::Kind::REGEXP_REPEAT},
-        {Op::RE_RANGE, ::cvc5::api::Kind::REGEXP_RANGE},
-        {Op::RE_STAR, ::cvc5::api::Kind::REGEXP_STAR},
-        {Op::RE_UNION, ::cvc5::api::Kind::REGEXP_UNION},
+    /* Strings */
+    {Op::STR_CONCAT, ::cvc5::Kind::STRING_CONCAT},
+    {Op::STR_LEN, ::cvc5::Kind::STRING_LENGTH},
+    {Op::STR_LT, ::cvc5::Kind::STRING_LT},
+    {Op::STR_TO_RE, ::cvc5::Kind::STRING_TO_REGEXP},
+    {Op::STR_IN_RE, ::cvc5::Kind::STRING_IN_REGEXP},
+    {Op::STR_LE, ::cvc5::Kind::STRING_LEQ},
+    {Op::STR_AT, ::cvc5::Kind::STRING_CHARAT},
+    {Op::STR_SUBSTR, ::cvc5::Kind::STRING_SUBSTR},
+    {Op::STR_PREFIXOF, ::cvc5::Kind::STRING_PREFIX},
+    {Op::STR_SUFFIXOF, ::cvc5::Kind::STRING_SUFFIX},
+    {Op::STR_CONTAINS, ::cvc5::Kind::STRING_CONTAINS},
+    {Op::STR_INDEXOF, ::cvc5::Kind::STRING_INDEXOF},
+    {Op::STR_REPLACE, ::cvc5::Kind::STRING_REPLACE},
+    {Op::STR_REPLACE_ALL, ::cvc5::Kind::STRING_REPLACE_ALL},
+    {Op::STR_REPLACE_RE, ::cvc5::Kind::STRING_REPLACE_RE},
+    {Op::STR_REPLACE_RE_ALL, ::cvc5::Kind::STRING_REPLACE_RE_ALL},
+    {Op::STR_IS_DIGIT, ::cvc5::Kind::STRING_IS_DIGIT},
+    {Op::STR_TO_CODE, ::cvc5::Kind::STRING_TO_CODE},
+    {Op::STR_FROM_CODE, ::cvc5::Kind::STRING_FROM_CODE},
+    {Op::STR_TO_INT, ::cvc5::Kind::STRING_TO_INT},
+    {Op::STR_FROM_INT, ::cvc5::Kind::STRING_FROM_INT},
+    {Op::RE_ALL, ::cvc5::Kind::REGEXP_ALL},
+    {Op::RE_ALLCHAR, ::cvc5::Kind::REGEXP_ALLCHAR},
+    {Op::RE_COMP, ::cvc5::Kind::REGEXP_COMPLEMENT},
+    {Op::RE_CONCAT, ::cvc5::Kind::REGEXP_CONCAT},
+    {Op::RE_DIFF, ::cvc5::Kind::REGEXP_DIFF},
+    {Op::RE_INTER, ::cvc5::Kind::REGEXP_INTER},
+    {Op::RE_LOOP, ::cvc5::Kind::REGEXP_LOOP},
+    {Op::RE_NONE, ::cvc5::Kind::REGEXP_NONE},
+    {Op::RE_OPT, ::cvc5::Kind::REGEXP_OPT},
+    {Op::RE_PLUS, ::cvc5::Kind::REGEXP_PLUS},
+    {Op::RE_POW, ::cvc5::Kind::REGEXP_REPEAT},
+    {Op::RE_RANGE, ::cvc5::Kind::REGEXP_RANGE},
+    {Op::RE_STAR, ::cvc5::Kind::REGEXP_STAR},
+    {Op::RE_UNION, ::cvc5::Kind::REGEXP_UNION},
 
-        /* Transcendentals */
-        {Op::TRANS_PI, ::cvc5::api::Kind::PI},
-        {Op::TRANS_SINE, ::cvc5::api::Kind::SINE},
-        {Op::TRANS_COSINE, ::cvc5::api::Kind::COSINE},
-        {Op::TRANS_TANGENT, ::cvc5::api::Kind::TANGENT},
-        {Op::TRANS_COTANGENT, ::cvc5::api::Kind::COTANGENT},
-        {Op::TRANS_SECANT, ::cvc5::api::Kind::SECANT},
-        {Op::TRANS_COSECANT, ::cvc5::api::Kind::COSECANT},
-        {Op::TRANS_ARCSINE, ::cvc5::api::Kind::ARCSINE},
-        {Op::TRANS_ARCCOSINE, ::cvc5::api::Kind::ARCCOSINE},
-        {Op::TRANS_ARCTANGENT, ::cvc5::api::Kind::ARCTANGENT},
-        {Op::TRANS_ARCCOSECANT, ::cvc5::api::Kind::ARCCOSECANT},
-        {Op::TRANS_ARCSECANT, ::cvc5::api::Kind::ARCSECANT},
-        {Op::TRANS_ARCCOTANGENT, ::cvc5::api::Kind::ARCCOTANGENT},
-        {Op::TRANS_SQRT, ::cvc5::api::Kind::SQRT},
+    /* Transcendentals */
+    {Op::TRANS_PI, ::cvc5::Kind::PI},
+    {Op::TRANS_SINE, ::cvc5::Kind::SINE},
+    {Op::TRANS_COSINE, ::cvc5::Kind::COSINE},
+    {Op::TRANS_TANGENT, ::cvc5::Kind::TANGENT},
+    {Op::TRANS_COTANGENT, ::cvc5::Kind::COTANGENT},
+    {Op::TRANS_SECANT, ::cvc5::Kind::SECANT},
+    {Op::TRANS_COSECANT, ::cvc5::Kind::COSECANT},
+    {Op::TRANS_ARCSINE, ::cvc5::Kind::ARCSINE},
+    {Op::TRANS_ARCCOSINE, ::cvc5::Kind::ARCCOSINE},
+    {Op::TRANS_ARCTANGENT, ::cvc5::Kind::ARCTANGENT},
+    {Op::TRANS_ARCCOSECANT, ::cvc5::Kind::ARCCOSECANT},
+    {Op::TRANS_ARCSECANT, ::cvc5::Kind::ARCSECANT},
+    {Op::TRANS_ARCCOTANGENT, ::cvc5::Kind::ARCCOTANGENT},
+    {Op::TRANS_SQRT, ::cvc5::Kind::SQRT},
 
-        /* UF */
-        {Op::UF_APPLY, ::cvc5::api::Kind::APPLY_UF},
+    /* UF */
+    {Op::UF_APPLY, ::cvc5::Kind::APPLY_UF},
 
-        /* Non-standardized theories */
-        // Bag
-        {Op::BAG_UNION_MAX, ::cvc5::api::Kind::BAG_UNION_MAX},
-        {Op::BAG_UNION_DISJOINT, ::cvc5::api::Kind::BAG_UNION_DISJOINT},
-        {Op::BAG_INTERSECTION_MIN, ::cvc5::api::Kind::BAG_INTER_MIN},
-        {Op::BAG_DIFFERENCE_SUBTRACT,
-         ::cvc5::api::Kind::BAG_DIFFERENCE_SUBTRACT},
-        {Op::BAG_DIFFERENCE_REMOVE, ::cvc5::api::Kind::BAG_DIFFERENCE_REMOVE},
-        {Op::BAG_SUBBAG, ::cvc5::api::Kind::BAG_SUBBAG},
-        {Op::BAG_COUNT, ::cvc5::api::Kind::BAG_COUNT},
-        {Op::BAG_DUPLICATE_REMOVAL, ::cvc5::api::Kind::BAG_DUPLICATE_REMOVAL},
-        {Op::BAG_MAKE, ::cvc5::api::Kind::BAG_MAKE},
-        {Op::BAG_CARD, ::cvc5::api::Kind::BAG_CARD},
-        {Op::BAG_CHOOSE, ::cvc5::api::Kind::BAG_CHOOSE},
-        {Op::BAG_IS_SINGLETON, ::cvc5::api::Kind::BAG_IS_SINGLETON},
-        {Op::BAG_FROM_SET, ::cvc5::api::Kind::BAG_FROM_SET},
-        {Op::BAG_TO_SET, ::cvc5::api::Kind::BAG_TO_SET},
-        {Op::BAG_MAP, ::cvc5::api::Kind::BAG_MAP},
-        // Sequences
-        {Op::SEQ_CONCAT, ::cvc5::api::Kind::SEQ_CONCAT},
-        {Op::SEQ_LENGTH, ::cvc5::api::Kind::SEQ_LENGTH},
-        {Op::SEQ_EXTRACT, ::cvc5::api::Kind::SEQ_EXTRACT},
-        {Op::SEQ_UPDATE, ::cvc5::api::Kind::SEQ_UPDATE},
-        {Op::SEQ_AT, ::cvc5::api::Kind::SEQ_AT},
-        {Op::SEQ_CONTAINS, ::cvc5::api::Kind::SEQ_CONTAINS},
-        {Op::SEQ_INDEXOF, ::cvc5::api::Kind::SEQ_INDEXOF},
-        {Op::SEQ_REPLACE, ::cvc5::api::Kind::SEQ_REPLACE},
-        {Op::SEQ_REPLACE_ALL, ::cvc5::api::Kind::SEQ_REPLACE_ALL},
-        {Op::SEQ_REV, ::cvc5::api::Kind::SEQ_REV},
-        {Op::SEQ_PREFIX, ::cvc5::api::Kind::SEQ_PREFIX},
-        {Op::SEQ_SUFFIX, ::cvc5::api::Kind::SEQ_SUFFIX},
-        {Op::SEQ_UNIT, ::cvc5::api::Kind::SEQ_UNIT},
-        {Op::SEQ_NTH, ::cvc5::api::Kind::SEQ_NTH},
-        // Sets
-        {Op::SET_CARD, ::cvc5::api::Kind::SET_CARD},
-        {Op::SET_COMPLEMENT, ::cvc5::api::Kind::SET_COMPLEMENT},
-        {Op::SET_COMPREHENSION, ::cvc5::api::Kind::SET_COMPREHENSION},
-        {Op::SET_CHOOSE, ::cvc5::api::Kind::SET_CHOOSE},
-        {Op::SET_INTERSECTION, ::cvc5::api::Kind::SET_INTER},
-        {Op::SET_INSERT, ::cvc5::api::Kind::SET_INSERT},
-        {Op::SET_IS_SINGLETON, ::cvc5::api::Kind::SET_IS_SINGLETON},
-        {Op::SET_UNION, ::cvc5::api::Kind::SET_UNION},
-        {Op::SET_MEMBER, ::cvc5::api::Kind::SET_MEMBER},
-        {Op::SET_MINUS, ::cvc5::api::Kind::SET_MINUS},
-        {Op::SET_SINGLETON, ::cvc5::api::Kind::SET_SINGLETON},
-        {Op::SET_SUBSET, ::cvc5::api::Kind::SET_SUBSET},
-        //{Op::REL_JOIN, ::cvc5::api::Kind::RELATION_JOIN},
-        //{Op::REL_JOIN_IMAGE, ::cvc5::api::Kind::RELATION_JOIN_IMAGE},
-        //{Op::REL_IDEN, ::cvc5::api::Kind::RELATION_IDEN},
-        //{Op::REL_PRODUCT, ::cvc5::api::Kind::RELATION_PRODUCT},
-        //{Op::REL_TCLOSURE, ::cvc5::api::Kind::RELATION_TCLOSURE},
-        //{Op::REL_TRANSPOSE, ::cvc5::api::Kind::RELATION_TRANSPOSE},
+    /* Non-standardized theories */
+    // Bag
+    {Op::BAG_UNION_MAX, ::cvc5::Kind::BAG_UNION_MAX},
+    {Op::BAG_UNION_DISJOINT, ::cvc5::Kind::BAG_UNION_DISJOINT},
+    {Op::BAG_INTERSECTION_MIN, ::cvc5::Kind::BAG_INTER_MIN},
+    {Op::BAG_DIFFERENCE_SUBTRACT, ::cvc5::Kind::BAG_DIFFERENCE_SUBTRACT},
+    {Op::BAG_DIFFERENCE_REMOVE, ::cvc5::Kind::BAG_DIFFERENCE_REMOVE},
+    {Op::BAG_SUBBAG, ::cvc5::Kind::BAG_SUBBAG},
+    {Op::BAG_COUNT, ::cvc5::Kind::BAG_COUNT},
+    {Op::BAG_DUPLICATE_REMOVAL, ::cvc5::Kind::BAG_DUPLICATE_REMOVAL},
+    {Op::BAG_MAKE, ::cvc5::Kind::BAG_MAKE},
+    {Op::BAG_CARD, ::cvc5::Kind::BAG_CARD},
+    {Op::BAG_CHOOSE, ::cvc5::Kind::BAG_CHOOSE},
+    {Op::BAG_IS_SINGLETON, ::cvc5::Kind::BAG_IS_SINGLETON},
+    {Op::BAG_FROM_SET, ::cvc5::Kind::BAG_FROM_SET},
+    {Op::BAG_TO_SET, ::cvc5::Kind::BAG_TO_SET},
+    {Op::BAG_MAP, ::cvc5::Kind::BAG_MAP},
+    // Sequences
+    {Op::SEQ_CONCAT, ::cvc5::Kind::SEQ_CONCAT},
+    {Op::SEQ_LENGTH, ::cvc5::Kind::SEQ_LENGTH},
+    {Op::SEQ_EXTRACT, ::cvc5::Kind::SEQ_EXTRACT},
+    {Op::SEQ_UPDATE, ::cvc5::Kind::SEQ_UPDATE},
+    {Op::SEQ_AT, ::cvc5::Kind::SEQ_AT},
+    {Op::SEQ_CONTAINS, ::cvc5::Kind::SEQ_CONTAINS},
+    {Op::SEQ_INDEXOF, ::cvc5::Kind::SEQ_INDEXOF},
+    {Op::SEQ_REPLACE, ::cvc5::Kind::SEQ_REPLACE},
+    {Op::SEQ_REPLACE_ALL, ::cvc5::Kind::SEQ_REPLACE_ALL},
+    {Op::SEQ_REV, ::cvc5::Kind::SEQ_REV},
+    {Op::SEQ_PREFIX, ::cvc5::Kind::SEQ_PREFIX},
+    {Op::SEQ_SUFFIX, ::cvc5::Kind::SEQ_SUFFIX},
+    {Op::SEQ_UNIT, ::cvc5::Kind::SEQ_UNIT},
+    {Op::SEQ_NTH, ::cvc5::Kind::SEQ_NTH},
+    // Sets
+    {Op::SET_CARD, ::cvc5::Kind::SET_CARD},
+    {Op::SET_COMPLEMENT, ::cvc5::Kind::SET_COMPLEMENT},
+    {Op::SET_COMPREHENSION, ::cvc5::Kind::SET_COMPREHENSION},
+    {Op::SET_CHOOSE, ::cvc5::Kind::SET_CHOOSE},
+    {Op::SET_INTERSECTION, ::cvc5::Kind::SET_INTER},
+    {Op::SET_INSERT, ::cvc5::Kind::SET_INSERT},
+    {Op::SET_IS_SINGLETON, ::cvc5::Kind::SET_IS_SINGLETON},
+    {Op::SET_UNION, ::cvc5::Kind::SET_UNION},
+    {Op::SET_MEMBER, ::cvc5::Kind::SET_MEMBER},
+    {Op::SET_MINUS, ::cvc5::Kind::SET_MINUS},
+    {Op::SET_SINGLETON, ::cvc5::Kind::SET_SINGLETON},
+    {Op::SET_SUBSET, ::cvc5::Kind::SET_SUBSET},
+    //{Op::REL_JOIN, ::cvc5::Kind::RELATION_JOIN},
+    //{Op::REL_JOIN_IMAGE, ::cvc5::Kind::RELATION_JOIN_IMAGE},
+    //{Op::REL_IDEN, ::cvc5::Kind::RELATION_IDEN},
+    //{Op::REL_PRODUCT, ::cvc5::Kind::RELATION_PRODUCT},
+    //{Op::REL_TCLOSURE, ::cvc5::Kind::RELATION_TCLOSURE},
+    //{Op::REL_TRANSPOSE, ::cvc5::Kind::RELATION_TRANSPOSE},
 
-        /* Solver-specific operators */
-        // BV
-        {OP_BV_REDOR, ::cvc5::api::Kind::BITVECTOR_REDOR},
-        {OP_BV_REDAND, ::cvc5::api::Kind::BITVECTOR_REDAND},
-        {OP_BV_ULTBV, ::cvc5::api::Kind::BITVECTOR_ULTBV},
-        {OP_BV_SLTBV, ::cvc5::api::Kind::BITVECTOR_SLTBV},
-        {OP_BV_ITE, ::cvc5::api::Kind::BITVECTOR_ITE},
-        // Datatypes
-        {OP_DT_SIZE, ::cvc5::api::Kind::DT_SIZE},
-        // Int
-        {OP_BV_TO_NAT, ::cvc5::api::Kind::BITVECTOR_TO_NAT},
-        {OP_INT_IAND, ::cvc5::api::Kind::IAND},
-        {OP_INT_TO_BV, ::cvc5::api::Kind::INT_TO_BITVECTOR},
-        {OP_INT_POW2, ::cvc5::api::Kind::POW2},
-        // Strings
-        {OP_STRING_UPDATE, ::cvc5::api::Kind::STRING_UPDATE},
-        {OP_STRING_TOLOWER, ::cvc5::api::Kind::STRING_TOLOWER},
-        {OP_STRING_TOUPPER, ::cvc5::api::Kind::STRING_TOUPPER},
-        {OP_STRING_REV, ::cvc5::api::Kind::STRING_REV},
+    /* Solver-specific operators */
+    // BV
+    {OP_BV_REDOR, ::cvc5::Kind::BITVECTOR_REDOR},
+    {OP_BV_REDAND, ::cvc5::Kind::BITVECTOR_REDAND},
+    {OP_BV_ULTBV, ::cvc5::Kind::BITVECTOR_ULTBV},
+    {OP_BV_SLTBV, ::cvc5::Kind::BITVECTOR_SLTBV},
+    {OP_BV_ITE, ::cvc5::Kind::BITVECTOR_ITE},
+    // Datatypes
+    {OP_DT_SIZE, ::cvc5::Kind::DT_SIZE},
+    // Int
+    {OP_BV_TO_NAT, ::cvc5::Kind::BITVECTOR_TO_NAT},
+    {OP_INT_IAND, ::cvc5::Kind::IAND},
+    {OP_INT_TO_BV, ::cvc5::Kind::INT_TO_BITVECTOR},
+    {OP_INT_POW2, ::cvc5::Kind::POW2},
+    // Strings
+    {OP_STRING_UPDATE, ::cvc5::Kind::STRING_UPDATE},
+    {OP_STRING_TOLOWER, ::cvc5::Kind::STRING_TO_LOWER},
+    {OP_STRING_TOUPPER, ::cvc5::Kind::STRING_TO_UPPER},
+    {OP_STRING_REV, ::cvc5::Kind::STRING_REV},
 };
 
-std::unordered_map<::cvc5::api::Kind, Op::Kind>
-    Cvc5Term::s_cvc5_kinds_to_kinds = {
-        {::cvc5::api::Kind::INTERNAL_KIND, Op::INTERNAL},
-        /* Leaf Kinds */
-        {::cvc5::api::Kind::CONSTANT, Op::CONSTANT},
-        //{::cvc5::api::Kind::CONST_ARRAY, Op::CONST_ARRAY},
-        {::cvc5::api::Kind::CONST_BOOLEAN, Op::VALUE},
-        {::cvc5::api::Kind::CONST_BITVECTOR, Op::VALUE},
-        {::cvc5::api::Kind::CONST_FLOATINGPOINT, Op::VALUE},
-        {::cvc5::api::Kind::CONST_RATIONAL, Op::VALUE},
-        {::cvc5::api::Kind::CONST_ROUNDINGMODE, Op::VALUE},
-        {::cvc5::api::Kind::CONST_SEQUENCE, Op::VALUE},
-        {::cvc5::api::Kind::CONST_STRING, Op::VALUE},
-        {::cvc5::api::Kind::VARIABLE, Op::VARIABLE},
+std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
+    {::cvc5::Kind::INTERNAL_KIND, Op::INTERNAL},
+    /* Leaf Kinds */
+    {::cvc5::Kind::CONSTANT, Op::CONSTANT},
+    //{::cvc5::Kind::CONST_ARRAY, Op::CONST_ARRAY},
+    {::cvc5::Kind::CONST_BOOLEAN, Op::VALUE},
+    {::cvc5::Kind::CONST_BITVECTOR, Op::VALUE},
+    {::cvc5::Kind::CONST_FLOATINGPOINT, Op::VALUE},
+    {::cvc5::Kind::CONST_RATIONAL, Op::VALUE},
+    {::cvc5::Kind::CONST_ROUNDINGMODE, Op::VALUE},
+    {::cvc5::Kind::CONST_SEQUENCE, Op::VALUE},
+    {::cvc5::Kind::CONST_STRING, Op::VALUE},
+    {::cvc5::Kind::VARIABLE, Op::VARIABLE},
 
-        /* Special Cases */
-        {::cvc5::api::Kind::UNDEFINED_KIND, Op::UNDEFINED},
-        {::cvc5::api::Kind::DISTINCT, Op::DISTINCT},
-        {::cvc5::api::Kind::EQUAL, Op::EQUAL},
-        {::cvc5::api::Kind::ITE, Op::ITE},
+    /* Special Cases */
+    {::cvc5::Kind::UNDEFINED_KIND, Op::UNDEFINED},
+    {::cvc5::Kind::DISTINCT, Op::DISTINCT},
+    {::cvc5::Kind::EQUAL, Op::EQUAL},
+    {::cvc5::Kind::ITE, Op::ITE},
 
-        /* Bool */
-        {::cvc5::api::Kind::AND, Op::AND},
-        {::cvc5::api::Kind::OR, Op::OR},
-        {::cvc5::api::Kind::NOT, Op::NOT},
-        {::cvc5::api::Kind::XOR, Op::XOR},
-        {::cvc5::api::Kind::IMPLIES, Op::IMPLIES},
+    /* Bool */
+    {::cvc5::Kind::AND, Op::AND},
+    {::cvc5::Kind::OR, Op::OR},
+    {::cvc5::Kind::NOT, Op::NOT},
+    {::cvc5::Kind::XOR, Op::XOR},
+    {::cvc5::Kind::IMPLIES, Op::IMPLIES},
 
-        /* Arrays */
-        {::cvc5::api::Kind::SELECT, Op::ARRAY_SELECT},
-        {::cvc5::api::Kind::STORE, Op::ARRAY_STORE},
+    /* Arrays */
+    {::cvc5::Kind::SELECT, Op::ARRAY_SELECT},
+    {::cvc5::Kind::STORE, Op::ARRAY_STORE},
 
-        /* BV */
-        {::cvc5::api::Kind::BITVECTOR_EXTRACT, Op::BV_EXTRACT},
-        {::cvc5::api::Kind::BITVECTOR_REPEAT, Op::BV_REPEAT},
-        {::cvc5::api::Kind::BITVECTOR_ROTATE_LEFT, Op::BV_ROTATE_LEFT},
-        {::cvc5::api::Kind::BITVECTOR_ROTATE_RIGHT, Op::BV_ROTATE_RIGHT},
-        {::cvc5::api::Kind::BITVECTOR_SIGN_EXTEND, Op::BV_SIGN_EXTEND},
-        {::cvc5::api::Kind::BITVECTOR_ZERO_EXTEND, Op::BV_ZERO_EXTEND},
+    /* BV */
+    {::cvc5::Kind::BITVECTOR_EXTRACT, Op::BV_EXTRACT},
+    {::cvc5::Kind::BITVECTOR_REPEAT, Op::BV_REPEAT},
+    {::cvc5::Kind::BITVECTOR_ROTATE_LEFT, Op::BV_ROTATE_LEFT},
+    {::cvc5::Kind::BITVECTOR_ROTATE_RIGHT, Op::BV_ROTATE_RIGHT},
+    {::cvc5::Kind::BITVECTOR_SIGN_EXTEND, Op::BV_SIGN_EXTEND},
+    {::cvc5::Kind::BITVECTOR_ZERO_EXTEND, Op::BV_ZERO_EXTEND},
 
-        {::cvc5::api::Kind::BITVECTOR_CONCAT, Op::BV_CONCAT},
-        {::cvc5::api::Kind::BITVECTOR_AND, Op::BV_AND},
-        {::cvc5::api::Kind::BITVECTOR_OR, Op::BV_OR},
-        {::cvc5::api::Kind::BITVECTOR_XOR, Op::BV_XOR},
-        {::cvc5::api::Kind::BITVECTOR_MULT, Op::BV_MULT},
-        {::cvc5::api::Kind::BITVECTOR_ADD, Op::BV_ADD},
-        {::cvc5::api::Kind::BITVECTOR_NOT, Op::BV_NOT},
-        {::cvc5::api::Kind::BITVECTOR_NEG, Op::BV_NEG},
-        {::cvc5::api::Kind::BITVECTOR_NAND, Op::BV_NAND},
-        {::cvc5::api::Kind::BITVECTOR_NOR, Op::BV_NOR},
-        {::cvc5::api::Kind::BITVECTOR_XNOR, Op::BV_XNOR},
-        {::cvc5::api::Kind::BITVECTOR_COMP, Op::BV_COMP},
-        {::cvc5::api::Kind::BITVECTOR_SUB, Op::BV_SUB},
-        {::cvc5::api::Kind::BITVECTOR_UDIV, Op::BV_UDIV},
-        {::cvc5::api::Kind::BITVECTOR_UREM, Op::BV_UREM},
-        {::cvc5::api::Kind::BITVECTOR_UREM, Op::BV_UREM},
-        {::cvc5::api::Kind::BITVECTOR_SDIV, Op::BV_SDIV},
-        {::cvc5::api::Kind::BITVECTOR_SREM, Op::BV_SREM},
-        {::cvc5::api::Kind::BITVECTOR_SMOD, Op::BV_SMOD},
-        {::cvc5::api::Kind::BITVECTOR_SHL, Op::BV_SHL},
-        {::cvc5::api::Kind::BITVECTOR_LSHR, Op::BV_LSHR},
-        {::cvc5::api::Kind::BITVECTOR_ASHR, Op::BV_ASHR},
-        {::cvc5::api::Kind::BITVECTOR_ULT, Op::BV_ULT},
-        {::cvc5::api::Kind::BITVECTOR_ULE, Op::BV_ULE},
-        {::cvc5::api::Kind::BITVECTOR_UGT, Op::BV_UGT},
-        {::cvc5::api::Kind::BITVECTOR_UGE, Op::BV_UGE},
-        {::cvc5::api::Kind::BITVECTOR_SLT, Op::BV_SLT},
-        {::cvc5::api::Kind::BITVECTOR_SLE, Op::BV_SLE},
-        {::cvc5::api::Kind::BITVECTOR_SGT, Op::BV_SGT},
-        {::cvc5::api::Kind::BITVECTOR_SGE, Op::BV_SGE},
+    {::cvc5::Kind::BITVECTOR_CONCAT, Op::BV_CONCAT},
+    {::cvc5::Kind::BITVECTOR_AND, Op::BV_AND},
+    {::cvc5::Kind::BITVECTOR_OR, Op::BV_OR},
+    {::cvc5::Kind::BITVECTOR_XOR, Op::BV_XOR},
+    {::cvc5::Kind::BITVECTOR_MULT, Op::BV_MULT},
+    {::cvc5::Kind::BITVECTOR_ADD, Op::BV_ADD},
+    {::cvc5::Kind::BITVECTOR_NOT, Op::BV_NOT},
+    {::cvc5::Kind::BITVECTOR_NEG, Op::BV_NEG},
+    {::cvc5::Kind::BITVECTOR_NAND, Op::BV_NAND},
+    {::cvc5::Kind::BITVECTOR_NOR, Op::BV_NOR},
+    {::cvc5::Kind::BITVECTOR_XNOR, Op::BV_XNOR},
+    {::cvc5::Kind::BITVECTOR_COMP, Op::BV_COMP},
+    {::cvc5::Kind::BITVECTOR_SUB, Op::BV_SUB},
+    {::cvc5::Kind::BITVECTOR_UDIV, Op::BV_UDIV},
+    {::cvc5::Kind::BITVECTOR_UREM, Op::BV_UREM},
+    {::cvc5::Kind::BITVECTOR_UREM, Op::BV_UREM},
+    {::cvc5::Kind::BITVECTOR_SDIV, Op::BV_SDIV},
+    {::cvc5::Kind::BITVECTOR_SREM, Op::BV_SREM},
+    {::cvc5::Kind::BITVECTOR_SMOD, Op::BV_SMOD},
+    {::cvc5::Kind::BITVECTOR_SHL, Op::BV_SHL},
+    {::cvc5::Kind::BITVECTOR_LSHR, Op::BV_LSHR},
+    {::cvc5::Kind::BITVECTOR_ASHR, Op::BV_ASHR},
+    {::cvc5::Kind::BITVECTOR_ULT, Op::BV_ULT},
+    {::cvc5::Kind::BITVECTOR_ULE, Op::BV_ULE},
+    {::cvc5::Kind::BITVECTOR_UGT, Op::BV_UGT},
+    {::cvc5::Kind::BITVECTOR_UGE, Op::BV_UGE},
+    {::cvc5::Kind::BITVECTOR_SLT, Op::BV_SLT},
+    {::cvc5::Kind::BITVECTOR_SLE, Op::BV_SLE},
+    {::cvc5::Kind::BITVECTOR_SGT, Op::BV_SGT},
+    {::cvc5::Kind::BITVECTOR_SGE, Op::BV_SGE},
 
-        /* Datatypes */
-        {::cvc5::api::Kind::APPLY_CONSTRUCTOR, Op::DT_APPLY_CONS},
-        {::cvc5::api::Kind::APPLY_SELECTOR, Op::DT_APPLY_SEL},
-        {::cvc5::api::Kind::APPLY_TESTER, Op::DT_APPLY_TESTER},
-        {::cvc5::api::Kind::APPLY_UPDATER, Op::DT_APPLY_UPDATER},
-        {::cvc5::api::Kind::MATCH, Op::DT_MATCH},
-        {::cvc5::api::Kind::MATCH_BIND_CASE, Op::DT_MATCH_BIND_CASE},
-        {::cvc5::api::Kind::MATCH_CASE, Op::DT_MATCH_CASE},
+    /* Datatypes */
+    {::cvc5::Kind::APPLY_CONSTRUCTOR, Op::DT_APPLY_CONS},
+    {::cvc5::Kind::APPLY_SELECTOR, Op::DT_APPLY_SEL},
+    {::cvc5::Kind::APPLY_TESTER, Op::DT_APPLY_TESTER},
+    {::cvc5::Kind::APPLY_UPDATER, Op::DT_APPLY_UPDATER},
+    {::cvc5::Kind::MATCH, Op::DT_MATCH},
+    {::cvc5::Kind::MATCH_BIND_CASE, Op::DT_MATCH_BIND_CASE},
+    {::cvc5::Kind::MATCH_CASE, Op::DT_MATCH_CASE},
 
-        /* FP */
-        {::cvc5::api::Kind::FLOATINGPOINT_ABS, Op::FP_ABS},
-        {::cvc5::api::Kind::FLOATINGPOINT_ADD, Op::FP_ADD},
-        {::cvc5::api::Kind::FLOATINGPOINT_DIV, Op::FP_DIV},
-        {::cvc5::api::Kind::FLOATINGPOINT_EQ, Op::FP_EQ},
-        {::cvc5::api::Kind::FLOATINGPOINT_FMA, Op::FP_FMA},
-        {::cvc5::api::Kind::FLOATINGPOINT_FP, Op::FP_FP},
-        {::cvc5::api::Kind::FLOATINGPOINT_IS_NORMAL, Op::FP_IS_NORMAL},
-        {::cvc5::api::Kind::FLOATINGPOINT_IS_SUBNORMAL, Op::FP_IS_SUBNORMAL},
-        {::cvc5::api::Kind::FLOATINGPOINT_IS_INF, Op::FP_IS_INF},
-        {::cvc5::api::Kind::FLOATINGPOINT_IS_NAN, Op::FP_IS_NAN},
-        {::cvc5::api::Kind::FLOATINGPOINT_IS_NEG, Op::FP_IS_NEG},
-        {::cvc5::api::Kind::FLOATINGPOINT_IS_POS, Op::FP_IS_POS},
-        {::cvc5::api::Kind::FLOATINGPOINT_IS_ZERO, Op::FP_IS_ZERO},
-        {::cvc5::api::Kind::FLOATINGPOINT_LT, Op::FP_LT},
-        {::cvc5::api::Kind::FLOATINGPOINT_LEQ, Op::FP_LEQ},
-        {::cvc5::api::Kind::FLOATINGPOINT_GT, Op::FP_GT},
-        {::cvc5::api::Kind::FLOATINGPOINT_GEQ, Op::FP_GEQ},
-        {::cvc5::api::Kind::FLOATINGPOINT_MAX, Op::FP_MAX},
-        {::cvc5::api::Kind::FLOATINGPOINT_MIN, Op::FP_MIN},
-        {::cvc5::api::Kind::FLOATINGPOINT_MULT, Op::FP_MUL},
-        {::cvc5::api::Kind::FLOATINGPOINT_NEG, Op::FP_NEG},
-        {::cvc5::api::Kind::FLOATINGPOINT_REM, Op::FP_REM},
-        {::cvc5::api::Kind::FLOATINGPOINT_RTI, Op::FP_RTI},
-        {::cvc5::api::Kind::FLOATINGPOINT_SQRT, Op::FP_SQRT},
-        {::cvc5::api::Kind::FLOATINGPOINT_SUB, Op::FP_SUB},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV,
-         Op::FP_TO_FP_FROM_BV},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_SBV,
-         Op::FP_TO_FP_FROM_SBV},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_FP, Op::FP_TO_FP_FROM_FP},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_UBV,
-         Op::FP_TO_FP_FROM_UBV},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_FP_FROM_REAL,
-         Op::FP_TO_FP_FROM_REAL},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_REAL, Op::FP_TO_REAL},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_SBV, Op::FP_TO_SBV},
-        {::cvc5::api::Kind::FLOATINGPOINT_TO_UBV, Op::FP_TO_UBV},
+    /* FP */
+    {::cvc5::Kind::FLOATINGPOINT_ABS, Op::FP_ABS},
+    {::cvc5::Kind::FLOATINGPOINT_ADD, Op::FP_ADD},
+    {::cvc5::Kind::FLOATINGPOINT_DIV, Op::FP_DIV},
+    {::cvc5::Kind::FLOATINGPOINT_EQ, Op::FP_EQ},
+    {::cvc5::Kind::FLOATINGPOINT_FMA, Op::FP_FMA},
+    {::cvc5::Kind::FLOATINGPOINT_FP, Op::FP_FP},
+    {::cvc5::Kind::FLOATINGPOINT_IS_NORMAL, Op::FP_IS_NORMAL},
+    {::cvc5::Kind::FLOATINGPOINT_IS_SUBNORMAL, Op::FP_IS_SUBNORMAL},
+    {::cvc5::Kind::FLOATINGPOINT_IS_INF, Op::FP_IS_INF},
+    {::cvc5::Kind::FLOATINGPOINT_IS_NAN, Op::FP_IS_NAN},
+    {::cvc5::Kind::FLOATINGPOINT_IS_NEG, Op::FP_IS_NEG},
+    {::cvc5::Kind::FLOATINGPOINT_IS_POS, Op::FP_IS_POS},
+    {::cvc5::Kind::FLOATINGPOINT_IS_ZERO, Op::FP_IS_ZERO},
+    {::cvc5::Kind::FLOATINGPOINT_LT, Op::FP_LT},
+    {::cvc5::Kind::FLOATINGPOINT_LEQ, Op::FP_LEQ},
+    {::cvc5::Kind::FLOATINGPOINT_GT, Op::FP_GT},
+    {::cvc5::Kind::FLOATINGPOINT_GEQ, Op::FP_GEQ},
+    {::cvc5::Kind::FLOATINGPOINT_MAX, Op::FP_MAX},
+    {::cvc5::Kind::FLOATINGPOINT_MIN, Op::FP_MIN},
+    {::cvc5::Kind::FLOATINGPOINT_MULT, Op::FP_MUL},
+    {::cvc5::Kind::FLOATINGPOINT_NEG, Op::FP_NEG},
+    {::cvc5::Kind::FLOATINGPOINT_REM, Op::FP_REM},
+    {::cvc5::Kind::FLOATINGPOINT_RTI, Op::FP_RTI},
+    {::cvc5::Kind::FLOATINGPOINT_SQRT, Op::FP_SQRT},
+    {::cvc5::Kind::FLOATINGPOINT_SUB, Op::FP_SUB},
+    {::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_IEEE_BV, Op::FP_TO_FP_FROM_BV},
+    {::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_SBV, Op::FP_TO_FP_FROM_SBV},
+    {::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_FP, Op::FP_TO_FP_FROM_FP},
+    {::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_UBV, Op::FP_TO_FP_FROM_UBV},
+    {::cvc5::Kind::FLOATINGPOINT_TO_FP_FROM_REAL, Op::FP_TO_FP_FROM_REAL},
+    {::cvc5::Kind::FLOATINGPOINT_TO_REAL, Op::FP_TO_REAL},
+    {::cvc5::Kind::FLOATINGPOINT_TO_SBV, Op::FP_TO_SBV},
+    {::cvc5::Kind::FLOATINGPOINT_TO_UBV, Op::FP_TO_UBV},
 
-        /* Ints */
-        {::cvc5::api::Kind::DIVISIBLE, Op::INT_IS_DIV},
-        {::cvc5::api::Kind::NEG, Op::INT_NEG},
-        {::cvc5::api::Kind::SUB, Op::INT_SUB},
-        {::cvc5::api::Kind::ADD, Op::INT_ADD},
-        {::cvc5::api::Kind::MULT, Op::INT_MUL},
-        {::cvc5::api::Kind::INTS_DIVISION, Op::INT_DIV},
-        {::cvc5::api::Kind::INTS_MODULUS, Op::INT_MOD},
-        {::cvc5::api::Kind::ABS, Op::INT_ABS},
-        {::cvc5::api::Kind::LT, Op::INT_LT},
-        {::cvc5::api::Kind::LEQ, Op::INT_LTE},
-        {::cvc5::api::Kind::GT, Op::INT_GT},
-        {::cvc5::api::Kind::GEQ, Op::INT_GTE},
-        {::cvc5::api::Kind::TO_REAL, Op::INT_TO_REAL},
+    /* Ints */
+    {::cvc5::Kind::DIVISIBLE, Op::INT_IS_DIV},
+    {::cvc5::Kind::NEG, Op::INT_NEG},
+    {::cvc5::Kind::SUB, Op::INT_SUB},
+    {::cvc5::Kind::ADD, Op::INT_ADD},
+    {::cvc5::Kind::MULT, Op::INT_MUL},
+    {::cvc5::Kind::INTS_DIVISION, Op::INT_DIV},
+    {::cvc5::Kind::INTS_MODULUS, Op::INT_MOD},
+    {::cvc5::Kind::ABS, Op::INT_ABS},
+    {::cvc5::Kind::LT, Op::INT_LT},
+    {::cvc5::Kind::LEQ, Op::INT_LTE},
+    {::cvc5::Kind::GT, Op::INT_GT},
+    {::cvc5::Kind::GEQ, Op::INT_GTE},
+    {::cvc5::Kind::TO_REAL, Op::INT_TO_REAL},
 
-        /* Reals */
-        {::cvc5::api::Kind::NEG, Op::REAL_NEG},
-        {::cvc5::api::Kind::SUB, Op::REAL_SUB},
-        {::cvc5::api::Kind::ADD, Op::REAL_ADD},
-        {::cvc5::api::Kind::MULT, Op::REAL_MUL},
-        {::cvc5::api::Kind::DIVISION, Op::REAL_DIV},
-        {::cvc5::api::Kind::LT, Op::REAL_LT},
-        {::cvc5::api::Kind::LEQ, Op::REAL_LTE},
-        {::cvc5::api::Kind::GT, Op::REAL_GT},
-        {::cvc5::api::Kind::GEQ, Op::REAL_GTE},
-        {::cvc5::api::Kind::IS_INTEGER, Op::REAL_IS_INT},
-        {::cvc5::api::Kind::TO_INTEGER, Op::REAL_TO_INT},
+    /* Reals */
+    {::cvc5::Kind::NEG, Op::REAL_NEG},
+    {::cvc5::Kind::SUB, Op::REAL_SUB},
+    {::cvc5::Kind::ADD, Op::REAL_ADD},
+    {::cvc5::Kind::MULT, Op::REAL_MUL},
+    {::cvc5::Kind::DIVISION, Op::REAL_DIV},
+    {::cvc5::Kind::LT, Op::REAL_LT},
+    {::cvc5::Kind::LEQ, Op::REAL_LTE},
+    {::cvc5::Kind::GT, Op::REAL_GT},
+    {::cvc5::Kind::GEQ, Op::REAL_GTE},
+    {::cvc5::Kind::IS_INTEGER, Op::REAL_IS_INT},
+    {::cvc5::Kind::TO_INTEGER, Op::REAL_TO_INT},
 
-        /* Quantifiers */
-        {::cvc5::api::Kind::FORALL, Op::FORALL},
-        {::cvc5::api::Kind::EXISTS, Op::EXISTS},
+    /* Quantifiers */
+    {::cvc5::Kind::FORALL, Op::FORALL},
+    {::cvc5::Kind::EXISTS, Op::EXISTS},
 
-        /* Strings */
-        {::cvc5::api::Kind::STRING_CONCAT, Op::STR_CONCAT},
-        {::cvc5::api::Kind::STRING_LENGTH, Op::STR_LEN},
-        {::cvc5::api::Kind::STRING_LT, Op::STR_LT},
-        {::cvc5::api::Kind::STRING_TO_REGEXP, Op::STR_TO_RE},
-        {::cvc5::api::Kind::STRING_IN_REGEXP, Op::STR_IN_RE},
-        {::cvc5::api::Kind::STRING_LEQ, Op::STR_LE},
-        {::cvc5::api::Kind::STRING_CHARAT, Op::STR_AT},
-        {::cvc5::api::Kind::STRING_SUBSTR, Op::STR_SUBSTR},
-        {::cvc5::api::Kind::STRING_PREFIX, Op::STR_PREFIXOF},
-        {::cvc5::api::Kind::STRING_SUFFIX, Op::STR_SUFFIXOF},
-        {::cvc5::api::Kind::STRING_CONTAINS, Op::STR_CONTAINS},
-        {::cvc5::api::Kind::STRING_INDEXOF, Op::STR_INDEXOF},
-        {::cvc5::api::Kind::STRING_REPLACE, Op::STR_REPLACE},
-        {::cvc5::api::Kind::STRING_REPLACE_ALL, Op::STR_REPLACE_ALL},
-        {::cvc5::api::Kind::STRING_REPLACE_RE, Op::STR_REPLACE_RE},
-        {::cvc5::api::Kind::STRING_REPLACE_RE_ALL, Op::STR_REPLACE_RE_ALL},
-        {::cvc5::api::Kind::STRING_IS_DIGIT, Op::STR_IS_DIGIT},
-        {::cvc5::api::Kind::STRING_TO_CODE, Op::STR_TO_CODE},
-        {::cvc5::api::Kind::STRING_FROM_CODE, Op::STR_FROM_CODE},
-        {::cvc5::api::Kind::STRING_TO_INT, Op::STR_TO_INT},
-        {::cvc5::api::Kind::STRING_FROM_INT, Op::STR_FROM_INT},
-        {::cvc5::api::Kind::REGEXP_ALL, Op::RE_ALL},
-        {::cvc5::api::Kind::REGEXP_ALLCHAR, Op::RE_ALLCHAR},
-        {::cvc5::api::Kind::REGEXP_COMPLEMENT, Op::RE_COMP},
-        {::cvc5::api::Kind::REGEXP_CONCAT, Op::RE_CONCAT},
-        {::cvc5::api::Kind::REGEXP_DIFF, Op::RE_DIFF},
-        {::cvc5::api::Kind::REGEXP_INTER, Op::RE_INTER},
-        {::cvc5::api::Kind::REGEXP_LOOP, Op::RE_LOOP},
-        {::cvc5::api::Kind::REGEXP_NONE, Op::RE_NONE},
-        {::cvc5::api::Kind::REGEXP_OPT, Op::RE_OPT},
-        {::cvc5::api::Kind::REGEXP_PLUS, Op::RE_PLUS},
-        {::cvc5::api::Kind::REGEXP_RANGE, Op::RE_RANGE},
-        {::cvc5::api::Kind::REGEXP_REPEAT, Op::RE_POW},
-        {::cvc5::api::Kind::REGEXP_STAR, Op::RE_STAR},
-        {::cvc5::api::Kind::REGEXP_UNION, Op::RE_UNION},
+    /* Strings */
+    {::cvc5::Kind::STRING_CONCAT, Op::STR_CONCAT},
+    {::cvc5::Kind::STRING_LENGTH, Op::STR_LEN},
+    {::cvc5::Kind::STRING_LT, Op::STR_LT},
+    {::cvc5::Kind::STRING_TO_REGEXP, Op::STR_TO_RE},
+    {::cvc5::Kind::STRING_IN_REGEXP, Op::STR_IN_RE},
+    {::cvc5::Kind::STRING_LEQ, Op::STR_LE},
+    {::cvc5::Kind::STRING_CHARAT, Op::STR_AT},
+    {::cvc5::Kind::STRING_SUBSTR, Op::STR_SUBSTR},
+    {::cvc5::Kind::STRING_PREFIX, Op::STR_PREFIXOF},
+    {::cvc5::Kind::STRING_SUFFIX, Op::STR_SUFFIXOF},
+    {::cvc5::Kind::STRING_CONTAINS, Op::STR_CONTAINS},
+    {::cvc5::Kind::STRING_INDEXOF, Op::STR_INDEXOF},
+    {::cvc5::Kind::STRING_REPLACE, Op::STR_REPLACE},
+    {::cvc5::Kind::STRING_REPLACE_ALL, Op::STR_REPLACE_ALL},
+    {::cvc5::Kind::STRING_REPLACE_RE, Op::STR_REPLACE_RE},
+    {::cvc5::Kind::STRING_REPLACE_RE_ALL, Op::STR_REPLACE_RE_ALL},
+    {::cvc5::Kind::STRING_IS_DIGIT, Op::STR_IS_DIGIT},
+    {::cvc5::Kind::STRING_TO_CODE, Op::STR_TO_CODE},
+    {::cvc5::Kind::STRING_FROM_CODE, Op::STR_FROM_CODE},
+    {::cvc5::Kind::STRING_TO_INT, Op::STR_TO_INT},
+    {::cvc5::Kind::STRING_FROM_INT, Op::STR_FROM_INT},
+    {::cvc5::Kind::REGEXP_ALL, Op::RE_ALL},
+    {::cvc5::Kind::REGEXP_ALLCHAR, Op::RE_ALLCHAR},
+    {::cvc5::Kind::REGEXP_COMPLEMENT, Op::RE_COMP},
+    {::cvc5::Kind::REGEXP_CONCAT, Op::RE_CONCAT},
+    {::cvc5::Kind::REGEXP_DIFF, Op::RE_DIFF},
+    {::cvc5::Kind::REGEXP_INTER, Op::RE_INTER},
+    {::cvc5::Kind::REGEXP_LOOP, Op::RE_LOOP},
+    {::cvc5::Kind::REGEXP_NONE, Op::RE_NONE},
+    {::cvc5::Kind::REGEXP_OPT, Op::RE_OPT},
+    {::cvc5::Kind::REGEXP_PLUS, Op::RE_PLUS},
+    {::cvc5::Kind::REGEXP_RANGE, Op::RE_RANGE},
+    {::cvc5::Kind::REGEXP_REPEAT, Op::RE_POW},
+    {::cvc5::Kind::REGEXP_STAR, Op::RE_STAR},
+    {::cvc5::Kind::REGEXP_UNION, Op::RE_UNION},
 
-        /* Transcendentals */
-        {::cvc5::api::Kind::PI, Op::TRANS_PI},
-        {::cvc5::api::Kind::SINE, Op::TRANS_SINE},
-        {::cvc5::api::Kind::COSINE, Op::TRANS_COSINE},
-        {::cvc5::api::Kind::TANGENT, Op::TRANS_TANGENT},
-        {::cvc5::api::Kind::COTANGENT, Op::TRANS_COTANGENT},
-        {::cvc5::api::Kind::SECANT, Op::TRANS_SECANT},
-        {::cvc5::api::Kind::COSECANT, Op::TRANS_COSECANT},
-        {::cvc5::api::Kind::ARCSINE, Op::TRANS_ARCSINE},
-        {::cvc5::api::Kind::ARCCOSINE, Op::TRANS_ARCCOSINE},
-        {::cvc5::api::Kind::ARCTANGENT, Op::TRANS_ARCTANGENT},
-        {::cvc5::api::Kind::ARCCOSECANT, Op::TRANS_ARCCOSECANT},
-        {::cvc5::api::Kind::ARCSECANT, Op::TRANS_ARCSECANT},
-        {::cvc5::api::Kind::ARCCOTANGENT, Op::TRANS_ARCCOTANGENT},
-        {::cvc5::api::Kind::SQRT, Op::TRANS_SQRT},
+    /* Transcendentals */
+    {::cvc5::Kind::PI, Op::TRANS_PI},
+    {::cvc5::Kind::SINE, Op::TRANS_SINE},
+    {::cvc5::Kind::COSINE, Op::TRANS_COSINE},
+    {::cvc5::Kind::TANGENT, Op::TRANS_TANGENT},
+    {::cvc5::Kind::COTANGENT, Op::TRANS_COTANGENT},
+    {::cvc5::Kind::SECANT, Op::TRANS_SECANT},
+    {::cvc5::Kind::COSECANT, Op::TRANS_COSECANT},
+    {::cvc5::Kind::ARCSINE, Op::TRANS_ARCSINE},
+    {::cvc5::Kind::ARCCOSINE, Op::TRANS_ARCCOSINE},
+    {::cvc5::Kind::ARCTANGENT, Op::TRANS_ARCTANGENT},
+    {::cvc5::Kind::ARCCOSECANT, Op::TRANS_ARCCOSECANT},
+    {::cvc5::Kind::ARCSECANT, Op::TRANS_ARCSECANT},
+    {::cvc5::Kind::ARCCOTANGENT, Op::TRANS_ARCCOTANGENT},
+    {::cvc5::Kind::SQRT, Op::TRANS_SQRT},
 
-        /* UF */
-        {::cvc5::api::Kind::APPLY_UF, Op::UF_APPLY},
+    /* UF */
+    {::cvc5::Kind::APPLY_UF, Op::UF_APPLY},
 
-        /* Non-standardized theories */
-        // Bag
-        {::cvc5::api::Kind::BAG_UNION_MAX, Op::BAG_UNION_MAX},
-        {::cvc5::api::Kind::BAG_UNION_DISJOINT, Op::BAG_UNION_DISJOINT},
-        {::cvc5::api::Kind::BAG_INTER_MIN, Op::BAG_INTERSECTION_MIN},
-        {::cvc5::api::Kind::BAG_DIFFERENCE_SUBTRACT,
-         Op::BAG_DIFFERENCE_SUBTRACT},
-        {::cvc5::api::Kind::BAG_DIFFERENCE_REMOVE, Op::BAG_DIFFERENCE_REMOVE},
-        {::cvc5::api::Kind::BAG_SUBBAG, Op::BAG_SUBBAG},
-        {::cvc5::api::Kind::BAG_COUNT, Op::BAG_COUNT},
-        {::cvc5::api::Kind::BAG_DUPLICATE_REMOVAL, Op::BAG_DUPLICATE_REMOVAL},
-        {::cvc5::api::Kind::BAG_MAKE, Op::BAG_MAKE},
-        {::cvc5::api::Kind::BAG_EMPTY, Op::BAG_EMPTY},
-        {::cvc5::api::Kind::BAG_CARD, Op::BAG_CARD},
-        {::cvc5::api::Kind::BAG_CHOOSE, Op::BAG_CHOOSE},
-        {::cvc5::api::Kind::BAG_IS_SINGLETON, Op::BAG_IS_SINGLETON},
-        {::cvc5::api::Kind::BAG_FROM_SET, Op::BAG_FROM_SET},
-        {::cvc5::api::Kind::BAG_TO_SET, Op::BAG_TO_SET},
-        {::cvc5::api::Kind::BAG_MAP, Op::BAG_MAP},
-        // Sequences
-        {::cvc5::api::Kind::SEQ_CONCAT, Op::SEQ_CONCAT},
-        {::cvc5::api::Kind::SEQ_LENGTH, Op::SEQ_LENGTH},
-        {::cvc5::api::Kind::SEQ_EXTRACT, Op::SEQ_EXTRACT},
-        {::cvc5::api::Kind::SEQ_UPDATE, Op::SEQ_UPDATE},
-        {::cvc5::api::Kind::SEQ_AT, Op::SEQ_AT},
-        {::cvc5::api::Kind::SEQ_CONTAINS, Op::SEQ_CONTAINS},
-        {::cvc5::api::Kind::SEQ_INDEXOF, Op::SEQ_INDEXOF},
-        {::cvc5::api::Kind::SEQ_REPLACE, Op::SEQ_REPLACE},
-        {::cvc5::api::Kind::SEQ_REPLACE_ALL, Op::SEQ_REPLACE_ALL},
-        {::cvc5::api::Kind::SEQ_REV, Op::SEQ_REV},
-        {::cvc5::api::Kind::SEQ_PREFIX, Op::SEQ_PREFIX},
-        {::cvc5::api::Kind::SEQ_SUFFIX, Op::SEQ_SUFFIX},
-        {::cvc5::api::Kind::SEQ_UNIT, Op::SEQ_UNIT},
-        {::cvc5::api::Kind::SEQ_NTH, Op::SEQ_NTH},
-        // Sets
-        {::cvc5::api::Kind::SET_CARD, Op::SET_CARD},
-        {::cvc5::api::Kind::SET_COMPLEMENT, Op::SET_COMPLEMENT},
-        {::cvc5::api::Kind::SET_COMPREHENSION, Op::SET_COMPREHENSION},
-        {::cvc5::api::Kind::SET_CHOOSE, Op::SET_CHOOSE},
-        {::cvc5::api::Kind::SET_INTER, Op::SET_INTERSECTION},
-        {::cvc5::api::Kind::SET_INSERT, Op::SET_INSERT},
-        {::cvc5::api::Kind::SET_IS_SINGLETON, Op::SET_IS_SINGLETON},
-        {::cvc5::api::Kind::SET_UNION, Op::SET_UNION},
-        {::cvc5::api::Kind::SET_MEMBER, Op::SET_MEMBER},
-        {::cvc5::api::Kind::SET_MINUS, Op::SET_MINUS},
-        {::cvc5::api::Kind::SET_SINGLETON, Op::SET_SINGLETON},
-        {::cvc5::api::Kind::SET_SUBSET, Op::SET_SUBSET},
-        //{::cvc5::api::Kind::RELATION_JOIN, Op::REL_JOIN},
-        //{::cvc5::api::Kind::RELATION_JOIN_IMAGE, Op::REL_JOIN_IMAGE},
-        //{::cvc5::api::Kind::RELATION_IDEN, Op::REL_IDEN},
-        //{::cvc5::api::Kind::RELATION_PRODUCT, Op::REL_PRODUCT},
-        //{::cvc5::api::Kind::RELATION_TCLOSURE, Op::REL_TCLOSURE},
-        //{::cvc5::api::Kind::RELATION_TRANSPOSE, Op::REL_TRANSPOSE},
+    /* Non-standardized theories */
+    // Bag
+    {::cvc5::Kind::BAG_UNION_MAX, Op::BAG_UNION_MAX},
+    {::cvc5::Kind::BAG_UNION_DISJOINT, Op::BAG_UNION_DISJOINT},
+    {::cvc5::Kind::BAG_INTER_MIN, Op::BAG_INTERSECTION_MIN},
+    {::cvc5::Kind::BAG_DIFFERENCE_SUBTRACT, Op::BAG_DIFFERENCE_SUBTRACT},
+    {::cvc5::Kind::BAG_DIFFERENCE_REMOVE, Op::BAG_DIFFERENCE_REMOVE},
+    {::cvc5::Kind::BAG_SUBBAG, Op::BAG_SUBBAG},
+    {::cvc5::Kind::BAG_COUNT, Op::BAG_COUNT},
+    {::cvc5::Kind::BAG_DUPLICATE_REMOVAL, Op::BAG_DUPLICATE_REMOVAL},
+    {::cvc5::Kind::BAG_MAKE, Op::BAG_MAKE},
+    {::cvc5::Kind::BAG_EMPTY, Op::BAG_EMPTY},
+    {::cvc5::Kind::BAG_CARD, Op::BAG_CARD},
+    {::cvc5::Kind::BAG_CHOOSE, Op::BAG_CHOOSE},
+    {::cvc5::Kind::BAG_IS_SINGLETON, Op::BAG_IS_SINGLETON},
+    {::cvc5::Kind::BAG_FROM_SET, Op::BAG_FROM_SET},
+    {::cvc5::Kind::BAG_TO_SET, Op::BAG_TO_SET},
+    {::cvc5::Kind::BAG_MAP, Op::BAG_MAP},
+    // Sequences
+    {::cvc5::Kind::SEQ_CONCAT, Op::SEQ_CONCAT},
+    {::cvc5::Kind::SEQ_LENGTH, Op::SEQ_LENGTH},
+    {::cvc5::Kind::SEQ_EXTRACT, Op::SEQ_EXTRACT},
+    {::cvc5::Kind::SEQ_UPDATE, Op::SEQ_UPDATE},
+    {::cvc5::Kind::SEQ_AT, Op::SEQ_AT},
+    {::cvc5::Kind::SEQ_CONTAINS, Op::SEQ_CONTAINS},
+    {::cvc5::Kind::SEQ_INDEXOF, Op::SEQ_INDEXOF},
+    {::cvc5::Kind::SEQ_REPLACE, Op::SEQ_REPLACE},
+    {::cvc5::Kind::SEQ_REPLACE_ALL, Op::SEQ_REPLACE_ALL},
+    {::cvc5::Kind::SEQ_REV, Op::SEQ_REV},
+    {::cvc5::Kind::SEQ_PREFIX, Op::SEQ_PREFIX},
+    {::cvc5::Kind::SEQ_SUFFIX, Op::SEQ_SUFFIX},
+    {::cvc5::Kind::SEQ_UNIT, Op::SEQ_UNIT},
+    {::cvc5::Kind::SEQ_NTH, Op::SEQ_NTH},
+    // Sets
+    {::cvc5::Kind::SET_CARD, Op::SET_CARD},
+    {::cvc5::Kind::SET_COMPLEMENT, Op::SET_COMPLEMENT},
+    {::cvc5::Kind::SET_COMPREHENSION, Op::SET_COMPREHENSION},
+    {::cvc5::Kind::SET_CHOOSE, Op::SET_CHOOSE},
+    {::cvc5::Kind::SET_INTER, Op::SET_INTERSECTION},
+    {::cvc5::Kind::SET_INSERT, Op::SET_INSERT},
+    {::cvc5::Kind::SET_IS_SINGLETON, Op::SET_IS_SINGLETON},
+    {::cvc5::Kind::SET_UNION, Op::SET_UNION},
+    {::cvc5::Kind::SET_MEMBER, Op::SET_MEMBER},
+    {::cvc5::Kind::SET_MINUS, Op::SET_MINUS},
+    {::cvc5::Kind::SET_SINGLETON, Op::SET_SINGLETON},
+    {::cvc5::Kind::SET_SUBSET, Op::SET_SUBSET},
+    //{::cvc5::Kind::RELATION_JOIN, Op::REL_JOIN},
+    //{::cvc5::Kind::RELATION_JOIN_IMAGE, Op::REL_JOIN_IMAGE},
+    //{::cvc5::Kind::RELATION_IDEN, Op::REL_IDEN},
+    //{::cvc5::Kind::RELATION_PRODUCT, Op::REL_PRODUCT},
+    //{::cvc5::Kind::RELATION_TCLOSURE, Op::REL_TCLOSURE},
+    //{::cvc5::Kind::RELATION_TRANSPOSE, Op::REL_TRANSPOSE},
 
-        /* Solver-specific operators */
-        {::cvc5::api::Kind::BITVECTOR_REDOR, OP_BV_REDOR},
-        // BV
-        {::cvc5::api::Kind::BITVECTOR_REDAND, OP_BV_REDAND},
-        {::cvc5::api::Kind::BITVECTOR_ULTBV, OP_BV_ULTBV},
-        {::cvc5::api::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
-        {::cvc5::api::Kind::BITVECTOR_ITE, OP_BV_ITE},
-        // Datatypes
-        {::cvc5::api::Kind::DT_SIZE, OP_DT_SIZE},
-        // Int
-        {::cvc5::api::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
-        {::cvc5::api::Kind::IAND, OP_INT_IAND},
-        {::cvc5::api::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
-        {::cvc5::api::Kind::POW2, OP_INT_POW2},
-        // Strings
-        {::cvc5::api::Kind::STRING_UPDATE, OP_STRING_UPDATE},
-        {::cvc5::api::Kind::STRING_TOLOWER, OP_STRING_TOLOWER},
-        {::cvc5::api::Kind::STRING_TOUPPER, OP_STRING_TOUPPER},
-        {::cvc5::api::Kind::STRING_REV, OP_STRING_REV},
+    /* Solver-specific operators */
+    {::cvc5::Kind::BITVECTOR_REDOR, OP_BV_REDOR},
+    // BV
+    {::cvc5::Kind::BITVECTOR_REDAND, OP_BV_REDAND},
+    {::cvc5::Kind::BITVECTOR_ULTBV, OP_BV_ULTBV},
+    {::cvc5::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
+    {::cvc5::Kind::BITVECTOR_ITE, OP_BV_ITE},
+    // Datatypes
+    {::cvc5::Kind::DT_SIZE, OP_DT_SIZE},
+    // Int
+    {::cvc5::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
+    {::cvc5::Kind::IAND, OP_INT_IAND},
+    {::cvc5::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
+    {::cvc5::Kind::POW2, OP_INT_POW2},
+    // Strings
+    {::cvc5::Kind::STRING_UPDATE, OP_STRING_UPDATE},
+    {::cvc5::Kind::STRING_TO_LOWER, OP_STRING_TOLOWER},
+    {::cvc5::Kind::STRING_TO_UPPER, OP_STRING_TOUPPER},
+    {::cvc5::Kind::STRING_REV, OP_STRING_REV},
 
-        /* Special value kinds that cvc5 introduces its own node kind for,
-         * only used for getKind(). */
-        {::cvc5::api::Kind::REGEXP_STAR, OP_REGEXP_STAR},
-        {::cvc5::api::Kind::SET_EMPTY, OP_SET_EMPTY},
-        {::cvc5::api::Kind::SET_UNIVERSE, OP_SET_UNIVERSE},
+    /* Special value kinds that cvc5 introduces its own node kind for,
+     * only used for getKind(). */
+    {::cvc5::Kind::REGEXP_STAR, OP_REGEXP_STAR},
+    {::cvc5::Kind::SET_EMPTY, OP_SET_EMPTY},
+    {::cvc5::Kind::SET_UNIVERSE, OP_SET_UNIVERSE},
 };
 
-::cvc5::api::Term&
+::cvc5::Term&
 Cvc5Term::get_cvc5_term(Term term)
 {
   return checked_cast<Cvc5Term*>(term.get())->d_term;
@@ -960,8 +952,8 @@ Cvc5Term::get_cvc5_term(Term term)
 std::vector<Term>
 Cvc5Term::cvc5_terms_to_terms(Tracer<Cvc5TracerData>& tracer,
                               RNGenerator& rng,
-                              ::cvc5::api::Solver* cvc5,
-                              const std::vector<::cvc5::api::Term>& terms)
+                              ::cvc5::Solver* cvc5,
+                              const std::vector<::cvc5::Term>& terms)
 {
   std::vector<Term> res;
   for (auto& t : terms)
@@ -972,10 +964,10 @@ Cvc5Term::cvc5_terms_to_terms(Tracer<Cvc5TracerData>& tracer,
   return res;
 }
 
-std::vector<::cvc5::api::Term>
+std::vector<::cvc5::Term>
 Cvc5Term::terms_to_cvc5_terms(const std::vector<Term>& terms)
 {
-  std::vector<::cvc5::api::Term> res;
+  std::vector<::cvc5::Term> res;
   for (auto& t : terms)
   {
     res.push_back(get_cvc5_term(t));
@@ -986,7 +978,7 @@ Cvc5Term::terms_to_cvc5_terms(const std::vector<Term>& terms)
 size_t
 Cvc5Term::hash() const
 {
-  return std::hash<::cvc5::api::Term>{}(d_term);
+  return std::hash<::cvc5::Term>{}(d_term);
 }
 
 bool
@@ -1160,7 +1152,7 @@ std::vector<Sort>
 Cvc5Term::get_fun_domain_sorts() const
 {
   assert(is_fun());
-  std::vector<::cvc5::api::Sort> cvc5_res =
+  std::vector<::cvc5::Sort> cvc5_res =
       d_term.getSort().getFunctionDomainSorts();
   return Cvc5Sort::cvc5_sorts_to_sorts(d_tracer, d_solver, cvc5_res);
 }
@@ -1182,7 +1174,7 @@ void
 Cvc5Solver::new_solver()
 {
   assert(d_solver == nullptr);
-  d_solver = new ::cvc5::api::Solver();
+  d_solver = new ::cvc5::Solver();
   d_tracer.init();
 }
 
@@ -1194,7 +1186,7 @@ Cvc5Solver::delete_solver()
   d_solver = nullptr;
 }
 
-::cvc5::api::Solver*
+::cvc5::Solver*
 Cvc5Solver::get_solver()
 {
   return d_solver;
@@ -1229,14 +1221,14 @@ Cvc5Solver::is_unsat_assumption(const Term& t) const
 Sort
 Cvc5Solver::mk_sort(const std::string& name)
 {
-  ::cvc5::api::Sort cvc5_res = TRACE_SOLVER(mkUninterpretedSort, name);
+  ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkUninterpretedSort, name);
   return std::make_shared<Cvc5Sort>(d_tracer, d_solver, cvc5_res);
 }
 
 Sort
 Cvc5Solver::mk_sort(SortKind kind)
 {
-  ::cvc5::api::Sort cvc5_res;
+  ::cvc5::Sort cvc5_res;
   switch (kind)
   {
     case SORT_BOOL: cvc5_res = TRACE_SOLVER(getBooleanSort); break;
@@ -1263,7 +1255,7 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t size)
   MURXLA_CHECK_CONFIG(kind == SORT_BV)
       << "unsupported sort kind '" << kind
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_BV << "'";
-  ::cvc5::api::Sort cvc5_res = TRACE_SOLVER(mkBitVectorSort, size);
+  ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkBitVectorSort, size);
   MURXLA_TEST(!cvc5_res.isNull());
   return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
 }
@@ -1274,7 +1266,7 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
   MURXLA_CHECK_CONFIG(kind == SORT_FP)
       << "unsupported sort kind '" << kind
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_FP << "'";
-  ::cvc5::api::Sort cvc5_res = TRACE_SOLVER(mkFloatingPointSort, esize, ssize);
+  ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkFloatingPointSort, esize, ssize);
   MURXLA_TEST(!cvc5_res.isNull());
   return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
 }
@@ -1282,7 +1274,7 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
 Sort
 Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 {
-  ::cvc5::api::Sort cvc5_res;
+  ::cvc5::Sort cvc5_res;
 
   switch (kind)
   {
@@ -1300,12 +1292,12 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 
     case SORT_FUN:
     {
-      std::vector<::cvc5::api::Sort> domain;
+      std::vector<::cvc5::Sort> domain;
       for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
       {
         domain.push_back(Cvc5Sort::get_cvc5_sort(*it));
       }
-      ::cvc5::api::Sort codomain = Cvc5Sort::get_cvc5_sort(sorts.back());
+      ::cvc5::Sort codomain = Cvc5Sort::get_cvc5_sort(sorts.back());
 
       if (codomain.isBoolean() && d_rng.flip_coin())
       {
@@ -1358,10 +1350,9 @@ Cvc5Solver::mk_sort(
   assert(n_dt_sorts == param_sorts.size());
   assert(n_dt_sorts == constructors.size());
 
-  std::vector<::cvc5::api::DatatypeDecl> cvc5_dtypedecls;
-  std::vector<std::vector<::cvc5::api::DatatypeConstructorDecl>>
-      cvc5_dtypectordecls;
-  std::set<::cvc5::api::Sort> cvc5_usorts;
+  std::vector<::cvc5::DatatypeDecl> cvc5_dtypedecls;
+  std::vector<std::vector<::cvc5::DatatypeConstructorDecl>> cvc5_dtypectordecls;
+  std::set<::cvc5::Sort> cvc5_usorts;
 
   for (size_t i = 0; i < n_dt_sorts; ++i)
   {
@@ -1370,20 +1361,20 @@ Cvc5Solver::mk_sort(
     const auto& ctors       = constructors[i];
 
     bool is_parametric = !psorts.empty();
-    std::unordered_map<std::string, ::cvc5::api::Sort> symbol_to_cvc5_psorts;
-    std::unordered_map<std::string, ::cvc5::api::Sort> symbol_to_cvc5_usorts;
-    std::vector<::cvc5::api::Sort> cvc5_psorts;
+    std::unordered_map<std::string, ::cvc5::Sort> symbol_to_cvc5_psorts;
+    std::unordered_map<std::string, ::cvc5::Sort> symbol_to_cvc5_usorts;
+    std::vector<::cvc5::Sort> cvc5_psorts;
     for (const auto& s : psorts)
     {
       const std::string& symbol =
           checked_cast<ParamSort*>(s.get())->get_symbol();
-      ::cvc5::api::Sort cvc5_param_sort = TRACE_SOLVER(mkParamSort, symbol);
+      ::cvc5::Sort cvc5_param_sort = TRACE_SOLVER(mkParamSort, symbol);
       cvc5_psorts.push_back(cvc5_param_sort);
       assert(symbol_to_cvc5_psorts.find(symbol) == symbol_to_cvc5_psorts.end());
       symbol_to_cvc5_psorts[symbol] = cvc5_param_sort;
     }
 
-    ::cvc5::api::DatatypeDecl cvc5_dtypedecl =
+    ::cvc5::DatatypeDecl cvc5_dtypedecl =
         is_parametric
             ? (psorts.size() == 1 && d_rng.flip_coin()
                    ? TRACE_SOLVER(mkDatatypeDecl, name, cvc5_psorts[0])
@@ -1395,13 +1386,13 @@ Cvc5Solver::mk_sort(
       MURXLA_TEST(name == cvc5_dtypedecl.getName());
     }
 
-    std::vector<::cvc5::api::DatatypeConstructorDecl> cvc5_ctors;
+    std::vector<::cvc5::DatatypeConstructorDecl> cvc5_ctors;
     for (const auto& c : ctors)
     {
       const auto& cname = c.first;
       const auto& sels  = c.second;
 
-      ::cvc5::api::DatatypeConstructorDecl cvc5_cdecl =
+      ::cvc5::DatatypeConstructorDecl cvc5_cdecl =
           TRACE_SOLVER(mkDatatypeConstructorDecl, cname);
       cvc5_ctors.push_back(cvc5_cdecl);
 
@@ -1433,7 +1424,7 @@ Cvc5Solver::mk_sort(
             const auto& it         = symbol_to_cvc5_usorts.find(symbol);
             const auto& inst_sorts = ssort->get_sorts();
             size_t arity           = inst_sorts.size();
-            ::cvc5::api::Sort cvc5_unres_sort;
+            ::cvc5::Sort cvc5_unres_sort;
             if (it == symbol_to_cvc5_usorts.end())
             {
               if (d_rng.flip_coin())
@@ -1444,8 +1435,8 @@ Cvc5Solver::mk_sort(
               {
                 if (arity > 0)
                 {
-                  cvc5_unres_sort =
-                      TRACE_SOLVER(mkSortConstructorSort, symbol, arity);
+                  cvc5_unres_sort = TRACE_SOLVER(
+                      mkUninterpretedSortConstructorSort, symbol, arity);
                 }
                 else
                 {
@@ -1462,7 +1453,7 @@ Cvc5Solver::mk_sort(
 
             if (arity)
             {
-              std::vector<::cvc5::api::Sort> cvc5_inst_sorts;
+              std::vector<::cvc5::Sort> cvc5_inst_sorts;
               for (const Sort& s : inst_sorts)
               {
                 if (s->is_param_sort())
@@ -1509,7 +1500,7 @@ Cvc5Solver::mk_sort(
     assert(cvc5_usorts.empty());
     assert(cvc5_dtypedecls.size() == 1);
     assert(cvc5_dtypectordecls.size() == 1);
-    ::cvc5::api::Sort cvc5_res;
+    ::cvc5::Sort cvc5_res;
     if (!param_sorts[0].empty() || d_rng.flip_coin())
     {
       cvc5_res = TRACE_SOLVER(mkDatatypeSort, cvc5_dtypedecls[0]);
@@ -1525,7 +1516,7 @@ Cvc5Solver::mk_sort(
         std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res))};
   }
 
-  std::vector<::cvc5::api::Sort> cvc5_res;
+  std::vector<::cvc5::Sort> cvc5_res;
   if (cvc5_usorts.empty() && d_rng.flip_coin())
   {
     cvc5_res = TRACE_SOLVER(mkDatatypeSorts, cvc5_dtypedecls);
@@ -1549,8 +1540,8 @@ Cvc5Solver::mk_sort(
 Sort
 Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 {
-  ::cvc5::api::Sort cvc5_param_sort = Cvc5Sort::get_cvc5_sort(param_sort);
-  std::vector<::cvc5::api::Sort> cvc5_sorts;
+  ::cvc5::Sort cvc5_param_sort = Cvc5Sort::get_cvc5_sort(param_sort);
+  std::vector<::cvc5::Sort> cvc5_sorts;
 
   for (const Sort& s : sorts)
   {
@@ -1560,7 +1551,7 @@ Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
       assert(s->get_associated_sort());
       const std::string& s_symbol =
           checked_cast<ParamSort*>(s.get())->get_symbol();
-      ::cvc5::api::Sort cvc5_dt_sort =
+      ::cvc5::Sort cvc5_dt_sort =
           Cvc5Sort::get_cvc5_sort(s->get_associated_sort());
       const auto& cvc5_sort_params = cvc5_dt_sort.getDatatype().getParameters();
       const auto& it               = std::find_if(
@@ -1576,7 +1567,7 @@ Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
     }
   }
 
-  ::cvc5::api::Sort cvc5_res =
+  ::cvc5::Sort cvc5_res =
       TRACE_METHOD(instantiate, cvc5_param_sort, cvc5_sorts);
 
   MURXLA_TEST(!cvc5_res.isNull());
@@ -1586,7 +1577,7 @@ Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 Term
 Cvc5Solver::mk_const(Sort sort, const std::string& name)
 {
-  ::cvc5::api::Term cvc5_res =
+  ::cvc5::Term cvc5_res =
       TRACE_SOLVER(mkConst, Cvc5Sort::get_cvc5_sort(sort), name);
   MURXLA_TEST(!cvc5_res.isNull());
   return std::shared_ptr<Cvc5Term>(
@@ -1598,9 +1589,8 @@ Cvc5Solver::mk_fun(const std::string& name,
                    const std::vector<Term>& args,
                    Term body)
 {
-  std::vector<::cvc5::api::Term> cvc5_args =
-      Cvc5Term::terms_to_cvc5_terms(args);
-  ::cvc5::api::Term cvc5_body = Cvc5Term::get_cvc5_term(body);
+  std::vector<::cvc5::Term> cvc5_args = Cvc5Term::terms_to_cvc5_terms(args);
+  ::cvc5::Term cvc5_body              = Cvc5Term::get_cvc5_term(body);
 
   auto cvc5_res =
       TRACE_SOLVER(defineFun, name, cvc5_args, cvc5_body.getSort(), cvc5_body);
@@ -1611,7 +1601,7 @@ Cvc5Solver::mk_fun(const std::string& name,
 Term
 Cvc5Solver::mk_var(Sort sort, const std::string& name)
 {
-  ::cvc5::api::Term cvc5_res =
+  ::cvc5::Term cvc5_res =
       TRACE_SOLVER(mkVar, Cvc5Sort::get_cvc5_sort(sort), name);
   MURXLA_TEST(!cvc5_res.isNull());
   return std::shared_ptr<Cvc5Term>(
@@ -1626,7 +1616,7 @@ Cvc5Solver::mk_value(Sort sort, bool value)
       << "' as argument to "
          "Cvc5Solver::mk_value, expected Boolean sort ";
 
-  ::cvc5::api::Term cvc5_res;
+  ::cvc5::Term cvc5_res;
 
   if (d_rng.flip_coin())
   {
@@ -1646,8 +1636,8 @@ Cvc5Solver::mk_value(Sort sort, bool value)
 Term
 Cvc5Solver::mk_value(Sort sort, const std::string& value)
 {
-  ::cvc5::api::Term cvc5_res;
-  ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
+  ::cvc5::Term cvc5_res;
+  ::cvc5::Sort cvc5_sort      = Cvc5Sort::get_cvc5_sort(sort);
   SortKind sort_kind          = sort->get_kind();
 
   switch (sort_kind)
@@ -1744,7 +1734,7 @@ Cvc5Solver::mk_value(Sort sort, const std::string& num, const std::string& den)
       << "unexpected sort of kind '" << sort->get_kind()
       << "' as argument to "
          "Cvc5Solver::mk_value, expected Real sort";
-  ::cvc5::api::Term cvc5_res;
+  ::cvc5::Term cvc5_res;
 
   cvc5_res =
       TRACE_SOLVER(mkReal,
@@ -1765,8 +1755,8 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value, Base base)
       << "' as argument to "
          "Cvc5Solver::mk_value, expected bit-vector sort";
 
-  ::cvc5::api::Term cvc5_res;
-  ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
+  ::cvc5::Term cvc5_res;
+  ::cvc5::Sort cvc5_sort      = Cvc5Sort::get_cvc5_sort(sort);
   uint32_t bw                 = sort->get_bv_size();
 
   switch (base)
@@ -1823,7 +1813,7 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value, Base base)
 Term
 Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
-  ::cvc5::api::Term cvc5_res;
+  ::cvc5::Term cvc5_res;
 
   switch (sort->get_kind())
   {
@@ -1923,31 +1913,29 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
     case SORT_RM:
       if (value == AbsTerm::SPECIAL_VALUE_RM_RNE)
       {
-        cvc5_res =
-            TRACE_SOLVER(mkRoundingMode,
-                         ::cvc5::api::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
+        cvc5_res = TRACE_SOLVER(
+            mkRoundingMode, ::cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_RM_RNA)
       {
-        cvc5_res =
-            TRACE_SOLVER(mkRoundingMode,
-                         ::cvc5::api::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
+        cvc5_res = TRACE_SOLVER(
+            mkRoundingMode, ::cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_RM_RTN)
       {
-        cvc5_res = TRACE_SOLVER(
-            mkRoundingMode, ::cvc5::api::RoundingMode::ROUND_TOWARD_NEGATIVE);
+        cvc5_res = TRACE_SOLVER(mkRoundingMode,
+                                ::cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_RM_RTP)
       {
-        cvc5_res = TRACE_SOLVER(
-            mkRoundingMode, ::cvc5::api::RoundingMode::ROUND_TOWARD_POSITIVE);
+        cvc5_res = TRACE_SOLVER(mkRoundingMode,
+                                ::cvc5::RoundingMode::ROUND_TOWARD_POSITIVE);
       }
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_RM_RTZ);
         cvc5_res = TRACE_SOLVER(mkRoundingMode,
-                                ::cvc5::api::RoundingMode::ROUND_TOWARD_ZERO);
+                                ::cvc5::RoundingMode::ROUND_TOWARD_ZERO);
       }
       break;
 
@@ -2002,11 +1990,10 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
                       != Cvc5Term::s_kinds_to_cvc5_kinds.end())
       << "Cvc5Solver: operator kind '" << kind << "' not configured";
 
-  ::cvc5::api::Term cvc5_res;
-  ::cvc5::api::Op cvc5_opterm;
-  ::cvc5::api::Kind cvc5_kind = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
-  std::vector<::cvc5::api::Term> cvc5_args =
-      Cvc5Term::terms_to_cvc5_terms(args);
+  ::cvc5::Term cvc5_res;
+  ::cvc5::Op cvc5_opterm;
+  ::cvc5::Kind cvc5_kind = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
+  std::vector<::cvc5::Term> cvc5_args = Cvc5Term::terms_to_cvc5_terms(args);
 
   std::vector<uint32_t> iindices = indices;  // copy to modify
   int32_t n_args                 = static_cast<int32_t>(args.size());
@@ -2015,18 +2002,18 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   if (kind == Op::FORALL || kind == Op::EXISTS)
   {
     assert(args.size() >= 2);
-    std::vector<::cvc5::api::Term> cvc5_vars;
+    std::vector<::cvc5::Term> cvc5_vars;
     for (size_t i = 0; i < args.size() - 1; ++i)
     {
       cvc5_vars.push_back(cvc5_args[i]);
     }
-    ::cvc5::api::Term cvc5_bvl =
+    ::cvc5::Term cvc5_bvl =
         d_rng.flip_coin()
-            ? TRACE_SOLVER(mkTerm, ::cvc5::api::Kind::VARIABLE_LIST, cvc5_vars)
+            ? TRACE_SOLVER(mkTerm, ::cvc5::Kind::VARIABLE_LIST, cvc5_vars)
             : TRACE_SOLVER(mkTerm,
-                           TRACE_SOLVER(mkOp, ::cvc5::api::Kind::VARIABLE_LIST),
+                           TRACE_SOLVER(mkOp, ::cvc5::Kind::VARIABLE_LIST),
                            cvc5_vars);
-    ::cvc5::api::Term cvc5_body = Cvc5Term::get_cvc5_term(args.back());
+    ::cvc5::Term cvc5_body      = Cvc5Term::get_cvc5_term(args.back());
     cvc5_args                   = {cvc5_bvl, cvc5_body};
     n_args                      = static_cast<int32_t>(cvc5_args.size());
   }
@@ -2067,7 +2054,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       }
       else
       {
-        cvc5_opterm = TRACE_SOLVER(mkOp, cvc5_kind, iindices[0]);
+        cvc5_opterm = TRACE_SOLVER(mkOp, cvc5_kind, std::vector{iindices[0]});
       }
       MURXLA_TEST(!cvc5_opterm.isNull());
       MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
@@ -2080,7 +2067,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     }
     case 2:
     {
-      cvc5_opterm = TRACE_SOLVER(mkOp, cvc5_kind, iindices[0], iindices[1]);
+      cvc5_opterm =
+          TRACE_SOLVER(mkOp, cvc5_kind, std::vector{iindices[0], iindices[1]});
       MURXLA_TEST(!cvc5_opterm.isNull());
       MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
       MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
@@ -2107,8 +2095,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       uint32_t hi = d_rng.pick<uint32_t>(0, size - 1);
       uint32_t lo = hi;
-      ::cvc5::api::Op op =
-          TRACE_SOLVER(mkOp, ::cvc5::api::Kind::BITVECTOR_EXTRACT, hi, lo);
+      ::cvc5::Op op = TRACE_SOLVER(
+          mkOp, ::cvc5::Kind::BITVECTOR_EXTRACT, std::vector{hi, lo});
       cvc5_args[0] = TRACE_SOLVER(mkTerm, op, std::vector{cvc5_args[0]});
     }
   }
@@ -2116,7 +2104,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     /* cvc5 uses order <elem>+ <set> for the arguments
      * (is given as <set> <elem>+) */
-    ::cvc5::api::Term set = cvc5_args[0];
+    ::cvc5::Term set      = cvc5_args[0];
     size_t n              = cvc5_args.size() - 1;
     cvc5_args[0]          = cvc5_args[n];
     cvc5_args[n]          = set;
@@ -2126,12 +2114,12 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     /* cvc5 uses order <var_list> <predicate> <term> for the arguments
      * (is given as <predicate> <term> <var>+) */
     assert(args.size() >= 3);
-    std::vector<::cvc5::api::Term> vars;
+    std::vector<::cvc5::Term> vars;
     for (size_t i = 2; i < args.size(); ++i)
     {
       vars.push_back(cvc5_args[i]);
     }
-    cvc5_args = {TRACE_SOLVER(mkTerm, ::cvc5::api::Kind::VARIABLE_LIST, vars),
+    cvc5_args = {TRACE_SOLVER(mkTerm, ::cvc5::Kind::VARIABLE_LIST, vars),
                  cvc5_args[0],
                  cvc5_args[1]};
   }
@@ -2228,19 +2216,19 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
 DONE:
   MURXLA_TEST(!cvc5_res.isNull());
   MURXLA_TEST(cvc5_kind == cvc5_res.getKind()
-              || cvc5_kind == ::cvc5::api::Kind::INTERNAL_KIND
+              || cvc5_kind == ::cvc5::Kind::INTERNAL_KIND
               || (cvc5_res.getSort().isBoolean()
-                  && cvc5_res.getKind() == ::cvc5::api::Kind::AND));
+                  && cvc5_res.getKind() == ::cvc5::Kind::AND));
   return std::shared_ptr<Cvc5Term>(
       new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
 }
 
-::cvc5::api::DatatypeConstructor
-Cvc5Solver::getDatatypeConstructor(::cvc5::api::Sort dt_sort,
+::cvc5::DatatypeConstructor
+Cvc5Solver::getDatatypeConstructor(::cvc5::Sort dt_sort,
                                    const std::string& ctor_name)
 {
-  ::cvc5::api::Datatype dt = TRACE_METHOD(getDatatype, dt_sort);
-  ::cvc5::api::DatatypeConstructor res;
+  ::cvc5::Datatype dt = TRACE_METHOD(getDatatype, dt_sort);
+  ::cvc5::DatatypeConstructor res;
   auto choice = d_rng.pick_one_of_three();
   if (choice == RNGenerator::Choice::FIRST)
   {
@@ -2249,7 +2237,7 @@ Cvc5Solver::getDatatypeConstructor(::cvc5::api::Sort dt_sort,
   else if (choice == RNGenerator::Choice::SECOND)
   {
     auto ch = d_rng.pick_one_of_four();
-    ::cvc5::api::Datatype::const_iterator it, end;
+    ::cvc5::Datatype::const_iterator it, end;
     if (ch == RNGenerator::Choice::FIRST)
     {
       for (it = dt.begin(), end = dt.end(); it != end; ++it)
@@ -2307,14 +2295,13 @@ Cvc5Solver::getDatatypeConstructor(::cvc5::api::Sort dt_sort,
   return res;
 }
 
-::cvc5::api::DatatypeSelector
-Cvc5Solver::getDatatypeSelector(::cvc5::api::Sort dt_sort,
+::cvc5::DatatypeSelector
+Cvc5Solver::getDatatypeSelector(::cvc5::Sort dt_sort,
                                 const std::string& ctor_name,
                                 const std::string& sel_name)
 {
-  ::cvc5::api::DatatypeConstructor ctor =
-      getDatatypeConstructor(dt_sort, ctor_name);
-  ::cvc5::api::DatatypeSelector res;
+  ::cvc5::DatatypeConstructor ctor = getDatatypeConstructor(dt_sort, ctor_name);
+  ::cvc5::DatatypeSelector res;
   auto choice = d_rng.pick_one_of_four();
   if (choice == RNGenerator::Choice::FIRST)
   {
@@ -2385,8 +2372,8 @@ Cvc5Solver::getDatatypeSelector(::cvc5::api::Sort dt_sort,
   return res;
 }
 
-::cvc5::api::Term
-Cvc5Solver::getDatatypeConstructorTerm(::cvc5::api::Sort dt_sort,
+::cvc5::Term
+Cvc5Solver::getDatatypeConstructorTerm(::cvc5::Sort dt_sort,
                                        const std::string& ctor_name)
 {
   if (d_rng.flip_coin())
@@ -2397,8 +2384,8 @@ Cvc5Solver::getDatatypeConstructorTerm(::cvc5::api::Sort dt_sort,
   return TRACE_METHOD(getConstructorTerm, dtc);
 }
 
-::cvc5::api::Term
-Cvc5Solver::getDatatypeSelectorTerm(::cvc5::api::Sort dt_sort,
+::cvc5::Term
+Cvc5Solver::getDatatypeSelectorTerm(::cvc5::Sort dt_sort,
                                     const std::string& ctor_name,
                                     const std::string& sel_name)
 {
@@ -2420,14 +2407,13 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
                       != Cvc5Term::s_kinds_to_cvc5_kinds.end())
       << "Cvc5Solver: operator kind '" << kind << "' not configured";
 
-  ::cvc5::api::Term cvc5_res;
-  ::cvc5::api::Kind cvc5_kind = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
-  std::vector<::cvc5::api::Term> cvc5_args =
-      Cvc5Term::terms_to_cvc5_terms(args);
+  ::cvc5::Term cvc5_res;
+  ::cvc5::Kind cvc5_kind = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
+  std::vector<::cvc5::Term> cvc5_args = Cvc5Term::terms_to_cvc5_terms(args);
 
-  ::cvc5::api::Sort cvc5_dt_sort = cvc5_args[0].getSort();
+  ::cvc5::Sort cvc5_dt_sort = cvc5_args[0].getSort();
 
-  ::cvc5::api::Op cvc5_opterm;
+  ::cvc5::Op cvc5_opterm;
   if (d_rng.flip_coin())
   {
     cvc5_opterm = TRACE_SOLVER(mkOp, cvc5_kind);
@@ -2438,7 +2424,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     assert(str_args.size() == 2);
     assert(args.size() == 1);
 
-    ::cvc5::api::Term cvc5_sel_term =
+    ::cvc5::Term cvc5_sel_term =
         getDatatypeSelectorTerm(cvc5_dt_sort, str_args[0], str_args[1]);
     cvc5_res =
         cvc5_opterm.isNull()
@@ -2453,7 +2439,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       assert(str_args.size() == 1);
       assert(args.size() == 1);
-      ::cvc5::api::DatatypeConstructor cvc5_ctor =
+      ::cvc5::DatatypeConstructor cvc5_ctor =
           getDatatypeConstructor(cvc5_dt_sort, str_args[0]);
       cvc5_res =
           cvc5_opterm.isNull()
@@ -2472,7 +2458,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       assert(str_args.size() == 2);
       assert(args.size() == 2);
 
-      ::cvc5::api::DatatypeSelector cvc5_sel =
+      ::cvc5::DatatypeSelector cvc5_sel =
           getDatatypeSelector(cvc5_dt_sort, str_args[0], str_args[1]);
       cvc5_res =
           cvc5_opterm.isNull()
@@ -2491,7 +2477,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   MURXLA_TEST(!cvc5_res.isNull());
   MURXLA_TEST(cvc5_kind == cvc5_res.getKind()
               || (cvc5_res.getSort().isBoolean()
-                  && cvc5_res.getKind() == ::cvc5::api::Kind::AND));
+                  && cvc5_res.getKind() == ::cvc5::Kind::AND));
   return std::shared_ptr<Cvc5Term>(
       new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
 }
@@ -2505,31 +2491,30 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   assert(sort);
   assert(sort->is_dt());
 
-  ::cvc5::api::Term cvc5_res;
-  ::cvc5::api::Kind cvc5_kind    = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
-  ::cvc5::api::Sort cvc5_dt_sort = Cvc5Sort::get_cvc5_sort(sort);
-  std::vector<::cvc5::api::Term> cvc5_args =
-      Cvc5Term::terms_to_cvc5_terms(args);
+  ::cvc5::Term cvc5_res;
+  ::cvc5::Kind cvc5_kind    = Cvc5Term::s_kinds_to_cvc5_kinds.at(kind);
+  ::cvc5::Sort cvc5_dt_sort = Cvc5Sort::get_cvc5_sort(sort);
+  std::vector<::cvc5::Term> cvc5_args = Cvc5Term::terms_to_cvc5_terms(args);
 
   if (kind == Op::DT_MATCH_BIND_CASE)
   {
-    std::vector<::cvc5::api::Term> cvc5_vars;
+    std::vector<::cvc5::Term> cvc5_vars;
     for (size_t i = 0; i < args.size() - 1; ++i)
     {
       cvc5_vars.push_back(cvc5_args[i]);
     }
-    ::cvc5::api::Term cvc5_bvl =
+    ::cvc5::Term cvc5_bvl =
         d_rng.flip_coin()
-            ? TRACE_SOLVER(mkTerm, ::cvc5::api::Kind::VARIABLE_LIST, cvc5_vars)
+            ? TRACE_SOLVER(mkTerm, ::cvc5::Kind::VARIABLE_LIST, cvc5_vars)
             : TRACE_SOLVER(mkTerm,
-                           TRACE_SOLVER(mkOp, ::cvc5::api::Kind::VARIABLE_LIST),
+                           TRACE_SOLVER(mkOp, ::cvc5::Kind::VARIABLE_LIST),
                            cvc5_vars);
 
     if (str_args.size() == 1)
     {
       std::vector<Term> vars{args.begin(), args.end() - 1};
       Term acons = mk_term(Op::DT_APPLY_CONS, sort, str_args, vars);
-      ::cvc5::api::Term cvc5_acons = Cvc5Term::get_cvc5_term(acons);
+      ::cvc5::Term cvc5_acons = Cvc5Term::get_cvc5_term(acons);
       cvc5_args                    = {cvc5_bvl, cvc5_acons, cvc5_args.back()};
     }
     else
@@ -2542,7 +2527,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     assert(str_args.size() == 1);
     Term acons = mk_term(Op::DT_APPLY_CONS, sort, str_args, {});
-    ::cvc5::api::Term cvc5_acons = Cvc5Term::get_cvc5_term(acons);
+    ::cvc5::Term cvc5_acons      = Cvc5Term::get_cvc5_term(acons);
     cvc5_args                    = {cvc5_acons, cvc5_args.back()};
   }
   else
@@ -2550,7 +2535,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     assert(kind == Op::DT_APPLY_CONS);
     assert(str_args.size() == 1);
 
-    ::cvc5::api::Term cvc5_ctor_term;
+    ::cvc5::Term cvc5_ctor_term;
     if (sort->is_dt_instantiated())
     {
       auto dt  = TRACE_METHOD(getDatatype, cvc5_dt_sort);
@@ -2567,7 +2552,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
 
   if (d_rng.flip_coin())
   {
-    ::cvc5::api::Op cvc5_opterm = TRACE_SOLVER(mkOp, cvc5_kind);
+    ::cvc5::Op cvc5_opterm      = TRACE_SOLVER(mkOp, cvc5_kind);
     cvc5_res                    = TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
   }
   else
@@ -2584,7 +2569,7 @@ Sort
 Cvc5Solver::get_sort(Term term, SortKind sort_kind)
 {
   (void) sort_kind;
-  ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+  ::cvc5::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
   return std::shared_ptr<Cvc5Sort>(
       new Cvc5Sort(d_tracer, d_solver, cvc5_term.getSort()));
 }
@@ -2598,9 +2583,9 @@ Cvc5Solver::assert_formula(const Term& t)
 Solver::Result
 Cvc5Solver::check_sat()
 {
-  ::cvc5::api::Result res = TRACE_SOLVER(checkSat);
+  ::cvc5::Result res = TRACE_SOLVER(checkSat);
   MURXLA_TEST(!res.isNull());
-  MURXLA_TEST(res != ::cvc5::api::Result());
+  MURXLA_TEST(res != ::cvc5::Result());
   MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
@@ -2615,8 +2600,8 @@ Cvc5Solver::check_sat()
 Solver::Result
 Cvc5Solver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
-  ::cvc5::api::Result res;
-  std::vector<::cvc5::api::Term> cvc5_assumptions =
+  ::cvc5::Result res;
+  std::vector<::cvc5::Term> cvc5_assumptions =
       Cvc5Term::terms_to_cvc5_terms(assumptions);
 
   MURXLA_TEST(assumptions.size() == cvc5_assumptions.size());
@@ -2626,7 +2611,7 @@ Cvc5Solver::check_sat_assuming(const std::vector<Term>& assumptions)
             : TRACE_SOLVER(checkSatAssuming, cvc5_assumptions);
   MURXLA_TEST(!res.isNull());
   MURXLA_TEST(!d_rng.pick_with_prob(1) || res == res);
-  MURXLA_TEST(res != ::cvc5::api::Result());
+  MURXLA_TEST(res != ::cvc5::Result());
   if (res.isSat()) return Result::SAT;
   if (res.isUnsat()) return Result::UNSAT;
   MURXLA_TEST(res.isUnknown());
@@ -2641,7 +2626,7 @@ std::vector<Term>
 Cvc5Solver::get_unsat_assumptions()
 {
   std::vector<Term> res;
-  std::vector<::cvc5::api::Term> cvc5_res = TRACE_SOLVER(getUnsatAssumptions);
+  std::vector<::cvc5::Term> cvc5_res = TRACE_SOLVER(getUnsatAssumptions);
   return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_solver, cvc5_res);
 }
 
@@ -2649,7 +2634,7 @@ std::vector<Term>
 Cvc5Solver::get_unsat_core()
 {
   std::vector<Term> res;
-  std::vector<::cvc5::api::Term> cvc5_res = TRACE_SOLVER(getUnsatCore);
+  std::vector<::cvc5::Term> cvc5_res = TRACE_SOLVER(getUnsatCore);
   return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_solver, cvc5_res);
 }
 
@@ -2657,9 +2642,8 @@ std::vector<Term>
 Cvc5Solver::get_value(const std::vector<Term>& terms)
 {
   std::vector<Term> res;
-  std::vector<::cvc5::api::Term> cvc5_res;
-  std::vector<::cvc5::api::Term> cvc5_terms =
-      Cvc5Term::terms_to_cvc5_terms(terms);
+  std::vector<::cvc5::Term> cvc5_res;
+  std::vector<::cvc5::Term> cvc5_terms = Cvc5Term::terms_to_cvc5_terms(terms);
 
   if (d_rng.flip_coin())
   {
@@ -2667,7 +2651,7 @@ Cvc5Solver::get_value(const std::vector<Term>& terms)
   }
   else
   {
-    for (::cvc5::api::Term& t : cvc5_terms)
+    for (::cvc5::Term& t : cvc5_terms)
     {
       cvc5_res.push_back(d_solver->getValue(t));
     }
@@ -2718,7 +2702,7 @@ void
 Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
 {
   // Check if opt=value conflicts with already enabled options.
-  ::cvc5::api::Solver check_opt_slv;
+  ::cvc5::Solver check_opt_slv;
   for (const auto& [o, v] : d_enabled_options)
   {
     check_opt_slv.setOption(o, v);
@@ -2730,7 +2714,7 @@ Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
     check_opt_slv.setOption(opt, value);
     check_opt_slv.checkSat();  // Trigger option checks
   }
-  catch (const ::cvc5::api::CVC5ApiOptionException& e)
+  catch (const ::cvc5::CVC5ApiOptionException& e)
   {
     throw MurxlaSolverOptionException("incompatible option");
   }
@@ -2751,7 +2735,7 @@ Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
 void
 Cvc5Solver::check_value(Term term)
 {
-  ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+  ::cvc5::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
 
   if (cvc5_term.isFloatingPointNaN() || cvc5_term.isFloatingPointNegInf()
       || cvc5_term.isFloatingPointNegZero() || cvc5_term.isFloatingPointPosInf()
@@ -2829,7 +2813,7 @@ Cvc5Solver::check_value(Term term)
 void
 Cvc5Solver::check_sort(Sort sort)
 {
-  ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
+  ::cvc5::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
 
   if (cvc5_sort.isDatatype())
   {
@@ -2837,7 +2821,7 @@ Cvc5Solver::check_sort(Sort sort)
     const std::string& ctor =
         d_rng.pick_from_set<decltype(cons_names), std::string>(cons_names);
 
-    ::cvc5::api::Datatype cvc5_dt = cvc5_sort.getDatatype();
+    ::cvc5::Datatype cvc5_dt = cvc5_sort.getDatatype();
     (void) cvc5_dt.isRecord();
     if (!cvc5_dt.isParametric())
     {
@@ -2854,15 +2838,15 @@ Cvc5Solver::check_sort(Sort sort)
         MURXLA_TEST(checked_cast<ParamSort*>(dt_params[i].get())->get_symbol()
                     == cvc5_dt_params[i].getSymbol());
       }
-      MURXLA_TEST(cvc5_dt_params == cvc5_sort.getDatatypeParamSorts());
+      MURXLA_TEST(cvc5_dt_params == cvc5_sort.getDatatype().getParameters());
     }
 
-    ::cvc5::api::Term cvc5_ctor_term =
+    ::cvc5::Term cvc5_ctor_term =
         d_rng.flip_coin() ? cvc5_dt.getConstructorTerm(ctor)
                           : cvc5_dt.getConstructor(ctor).getConstructorTerm();
     MURXLA_TEST(cvc5_ctor_term.getSort().isConstructor());
 
-    ::cvc5::api::Term cvc5_tester_term =
+    ::cvc5::Term cvc5_tester_term =
         cvc5_dt.getConstructor(ctor).getTesterTerm();
     MURXLA_TEST(cvc5_tester_term.getSort().isTester());
     MURXLA_TEST(cvc5_tester_term.getSort().getTesterDomainSort()
@@ -2886,18 +2870,18 @@ Cvc5Solver::check_sort(Sort sort)
       const std::string& sel =
           d_rng.pick_from_set<decltype(sel_names), std::string>(sel_names);
 
-      ::cvc5::api::DatatypeSelector cvc5_sel =
+      ::cvc5::DatatypeSelector cvc5_sel =
           d_rng.flip_coin() ? cvc5_dt.getSelector(sel)
                             : cvc5_dt.getConstructor(ctor).getSelector(sel);
 
-      ::cvc5::api::Term cvc5_sel_term = cvc5_sel.getSelectorTerm();
+      ::cvc5::Term cvc5_sel_term = cvc5_sel.getSelectorTerm();
 
       MURXLA_TEST(cvc5_sel_term.getSort().isSelector());
 
       Sort sel_codomain = sort->get_dt_sel_sort(sort, ctor, sel);
-      ::cvc5::api::Sort cvc5_sel_codomain =
+      ::cvc5::Sort cvc5_sel_codomain =
           cvc5_sel_term.getSort().getSelectorCodomainSort();
-      ::cvc5::api::Sort cvc5_sel_domain =
+      ::cvc5::Sort cvc5_sel_domain =
           cvc5_sel_term.getSort().getSelectorDomainSort();
       MURXLA_TEST(cvc5_sel_domain == Cvc5Sort::get_cvc5_sort(sort));
       if (sel_codomain == nullptr)
@@ -2913,7 +2897,7 @@ Cvc5Solver::check_sort(Sort sort)
       MURXLA_TEST(cvc5_sel.getUpdaterTerm().getSort().isUpdater());
     }
 
-    std::vector<::cvc5::api::Sort> cvc5_ctor_domain_sorts =
+    std::vector<::cvc5::Sort> cvc5_ctor_domain_sorts =
         cvc5_ctor_term.getSort().getConstructorDomainSorts();
     MURXLA_TEST(cvc5_ctor_domain_sorts.size() == ctor_domain_sorts.size());
     for (size_t i = 0, n = ctor_domain_sorts.size(); i < n; ++i)
@@ -2940,7 +2924,7 @@ Cvc5Solver::check_sort(Sort sort)
     {
       if (!sorts.empty())
       {
-        const auto& cvc5_param_sorts = cvc5_sort.getDatatypeParamSorts();
+        const auto& cvc5_param_sorts = cvc5_sort.getDatatype().getParameters();
         MURXLA_TEST(cvc5_param_sorts.size() == sorts.size());
       }
     }
@@ -2962,14 +2946,10 @@ Cvc5Solver::check_sort(Sort sort)
   }
   else if (cvc5_sort.isUninterpretedSort())
   {
-    if (cvc5_sort.isUninterpretedSortParameterized())
-    {
-      (void) cvc5_sort.getUninterpretedSortParamSorts();
-    }
   }
-  else if (cvc5_sort.isSortConstructor())
+  else if (cvc5_sort.isUninterpretedSortConstructor())
   {
-    (void) cvc5_sort.getSortConstructorArity();
+    (void) cvc5_sort.getUninterpretedSortConstructorArity();
   }
   if (cvc5_sort.isFunction())
   {
@@ -2990,7 +2970,7 @@ Cvc5Solver::check_sort(Sort sort)
 void
 Cvc5Solver::check_term(Term term)
 {
-  ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+  ::cvc5::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
 
   MURXLA_TEST(!(cvc5_term != cvc5_term));
   MURXLA_TEST(cvc5_term >= cvc5_term);
@@ -3016,7 +2996,7 @@ Cvc5Solver::check_term(Term term)
   {
     auto cvc5_set_value = cvc5_term.getSetValue();
     MURXLA_TEST(!cvc5_set_value.empty()
-                || cvc5_term.getKind() == ::cvc5::api::Kind::SET_EMPTY);
+                || cvc5_term.getKind() == ::cvc5::Kind::SET_EMPTY);
     for (const auto& t : cvc5_set_value)
     {
       MURXLA_TEST(!t.isNull());
@@ -3190,8 +3170,8 @@ class Cvc5ActionSimplify : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
     Cvc5Solver& solver         = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5  = solver.get_solver();
-    ::cvc5::api::Term cvc5_res = cvc5->simplify(Cvc5Term::get_cvc5_term(term));
+    ::cvc5::Solver* cvc5       = solver.get_solver();
+    ::cvc5::Term cvc5_res      = cvc5->simplify(Cvc5Term::get_cvc5_term(term));
     MURXLA_TEST(!cvc5_res.isNull());
 
     /* Note: It is necessary for sequences to call Solver::simplify() to turn a
@@ -3231,7 +3211,7 @@ class Cvc5ActionGetDifficulty : public Action
     assert(d_solver.is_initialized());
     if (!d_smgr.d_sat_called) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    ::cvc5::Solver* cvc5      = solver.get_solver();
     if (cvc5->getOption("produce-difficulty") == "false")
     {
       d_disable = true;
@@ -3253,7 +3233,7 @@ class Cvc5ActionGetDifficulty : public Action
   {
     MURXLA_TRACE << get_kind();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    ::cvc5::Solver* cvc5      = solver.get_solver();
     (void) cvc5->getDifficulty();
   }
 };
@@ -3275,7 +3255,7 @@ class Cvc5ActionGetInterpolant : public Action
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    ::cvc5::Solver* cvc5      = solver.get_solver();
     if (cvc5->getOption("produce-interpols") == "none")
     {
       d_disable = true;
@@ -3301,8 +3281,8 @@ class Cvc5ActionGetInterpolant : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    ::cvc5::api::Term cvc5_res;
+    ::cvc5::Solver* cvc5      = solver.get_solver();
+    ::cvc5::Term cvc5_res;
     cvc5_res = cvc5->getInterpolant(Cvc5Term::get_cvc5_term(term));
     /* Note: We don't add the interpolant to the term db for now, since this
      *       requires refactoring untrace to support optional results. In
@@ -3337,7 +3317,7 @@ class Cvc5ActionGetAbduct : public Action
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    ::cvc5::Solver* cvc5      = solver.get_solver();
     if (cvc5->getOption("produce-abducts") == "false")
     {
       d_disable = true;
@@ -3363,8 +3343,8 @@ class Cvc5ActionGetAbduct : public Action
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    ::cvc5::api::Term cvc5_res;
+    ::cvc5::Solver* cvc5      = solver.get_solver();
+    ::cvc5::Term cvc5_res;
     cvc5_res = cvc5->getAbduct(Cvc5Term::get_cvc5_term(term));
     /* Note: We don't add the abduct to the term db for now, since this
      *       requires refactoring untrace to support optional results. In
@@ -3403,7 +3383,7 @@ class Cvc5ActionBlockModel : public Action
       return false;
     }
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    ::cvc5::Solver* cvc5      = solver.get_solver();
     if (cvc5->getOption("block-models") == "none"
         || cvc5->getOption("assign-function-values") == "false")
     {
@@ -3427,7 +3407,7 @@ class Cvc5ActionBlockModel : public Action
     MURXLA_TRACE << get_kind();
     d_smgr.reset_sat();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    ::cvc5::Solver* cvc5      = solver.get_solver();
     cvc5->blockModel();
   }
 };
@@ -3458,7 +3438,7 @@ class Cvc5ActionBlockModelValues : public Action
       return false;
     }
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
+    ::cvc5::Solver* cvc5      = solver.get_solver();
     if (cvc5->getOption("produce-assertions") == "false"
         || cvc5->getOption("assign-function-values") == "false")
     {
@@ -3497,8 +3477,8 @@ class Cvc5ActionBlockModelValues : public Action
     MURXLA_TRACE << get_kind() << " " << values.size() << values;
     d_smgr.reset_sat();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    std::vector<::cvc5::api::Term> cvc5_values =
+    ::cvc5::Solver* cvc5      = solver.get_solver();
+    std::vector<::cvc5::Term> cvc5_values =
         Cvc5Term::terms_to_cvc5_terms(values);
     cvc5->blockModelValues(cvc5_values);
   }
@@ -3582,13 +3562,13 @@ class Cvc5ActionSortSubstitute : public Action
     MURXLA_TRACE << get_kind() << " " << sort << " " << to_subst_sorts.size()
                  << to_subst_sorts << " " << subst_sorts.size() << subst_sorts;
     d_smgr.reset_sat();
-    ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
-    std::vector<::cvc5::api::Sort> cvc5_to_subst_sorts =
+    ::cvc5::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
+    std::vector<::cvc5::Sort> cvc5_to_subst_sorts =
         Cvc5Sort::sorts_to_cvc5_sorts(to_subst_sorts);
-    std::vector<::cvc5::api::Sort> cvc5_subst_sorts =
+    std::vector<::cvc5::Sort> cvc5_subst_sorts =
         Cvc5Sort::sorts_to_cvc5_sorts(subst_sorts);
 
-    ::cvc5::api::Sort cvc5_res;
+    ::cvc5::Sort cvc5_res;
     if (to_subst_sorts.size() == 1 && d_solver.get_rng().flip_coin())
     {
       cvc5_res =
@@ -3610,12 +3590,12 @@ class Cvc5ActionSortSubstitute : public Action
   std::vector<Sort> get_sub_sorts(Sort sort)
   {
     std::vector<Sort> res;
-    std::unordered_set<::cvc5::api::Sort> cvc5_res;
-    ::cvc5::api::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
-    std::vector<::cvc5::api::Sort> to_visit{cvc5_sort};
+    std::unordered_set<::cvc5::Sort> cvc5_res;
+    ::cvc5::Sort cvc5_sort = Cvc5Sort::get_cvc5_sort(sort);
+    std::vector<::cvc5::Sort> to_visit{cvc5_sort};
     while (!to_visit.empty())
     {
-      ::cvc5::api::Sort cvc5_vsort = to_visit.back();
+      ::cvc5::Sort cvc5_vsort = to_visit.back();
       to_visit.pop_back();
       if (cvc5_vsort.isConstructor())
       {
@@ -3689,8 +3669,8 @@ class Cvc5ActionSortSubstitute : public Action
     }
 
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    for (const ::cvc5::api::Sort& cvc5_s : cvc5_res)
+    ::cvc5::Solver* cvc5      = solver.get_solver();
+    for (const ::cvc5::Sort& cvc5_s : cvc5_res)
     {
       Sort s = std::shared_ptr<Cvc5Sort>(
           new Cvc5Sort(solver.get_tracer(), cvc5, cvc5_s));
@@ -3781,13 +3761,13 @@ class Cvc5ActionTermSubstitute : public Action
     MURXLA_TRACE << get_kind() << " " << term << " " << to_subst_terms.size()
                  << to_subst_terms << " " << subst_terms.size() << subst_terms;
     d_smgr.reset_sat();
-    ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
-    std::vector<::cvc5::api::Term> cvc5_to_subst_terms =
+    ::cvc5::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+    std::vector<::cvc5::Term> cvc5_to_subst_terms =
         Cvc5Term::terms_to_cvc5_terms(to_subst_terms);
-    std::vector<::cvc5::api::Term> cvc5_subst_terms =
+    std::vector<::cvc5::Term> cvc5_subst_terms =
         Cvc5Term::terms_to_cvc5_terms(subst_terms);
 
-    ::cvc5::api::Term cvc5_res;
+    ::cvc5::Term cvc5_res;
     if (to_subst_terms.size() == 1 && d_rng.flip_coin())
     {
       cvc5_res =
@@ -3810,15 +3790,15 @@ class Cvc5ActionTermSubstitute : public Action
   std::vector<Term> get_sub_terms(Term term)
   {
     std::vector<Term> res;
-    std::unordered_set<::cvc5::api::Term> cvc5_res;
-    ::cvc5::api::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
-    std::vector<::cvc5::api::Term> to_visit{cvc5_term};
+    std::unordered_set<::cvc5::Term> cvc5_res;
+    ::cvc5::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
+    std::vector<::cvc5::Term> to_visit{cvc5_term};
     while (!to_visit.empty())
     {
-      ::cvc5::api::Term cvc5_vterm = to_visit.back();
+      ::cvc5::Term cvc5_vterm = to_visit.back();
       to_visit.pop_back();
       auto ch = d_rng.pick_one_of_four();
-      ::cvc5::api::Term::const_iterator it, end;
+      ::cvc5::Term::const_iterator it, end;
       switch (ch)
       {
         case RNGenerator::FIRST:
@@ -3834,7 +3814,7 @@ class Cvc5ActionTermSubstitute : public Action
         case RNGenerator::SECOND:
           for (size_t i = 0, n = cvc5_vterm.getNumChildren(); i < n; ++i)
           {
-            ::cvc5::api::Term cvc5_t = cvc5_vterm[i];
+            ::cvc5::Term cvc5_t = cvc5_vterm[i];
             if (cvc5_res.find(cvc5_t) == cvc5_res.end())
             {
               cvc5_res.insert(cvc5_t);
@@ -3848,7 +3828,7 @@ class Cvc5ActionTermSubstitute : public Action
             for (it = cvc5_vterm.begin(), end = cvc5_vterm.end(); it != end;
                  ++it)
             {
-              ::cvc5::api::Term cvc5_t = *it;
+              ::cvc5::Term cvc5_t = *it;
               if (cvc5_res.find(cvc5_t) == cvc5_res.end())
               {
                 cvc5_res.insert(cvc5_t);
@@ -3861,7 +3841,7 @@ class Cvc5ActionTermSubstitute : public Action
             for (it = cvc5_vterm.begin(), end = cvc5_vterm.end(); !(it == end);
                  ++it)
             {
-              ::cvc5::api::Term cvc5_t = *it;
+              ::cvc5::Term cvc5_t = *it;
               if (cvc5_res.find(cvc5_t) == cvc5_res.end())
               {
                 cvc5_res.insert(cvc5_t);
@@ -3876,7 +3856,7 @@ class Cvc5ActionTermSubstitute : public Action
             for (it = cvc5_vterm.begin(), end = cvc5_vterm.end(); it != end;
                  it++)
             {
-              ::cvc5::api::Term cvc5_t = *it;
+              ::cvc5::Term cvc5_t = *it;
               if (cvc5_res.find(cvc5_t) == cvc5_res.end())
               {
                 cvc5_res.insert(cvc5_t);
@@ -3889,7 +3869,7 @@ class Cvc5ActionTermSubstitute : public Action
             for (it = cvc5_vterm.begin(), end = cvc5_vterm.end(); !(it == end);
                  it++)
             {
-              ::cvc5::api::Term cvc5_t = *it;
+              ::cvc5::Term cvc5_t = *it;
               if (cvc5_res.find(cvc5_t) == cvc5_res.end())
               {
                 cvc5_res.insert(cvc5_t);
@@ -3901,8 +3881,8 @@ class Cvc5ActionTermSubstitute : public Action
     }
 
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::api::Solver* cvc5 = solver.get_solver();
-    for (const ::cvc5::api::Term& cvc5_t : cvc5_res)
+    ::cvc5::Solver* cvc5      = solver.get_solver();
+    for (const ::cvc5::Term& cvc5_t : cvc5_res)
     {
       Sort s = std::shared_ptr<Cvc5Sort>(
           new Cvc5Sort(solver.get_tracer(), cvc5, cvc5_t.getSort()));
@@ -3966,9 +3946,9 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
 void
 Cvc5Solver::configure_options(SolverManager* smgr) const
 {
-  using namespace ::cvc5::api;
+  using namespace ::cvc5;
 
-  ::cvc5::api::Solver slv;
+  ::cvc5::Solver slv;
 
   for (const auto& option : slv.getOptionNames())
   {

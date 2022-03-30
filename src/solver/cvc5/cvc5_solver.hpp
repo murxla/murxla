@@ -30,19 +30,19 @@ class Cvc5Sort : public AbsSort
 
  public:
   /** Get wrapped cvc5 sort from Murxla sort. */
-  static ::cvc5::api::Sort& get_cvc5_sort(Sort sort);
+  static ::cvc5::Sort& get_cvc5_sort(Sort sort);
   /** Convert vector of cvc5 sorts to vector of Murxla sorts. */
   static std::vector<Sort> cvc5_sorts_to_sorts(
       Tracer<Cvc5TracerData>& tracer,
-      ::cvc5::api::Solver* cvc5,
-      const std::vector<::cvc5::api::Sort>& sorts);
+      ::cvc5::Solver* cvc5,
+      const std::vector<::cvc5::Sort>& sorts);
   /** Convert vector of Murxla sorts to vector of cvc5 sorts. */
-  static std::vector<::cvc5::api::Sort> sorts_to_cvc5_sorts(
+  static std::vector<::cvc5::Sort> sorts_to_cvc5_sorts(
       const std::vector<Sort>& sorts);
 
   Cvc5Sort(Tracer<Cvc5TracerData>& tracer,
-           ::cvc5::api::Solver* cvc5,
-           ::cvc5::api::Sort sort)
+           ::cvc5::Solver* cvc5,
+           ::cvc5::Sort sort)
       : d_tracer(tracer), d_solver(cvc5), d_sort(sort)
   {
   }
@@ -89,8 +89,8 @@ class Cvc5Sort : public AbsSort
 
  private:
   Tracer<Cvc5TracerData>& d_tracer;
-  ::cvc5::api::Solver* d_solver;
-  ::cvc5::api::Sort d_sort;
+  ::cvc5::Solver* d_solver;
+  ::cvc5::Sort d_sort;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -103,20 +103,20 @@ class Cvc5Term : public AbsTerm
 
  public:
   /** Get wrapped cvc5 term from Murxla term. */
-  static ::cvc5::api::Term& get_cvc5_term(Term term);
+  static ::cvc5::Term& get_cvc5_term(Term term);
   /** Convert vector of cvc5 terms to vector of Murxla terms. */
   static std::vector<Term> cvc5_terms_to_terms(
       Tracer<Cvc5TracerData>& tracer,
       RNGenerator& rng,
-      ::cvc5::api::Solver* cvc5,
-      const std::vector<::cvc5::api::Term>& terms);
+      ::cvc5::Solver* cvc5,
+      const std::vector<::cvc5::Term>& terms);
   /** Convert vector of Murxla terms to vector of cvc5 terms. */
-  static std::vector<::cvc5::api::Term> terms_to_cvc5_terms(
+  static std::vector<::cvc5::Term> terms_to_cvc5_terms(
       const std::vector<Term>& terms);
   /** Map operator kinds to Bitwuzla operator kinds. */
-  static std::unordered_map<Op::Kind, ::cvc5::api::Kind> s_kinds_to_cvc5_kinds;
+  static std::unordered_map<Op::Kind, ::cvc5::Kind> s_kinds_to_cvc5_kinds;
   /** Map Bitwuzla operator kinds to operator kinds. */
-  static std::unordered_map<::cvc5::api::Kind, Op::Kind> s_cvc5_kinds_to_kinds;
+  static std::unordered_map<::cvc5::Kind, Op::Kind> s_cvc5_kinds_to_kinds;
 
   /** Solver-specific operators. */
   // BV
@@ -148,8 +148,8 @@ class Cvc5Term : public AbsTerm
 
   Cvc5Term(Tracer<Cvc5TracerData>& tracer,
            RNGenerator& rng,
-           ::cvc5::api::Solver* cvc5,
-           ::cvc5::api::Term term)
+           ::cvc5::Solver* cvc5,
+           ::cvc5::Term term)
       : d_tracer(tracer), d_rng(rng), d_solver(cvc5), d_term(term)
   {
   }
@@ -185,9 +185,9 @@ class Cvc5Term : public AbsTerm
   /** The associated solver RNG. */
   RNGenerator& d_rng;
   /** The associated cvc5 solver instance. */
-  ::cvc5::api::Solver* d_solver = nullptr;
+  ::cvc5::Solver* d_solver = nullptr;
   /** The wrapped cvc5 term. */
-  ::cvc5::api::Term d_term;
+  ::cvc5::Term d_term;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -209,7 +209,7 @@ class Cvc5Solver : public Solver
 
   void delete_solver() override;
 
-  ::cvc5::api::Solver* get_solver();
+  ::cvc5::Solver* get_solver();
 
   bool is_initialized() const override;
 
@@ -318,32 +318,31 @@ class Cvc5Solver : public Solver
   /**
    * Helper to get the DatatypeConstructor of given name from a datatype sort.
    */
-  ::cvc5::api::DatatypeConstructor getDatatypeConstructor(
-      ::cvc5::api::Sort dt_sort, const std::string& ctor_name);
+  ::cvc5::DatatypeConstructor getDatatypeConstructor(
+      ::cvc5::Sort dt_sort, const std::string& ctor_name);
   /**
    * Helper to get the DatatypeSelector of given name for the given constructor
    * from a datatype sort.
    */
-  ::cvc5::api::DatatypeSelector getDatatypeSelector(
-      ::cvc5::api::Sort dt_sort,
-      const std::string& ctor_name,
-      const std::string& sel_name);
+  ::cvc5::DatatypeSelector getDatatypeSelector(::cvc5::Sort dt_sort,
+                                               const std::string& ctor_name,
+                                               const std::string& sel_name);
   /**
    * Helper to get the Term representation of the DatatypeConstructor of given
    * name from a datatype sort.
    */
-  ::cvc5::api::Term getDatatypeConstructorTerm(::cvc5::api::Sort dt_sort,
-                                               const std::string& ctor_name);
+  ::cvc5::Term getDatatypeConstructorTerm(::cvc5::Sort dt_sort,
+                                          const std::string& ctor_name);
   /**
    * Helper to get the Term representation of the DatatypeSelector of given
    * name for the given constructor from a datatype sort.
    */
-  ::cvc5::api::Term getDatatypeSelectorTerm(::cvc5::api::Sort dt_sort,
-                                            const std::string& ctor_name,
-                                            const std::string& sel_name);
+  ::cvc5::Term getDatatypeSelectorTerm(::cvc5::Sort dt_sort,
+                                       const std::string& ctor_name,
+                                       const std::string& sel_name);
 
   /** The wrapped cvc5 solver instance. */
-  ::cvc5::api::Solver* d_solver;
+  ::cvc5::Solver* d_solver;
 
   /** C++ API tracer. */
   Cvc5TracerData d_tracer_data;
