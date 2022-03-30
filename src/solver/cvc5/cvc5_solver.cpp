@@ -3256,7 +3256,7 @@ class Cvc5ActionGetInterpolant : public Action
     if (!d_smgr.has_term(SORT_BOOL, 0)) return false;
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::Solver* cvc5      = solver.get_solver();
-    if (cvc5->getOption("produce-interpols") == "none")
+    if (cvc5->getOption("produce-interpolants") != "true")
     {
       d_disable = true;
       return false;
