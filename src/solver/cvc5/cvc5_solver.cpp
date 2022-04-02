@@ -647,8 +647,6 @@ std::unordered_map<Op::Kind, ::cvc5::Kind> Cvc5Term::s_kinds_to_cvc5_kinds = {
     {OP_BV_ULTBV, ::cvc5::Kind::BITVECTOR_ULTBV},
     {OP_BV_SLTBV, ::cvc5::Kind::BITVECTOR_SLTBV},
     {OP_BV_ITE, ::cvc5::Kind::BITVECTOR_ITE},
-    // Datatypes
-    {OP_DT_SIZE, ::cvc5::Kind::DT_SIZE},
     // Int
     {OP_BV_TO_NAT, ::cvc5::Kind::BITVECTOR_TO_NAT},
     {OP_INT_IAND, ::cvc5::Kind::IAND},
@@ -923,8 +921,6 @@ std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
     {::cvc5::Kind::BITVECTOR_ULTBV, OP_BV_ULTBV},
     {::cvc5::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
     {::cvc5::Kind::BITVECTOR_ITE, OP_BV_ITE},
-    // Datatypes
-    {::cvc5::Kind::DT_SIZE, OP_DT_SIZE},
     // Int
     {::cvc5::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
     {::cvc5::Kind::IAND, OP_INT_IAND},
@@ -1305,15 +1301,7 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
       }
       else
       {
-        if (domain.size() == 1 && d_rng.flip_coin())
-        {
-          // cvc5_res = TRACE_SOLVER(mkFunctionSort, domain[0], codomain);
-          cvc5_res = TRACE_SOLVER(mkFunctionSort, domain[0], codomain);
-        }
-        else
-        {
-          cvc5_res = TRACE_SOLVER(mkFunctionSort, domain, codomain);
-        }
+        cvc5_res = TRACE_SOLVER(mkFunctionSort, domain, codomain);
       }
       break;
     }
@@ -1352,7 +1340,6 @@ Cvc5Solver::mk_sort(
 
   std::vector<::cvc5::DatatypeDecl> cvc5_dtypedecls;
   std::vector<std::vector<::cvc5::DatatypeConstructorDecl>> cvc5_dtypectordecls;
-  std::set<::cvc5::Sort> cvc5_usorts;
 
   for (size_t i = 0; i < n_dt_sorts; ++i)
   {
@@ -1427,24 +1414,9 @@ Cvc5Solver::mk_sort(
             ::cvc5::Sort cvc5_unres_sort;
             if (it == symbol_to_cvc5_usorts.end())
             {
-              if (d_rng.flip_coin())
-              {
-                cvc5_unres_sort = TRACE_SOLVER(mkUnresolvedSort, symbol, arity);
-              }
-              else
-              {
-                if (arity > 0)
-                {
-                  cvc5_unres_sort = TRACE_SOLVER(
-                      mkUninterpretedSortConstructorSort, symbol, arity);
-                }
-                else
-                {
-                  cvc5_unres_sort = TRACE_SOLVER(mkUninterpretedSort, symbol);
-                }
-              }
+              cvc5_unres_sort =
+                  TRACE_SOLVER(mkUnresolvedDatatypeSort, symbol, arity);
               symbol_to_cvc5_usorts[symbol] = cvc5_unres_sort;
-              cvc5_usorts.insert(cvc5_unres_sort);
             }
             else
             {
@@ -1497,7 +1469,6 @@ Cvc5Solver::mk_sort(
 
   if (n_dt_sorts == 1 && d_rng.flip_coin())
   {
-    assert(cvc5_usorts.empty());
     assert(cvc5_dtypedecls.size() == 1);
     assert(cvc5_dtypectordecls.size() == 1);
     ::cvc5::Sort cvc5_res;
@@ -1516,15 +1487,8 @@ Cvc5Solver::mk_sort(
         std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res))};
   }
 
-  std::vector<::cvc5::Sort> cvc5_res;
-  if (cvc5_usorts.empty() && d_rng.flip_coin())
-  {
-    cvc5_res = TRACE_SOLVER(mkDatatypeSorts, cvc5_dtypedecls);
-  }
-  else
-  {
-    cvc5_res = TRACE_SOLVER(mkDatatypeSorts, cvc5_dtypedecls, cvc5_usorts);
-  }
+  std::vector<::cvc5::Sort> cvc5_res =
+      TRACE_SOLVER(mkDatatypeSorts, cvc5_dtypedecls);
   size_t idx = d_rng.pick<size_t>(0, cvc5_res.size() - 1);
   MURXLA_TEST(!cvc5_res[idx].isNull());
   MURXLA_TEST(!cvc5_res[idx].getDatatype().isNull());
@@ -2376,10 +2340,6 @@ Cvc5Solver::getDatatypeSelector(::cvc5::Sort dt_sort,
 Cvc5Solver::getDatatypeConstructorTerm(::cvc5::Sort dt_sort,
                                        const std::string& ctor_name)
 {
-  if (d_rng.flip_coin())
-  {
-    return TRACE_METHOD(getDatatype().getConstructorTerm, dt_sort, ctor_name);
-  }
   auto dtc = getDatatypeConstructor(dt_sort, ctor_name);
   return TRACE_METHOD(getConstructorTerm, dtc);
 }
@@ -2389,13 +2349,8 @@ Cvc5Solver::getDatatypeSelectorTerm(::cvc5::Sort dt_sort,
                                     const std::string& ctor_name,
                                     const std::string& sel_name)
 {
-  if (d_rng.flip_coin())
-  {
-    auto dts = getDatatypeSelector(dt_sort, ctor_name, sel_name);
-    return TRACE_METHOD(getSelectorTerm, dts);
-  }
-  auto dtc = getDatatypeConstructor(dt_sort, ctor_name);
-  return TRACE_METHOD(getSelectorTerm, dtc, sel_name);
+  auto dts = getDatatypeSelector(dt_sort, ctor_name, sel_name);
+  return TRACE_METHOD(getSelectorTerm, dts);
 }
 
 Term
@@ -2842,21 +2797,21 @@ Cvc5Solver::check_sort(Sort sort)
     }
 
     ::cvc5::Term cvc5_ctor_term =
-        d_rng.flip_coin() ? cvc5_dt.getConstructorTerm(ctor)
-                          : cvc5_dt.getConstructor(ctor).getConstructorTerm();
-    MURXLA_TEST(cvc5_ctor_term.getSort().isConstructor());
+        cvc5_dt.getConstructor(ctor).getConstructorTerm();
+    MURXLA_TEST(cvc5_ctor_term.getSort().isDatatypeConstructor());
 
     ::cvc5::Term cvc5_tester_term =
         cvc5_dt.getConstructor(ctor).getTesterTerm();
-    MURXLA_TEST(cvc5_tester_term.getSort().isTester());
-    MURXLA_TEST(cvc5_tester_term.getSort().getTesterDomainSort()
+    MURXLA_TEST(cvc5_tester_term.getSort().isDatatypeTester());
+    MURXLA_TEST(cvc5_tester_term.getSort().getDatatypeTesterDomainSort()
                 == Cvc5Sort::get_cvc5_sort(sort));
-    MURXLA_TEST(cvc5_tester_term.getSort().getTesterCodomainSort().isBoolean());
+    MURXLA_TEST(
+        cvc5_tester_term.getSort().getDatatypeTesterCodomainSort().isBoolean());
 
     const auto& sel_names = sort->get_dt_sel_names(ctor);
 
     MURXLA_TEST(sel_names.size()
-                == cvc5_ctor_term.getSort().getConstructorArity());
+                == cvc5_ctor_term.getSort().getDatatypeConstructorArity());
 
     std::vector<Sort> ctor_domain_sorts;
 
@@ -2876,13 +2831,13 @@ Cvc5Solver::check_sort(Sort sort)
 
       ::cvc5::Term cvc5_sel_term = cvc5_sel.getSelectorTerm();
 
-      MURXLA_TEST(cvc5_sel_term.getSort().isSelector());
+      MURXLA_TEST(cvc5_sel_term.getSort().isDatatypeSelector());
 
       Sort sel_codomain = sort->get_dt_sel_sort(sort, ctor, sel);
       ::cvc5::Sort cvc5_sel_codomain =
-          cvc5_sel_term.getSort().getSelectorCodomainSort();
+          cvc5_sel_term.getSort().getDatatypeSelectorCodomainSort();
       ::cvc5::Sort cvc5_sel_domain =
-          cvc5_sel_term.getSort().getSelectorDomainSort();
+          cvc5_sel_term.getSort().getDatatypeSelectorDomainSort();
       MURXLA_TEST(cvc5_sel_domain == Cvc5Sort::get_cvc5_sort(sort));
       if (sel_codomain == nullptr)
       {
@@ -2894,11 +2849,11 @@ Cvc5Solver::check_sort(Sort sort)
         MURXLA_TEST(cvc5_sel_codomain == Cvc5Sort::get_cvc5_sort(sel_codomain));
       }
 
-      MURXLA_TEST(cvc5_sel.getUpdaterTerm().getSort().isUpdater());
+      MURXLA_TEST(cvc5_sel.getUpdaterTerm().getSort().isDatatypeUpdater());
     }
 
     std::vector<::cvc5::Sort> cvc5_ctor_domain_sorts =
-        cvc5_ctor_term.getSort().getConstructorDomainSorts();
+        cvc5_ctor_term.getSort().getDatatypeConstructorDomainSorts();
     MURXLA_TEST(cvc5_ctor_domain_sorts.size() == ctor_domain_sorts.size());
     for (size_t i = 0, n = ctor_domain_sorts.size(); i < n; ++i)
     {
@@ -2913,7 +2868,7 @@ Cvc5Solver::check_sort(Sort sort)
                     == Cvc5Sort::get_cvc5_sort(ctor_domain_sorts[i]));
       }
     }
-    MURXLA_TEST(cvc5_ctor_term.getSort().getConstructorCodomainSort()
+    MURXLA_TEST(cvc5_ctor_term.getSort().getDatatypeConstructorCodomainSort()
                 == Cvc5Sort::get_cvc5_sort(sort));
 
     const auto& sorts = sort->get_sorts();
@@ -2931,9 +2886,9 @@ Cvc5Solver::check_sort(Sort sort)
   }
   else
   {
-    MURXLA_TEST(!cvc5_sort.isSelector());
-    MURXLA_TEST(!cvc5_sort.isTester());
-    MURXLA_TEST(!cvc5_sort.isUpdater());
+    MURXLA_TEST(!cvc5_sort.isDatatypeSelector());
+    MURXLA_TEST(!cvc5_sort.isDatatypeTester());
+    MURXLA_TEST(!cvc5_sort.isDatatypeUpdater());
   }
 
   if (cvc5_sort.isTuple())
@@ -3097,9 +3052,6 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
   opmgr->add_op_kind(Cvc5Term::OP_BV_ITE, 3, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_TO_NAT, 1, 0, SORT_INT, {SORT_BV}, THEORY_BV);
-  // Datatypes
-  opmgr->add_op_kind(
-      Cvc5Term::OP_DT_SIZE, 1, 0, SORT_INT, {SORT_DT}, THEORY_DT);
   // Int
   opmgr->add_op_kind(
       Cvc5Term::OP_INT_TO_BV, 1, 1, SORT_BV, {SORT_INT}, THEORY_INT);
@@ -3384,8 +3336,7 @@ class Cvc5ActionBlockModel : public Action
     }
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::Solver* cvc5      = solver.get_solver();
-    if (cvc5->getOption("block-models") == "none"
-        || cvc5->getOption("assign-function-values") == "false")
+    if (cvc5->getOption("assign-function-values") == "false")
     {
       d_disable = true;
       return false;
@@ -3408,7 +3359,14 @@ class Cvc5ActionBlockModel : public Action
     d_smgr.reset_sat();
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::Solver* cvc5      = solver.get_solver();
-    cvc5->blockModel();
+    if (d_rng.flip_coin())
+    {
+      cvc5->blockModel(::cvc5::modes::BlockModelsMode::LITERALS);
+    }
+    else
+    {
+      cvc5->blockModel(::cvc5::modes::BlockModelsMode::VALUES);
+    }
   }
 };
 
@@ -3597,28 +3555,28 @@ class Cvc5ActionSortSubstitute : public Action
     {
       ::cvc5::Sort cvc5_vsort = to_visit.back();
       to_visit.pop_back();
-      if (cvc5_vsort.isConstructor())
+      if (cvc5_vsort.isDatatypeConstructor())
       {
-        auto cvc5_domain   = cvc5_vsort.getConstructorDomainSorts();
-        auto cvc5_codomain = cvc5_vsort.getConstructorCodomainSort();
+        auto cvc5_domain   = cvc5_vsort.getDatatypeConstructorDomainSorts();
+        auto cvc5_codomain = cvc5_vsort.getDatatypeConstructorCodomainSort();
         cvc5_res.insert(cvc5_domain.begin(), cvc5_domain.end());
         cvc5_res.insert(cvc5_codomain);
         to_visit.insert(to_visit.end(), cvc5_domain.begin(), cvc5_domain.end());
         to_visit.push_back(cvc5_codomain);
       }
-      else if (cvc5_vsort.isSelector())
+      else if (cvc5_vsort.isDatatypeSelector())
       {
-        auto cvc5_domain   = cvc5_vsort.getSelectorDomainSort();
-        auto cvc5_codomain = cvc5_vsort.getSelectorCodomainSort();
+        auto cvc5_domain   = cvc5_vsort.getDatatypeSelectorDomainSort();
+        auto cvc5_codomain = cvc5_vsort.getDatatypeSelectorCodomainSort();
         cvc5_res.insert(cvc5_domain);
         cvc5_res.insert(cvc5_codomain);
         to_visit.push_back(cvc5_domain);
         to_visit.push_back(cvc5_codomain);
       }
-      else if (cvc5_vsort.isTester())
+      else if (cvc5_vsort.isDatatypeTester())
       {
-        auto cvc5_domain   = cvc5_vsort.getTesterDomainSort();
-        auto cvc5_codomain = cvc5_vsort.getTesterCodomainSort();
+        auto cvc5_domain   = cvc5_vsort.getDatatypeTesterDomainSort();
+        auto cvc5_codomain = cvc5_vsort.getDatatypeTesterCodomainSort();
         cvc5_res.insert(cvc5_domain);
         cvc5_res.insert(cvc5_codomain);
         to_visit.push_back(cvc5_domain);

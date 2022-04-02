@@ -126,8 +126,6 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_BV_SLTBV  = "cvc5-OP_BV_SLTBV";
   inline static const Op::Kind OP_BV_ITE    = "cvc5-OP_BV_ITE";
   inline static const Op::Kind OP_INT_TO_BV = "int2bv";
-  // Datatypes
-  inline static const Op::Kind OP_DT_SIZE = "dt.size";
   // Int
   inline static const Op::Kind OP_BV_TO_NAT = "bv2nat";
   inline static const Op::Kind OP_INT_IAND  = "iand";
