@@ -197,7 +197,7 @@ set_sigint_handler_stats(void)
 /* -------------------------------------------------------------------------- */
 
 #define MURXLA_USAGE                                                           \
-  "usage:"                                                                     \
+  "Usage:"                                                                     \
   "  murxla [options]\n"                                                       \
   "\n"                                                                         \
   "  -h, --help                 print this message and exit\n"                 \
@@ -231,11 +231,12 @@ set_sigint_handler_stats(void)
   "  -O, --out-dir <dir>        write output files to given directory\n"       \
   "  --stats                    print statistics\n"                            \
   "  --print-fsm                print FSM configuration, may be combined\n"    \
-  "                             with solver option to show config for "        \
+  "                             with solver option to show config for \n"      \
   "  --csv                      print error summary in csv format\n"           \
   "  -e, --export-errors <out>  export found errors to JSON file <out>\n"      \
   " --solver-trace              print native solver API trace to stdout\n"     \
-  "solver\n"                                                                   \
+  "\n"                                                                         \
+  " Solver:\n"                                                                 \
   "\n"                                                                         \
   "  --btor                     test Boolector\n"                              \
   "  --bzla                     test Bitwuzla\n"                               \
@@ -249,7 +250,7 @@ set_sigint_handler_stats(void)
   "                             names. use ^ to indicate a wildcard must\n"    \
   "                             match the beginning of an option name\n"       \
   "\n"                                                                         \
-  " disable enabled theories:\n"                                               \
+  " Disable enabled theories:\n"                                               \
   "  --no-arrays                disable theory of arrays\n"                    \
   "  --no-bags                  disable theory of bags\n"                      \
   "  --no-bv                    disable theory of bit-vectors\n"               \
@@ -264,7 +265,7 @@ set_sigint_handler_stats(void)
   "  --no-trans                 disable theory of transcendentals\n"           \
   "  --no-uf                    disable uninterpreted functions\n"             \
   "\n"                                                                         \
-  " enable only specific theories:\n"                                          \
+  " Enable only specific theories:\n"                                          \
   "  --arrays                   theory of arrays\n"                            \
   "  --bags                     theory of bags\n"                              \
   "  --bv                       theory of bit-vectors\n"                       \
@@ -279,7 +280,7 @@ set_sigint_handler_stats(void)
   "  --trans                    theory of transcendentals\n"                   \
   "  --uf                       uninterpreted functions\n"                     \
   "\n"                                                                         \
-  " constraining/extending features based for enabled theories:\n"             \
+  " Constrain/extend features for enabled theories:\n"                         \
   "  --linear                   restrict arithmetic to linear fragment"
 
 /* -------------------------------------------------------------------------- */
