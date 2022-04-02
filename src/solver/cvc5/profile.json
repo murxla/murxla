@@ -131,7 +131,8 @@
 
     "sort-param": {
       "exclude": [
-        "SORT_FUN"
+        "SORT_FUN",
+        "SORT_REGLAN"
       ]
     },
 
