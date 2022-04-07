@@ -20,6 +20,3 @@ find_package_handle_standard_args(Yices
   DEFAULT_MSG Yices_INCLUDE_DIR Yices_LIBRARIES)
 
 mark_as_advanced(Yices_INCLUDE_DIR Yices_LIBRARIES)
-if(Yices_LIBRARIES)
-  message(STATUS "Found Yices library: ${Yices_LIBRARIES}")
-endif()
