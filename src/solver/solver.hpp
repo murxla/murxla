@@ -1236,72 +1236,6 @@ class Solver
   virtual const std::string get_name() const = 0;
 
   /**
-   * @}
-   * \addtogroup solver-may-override
-   * @{
-   */
-
-  /** Return solver profile JSON string. */
-  virtual const std::string get_profile() const { return "{}"; };
-
-  /**
-   * Configure the FSM with solver-specific extensions.
-   *
-   * This is for adding solver-specific actions, states and transitions.
-   * Override for solver-specific configuration of the FSM.
-   *
-   * Does nothing by default.
-   *
-   * @param fsm  The fsm to configure with extensions.
-   */
-  virtual void configure_fsm(FSM* fsm) const {}
-
-  /**
-   * Disable unsupported actions of the base FSM configuration.
-   *
-   * Does nothing by default.
-   *
-   * @param fsm  The fsm to disable actions in.
-   */
-  virtual void disable_unsupported_actions(FSM* fsm) const {}
-
-  /**
-   * Configure the operator kind manager with solver-specific extensions.
-   *
-   * This is for adding and configuring solver-specific operator kinds.
-   *
-   * Does nothing by default.
-   *
-   * @param opmgr  The operator kind manager to configure.
-   */
-  virtual void configure_opmgr(OpKindManager* opmgr) const {}
-
-  /**
-   * Configure solver configuration options.
-   *
-   * This is for adding and configuring solver options (see
-   * SolverManager::add_option()).
-   *
-   * Does nothing by default.
-   *
-   * @param smgr  The solver manager maintaining the solver options to
-   *              configure.
-   */
-  virtual void configure_options(SolverManager* smgr) const {}
-
-  /**
-   * Reset solver state into assert mode.
-   *
-   * After this call, calling
-   *   - get_model()
-   *   - get_unsat_assumptions()
-   *   - get_unsat_core() and
-   *   - get_proof()
-   * is not possible until after the next SAT call.
-   */
-  virtual void reset_sat();
-
-  /**
    * Create variable.
    *
    * @param sort  The sort of the variable.
@@ -1343,61 +1277,6 @@ class Solver
   virtual Term mk_value(Sort sort, bool value) = 0;
 
   /**
-   * Create value from string.
-   *
-   * This is mainly used for floating-point, integer, real, regular language
-   * and string values.
-   *
-   * @param sort  The sort of the value.
-   * @param value  The string representation of the value.
-   * @return  A term representing the value of given sort.
-   */
-  virtual Term mk_value(Sort sort, const std::string& value);
-
-  /**
-   * Create rational value.
-   *
-   * @param sort  The sort of the value.
-   * @param num   A decimal string representing the numerator.
-   * @param den   A decimal string representing the denominator.
-   * @return  A term representing the rational value.
-   */
-  virtual Term mk_value(Sort sort,
-                        const std::string& num,
-                        const std::string& den);
-
-  /**
-   * Create value from string given in a specific base.
-   *
-   * This is mainly used for creating bit-vector values.
-   *
-   * @param sort   The sort of the value.
-   * @param value  The string representation of the value.
-   * @param base   The numerical base the `value` string is given in.
-   * @return  A term representing the value.
-   */
-  virtual Term mk_value(Sort sort, const std::string& value, Base base);
-
-  /**
-   * Create a special value (as defined in SMT-LIB, or as added as
-   * solver-specific special values).
-   *
-   * @param sort   The sort of the special value.
-   * @param value  The kind of the special value.
-   * @return  A term representing the special value.
-   */
-  virtual Term mk_special_value(Sort sort,
-                                const AbsTerm::SpecialValueKind& value);
-
-  /**
-   * Create uninterpreted sort.
-   *
-   * @param name  The name of the uninterpreted sort.
-   * @return  An uninterpreted sort.
-   */
-  virtual Sort mk_sort(const std::string& name) { return nullptr; }
-
-  /**
    * Create sort with no additional arguments.
    *
    * Examples are sorts of kind #SORT_BOOL, #SORT_INT, #SORT_REAL, #SORT_RM,
@@ -1407,27 +1286,7 @@ class Solver
    * @return  The created sort.
    */
   virtual Sort mk_sort(SortKind kind) = 0;
-  /**
-   * Create sort with one unsigned integer argument.
-   *
-   * This is mainly for creating bit-vector sorts.
-   *
-   * @param kind  The kind of the sort.
-   * @param size  The size of the bit-vector sort.
-   * @return  The created sort.
-   */
-  virtual Sort mk_sort(SortKind kind, uint32_t size);
-  /**
-   * Create sort with two unsigned integer arguments.
-   *
-   * This is mainly for creating floating-point sorts.
-   *
-   * @param kind  The kind of the sort.
-   * @param esize  The size of the exponent.
-   * @param ssize  The size of the significand.
-   * @return  The created sort.
-   */
-  virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize);
+
   /**
    * Create sort with given sort arguments.
    *
@@ -1450,59 +1309,6 @@ class Solver
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
   /**
-   * Create one or more datatype sorts.
-   *
-   * Selectors may return a term of
-   * 1. a regular Sort
-   * 2. a parameter sort (ParamSort)
-   * 3. a yet unresolved dataype sort (UnresolvedSort)
-   * 4. the sort that is currently being created, indicated by passing a
-   *    `nullptr` for the selector codomain sort
-   *
-   * ParamSort and UnresolvedSort do not wrap actual sorts but are sort
-   * placeholders. Thus, solvers must special case cases 1-3 accordingly.
-   *
-   * ParamSort keeps a back reference to the associated datatype sort in
-   * ParamSort::d_sorts (inherited from AbsSort, see AbsSort::get_sorts()).
-   *
-   * For mutually recursive datatypes, we use instances of UnresolvedSort as
-   * place holders. These instances are not unique, we create a new instance of
-   * UnresolvedSort for every occurence of an unresolved sort.  Solvers must
-   * distinguish these sorts via their names (see UnresolvedSort::get_symbol()).
-   *
-   * If the mutually recursive datatypes are parametric, then we specify sorts
-   * for instantiating these parameters, and store them in
-   * UnresolvedSort::d_sorts (inherited from AbsSort). These sorts can be
-   * retrieved via UnresolvedSort::get_sorts() (inherited).
-   *
-   * @param kind          The kind of the sort.
-   * @param dt_names      A vector with the names of the datatypes.
-   * @param param_sorts   A vector with the lists of parameter sorts in case of
-   *                      parametric datatype sorts. The list of parameter
-   *                      sorts for a datatype may be empty.
-   * @param constructors  A vector with the lists of datatype constructors,
-   *                      wich are given as maps of constructor name to vector
-   *                      of selectors (which are given as a pair of name and
-   *                      sort).
-   * @return  The created sort.
-   */
-  virtual std::vector<Sort> mk_sort(
-      SortKind kind,
-      const std::vector<std::string>& dt_names,
-      const std::vector<std::vector<Sort>>& param_sorts,
-      const std::vector<AbsSort::DatatypeConstructorMap>& constructors);
-
-  /**
-   * Instantiate parametric sort `param_sort` with given sorts
-   * @param param_sort  The parametric sort to be instantiated.
-   * @param sorts       The sorts to instantiate the sort parameters of
-   *                    `param_sort` with.
-   * @return  The instantiated sort.
-   */
-  virtual Sort instantiate_sort(Sort param_sort,
-                                const std::vector<Sort>& sorts);
-
-  /**
    * Create term with given term arguments and indices.
    *
    * @param kind  The kind of the term (Op::Kind).
@@ -1513,47 +1319,6 @@ class Solver
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,
                        const std::vector<uint32_t>& indices) = 0;
-
-  /**
-   * Create term with given string and term arguments.
-   *
-   * This is mainly intended for Op::DT_APPLY_SEL, Op::DT_APPLY_TESTER and
-   * Op::DT_APPLY_UPDATER.
-   *
-   * The string arguments identify constructors and selectors by name and
-   * are given for the following kinds as follows:
-   * - Op::DT_APPLY_SEL: `{<constructor name>, <selector name>}`
-   * - Op::DT_APPLY_TESTER: `{<constructor name>}`
-   * - Op::DT_APPLY_UPDATER: `{<constructor name>, <selector name>}`
-   *
-   * @param kind  The kind of the term (Op::Kind).
-   * @param str_args  The names of constructors/selectors as indicated above.
-   * @param args  The argument terms.
-   */
-  virtual Term mk_term(const Op::Kind& kind,
-                       const std::vector<std::string>& str_args,
-                       const std::vector<Term>& args);
-  /**
-   * Create term with given Sort, string and term arguments.
-   *
-   * This is mainly intended for Op::DT_APPLY_CONS, Op::DT_MATCH_BIND_CASE and
-   * Op::DT_MATCH_CASE.
-   *
-   * The string arguments identify constructors and selectors by name and
-   * are given for the following kinds as follows:
-   * - Op::DT_APPLY_CONS: `{<constructor name>}`
-   * - Op::DT_MATCH_BIND_CASE: `{<constructor name>}`
-   * - Op::DT_MATCH_CASE: `{<constructor name>}`
-   *
-   * @param kind  The kind of the term (Op::Kind).
-   * @param sort  The datatype sort to apply the given kind on.
-   * @param str_args  The names of constructors/selectors as indicated above.
-   * @param args  The argument terms.
-   */
-  virtual Term mk_term(const Op::Kind& kind,
-                       Sort sort,
-                       const std::vector<std::string>& str_args,
-                       const std::vector<Term>& args);
 
   /**
    * Get a freshly wrapped solver sort of the given term.
@@ -1631,24 +1396,6 @@ class Solver
   virtual bool is_unsat_assumption(const Term& t) const = 0;
 
   /**
-   * Set the logic.
-   *
-   * SMT-LIB:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (set-logic <logic>)
-   * \endverbatim
-   *
-   * Does nothing by default.
-   *
-   * @param logic  A string representing the logic to configure, as defined
-   *               in the SMT-LIB standard.
-   */
-  virtual void set_logic(const std::string& logic) {}
-
-  /**
    * Assert given formula.
    *
    * SMT-LIB:
@@ -1706,24 +1453,6 @@ class Solver
    *
    * @return  The current set of unsat assumptions. */
   virtual std::vector<Term> get_unsat_assumptions() = 0;
-
-  /**
-   * Retrieve the unsat core after an unsat check-sat call.
-   *
-   * SMT-LIB:
-   *
-   * \verbatim embed:rst:leading-asterisk
-   * .. code:: smtlib
-   *
-   *     (get-unsat-core)
-   * \endverbatim
-   *
-   * @return  A set of terms represnting the unsat core. Returns an empty
-   *          vector by default.
-   *
-   * @note Do not override if solver does not support unsat cores.
-   */
-  virtual std::vector<Term> get_unsat_core();
 
   /**
    * Push the given number of assertion levels.
@@ -1830,11 +1559,277 @@ class Solver
    */
   virtual std::vector<Term> get_value(const std::vector<Term>& terms) = 0;
 
-  //
-  // get_model()
-  // get_proof()
-  //
-  //
+  /**
+   * @}
+   * \addtogroup solver-may-override
+   * @{
+   */
+
+  /** Return solver profile JSON string. */
+  virtual const std::string get_profile() const { return "{}"; };
+
+  /**
+   * Configure the FSM with solver-specific extensions.
+   *
+   * This is for adding solver-specific actions, states and transitions.
+   * Override for solver-specific configuration of the FSM.
+   *
+   * Does nothing by default.
+   *
+   * @param fsm  The fsm to configure with extensions.
+   */
+  virtual void configure_fsm(FSM* fsm) const {}
+
+  /**
+   * Disable unsupported actions of the base FSM configuration.
+   *
+   * Does nothing by default.
+   *
+   * @param fsm  The fsm to disable actions in.
+   */
+  virtual void disable_unsupported_actions(FSM* fsm) const {}
+
+  /**
+   * Configure the operator kind manager with solver-specific extensions.
+   *
+   * This is for adding and configuring solver-specific operator kinds.
+   *
+   * Does nothing by default.
+   *
+   * @param opmgr  The operator kind manager to configure.
+   */
+  virtual void configure_opmgr(OpKindManager* opmgr) const {}
+
+  /**
+   * Configure solver configuration options.
+   *
+   * This is for adding and configuring solver options (see
+   * SolverManager::add_option()).
+   *
+   * Does nothing by default.
+   *
+   * @param smgr  The solver manager maintaining the solver options to
+   *              configure.
+   */
+  virtual void configure_options(SolverManager* smgr) const {}
+
+  /**
+   * Reset solver state into assert mode.
+   *
+   * After this call, calling
+   *   - get_model()
+   *   - get_unsat_assumptions()
+   *   - get_unsat_core() and
+   *   - get_proof()
+   * is not possible until after the next SAT call.
+   */
+  virtual void reset_sat();
+
+  /**
+   * Create value from string.
+   *
+   * This is mainly used for floating-point, integer, real, regular language
+   * and string values.
+   *
+   * @param sort  The sort of the value.
+   * @param value  The string representation of the value.
+   * @return  A term representing the value of given sort.
+   */
+  virtual Term mk_value(Sort sort, const std::string& value);
+
+  /**
+   * Create rational value.
+   *
+   * @param sort  The sort of the value.
+   * @param num   A decimal string representing the numerator.
+   * @param den   A decimal string representing the denominator.
+   * @return  A term representing the rational value.
+   */
+  virtual Term mk_value(Sort sort,
+                        const std::string& num,
+                        const std::string& den);
+
+  /**
+   * Create value from string given in a specific base.
+   *
+   * This is mainly used for creating bit-vector values.
+   *
+   * @param sort   The sort of the value.
+   * @param value  The string representation of the value.
+   * @param base   The numerical base the `value` string is given in.
+   * @return  A term representing the value.
+   */
+  virtual Term mk_value(Sort sort, const std::string& value, Base base);
+
+  /**
+   * Create a special value (as defined in SMT-LIB, or as added as
+   * solver-specific special values).
+   *
+   * @param sort   The sort of the special value.
+   * @param value  The kind of the special value.
+   * @return  A term representing the special value.
+   */
+  virtual Term mk_special_value(Sort sort,
+                                const AbsTerm::SpecialValueKind& value);
+
+  /**
+   * Create uninterpreted sort.
+   *
+   * @param name  The name of the uninterpreted sort.
+   * @return  An uninterpreted sort.
+   */
+  virtual Sort mk_sort(const std::string& name) { return nullptr; }
+
+  /**
+   * Create sort with one unsigned integer argument.
+   *
+   * This is mainly for creating bit-vector sorts.
+   *
+   * @param kind  The kind of the sort.
+   * @param size  The size of the bit-vector sort.
+   * @return  The created sort.
+   */
+  virtual Sort mk_sort(SortKind kind, uint32_t size);
+  /**
+   * Create sort with two unsigned integer arguments.
+   *
+   * This is mainly for creating floating-point sorts.
+   *
+   * @param kind  The kind of the sort.
+   * @param esize  The size of the exponent.
+   * @param ssize  The size of the significand.
+   * @return  The created sort.
+   */
+  virtual Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize);
+  /**
+   * Create one or more datatype sorts.
+   *
+   * Selectors may return a term of
+   * 1. a regular Sort
+   * 2. a parameter sort (ParamSort)
+   * 3. a yet unresolved dataype sort (UnresolvedSort)
+   * 4. the sort that is currently being created, indicated by passing a
+   *    `nullptr` for the selector codomain sort
+   *
+   * ParamSort and UnresolvedSort do not wrap actual sorts but are sort
+   * placeholders. Thus, solvers must special case cases 1-3 accordingly.
+   *
+   * ParamSort keeps a back reference to the associated datatype sort in
+   * ParamSort::d_sorts (inherited from AbsSort, see AbsSort::get_sorts()).
+   *
+   * For mutually recursive datatypes, we use instances of UnresolvedSort as
+   * place holders. These instances are not unique, we create a new instance of
+   * UnresolvedSort for every occurence of an unresolved sort.  Solvers must
+   * distinguish these sorts via their names (see UnresolvedSort::get_symbol()).
+   *
+   * If the mutually recursive datatypes are parametric, then we specify sorts
+   * for instantiating these parameters, and store them in
+   * UnresolvedSort::d_sorts (inherited from AbsSort). These sorts can be
+   * retrieved via UnresolvedSort::get_sorts() (inherited).
+   *
+   * @param kind          The kind of the sort.
+   * @param dt_names      A vector with the names of the datatypes.
+   * @param param_sorts   A vector with the lists of parameter sorts in case of
+   *                      parametric datatype sorts. The list of parameter
+   *                      sorts for a datatype may be empty.
+   * @param constructors  A vector with the lists of datatype constructors,
+   *                      wich are given as maps of constructor name to vector
+   *                      of selectors (which are given as a pair of name and
+   *                      sort).
+   * @return  The created sort.
+   */
+  virtual std::vector<Sort> mk_sort(
+      SortKind kind,
+      const std::vector<std::string>& dt_names,
+      const std::vector<std::vector<Sort>>& param_sorts,
+      const std::vector<AbsSort::DatatypeConstructorMap>& constructors);
+
+  /**
+   * Instantiate parametric sort `param_sort` with given sorts
+   * @param param_sort  The parametric sort to be instantiated.
+   * @param sorts       The sorts to instantiate the sort parameters of
+   *                    `param_sort` with.
+   * @return  The instantiated sort.
+   */
+  virtual Sort instantiate_sort(Sort param_sort,
+                                const std::vector<Sort>& sorts);
+
+  /**
+   * Create term with given string and term arguments.
+   *
+   * This is mainly intended for Op::DT_APPLY_SEL, Op::DT_APPLY_TESTER and
+   * Op::DT_APPLY_UPDATER.
+   *
+   * The string arguments identify constructors and selectors by name and
+   * are given for the following kinds as follows:
+   * - Op::DT_APPLY_SEL: `{<constructor name>, <selector name>}`
+   * - Op::DT_APPLY_TESTER: `{<constructor name>}`
+   * - Op::DT_APPLY_UPDATER: `{<constructor name>, <selector name>}`
+   *
+   * @param kind  The kind of the term (Op::Kind).
+   * @param str_args  The names of constructors/selectors as indicated above.
+   * @param args  The argument terms.
+   */
+  virtual Term mk_term(const Op::Kind& kind,
+                       const std::vector<std::string>& str_args,
+                       const std::vector<Term>& args);
+  /**
+   * Create term with given Sort, string and term arguments.
+   *
+   * This is mainly intended for Op::DT_APPLY_CONS, Op::DT_MATCH_BIND_CASE and
+   * Op::DT_MATCH_CASE.
+   *
+   * The string arguments identify constructors and selectors by name and
+   * are given for the following kinds as follows:
+   * - Op::DT_APPLY_CONS: `{<constructor name>}`
+   * - Op::DT_MATCH_BIND_CASE: `{<constructor name>}`
+   * - Op::DT_MATCH_CASE: `{<constructor name>}`
+   *
+   * @param kind  The kind of the term (Op::Kind).
+   * @param sort  The datatype sort to apply the given kind on.
+   * @param str_args  The names of constructors/selectors as indicated above.
+   * @param args  The argument terms.
+   */
+  virtual Term mk_term(const Op::Kind& kind,
+                       Sort sort,
+                       const std::vector<std::string>& str_args,
+                       const std::vector<Term>& args);
+
+  /**
+   * Set the logic.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (set-logic <logic>)
+   * \endverbatim
+   *
+   * Does nothing by default.
+   *
+   * @param logic  A string representing the logic to configure, as defined
+   *               in the SMT-LIB standard.
+   */
+  virtual void set_logic(const std::string& logic) {}
+
+  /**
+   * Retrieve the unsat core after an unsat check-sat call.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-unsat-core)
+   * \endverbatim
+   *
+   * @return  A set of terms represnting the unsat core. Returns an empty
+   *          vector by default.
+   *
+   * @note Do not override if solver does not support unsat cores.
+   */
+  virtual std::vector<Term> get_unsat_core();
 
   /**
    * Solver-specific term checks.

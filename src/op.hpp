@@ -3378,8 +3378,8 @@ class OpKindManager
    * @param kind             The kind of the operator.
    * @param arity            The arity of the operator
    * @param nidxs            The number of indices of the operator.
-   * @param sort_kinds       The sort kind of the operator.
-   * @param sort_kinds_args  A vector of sorts of the operators' arguments. If
+   * @param sort_kind        The sort kind of the operator.
+   * @param sort_kind_args   A vector of sorts of the operators' arguments. If
    *                         all or the remaining kinds are the same, it's
    *                         sufficient to only list it once.
    * @param theory           The associated theory.
