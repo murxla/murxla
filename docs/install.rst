@@ -23,7 +23,7 @@ Please refer to the :ref:`User Guide <user-guide>` for how to use Murxla.
 Supported Solver
 ****************
 
-Murxla currently has native integration for the following solver:
+Murxla currently has native integration for the following solvers:
 
 - `Bitwuzla <https://github.com/bitwuzla/bitwuzla>`_
 - `Boolector <https://github.com/boolector/boolector>`_
