@@ -62,6 +62,11 @@ class AbsSort
   /* ---------------------------------------------------------------------- */
 
   /**
+   * \addtogroup sort-must-override
+   * @{
+   */
+
+  /**
    * Get the hash value of this sort.
    * @return  The hash value of this sort.
    */
@@ -77,6 +82,12 @@ class AbsSort
    * @return  True if this sort is equal to the other sort.
    */
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
+
+  /**
+   * @}
+   * \addtogroup sort-may-override
+   * @{
+   */
 
   /**
    * Determine if this sort is not equal to the given sort.
@@ -263,6 +274,8 @@ class AbsSort
    * @return The element sort of this set sort, or a nullptr by default.
    */
   virtual Sort get_set_element_sort() const;
+
+  /** @} */
 
   /* Only to be overriden in shadow solver, murxla level.                   */
   /* ---------------------------------------------------------------------- */
@@ -735,6 +748,15 @@ class AbsTerm
   /** Destructor. */
   virtual ~AbsTerm(){};
 
+  /* To be overriden, for testing the solver.                               */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * @}
+   * \addtogroup term-must-override
+   * @{
+   */
+
   /**
    * Get the hash value of this term.
    * @return  The hash value of this term.
@@ -751,6 +773,13 @@ class AbsTerm
    * @return  True if this term is equal to the other term.
    */
   virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
+
+  /**
+   * @}
+   * \addtogroup term-may-override
+   * @{
+   */
+
   /**
    * Determine if this term is not equal to the given term.
    * @param other  The term to compare this term to.
@@ -959,32 +988,6 @@ class AbsTerm
   virtual std::vector<std::string> get_indices() const;
 
   /**
-   * Set the id of this term.
-   * @param id  The id to be set.
-   */
-  void set_id(uint64_t id);
-  /**
-   * Get the id of this term.
-   * @return  The id of this term.
-   */
-  uint64_t get_id() const;
-
-  /**
-   * Set the sort of this term.
-   *
-   * This is not to be overriden by any solver implementations except the
-   * shadow solver.
-   *
-   * @param sort  The sort to be set.
-   */
-  virtual void set_sort(Sort sort);
-  /**
-   * Get the sort of this term.
-   * @return  The sort of this term.
-   */
-  Sort get_sort() const;
-
-  /**
    * Get the bit width of this term.
    * Asserts that it is a bit-vector term.
    * @return  The size of this bit-vector term.
@@ -1033,9 +1036,20 @@ class AbsTerm
    */
   virtual std::vector<Sort> get_fun_domain_sorts() const;
 
-  void set_levels(const std::vector<uint64_t>& levels);
-  const std::vector<uint64_t>& get_levels() const;
+  /** @} */
 
+  /* Only to be overriden in shadow solver, murxla level.                   */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * Set the sort of this term.
+   *
+   * This is not to be overriden by any solver implementations except the
+   * shadow solver.
+   *
+   * @param sort  The sort to be set.
+   */
+  virtual void set_sort(Sort sort);
   /**
    * Set leaf kind.
    *
@@ -1058,6 +1072,30 @@ class AbsTerm
    * @param value_kind  The kind of the special value.
    */
   virtual void set_special_value_kind(const SpecialValueKind& value_kind);
+
+  /* NOT to be overriden, murxla level.                                     */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * Set the id of this term.
+   * @param id  The id to be set.
+   */
+  void set_id(uint64_t id);
+  /**
+   * Get the id of this term.
+   * @return  The id of this term.
+   */
+  uint64_t get_id() const;
+
+  /**
+   * Get the sort of this term.
+   * @return  The sort of this term.
+   */
+  Sort get_sort() const;
+
+  void set_levels(const std::vector<uint64_t>& levels);
+  const std::vector<uint64_t>& get_levels() const;
+
   /**
    * Get the leaf kind of this term.
    *
@@ -1179,6 +1217,14 @@ class Solver
   /** Default destructor is deleted. */
   virtual ~Solver() = default;
 
+  /* To be overriden, for testing the solver.                               */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * \addtogroup solver-must-override
+   * @{
+   */
+
   /** Create and initialize wrapped solver. */
   virtual void new_solver() = 0;
   /** Delete wrapped solver. */
@@ -1193,14 +1239,15 @@ class Solver
    * @return  The solver name.
    */
   virtual const std::string get_name() const = 0;
-  /** Return solver profile JSON string. */
-  virtual const std::string get_profile() const { return "{}"; };
 
   /**
-   * Get the random number generator of this solver.
-   * @return  The RNG of this solver.
+   * @}
+   * \addtogroup solver-may-override
+   * @{
    */
-  RNGenerator& get_rng() { return d_rng; }
+
+  /** Return solver profile JSON string. */
+  virtual const std::string get_profile() const { return "{}"; };
 
   /**
    * Configure the FSM with solver-specific extensions.
@@ -1246,18 +1293,6 @@ class Solver
    *              configure.
    */
   virtual void configure_options(SolverManager* smgr) const {}
-
-  /**
-   * Add solver-specific special value kind.
-   *
-   * @note  As a style convention, solver-specific special value kinds should
-   *        be defined in the solver-specific implementation of AbsTerm.
-   *
-   * @param sort_kind  The sort kind of a term of given special value kind.
-   * @param kind       The solver-specific special value kind to add.
-   */
-  void add_special_value(SortKind sort_kind,
-                         const AbsTerm::SpecialValueKind& kind);
 
   /**
    * Reset solver state into assert mode.
@@ -1382,6 +1417,7 @@ class Solver
    *
    * This is mainly for creating bit-vector sorts.
    *
+   * @param kind  The kind of the sort.
    * @param size  The size of the bit-vector sort.
    * @return  The created sort.
    */
@@ -1391,6 +1427,7 @@ class Solver
    *
    * This is mainly for creating floating-point sorts.
    *
+   * @param kind  The kind of the sort.
    * @param esize  The size of the exponent.
    * @param ssize  The size of the significand.
    * @return  The created sort.
@@ -1410,6 +1447,10 @@ class Solver
    * - #SORT_SET: `{<element sort>}`
    *
    * - #SORT_SEQ: `{<element sort>}`
+   *
+   * @param kind  The kind of the sort.
+   * @param sorts  The sort arguments.
+   * @return  The created sort.
    */
   virtual Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) = 0;
 
@@ -1439,6 +1480,7 @@ class Solver
    * UnresolvedSort::d_sorts (inherited from AbsSort). These sorts can be
    * retrieved via UnresolvedSort::get_sorts() (inherited).
    *
+   * @param kind          The kind of the sort.
    * @param dt_names      A vector with the names of the datatypes.
    * @param param_sorts   A vector with the lists of parameter sorts in case of
    *                      parametric datatype sorts. The list of parameter
@@ -1532,24 +1574,6 @@ class Solver
    * @return  The sort of the given term.
    */
   virtual Sort get_sort(Term term, SortKind sort_kind) = 0;
-
-  /**
-   * Get the set of special value kinds registered with this solver for a given
-   * sort kind.
-   *
-   * @return  The special values for given sort kind. If no special values are
-   *           defined, return an empty set.
-   */
-  const std::unordered_set<AbsTerm::SpecialValueKind>& get_special_values(
-      SortKind sort_kind) const;
-
-  /**
-   * Get the sort kinds for which special value kinds are registered with this
-   * solver.
-   * @return  The set of sort kinds for which this solver has special value
-   *          kinds defined.
-   */
-  const SortKindSet& get_special_values_sort_kinds() const;
 
   /**
    * Get the string representation that identifies the solver configuration
@@ -1746,9 +1770,6 @@ class Solver
    *
    *     (get-unsat-core)
    * \endverbatim
-   *
-   * @return  A set of terms represnting the unsat core. Returns an empty
-   *          vector by default.
    */
   virtual void print_model() = 0;
 
@@ -1866,6 +1887,47 @@ class Solver
   {
     return {};
   }
+
+  /** @} */
+
+  /* NOT to be overriden, murxla level.                                     */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * Get the random number generator of this solver.
+   * @return  The RNG of this solver.
+   */
+  RNGenerator& get_rng() { return d_rng; }
+
+  /**
+   * Add solver-specific special value kind.
+   *
+   * @note  As a style convention, solver-specific special value kinds should
+   *        be defined in the solver-specific implementation of AbsTerm.
+   *
+   * @param sort_kind  The sort kind of a term of given special value kind.
+   * @param kind       The solver-specific special value kind to add.
+   */
+  void add_special_value(SortKind sort_kind,
+                         const AbsTerm::SpecialValueKind& kind);
+
+  /**
+   * Get the set of special value kinds registered with this solver for a given
+   * sort kind.
+   *
+   * @return  The special values for given sort kind. If no special values are
+   *           defined, return an empty set.
+   */
+  const std::unordered_set<AbsTerm::SpecialValueKind>& get_special_values(
+      SortKind sort_kind) const;
+
+  /**
+   * Get the sort kinds for which special value kinds are registered with this
+   * solver.
+   * @return  The set of sort kinds for which this solver has special value
+   *          kinds defined.
+   */
+  const SortKindSet& get_special_values_sort_kinds() const;
 
  protected:
   /**

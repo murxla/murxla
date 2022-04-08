@@ -47,6 +47,6 @@ Solver Wrapper Interface
 .. toctree::
   :maxdepth: 2
 
-  solver/abssort
-  solver/absterm
-  solver/solver
+  abssort
+  absterm
+  solver

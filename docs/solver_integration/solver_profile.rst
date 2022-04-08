@@ -228,25 +228,25 @@ Default Profiles of Supported Solvers
 
 Boolector
 =========
-.. literalinclude:: ../src/solver/btor/profile.json
+.. literalinclude:: ../../src/solver/btor/profile.json
    :language: JSON
 
 Bitwuzla
 ========
-.. literalinclude:: ../src/solver/bzla/profile.json
+.. literalinclude:: ../../src/solver/bzla/profile.json
    :language: JSON
 
 cvc5
 ====
-.. literalinclude:: ../src/solver/cvc5/profile.json
+.. literalinclude:: ../../src/solver/cvc5/profile.json
    :language: JSON
 
 Yices
 =====
-.. literalinclude:: ../src/solver/yices/profile.json
+.. literalinclude:: ../../src/solver/yices/profile.json
    :language: JSON
 
 SMT2 Solver
 ===========
-.. literalinclude:: ../src/solver/smt2/profile.json
+.. literalinclude:: ../../src/solver/smt2/profile.json
    :language: JSON
