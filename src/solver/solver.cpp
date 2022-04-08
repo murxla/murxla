@@ -741,19 +741,6 @@ AbsTerm::get_num_indices() const
   return 0;
 }
 
-void
-AbsTerm::set_levels(const std::vector<uint64_t>& levels)
-{
-  d_levels.clear();
-  d_levels.insert(d_levels.end(), levels.begin(), levels.end());
-}
-
-const std::vector<uint64_t>&
-AbsTerm::get_levels() const
-{
-  return d_levels;
-}
-
 bool
 AbsTerm::not_equals(const std::shared_ptr<AbsTerm>& other) const
 {

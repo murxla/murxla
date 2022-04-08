@@ -200,6 +200,7 @@ TermDb::clear()
   d_term_sorts.clear();
   d_funs.clear();
   d_vars.clear();
+  d_term_levels.clear();
 }
 
 void
@@ -225,7 +226,8 @@ void
 TermDb::add_term(Term& term,
                  Sort& sort,
                  SortKind sort_kind,
-                 const std::vector<Term>& args)
+                 const std::vector<Term>& args,
+                 const std::vector<uint64_t>& scope_levels)
 {
   assert(term.get());
   assert(sort.get());
@@ -241,13 +243,13 @@ TermDb::add_term(Term& term,
   assert(term->get_sort() == nullptr || term->get_sort() == sort);
 
   /* Determine scope level of term. */
-  std::vector<uint64_t> levels = term->get_levels();
+  std::vector<uint64_t> levels = scope_levels;
   if (levels.empty())
   {
     std::set<uint64_t> clevels;
     for (const auto& child : args)
     {
-      const auto& cl = child->get_levels();
+      const auto& cl = get_levels(child);
       clevels.insert(cl.begin(), cl.end());
     }
     levels.insert(levels.end(), clevels.begin(), clevels.end());
@@ -274,7 +276,7 @@ TermDb::add_term(Term& term,
       != d_intermediate_op_kinds.end())
   {
     term->set_id(d_terms.size() + d_terms_intermediate.size() + 1);
-    term->set_levels(levels);
+    set_levels(term, levels);
     // no need to wrap into Trefs since we may not pick these terms
     d_terms_intermediate.emplace(term->get_id(), term);
     // no need to add to d_term_sorts for the same reason
@@ -293,7 +295,7 @@ TermDb::add_term(Term& term,
     if (!trefs.contains(term))
     {
       term->set_id(d_terms.size() + d_terms_intermediate.size() + 1);
-      term->set_levels(levels);
+      set_levels(term, levels);
       trefs.add(term, level);
 
       d_terms.emplace(term->get_id(), term);
@@ -328,7 +330,7 @@ TermDb::add_var(Term& var, Sort& sort, SortKind sort_kind)
 {
   assert(var.get());
   push(var);
-  add_term(var, sort, sort_kind);
+  add_term(var, sort, sort_kind, {}, {d_vars.size() - 1});
 }
 
 Term
@@ -639,6 +641,26 @@ TermDb::get_num_terms(SortKind sort_kind) const
   return get_num_terms(sort_kind, d_vars.size() - 1);
 }
 
+void
+TermDb::set_levels(const Term term, const std::vector<uint64_t>& levels)
+{
+  assert(term->get_id());
+  d_term_levels.emplace(term->get_id(), levels);
+}
+
+const std::vector<uint64_t>&
+TermDb::get_levels(const Term term) const
+{
+  assert(term->get_id());
+  auto it = d_term_levels.find(term->get_id());
+  if (it == d_term_levels.end())
+  {
+    static const std::vector<uint64_t> empty;
+    return empty;
+  }
+  return it->second;
+}
+
 Term
 TermDb::pick_term(Sort sort, size_t level)
 {
@@ -865,7 +887,6 @@ TermDb::pick_quant_term(Sort sort)
 void
 TermDb::push(Term& var)
 {
-  var->set_levels({d_vars.size()});
   d_vars.push_back(var);
 
   for (auto& p : d_term_db)
@@ -880,7 +901,7 @@ TermDb::push(Term& var)
 void
 TermDb::pop(const Term& var)
 {
-  const std::vector<uint64_t>& levels = var->get_levels();
+  const std::vector<uint64_t>& levels = get_levels(var);
   assert(levels.size() == 1);
   size_t level = levels.back();
   assert(level == d_vars.size() - 1);

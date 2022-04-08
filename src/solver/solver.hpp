@@ -1093,9 +1093,6 @@ class AbsTerm
    */
   Sort get_sort() const;
 
-  void set_levels(const std::vector<uint64_t>& levels);
-  const std::vector<uint64_t>& get_levels() const;
-
   /**
    * Get the leaf kind of this term.
    *
@@ -1125,8 +1122,6 @@ class AbsTerm
    * SPECIAL_VALUE_NONE if this term is not a value or no special value.
    */
   SpecialValueKind d_value_kind = SPECIAL_VALUE_NONE;
-  /* Stores (sorted) list of unique scope levels of all subterms. */
-  std::vector<uint64_t> d_levels = {};
 };
 
 /** The Murxla-internal representation of a term. */

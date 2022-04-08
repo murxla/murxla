@@ -148,7 +148,8 @@ class TermDb
   void add_term(Term& term,
                 Sort& sort,
                 SortKind sort_kind,
-                const std::vector<Term>& args = {});
+                const std::vector<Term>& args             = {},
+                const std::vector<uint64_t>& scope_levels = {});
 
   /**
    * Add input (const, value) to database.
@@ -344,6 +345,12 @@ class TermDb
   /** Get the number of terms of given sort kind stored in the database. */
   size_t get_num_terms(SortKind sort_kind) const;
 
+  /** Set scope levels for a given term. */
+  void set_levels(const Term term, const std::vector<uint64_t>& levels);
+
+  /** Get unique scope levels for a given term. */
+  const std::vector<uint64_t>& get_levels(const Term term) const;
+
   SolverManager& d_smgr;
 
   RNGenerator& d_rng;
@@ -377,6 +384,9 @@ class TermDb
 
   /** Maps scope level to variable that opened the scope. */
   std::vector<Term> d_vars;
+
+  /* Maps term ids to (sorted) list of unique scope levels of all subterms. */
+  std::unordered_map<uint64_t, std::vector<uint64_t>> d_term_levels;
 
   /** Sorts currently used in d_term_db. */
   SortSet d_term_sorts;
