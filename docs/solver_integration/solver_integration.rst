@@ -4,7 +4,7 @@ How to Integrate a Solver
 Integrating a new solver under test only requires to implement a dedicated
 solver wrapper, which then interfaces with Murxla's core components.
 The interface of the wrapper is defined at
-:download:`src/solver/solver.hpp <../../src/solver/solver.hpp>`.
+`src/solver/solver.hpp <https://github.com/murxla/murxla/blob/main/src/solver/solver.hpp>`_.
 It defines abstract classes for sorts (:cpp:class:`murxla::AbsSort`),
 terms (:cpp:class:`murxla::AbsTerm`) and the solver itself
 (:cpp:class:`murxla::Solver`).
