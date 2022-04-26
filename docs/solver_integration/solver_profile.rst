@@ -1,19 +1,25 @@
 Solver Profiles
 ###############
 
-A solver profile is a JSON file to tell Murxla what theories, operators, sorts,
-etc. should be tested for a given solver.
-Each solver provides a default profile that defines what the solver supports.
-The JSON keys described below will affect how Murxla generates API calls.
-However, the JSON file can be arbitrarily extended with solver-specific keys.
+A solver profile is a JSON file ``profile.json`` located in the solver
+directory
+(e.g., `src/solver/cvc5/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/cvc5/profile.json>`_)
+to configure which theories, operators, sorts, etc. should be tested for
+a given solver.
+Each solver must provide a default profile to define what is supported by
+the solver.
 
-**Keys used by Murxla:**
+The *predefined* JSON keys described below will affect how Murxla generates API
+calls. The solver profile JSON file can be arbitrarily extended with
+*solver-specific* keys.
+
+**Predefined keys used by Murxla:**
   - ``theories`` (`<Theory Restrictions_>`_)
   - ``sorts`` (`<Sort Restrictions_>`_)
   - ``operators`` (`<Operator Restrictions_>`_)
   - ``errors`` (`<Filtering Errors_>`_)
 
-In the following ``<THEORY>`` refers to theories defined in
+In the following, ``<THEORY>`` refers to theories defined in
 :cpp:enum:`murxla::Theory`,
 ``<SORT>`` refers to any sort kind :cpp:enum:`murxla::SortKind`,
 and ``<OP>`` refers to any operator :cpp:type:`murxla::Op::Kind`.
@@ -226,27 +232,39 @@ intersection of all ``include`` keys.
 Default Profiles of Supported Solvers
 *************************************
 
-Boolector
-=========
-.. literalinclude:: ../../src/solver/btor/profile.json
-   :language: JSON
+.. tabs::
 
-Bitwuzla
-========
-.. literalinclude:: ../../src/solver/bzla/profile.json
-   :language: JSON
+   .. tab:: Bitwuzla
 
-cvc5
-====
-.. literalinclude:: ../../src/solver/cvc5/profile.json
-   :language: JSON
+      `src/solver/bzla/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/bzla/profile.json>`_
 
-Yices
-=====
-.. literalinclude:: ../../src/solver/yices/profile.json
-   :language: JSON
+      .. literalinclude:: ../../src/solver/bzla/profile.json
+         :language: JSON
 
-SMT2 Solver
-===========
-.. literalinclude:: ../../src/solver/smt2/profile.json
-   :language: JSON
+   .. tab:: Boolector
+
+      `src/solver/btor/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/btor/profile.json>`_
+
+      .. literalinclude:: ../../src/solver/btor/profile.json
+         :language: JSON
+
+   .. tab:: cvc5
+
+      `src/solver/cvc5/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/cvc5/profile.json>`_
+
+      .. literalinclude:: ../../src/solver/cvc5/profile.json
+         :language: JSON
+
+   .. tab:: Yices
+
+      `src/solver/yices/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/yices/profile.json>`_
+
+      .. literalinclude:: ../../src/solver/yices/profile.json
+         :language: JSON
+
+   .. tab:: SMT2 Solver
+
+      `src/solver/smt2/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/smt2/profile.json>`_
+
+      .. literalinclude:: ../../src/solver/smt2/profile.json
+         :language: JSON
