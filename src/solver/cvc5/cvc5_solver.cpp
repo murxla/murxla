@@ -1362,11 +1362,8 @@ Cvc5Solver::mk_sort(
     }
 
     ::cvc5::DatatypeDecl cvc5_dtypedecl =
-        is_parametric
-            ? (psorts.size() == 1 && d_rng.flip_coin()
-                   ? TRACE_SOLVER(mkDatatypeDecl, name, cvc5_psorts[0])
-                   : TRACE_SOLVER(mkDatatypeDecl, name, cvc5_psorts))
-            : TRACE_SOLVER(mkDatatypeDecl, name);
+        is_parametric ? TRACE_SOLVER(mkDatatypeDecl, name, cvc5_psorts)
+                      : TRACE_SOLVER(mkDatatypeDecl, name);
     if (d_rng.pick_with_prob(10))
     {
       MURXLA_TEST(is_parametric == cvc5_dtypedecl.isParametric());
@@ -2341,7 +2338,7 @@ Cvc5Solver::getDatatypeConstructorTerm(::cvc5::Sort dt_sort,
                                        const std::string& ctor_name)
 {
   auto dtc = getDatatypeConstructor(dt_sort, ctor_name);
-  return TRACE_METHOD(getConstructorTerm, dtc);
+  return TRACE_METHOD(getTerm, dtc);
 }
 
 ::cvc5::Term
@@ -2350,7 +2347,7 @@ Cvc5Solver::getDatatypeSelectorTerm(::cvc5::Sort dt_sort,
                                     const std::string& sel_name)
 {
   auto dts = getDatatypeSelector(dt_sort, ctor_name, sel_name);
-  return TRACE_METHOD(getSelectorTerm, dts);
+  return TRACE_METHOD(getTerm, dts);
 }
 
 Term
@@ -2495,8 +2492,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       auto dt  = TRACE_METHOD(getDatatype, cvc5_dt_sort);
       auto dtc = TRACE_METHOD(getConstructor, dt, str_args[0]);
-      cvc5_ctor_term =
-          TRACE_METHOD(getInstantiatedConstructorTerm, dtc, cvc5_dt_sort);
+      cvc5_ctor_term = TRACE_METHOD(getInstantiatedTerm, dtc, cvc5_dt_sort);
     }
     else
     {
@@ -2796,8 +2792,7 @@ Cvc5Solver::check_sort(Sort sort)
       MURXLA_TEST(cvc5_dt_params == cvc5_sort.getDatatype().getParameters());
     }
 
-    ::cvc5::Term cvc5_ctor_term =
-        cvc5_dt.getConstructor(ctor).getConstructorTerm();
+    ::cvc5::Term cvc5_ctor_term = cvc5_dt.getConstructor(ctor).getTerm();
     MURXLA_TEST(cvc5_ctor_term.getSort().isDatatypeConstructor());
 
     ::cvc5::Term cvc5_tester_term =
@@ -2829,7 +2824,7 @@ Cvc5Solver::check_sort(Sort sort)
           d_rng.flip_coin() ? cvc5_dt.getSelector(sel)
                             : cvc5_dt.getConstructor(ctor).getSelector(sel);
 
-      ::cvc5::Term cvc5_sel_term = cvc5_sel.getSelectorTerm();
+      ::cvc5::Term cvc5_sel_term = cvc5_sel.getTerm();
 
       MURXLA_TEST(cvc5_sel_term.getSort().isDatatypeSelector());
 
