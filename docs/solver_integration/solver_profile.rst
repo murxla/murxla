@@ -4,14 +4,24 @@ Solver Profiles
 A solver profile is a JSON file ``profile.json`` located in the solver
 directory
 (e.g., `src/solver/cvc5/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/cvc5/profile.json>`_)
-to configure which theories, operators, sorts, etc. should be tested for
-a given solver.
-Each solver must provide a default profile to define what is supported by
-the solver.
+and allows to arbitrarily configure how and what should be tested.
+The profile file defines what is supported by the solver and therefore each
+solver must provide a profile.
 
-The *predefined* JSON keys described below will affect how Murxla generates API
-calls. The solver profile JSON file can be arbitrarily extended with
-*solver-specific* keys.
+Murxla recognizes a set of *predefined* JSON keys described below will affect
+how Murxla generates API calls. The solver profile JSON file can be arbitrarily
+extended with *solver-specific* keys.
+
+The predefined keys allow to define which theories to include, and optionally
+restrict sort and operator kinds.
+They further allow defining restrictions for unsupported features
+(or to configure a specific test environment, e.g., for fragments of a
+theory),
+skipping issues based on output patterns (useful for false positives that
+require an unreasonable amount of implementation effort to be avoided),
+and explicitly filtering for specific issues.
+
+
 
 **Predefined keys used by Murxla:**
   - ``theories`` (`<Theory Restrictions_>`_)
