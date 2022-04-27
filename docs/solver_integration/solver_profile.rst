@@ -8,9 +8,9 @@ and allows to arbitrarily configure how and what should be tested.
 The profile file defines what is supported by the solver and therefore each
 solver must provide a profile.
 
-Murxla recognizes a set of *predefined* JSON keys described below will affect
-how Murxla generates API calls. The solver profile JSON file can be arbitrarily
-extended with *solver-specific* keys.
+Murxla recognizes a set of *predefined* JSON keys as described below, which will
+affect how Murxla generates API calls. The solver profile JSON file can be
+arbitrarily extended with *solver-specific* keys.
 
 The predefined keys allow to define which theories to include, and optionally
 restrict sort and operator kinds.
