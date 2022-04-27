@@ -1266,17 +1266,6 @@ class Solver
                       Term body) = 0;
 
   /**
-   * Create value from Boolean value.
-   *
-   * This is mainly used for creating Boolean values.
-   *
-   * @param sort   The sort of the value.
-   * @param value  The value.
-   * @return  A term representing the value of given sort.
-   */
-  virtual Term mk_value(Sort sort, bool value) = 0;
-
-  /**
    * Create sort with no additional arguments.
    *
    * Examples are sorts of kind #SORT_BOOL, #SORT_INT, #SORT_REAL, #SORT_RM,
@@ -1319,6 +1308,47 @@ class Solver
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,
                        const std::vector<uint32_t>& indices) = 0;
+
+  /**
+   * Create term with given string and term arguments.
+   *
+   * This is mainly intended for Op::DT_APPLY_SEL, Op::DT_APPLY_TESTER and
+   * Op::DT_APPLY_UPDATER.
+   *
+   * The string arguments identify constructors and selectors by name and
+   * are given for the following kinds as follows:
+   * - Op::DT_APPLY_SEL: `{<constructor name>, <selector name>}`
+   * - Op::DT_APPLY_TESTER: `{<constructor name>}`
+   * - Op::DT_APPLY_UPDATER: `{<constructor name>, <selector name>}`
+   *
+   * @param kind  The kind of the term (Op::Kind).
+   * @param str_args  The names of constructors/selectors as indicated above.
+   * @param args  The argument terms.
+   */
+  virtual Term mk_term(const Op::Kind& kind,
+                       const std::vector<std::string>& str_args,
+                       const std::vector<Term>& args);
+  /**
+   * Create term with given Sort, string and term arguments.
+   *
+   * This is mainly intended for Op::DT_APPLY_CONS, Op::DT_MATCH_BIND_CASE and
+   * Op::DT_MATCH_CASE.
+   *
+   * The string arguments identify constructors and selectors by name and
+   * are given for the following kinds as follows:
+   * - Op::DT_APPLY_CONS: `{<constructor name>}`
+   * - Op::DT_MATCH_BIND_CASE: `{<constructor name>}`
+   * - Op::DT_MATCH_CASE: `{<constructor name>}`
+   *
+   * @param kind  The kind of the term (Op::Kind).
+   * @param sort  The datatype sort to apply the given kind on.
+   * @param str_args  The names of constructors/selectors as indicated above.
+   * @param args  The argument terms.
+   */
+  virtual Term mk_term(const Op::Kind& kind,
+                       Sort sort,
+                       const std::vector<std::string>& str_args,
+                       const std::vector<Term>& args);
 
   /**
    * Get a freshly wrapped solver sort of the given term.
@@ -1626,6 +1656,17 @@ class Solver
   virtual void reset_sat();
 
   /**
+   * Create value from Boolean value.
+   *
+   * This is mainly used for creating Boolean values.
+   *
+   * @param sort   The sort of the value.
+   * @param value  The value.
+   * @return  A term representing the value of given sort.
+   */
+  virtual Term mk_value(Sort sort, bool value) = 0;
+
+  /**
    * Create value from string.
    *
    * This is mainly used for floating-point, integer, real, regular language
@@ -1755,47 +1796,6 @@ class Solver
                                 const std::vector<Sort>& sorts);
 
   /**
-   * Create term with given string and term arguments.
-   *
-   * This is mainly intended for Op::DT_APPLY_SEL, Op::DT_APPLY_TESTER and
-   * Op::DT_APPLY_UPDATER.
-   *
-   * The string arguments identify constructors and selectors by name and
-   * are given for the following kinds as follows:
-   * - Op::DT_APPLY_SEL: `{<constructor name>, <selector name>}`
-   * - Op::DT_APPLY_TESTER: `{<constructor name>}`
-   * - Op::DT_APPLY_UPDATER: `{<constructor name>, <selector name>}`
-   *
-   * @param kind  The kind of the term (Op::Kind).
-   * @param str_args  The names of constructors/selectors as indicated above.
-   * @param args  The argument terms.
-   */
-  virtual Term mk_term(const Op::Kind& kind,
-                       const std::vector<std::string>& str_args,
-                       const std::vector<Term>& args);
-  /**
-   * Create term with given Sort, string and term arguments.
-   *
-   * This is mainly intended for Op::DT_APPLY_CONS, Op::DT_MATCH_BIND_CASE and
-   * Op::DT_MATCH_CASE.
-   *
-   * The string arguments identify constructors and selectors by name and
-   * are given for the following kinds as follows:
-   * - Op::DT_APPLY_CONS: `{<constructor name>}`
-   * - Op::DT_MATCH_BIND_CASE: `{<constructor name>}`
-   * - Op::DT_MATCH_CASE: `{<constructor name>}`
-   *
-   * @param kind  The kind of the term (Op::Kind).
-   * @param sort  The datatype sort to apply the given kind on.
-   * @param str_args  The names of constructors/selectors as indicated above.
-   * @param args  The argument terms.
-   */
-  virtual Term mk_term(const Op::Kind& kind,
-                       Sort sort,
-                       const std::vector<std::string>& str_args,
-                       const std::vector<Term>& args);
-
-  /**
    * Set the logic.
    *
    * SMT-LIB:
@@ -1824,7 +1824,7 @@ class Solver
    *     (get-unsat-core)
    * \endverbatim
    *
-   * @return  A set of terms represnting the unsat core. Returns an empty
+   * @return  A set of terms representing the unsat core. Returns an empty
    *          vector by default.
    *
    * @note Do not override if solver does not support unsat cores.
