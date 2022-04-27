@@ -9,7 +9,7 @@ The following list provides all the member functions of classes
 overriden by a solver wrapper.
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   abssort_overrides
   absterm_overrides
