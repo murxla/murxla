@@ -14,7 +14,7 @@ An example for a **required** override is member function
 a given term. It is implemented in the solver wrapper for **cvc5** (using
 its C++ API) as follows:
 
-.. literalinclude:: ../../src/solver/cvc5/cvc5_solver.cpp
+.. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
    :lines: 974-978
 
@@ -23,7 +23,7 @@ An example for an **optional** override is member function
 of a given term. It is implemented in the solver wrapper for **Bitwuzla**
 (using its C API) as follows:
 
-.. literalinclude:: ../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
    :lines: 673-680
 
@@ -32,7 +32,7 @@ We use a helper function
 to convert Bitwuzla term objects to Bitwuzla solver wrapper term objects,
 which is defined as follows:
 
-.. literalinclude:: ../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
    :lines: 471-480
 
