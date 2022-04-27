@@ -87,3 +87,13 @@ and at the interface between Murxla and the solver wrapper.
 
   sort
   term
+
+Solver-Specific Extensions
+--------------------------
+
+.. todo:: describe
+
+Solver Options
+--------------
+
+.. todo:: describe
