@@ -19,6 +19,15 @@
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * The macro to be used for tracing an exection of an action.
+ *
+ * Seeds the solver wrapper RNG and prepends the current seed to the trace line.
+ * Add trace line contents via `operator<<`, e.g.,
+ * ```
+ * MURXLA_TRACE << <action>.get_kind() << " " << <args...>;
+ * ```
+ */
 #define MURXLA_TRACE                                                 \
   d_solver.get_rng().reseed(d_sng.seed()),                           \
       OstreamVoider()                                                \
@@ -26,6 +35,32 @@
                 << (d_smgr.d_trace_seeds ? d_smgr.trace_seed() : "") \
                 << std::setw(5) << d_sng.seed() << " "
 
+/**
+ * The macro to be used for tracing the return value of an action's execution.
+ *
+ * Add trace return line contents via `operator<<`, e.g., for a sort return
+ * value with id 1,
+ * ```
+ * MURXLA_TRACE_RETURN << <created sort>;
+ * ```
+ * will be traced as
+ * ```
+ * return s1;
+ * ```
+ *
+ * \verbatim embed:rst:leading-asterisk
+ * .. note::
+ *
+ *   For actions that return newly created terms, it is required to
+ *   not only trace the term, but also its sort. This is necessary because
+ *   some operator kinds create terms of possibly yet unseen sorts (e.g.,
+ *   :cpp:member:`murxla::Op::BV_EXTRACT`). Newly created terms are traced as
+ *
+ *   .. code::
+ *
+ *      MURXLA_TRACE_RETURN << <created term> << " " << <sort of created term>;
+ * \endverbatim
+ */
 #define MURXLA_TRACE_RETURN                                         \
   OstreamVoider()                                                   \
       & Action::TraceStream(d_smgr).stream() << std::setw(6) << " " \
