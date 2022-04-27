@@ -17,11 +17,11 @@ overrides of functions
 For example, in the solver wrapper for **cvc5** (using its C++ API) these are
 implemented as follows:
 
-.. literalinclude:: ../../src/solver/cvc5/cvc5_solver.cpp
+.. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
    :lines: 1169-1175
 
-.. literalinclude:: ../../src/solver/cvc5/cvc5_solver.cpp
+.. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
    :lines: 1177-1183
 
@@ -30,7 +30,7 @@ Another example for a **required** override is member function
 solver under test.
 It is implemented for **cvc5** as follows:
 
-.. literalinclude:: ../../src/solver/cvc5/cvc5_solver.cpp
+.. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
    :lines: 1197-1201
 
@@ -40,7 +40,7 @@ terms representing the unsat core of the currently asserted formula.
 It is implemented in the solver wrapper for **Bitwuzla**
 (using its C API) as follows:
 
-.. literalinclude:: ../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
    :lines: 1384-1396
 

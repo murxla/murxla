@@ -14,7 +14,7 @@ An example for a **required** override is member function
 are equal. It is implemented in the solver wrapper for **cvc5** (using its
 C++ API) as follows:
 
-.. literalinclude:: ../../src/solver/cvc5/cvc5_solver.cpp
+.. literalinclude:: ../../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
    :lines: 61-70
 
@@ -23,7 +23,7 @@ An example for an **optional** override is member function
 is a bit-vector sort. It is implemented in the solver wrapper for **Bitwuzla**
 (using its C API) as follows:
 
-.. literalinclude:: ../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
    :lines: 108-112
 
