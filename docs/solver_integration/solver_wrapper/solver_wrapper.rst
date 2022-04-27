@@ -19,8 +19,12 @@ solver itself (:cpp:class:`murxla::Solver`).
   absterm
   solver
 
-A solver wrapper **derives** from these three abstract classes and must
-**at least** override the member functions required to be overriden.
+Solver Wrapper Implementation
+-----------------------------
+
+A solver wrapper **derives** solver-specific classes from the three abstract
+classes of the interface and must **at least** override the member functions
+required to be overriden.
 Additionally, for each class, there exists a set of member functions with
 default implementations that **should** be overriden (if supported) to test the
 solver (see :ref:`the list of required and optional overrides
@@ -30,6 +34,42 @@ solver (see :ref:`the list of required and optional overrides
   :maxdepth: 2
 
   overrides
+
+Random Number Generator (RNG)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Murxla's generic solver API as implemented in the solver wrapper interface
+aims at providing an interface for the solver under test that allows to plug
+in any variants of API functions for specific SMT-LIB features.
+For example, :cpp:func:`murxla::Solver::mk_value()` provides one interface
+for creating bit-vector values
+(``murxla::Solver::mk_value(Sort sort, const std::string& value, Base base)``),
+but most solvers provide API functions that take either a string or integer
+representation for the value as argument.
+For cases like this, it is useful to be able to randomly decide, for each call,
+which API function of the solver under test to use.
+
+In order to be able to deterministically replay a given trace, even when
+minimized, it is necessary to decouple non-deterministic choices
+in the solver wrapper from Murxla's main RNG. Thus, the solver wrapper base
+class maintains an independent RNG, which is seeded with a random seed at the
+beginning of each call to the execution function of an action (naming
+convention: ``<Action>::run(<args>)``). This seed is traced, and since each
+call to ``run()`` must first trace the Action's execution via macro
+:c:macro:`MURXLA_TRACE`, we automatically seed the solver wrapper's RNG
+there and prepend the seed to the trace line:
+
+.. literalinclude:: ../../../src/action.hpp
+   :language: cpp
+   :lines: 31-36
+
+The solver wrapper's RNG can be directly accessed as the protected member
+:cpp:member:`murxla::Solver::d_rng`, or via
+:cpp:func:`murxla::Solver::get_rng()`.
+
+
+Global Sort and Term Handling
+-----------------------------
 
 Murxla defines types
 :cpp:type:`Sort<murxla::Sort>` and :cpp:type:`Term<murxla::Term>`
@@ -47,4 +87,3 @@ and at the interface between Murxla and the solver wrapper.
 
   sort
   term
-
