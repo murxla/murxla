@@ -11,3 +11,5 @@ Advanced Documentation
   theory
 
   fsm/index
+  solver_manager
+  solver_option

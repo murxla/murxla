@@ -14,13 +14,9 @@
 
 namespace murxla {
 
-SolverOption::SolverOption(const std::string& name,
-                           const std::vector<std::string>& depends,
-                           const std::vector<std::string>& conflicts)
-    : d_name(name), d_depends(), d_conflicts()
+SolverOption::SolverOption(const std::string& name)
+    : d_name(name)
 {
-  d_conflicts.insert(conflicts.begin(), conflicts.end());
-  d_depends.insert(depends.begin(), depends.end());
 };
 
 const std::string&
@@ -29,34 +25,9 @@ SolverOption::get_name() const
   return d_name;
 }
 
-const std::unordered_set<std::string>&
-SolverOption::get_conflicts() const
-{
-  return d_conflicts;
-}
-const std::unordered_set<std::string>&
-SolverOption::get_depends() const
-{
-  return d_depends;
-}
-
-void
-SolverOption::add_conflict(const std::string& opt_name)
-{
-  d_conflicts.insert(opt_name);
-}
-
-void
-SolverOption::add_depends(const std::string& opt_name)
-{
-  d_depends.insert(opt_name);
-}
-
 SolverOptionBool::SolverOptionBool(const std::string& name,
-                                   bool default_value,
-                                   const std::vector<std::string>& depends,
-                                   const std::vector<std::string>& conflicts)
-    : SolverOption(name, depends, conflicts), d_default(default_value){};
+                                   bool default_value)
+    : SolverOption(name), d_default(default_value){};
 
 std::string
 SolverOptionBool::pick_value(RNGenerator& rng) const
@@ -66,10 +37,8 @@ SolverOptionBool::pick_value(RNGenerator& rng) const
 
 SolverOptionList::SolverOptionList(const std::string& name,
                                    const std::vector<std::string>& values,
-                                   const std::string& default_value,
-                                   const std::vector<std::string>& depends,
-                                   const std::vector<std::string>& conflicts)
-    : SolverOption(name, depends, conflicts),
+                                   const std::string& default_value)
+    : SolverOption(name),
       d_values(values),
       d_default(default_value){};
 

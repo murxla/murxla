@@ -20,40 +20,36 @@
 
 namespace murxla {
 
+/** Base class representing a solver option. */
 class SolverOption
 {
  public:
-  SolverOption(const std::string& name,
-               const std::vector<std::string>& depends,
-               const std::vector<std::string>& conflicts);
+  SolverOption(const std::string& name);
   virtual ~SolverOption() = default;
 
+  /** Picks a random option value. */
   virtual std::string pick_value(RNGenerator& rng) const = 0;
 
+  /** Get the name of the option. */
   const std::string& get_name() const;
-  const std::unordered_set<std::string>& get_conflicts() const;
-  const std::unordered_set<std::string>& get_depends() const;
-
-  void add_conflict(const std::string& opt_name);
-  void add_depends(const std::string& opt_name);
 
  private:
+  /** The name of the option. */
   std::string d_name;
-  std::unordered_set<std::string> d_depends;
-  std::unordered_set<std::string> d_conflicts;
 };
 
 class SolverOptionBool : public SolverOption
 {
  public:
-  SolverOptionBool(const std::string& name,
-                   bool default_value,
-                   const std::vector<std::string>& depends   = {},
-                   const std::vector<std::string>& conflicts = {});
+  /** Constructor for Boolean options. */
+  SolverOptionBool(const std::string& name, bool default_value);
   ~SolverOptionBool() = default;
+
+  /** Pick random Boolean value. */
   std::string pick_value(RNGenerator& rng) const override;
 
  private:
+  /** The default Boolean value of the option. */
   bool d_default;
 };
 
@@ -61,18 +57,18 @@ template <typename T>
 class SolverOptionNum : public SolverOption
 {
  public:
+  /** Constructor for numeric options. */
   SolverOptionNum(const std::string& name,
                   T min,
                   T max,
-                  T default_value,
-                  const std::vector<std::string>& depends   = {},
-                  const std::vector<std::string>& conflicts = {})
-      : SolverOption(name, depends, conflicts),
+                  T default_value)
+      : SolverOption(name),
         d_min(min),
         d_max(max),
         d_default(default_value){};
   ~SolverOptionNum() = default;
 
+  /** Picks a random numeric value between d_min and d_max. */
   std::string pick_value(RNGenerator& rng) const override
   {
     std::stringstream ss;
@@ -81,24 +77,30 @@ class SolverOptionNum : public SolverOption
   }
 
  private:
+  /** The minimum numeric value of the option. */
   T d_min;
+  /** The maximum numeric value of the option. */
   T d_max;
+  /** The default numeric value of the option. */
   T d_default;
 };
 
 class SolverOptionList : public SolverOption
 {
  public:
+  /** Constructor for list options. */
   SolverOptionList(const std::string& name,
                    const std::vector<std::string>& values,
-                   const std::string& default_value,
-                   const std::vector<std::string>& depends   = {},
-                   const std::vector<std::string>& conflicts = {});
+                   const std::string& default_value);
   ~SolverOptionList() = default;
+
+  /** Picks a random option value from the list of available values. */
   std::string pick_value(RNGenerator& rng) const override;
 
  private:
+  /** The list of valid option values. */
   std::vector<std::string> d_values;
+  /** The default value of the option. */
   std::string d_default;
 };
 

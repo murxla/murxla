@@ -167,4 +167,23 @@ Unsupported actions can be disabled via overriding
 Solver Options
 --------------
 
-.. todo:: describe
+To enable option fuzzing, a solver wrapper can advertise a set of options
+to Murxla by overriding :cpp:func:`murxla::Solver::configure_options()`.
+Options can be added via the :cpp:func:`murxla::SolverManager::add_option()`
+of the solver manager object passed to
+:cpp:func:`murxla::Solver::configure_options()`.
+
+Murxla distinguishes three different
+:doc:`option types</solver_option>`:
+
+- Boolean options :cpp:class:`murxla::SolverOptionBool`
+- Numeric options :cpp:class:`murxla::SolverOptionNum`
+- Options with multiple string values :cpp:class:`murxla::SolverOptionList`
+
+For example Bitwuzla supports querying all available options via its API, which
+makes adding these options in
+:cpp:func:`murxla::Solver::configure_options()` very simple:
+
+.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+   :language: cpp
+   :lines: 1641-1669

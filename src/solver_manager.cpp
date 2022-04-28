@@ -1362,36 +1362,10 @@ SolverManager::pick_option(std::string name, std::string val)
     if (d_solver_options.empty()) return std::make_pair("", "");
 
     std::vector<SolverOption*> available;
-    bool skip;
 
     for (auto const& opt : d_solver_options)
     {
-      option = opt.second.get();
-
-      /* Filter out conflicting options */
-      skip = false;
-      for (auto conflict : option->get_conflicts())
-      {
-        if (is_option_used(conflict))
-        {
-          skip = true;
-          break;
-        }
-      }
-      if (skip) continue;
-
-      /* Filter out options that depend on each other */
-      for (auto depend : option->get_depends())
-      {
-        if (!is_option_used(depend))
-        {
-          skip = true;
-          break;
-        }
-      }
-      if (skip) continue;
-
-      available.push_back(option);
+      available.push_back(opt.second.get());
     }
 
     option = available[d_rng.pick<uint32_t>() % available.size()];
