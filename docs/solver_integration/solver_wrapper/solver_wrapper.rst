@@ -91,7 +91,69 @@ and at the interface between Murxla and the solver wrapper.
 Solver-Specific Extensions
 --------------------------
 
-.. todo:: describe
+Murxla supports various extensions with **solver-specific features**,
+i.e., features that cannot be plugged in via the generic solver wrapper API.
+
+Operator Kinds
+^^^^^^^^^^^^^^
+
+Solver-specific operator kinds are (by convention) defined as a static const
+member of type :cpp:type:`murxla::Op::Kind` of the solver wrapper implementation
+of :cpp:class:`murxla::AbsTerm`.
+By convention, we prefix solver-specific operator kinds with the solver's
+(short) name.
+For example, the solver wrapper for Bitwuzla defines a bit-vector decrement
+operator as member of :cpp:class:`murxla::BzlaTerm` as
+
+.. literalinclude:: ../../../src/solver/bzla/bzla_solver.hpp
+   :language: cpp
+   :lines: 91
+
+Solver-specific operator kinds are added to the
+:ref:`operator kind manager <opmgr>` via overriding
+:cpp:func:`murxla::Solver::configure_opmgr`, e.g.,
+
+.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+   :language: cpp
+   :lines: 1593
+
+
+Special Value Kinds
+^^^^^^^^^^^^^^^^^^^
+
+Murxla introduces the notion of :cpp:type:`murxla::AbsTerm::SpecialValueKind`
+for values that can be considered a special value in a theory, e.g.,
+floating-point NaN (of a given floating-point format), or the minimum signed
+bit-vector value (of a given bit-width). Terms representing special values
+are created via :cpp:func:`murxla::Solver::mk_special_value()`.
+
+As with solver-specific operator kinds, solver-specific special value kinds are
+(by convention) defined as a static const member of type
+:cpp:type:`murxla::AbsTerm::SpecialValueKind` of the solver wrapper
+implementation of :cpp:class:`murxla::AbsTerm`.
+And again, by convention, we prefix solver-specific special value kinds with
+the solver's (short) name.
+
+Solver wrappers can configure solver-specific special value kinds via
+:cpp:func:`murxla::Solver::add_special_value()`.
+
+Actions
+^^^^^^^
+
+Unsupported Features
+^^^^^^^^^^^^^^^^^^^^
+
+Murxla requires to define a solver profile (see :ref:`solver_profiles`) to
+define the solver test configuration. The solver profile allows to define
+which theories to consider and to disable unsupported sort and operator kinds.
+Unsupported actions can be disabled via overriding
+:cpp:func:`murxla::Solver::disable_unsupported_actions()`.
+
+
+
+.. todo::
+
+   - configure_fsm
 
 Solver Options
 --------------

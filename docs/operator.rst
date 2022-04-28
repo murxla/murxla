@@ -22,6 +22,8 @@ Operator and Operator Kind
     :members:
     :undoc-members:
 
+.. _opmgr:
+
 Operator Management
 -------------------
 .. doxygenclass:: murxla::OpKindManager
