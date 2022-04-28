@@ -34,20 +34,20 @@ is responsible for asserting a random formula (SMT-LIB: ``assert``).
 It generates the arguments to the action execution by picking a random
 Boolean term:
 
-.. literalinclude:: ../../src/action.cpp
+.. literalinclude:: ../../../src/action.cpp
   :language: cpp
   :lines: 3159-3168
 
 Its execution is implemented in :cpp:func:`murxla::ActionAssertFormula::run()`
 and interacts with the solver via the generic solver wrapper API:
 
-.. literalinclude:: ../../src/action.cpp
+.. literalinclude:: ../../../src/action.cpp
   :language: cpp
   :lines: 3180-3186
 
 Its replayed via :cpp:func:`murxla::ActionAssertFormula::untrace()` as follows:
 
-.. literalinclude:: ../../src/action.cpp
+.. literalinclude:: ../../../src/action.cpp
   :language: cpp
   :lines: 3170-3178
 
@@ -59,7 +59,7 @@ action ``BzlaActionTermIsEqualSort`` for comparing the sort of two terms,
 and its execution ``BzlaActionTermIsEqualSort::run(Term, Term)`` is implemented
 follows:
 
-.. literalinclude:: ../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
   :language: cpp
   :lines: 2412-2421
 
@@ -96,7 +96,7 @@ Each call to ``run()`` must first trace the Action's execution via macro
 :c:macro:`MURXLA_TRACE`, and we automatically seed the solver wrapper's RNG
 there and prepend the seed to the trace line:
 
-.. literalinclude:: ../../src/action.hpp
+.. literalinclude:: ../../../src/action.hpp
    :language: cpp
    :lines: 31-36
 

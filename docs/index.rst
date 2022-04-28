@@ -9,7 +9,7 @@ Table of Contents
 
   install
   usage
-  solver_integration/solver_integration.rst
-  advanced
+  solver_integration/solver_integration
+  advanced/advanced
 
 
