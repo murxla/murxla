@@ -1,3 +1,5 @@
+.. _solver_options:
+
 Solver Options
 ==============
 

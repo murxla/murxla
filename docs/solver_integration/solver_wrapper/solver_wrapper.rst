@@ -174,15 +174,16 @@ of the solver manager object passed to
 :cpp:func:`murxla::Solver::configure_options()`.
 
 Murxla distinguishes three different
-:doc:`option types</solver_option>`:
+:ref:`option types <solver_options>`:
 
-- Boolean options :cpp:class:`murxla::SolverOptionBool`
-- Numeric options :cpp:class:`murxla::SolverOptionNum`
-- Options with multiple string values :cpp:class:`murxla::SolverOptionList`
+- Boolean options (:cpp:class:`murxla::SolverOptionBool`)
+- Numeric options (:cpp:class:`murxla::SolverOptionNum`)
+- Options with multiple string values (:cpp:class:`murxla::SolverOptionList`)
 
-For example Bitwuzla supports querying all available options via its API, which
-makes adding these options in
-:cpp:func:`murxla::Solver::configure_options()` very simple:
+For example, Bitwuzla supports querying all available options via its API.
+This makes adding options via overriding
+:cpp:func:`murxla::Solver::configure_options()`
+very easy since it allows to add options in an automated way:
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
