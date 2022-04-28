@@ -5,6 +5,8 @@ Advanced Documentation
   :maxdepth: 2
 
   solver_wrapper_interface/solver_wrapper_interface
+  sort
+  term
   sort_kind
   operator
   special_value_kinds

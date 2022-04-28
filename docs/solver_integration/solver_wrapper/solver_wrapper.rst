@@ -85,8 +85,8 @@ and at the interface between Murxla and the solver wrapper.
 .. toctree::
   :maxdepth: 2
 
-  sort
-  term
+  ../../advanced/sort
+  ../../advanced/term
 
 Solver-Specific Extensions
 --------------------------
@@ -149,8 +149,8 @@ solver-specific kinds via
 Actions
 ^^^^^^^
 
-Unsupported Features
-^^^^^^^^^^^^^^^^^^^^
+Features Unsupported By The Solver Under Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Murxla requires to define a solver profile (see :ref:`solver_profiles`) to
 define the solver test configuration. The solver profile allows to define
