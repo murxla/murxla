@@ -15,9 +15,9 @@ solver itself (:cpp:class:`murxla::Solver`).
 .. toctree::
   :maxdepth: 2
 
-  abssort
-  absterm
-  solver
+  ../../advanced/solver_wrapper_interface/abssort
+  ../../advanced/solver_wrapper_interface/absterm
+  ../../advanced/solver_wrapper_interface/solver
 
 Solver Wrapper Implementation
 -----------------------------
@@ -124,8 +124,16 @@ Special Value Kinds
 Murxla introduces the notion of :cpp:type:`murxla::AbsTerm::SpecialValueKind`
 for values that can be considered a special value in a theory, e.g.,
 floating-point NaN (of a given floating-point format), or the minimum signed
-bit-vector value (of a given bit-width). Terms representing special values
-are created via :cpp:func:`murxla::Solver::mk_special_value()`.
+bit-vector value (of a given bit-width).
+
+Terms representing special values are created via
+:cpp:func:`murxla::Solver::mk_special_value()`. A list of all special value
+kinds defined in :cpp:class:`murxla::AbsTerm` is provided below:
+
+.. toctree::
+  :maxdepth: 1
+
+  ../../advanced/special_value_kinds
 
 As with solver-specific operator kinds, solver-specific special value kinds are
 (by convention) defined as a static const member of type
@@ -134,7 +142,8 @@ implementation of :cpp:class:`murxla::AbsTerm`.
 And again, by convention, we prefix solver-specific special value kinds with
 the solver's (short) name.
 
-Solver wrappers can configure solver-specific special value kinds via
+Solver wrappers can extend the pre-defined list of special value kinds with
+solver-specific kinds via
 :cpp:func:`murxla::Solver::add_special_value()`.
 
 Actions

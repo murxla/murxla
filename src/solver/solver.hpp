@@ -665,6 +665,11 @@ class AbsTerm
    */
   using SpecialValueKind = std::string;
 
+  /**
+   * \addtogroup special-value-kinds
+   * @{
+   */
+
   /** The kind of a term that is not a special value. */
   inline static const SpecialValueKind SPECIAL_VALUE_NONE =
       "not-a-special-value";
@@ -733,6 +738,8 @@ class AbsTerm
   /** The kind of a term representing the universe set. */
   inline static const SpecialValueKind SPECIAL_VALUE_SET_UNIVERSE =
       "set.universe";
+
+  /** @} */
 
   /** The leaf kind of a term. */
   enum LeafKind
