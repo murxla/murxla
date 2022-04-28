@@ -27,7 +27,7 @@ class SolverOption
   SolverOption(const std::string& name);
   virtual ~SolverOption() = default;
 
-  /** Picks a random option value. */
+  /** Pick a random option value. */
   virtual std::string pick_value(RNGenerator& rng) const = 0;
 
   /** Get the name of the option. */

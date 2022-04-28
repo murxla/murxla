@@ -149,6 +149,21 @@ solver-specific kinds via
 Actions
 ^^^^^^^
 
+Murxla defines a base API model implementing SMT-LIB semantics
+(as a finite state machine, see :doc:`../../advanced/fsm/fsm`) with a
+:ref:`base set of actions <base_actions>`.
+This base API model can be extended with solver-specific features that cannot
+be immediately plugged into the base API Model by adding transitions with
+associated solver-specific actions to the FSM via overriding
+:cpp:func:`murxla::Solver::configure_fsm()`.
+
+Solver-specific actions directly interact with the API of the solver under test
+(see :ref:`actions`).
+They are added to an existing (or new, solver-specific)
+state while defining its priority and (optionally) a next state via
+:cpp:func:`murxla::State::add_action()`
+(see :ref:`fsm_configuration`).
+
 Features Unsupported By The Solver Under Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -157,12 +172,6 @@ define the solver test configuration. The solver profile allows to define
 which theories to consider and to disable unsupported sort and operator kinds.
 Unsupported actions can be disabled via overriding
 :cpp:func:`murxla::Solver::disable_unsupported_actions()`.
-
-
-
-.. todo::
-
-   - configure_fsm
 
 Solver Options
 --------------

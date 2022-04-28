@@ -1,3 +1,5 @@
+.. _actions:
+
 FSM: Actions
 ============
 
@@ -104,6 +106,8 @@ there and prepend the seed to the trace line:
 
 .. doxygendefine:: MURXLA_TRACE_RETURN
 
+.. _fsm_configuration:
+
 FSM Configuration
 -----------------
 
@@ -113,6 +117,10 @@ state to transition into (or remaining in the state it's been added to).
 We further derive a class :cpp:class:`murxla::Transition` from
 :cpp:class:`murxla::Action`, which represents a transition from one state to
 the next without executing any solver API calls (an *empty* action).
+
+Existing states are retrieved via :cpp:func:`murxla::FSM::get_state()`,
+new states are created and added via :cpp:func:`murxla::FSM::new_state()`
+(see :ref:`states`).
 
 Each action added to a state via :cpp:func:`murxla::State::add_action()` has a
 weight, which is defined via its ``priority``, with ``1`` as the highest

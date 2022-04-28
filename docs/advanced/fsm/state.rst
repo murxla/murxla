@@ -1,8 +1,7 @@
+.. _states:
+
 FSM: States
 ===========
-
-.. contents::
-  :local:
 
 A state of the FSM corresponds to the current state of the solver under test.
 Transitions from one state to another (or the same) state either have an
