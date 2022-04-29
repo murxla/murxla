@@ -28,7 +28,7 @@ required to be overriden.
 Additionally, for each class, there exists a set of member functions with
 default implementations that **should** be overriden (if supported) to test the
 solver (see :ref:`the list of required and optional overrides
-<wrapper_overrides>` below).
+<wrapper-overrides>` below).
 
 .. toctree::
   :maxdepth: 2
@@ -151,7 +151,7 @@ Actions
 
 Murxla defines a base API model implementing SMT-LIB semantics
 (as a finite state machine, see :doc:`../../advanced/fsm/fsm`) with a
-:ref:`base set of actions <base_actions>`.
+:ref:`base set of actions <base-actions>`.
 This base API model can be extended with solver-specific features that cannot
 be immediately plugged into the base API Model by adding transitions with
 associated solver-specific actions to the FSM via overriding
@@ -162,12 +162,12 @@ Solver-specific actions directly interact with the API of the solver under test
 They are added to an existing (or new, solver-specific)
 state while defining its priority and (optionally) a next state via
 :cpp:func:`murxla::State::add_action()`
-(see :ref:`fsm_configuration`).
+(see :ref:`fsm-configuration`).
 
 Features Unsupported By The Solver Under Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Murxla requires to define a solver profile (see :ref:`solver_profiles`) to
+Murxla requires to define a solver profile (see :ref:`solver-profiles`) to
 define the solver test configuration. The solver profile allows to define
 which theories to consider and to disable unsupported sort and operator kinds.
 Unsupported actions can be disabled via overriding
@@ -183,7 +183,7 @@ of the solver manager object passed to
 :cpp:func:`murxla::Solver::configure_options()`.
 
 Murxla distinguishes three different
-:ref:`option types <solver_options>`:
+:ref:`option types <solver-options>`:
 
 - Boolean options (:cpp:class:`murxla::SolverOptionBool`)
 - Numeric options (:cpp:class:`murxla::SolverOptionNum`)

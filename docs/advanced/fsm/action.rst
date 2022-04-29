@@ -4,7 +4,7 @@ FSM: Actions
 ============
 
 An action defines a **specific interaction** with the solver under test.
-The actual interaction of the :ref:`the base set of actions <base_actions>`
+The actual interaction of the :ref:`the base set of actions <base-actions>`
 with the solver happens via one or more calls to the
 API of the :ref:`solver wrapper <solver-wrappers>`.
 Solver-specific actions directly interact with the API of the solver under
@@ -31,7 +31,7 @@ As a **convention**, an action derived from :cpp:class:`murxla::Action`
   and :cpp:func:`murxla::Action::untrace()` execute an action in the same way
 
 For example, action :cpp:class:`murxla::ActionAssertFormula`
-(from the :ref:`base set of actions <base_actions>`)
+(from the :ref:`base set of actions <base-actions>`)
 is responsible for asserting a random formula (SMT-LIB: ``assert``).
 It generates the arguments to the action execution by picking a random
 Boolean term:
@@ -106,7 +106,7 @@ there and prepend the seed to the trace line:
 
 .. doxygendefine:: MURXLA_TRACE_RETURN
 
-.. _fsm_configuration:
+.. _fsm-configuration:
 
 FSM Configuration
 -----------------
@@ -127,7 +127,7 @@ weight, which is defined via its ``priority``, with ``1`` as the highest
 priority, ``UINT32_MAX`` the lowest priority, and ``0`` corresponding to
 disabling the action.
 
-.. _base_actions:
+.. _base-actions:
 
 The Base Class for Actions
 --------------------------

@@ -1,4 +1,4 @@
-.. _solver_profiles:
+.. _solver-profiles:
 
 Solver Profiles
 ###############

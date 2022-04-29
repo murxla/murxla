@@ -1,4 +1,4 @@
-.. _wrapper_overrides:
+.. _wrapper-overrides:
 
 Overrides for Solver Wrapper Implementation
 ===========================================

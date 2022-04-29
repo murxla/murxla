@@ -1,4 +1,4 @@
-.. _solver_options:
+.. _solver-options:
 
 Solver Options
 ==============
