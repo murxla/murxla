@@ -16,7 +16,8 @@ C++ API) as follows:
 
 .. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
-   :lines: 61-70
+   :start-after: docs-cvc5-sort-equals start
+   :end-before: docs-cvc5-sort-equals end
 
 An example for an **optional** override is member function
 :cpp:func:`murxla::AbsSort::is_bv()`, which determines if a given sort
@@ -25,7 +26,8 @@ is a bit-vector sort. It is implemented in the solver wrapper for **Bitwuzla**
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
-   :lines: 108-112
+   :start-after: docs-bzla-sort-is_bv start
+   :end-before: docs-bzla-sort-is_bv end
 
 The following list provides all the member functions of class
 :cpp:class:`murxla::AbsSort` that are required or optional to be

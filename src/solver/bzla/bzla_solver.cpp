@@ -105,11 +105,13 @@ BzlaSort::is_bool() const
   return res && d_kind == SORT_BOOL;
 }
 
+//! [docs-bzla-sort-is_bv start]
 bool
 BzlaSort::is_bv() const
 {
   return bitwuzla_sort_is_bv(d_sort);
 }
+//! [docs-bzla-sort-is_bv end]
 
 bool
 BzlaSort::is_fp() const
@@ -468,6 +470,7 @@ BzlaTerm::bzla_terms_to_terms(const std::vector<const BitwuzlaTerm*>& terms)
   return res;
 }
 
+//! [docs-bzla-term-bzla_terms_to_terms start]
 std::vector<Term>
 BzlaTerm::bzla_terms_to_terms(const BitwuzlaTerm** terms, size_t size)
 {
@@ -478,6 +481,7 @@ BzlaTerm::bzla_terms_to_terms(const BitwuzlaTerm** terms, size_t size)
   }
   return res;
 }
+//! [docs-bzla-term-bzla_terms_to_terms end]
 
 std::vector<const BitwuzlaTerm*>
 BzlaTerm::terms_to_bzla_terms(const std::vector<Term>& terms)
@@ -670,6 +674,7 @@ BzlaTerm::get_kind() const
   return s_bzla_kinds_to_kinds.at(bzla_kind);
 }
 
+//! [docs-bzla-term-get_children start]
 std::vector<Term>
 BzlaTerm::get_children() const
 {
@@ -678,6 +683,7 @@ BzlaTerm::get_children() const
   const BitwuzlaTerm** bzla_res = bitwuzla_term_get_children(d_term, &size);
   return bzla_terms_to_terms(bzla_res, size);
 }
+//! [docs-bzla-term-get_children end]
 
 bool
 BzlaTerm::is_indexed() const
@@ -1381,6 +1387,7 @@ BzlaSolver::get_unsat_assumptions()
   return res;
 }
 
+//! [docs-bzla-solver-get_unsat_core start]
 std::vector<Term>
 BzlaSolver::get_unsat_core()
 {
@@ -1394,6 +1401,7 @@ BzlaSolver::get_unsat_core()
   }
   return res;
 }
+//! [docs-bzla-solver-get_unsat_core end]
 
 std::vector<Term>
 BzlaSolver::get_value(const std::vector<Term>& terms)
@@ -1590,7 +1598,9 @@ BzlaSolver::check_term(Term term)
 void
 BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
 {
+//! [docs-bzla-solver-configure_opmgr_bv_dec start]
   opmgr->add_op_kind(BzlaTerm::OP_BV_DEC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+//! [docs-bzla-solver-configure_opmgr_bv_dec end]
   opmgr->add_op_kind(BzlaTerm::OP_BV_INC, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
 
   opmgr->add_op_kind(
@@ -1638,6 +1648,7 @@ BzlaSolver::configure_opmgr(OpKindManager* opmgr) const
 /* Option configuration.                                                      */
 /* -------------------------------------------------------------------------- */
 
+//! [docs-bzla-solver-configure_options start]
 void
 BzlaSolver::configure_options(SolverManager* smgr) const
 {
@@ -1667,6 +1678,7 @@ BzlaSolver::configure_options(SolverManager* smgr) const
   }
   bitwuzla_delete(bzla);
 }
+//! [docs-bzla-solver-configure_options end]
 
 /* -------------------------------------------------------------------------- */
 /* FSM configuration.                                                         */
@@ -2409,6 +2421,7 @@ class BzlaActionTermIsEqualSort : public Action
   }
 
  private:
+  //! [docs-bzla-action-termisequalsort-run start]
   void run(Term term0, Term term1)
   {
     MURXLA_TRACE << get_kind() << " " << term0 << " " << term1;
@@ -2419,6 +2432,7 @@ class BzlaActionTermIsEqualSort : public Action
       MURXLA_TEST(bitwuzla_term_is_equal_sort(bzla_term0, bzla_term1));
     }
   }
+  //! [docs-bzla-action-termisequalsort-run end]
 };
 
 class BzlaActionMisc : public Action

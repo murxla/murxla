@@ -58,6 +58,7 @@ Cvc5Sort::hash() const
   return std::hash<::cvc5::Sort>{}(d_sort);
 }
 
+//! [docs-cvc5-sort-equals start]
 bool
 Cvc5Sort::equals(const Sort& other) const
 {
@@ -68,6 +69,7 @@ Cvc5Sort::equals(const Sort& other) const
   }
   return false;
 }
+//! [docs-cvc5-sort-equals end]
 
 bool
 Cvc5Sort::not_equals(const Sort& other) const
@@ -971,11 +973,13 @@ Cvc5Term::terms_to_cvc5_terms(const std::vector<Term>& terms)
   return res;
 }
 
+//! [docs-cvc5-term-hash start]
 size_t
 Cvc5Term::hash() const
 {
   return std::hash<::cvc5::Term>{}(d_term);
 }
+//! [docs-cvc5-term-hash end]
 
 bool
 Cvc5Term::equals(const Term& other) const
@@ -1166,6 +1170,7 @@ Cvc5Solver::~Cvc5Solver()
   }
 }
 
+//! [docs-cvc5-solver-new_solver start]
 void
 Cvc5Solver::new_solver()
 {
@@ -1173,7 +1178,9 @@ Cvc5Solver::new_solver()
   d_solver = new ::cvc5::Solver();
   d_tracer.init();
 }
+//! [docs-cvc5-solver-new_solver end]
 
+//! [docs-cvc5-solver-delete_solver start]
 void
 Cvc5Solver::delete_solver()
 {
@@ -1181,6 +1188,7 @@ Cvc5Solver::delete_solver()
   delete d_solver;
   d_solver = nullptr;
 }
+//! [docs-cvc5-solver-delete_solver end]
 
 ::cvc5::Solver*
 Cvc5Solver::get_solver()
@@ -1194,11 +1202,13 @@ Cvc5Solver::is_initialized() const
   return d_solver != nullptr;
 }
 
+//! [docs-cvc5-solver-get_name start]
 const std::string
 Cvc5Solver::get_name() const
 {
   return "cvc5";
 }
+//! [docs-cvc5-solver-get_name end]
 
 const std::string
 Cvc5Solver::get_profile() const

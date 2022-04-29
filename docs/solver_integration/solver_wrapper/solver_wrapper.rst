@@ -61,7 +61,8 @@ there and prepend the seed to the trace line:
 
 .. literalinclude:: ../../../src/action.hpp
    :language: cpp
-   :lines: 31-36
+   :start-after: docs-murxla_trace start
+   :end-before: docs-murxla_trace end
 
 The solver wrapper's RNG can be directly accessed as the protected member
 :cpp:member:`murxla::Solver::d_rng`, or via
@@ -107,7 +108,8 @@ operator as member of :cpp:class:`murxla::BzlaTerm` as
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.hpp
    :language: cpp
-   :lines: 91
+   :start-after: docs-bzla-op-bv_dec start
+   :end-before: docs-bzla-op-bv_dec end
 
 Solver-specific operator kinds are added to the
 :ref:`operator kind manager <opmgr>` via overriding
@@ -115,7 +117,8 @@ Solver-specific operator kinds are added to the
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
-   :lines: 1593
+   :start-after: docs-bzla-solver-configure_opmgr_bv_dec start
+   :end-before: docs-bzla-solver-configure_opmgr_bv_dec end
 
 
 Special Value Kinds
@@ -196,4 +199,5 @@ very easy since it allows to add options in an automated way:
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
-   :lines: 1641-1669
+   :start-after: docs-bzla-solver-configure_options start
+   :end-before: docs-bzla-solver-configure_options end

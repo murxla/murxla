@@ -37,21 +37,24 @@ It generates the arguments to the action execution by picking a random
 Boolean term:
 
 .. literalinclude:: ../../../src/action.cpp
-  :language: cpp
-  :lines: 3159-3168
+   :language: cpp
+   :start-after: docs-action-assertformula-generate start
+   :end-before: docs-action-assertformula-generate end
 
 Its execution is implemented in :cpp:func:`murxla::ActionAssertFormula::run()`
 and interacts with the solver via the generic solver wrapper API:
 
 .. literalinclude:: ../../../src/action.cpp
-  :language: cpp
-  :lines: 3180-3186
+   :language: cpp
+   :start-after: docs-action-assertformula-run start
+   :end-before: docs-action-assertformula-run end
 
 Its replayed via :cpp:func:`murxla::ActionAssertFormula::untrace()` as follows:
 
 .. literalinclude:: ../../../src/action.cpp
-  :language: cpp
-  :lines: 3170-3178
+   :language: cpp
+   :start-after: docs-action-assertformula-untrace start
+   :end-before: docs-action-assertformula-untrace end
 
 
 Solver-specific actions derived from :cpp:class:`murxla::Action`, on the other
@@ -62,8 +65,9 @@ and its execution ``BzlaActionTermIsEqualSort::run(Term, Term)`` is implemented
 follows:
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
-  :language: cpp
-  :lines: 2412-2421
+   :language: cpp
+   :start-after: docs-bzla-action-termisequalsort-run start
+   :end-before: docs-bzla-action-termisequalsort-run end
 
 .. _tracing:
 
@@ -123,7 +127,8 @@ there and prepend the seed to the trace line:
 
 .. literalinclude:: ../../../src/action.hpp
    :language: cpp
-   :lines: 31-36
+   :start-after: docs-murxla_trace start
+   :end-before: docs-murxla_trace end
 
 .. doxygendefine:: MURXLA_TRACE
 

@@ -3156,6 +3156,7 @@ ActionInstantiateSort::run(
 
 /* -------------------------------------------------------------------------- */
 
+//! [docs-action-assertformula-generate start]
 bool
 ActionAssertFormula::generate()
 {
@@ -3166,7 +3167,9 @@ ActionAssertFormula::generate()
   run(assertion);
   return true;
 }
+//! [docs-action-assertformula-generate end]
 
+//! [docs-action-assertformula-untrace start]
 std::vector<uint64_t>
 ActionAssertFormula::untrace(const std::vector<std::string>& tokens)
 {
@@ -3176,7 +3179,9 @@ ActionAssertFormula::untrace(const std::vector<std::string>& tokens)
   run(t);
   return {};
 }
+//! [docs-action-assertformula-untrace end]
 
+//! [docs-action-assertformula-run start]
 void
 ActionAssertFormula::run(Term assertion)
 {
@@ -3184,6 +3189,7 @@ ActionAssertFormula::run(Term assertion)
   reset_sat();
   d_solver.assert_formula(assertion);
 }
+//! [docs-action-assertformula-run end]
 
 /* -------------------------------------------------------------------------- */
 

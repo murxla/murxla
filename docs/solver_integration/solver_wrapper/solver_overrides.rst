@@ -19,11 +19,13 @@ implemented as follows:
 
 .. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
-   :lines: 1169-1175
+   :start-after: docs-cvc5-solver-new_solver start
+   :end-before: docs-cvc5-solver-new_solver end
 
 .. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
-   :lines: 1177-1183
+   :start-after: docs-cvc5-solver-delete_solver start
+   :end-before: docs-cvc5-solver-delete_solver end
 
 Another example for a **required** override is member function
 :cpp:func:`murxla::Solver::get_name()`, which returns the name of the
@@ -32,7 +34,8 @@ It is implemented for **cvc5** as follows:
 
 .. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
-   :lines: 1197-1201
+   :start-after: docs-cvc5-solver-get_name start
+   :end-before: docs-cvc5-solver-get_name end
 
 An example for an **optional** override is member function
 :cpp:func:`murxla::Solver::get_unsat_core()`, which returns a vector of
@@ -42,7 +45,8 @@ It is implemented in the solver wrapper for **Bitwuzla**
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
-   :lines: 1384-1396
+   :start-after: docs-bzla-solver-get_unsat_core start
+   :end-before: docs-bzla-solver-get_unsat_core end
 
 The following list provides all the member functions of class
 :cpp:class:`murxla::Solver` that are required or optional to be

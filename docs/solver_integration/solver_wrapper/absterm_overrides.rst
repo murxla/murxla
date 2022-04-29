@@ -16,7 +16,8 @@ its C++ API) as follows:
 
 .. literalinclude:: ../../../src/solver/cvc5/cvc5_solver.cpp
    :language: cpp
-   :lines: 974-978
+   :start-after: docs-cvc5-term-hash start
+   :end-before: docs-cvc5-term-hash end
 
 An example for an **optional** override is member function
 :cpp:func:`murxla::AbsTerm::get_children()`, which returns the children
@@ -25,7 +26,8 @@ of a given term. It is implemented in the solver wrapper for **Bitwuzla**
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
-   :lines: 673-680
+   :start-after: docs-bzla-term-get_children start
+   :end-before: docs-bzla-term-get_children end
 
 We use a helper function
 ``std::vector<Term> BzlaTerm::bzla_terms_to_terms(const BitwuzlaTerm**, size_t)``
@@ -34,7 +36,8 @@ which is defined as follows:
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
-   :lines: 471-480
+   :start-after: docs-bzla-term-bzla_terms_to_terms start
+   :end-before: docs-bzla-term-bzla_terms_to_terms end
 
 The following list provides all the member functions of class
 :cpp:class:`murxla::AbsTerm` that are required or optional to be

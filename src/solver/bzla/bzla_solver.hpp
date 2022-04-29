@@ -88,7 +88,9 @@ class BzlaTerm : public AbsTerm
   static std::unordered_map<BitwuzlaKind, Op::Kind> s_bzla_kinds_to_kinds;
 
   /** Solver-specific operators. */
+  //! [docs-bzla-op-bv_dec start]
   inline static const Op::Kind OP_BV_DEC    = "bzla-OP_BV_DEC";
+  //! [docs-bzla-op-bv_dec end]
   inline static const Op::Kind OP_BV_INC    = "bzla-OP_BV_INC";
   inline static const Op::Kind OP_BV_REDAND = "bzla-OP_BV_REDAND";
   inline static const Op::Kind OP_BV_REDOR  = "bzla-OP_BV_REDOR";
