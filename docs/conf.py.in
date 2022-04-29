@@ -73,5 +73,7 @@ cpp_index_common_prefix = ["murxla::"]
 
 # -- SMT-LIB syntax highlighting ---------------------------------------------
 from smtliblexer import SmtLibLexer
+from tracelexer import TraceLexer
 from sphinx.highlighting import lexers
 lexers['smtlib'] = SmtLibLexer()
+lexers['trace'] = TraceLexer()

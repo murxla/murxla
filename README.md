@@ -1,4 +1,4 @@
-# murxla
+# Murxla
 
 ## Quickstart
 

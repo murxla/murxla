@@ -65,6 +65,8 @@ follows:
   :language: cpp
   :lines: 2412-2421
 
+.. _tracing:
+
 Tracing
 -------
 
@@ -84,6 +86,27 @@ terms:
 .. code::
 
    return <values ...>
+
+Additionally, in the first line of a trace, Murxla records the command line
+options provided to generate this trace. For example, the following trace
+triggered an issue in cvc5:
+
+.. code:: trace
+
+   set-murxla-options --cvc5 -t 1 -m 10000 --fuzz-opts
+   92880 new
+   32252 set-logic BVFPNIA
+   96760 set-option incremental false
+   3046 set-option solve-int-as-bv 925956265872928556
+   36189 mk-sort SORT_INT
+   return s14
+   19629 mk-const s14 "_x35"
+   return t46
+   81876 mk-term OP_INT_DIV SORT_INT 2 t46 t46
+   return t125 s14
+   50301 mk-term OP_INT_LTE SORT_BOOL 2 t125 t125
+   return t127 s12
+   88360 cvc5-simplify t127
 
 We use macro :c:macro:`MURXLA_TRACE` for tracing action executions, and macro
 :c:macro:`MURXLA_TRACE_RETURN` for tracing an action's return values.
