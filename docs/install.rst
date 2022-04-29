@@ -33,3 +33,16 @@ Murxla currently has native integration for the following solvers:
 Solvers without native integration can still be tested via the SMT-LIBv2
 interface (option ``--smt2 <solver-binary>``).
 
+
+Code Coverage Reports
+*********************
+
+Generating coverage reports requires `lcov` and `fastcov`.
+Make sure to install `fastcov` via `pip`.
+
+1. Configure Murxla with ``cmake .. -DGCOV=ON`` and make sure that the relevant
+   solvers are configured and built to produce coverage information.
+2. Prior to running Murxla reset the coverage data via ``make coverage-reset``
+3. Run Murxla for some time
+4. Generate the coverage report via ``make coverage``, which can be found in
+   ``coverage/index.html`` of the build directory.
