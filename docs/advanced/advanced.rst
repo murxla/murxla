@@ -9,6 +9,7 @@ Advanced Documentation
   term
   sort_kind
   operator
+  operator_kinds
   special_value_kinds
   theory
 

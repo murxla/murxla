@@ -98,9 +98,11 @@ i.e., features that cannot be plugged in via the generic solver wrapper API.
 Operator Kinds
 ^^^^^^^^^^^^^^
 
-Solver-specific operator kinds are (by convention) defined as a static const
-member of type :cpp:type:`murxla::Op::Kind` of the solver wrapper implementation
-of :cpp:class:`murxla::AbsTerm`.
+Murxla defines a :ref:`base set of operator kinds
+<operator-kinds>` as static const members of type :cpp:type:`murxla::Op::Kind`
+of class :cpp:class:`murxla::Op`.
+Solver-specific operator kinds are (by convention) defined as members of the
+solver wrapper implementation of :cpp:class:`murxla::AbsTerm`.
 By convention, we prefix solver-specific operator kinds with the solver's
 (short) name.
 For example, the solver wrapper for Bitwuzla defines a bit-vector decrement

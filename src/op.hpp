@@ -31,6 +31,11 @@ struct Op
   /** The kind of an operator. */
   using Kind = std::string;
 
+  /**
+   * \addtogroup operator-kinds
+   * @{
+   */
+
   /** The operator kind representing an undefined kind. */
   inline static const Kind UNDEFINED = "OP_UNDEFINED";
   /** The operator kind representing an internal kind. */
@@ -3230,6 +3235,8 @@ struct Op
    * @note  Not yet supported.
    */
   inline static const Kind REL_TRANSPOSE = "OP_REL_TRANSPOSE";
+
+  /** @} */
 
   /**
    * Constructor.
