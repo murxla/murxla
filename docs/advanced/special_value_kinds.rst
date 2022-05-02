@@ -8,7 +8,7 @@ The list of special value kinds globally defined in
 
 Special values are created via :cpp:func:`murxla::Solver::mk_special_value()`.
 The set of special value kinds can be extended with solver-specific special
-value kinds via overriding :cpp:fun:`murxla::Solver::add_special_value()`.
+value kinds via overriding :cpp:func:`murxla::Solver::add_special_value()`.
 
 .. doxygengroup:: special-value-kinds
    :content-only:
