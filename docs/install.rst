@@ -30,9 +30,9 @@ Supported Solvers
 
 Murxla currently has native integration for the following solvers:
 
-- `Bitwuzla <https://github.com/bitwuzla/bitwuzla>`_
-- `Boolector <https://github.com/boolector/boolector>`_
-- `cvc5 <https://github.com/cvc5/cvc5>`_
+- `Bitwuzla <https://bitwuzla.github.io>`_
+- `Boolector <https://boolector.github.io>`_
+- `cvc5 <https://cvc5.github.io>`_
 - `Yices <https://github.com/SRI-CSL/yices2>`_
 
 Solvers without native integration can still be tested via the SMT-LIBv2
