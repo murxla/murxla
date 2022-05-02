@@ -834,7 +834,11 @@ class SolverManager
       Theory theory) const;
 
   /**
-   * Remove all solver options not matching filter.
+   * Remove all solver options that do not match the strings provided in filter.
+   * @param filter A comma separated list of (partial) option names that should
+   *               be considered for option fuzzing. Names can start
+   *               with ^ to indicate that the option name must start with the
+   *               given prefix.
    */
   void filter_solver_options(const std::string& filter);
 
