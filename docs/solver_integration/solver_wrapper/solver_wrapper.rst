@@ -178,6 +178,8 @@ which theories to consider and to disable unsupported sort and operator kinds.
 Unsupported actions can be disabled via overriding
 :cpp:func:`murxla::Solver::disable_unsupported_actions()`.
 
+.. _configure_solver_options:
+
 Solver Options
 --------------
 
