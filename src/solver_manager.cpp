@@ -590,16 +590,6 @@ SolverManager::get_op(const Op::Kind& kind)
 
 /* -------------------------------------------------------------------------- */
 
-bool
-SolverManager::has_theory(bool with_terms)
-{
-  if (with_terms)
-  {
-    return has_term() && (!has_term(SORT_RM) || has_term(SORT_FP));
-  }
-  return d_enabled_theories.size() > 0;
-}
-
 Theory
 SolverManager::pick_theory(bool with_terms)
 {

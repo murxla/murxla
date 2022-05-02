@@ -46,6 +46,14 @@ class SolverManager
     uint32_t sorts  = 0; /* all sorts */
   };
 
+  /**
+   * Get sort kind data for specified theories.
+   * @param theories The set of enabled theories.
+   * @return A map from SortKind to SortKindData for all enabled theories.
+   */
+  static SortKindMap get_sort_kind_data(const TheorySet& theories);
+
+  /* Constructor. */
   SolverManager(Solver* solver,
                 SolverProfile& solver_profile,
                 RNGenerator& rng,
@@ -63,18 +71,13 @@ class SolverManager
   /**
    * Finalize initialization of SolverManager. Configures sort kinds,
    * operators, etc. based on currently configured theories.
+   * @param smtlib_compliant True to configure for only smt-lib compliant API
+   *                         call sequences.
    */
   void initialize(bool smtlib_compliant);
 
-  statistics::Statistics* d_mbt_stats;
-
-  /** Get sort kind data for specified theories. */
-  static SortKindMap get_sort_kind_data(const TheorySet& theories);
-
   /**
    * Clear all data.
-   *
-   * This only clears term, sort
    */
   void clear();
 
@@ -83,38 +86,77 @@ class SolverManager
    */
   void reset_op_cache();
 
-  /** Get solver. */
+  /**
+   * Get solver.
+   * @return A reference to the solver (wrapper) instance.
+   */
   Solver& get_solver();
 
-  /** Get the associated global random number generator. */
+  /**
+   * Get the associated global random number generator.
+   * @return A reference to the RNG instance.
+   */
   RNGenerator& get_rng() const;
 
-  /** Get the associated solver seed generator. */
+  /**
+   * Get the associated solver seed generator.
+   * @return A reference to the solver seed generator instance.
+   */
   SolverSeedGenerator& get_sng();
 
-  /** Get the list of terms for which tracing with get-sort is pending. */
+  /**
+   * Get the list of terms for which tracing with Solver::get_sort() is pending.
+   * @return A list of terms for which tracing with Solver::get_sort() is
+   *         pending.
+   */
   std::vector<Term>& get_pending_get_sorts();
 
-  /** Get the trace line for the current seed ("set-seed <seed>"). */
+  /**
+   * Get the trace line for the current seed ("set-seed <seed>").
+   * @return A string representing the trace line for the current seed.
+   */
   std::string trace_seed() const;
 
-  /** Get set of enabled theories. */
+  /**
+   * Get set of enabled theories.
+   * @return The set of currently enabled theories.
+   */
   const TheorySet& get_enabled_theories() const;
 
-  /** Remove theory from set of enabled theories. */
+  /**
+   * Remove theory from set of enabled theories.
+   * @param theory The theory to disable.
+   */
   void disable_theory(Theory theory);
 
+  /**
+   * Get a reference to the trace stream.
+   * @return A reference to the trace stream.
+   */
   std::ostream& get_trace();
 
-  /** Return true if given option has already been configured. */
+  /**
+   * Return true if given option has already been configured.
+   * @param opt The option to query.
+   * @return True if the given option has already been configure.
+   */
   bool is_option_used(const std::string& opt);
-  /** Mark given option as already configured. */
+  /**
+   * Mark given option as already configured.
+   * @param opt The option to mark.
+   */
   void mark_option_used(const std::string& opt);
 
-  /** Get the number of created terms in the top scope. */
+  /**
+   * Get the number of created terms in the top scope.
+   * @return the number of created terms in the current top scope.
+   */
   uint64_t get_num_terms_max_level() const;
 
-  /** Get the number of available variables. */
+  /**
+   * Get the number of available variables.
+   * @return The number of available variables.
+   */
   size_t get_num_vars() const;
 
   /**
@@ -126,27 +168,63 @@ class SolverManager
    *
    * We only add well founded sorts. A sort that is not well founded gets an
    * id to trace the return statement of mk-sort, but is otherwise discarded.
+   *
+   * @param sort The sort to add to the databse.
+   * @param sort_kind The kind of the sort.
+   * @param parametric True if given sort has parameter sorts.
+   * @param well_founded True if fiven sort is well founded.
    */
   void add_sort(Sort& sort,
                 SortKind sort_kind,
                 bool parametric   = false,
                 bool well_founded = true);
 
-  /** Add value to term database. */
+  /**
+   * Add value to term database.
+   * @param term The term to add to the database.
+   * @param sort The sort of the term to add.
+   * @param sort_kind The sort of the sort of the term to add.
+   * @param value_kind The kind of the special value,
+   *                   AbsTerm::SPECIAL_VALUE_NONE if given term is not a
+   *                   special value.
+   *
+   */
   void add_value(Term& term,
                  Sort& sort,
                  SortKind sort_kind,
                  const AbsTerm::SpecialValueKind& value_kind =
                      AbsTerm::SPECIAL_VALUE_NONE);
-  /** Add string value of lenght 1. */
+  /**
+   * Add string value of length 1.
+   * @param term A term representing a string value of length 1.
+   */
   void add_string_char_value(Term& term);
-  /** Add input to term database. */
+  /**
+   * Add input to term database.
+   * @param term A term representing an input.
+   * @param sort The sort of the term.
+   * @param sort_kind The sort of the sort of the term.
+   */
   void add_input(Term& term, Sort& sort, SortKind sort_kind);
-  /** Add var to term database. */
+  /**
+   * Add var to term database.
+   * @param term A term representing a variable.
+   * @param sort The sort of the term.
+   */
   void add_var(Term& term, Sort& sort, SortKind sort_kind);
-  /** Add const to term database. */
+  /**
+   * Add const to term database.
+   * @param term A term representing a constant.
+   * @param sort The sort of the term.
+   * @param sort_kind The kind of the sort of the term.
+   */
   void add_const(Term& term, Sort& sort, SortKind sort_kind);
-  /** Add non-input term to term database. */
+  /**
+   * Add non-input term to term database.
+   * @param term A term representing anything other than an input
+   * @param sort_kind The kind of the sort of the term.
+   * @param args The argument terms to the given term.
+   */
   void add_term(Term& term,
                 SortKind sort_kind,
                 const std::vector<Term>& args = {});
@@ -154,162 +232,237 @@ class SolverManager
   /**
    * Pick arbitrary symbol (simple or piped).
    * Simple symbols are generated as "<prefix><id>".
+   * @param prefix The prefix of the symbol.
+   * @return An arbitrary symbol.
    */
   std::string pick_symbol(const std::string& prefix = "_x");
 
   /**
    * Pick sort kind of existing (= created) sort.
+   *
    * Optionally restrict selection to sort kinds with terms only if
    * 'with_terms' is true.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   *
+   * @param with_terms True to only pick sort kinds of a sort for which we have
+   *                   already created terms.
+   * @return The sort kind.
    */
   SortKind pick_sort_kind(bool with_terms = true);
   /**
    * Pick sort kind of existing (= created) sort out of given set of sort
    * kinds.  Asserts that a sort of any of the given kinds exists.
+   *
    * Optionally restrict selection to sort kinds with terms only if
    * 'with_terms' is true.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   *
+   * @param sort_kinds The set of sort kinds to pick from.
+   * @param with_terms True to only pick sort kinds of a sort for which we have
+   *                   already created terms.
+   * @return The sort kind.
    */
   SortKind pick_sort_kind(const SortKindSet& sort_kinds,
                           bool with_terms = true);
   /**
    * Pick a sort kind of existing (= created) sort, excluding the given sort
-   * kinds.  Optionally restrict selection to sort kinds with terms only if
+   * kinds.
+   *
+   * Optionally restrict selection to sort kinds with terms only if
    * 'with_terms' is true.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   *
+   * @param exclude_sort_kinds The sort kinds to exclude.
+   * @param with_terms True to only pick sort kinds of a sort for which we have
+   *                   already created terms.
+   * @return The sort kind.
    */
   SortKind pick_sort_kind_excluding(const SortKindSet& exclude_sort_kinds,
                                     bool with_terms = true) const;
 
   /**
    * Pick sort kind of existing (= created) sort with terms at given level.
+   *
    * Optionally, exclude given sort kinds.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   *
+   * @param level The scope level of existing terms to pick the sort kind from.
+   * @param exclude_sort_kinds The sort kinds to exclude.
+   * @return The sort kind.
    */
   SortKind pick_sort_kind(uint32_t level,
                           const SortKindSet& exclude_sort_kinds);
 
   /**
    * Pick enabled sort kind (and get its data).
+   *
    * Only sort kinds of enabled theories are picked.
    * This function does not guarantee that a sort of this kind alreay exists.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   *
+   * @return The sort kind.
    */
   SortKindData& pick_sort_kind_data();
   /**
-   * Pick enabled operator kind (and get its data), optionally restricted to
-   * operator kinds that create terms of given sort kind.
+   * Pick enabled operator kind (and get its data).
+   *
+   * Optionally restricted to operator kinds that create terms of given sort
+   * kind.
+   *
    * Only operator kinds of enabled theories are picked.
+   *
+   * @param with_terms True to only pick operator kinds of already created
+   *                   terms.
+   * @param The sort kind of terms of the operator kind to select.
+   * @return The operator kind.
    */
   Op::Kind pick_op_kind(bool with_terms = true, SortKind sort_kind = SORT_ANY);
 
-  /** Get the Op data for given operator kind. */
+  /**
+   * Get the Op data for given operator kind.
+   * @param kind The operator kind.
+   * @return The configuration data of the operator.
+   */
   Op& get_op(const Op::Kind& kind);
 
   /**
-   * Return true if
-   *  - with_terms = true : Any terms in any enabled theory have been created
-   *                        such that an operator of that theory applies.
-   *  - with_terms = false: Any theory is enabled.
+   * Pick any of the enabled theories.
+   * @param with_terms True to only pick theories with already created terms.
+   * @return The theory.
    */
-  bool has_theory(bool with_terms = true);
-  /** Pick any of the enabled theories. */
   Theory pick_theory(bool with_terms = true);
 
   /**
    * Pick a value of any sort.
-   * Requires that a value of any sort exists.
+   *
+   * @note Requires that a value of any sort exists.
+   *
+   * @return The value.
    */
   Term pick_value();
 
   /**
    * Pick a value of given sort.
-   * Requires that a value of given sort exists.
+   *
+   * @note Requires that a value of given sort exists.
+   *
+   * @param sort The sort of the value to pick.
+   * @return The value.
    */
   Term pick_value(Sort sort);
 
   /**
-   * Pick string value with lenght 1.
+   * Pick string value with length 1.
+   * @return A term representing a string value of length 1.
    */
   Term pick_string_char_value();
 
   /**
    * Pick a term of given sort.
-   * Requires that terms of this sort exist.
+   * @note Requires that terms of this sort exist.
+   * @param sort The sort of the term to pick.
+   * @return The term.
    */
   Term pick_term(Sort sort);
   /**
    * Pick term of given sort kind and scope level.
-   * Requires that terms of this sort kind exist.
+   * @note Requires that terms of this sort kind exist.
+   * @param sort_kind The kind of the sort of the term to pick.
+   * @param level The scope level of the term to pick.
+   * @return The term.
    */
   Term pick_term(SortKind sort_kind, size_t level);
   /**
    * Pick term of given sort kind.
-   * Requires that terms of this sort kind exist.
+   * @note Requires that terms of this sort kind exist.
+   * @param sort_kind The kind of the sort of the term to pick.
+   * @return The term.
    */
   Term pick_term(SortKind sort_kind);
   /**
    * Pick any term.
-   * Requires that terms of any sort kind exist.
+   * @note Requires that terms of any sort kind exist.
+   * @return The term.
    */
   Term pick_term();
   /**
    * Pick any term from given level.
-   * Requires that terms of any sort kind exist.
+   * @note Requires that terms of any sort kind exist.
+   * @param level The scope level of the term to pick.
+   * @return The term.
    */
   Term pick_term(size_t level);
 
   /**
    * Pick any term from any level from the given level to the max level.
-   * Requires that terms of any sort kind exist.
+   * @note Requires that terms of any sort kind exist.
+   * @param level The scope level of the term to pick.
+   * @return The term.
    */
   Term pick_term_min_level(Sort sort, size_t level);
 
   /**
    * Pick function term with given domain sorts.
-   * Requires that such terms exist.
+   * @note Requires that such terms exist.
+   * @param domain_sorts The sorts of the domain of the function to pick.
+   * @return A term representing a function.
    */
   Term pick_fun(const std::vector<Sort>& domain_sorts);
 
   /**
    * Pick variable from current scope level.
-   * Requires that a variable exists.
+   * @note Requires that a variable exists.
+   * @return A term representing a variable.
    */
   Term pick_var();
   /**
-   * Pick 'num_vars' variables.
-   * Requires that at least 'num_vars' variables exist.
+   * Pick `num_vars` variables.
+   * @note Requires that at least `num_vars` variables exist.
+   * @param num_vars The number of variables to pick.
+   * @return A vector with the picked variables.
    */
   std::vector<Term> pick_vars(size_t num_vars) const;
 
   /**
    * Remove variable from current scope level.
-   * Must be called before calling add_term.
+   * @note Must be called before calling add_term.
+   * @param var The variable to remove.
    */
   void remove_var(const Term& var);
 
   /**
    * Pick Boolean term from current scope level.
+   * @return The term.
    */
   Term pick_quant_body();
 
   /**
    * Pick term of any sort from current scope level.
+   * @return The term.
    */
   Term pick_quant_term();
 
   /**
    * Pick term of given sort from current scope level.
+   * @return The term.
    */
   Term pick_quant_term(Sort sort);
 
-  /** Add assumption currently assumed. */
+  /**
+   * Add given term to the set of currently assumed assumptions.
+   * @param t The assumption to cache.
+   */
   void add_assumption(Term t);
 
   /**
-   * Pick assumption out of the assumed assumptions list.
-   * Requires that d_assumptions is not empty.
+   * Pick assumption out of the set of currently assumed assumptions.
+   * @note Requires that d_assumptions is not empty.
+   * @return A term representing an assumptions.
    */
   Term pick_assumed_assumption();
 
@@ -320,221 +473,326 @@ class SolverManager
    * Reset solver manager state into assert mode.
    *
    * After this call, calling
-   *   - get_model()
    *   - get_unsat_assumptions()
    *   - get_unsat_core() and
-   *   - get_proof()
    * is not possible until after the next SAT call.
    */
   void reset_sat();
 
-  /** Return true if term database contains any value of any sort. */
+  /**
+   * Determine if term database contains any value of any sort.
+   * @return True if term database contains any value of any sort.
+   */
   bool has_value() const;
 
-  /** Return true if term database contains any value of given sort. */
+  /**
+   * Determine if term database contains any value of given sort.
+   * @return True if term database contains any value of given sort.
+   */
   bool has_value(Sort sort) const;
 
-  /** Return true if we already created string values with lenght 1. */
+  /**
+   * Determine if we already created string values with length 1.
+   * @return True if we already created string values with length 1.
+   */
   bool has_string_char_value() const;
 
-  /** Return true if term database contains any term. */
+  /**
+   * Determine if term database contains any term.
+   * @return True if term database contains any term.
+   */
   bool has_term() const;
-  /** Return true if term database contains any term on given level. */
+  /**
+   * Determine if term database contains any term on given level.
+   * @param level The scope level to query for terms.
+   * @return True if term database contains any term on given level.
+   */
   bool has_term(size_t level) const;
   /**
-   * Return true if term database contains any term of given sort kind at given
+   * Determine if term database contains any term of given sort kind at given
    * level.
+   * @param sort_kind The sort kind of the terms to query for.
+   * @param level The scope level to query for terms.
+   * @return True if term database contains any term of given sort kind at
+   *         given level.
    */
   bool has_term(SortKind sort_kind, size_t level) const;
-  /** Return true if term database contains any term of given sort kind. */
+  /**
+   * Determine if term database contains any term of given sort kind.
+   * @param sort_kind The sort kind of the terms to query for.
+   * @return true if term database contains any term of given sort kind.
+   */
   bool has_term(SortKind sort_kind) const;
   /**
-   * Return true if term database contains any term of one of the given sort
+   * Determine if term database contains any term of one of the given sort
    * kinds.
+   * @param sort_kind The sort kind of the terms to query for.
+   * @return True if term database contains any term of one of the given sort
+   *         kinds.
    */
   bool has_term(const SortKindSet& sort_kinds) const;
-  /** Return true if term database contains any term of given sort. */
+  /**
+   * Determine if term database contains any term of given sort.
+   * @param sort The sort of the terms to query for.
+   * @return true if term database contains any term of given sort.
+   */
   bool has_term(Sort sort) const;
-  /** Return true if d_assumptions is not empty. */
+  /**
+   * Determine if d_assumptions is not empty.
+   * @return True if d_assumptions is not empty.
+   */
   bool has_assumed() const;
   /**
-   * Return true if term database contains a function term with given domain
+   * Determine if term database contains a function term with given domain
    * sorts.
+   * @param domain_sorts The domain sorts of the function to query for.
+   * @return True if term database contains a function term with given domain
+   *         sorts.
    */
   bool has_fun(const std::vector<Sort>& domain_sorts) const;
-  /** Return true if term database contains a variable. */
+  /**
+   * Determine if term database contains a variable.
+   * @return true if term database contains a variable.
+   */
   bool has_var() const;
   /**
-   * Return true if term database contains a variable and a Boolean term in the
+   * Determine if term database contains a variable and a Boolean term in the
    * current scope level.
+   * @return True if term database contains a variable and a Boolean term in the
+   *         current scope level.
    */
   bool has_quant_body() const;
   /**
-   * Return true if term database contains a variable and a term of any sort in
+   * Determine if term database contains a variable and a term of any sort in
    * the current scope level.
+   * @return True if term database contains a variable and a term of any sort in
+   *         the current scope level.
    */
   bool has_quant_term() const;
   /**
-   * Return true if term database contains a variable and a term of given sort
+   * Determine if term database contains a variable and a term of given sort
    * in the current scope level.
+   * @return True if term database contains a variable and a term of given sort
+   *         in the current scope level.
    */
   bool has_quant_term(Sort sort) const;
 
   /**
-   * Return the Term in the Term database that wraps the same solver term
+   * Find the Term in the Term database that wraps the same solver term
    * with the given sort and sort kind.
-   * Returns a nullptr if given Term is not in the term database.
    *
-   * Note: We need this for Terms returned by the solver that are only wrapped
+   * @note We need this for Terms returned by the solver that are only wrapped
    *       solver terms without sort information.
+   *
+   * @return A nullptr if given Term is not in the term database.
+   *
    */
   Term find_term(Term term, Sort sort, SortKind sort_kind);
 
   /**
-   * Return the term with the given id.
+   * Get the term with the given id.
+   * @param id The id of the term.
+   * @return The term with the given id.
    */
   Term get_term(uint64_t id) const;
 
   /**
-   * Return the untraced term with the given id.
+   * Get the untraced term with the given id.
+   * @param id The id of the term.
+   * @return The untraced term with the given id.
    */
   Term get_untraced_term(uint64_t id) const;
 
   /**
-   * Map an id from a trace to an actual term ID.
-   * Note: Only used for untracing.
-   */
-  void register_term(uint64_t untraced_id, uint64_t term_id);
-
-  /**
-   * Map an id from a trace to an actual sort ID.
-   * Note: Only used for untracing.
-   * Returns false if a sort with the given id does not exist.
-   */
-  bool register_sort(uint64_t untraced_id, uint64_t sort_id);
-
-  /**
    * Pick sort.
+   *
    * It is not guaranteed that there exist terms of the returned sort.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   * @return The sort.
    */
   Sort pick_sort();
   /**
    * Pick sort that has sort parameters.
+   *
    * It is not guaranteed that there exist terms of the returned sort.
-   * This includes (parametric) datatype sorts.
+   *
+   * @note This includes (parametric) datatype sorts.
+   * @return The sort.
    */
   Sort pick_sort_with_sort_params();
   /**
-   * Pick sort of given sort kind. Optionally restrict selection to sorts
-   * with terms only if 'with_terms' is true.
-   * This excludes parametric datatype sorts.
+   * Pick sort of given sort kind.
+   *
+   * Optionally restrict selection to sorts with terms only if `with_terms` is
+   * true.
+   *
+   * @note This excludes parametric datatype sorts.
+   * @param sort_kind The sort_kind of the sort to pick.
+   * @param with_terms True to restrict to sorts with already created terms.
+   * @return The sort.
    */
   Sort pick_sort(SortKind sort_kind, bool with_terms = true);
   /**
-   * Pick sort of any of the given sort kinds. Optionally restrict selection to
-   * sorts with terms only if 'with_terms' is true.
-   * This excludes parametric datatype sorts.
+   * Pick sort of any of the given sort kinds.
+   *
+   * Optionally restrict selection to sorts with terms only if `with_terms` is
+   * true.
+   *
+   * @param sort_kinds The set of sort kinds to pick from.
+   * @param with_terms True to restrict to sorts with already created terms.
+   * @return This excludes parametric datatype sorts.
    */
   Sort pick_sort(const SortKindSet& sort_kinds, bool with_terms = true);
   /**
-   * Pick sort, excluding sorts of kinds included in 'exclude_sort_kinds'.
+   * Pick sort, excluding sorts of kinds included in `exclude_sort_kinds`.
+   *
    * It is not guaranteed that there exist terms of the returned sort.
-   * This excludes parametric datatype sorts.
+   *
+   * @param exclude_sort_kinds The sort kinds to exclude.
+   * @param with_terms True to restrict to sorts with already created terms.
+   * @return This excludes parametric datatype sorts.
    */
   Sort pick_sort_excluding(const SortKindSet& exclude_sort_kinds,
                            bool with_terms = true);
   /**
-   * Pick bit-vector sort with given bit-width.  Optionally restrict
-   * selection to sorts with terms only if 'with_terms' is true.
+   * Pick bit-vector sort with given bit-width.
+   *
+   * Optionally restrict selection to sorts with terms only if `with_terms` is
+   * true.
+   *
+   * @param bw The bit-width of the bit-vector sort to pick.
+   * @param with_terms True to restrict to sorts with already created terms.
+   * @return The sort.
    */
   Sort pick_sort_bv(uint32_t bw, bool with_terms = true);
   /**
-   * Pick bit-vector sort with given maximum bit-width.  Optionally restrict
-   * selection to sorts with terms only if 'with_terms' is true.
+   * Pick bit-vector sort with given maximum bit-width.
+   *
+   * Optionally restrict selection to sorts with terms only if `with_terms` is
+   * true.
+   *
+   * @param bw_max The maximum bit-width (incl.) of the bit-vector sort to pick.
+   * @param with_terms True to restrict to sorts with already created terms.
+   * @return The sort.
    */
   Sort pick_sort_bv_max(uint32_t bw_max, bool with_terms = true);
 
-  /** Pick parametric datatypes sort. */
+  /**
+   * Pick parametric datatypes sort.
+   * @return The sort.
+   */
   Sort pick_sort_dt_param();
 
   /**
-   * Return true if any sort has been created.
+   * Determine if any sort has been created.
+   *
    * This does not guarantee that any terms have been created.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   * @return True if any sort has been created.
    */
   bool has_sort() const;
   /**
-   * Return true if a sort of given kind exists.
+   * Determine if a sort of given kind exists.
+   *
    * This does not guarantee that any terms of this sort have been created.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   * @param sort_kind The sort kind to check for created sorts.
+   * @return True if a sort of given kind exists.
    */
   bool has_sort(SortKind sort_kind) const;
   /**
-   * Return true if a sort of any of the given kinds exists.
+   * Determine if a sort of any of the given kinds exists.
+   *
    * This does not guarantee that any terms of these sorts have been created.
-   * This excludes parametric datatype sorts.
+   *
+   * @note This excludes parametric datatype sorts.
+   * @param sort_kinds The sort kinds to check for created sorts.
+   * @return True if a sort of any of the given kinds exists.
    */
   bool has_sort(const SortKindSet& sort_kinds) const;
   /**
-   * Return true if given sort already exists.
+   * Determine if given sort already exists.
+   *
    * This does not guarantee that any terms of this sort have been created.
+   *
+   * @return sort The sort to query for.
+   * @return True if given sort already exists.
    */
   bool has_sort(Sort sort) const;
   /**
-   * Return true if sorts of a kind other than the kinds given in
-   * exclude_sort_kinds have been created.  Optionally restrict selection to
-   * sorts with terms only if 'with_terms' is true.
-   * This excludes parametric datatype sorts.
+   * Determine if sorts of a kind other than the kinds given in
+   * exclude_sort_kinds have been created.
+   *
+   * Optionally restrict selection to sorts with terms only if `with_terms` is
+   * true.
+   *
+   * @note This excludes parametric datatype sorts.
+   * @param exclude_sort_kinds The sort kinds to exclude.
+   * @param with_terms True to restrict to sorts with already created terms.
+   * @return True if sort of a kind other than the given kinds have been
+   *         created.
    */
   bool has_sort_excluding(
       const std::unordered_set<SortKind>& exclude_sort_kinds,
       bool with_terms = true) const;
 
   /**
-   * Return true if terms with sorts of a kind other than the kinds given in
-   * exclude_sort_kinds have been created.
+   * Determine if terms with sorts of a kind other than the kinds given in
+   * `exclude_sort_kinds` at the given scope level have been created.
+   * @param level The scope level.
+   * @param exclude_sort_kinds The sort kinds to exclude.
+   * @return True if terms with sorts of a kind other than the kinds given in
+   *         `exclude_sort_kinds` have been created.
    */
   bool has_sort_excluding(
       uint32_t level,
       const std::unordered_set<SortKind>& exclude_sort_kinds) const;
 
   /**
-   * Return true if sorts that have sort parameters have been created.
-   * This includes non-parametric datatypes.
+   * Determine if sorts that have sort parameters have been created.
+   * @note This includes non-parametric datatypes.
+   * @return True if sorts that have sort parameters have been created.
    */
   bool has_sort_with_sort_params() const;
 
   /**
-   * Return true if a bit-vector sort with given bit-width exists.
-   * Optionally restrict selection to sorts with terms only if 'with_terms' is
+   * Determine if a bit-vector sort with given bit-width exists.
+   *
+   * Optionally restrict selection to sorts with terms only if `with_terms` is
    * true.
+   *
+   * @return True if a bit-vector sort with given bit-width exists.
    */
   bool has_sort_bv(uint32_t bw, bool with_terms = true) const;
   /**
-   * Return true if a bit-vector sort up to given maximum bit-width exists.
-   * Optionally restrict selection to sorts with terms only if 'with_terms' is
+   * Determine if a bit-vector sort up to given maximum bit-width exists.
+   *
+   * Optionally restrict selection to sorts with terms only if `with_terms` is
    * true.
+   *
+   * @return True if a bit-vector sort up to given maximum bit-width exists.
    */
   bool has_sort_bv_max(uint32_t bw_max, bool with_terms = true) const;
 
-  /** Return true if a parametric datatypes sort exists. */
+  /**
+   * Determine if a parametric datatypes sort exists.
+   * @return True if a parametric datatypes sort exists.
+   */
   bool has_sort_dt_parametric() const;
 
   /**
-   * Return the untraced sort with the given id.
+   * Get the untraced sort with the given id.
+   * @return The untraced sort with the given id.
    */
   Sort get_untraced_sort(uint64_t id) const;
 
   /**
-   * Set d_n_sorts to id.
-   * Note: Only used for untracing.
-   */
-  void set_n_sorts(uint64_t id);
-
-  /**
-   * Lookup sort in d_sorts.
-   * If no matching sort is found the given sort is returned.
+   * Find a matching sort for the given sort in the sort database `d_sorts`.
+   * @param sort The sort to find.
+   * @return The sort cached in `d_sorts`, if found, else the given sort.
    */
   Sort find_sort(Sort sort) const;
 
@@ -543,32 +801,79 @@ class SolverManager
    *
    * If either are given, enforce option or value. If no option or the given
    * option / value can be set, return empty pair.
+   *
+   * @param name The option name.
+   * @param value The option value.
+   * @return A pair of picked option name and value.
    */
   std::pair<std::string, std::string> pick_option(std::string name  = "",
                                                   std::string value = "");
 
-  /** Clear set of assumptions. */
+  /** Clear cached set of assumptions. */
   void clear_assumptions();
 
-  /** Add solver option. */
+  /**
+   * Add solver option.
+   * @param opt The solver option to add.
+   */
   void add_option(SolverOption* opt);
 
-  /** Report solver result to solver manager. */
+  /**
+   * Report solver result to solver manager.
+   * @param res The solver result.
+   */
   void report_result(Solver::Result res);
 
-  /** Get options required for a given theory. */
+  /**
+   * Get options required for a given theory.
+   * @param theory The theory.
+   * @return A map of options required to be configured for the given theory,
+   *         maps option name to option value.
+   */
   std::unordered_map<std::string, std::string> get_required_options(
       Theory theory) const;
 
-  /** Remove all solver options not matching filter. */
+  /**
+   * Remove all solver options not matching filter.
+   */
   void filter_solver_options(const std::string& filter);
 
+  /**
+   * Get the currently configured solver profile.
+   * @return The solver profile.
+   */
   SolverProfile& get_profile();
 
   /** Statistics. */
   Stats d_stats;
 
-  /** Config ----------------------------------------------------------------
+  /* Untracing only --------------------------------------------------------- */
+
+  /**
+   * Map an id from a trace to an actual term ID.
+   * @note Only used for untracing.
+   * @param untrace_id The id of the term in the replayed trace.
+   * @param term_id The id of the term.
+   */
+  void register_term(uint64_t untraced_id, uint64_t term_id);
+
+  /**
+   * Map an id from a trace to an actual sort ID.
+   * @note Only used for untracing.
+   * @param untrace_id The id of the term in the replayed trace.
+   * @param term_id The id of the term.
+   * @return False if a sort with the given id does not exist.
+   */
+  bool register_sort(uint64_t untraced_id, uint64_t sort_id);
+
+  /**
+   * Set the sort id counter to id.
+   * @note Only used for untracing.
+   * @param id The id.
+   */
+  void set_n_sorts(uint64_t id);
+
+  /* Config -----------------------------------------------------------------
    *
    * Config members are not cleared or reset on reset() / clear().
    */
@@ -589,7 +894,7 @@ class SolverManager
    */
   bool d_simple_symbols = false;
 
-  /** Solver (config) state -------------------------------------------------
+  /* Solver (config) state --------------------------------------------------
    *
    *  All members below are reset / cleared on reset().
    *  All members that are data structures are cleared on clear().
@@ -632,17 +937,27 @@ class SolverManager
   /** The number of check-sat calls issued. */
   uint32_t d_n_sat_calls = 0;
 
+  /* Statistics ------------------------------------------------------------- */
+
+  /** A pointer to the murxla-level statistics object. */
+  statistics::Statistics* d_mbt_stats;
+
  private:
   /**
    * Determine and populate set of enabled theories.
+   *
    * All theories supported by a solvers are by default enabled and can
    * optionally be disabled.
+   *
+   * @param enabled_theories The set of theories to enable.
+   * @param disabled_theories The set of theories to disable.
    */
   void add_enabled_theories(const TheoryVector& enabled_theories,
                             const TheorySet& disabled_theories);
 
   /**
    * Populate sort kinds database with enabled sort kinds.
+   *
    * Sort kinds are enabled based on the set of enabled theories.
    */
   void add_sort_kinds();
@@ -772,6 +1087,7 @@ class SolverManager
   /** Is this solver manager already initialized? */
   bool d_initialized = false;
 
+  /** A reference to the currently configured solver profile. */
   SolverProfile& d_profile;
 };
 
