@@ -17,9 +17,16 @@ add_subdirectory(doxygen)
 
 configure_file(conf.py.in ${CMAKE_CURRENT_BINARY_DIR}/conf.py)
 
+add_custom_target(docs-cli-options
+  DEPENDS murxla
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gen-cli-options.py $<TARGET_FILE:murxla>
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMENT "Generting CLI options list"
+)
+
 add_custom_target(
   docs
-  DEPENDS docs-doxygen murxla
+  DEPENDS docs-cli-options docs-doxygen murxla
   COMMAND
     ${SPHINX_EXECUTABLE} -v -b html -c ${CMAKE_CURRENT_BINARY_DIR}
     # Tell Breathe where to find the Doxygen output
