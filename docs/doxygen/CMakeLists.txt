@@ -28,6 +28,7 @@ add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
                      ${PROJECT_SOURCE_DIR}/src/op.hpp
                      ${PROJECT_SOURCE_DIR}/src/theory.hpp
                      ${PROJECT_SOURCE_DIR}/src/solver/solver.hpp
+                     ${PROJECT_SOURCE_DIR}/src/solver_manager.hpp
                    COMMAND Doxygen::doxygen ${DOXYFILE_OUT}
                    WORKING_DIRECTORY ${DOXYGEN_BIN_DIR}
                    MAIN_DEPENDENCY ${DOXYFILE_OUT} ${DOXYFILE_IN}
