@@ -34,6 +34,9 @@ struct Statistics;
 
 class SolverManager
 {
+  friend class FSM;
+  friend class DD;
+
  public:
   using SortSet = std::unordered_set<Sort>;
 
@@ -46,12 +49,6 @@ class SolverManager
     uint32_t sorts  = 0; /* all sorts */
   };
 
-  /**
-   * Get sort kind data for specified theories.
-   * @param theories The set of enabled theories.
-   * @return A map from SortKind to SortKindData for all enabled theories.
-   */
-  static SortKindMap get_sort_kind_data(const TheorySet& theories);
 
   /* Constructor. */
   SolverManager(Solver* solver,
@@ -69,22 +66,9 @@ class SolverManager
   ~SolverManager() = default;
 
   /**
-   * Finalize initialization of SolverManager. Configures sort kinds,
-   * operators, etc. based on currently configured theories.
-   * @param smtlib_compliant True to configure for only smt-lib compliant API
-   *                         call sequences.
-   */
-  void initialize(bool smtlib_compliant);
-
-  /**
    * Clear all data.
    */
   void clear();
-
-  /**
-   * Reset op caches used by pick_op_kind;
-   */
-  void reset_op_cache();
 
   /**
    * Get solver.
@@ -105,13 +89,6 @@ class SolverManager
   SolverSeedGenerator& get_sng();
 
   /**
-   * Get the list of terms for which tracing with Solver::get_sort() is pending.
-   * @return A list of terms for which tracing with Solver::get_sort() is
-   *         pending.
-   */
-  std::vector<Term>& get_pending_get_sorts();
-
-  /**
    * Get the trace line for the current seed ("set-seed <seed>").
    * @return A string representing the trace line for the current seed.
    */
@@ -124,23 +101,11 @@ class SolverManager
   const TheorySet& get_enabled_theories() const;
 
   /**
-   * Remove theory from set of enabled theories.
-   * @param theory The theory to disable.
-   */
-  void disable_theory(Theory theory);
-
-  /**
    * Get a reference to the trace stream.
    * @return A reference to the trace stream.
    */
   std::ostream& get_trace();
 
-  /**
-   * Return true if given option has already been configured.
-   * @param opt The option to query.
-   * @return True if the given option has already been configure.
-   */
-  bool is_option_used(const std::string& opt);
   /**
    * Mark given option as already configured.
    * @param opt The option to mark.
@@ -329,13 +294,6 @@ class SolverManager
    * @return The configuration data of the operator.
    */
   Op& get_op(const Op::Kind& kind);
-
-  /**
-   * Pick any of the enabled theories.
-   * @param with_terms True to only pick theories with already created terms.
-   * @return The theory.
-   */
-  Theory pick_theory(bool with_terms = true);
 
   /**
    * Pick a value of any sort.
@@ -825,24 +783,6 @@ class SolverManager
   void report_result(Solver::Result res);
 
   /**
-   * Get options required for a given theory.
-   * @param theory The theory.
-   * @return A map of options required to be configured for the given theory,
-   *         maps option name to option value.
-   */
-  std::unordered_map<std::string, std::string> get_required_options(
-      Theory theory) const;
-
-  /**
-   * Remove all solver options that do not match the strings provided in filter.
-   * @param filter A comma separated list of (partial) option names that should
-   *               be considered for option fuzzing. Names can start
-   *               with ^ to indicate that the option name must start with the
-   *               given prefix.
-   */
-  void filter_solver_options(const std::string& filter);
-
-  /**
    * Get the currently configured solver profile.
    * @return The solver profile.
    */
@@ -850,32 +790,6 @@ class SolverManager
 
   /** Statistics. */
   Stats d_stats;
-
-  /* Untracing only --------------------------------------------------------- */
-
-  /**
-   * Map an id from a trace to an actual term ID.
-   * @note Only used for untracing.
-   * @param untrace_id The id of the term in the replayed trace.
-   * @param term_id The id of the term.
-   */
-  void register_term(uint64_t untraced_id, uint64_t term_id);
-
-  /**
-   * Map an id from a trace to an actual sort ID.
-   * @note Only used for untracing.
-   * @param untrace_id The id of the term in the replayed trace.
-   * @param term_id The id of the term.
-   * @return False if a sort with the given id does not exist.
-   */
-  bool register_sort(uint64_t untraced_id, uint64_t sort_id);
-
-  /**
-   * Set the sort id counter to id.
-   * @note Only used for untracing.
-   * @param id The id.
-   */
-  void set_n_sorts(uint64_t id);
 
   /* Config -----------------------------------------------------------------
    *
@@ -947,6 +861,90 @@ class SolverManager
   statistics::Statistics* d_mbt_stats;
 
  private:
+  /**
+   * Remove theory from set of enabled theories.
+   * @param theory The theory to disable.
+   */
+  void disable_theory(Theory theory);
+
+  /**
+   * Finalize initialization of SolverManager. Configures sort kinds,
+   * operators, etc. based on currently configured theories.
+   * @param smtlib_compliant True to configure for only smt-lib compliant API
+   *                         call sequences.
+   */
+  void initialize(bool smtlib_compliant);
+
+  /**
+   * Return true if given option has already been configured.
+   * @param opt The option to query.
+   * @return True if the given option has already been configure.
+   */
+  bool is_option_used(const std::string& opt);
+
+  /**
+   * Get sort kind data for specified theories.
+   * @param theories The set of enabled theories.
+   * @return A map from SortKind to SortKindData for all enabled theories.
+   */
+  static SortKindMap get_sort_kind_data(const TheorySet& theories);
+
+  /**
+   * Get options required for a given theory.
+   * @param theory The theory.
+   * @return A map of options required to be configured for the given theory,
+   *         maps option name to option value.
+   */
+  std::unordered_map<std::string, std::string> get_required_options(
+      Theory theory) const;
+
+  /**
+   * Remove all solver options that do not match the strings provided in filter.
+   * @param filter A comma separated list of (partial) option names that should
+   *               be considered for option fuzzing. Names can start
+   *               with ^ to indicate that the option name must start with the
+   *               given prefix.
+   */
+  void filter_solver_options(const std::string& filter);
+
+  /**
+   * Reset op caches used by pick_op_kind;
+   */
+  void reset_op_cache();
+
+  /**
+   * Pick any of the enabled theories.
+   * @param with_terms True to only pick theories with already created terms.
+   * @return The theory.
+   */
+  Theory pick_theory(bool with_terms = true);
+
+  /* Untracing only --------------------------------------------------------- */
+
+  /**
+   * Map an id from a trace to an actual term ID.
+   * @note Only used for untracing.
+   * @param untrace_id The id of the term in the replayed trace.
+   * @param term_id The id of the term.
+   */
+  void register_term(uint64_t untraced_id, uint64_t term_id);
+
+  /**
+   * Map an id from a trace to an actual sort ID.
+   * @note Only used for untracing.
+   * @param untrace_id The id of the term in the replayed trace.
+   * @param term_id The id of the term.
+   * @return False if a sort with the given id does not exist.
+   */
+  bool register_sort(uint64_t untraced_id, uint64_t sort_id);
+
+  /**
+   * Set the sort id counter to id.
+   * @note Only used for untracing.
+   * @param id The id.
+   */
+  void set_n_sorts(uint64_t id);
+
   /**
    * Determine and populate set of enabled theories.
    *
