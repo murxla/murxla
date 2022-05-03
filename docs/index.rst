@@ -44,7 +44,7 @@ Table of Contents
   :maxdepth: 1
 
   install
-  usage
+  user_guide
   solver_integration/solver_integration
   advanced/advanced
 
