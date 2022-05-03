@@ -38,8 +38,6 @@ struct Options
 
   /** True if seed is provided by user. */
   bool is_seeded = false;
-  /** True to include state of RNG in every step of the API trace. */
-  bool trace_seeds = false;
   /** True to use simple instead of completely random symbols for inputs. */
   bool simple_symbols = true;
   /** True to only generate SMT-LIB compliant API traces. */

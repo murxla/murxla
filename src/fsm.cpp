@@ -101,7 +101,6 @@ FSM::FSM(RNGenerator& rng,
          std::ostream& trace,
          SolverOptions& options,
          bool arith_linear,
-         bool trace_seeds,
          bool simple_symbols,
          bool smtlib_compliant,
          bool fuzz_options,
@@ -118,7 +117,6 @@ FSM::FSM(RNGenerator& rng,
              trace,
              options,
              arith_linear,
-             trace_seeds,
              simple_symbols,
              stats,
              enabled_theories,
@@ -706,12 +704,6 @@ FSM::untrace(const std::string& trace_file_name)
       {
         throw MurxlaUntraceException(
             trace_file_name, nline, "stray 'return' statement");
-      }
-      else if (id == "set-seed")
-      {
-        std::stringstream sss;
-        for (auto t : tokens) sss << " " << t;
-        sss >> d_rng.get_engine();
       }
       else
       {

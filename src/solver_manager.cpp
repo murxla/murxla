@@ -30,13 +30,11 @@ SolverManager::SolverManager(Solver* solver,
                              std::ostream& trace,
                              SolverOptions& options,
                              bool arith_linear,
-                             bool trace_seeds,
                              bool simple_symbols,
                              statistics::Statistics* stats,
                              const TheoryVector& enabled_theories,
                              const TheorySet& disabled_theories)
     : d_arith_linear(arith_linear),
-      d_trace_seeds(trace_seeds),
       d_simple_symbols(simple_symbols),
       d_mbt_stats(stats),
       d_solver(solver),
@@ -124,14 +122,6 @@ SolverManager::get_sng()
 }
 
 /* -------------------------------------------------------------------------- */
-
-std::string
-SolverManager::trace_seed() const
-{
-  std::stringstream ss;
-  ss << "set-seed " << d_rng.get_engine() << std::endl;
-  return ss.str();
-}
 
 std::ostream&
 SolverManager::get_trace()

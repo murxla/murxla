@@ -58,7 +58,6 @@ class SolverManager
                 std::ostream& trace,
                 SolverOptions& options,
                 bool arith_linear,
-                bool trace_seeds,
                 bool simple_symbols,
                 statistics::Statistics* stats,
                 const TheoryVector& enabled_theories,
@@ -87,12 +86,6 @@ class SolverManager
    * @return A reference to the solver seed generator instance.
    */
   SolverSeedGenerator& get_sng();
-
-  /**
-   * Get the trace line for the current seed ("set-seed <seed>").
-   * @return A string representing the trace line for the current seed.
-   */
-  std::string trace_seed() const;
 
   /**
    * Get set of enabled theories.
@@ -798,13 +791,6 @@ class SolverManager
 
   /** True to restrict arithmetic operators to linear fragment. */
   bool d_arith_linear = false;
-
-  /**
-   * True if every non-return trace call should be preceded by a
-   * 'set-seed <seed>' line. We need to provide this option in the solver
-   * manager for actions to have access to it.
-   */
-  bool d_trace_seeds = false;
 
   /**
    * True if all symbols for terms should be of the form '_sX' rather than

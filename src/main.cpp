@@ -202,7 +202,6 @@ set_sigint_handler_stats(void)
   "\n"                                                                         \
   "  -h, --help                 print this message and exit\n"                 \
   "  -s, --seed <int>           seed for random number generator\n"            \
-  "  -S, --trace-seeds          trace seed for each API call\n"                \
   "  -t, --time <double>        time limit for MBT runs\n"                     \
   "  -p, --profile <profile>    load solver profile\n"                         \
   "  -v, --verbosity            increase verbosity\n"                          \
@@ -569,10 +568,6 @@ parse_options(Options& options, int argc, char* argv[])
         options.solver_options.emplace_back(prefix + split_opt[0],
                                             split_opt[1]);
       }
-    }
-    else if (arg == "-S" || arg == "--trace-seeds")
-    {
-      options.trace_seeds = true;
     }
     else if (arg == "--stats")
     {

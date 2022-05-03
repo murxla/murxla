@@ -390,7 +390,6 @@ class FSM
       std::ostream& trace,
       SolverOptions& options,
       bool arith_linear,
-      bool trace_seeds,
       bool simple_symbols,
       bool smtlib_compliant,
       bool fuzz_options,
