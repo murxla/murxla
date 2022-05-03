@@ -32,7 +32,7 @@ struct Options
   /** The verbosity level. */
   uint32_t verbosity = 0;
   /** The time limit for one test run (one API sequence). */
-  double time = 0;
+  double time = 1;
   /** The maximum number of test runs to perform. */
   uint32_t max_runs = 0;
 
