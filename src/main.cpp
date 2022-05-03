@@ -233,7 +233,7 @@ set_sigint_handler_stats(void)
   "                             with solver option to show config for \n"      \
   "  --csv                      print error summary in csv format\n"           \
   "  -e, --export-errors <out>  export found errors to JSON file <out>\n"      \
-  " --solver-trace              print native solver API trace to stdout\n"     \
+  "  --solver-trace             print native solver API trace to stdout\n"     \
   "\n"                                                                         \
   " Solver:\n"                                                                 \
   "\n"                                                                         \
