@@ -189,7 +189,7 @@ class SolverManager
 
   /**
    * Pick arbitrary symbol (simple or piped).
-   * Simple symbols are generated as "<prefix><id>".
+   * Simple symbols are generated as `<prefix><id>`.
    * @param prefix The prefix of the symbol.
    * @return An arbitrary symbol.
    */
@@ -199,7 +199,7 @@ class SolverManager
    * Pick sort kind of existing (= created) sort.
    *
    * Optionally restrict selection to sort kinds with terms only if
-   * 'with_terms' is true.
+   * `with_terms` is true.
    *
    * @note This excludes parametric datatype sorts.
    *
@@ -213,7 +213,7 @@ class SolverManager
    * kinds.  Asserts that a sort of any of the given kinds exists.
    *
    * Optionally restrict selection to sort kinds with terms only if
-   * 'with_terms' is true.
+   * `with_terms` is true.
    *
    * @note This excludes parametric datatype sorts.
    *
@@ -229,7 +229,7 @@ class SolverManager
    * kinds.
    *
    * Optionally restrict selection to sort kinds with terms only if
-   * 'with_terms' is true.
+   * `with_terms` is true.
    *
    * @note This excludes parametric datatype sorts.
    *
@@ -829,7 +829,7 @@ class SolverManager
   uint32_t d_n_push_levels = 0;
 
   /**
-   * True if a previous check-sat call is still 'active', i.e., if no formulas
+   * True if a previous check-sat call is still "active", i.e., if no formulas
    * have been asserted or assumed since.
    * While true it is save to check failed assumptions and query model values.
    */

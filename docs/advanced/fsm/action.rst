@@ -30,26 +30,88 @@ As a **convention**, an action derived from :cpp:class:`murxla::Action`
   function ``run(<args>)`` to ensure that :cpp:func:`murxla::Action::generate()`
   and :cpp:func:`murxla::Action::untrace()` execute an action in the same way
 
+murxla::Action::generate()
+--------------------------
+
+Function :cpp:func:`murxla::Action::generate()` is responsible for checking an
+action's preconditions and selecting (and, in execeptional cases, creating) the
+arguments for its execution.
+For this, it queries the solver manager
+(see :cpp:class:`murxla::SolverManager`),
+which provides a rich interface to pick and manage sorts, terms and manage
+a solver's current state.
+
 For example, action :cpp:class:`murxla::ActionAssertFormula`
 (from the :ref:`base set of actions <base-actions>`)
 is responsible for asserting a random formula (SMT-LIB: ``assert``).
-It generates the arguments to the action execution by picking a random
-Boolean term:
+It asserts that the solver is initialized for Murxla-level debugging purposes,
+and checks the required precondition that Boolean terms already exist in the
+term database.
+It then generates the arguments to the action execution by picking a
+random Boolean term:
 
 .. literalinclude:: ../../../src/action.cpp
    :language: cpp
    :start-after: docs-action-assertformula-generate start
    :end-before: docs-action-assertformula-generate end
 
-Its execution is implemented in :cpp:func:`murxla::ActionAssertFormula::run()`
-and interacts with the solver via the generic solver wrapper API:
+In general, :cpp:func:`murxla::Action::generate()` should only pick existing
+sorts and terms as arguments. However, there exist some exceptional cases
+where it is beneficial to create arguments on demand. For example,
+it makes no sense to globally create patterns
+(:cpp:member:`murxla::Op::DT_MATCH_CASE`,
+:cpp:member:`murxla::Op::DT_MATCH_BIND_CASE`)
+for :cpp:member:`murxla::Op::DT_MATCH` (SMT-LIB: ``match``).
+If created globally, they would be added to the term database and could
+potentially be picked when selecting arguments for an operator other than
+:cpp:member:`murxla::Op::DT_MATCH`, which shouldn't be the case.
+Instead, we create these patterns on demand
+in :cpp:func:`murxla::ActionMkTerm::generate()`.
+
+For example, for a patterns that matches a specific non-nullary datatype constructor (of kind
+:cpp:member:`murxla::Op::DT_MATCH_BIND_CASE`),
+we need variables of a specific sort for each selector of the
+constructor, and a quantified term that possibly uses these variables. We thus
+create such patterns on demand as follows:
+
+.. literalinclude:: ../../../src/action.cpp
+   :language: cpp
+   :dedent: 10
+   :start-after: docs-action-mkterm-generate-dt_match_pattern start
+   :end-before: docs-action-mkterm-generate-dt_match_pattern end
+
+
+murxla::Action<Name>::run(<args>)
+---------------------------------
+
+The execution of an action is implemented in a (usually private) member
+function ``murxla::Action<Name>::run(<args>)``, which allows to use the same
+action execution code for both :cpp:func:`murxla::Action::generate()` and
+:cpp:func:`murxla::Action::untrace()`.
+This function is responsible for :ref:`tracing <tracing>`, and is usually the
+only one to interact with the solver via the generic solver wrapper API (or
+directly via the solver API for solver-specific actions).
+It is further responsible for registering created sorts and terms with the
+solver manager (if to be used in the future).
+
+For example, :cpp:func:`murxla::ActionAssertFormula::run()` is implemented
+as follows:
 
 .. literalinclude:: ../../../src/action.cpp
    :language: cpp
    :start-after: docs-action-assertformula-run start
    :end-before: docs-action-assertformula-run end
 
-Its replayed via :cpp:func:`murxla::ActionAssertFormula::untrace()` as follows:
+murxla::Action::untrace()
+--------------------------
+
+Actions are replayed via :cpp:func:`murxla::Action::untrace()`,
+which takes a vector of tokens as arguments, converts those tokens into
+sort and term objects where necessary, and executes the action via
+:cpp:func:`murxla::Action::generate()`.
+
+For example, action :cpp:class:`murxla::ActionAssertFormula` is replayed via
+:cpp:func:`murxla::ActionAssertFormula::untrace()` as follows:
 
 .. literalinclude:: ../../../src/action.cpp
    :language: cpp
@@ -57,9 +119,14 @@ Its replayed via :cpp:func:`murxla::ActionAssertFormula::untrace()` as follows:
    :end-before: docs-action-assertformula-untrace end
 
 
-Solver-specific actions derived from :cpp:class:`murxla::Action`, on the other
-hand, access the API of the solver under test directly, without going through
-the solver wrapper API. For example, Bitwuzla defines a solver-specific
+Solver-specific Actions
+-----------------------
+
+Solver-specific actions derived from :cpp:class:`murxla::Action`
+usually access the API of the solver under test directly, without going through
+the solver wrapper API.
+
+For example, Bitwuzla defines a solver-specific
 action ``BzlaActionTermIsEqualSort`` for comparing the sort of two terms,
 and its execution ``BzlaActionTermIsEqualSort::run(Term, Term)`` is implemented
 follows:

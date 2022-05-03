@@ -1954,6 +1954,7 @@ ActionMkTerm::generate()
 
         if (!sel_names.empty())
         {
+          //! [docs-action-mkterm-generate-dt_match_pattern start]
           for (const auto& sel : sel_names)
           {
             /* Create variable of selector codomain sort for each selector. */
@@ -1980,6 +1981,7 @@ ActionMkTerm::generate()
             if (generate(op_kind)) n_terms_created += 1;
           }
           match_case_kind = Op::DT_MATCH_BIND_CASE;
+          //! [docs-action-mkterm-generate-dt_match_pattern end]
         }
         else
         {
