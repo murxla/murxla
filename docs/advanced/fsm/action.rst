@@ -159,10 +159,13 @@ terms:
    return <values ...>
 
 Additionally, in the first line of a trace, Murxla records the command line
-options provided to generate this trace. For example, the following trace
-triggered an issue in cvc5:
+options provided to generate this trace.
 
-.. code:: trace
+For example, the following trace
+(with line numbers for references) triggered an issue in cvc5:
+
+.. code-block:: trace
+   :linenos:
 
    set-murxla-options --cvc5 -t 1 -m 10000 --fuzz-opts
    92880 new
