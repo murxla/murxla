@@ -201,12 +201,30 @@ set_sigint_handler_stats(void)
   "  murxla [options]\n"                                                       \
   "\n"                                                                         \
   "  -h, --help                 print this message and exit\n"                 \
-  "  -s, --seed <int>           seed for random number generator\n"            \
-  "  -t, --time <double>        time limit for MBT runs\n"                     \
   "  -p, --profile <profile>    load solver profile\n"                         \
   "  -v, --verbosity            increase verbosity\n"                          \
-  "  -m, --max-runs <int>       limit number of test runs\n"                   \
+  "  -T, --tmp-dir <dir>        write temporary files to given directory\n"    \
+  "  -O, --out-dir <dir>        write output files to given directory\n"       \
+  "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
+  "  -y, --random-symbols       use random symbol names\n"                     \
+  "  --stats                    print statistics\n"                            \
+  "  --print-fsm                print FSM configuration, may be combined\n"    \
+  "                             with solver option to show config for \n"      \
   "\n"                                                                         \
+  " Continuous mode options:\n"                                                \
+  "  -t, --time <double>        time limit per test run\n"                     \
+  "  -m, --max-runs <int>       limit number of test runs\n"                   \
+  "  --csv                      print error summary in csv format\n"           \
+  "  -e, --export-errors <out>  export found errors to JSON file <out>\n"      \
+  "\n"                                                                         \
+  " One-shot mode options:\n"                                                  \
+  "  -s, --seed <int>           seed for random number generator\n"            \
+  "  -a, --api-trace <file>     trace API call sequence into <file>\n"         \
+  "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
+  "  -u, --untrace <file>       replay given API call sequence\n"              \
+  "  --solver-trace             print native solver API trace to stdout\n"     \
+  "\n"                                                                         \
+  " Trace minimizer:\n"                                                        \
   "  -d, --dd                   enable delta debugging\n"                      \
   "  --dd-match-err <string>    check for occurrence of <string> in stderr\n"  \
   "                             output when delta debugging\n"                 \
@@ -216,70 +234,41 @@ set_sigint_handler_stats(void)
   "  --dd-ignore-out            ignore stdout output when delta debugging\n"   \
   "  -D, --dd-trace <file>      delta debug API trace into <file>\n"           \
   "\n"                                                                         \
-  "  -a, --api-trace <file>     trace API call sequence into <file>\n"         \
-  "  -u, --untrace <file>       replay given API call sequence\n"              \
-  "  -f, --smt2-file <file>     write --smt2 output to <file>\n"               \
-  "  -l, --smt-lib              generate SMT-LIB compliant traces only\n"      \
-  "  -c, --cross-check <solver> cross check with <solver> (SMT-lib2 only)\n"   \
-  "  --cross-check-opts name=value,...\n"                                      \
-  "                             options for cross check solver\n"              \
-  "  --check [<solver>]         check unsat cores/assumptions and model\n"     \
-  "                             model values with <solver>\n"                  \
-  "  -y, --random-symbols       use random symbol names\n"                     \
-  "  -T, --tmp-dir <dir>        write tmp files to given directory\n"          \
-  "  -O, --out-dir <dir>        write output files to given directory\n"       \
-  "  --stats                    print statistics\n"                            \
-  "  --print-fsm                print FSM configuration, may be combined\n"    \
-  "                             with solver option to show config for \n"      \
-  "  --csv                      print error summary in csv format\n"           \
-  "  -e, --export-errors <out>  export found errors to JSON file <out>\n"      \
-  "  --solver-trace             print native solver API trace to stdout\n"     \
-  "\n"                                                                         \
-  " Solver:\n"                                                                 \
-  "\n"                                                                         \
+  " Solvers:\n"                                                                \
   "  --btor                     test Boolector\n"                              \
   "  --bzla                     test Bitwuzla\n"                               \
   "  --cvc5                     test cvc5\n"                                   \
   "  --yices                    test Yices\n"                                  \
-  "  --smt2 [<binary>]          dump SMT-LIB 2 (optionally to solver binary\n" \
+  "  --smt2 [<binary>]          print SMT-LIB 2 (optionally to solver "        \
+  "binary\n"                                                                   \
   "                             via stdout)\n"                                 \
   "  -o name=value,...          solver options enabled by default\n"           \
   "  --fuzz-opts [wildcard,...] restrict options to be fuzzed with multiple\n" \
   "                             wildcards, which are matched against option\n" \
   "                             names. use ^ to indicate a wildcard must\n"    \
   "                             match the beginning of an option name\n"       \
+  "  -c, --cross-check <solver> cross check with <solver> (SMT-LIB only)\n"    \
+  "  --cross-check-opts name=value,...\n"                                      \
+  "                             options for cross check solver\n"              \
+  "  -C, --check [<solver>]     check unsat cores/assumptions and \n"          \
+  "                             model values with <solver>\n"                  \
   "\n"                                                                         \
-  " Disable enabled theories:\n"                                               \
-  "  --no-arrays                disable theory of arrays\n"                    \
-  "  --no-bags                  disable theory of bags\n"                      \
-  "  --no-bv                    disable theory of bit-vectors\n"               \
-  "  --no-dt                    disable theory of datatypes\n"                 \
-  "  --no-fp                    disable theory of floating-points\n"           \
-  "  --no-ints                  disable theory of integers\n"                  \
-  "  --no-quant                 disable quantifiers\n"                         \
-  "  --no-reals                 disable theory of reals\n"                     \
-  "  --no-seq                   disable theory of sequences\n"                 \
-  "  --no-sets                  disable theory of sets\n"                      \
-  "  --no-strings               disable theory of strings\n"                   \
-  "  --no-trans                 disable theory of transcendentals\n"           \
-  "  --no-uf                    disable uninterpreted functions\n"             \
+  " Enable/disable theories:\n"                                                \
+  "  --[no-]arrays                theory of arrays\n"                          \
+  "  --[no-]bags                  theory of bags\n"                            \
+  "  --[no-]bv                    theory of bit-vectors\n"                     \
+  "  --[no-]dt                    theory of datatypes\n"                       \
+  "  --[no-]fp                    theory of floating-points\n"                 \
+  "  --[no-]ints                  theory of integers\n"                        \
+  "  --[no-]quant                 quantifiers\n"                               \
+  "  --[no-]reals                 theory of reals\n"                           \
+  "  --[no-]seq                   theory of sequences\n"                       \
+  "  --[no-]sets                  theory of sets\n"                            \
+  "  --[no-]strings               theory of strings\n"                         \
+  "  --[no-]trans                 theory of transcendentals\n"                 \
+  "  --[no-]uf                    uninterpreted functions\n"                   \
   "\n"                                                                         \
-  " Enable only specific theories:\n"                                          \
-  "  --arrays                   theory of arrays\n"                            \
-  "  --bags                     theory of bags\n"                              \
-  "  --bv                       theory of bit-vectors\n"                       \
-  "  --dt                       theory of datatypes\n"                         \
-  "  --fp                       theory of floating-points\n"                   \
-  "  --ints                     theory of integers\n"                          \
-  "  --quant                    quantifiers\n"                                 \
-  "  --reals                    theory of reals\n"                             \
-  "  --seq                      theory of sequences\n"                         \
-  "  --sets                     theory of sets\n"                              \
-  "  --strings                  theory of strings\n"                           \
-  "  --trans                    theory of transcendentals\n"                   \
-  "  --uf                       uninterpreted functions\n"                     \
-  "\n"                                                                         \
-  " Constrain/extend features for enabled theories:\n"                         \
+  " Options for enabled theories:\n"                                           \
   "  --linear                   restrict arithmetic to linear fragment"
 
 /* -------------------------------------------------------------------------- */
@@ -472,7 +461,7 @@ parse_options(Options& options, int argc, char* argv[])
       check_solver(solver);
       options.cross_check = solver;
     }
-    else if (arg == "--check")
+    else if (arg == "-C" || arg == "--check")
     {
       record_args.push_back(arg);
       options.check_solver = true;
