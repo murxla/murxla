@@ -161,8 +161,7 @@ terms:
 Additionally, in the first line of a trace, Murxla records the command line
 options provided to generate this trace.
 
-For example, the following trace
-(with line numbers for references) triggered an issue in cvc5:
+For example, the following trace triggered an issue in cvc5:
 
 .. code-block:: trace
    :linenos:
@@ -181,6 +180,40 @@ For example, the following trace
    50301 mk-term OP_INT_LTE SORT_BOOL 2 t125 t125
    return t127 s12
    88360 cvc5-simplify t127
+
+As indicated in the first line, this trace  was generated when running Murxla
+continuously for 1000 runs to test cvc5 with a one second time limit per run
+and with option fuzzing enabled.
+Line **2** creates a new solver instance, line **3** restricts the logic to
+``BVFPNIA``, lines **4-5** enable incremental solving and a cvc5-specific
+option that translates integers to bit-vectors, line **6** queries the integer
+sort from the solver, lines **8-9** create and return a constant of that sort,
+lines **10-11** create and return an integer division
+(:cpp:member:`murxla::Op::INT_DIV`) and an integer less-than-or-equal
+(:cpp:member:`murxla::Op::INT_LTE`) term, and line **14** executes a
+cvc5-specific action ``cvc5-simplify`` to simplify the integer division term
+``t127``.
+
+As shown in lines **10-11**, when creating terms, we trace argument lists
+while also providing the number of arguments, e.g., ``2 t46 t46`` in line
+**10**. If an operator is indexed, we similarly provide the list of indices
+with its size, e.g., a bit-vector extract from index **4** to **3**
+on a term ``t99`` of sort ``9`` we would trace as
+
+.. code:: trace
+
+   <seed> mk-term OP_BV_EXTRACT SORT_BV 9 1 t99 2 4 3
+
+Generally, also for solver-specific actions, it is recommended to also trace
+the size of argument lists to an action whenever they can be of arbitrary size.
+
+Further, as shown in lines **11** and **13**, for actions that create new terms
+that should be added to the term database (and are thus traced in a ``return``
+statement), we not only need to the trace the returned term but also its sort.
+This is due to the fact that some operators create new sorts
+(e.g., :cpp:member:`murxla::Op::BV_EXTRACT`) that may not have been encountered
+in the trace yet, but are added to the sorts database and can thus occur
+later in the trace.
 
 We use macro :c:macro:`MURXLA_TRACE` for tracing action executions, and macro
 :c:macro:`MURXLA_TRACE_RETURN` for tracing an action's return values.

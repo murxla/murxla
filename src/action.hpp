@@ -28,13 +28,14 @@
  * MURXLA_TRACE << <action>.get_kind() << " " << <args...>;
  * ```
  */
-//! [docs-murxla_trace start]
+//! @internal [docs-murxla_trace start]
 #define MURXLA_TRACE                                                 \
   d_solver.get_rng().reseed(d_sng.seed()),                           \
       OstreamVoider()                                                \
           & Action::TraceStream(d_smgr).stream()                     \
                 << std::setw(5) << d_sng.seed() << " "
-//! [docs-murxla_trace end]
+//! @internal [docs-murxla_trace end]
+
 
 /**
  * The macro to be used for tracing the return value of an action's execution.
