@@ -883,6 +883,20 @@ Smt2Solver::Smt2Solver(SolverSeedGenerator& sng,
       d_file_from(nullptr),
       d_solver_call(solver_binary)
 {
+}
+
+Smt2Solver::~Smt2Solver()
+{
+  if (d_online_pid)
+  {
+    assert(d_online);
+    waitpid(d_online_pid, nullptr, 0);
+  }
+}
+
+void
+Smt2Solver::new_solver()
+{
   if (d_online)
   {
     int32_t fd_to[2], fd_from[2];
@@ -944,20 +958,7 @@ Smt2Solver::Smt2Solver(SolverSeedGenerator& sng,
     MURXLA_EXIT_ERROR_FORK(d_file_from == nullptr, true)
         << "opening write channel to external solver failed";
   }
-}
 
-Smt2Solver::~Smt2Solver()
-{
-  if (d_online)
-  {
-    assert(d_online_pid);
-    waitpid(d_online_pid, nullptr, 0);
-  }
-}
-
-void
-Smt2Solver::new_solver()
-{
   d_initialized = true;
   if (d_online)
   {
