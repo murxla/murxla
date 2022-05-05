@@ -513,6 +513,14 @@ prepend_prefix_to_file_name(const std::string& prefix,
   return ss.str();
 }
 
+std::string
+replace_suffix_file_name(const std::string& file_name,
+                         const std::string& suffix)
+{
+  size_t pos = file_name.find_last_of('.');
+  return file_name.substr(0, pos) + suffix;
+}
+
 std::ifstream
 open_input_file(const std::string& file_name, bool is_forked)
 {

@@ -803,17 +803,18 @@ main(int argc, char* argv[])
           /* Minimized trace file name. */
           if (is_untrace)
           {
-            dd_trace_file_name = prepend_prefix_to_file_name(
-                DD::TRACE_PREFIX, options.untrace_file_name);
+            dd_trace_file_name = replace_suffix_file_name(
+                options.untrace_file_name, ".min.trace");
             MURXLA_MESSAGE_DD << "minimizing untraced file '"
                               << options.untrace_file_name << "'";
           }
           else
           {
             std::stringstream ss;
-            ss << DD::TRACE_PREFIX << options.seed << ".trace";
+            ss << "murxla-" << std::hex << options.seed << ".min.trace";
             dd_trace_file_name = ss.str();
-            MURXLA_MESSAGE_DD << "minimizing run with seed " << options.seed;
+            MURXLA_MESSAGE_DD << "minimizing run with seed " << std::hex
+                              << options.seed;
           }
         }
       }

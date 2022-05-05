@@ -229,11 +229,7 @@ DD::run(const std::string& input_trace_file_name,
   } while (!fixed_point);
 
   /* Write minimized trace file to path if given. */
-  if (reduced_trace_file_name.empty())
-  {
-    reduced_trace_file_name =
-        prepend_prefix_to_file_name(TRACE_PREFIX, input_trace_file_name);
-  }
+  assert(!reduced_trace_file_name.empty());
   if (!d_murxla->d_options.out_dir.empty())
   {
     reduced_trace_file_name =

@@ -111,6 +111,10 @@ std::string prepend_path(const std::string& prefix,
 std::string prepend_prefix_to_file_name(const std::string& prefix,
                                         const std::string& file_name);
 
+/** Replace file suffix in file_name with new suffix. */
+std::string replace_suffix_file_name(const std::string& file_name,
+                                     const std::string& suffix);
+
 std::ifstream open_input_file(const std::string& file_name, bool is_forked);
 
 std::ofstream open_output_file(const std::string& file_name, bool is_forked);

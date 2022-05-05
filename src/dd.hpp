@@ -24,8 +24,6 @@ class Murxla;
 class DD
 {
  public:
-  /** The default file name prefix used for reduced trace files. */
-  inline static const std::string TRACE_PREFIX = "murxla-dd-";
   /** The default api trace file name for temporary trace files. */
   inline static const std::string API_TRACE    = "tmp-dd-api.trace";
 
