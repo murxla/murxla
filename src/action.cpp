@@ -2474,6 +2474,14 @@ ActionMkConst::generate()
   {
     exclude.insert(SORT_BOOL);
   }
+  /* If uninterpreted functions are not enabled we are now allowed to create
+   * uninterpreted constants with functions sorts.
+   * Function sorts may still be present due to */
+  TheorySet enabled_theories = d_smgr.get_enabled_theories();
+  if (enabled_theories.find(THEORY_UF) == enabled_theories.end())
+  {
+    exclude.insert(SORT_FUN);
+  }
   if (!d_smgr.has_sort_excluding(exclude, false)) return false;
   Sort sort = d_smgr.pick_sort_excluding(exclude, false);
   return generate(sort);
