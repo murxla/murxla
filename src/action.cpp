@@ -1922,7 +1922,9 @@ ActionMkTerm::generate()
         d_smgr.pick_sort_kind_excluding(d_exclude_dt_match_sort_kinds);
     Sort sort          = d_smgr.pick_sort(sort_kind);
 
+    //! [docs-action-mkterm-generate-dt_match_pattern-pre start]
     ActionMkVar mkvar(d_smgr);  // to create variables on demand
+    //! [docs-action-mkterm-generate-dt_match_pattern-pre end]
 
     /* True if all constructors are to be matched. */
     bool match_all = d_rng.pick_with_prob(700);

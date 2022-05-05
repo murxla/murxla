@@ -76,6 +76,16 @@ create such patterns on demand as follows:
 
 .. literalinclude:: ../../../src/action.cpp
    :language: cpp
+   :dedent: 4
+   :start-after: docs-action-mkterm-generate-dt_match_pattern-pre start
+   :end-before: docs-action-mkterm-generate-dt_match_pattern-pre end
+
+.. code::
+
+   [ ... ]
+
+.. literalinclude:: ../../../src/action.cpp
+   :language: cpp
    :dedent: 10
    :start-after: docs-action-mkterm-generate-dt_match_pattern start
    :end-before: docs-action-mkterm-generate-dt_match_pattern end
@@ -118,6 +128,30 @@ For example, action :cpp:class:`murxla::ActionAssertFormula` is replayed via
    :start-after: docs-action-assertformula-untrace start
    :end-before: docs-action-assertformula-untrace end
 
+Murxla provides a set of
+:ref:`macros for checking expected properties <check_trace_macros>` of given
+action line trace tokens.
+In the example above, we use macro :c:macro:`MURXLA_CHECK_TRACE_NTOKENS` to
+check if ``tokens`` holds exactly one trace token (the id of the asserted term).
+We retrieve the term matched to the traced term id via
+:cpp:func:`murxla::Action::get_untraced_term()` (similarly, traced sorts are
+retrieved from the sort database via
+:cpp:func:`murxla::Action::get_untraced_sort()`),
+and check if we were able to match the term (or if the given id is unknown)
+via :c:macro:`MURXLA_CHECK_TRACE_TERM` (similarly, for sorts, via
+:c:macro:`MURXLA_CHECK_TRACE_SORT`).
+
+
+.. _check_trace_macros:
+
+Macros for Checking Trace Tokens
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Murxla defines the following macros for checking trace line properties.
+These macros are only used for error checking traces when untracing.
+
+.. doxygengroup:: macros-check-trace
+   :content-only:
 
 Solver-specific Actions
 -----------------------

@@ -16,3 +16,4 @@ Advanced Documentation
   fsm/index
   solver_manager
   solver_option
+  exceptions

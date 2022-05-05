@@ -25,6 +25,7 @@ add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
                    DEPENDS
                      ${PROJECT_SOURCE_DIR}/src/action.hpp
                      ${PROJECT_SOURCE_DIR}/src/fsm.hpp
+                     ${PROJECT_SOURCE_DIR}/src/except.hpp
                      ${PROJECT_SOURCE_DIR}/src/op.hpp
                      ${PROJECT_SOURCE_DIR}/src/theory.hpp
                      ${PROJECT_SOURCE_DIR}/src/solver/solver.hpp
