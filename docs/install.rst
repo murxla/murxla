@@ -22,6 +22,11 @@ installation path ``<path>`` via
 
   cmake .. -DCMAKE_PREFIX_PATH=<path>
 
+Alternatively, you can use the ``scripts/setup-solvers.sh`` script to setup
+solvers supported by Murxla.
+By default the script will download and build all supported solvers. Please
+refer to ``setup-solver.sh -h`` for further options.
+
 After successful compilation you can find the Murxla binary in ``build/bin/``.
 Please refer to the :ref:`User Guide <user-guide>` for how to use Murxla.
 
