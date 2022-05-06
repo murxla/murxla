@@ -1,3 +1,19 @@
+a {
+  font-weight: inherit;
+  color: #005c99;
+}
+
+a:visited {
+  color: #005c99;
+}
+
+a:hover {
+  color: #80ccff;
+}
+
+.icon-home a {
+  color: #80ccff;
+}
 .rst-content a code.xref {
   color: #2980b9;
   font-size: 16px;
@@ -22,4 +38,28 @@
 
 span.linenos {
   color: #afafaf;
+}
+
+.wy-nav-side {
+  background-color: #001f33;
+}
+
+.wy-side-scroll {
+  background-color: #001f33;
+}
+
+.wy-side-nav-search {
+  background-color: #005c99;
+}
+
+.wy-side-nav-search a {
+  color: #80ccff;
+}
+
+.wy-menu-vertical a {
+  color: #80ccff;
+}
+
+.wy-menu-vertical a:hover {
+  background-color: #005c99;
 }
