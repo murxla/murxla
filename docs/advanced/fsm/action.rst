@@ -112,6 +112,38 @@ as follows:
    :start-after: docs-action-assertformula-run start
    :end-before: docs-action-assertformula-run end
 
+In this example, we first trace the actioan via :c:macro:`MURXLA_TRACE`,
+then reset the solver state from *sat* to *assert* (see Fig. 4.1 of the
+`SMT-LIB Standard 2.6
+<https://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2021-05-12.pdf>`_),
+and then assert the formula via :cpp:func:`murxla::Solver::assert_formula()`.
+
+Actions that create new sorts and terms must trace these return values via
+macro :c:macro:`MURXLA_TRACE_RETURN` (see :ref:`tracing`).
+Further, for testing assertions about the solver under test, we use macro
+:c:macro:`MURXLA_TEST`.
+For example, the action execution of action :cpp:class:`murxla::ActionMkSort`
+is implemented as follows:
+
+.. literalinclude:: ../../../src/action.cpp
+   :language: cpp
+   :start-after: docs-action-mksort-run start
+   :end-before: docs-action-mksort-run end
+
+This first traces the action, then asserts that the given sort kind is the
+bit-vector sort kind (Murxla-level debug assertion), then creates the sort
+via :cpp:func:`murxla::Solver::mk_sort()`, tests if the created sort has
+the expected bit-width via :c:macro:`MURXLA_TEST`, adds the sort to the sort
+database via :cpp:func:`murxla::SolverManager::add_sort()`, performs some
+checks on the sort via :cpp:func:`murxla::ActionMkSort::check_sort()`, traces
+the sort as return value via :c:macro:`MURXLA_TRACE_RETURN` and returns its id
+(used for untracing only).
+
+Macro for Testing Solver Behavior
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygendefine:: MURXLA_TEST
+
 murxla::Action::untrace()
 --------------------------
 

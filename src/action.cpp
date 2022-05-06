@@ -1041,6 +1041,7 @@ ActionMkSort::run(SortKind kind, const std::string& name)
   return {res->get_id()};
 }
 
+//! [docs-action-mksort-run start]
 std::vector<uint64_t>
 ActionMkSort::run(SortKind kind, uint32_t bw)
 {
@@ -1053,6 +1054,7 @@ ActionMkSort::run(SortKind kind, uint32_t bw)
   MURXLA_TRACE_RETURN << res;
   return {res->get_id()};
 }
+//! [docs-action-mksort-run end]
 
 std::vector<uint64_t>
 ActionMkSort::run(SortKind kind, uint32_t ew, uint32_t sw)
