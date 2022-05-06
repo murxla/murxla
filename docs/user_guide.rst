@@ -82,8 +82,8 @@ from previous Murxla runs.
    behavior.
 
 
-Testing via the SMT2-LIB Interface
-**********************************
+Testing via the SMT-LIBv2 Interface
+***********************************
 
 If an SMT solver is not natively integrated into Murxla, the solver binary can
 still be tested via Murxla's interactive SMT-LIBv2 interface.
@@ -94,7 +94,26 @@ default SMT-LIBv2 profile can be overridden with a custom
 :ref:`solver profile <solver-profiles>`,
 which can be loaded via option ``-p``.
 
-.. todo:: example call with solver
+For example, testing z3 via the SMT-LIBv2 interface on QF_BV problems can be
+achieved as follows.
+
+.. code-block:: bash
+
+   $ murxla --smt2 z3.sh --bv
+
+
+.. code-block:: bash
+   :caption: z3 Wrapper Script z3.sh
+
+   #!/bin/bash
+   trap 'kill $(jobs -p)' SIGABRT
+   z3 smtlib2_compliant=true -in -smt2
+
+.. note:: The wrapper script is required in this case since we want to pass
+          additional command line arguments to z3 as Murxla's SMT-LIBv2
+          interface communicates with the solver binary via stdin/stdout.
+          The trap makes sure to properly clean up the z3 process if the
+          wrapper script is terminated by Murxla.
 
 Replaying and Minimizing Traces
 -------------------------------
@@ -211,15 +230,13 @@ It compares the results of two solvers after each ``(check-sat)`` or
    murxla --bzla -c cvc5
 
 
-
-
 Murxla also allows to cross-check solver binaries used via the
 SMT-LIBv2 interface against the native solvers.
 
 .. code-block:: bash
    :caption: Cross-checking a z3 binary via the SMT-LIB interface against cvc5
 
-   murxla --smt2 z3 -c cvc5
+   murxla --smt2 z3.sh -c cvc5
 
 
 Command Line Options
