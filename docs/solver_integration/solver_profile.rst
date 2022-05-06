@@ -1,5 +1,3 @@
-.. _solver-profiles:
-
 Solver Profiles
 ###############
 

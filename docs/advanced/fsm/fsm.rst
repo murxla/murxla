@@ -4,9 +4,9 @@ FSM
 Murxla defines a generic API model based on
 `SMT-LIB <http://smt-lib.org>`_ semantics, implemented as a weighted
 finite state machine (:cpp:class:`murxla::FSM`).
-:ref:`States <states>` of the FSM correspond to the current state of
+:doc:`States <state>` of the FSM correspond to the current state of
 the solver, and transitions have a weight, a pre-condition, and an associated
-:ref:`action <actions>`.
+:doc:`action <action>`.
 
 
 .. figure:: ../../tikz/fuzzer.png

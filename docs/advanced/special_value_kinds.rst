@@ -1,5 +1,3 @@
-.. _special-value-kinds:
-
 Pre-Defined Special Value Kinds
 ===============================
 

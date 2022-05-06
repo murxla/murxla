@@ -91,7 +91,7 @@ In this mode, Murxla will randomly generate SMT-LIBv2 compliant problems with
 all SMT-LIBv2 theories enabled.
 If the solver under test does not support specific theories or operators, the
 default SMT-LIBv2 profile can be overridden with a custom
-:ref:`solver profile <solver-profiles>`,
+:doc:`solver profile <solver_integration/solver_profile>`,
 which can be loaded via option ``-p``.
 
 For example, testing z3 via the SMT-LIBv2 interface on QF_BV problems can be

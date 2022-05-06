@@ -12,7 +12,7 @@ Murxla is written in C++ and aims at being a comprehensive fuzzing tool that
 
 - generates **valid sequences** of solver API calls
 - **records** these sequences in a simple text-based trace format
-  (see :ref:`tracing`)
+  (see :ref:`advanced/fsm/action:Tracing`)
 - provides support for **minimizing** and **replaying** these traces while
   preserving the original behavior of the solver (delta-debugging)
 
@@ -21,7 +21,8 @@ Murxla is written in C++ and aims at being a comprehensive fuzzing tool that
 
    The architecture of Murxla.
 
-Murxla builds on top of a generic solver interface (see :ref:`solver-wrappers`)
+Murxla builds on top of a generic solver interface
+(see :doc:`solver_integration/solver_wrapper/solver_wrapper`)
 and provides full `SMT-LIB <http://smt-lib.org>`_ support in terms of
 semantics, features, standard theories. It further provides experimental
 support for some non-standard theories (sequences, sets, bags).

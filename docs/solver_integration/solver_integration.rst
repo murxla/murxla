@@ -2,7 +2,8 @@ How to Integrate a Solver
 =========================
 
 Integrating a new solver under test only requires defining a
-**solver configuration JSON profile** (see :ref:`solver-profiles`)
+**solver configuration JSON profile**
+(see :doc:`solver_profile`)
 and implementing a dedicated **solver wrapper**.
 The solver profile configures what and how to test, and the solver wrapper
 interfaces with Murxla's core components.

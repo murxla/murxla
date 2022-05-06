@@ -1,8 +1,8 @@
 Operators
 =========
 
-Murxla **globally** defines a :ref:`base set of operator kinds
-<operator-kinds>` as static const members of type :cpp:type:`murxla::Op::Kind`
+Murxla **globally** defines a :doc:`base set of operator kinds
+<operator_kinds>` as static const members of type :cpp:type:`murxla::Op::Kind`
 of class :cpp:class:`murxla::Op`.
 Operator kinds are maintained by an operator kind manager
 (:cpp:class:`murxla::OpKindManager`),
@@ -25,8 +25,8 @@ operator as member of :cpp:class:`murxla::BzlaTerm` as
    :end-before: docs-bzla-op-bv_dec end
 
 Solver-specific operator kinds are added to the
-:ref:`operator kind manager <opmgr>` via overriding
-:cpp:func:`murxla::Solver::configure_opmgr`, e.g.,
+:ref:`operator kind manager <advanced/operator:Operator Management>` via
+overriding :cpp:func:`murxla::Solver::configure_opmgr`, e.g.,
 
 .. literalinclude:: ../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
@@ -49,8 +49,6 @@ Operator and Operator Kind
 .. doxygenstruct:: murxla::Op
     :members:
     :undoc-members:
-
-.. _opmgr:
 
 Operator Management
 -------------------

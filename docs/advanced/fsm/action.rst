@@ -1,12 +1,12 @@
-.. _actions:
-
 FSM: Actions
 ============
 
 An action defines a **specific interaction** with the solver under test.
-The actual interaction of the :ref:`the base set of actions <base-actions>`
+The actual interaction of the :ref:`the base set of actions
+<advanced/fsm/action:The Base Set of Actions>`
 with the solver happens via one or more calls to the
-API of the :ref:`solver wrapper <solver-wrappers>`.
+API of the :doc:`solver wrapper
+<../../solver_integration/solver_wrapper/solver_wrapper>`.
 Solver-specific actions directly interact with the API of the solver under
 test.
 
@@ -42,7 +42,8 @@ which provides a rich interface to pick and manage sorts, terms and manage
 a solver's current state.
 
 For example, action :cpp:class:`murxla::ActionAssertFormula`
-(from the :ref:`base set of actions <base-actions>`)
+(from the :ref:`the base set of actions
+<advanced/fsm/action:The Base Set of Actions>`)
 is responsible for asserting a random formula (SMT-LIB: ``assert``).
 It asserts that the solver is initialized for Murxla-level debugging purposes,
 and checks the required precondition that Boolean terms already exist in the
@@ -98,7 +99,8 @@ The execution of an action is implemented in a (usually private) member
 function ``murxla::Action<Name>::run(<args>)``, which allows to use the same
 action execution code for both :cpp:func:`murxla::Action::generate()` and
 :cpp:func:`murxla::Action::untrace()`.
-This function is responsible for :ref:`tracing <tracing>`, and is usually the
+This function is responsible for :ref:`tracing <advanced/fsm/action:Tracing>`,
+and is usually the
 only one to interact with the solver via the generic solver wrapper API (or
 directly via the solver API for solver-specific actions).
 It is further responsible for registering created sorts and terms with the
@@ -119,7 +121,8 @@ then reset the solver state from *sat* to *assert* (see Fig. 4.1 of the
 and then assert the formula via :cpp:func:`murxla::Solver::assert_formula()`.
 
 Actions that create new sorts and terms must trace these return values via
-macro :c:macro:`MURXLA_TRACE_RETURN` (see :ref:`tracing`).
+macro :c:macro:`MURXLA_TRACE_RETURN`
+(see :ref:`tracing <advanced/fsm/action:Tracing>`).
 Further, for testing assertions about the solver under test, we use macro
 :c:macro:`MURXLA_TEST`.
 For example, the action execution of action :cpp:class:`murxla::ActionMkSort`
@@ -161,7 +164,8 @@ For example, action :cpp:class:`murxla::ActionAssertFormula` is replayed via
    :end-before: docs-action-assertformula-untrace end
 
 Murxla provides a set of
-:ref:`macros for checking expected properties <check_trace_macros>` of given
+:ref:`macros for checking expected properties
+<advanced/fsm/action:Macros for Checking Trace Tokens>` of given
 action line trace tokens.
 In the example above, we use macro :c:macro:`MURXLA_CHECK_TRACE_NTOKENS` to
 check if ``tokens`` holds exactly one trace token (the id of the asserted term).
@@ -173,8 +177,6 @@ and check if we were able to match the term (or if the given id is unknown)
 via :c:macro:`MURXLA_CHECK_TRACE_TERM` (similarly, for sorts, via
 :c:macro:`MURXLA_CHECK_TRACE_SORT`).
 
-
-.. _check_trace_macros:
 
 Macros for Checking Trace Tokens
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -201,8 +203,6 @@ follows:
    :language: cpp
    :start-after: docs-bzla-action-termisequalsort-run start
    :end-before: docs-bzla-action-termisequalsort-run end
-
-.. _tracing:
 
 Tracing
 -------
@@ -303,8 +303,6 @@ there and prepend the seed to the trace line:
 
 .. doxygendefine:: MURXLA_TRACE_RETURN
 
-.. _fsm-configuration:
-
 FSM Configuration
 -----------------
 
@@ -317,14 +315,12 @@ the next without executing any solver API calls (an *empty* action).
 
 Existing states are retrieved via :cpp:func:`murxla::FSM::get_state()`,
 new states are created and added via :cpp:func:`murxla::FSM::new_state()`
-(see :ref:`states`).
+(see :doc:`state`).
 
 Each action added to a state via :cpp:func:`murxla::State::add_action()` has a
 weight, which is defined via its ``priority``, with ``1`` as the highest
 priority, ``UINT32_MAX`` the lowest priority, and ``0`` corresponding to
 disabling the action.
-
-.. _base-actions:
 
 The Base Class for Actions
 --------------------------

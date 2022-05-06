@@ -1,5 +1,3 @@
-.. _states:
-
 FSM: States
 ===========
 

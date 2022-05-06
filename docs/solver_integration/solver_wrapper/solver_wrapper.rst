@@ -1,5 +1,3 @@
-.. _solver-wrappers:
-
 Solver Wrappers
 ===============
 
@@ -27,8 +25,8 @@ classes of the interface and must **at least** override the member functions
 required to be overriden.
 Additionally, for each class, there exists a set of member functions with
 default implementations that **should** be overriden (if supported) to test the
-solver (see :ref:`the list of required and optional overrides
-<wrapper-overrides>` below).
+solver (see :doc:`the list of required and optional overrides
+<overrides>` below).
 
 .. toctree::
   :maxdepth: 2
@@ -98,9 +96,9 @@ i.e., features that cannot be plugged in via the generic solver wrapper API.
 Operator Kinds
 ^^^^^^^^^^^^^^
 
-Murxla defines a :ref:`base set of operator kinds
-<operator-kinds>` as static const members of type :cpp:type:`murxla::Op::Kind`
-of class :cpp:class:`murxla::Op`.
+Murxla defines a :doc:`base set of operator kinds
+<../../advanced/operator_kinds>` as static const members of type
+:cpp:type:`murxla::Op::Kind` of class :cpp:class:`murxla::Op`.
 Solver-specific operator kinds are (by convention) defined as members of the
 solver wrapper implementation of :cpp:class:`murxla::AbsTerm`.
 By convention, we prefix solver-specific operator kinds with the solver's
@@ -114,8 +112,8 @@ operator as member of :cpp:class:`murxla::BzlaTerm` as
    :end-before: docs-bzla-op-bv_dec end
 
 Solver-specific operator kinds are added to the
-:ref:`operator kind manager <opmgr>` via overriding
-:cpp:func:`murxla::Solver::configure_opmgr`, e.g.,
+:ref:`operator kind manager <advanced/operator:Operator Management>` via
+overriding :cpp:func:`murxla::Solver::configure_opmgr`, e.g.,
 
 .. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
    :language: cpp
@@ -156,29 +154,27 @@ Actions
 
 Murxla defines a base API model implementing SMT-LIB semantics
 (as a finite state machine, see :doc:`../../advanced/fsm/fsm`) with a
-:ref:`base set of actions <base-actions>`.
+:ref:`base set of actions <advanced/fsm/action:The Base Set Of Actions>`.
 This base API model can be extended with solver-specific features that cannot
 be immediately plugged into the base API Model by adding transitions with
 associated solver-specific actions to the FSM via overriding
 :cpp:func:`murxla::Solver::configure_fsm()`.
 
 Solver-specific actions directly interact with the API of the solver under test
-(see :ref:`actions`).
+(see :doc:`../../advanced/fsm/action`).
 They are added to an existing (or new, solver-specific)
 state while defining its priority and (optionally) a next state via
 :cpp:func:`murxla::State::add_action()`
-(see :ref:`fsm-configuration`).
+(see :ref:`advanced/fsm/action:FSM Configuration`).
 
 Features Unsupported By The Solver Under Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Murxla requires to define a solver profile (see :ref:`solver-profiles`) to
+Murxla requires to define a solver profile (see :doc:`../solver_profile`) to
 define the solver test configuration. The solver profile allows to define
 which theories to consider and to disable unsupported sort and operator kinds.
 Unsupported actions can be disabled via overriding
 :cpp:func:`murxla::Solver::disable_unsupported_actions()`.
-
-.. _configure_solver_options:
 
 Solver Options
 --------------
@@ -190,7 +186,7 @@ of the solver manager object passed to
 :cpp:func:`murxla::Solver::configure_options()`.
 
 Murxla distinguishes three different
-:ref:`option types <solver-options>`:
+:doc:`option types <../../advanced/solver_option>`:
 
 - Boolean options (:cpp:class:`murxla::SolverOptionBool`)
 - Numeric options (:cpp:class:`murxla::SolverOptionNum`)

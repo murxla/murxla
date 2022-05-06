@@ -1,5 +1,3 @@
-.. _operator-kinds:
-
 Pre-Defined Operator Kinds
 ==========================
 

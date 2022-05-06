@@ -28,7 +28,7 @@ By default the script will download and build all supported solvers. Please
 refer to ``setup-solver.sh -h`` for further options.
 
 After successful compilation you can find the Murxla binary in ``build/bin/``.
-Please refer to the :ref:`User Guide <user-guide>` for how to use Murxla.
+Please refer to the :doc:`user_guide` for how to use Murxla.
 
 Supported Solvers
 -----------------

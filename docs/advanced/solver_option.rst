@@ -1,5 +1,3 @@
-.. _solver-options:
-
 Solver Options
 ==============
 
@@ -8,7 +6,9 @@ options based on the options model of the solver.
 This options model is advertised to Murxla via configuring a
 :cpp:class:`murxla::SolverOption` for each option and adding it to the
 solver manager via :cpp:func:`murxla::Solver::configure_options()`
-(for more details, see :ref:`configure_solver_options`).
+(for more details, see
+:ref:`how to configure solver options
+<solver_integration/solver_wrapper/solver_wrapper:Solver Options>`).
 
 Murxla supports Boolean options (:cpp:class:`murxla::SolverOptionBool`),
 numeric options (:cpp:class:`murxla::SolverOptionNum`) and
