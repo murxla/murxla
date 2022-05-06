@@ -37,5 +37,8 @@ class TraceLexer(RegexLexer):
             # symbols (regular and quoted, see lexicon)
             (r'[a-zA-Z~!@$%^&*_+=<>.?/-][a-zA-Z0-9~!@$%^&*_+=<>.?/-]*', token.Name),
             (r'\|[^|\\]*\|', token.Name),
+            # text
+            (r'(\(.*\))', token.Text),
+            (r'(\[.*\].*$)', token.Text),
         ],
     }
