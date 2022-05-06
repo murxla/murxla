@@ -152,7 +152,7 @@ print_error_summary()
           {
             std::cout << " ";
           }
-          std::cout << std::hex << e_info.seeds[i];
+          std::cout << std::hex << e_info.seeds[i] << std::dec;
         }
         std::cout << "\n" << e_info.errmsg << "\n" << std::endl;
       }
