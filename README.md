@@ -1,54 +1,32 @@
 # Murxla
 
-## Quickstart
+Murxla is a modular and highly extensible, model-based API Fuzzer for SMT
+solvers.
 
-**Prerequisite:** Solver(s) to test installed to `<prefix-path>`
+Its name is derived from the German (rather informal) word Murks, which can be
+translated as "screw-up". Murxla is a tool to find Murkses (bugs) in SMT
+solvers via API fuzzing.
 
-Currently supported solvers are
-[Bitwuzla](https://github.com/bitwuzla/bitwuzla),
-[Boolector](https://github.com/boolector/boolector),
-[cvc5](https://github.com/cvc5/cvc5), and
-[Yices](https://github.com/SRI-CSL/yices2).
+## Website
 
-```
-git clone https://github.com/murxla/murxla.git
-cd murxla
-mkdir build
-cmake .. -DCMAKE_PREFIX_PATH=<prefix-path> // this will configure murxla with support for the solvers in `<prefix-path>`
-make
-```
+More information and comprehensive documentation is available at:
+https://murxla.github.io
 
-After successful compilation you can find the murxla binary in `build/bin/`.
-Please refer to `bin/murxla -h` for a list of available options.
+## Download
 
-**Note:** You can link against any supported solver versions that are
-compatiable with the solver versions in [solvers/](https://github.com/murxla/murxla/tree/main/solvers).
+The latest version of Murxla is available on GitHub:
+https://github.com/murxla/murxla
 
-**Note:** If murxla is configured without any solver it is still possible to
-generate SMT-LIBv2 output and test solver binaries.
+## Required Dependencies
 
+- [CMake >= 3.3](https://cmake.org)
+- [Python](https://www.python.org)
 
-## Using murxla
+## Installation
 
-Testing Bitwuzla:
+For build and installation instructions, see
+https://murxla.github.io/docs/install.html.
 
-```
-murxla --bzla
-```
+## Usage
 
-Testing Boolector:
-```
-murxla --btor
-```
-
-Testing cvc5:
-```
-murxla --cvc5
-```
-
-Testing Yices:
-```
-murxla --yices
-```
-
-
+For usage instructions, see https://murxla.github.io/docs/user_guide.html.
