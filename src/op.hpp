@@ -2341,7 +2341,7 @@ struct Op
    * \verbatim embed:rst:leading-asterisk
    * .. code:: smtlib
    *
-   *     (str.at <term_1> <term_2>)
+   *     (str.++ <term_1> <term_2>)
    * \endverbatim
    */
   inline static const Kind STR_CONCAT = "OP_STR_CONCAT";
