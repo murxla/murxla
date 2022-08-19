@@ -670,6 +670,7 @@ std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
     {::cvc5::Kind::CONST_BITVECTOR, Op::VALUE},
     {::cvc5::Kind::CONST_FLOATINGPOINT, Op::VALUE},
     {::cvc5::Kind::CONST_RATIONAL, Op::VALUE},
+    {::cvc5::Kind::CONST_INTEGER, Op::VALUE},
     {::cvc5::Kind::CONST_ROUNDINGMODE, Op::VALUE},
     {::cvc5::Kind::CONST_SEQUENCE, Op::VALUE},
     {::cvc5::Kind::CONST_STRING, Op::VALUE},
