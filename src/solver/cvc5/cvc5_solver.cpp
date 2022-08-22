@@ -3374,15 +3374,13 @@ class Cvc5ActionBlockModel : public Action
   {
     MURXLA_TRACE << get_kind();
     d_smgr.reset_sat();
-    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::Solver* cvc5      = solver.get_solver();
     if (d_rng.flip_coin())
     {
-      cvc5->blockModel(::cvc5::modes::BlockModelsMode::LITERALS);
+      TRACE_SOLVER_ACTION(blockModel, ::cvc5::modes::BlockModelsMode::LITERALS);
     }
     else
     {
-      cvc5->blockModel(::cvc5::modes::BlockModelsMode::VALUES);
+      TRACE_SOLVER_ACTION(blockModel, ::cvc5::modes::BlockModelsMode::VALUES);
     }
   }
 };
@@ -3451,11 +3449,9 @@ class Cvc5ActionBlockModelValues : public Action
   {
     MURXLA_TRACE << get_kind() << " " << values.size() << values;
     d_smgr.reset_sat();
-    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::Solver* cvc5      = solver.get_solver();
     std::vector<::cvc5::Term> cvc5_values =
         Cvc5Term::terms_to_cvc5_terms(values);
-    cvc5->blockModelValues(cvc5_values);
+    TRACE_SOLVER_ACTION(blockModelValues, cvc5_values);
   }
 };
 
