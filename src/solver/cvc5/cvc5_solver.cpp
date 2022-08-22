@@ -33,6 +33,16 @@ namespace cvc5 {
         return d_solver->FUNC(args...);                    \
       } __VA_OPT__(, ) __VA_ARGS__)
 
+#define TRACE_SOLVER_ACTION(FUNC, ...)                                     \
+  static_cast<Cvc5Solver&>(d_smgr.get_solver())                            \
+      .get_tracer()([](Tracer<Cvc5TracerData>& tracer,                     \
+                       auto&&... args) { tracer << "solver." << #FUNC; },  \
+                    [this](auto&&... args) {                               \
+                      return static_cast<Cvc5Solver&>(d_smgr.get_solver()) \
+                          .get_solver()                                    \
+                          ->FUNC(args...);                                 \
+                    } __VA_OPT__(, ) __VA_ARGS__)
+
 #define TRACE_METHOD(FUNC, FIRST, ...)                      \
   d_tracer(                                                 \
       [=](Tracer<Cvc5TracerData>& tracer, auto&&... args) { \
@@ -3241,7 +3251,8 @@ class Cvc5ActionGetInterpolant : public Action
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
     ::cvc5::Solver* cvc5      = solver.get_solver();
     ::cvc5::Term cvc5_res;
-    cvc5_res = cvc5->getInterpolant(Cvc5Term::get_cvc5_term(term));
+    cvc5_res =
+        TRACE_SOLVER_ACTION(getInterpolant, Cvc5Term::get_cvc5_term(term));
     /* Note: We don't add the interpolant to the term db for now, since this
      *       requires refactoring untrace to support optional results. In
      *       this case we would trace "return t(nil) s(nil)" when the

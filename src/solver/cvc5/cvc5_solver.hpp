@@ -87,6 +87,9 @@ class Cvc5Sort : public AbsSort
   Sort get_seq_element_sort() const override;
   Sort get_set_element_sort() const override;
 
+  /** @return The associated cvc5 API tracer. */
+  Tracer<Cvc5TracerData>& get_tracer() const { return d_tracer; }
+
  private:
   Tracer<Cvc5TracerData>& d_tracer;
   ::cvc5::Solver* d_solver;
