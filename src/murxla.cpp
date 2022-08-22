@@ -855,7 +855,9 @@ Murxla::add_error(const std::string& err, uint64_t seed)
   /* Filter errors if specified in the solver profile. */
   for (const auto& e : d_exclude_errors)
   {
-    if (filtered_err.find(e) != std::string::npos)
+    std::smatch sm;
+    std::regex_search(filtered_err, sm, std::regex(e));
+    if (!sm.empty())
     {
       return std::make_tuple(ErrorKind::FILTER, filtered_err, 0, 0);
     }

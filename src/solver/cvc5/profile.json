@@ -146,7 +146,9 @@
 
   "errors": {
     "exclude": [
-      "The exponent of the POW(^) operator can only be a positive integral"
+      "cvc5::CVC5ApiException'\\n.*The exponent of the POW\\(\\^\\) operator can only be a positive integral",
+      "cvc5::CVC5ApiException'\\n.*We only allow sets up to cardinality",
+      "cvc5::CVC5ApiException'\\n.*Cannot handle non-well-founded datatype"
     ],
     "filter": [
       "Fatal failure within [\\S\\s]+",
