@@ -649,15 +649,23 @@ ActionMkSort::generate()
                   std::vector<Sort> inst_sorts;
                   for (size_t l = 0, n = dt_n_params.at(uname); l < n; ++l)
                   {
-                    if (psorts.size() && d_rng.flip_coin())
+                    if (psorts.size()
+                        && (!d_smgr.has_sort_excluding(
+                                d_exclude_sort_param_sort_kinds)
+                            || d_rng.flip_coin()))
                     {
                       inst_sorts.push_back(
                           d_rng.pick_from_set<decltype(psorts), Sort>(psorts));
                     }
-                    else
+                    else if (d_smgr.has_sort_excluding(
+                                 d_exclude_sort_param_sort_kinds))
                     {
                       inst_sorts.push_back(d_smgr.pick_sort_excluding(
                           d_exclude_sort_param_sort_kinds, false));
+                    }
+                    else
+                    {
+                      return false;
                     }
                   }
                   s->set_sorts(inst_sorts);
