@@ -143,7 +143,6 @@ class Cvc5Term : public AbsTerm
    * for getKind(). */
   inline static const Op::Kind OP_REGEXP_EMPTY = "cvc5-OP_REGEXP_EMPTY";
   inline static const Op::Kind OP_REGEXP_SIGMA = "cvc5-OP_REGEXP_SIGMA";
-  inline static const Op::Kind OP_REGEXP_STAR  = "re.*";
   inline static const Op::Kind OP_SET_EMPTY    = "cvc5-OP_SET_EMPTY";
   inline static const Op::Kind OP_SET_UNIVERSE = "cvc5-OP_SET_UNIVERSE";
 

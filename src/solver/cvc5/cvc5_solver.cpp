@@ -947,7 +947,6 @@ std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
 
     /* Special value kinds that cvc5 introduces its own node kind for,
      * only used for getKind(). */
-    {::cvc5::Kind::REGEXP_STAR, OP_REGEXP_STAR},
     {::cvc5::Kind::SET_EMPTY, OP_SET_EMPTY},
     {::cvc5::Kind::SET_UNIVERSE, OP_SET_UNIVERSE},
 };
