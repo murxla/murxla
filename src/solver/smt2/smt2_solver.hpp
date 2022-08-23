@@ -11,6 +11,7 @@
 #define __MURXLA__SMT2_SOLVER_H
 
 #include "fsm.hpp"
+#include "solver/cvc5/cvc5_solver.hpp"
 #include "solver/solver.hpp"
 #include "theory.hpp"
 
@@ -363,6 +364,17 @@ class Smt2Term : public AbsTerm
       {Op::TRANS_SQRT, "sqrt"},
       /* UF */
       {Op::UF_APPLY, ""},
+      /* cvc5-specific operator kinds */
+      {cvc5::Cvc5Term::OP_BV_REDAND, "bvredand"},
+      {cvc5::Cvc5Term::OP_BV_REDOR, "bvredor"},
+      {cvc5::Cvc5Term::OP_INT_TO_BV, "int2bv"},
+      {cvc5::Cvc5Term::OP_BV_TO_NAT, "bv2nat"},
+      {cvc5::Cvc5Term::OP_INT_IAND, "iand"},
+      {cvc5::Cvc5Term::OP_INT_POW2, "int.pow2"},
+      {cvc5::Cvc5Term::OP_STRING_UPDATE, "str.update"},
+      {cvc5::Cvc5Term::OP_STRING_TOLOWER, "str.tolower"},
+      {cvc5::Cvc5Term::OP_STRING_TOUPPER, "str.toupper"},
+      {cvc5::Cvc5Term::OP_STRING_REV, "str.rev"},
   };
 };
 

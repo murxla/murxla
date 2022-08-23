@@ -1641,6 +1641,40 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
   uint32_t sig_size                   = 0;
   std::string sort;
 
+  if (kind.rfind("cvc5-", 0) == 0)
+  {
+    /* cvc5 solver-specific BV operators */
+    if (kind == cvc5::Cvc5Term::OP_BV_REDAND)
+    {
+      sort = get_bv_sort_string(1);
+    }
+    else if (kind == cvc5::Cvc5Term::OP_BV_REDOR)
+    {
+      sort = get_bv_sort_string(1);
+    }
+    else if (kind == cvc5::Cvc5Term::OP_INT_TO_BV)
+    {
+      assert(params.size() == 1);
+      sort = get_bv_sort_string(params[0]);
+    }
+    else if (kind == cvc5::Cvc5Term::OP_BV_TO_NAT
+             || kind == cvc5::Cvc5Term::OP_INT_IAND
+             || kind == cvc5::Cvc5Term::OP_INT_POW2)
+    {
+      sort = get_int_sort_string();
+    }
+    else if (kind == cvc5::Cvc5Term::OP_STRING_UPDATE
+             || kind == cvc5::Cvc5Term::OP_STRING_TOLOWER
+             || kind == cvc5::Cvc5Term::OP_STRING_TOUPPER
+             || kind == cvc5::Cvc5Term::OP_STRING_REV)
+    {
+      sort = get_string_sort_string();
+    }
+    MURXLA_EXIT_ERROR_CONFIG(sort.empty())
+        << "operator " << kind << " not configured for SMT2 translation";
+    return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort, bv_size, sig_size));
+  }
+
   if (kind == Op::ITE)
   {
     assert(args.size() == 3);
@@ -1786,17 +1820,9 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
         bv_size = params[0];
         sort    = get_bv_sort_string(bv_size);
       }
-      else
+      else if (kind.rfind("OP_BV_", 0) == 0)
       {
-        /* Note: We currently "support" printing solver-specific operators,
-         *       but do not support specific sort inference if required.
-         *       For solver-specific operators, we always enter this catch-all
-         *       case and return the sort of the first argument. This is
-         *       problematic for operator kinds where their sort does not
-         *       match the sort of the first argument.  For example,
-         *       Cvc5Term::OP_BV_SLTBV is a bit-vector term of size 1, but
-         *       its arguments may be of any size.
-         */
+        // return sort of first operand for non-solver-specific bv operators
         return args[0]->get_sort();
       }
       break;
@@ -1903,9 +1929,13 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
     }
     break;
 
-    default: assert(false);
+    default:
+      MURXLA_EXIT_ERROR_CONFIG(true)
+          << "operator " << kind << " not configured for SMT2 translation";
   }
-  assert(!sort.empty());
+
+  MURXLA_EXIT_ERROR_CONFIG(sort.empty())
+      << "operator " << kind << " not configured for SMT2 translation";
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort, bv_size, sig_size));
 }
 

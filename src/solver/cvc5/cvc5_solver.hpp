@@ -123,21 +123,21 @@ class Cvc5Term : public AbsTerm
 
   /** Solver-specific operators. */
   // BV
-  inline static const Op::Kind OP_BV_REDAND = "bvredand";
-  inline static const Op::Kind OP_BV_REDOR  = "bvredor";
+  inline static const Op::Kind OP_BV_REDAND = "cvc5-OP_BV_REDAND";
+  inline static const Op::Kind OP_BV_REDOR  = "cvc5-OP_BV_REDOR";
   inline static const Op::Kind OP_BV_ULTBV  = "cvc5-OP_BV_ULTBV";
   inline static const Op::Kind OP_BV_SLTBV  = "cvc5-OP_BV_SLTBV";
   inline static const Op::Kind OP_BV_ITE    = "cvc5-OP_BV_ITE";
-  inline static const Op::Kind OP_INT_TO_BV = "int2bv";
+  inline static const Op::Kind OP_INT_TO_BV = "cvc5-OP_INT_TO_BV";
   // Int
-  inline static const Op::Kind OP_BV_TO_NAT = "bv2nat";
-  inline static const Op::Kind OP_INT_IAND  = "iand";
-  inline static const Op::Kind OP_INT_POW2  = "int.pow2";
+  inline static const Op::Kind OP_BV_TO_NAT = "cvc5-OP_BV_TO_NAT ";
+  inline static const Op::Kind OP_INT_IAND  = "cvc5-OP_INT_IAND";
+  inline static const Op::Kind OP_INT_POW2  = "cvc5-OP_INT_POW2";
   //  Strings
-  inline static const Op::Kind OP_STRING_UPDATE  = "str.update";
-  inline static const Op::Kind OP_STRING_TOLOWER = "str.tolower";
-  inline static const Op::Kind OP_STRING_TOUPPER = "str.toupper";
-  inline static const Op::Kind OP_STRING_REV     = "str.rev";
+  inline static const Op::Kind OP_STRING_UPDATE  = "cvc5-OP_STRING_UPDATE";
+  inline static const Op::Kind OP_STRING_TOLOWER = "cvc5-OP_STRING_TOLOWER";
+  inline static const Op::Kind OP_STRING_TOUPPER = "cvc5-OP_STRING_TOUPPER";
+  inline static const Op::Kind OP_STRING_REV     = "cvc5-OP_STRING_REV";
 
   /* Special value kinds that have its own node kind in cvc5, only used
    * for getKind(). */
