@@ -2023,7 +2023,7 @@ Smt2Solver::set_opt(const std::string& opt, const std::string& value)
 std::string
 Smt2Solver::get_option_name_incremental() const
 {
-  return "incremental";
+  return "SMT-LIB:incremental";
 }
 
 std::string

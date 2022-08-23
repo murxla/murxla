@@ -1188,6 +1188,10 @@ Cvc5Solver::new_solver()
   assert(d_solver == nullptr);
   d_solver = new ::cvc5::Solver();
   d_tracer.init();
+  // Incremental solving is enabled by default via cvc5's API. We disable it
+  // when creating a new solver instance and explicitly enable it later on in
+  // order to correctly trace the option.
+  TRACE_SOLVER(setOption, "incremental", "false");
 }
 //! [docs-cvc5-solver-new_solver end]
 
