@@ -1641,16 +1641,13 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
   uint32_t sig_size                   = 0;
   std::string sort;
 
+  /* cvc5 solver-specific operators */
   if (kind.rfind("cvc5-", 0) == 0)
   {
-    /* cvc5 solver-specific BV operators */
-    if (kind == cvc5::Cvc5Term::OP_BV_REDAND)
+    if (kind == cvc5::Cvc5Term::OP_BV_REDAND
+        || kind == cvc5::Cvc5Term::OP_BV_REDOR)
     {
-      sort = get_bv_sort_string(1);
-    }
-    else if (kind == cvc5::Cvc5Term::OP_BV_REDOR)
-    {
-      sort = get_bv_sort_string(1);
+      sort = get_bool_sort_string();
     }
     else if (kind == cvc5::Cvc5Term::OP_INT_TO_BV)
     {
