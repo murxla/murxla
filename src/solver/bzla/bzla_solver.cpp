@@ -2085,7 +2085,7 @@ class BzlaActionFixateAssumptions : public Action
   void run()
   {
     MURXLA_TRACE << get_kind();
-    d_smgr.clear_assumptions();
+    reset_sat();
     bitwuzla_fixate_assumptions(
         dynamic_cast<BzlaSolver&>(d_solver).get_solver());
   }
