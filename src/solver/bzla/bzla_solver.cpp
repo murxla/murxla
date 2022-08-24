@@ -332,7 +332,7 @@ std::unordered_map<Op::Kind, BitwuzlaKind> BzlaTerm::s_kinds_to_bzla_kinds = {
 std::unordered_map<BitwuzlaKind, Op::Kind> BzlaTerm::s_bzla_kinds_to_kinds = {
     /* Leaf Kinds */
     {BITWUZLA_KIND_CONST, Op::CONSTANT},
-    //{BITWUZLA_KIND_CONST_ARRAY, Op::CONST_ARRAY},
+    {BITWUZLA_KIND_CONST_ARRAY, Op::CONST_ARRAY},
     {BITWUZLA_KIND_VAL, Op::VALUE},
     {BITWUZLA_KIND_VAR, Op::VARIABLE},
     {BITWUZLA_KIND_LAMBDA, Op::FUN},

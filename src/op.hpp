@@ -49,7 +49,7 @@ struct Op
    */
   inline static const Kind CONSTANT = "OP_CONSTANT";
   /** The operator kind representing a const array. */
-  // inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
+  inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
   /**
    * The operator kind representing a value.
    *
