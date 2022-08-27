@@ -2546,9 +2546,9 @@ BzlaSolver::configure_fsm(FSM* fsm) const
   s_create_terms->add_action(a_simplify, 10000);
   s_opt->add_action(a_simplify, 10000);
   s_push_pop->add_action(a_simplify, 10000);
-  s_check_sat->add_action(a_simplify, 10000, s_assert);
-  s_sat->add_action(a_simplify, 10000, s_assert);
-  s_unsat->add_action(a_simplify, 10000, s_assert);
+  s_check_sat->add_action(a_simplify, 10000, s_create_terms);
+  s_sat->add_action(a_simplify, 10000, s_create_terms);
+  s_unsat->add_action(a_simplify, 10000, s_create_terms);
   // bitwuzla_substitute_term
   // bitwuzla_substitute_terms
   auto a_subst_term = fsm->new_action<BzlaActionSubstituteTerm>();
