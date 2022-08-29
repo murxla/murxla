@@ -1,0 +1,47 @@
+on: [push, pull_request]
+name: CI
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        name: [
+          debug,
+        ]
+
+        include:
+          - name: debug-bitwuzla
+            config: -DDOCS=off -DENABLE_BITWUZLA=on -DENABLE_BOOLECTOR=off -DENABLE_CVC5=off -DENABLE_YICES=off
+          - name: debug-boolector
+            config: -DDOCS=off -DENABLE_BITWUZLA=off -DENABLE_BOOLECTOR=on -DENABLE_CVC5=off -DENABLE_YICES=off
+          - name: debug-cvc5
+            config: -DDOCS=off -DENABLE_BITWUZLA=off -DENABLE_BOOLECTOR=off -DENABLE_CVC5=on -DENABLE_YICES=off
+          - name: debug-yices
+            config: -DDOCS=off -DENABLE_BITWUZLA=off -DENABLE_BOOLECTOR=off -DENABLE_CVC5=off -DENABLE_YICES=on
+
+    name: ${{ matrix.os }}:${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Install Packages (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Dependencies
+        if: steps.restore-deps.outputs.cache-hit != 'true'
+        run: |
+          ./scripts/setup-solvers.sh
+
+      - name: Configure
+        run: |
+          ${{ matrix.env }} cmake ${{ matrix.config }}
+
+      - name: Build
+        run: make -j2
+        working-directory: build
