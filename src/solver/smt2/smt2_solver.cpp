@@ -1641,6 +1641,7 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
   uint32_t sig_size                   = 0;
   std::string sort;
 
+#ifdef MURXLA_USE_CVC5
   /* cvc5 solver-specific operators */
   if (kind.rfind("cvc5-", 0) == 0)
   {
@@ -1671,6 +1672,7 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
         << "operator " << kind << " not configured for SMT2 translation";
     return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort, bv_size, sig_size));
   }
+#endif
 
   if (kind == Op::ITE)
   {
