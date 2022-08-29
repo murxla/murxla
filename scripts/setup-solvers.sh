@@ -115,7 +115,7 @@ mkdir -p "$deps_dir"
     fi
 
     rm build -rf
-    ./configure.sh -g --prefix "$deps_dir" $cov $as
+    ./configure.sh -g --prefix "$deps_dir" $cov $as --no-testing
     cd build
     make install -j $(nproc)
   fi
@@ -165,7 +165,7 @@ mkdir -p "$deps_dir"
     fi
 
     rm build -rf
-    ./configure.sh debug --prefix "$deps_dir" $cov $as
+    ./configure.sh debug --prefix "$deps_dir" $cov $as --no-testing
     cd build
     make install -j $(nproc)
   fi

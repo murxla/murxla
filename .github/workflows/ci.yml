@@ -5,20 +5,30 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         name: [
-          debug,
+          debug-bitwuzla,
+          debug-boolector,
+          debug-cvc5,
+          debug-yices,
         ]
 
         include:
           - name: debug-bitwuzla
             config: -DDOCS=off -DENABLE_BITWUZLA=on -DENABLE_BOOLECTOR=off -DENABLE_CVC5=off -DENABLE_YICES=off
+            depconfig: --only-bzla
+
           - name: debug-boolector
             config: -DDOCS=off -DENABLE_BITWUZLA=off -DENABLE_BOOLECTOR=on -DENABLE_CVC5=off -DENABLE_YICES=off
+            depconfig: --only-btor
+
           - name: debug-cvc5
             config: -DDOCS=off -DENABLE_BITWUZLA=off -DENABLE_BOOLECTOR=off -DENABLE_CVC5=on -DENABLE_YICES=off
+            depconfig: --only-cvc5
+
           - name: debug-yices
             config: -DDOCS=off -DENABLE_BITWUZLA=off -DENABLE_BOOLECTOR=off -DENABLE_CVC5=off -DENABLE_YICES=on
+            depconfig: --only-yices
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -28,6 +38,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
+          sudo apt-get install gperf
+          python3 -m pip install toml
 
       - uses: actions/checkout@v2
         with:
@@ -36,11 +48,13 @@ jobs:
       - name: Setup Dependencies
         if: steps.restore-deps.outputs.cache-hit != 'true'
         run: |
-          ./scripts/setup-solvers.sh
+          ./scripts/setup-solvers.sh ${{ matrix.depconfig }}
 
       - name: Configure
         run: |
-          ${{ matrix.env }} cmake ${{ matrix.config }}
+          mkdir build
+          cd build
+          ${{ matrix.env }} cmake .. ${{ matrix.config }}
 
       - name: Build
         run: make -j2
