@@ -3061,9 +3061,9 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
   /* Add solver-specific operators. */
   // BV
   opmgr->add_op_kind(
-      Cvc5Term::OP_BV_REDAND, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+      Cvc5Term::OP_BV_REDAND, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
-      Cvc5Term::OP_BV_REDOR, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+      Cvc5Term::OP_BV_REDOR, 1, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_ULTBV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
