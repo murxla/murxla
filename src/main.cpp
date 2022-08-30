@@ -453,9 +453,11 @@ parse_options(Options& options, int argc, char* argv[])
     }
     else if (arg == "-c" || arg == "--cross-check")
     {
+      record_args.push_back(arg);
       i += 1;
       check_next_arg(arg, i, size);
       SolverKind solver = args[i];
+      record_args.push_back(solver);
       MURXLA_EXIT_ERROR(!is_valid_solver_str(solver))
           << "invalid argument " << solver << " to option '" << arg << "'";
       check_solver(solver);
