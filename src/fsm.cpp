@@ -715,6 +715,13 @@ FSM::untrace(const std::string& trace_file_name)
         }
 
         Action* action = d_actions.at(id).get();
+        if (!d_smgr.get_solver().is_initialized())
+        {
+          throw MurxlaUntraceException(trace_file_name,
+                                       nline,
+                                       "solver not initialized, are you "
+                                       "missing an action 'new' trace line?");
+        }
 
         if (action->returns() == Action::ReturnValue::NONE)
         {
