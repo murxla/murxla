@@ -715,7 +715,8 @@ FSM::untrace(const std::string& trace_file_name)
         }
 
         Action* action = d_actions.at(id).get();
-        if (!d_smgr.get_solver().is_initialized())
+        if (!d_smgr.get_solver().is_initialized()
+            && action->get_kind() != ActionNew::s_name)
         {
           throw MurxlaUntraceException(trace_file_name,
                                        nline,
