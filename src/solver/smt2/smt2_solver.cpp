@@ -1272,7 +1272,7 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
-        val << "#b" << bv_special_value_zero_str(bw);
+        val << "#b" << bv_special_value_max_signed_str(bw);
       }
     }
     break;
