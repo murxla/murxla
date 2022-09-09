@@ -1491,7 +1491,8 @@ BzlaSolver::set_opt(const std::string& opt, const std::string& value)
   else
   {
     auto it = d_option_name_to_enum.find(opt);
-    assert(it != d_option_name_to_enum.end());
+    MURXLA_CHECK_CONFIG(it != d_option_name_to_enum.end())
+        << "invalid option name '" << opt;
     bzla_opt = it->second;
   }
 
