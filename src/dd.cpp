@@ -251,7 +251,7 @@ DD::run(const std::string& input_trace_file_name,
                       << (static_cast<double>(std::filesystem::file_size(
                               reduced_trace_file_name))
                           / static_cast<double>(size) * 100)
-                      << "% of original size";
+                      << "\% of original size";
   }
   else
   {
