@@ -694,7 +694,7 @@ Murxla::run_aux(uint64_t seed,
       if (pid_timeout == 0)
       {
         signal(SIGINT, SIG_DFL);  // reset stats signal handler
-        usleep(static_cast<__useconds_t>(time * 1000000));
+        usleep(static_cast<useconds_t>(time * 1000000));
         exit(EXIT_OK);
       }
     }
