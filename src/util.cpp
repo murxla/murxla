@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <limits>
@@ -21,7 +22,6 @@
 #include <unordered_map>
 
 #include "except.hpp"
-#include "fs.hpp"
 
 namespace murxla {
 
@@ -481,7 +481,7 @@ Terminal::code(const std::string color) const
 std::string
 get_tmp_file_path(const std::string& filename, const std::string& directory)
 {
-  filesystem::path p(directory);
+  std::filesystem::path p(directory);
   p /= filename;
   return p.string();
 }
@@ -489,7 +489,7 @@ get_tmp_file_path(const std::string& filename, const std::string& directory)
 std::string
 prepend_path(const std::string& prefix, const std::string& file_name)
 {
-  filesystem::path p(prefix);
+  std::filesystem::path p(prefix);
   p /= file_name;
   return p.string();
 }

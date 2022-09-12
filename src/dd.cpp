@@ -10,10 +10,10 @@
 #include "dd.hpp"
 
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 
 #include "except.hpp"
-#include "fs.hpp"
 #include "murxla.hpp"
 #include "solver_manager.hpp"
 #include "statistics.hpp"
@@ -199,7 +199,7 @@ DD::run(const std::string& input_trace_file_name,
   trace_file.close();
 
   uint64_t iterations = 0;
-  std::uintmax_t size = filesystem::file_size(tmp_input_trace_file_name);
+  std::uintmax_t size = std::filesystem::file_size(tmp_input_trace_file_name);
   std::vector<size_t> included_lines(lines.size());
   std::iota(included_lines.begin(), included_lines.end(), 0);
   bool success, fixed_point;
@@ -240,16 +240,16 @@ DD::run(const std::string& input_trace_file_name,
   MURXLA_MESSAGE_DD << d_ntests_success << " (of " << d_ntests
                     << ") tests reduced successfully";
 
-  if (filesystem::exists(d_tmp_trace_file_name))
+  if (std::filesystem::exists(d_tmp_trace_file_name))
   {
-    filesystem::copy(d_tmp_trace_file_name,
-                     reduced_trace_file_name,
-                     filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy(d_tmp_trace_file_name,
+                          reduced_trace_file_name,
+                          std::filesystem::copy_options::overwrite_existing);
 
     MURXLA_MESSAGE_DD << "written to: " << reduced_trace_file_name.c_str();
     MURXLA_MESSAGE_DD << "file reduced to "
-                      << (static_cast<double>(
-                              filesystem::file_size(reduced_trace_file_name))
+                      << (static_cast<double>(std::filesystem::file_size(
+                              reduced_trace_file_name))
                           / static_cast<double>(size) * 100)
                       << "% of original size";
   }

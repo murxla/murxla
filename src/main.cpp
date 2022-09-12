@@ -18,6 +18,7 @@
 
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -27,7 +28,6 @@
 #include "dd.hpp"
 #include "except.hpp"
 #include "exit.hpp"
-#include "fs.hpp"
 #include "murxla.hpp"
 #include "options.hpp"
 #include "solver_option.hpp"
@@ -88,11 +88,11 @@ path_is_dir(const std::string& path)
 void
 create_tmp_directory(const std::string& tmp_dir)
 {
-  filesystem::path p(tmp_dir);
+  std::filesystem::path p(tmp_dir);
   p /= "murxla-" + std::to_string(getpid());
-  if (!filesystem::exists(p))
+  if (!std::filesystem::exists(p))
   {
-    filesystem::create_directory(p);
+    std::filesystem::create_directory(p);
   }
   TMP_DIR = p.string();
 }
@@ -177,9 +177,9 @@ catch_signal_esummary(int32_t sig)
     print_error_summary();
     caught_signal = sig;
   }
-  if (filesystem::exists(TMP_DIR))
+  if (std::filesystem::exists(TMP_DIR))
   {
-    filesystem::remove_all(TMP_DIR);
+    std::filesystem::remove_all(TMP_DIR);
   }
 
   (void) signal(SIGINT, sig_int_handler_esummary);
@@ -859,9 +859,9 @@ main(int argc, char* argv[])
   MURXLA_EXIT_ERROR(munmap(stats, sizeof(Statistics)))
       << "failed to unmap shared memory for statistics";
 
-  if (filesystem::exists(TMP_DIR))
+  if (std::filesystem::exists(TMP_DIR))
   {
-    filesystem::remove_all(TMP_DIR);
+    std::filesystem::remove_all(TMP_DIR);
   }
 
   return 0;

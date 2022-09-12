@@ -15,6 +15,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <nlohmann/json.hpp>
@@ -22,7 +23,6 @@
 
 #include "dd.hpp"
 #include "except.hpp"
-#include "fs.hpp"
 #include "fsm.hpp"
 #include "solver/btor/btor_solver.hpp"
 #include "solver/bzla/bzla_solver.hpp"
@@ -223,7 +223,7 @@ Murxla::run(uint64_t seed,
 
     if (copy_from != copy_to)
     {
-      assert(filesystem::exists(copy_from));
+      assert(std::filesystem::exists(copy_from));
 
       // Create parent directories if they do not exist yet.
       std::filesystem::path fp(copy_to);
@@ -231,8 +231,9 @@ Murxla::run(uint64_t seed,
       {
         std::filesystem::create_directories(fp.parent_path());
       }
-      filesystem::copy(
-          copy_from, copy_to, filesystem::copy_options::overwrite_existing);
+      std::filesystem::copy(copy_from,
+                            copy_to,
+                            std::filesystem::copy_options::overwrite_existing);
     }
   }
   // Print terminating "}" for main() function of native API traces.
@@ -942,7 +943,7 @@ Murxla::get_smt2_file_name(uint64_t seed,
     }
     else
     {
-      auto path = filesystem::path(untrace_file_name);
+      auto path = std::filesystem::path(untrace_file_name);
       ss << path.replace_extension(".smt2").c_str();
     }
     smt2_file_name = ss.str();
