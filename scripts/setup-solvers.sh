@@ -114,7 +114,7 @@ mkdir -p "$deps_dir"
       as="--asan"
     fi
 
-    rm build -rf
+    rm -rf build
     ./configure.sh -g --prefix "$deps_dir" $cov $as --no-testing
     cd build
     make install -j $(nproc)
@@ -164,7 +164,7 @@ mkdir -p "$deps_dir"
       as="--asan"
     fi
 
-    rm build -rf
+    rm -rf build
     ./configure.sh debug --prefix "$deps_dir" $cov $as --no-testing
     cd build
     make install -j $(nproc)
@@ -189,7 +189,7 @@ mkdir -p "$deps_dir"
       as="--asan"
     fi
 
-    rm build -rf
+    rm -rf build
     ./configure.sh debug --prefix="$deps_dir" --auto-download $cov $as
     cd build
     make install -j $(nproc)
@@ -202,7 +202,7 @@ mkdir -p "$deps_dir"
   then
     cd solvers/yices || exit 1
 
-    rm build -rf
+    rm -rf build
     autoconf
 
     cov=
