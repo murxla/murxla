@@ -9,6 +9,7 @@
  */
 #include "smt2_solver.hpp"
 
+#include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
