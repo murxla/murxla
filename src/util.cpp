@@ -328,60 +328,6 @@ bv_special_value_max_signed_str(uint32_t bw)
   return res;
 }
 
-bool
-is_bv_special_value_zero_str(std::string& value)
-{
-  for (const auto& c : value)
-  {
-    if (c != '0') return false;
-  }
-  return true;
-}
-
-bool
-is_bv_special_value_one_str(uint32_t bw, std::string& value)
-{
-  size_t n = value.size();
-  for (size_t i = 0; i < n; ++i)
-  {
-    if (value[i] != '0') return false;
-  }
-  if (value[n] != '1') return false;
-  return true;
-}
-
-bool
-is_bv_special_value_ones_str(uint32_t bw, std::string& value)
-{
-  for (const auto& c : value)
-  {
-    if (c != '1') return false;
-  }
-  return true;
-}
-
-bool
-is_bv_special_value_min_signed_str(std::string& value)
-{
-  if (value[0] != '1') return false;
-  for (size_t i = 1, n = value.size(); i <= n; ++i)
-  {
-    if (value[i] != '0') return false;
-  }
-  return true;
-}
-
-bool
-is_bv_special_value_max_signed_str(std::string& value)
-{
-  if (value[0] != '0') return false;
-  for (size_t i = 1, n = value.size(); i <= n; ++i)
-  {
-    if (value[i] != '1') return false;
-  }
-  return true;
-}
-
 /* -------------------------------------------------------------------------- */
 
 uint32_t

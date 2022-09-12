@@ -43,12 +43,6 @@ std::string bv_special_value_ones_str(uint32_t bw);
 std::string bv_special_value_min_signed_str(uint32_t bw);
 std::string bv_special_value_max_signed_str(uint32_t bw);
 
-bool is_bv_special_value_zero_str(std::string& value);
-bool is_bv_special_value_one_str(std::string& value);
-bool is_bv_special_value_ones_str(std::string& value);
-bool is_bv_special_value_min_signed_str(std::string& value);
-bool is_bv_special_value_max_signed_str(std::string& value);
-
 /* -------------------------------------------------------------------------- */
 
 /**
