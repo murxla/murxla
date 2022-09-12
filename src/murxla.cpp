@@ -10,6 +10,7 @@
 #include "murxla.hpp"
 
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>

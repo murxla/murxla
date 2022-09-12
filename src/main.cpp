@@ -8,6 +8,7 @@
  * See LICENSE for more information on using this software.
  */
 #include <fcntl.h>
+#include <signal.h>
 #include <stdarg.h>
 #include <string.h>
 #include <sys/mman.h>
