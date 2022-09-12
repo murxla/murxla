@@ -87,7 +87,7 @@ OpKindManager::get_op(const Op::Kind& kind)
 void
 OpKindManager::add_op_kinds()
 {
-  uint32_t n = MURXLA_MK_TERM_N_ARGS_BIN;
+  int32_t n = MURXLA_MK_TERM_N_ARGS_BIN;
 
   /* Special Cases */
   add_op_kind(Op::DISTINCT, n, 0, SORT_BOOL, {SORT_ANY}, THEORY_ALL);
