@@ -601,12 +601,10 @@ FSM::configure()
   {
     uint32_t sum =
         std::accumulate(s->d_weights.begin(), s->d_weights.end(), 0u);
-    uint32_t i = 0;
     for (uint32_t& w : s->d_weights)
     {
       if (w == 0) continue;
       w = sum / w;
-      i += 1;
     }
   }
 }
