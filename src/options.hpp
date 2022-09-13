@@ -49,7 +49,7 @@ struct Options
   /** Restrict arithmetic operators to linear fragment. */
   bool arith_linear = false;
   /** True to enable option fuzzing. */
-  bool fuzz_options = false;
+  bool fuzz_options = true;
   std::string fuzz_options_filter;
 
   /** The directory for tmp files (default: current). */
