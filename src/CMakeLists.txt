@@ -48,11 +48,13 @@ if(GCOV)
   target_compile_definitions(murxla PUBLIC MURXLA_COVERAGE)
 endif()
 
-include(CheckIncludeFileCXX)
-# Workaround to support compilation with gcc7.
-check_include_file_cxx(<filesystem> HAVE_FILESYSTEM_INCLUDE)
-if(NOT HAVE_FILESYSTEM_INCLUDE)
-  target_link_libraries(murxla PRIVATE stdc++fs)
+if (NOT APPLE)
+  include(CheckIncludeFileCXX)
+  # Workaround to support compilation with gcc7.
+  check_include_file_cxx(<filesystem> HAVE_FILESYSTEM_INCLUDE)
+  if(NOT HAVE_FILESYSTEM_INCLUDE)
+    target_link_libraries(murxla PRIVATE stdc++fs)
+  endif()
 endif()
 
 if(Boolector_FOUND)
