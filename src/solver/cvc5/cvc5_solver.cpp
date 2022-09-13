@@ -1577,8 +1577,8 @@ Cvc5Solver::mk_fun(const std::string& name,
   std::vector<::cvc5::Term> cvc5_args = Cvc5Term::terms_to_cvc5_terms(args);
   ::cvc5::Term cvc5_body              = Cvc5Term::get_cvc5_term(body);
 
-  auto cvc5_res =
-      TRACE_SOLVER(defineFun, name, cvc5_args, cvc5_body.getSort(), cvc5_body);
+  auto cvc5_res = TRACE_SOLVER(
+      defineFun, name, cvc5_args, cvc5_body.getSort(), cvc5_body, true);
   return std::shared_ptr<Cvc5Term>(
       new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
 }
