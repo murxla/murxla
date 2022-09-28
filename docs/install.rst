@@ -10,8 +10,8 @@ Building Murxla
 
   git clone https://github.com/murxla/murxla.git
   cd murxla
-  cd build
   mkdir build
+  cd build
   cmake ..
   make
 
