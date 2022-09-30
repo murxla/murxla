@@ -1084,6 +1084,11 @@ Smt2Solver::mk_value(Sort sort, bool value)
       new Smt2Term(Op::UNDEFINED, {}, {}, {}, val));
 }
 
+const std::string add_dot(const std::string& s)
+{
+  return (s.find('.') != std::string::npos ? "" : ".0");
+}
+
 Term
 Smt2Solver::mk_value(Sort sort, const std::string& value)
 {
@@ -1115,13 +1120,13 @@ Smt2Solver::mk_value(Sort sort, const std::string& value)
       if (pos != std::string::npos)
       {
         assert(pos > 0);
-        std::string num = value.substr(0, pos - 1);
+        std::string num = value.substr(0, pos);
         std::string den = value.substr(pos + 1);
-        val << "(/ " << num << " " << den << ")";
+        val << "(/ " << num << add_dot(num) <<  " " << den << add_dot(den) << ")";
       }
       else
       {
-        val << value;
+        val << value << add_dot(value);
       }
     }
     break;
