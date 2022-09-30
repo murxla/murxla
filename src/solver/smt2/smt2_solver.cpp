@@ -230,7 +230,7 @@ Smt2Sort::is_fun() const
 bool
 Smt2Sort::is_real() const
 {
-  return d_kind == SORT_INT || d_kind == SORT_REAL;
+  return d_kind == SORT_REAL;
 }
 
 bool
