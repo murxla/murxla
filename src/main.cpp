@@ -222,7 +222,7 @@ set_sigint_handler_stats(void)
   "\n"                                                                         \
   " Solvers:\n"                                                                \
   "  --btor                     test Boolector\n"                              \
-  "  --bzla                     test Bitwuzla\n"                               \
+  "  --bitwuzla                 test Bitwuzla\n"                               \
   "  --cvc5                     test cvc5\n"                                   \
   "  --yices                    test Yices\n"                                  \
   "  --smt2 [<binary>]          print SMT-LIB 2 (optionally to solver "        \
@@ -277,7 +277,7 @@ check_solver(const SolverKind& solver_kind)
     MURXLA_EXIT_ERROR(true) << "Boolector not configured";
 #endif
   }
-  else if (solver_kind == SOLVER_BZLA)
+  else if (solver_kind == SOLVER_BITWUZLA)
   {
 #ifndef MURXLA_USE_BITWUZLA
     MURXLA_EXIT_ERROR(true) << "Bitwuzla not configured";
@@ -300,7 +300,7 @@ check_solver(const SolverKind& solver_kind)
 bool
 is_valid_solver_str(const std::string& name)
 {
-  return name == SOLVER_BTOR || name == SOLVER_BZLA || name == SOLVER_CVC5
+  return name == SOLVER_BTOR || name == SOLVER_BITWUZLA || name == SOLVER_CVC5
          || name == SOLVER_YICES;
 }
 
@@ -489,10 +489,10 @@ parse_options(Options& options, int argc, char* argv[])
       options.solver = SOLVER_BTOR;
       record_args.push_back(arg);
     }
-    else if (arg == "--bzla")
+    else if (arg == "--bitwuzla")
     {
-      check_solver(SOLVER_BZLA);
-      options.solver = SOLVER_BZLA;
+      check_solver(SOLVER_BITWUZLA);
+      options.solver = SOLVER_BITWUZLA;
       record_args.push_back(arg);
     }
     else if (arg == "--cvc5")

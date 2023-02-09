@@ -27,7 +27,7 @@ set(murxla_src_files
   util.cpp
   solver/solver.cpp
   solver/btor/btor_solver.cpp
-  #solver/bitwuzla/bzla_solver.cpp
+  solver/bitwuzla/bitwuzla_solver.cpp
   solver/cvc5/cvc5_solver.cpp
   solver/cvc5/cvc5_tracer.cpp
   solver/yices/yices_solver.cpp

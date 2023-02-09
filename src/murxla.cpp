@@ -24,8 +24,8 @@
 #include "dd.hpp"
 #include "except.hpp"
 #include "fsm.hpp"
+#include "solver/bitwuzla/bitwuzla_solver.hpp"
 #include "solver/btor/btor_solver.hpp"
-//#include "solver/bzla/bzla_solver.hpp"
 #include "solver/cvc5/cvc5_solver.hpp"
 #include "solver/meta/check_solver.hpp"
 #include "solver/meta/shadow_solver.hpp"
@@ -508,12 +508,12 @@ Murxla::new_solver(SolverSeedGenerator& sng,
     return new btor::BtorSolver(sng);
 #endif
   }
-//  else if (solver_kind == SOLVER_BZLA)
-//  {
-//#if MURXLA_USE_BITWUZLA
-//    return new bzla::BzlaSolver(sng);
-//#endif
-//  }
+  else if (solver_kind == SOLVER_BITWUZLA)
+  {
+#if MURXLA_USE_BITWUZLA
+    return new bitwuzla::BitwuzlaSolver(sng);
+#endif
+  }
   else if (solver_kind == SOLVER_CVC5)
   {
 #if MURXLA_USE_CVC5

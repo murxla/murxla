@@ -326,6 +326,7 @@ SolverManager::add_sort(Sort& sort,
   SortSet& sorts = well_founded ? (parametric ? d_sorts_dt_parametric : d_sorts)
                                 : d_sorts_dt_non_well_founded;
 
+  assert(sort_kind != SORT_BOOL || sort->is_bool());
   auto it = sorts.find(sort);
   if (it == sorts.end())
   {
