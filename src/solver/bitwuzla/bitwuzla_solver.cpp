@@ -1002,9 +1002,9 @@ BitwuzlaSolver::mk_value(Sort sort, const std::string& value)
   ::bitwuzla::Term bzla_sign =
       ::bitwuzla::mk_bv_value(bzla_sort_1, value.substr(0, 1), 2);
   ::bitwuzla::Term bzla_exp =
-      ::bitwuzla::mk_bv_value(bzla_sort_e, value.substr(1, ew).c_str(), 2);
+      ::bitwuzla::mk_bv_value(bzla_sort_e, value.substr(1, ew), 2);
   ::bitwuzla::Term bzla_sig =
-      ::bitwuzla::mk_bv_value(bzla_sort_s, value.substr(1 + ew).c_str(), 2);
+      ::bitwuzla::mk_bv_value(bzla_sort_s, value.substr(1 + ew), 2);
 
   ::bitwuzla::Term bzla_res =
       ::bitwuzla::mk_fp_value(bzla_sign, bzla_exp, bzla_sig);
