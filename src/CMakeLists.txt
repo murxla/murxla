@@ -27,7 +27,7 @@ set(murxla_src_files
   util.cpp
   solver/solver.cpp
   solver/btor/btor_solver.cpp
-  solver/bzla/bzla_solver.cpp
+  #solver/bitwuzla/bzla_solver.cpp
   solver/cvc5/cvc5_solver.cpp
   solver/cvc5/cvc5_tracer.cpp
   solver/yices/yices_solver.cpp
@@ -92,7 +92,7 @@ namespace ${SOLVER} {\n\
 file(WRITE "${PROFILE_OUTPUT_FILE}" "${PROFILE}")]]
 )
 
-foreach(solver btor bzla cvc5 yices smt2)
+foreach(solver btor bitwuzla cvc5 yices smt2)
   set(JSON_FILE
       "${CMAKE_CURRENT_SOURCE_DIR}/solver/${solver}/profile.json")
   set(PROFILE_HEADER_FILE
