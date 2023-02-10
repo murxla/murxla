@@ -776,6 +776,11 @@ BitwuzlaSolver::init_solver()
   if (d_solver == nullptr)
   {
     assert(d_options != nullptr);
+    // TODO remove when prop solver supports incremental
+    if (d_options->get_mode(::bitwuzla::Option::BV_SOLVER) == "prop")
+    {
+      d_options->set(::bitwuzla::Option::INCREMENTAL, 0ul);
+    }
     d_solver.reset(new ::bitwuzla::Bitwuzla(*d_options));
   }
 }
