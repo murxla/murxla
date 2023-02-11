@@ -776,11 +776,6 @@ BitwuzlaSolver::init_solver()
   if (d_solver == nullptr)
   {
     assert(d_options != nullptr);
-    // TODO remove when prop solver supports incremental
-    if (d_options->get_mode(::bitwuzla::Option::BV_SOLVER) == "prop")
-    {
-      d_options->set(::bitwuzla::Option::INCREMENTAL, 0ul);
-    }
     d_solver.reset(new ::bitwuzla::Bitwuzla(*d_options));
   }
 }
@@ -1240,11 +1235,11 @@ Solver::Result
 BitwuzlaSolver::check_sat_assuming(const std::vector<Term>& assumptions)
 {
   init_solver();
-  //::bitwuzla::Result res =
-  //:d_solver->check_sat(terms_to_bitwuzla_terms(assumptions));
-  // if (res == ::bitwuzla::Result::SAT) return Result::SAT;
-  // if (res == ::bitwuzla::Result::UNSAT) return Result::UNSAT;
-  // MURXLA_TEST(res == ::bitwuzla::Result::UNKNOWN);
+  ::bitwuzla::Result res =
+      d_solver->check_sat(BitwuzlaTerm::terms_to_bitwuzla_terms(assumptions));
+  if (res == ::bitwuzla::Result::SAT) return Result::SAT;
+  if (res == ::bitwuzla::Result::UNSAT) return Result::UNSAT;
+  MURXLA_TEST(res == ::bitwuzla::Result::UNKNOWN);
   return Result::UNKNOWN;
 }
 
@@ -1362,11 +1357,25 @@ BitwuzlaSolver::set_opt(const std::string& opt, const std::string& value)
         value == "true"
             ? 1
             : (value == "false" ? 0 : static_cast<uint32_t>(std::stoul(value)));
+    //// TODO remove when prop solver supports incremental
+    if (val && bzla_opt == ::bitwuzla::Option::INCREMENTAL
+        && d_options->get_mode(::bitwuzla::Option::BV_SOLVER) == "prop")
+    {
+      throw MurxlaSolverOptionException("incompatible option");
+    }
+    ////
     d_options->set(bzla_opt, val);
     MURXLA_TEST(val == d_options->get(bzla_opt));
   }
   else
   {
+    //// TODO remove when prop solver supports incremental
+    if (bzla_opt == ::bitwuzla::Option::BV_SOLVER
+        && d_options->get(::bitwuzla::Option::INCREMENTAL) && value == "prop")
+    {
+      throw MurxlaSolverOptionException("incompatible option");
+    }
+    ////
     d_options->set(bzla_opt, value);
   }
 }
