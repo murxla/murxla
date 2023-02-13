@@ -12,7 +12,8 @@
 #ifndef __MURXLA__BITWUZLA_SOLVER_H
 #define __MURXLA__BITWUZLA_SOLVER_H
 
-#include "bitwuzla/api/cpp/bitwuzla.h"
+#include <bitwuzla/cpp/bitwuzla.h>
+
 #include "fsm.hpp"
 #include "solver/solver.hpp"
 #include "theory.hpp"
