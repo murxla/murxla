@@ -24,6 +24,8 @@ uint32_t uint32_to_value_in_range(uint32_t val, uint32_t from, uint32_t to);
 
 /** Convert a binary string to a hexadecimal string. */
 std::string str_bin_to_hex(const std::string& str_bin);
+/** Convert a hexadecimal string to a binary string. */
+std::string str_hex_to_bin(const std::string& str_bin);
 /** Convert a binary string to a decimal string. */
 std::string str_bin_to_dec(const std::string& str_bin, bool sign = false);
 /** Convert a decimal string to a binary string. */

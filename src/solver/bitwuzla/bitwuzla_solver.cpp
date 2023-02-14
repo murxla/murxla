@@ -994,7 +994,6 @@ BitwuzlaSolver::mk_value(Sort sort, const std::string& value)
 
   uint32_t ew = sort->get_fp_exp_size();
   uint32_t sw = sort->get_fp_sig_size();
-  assert(value.size() == ew + sw);
 
   ::bitwuzla::Sort bzla_sort_1 = ::bitwuzla::mk_bv_sort(1);
   ::bitwuzla::Sort bzla_sort_e = ::bitwuzla::mk_bv_sort(ew);
@@ -1727,11 +1726,32 @@ class BitwuzlaActionGetFpValue : public Action
       std::string fp_val_sign, fp_val_exp, fp_val_sig;
       bzla_solver.get_solver()->get_fp_value(
           bzla_term, fp_val_sign, fp_val_exp, fp_val_sig, base);
-      fp_val = fp_val_sign + fp_val_exp + fp_val_sig;
+      if (base == 10)
+      {
+        fp_val = str_dec_to_bin(fp_val_sign) + str_dec_to_bin(fp_val_exp)
+                 + str_dec_to_bin(fp_val_sig);
+      }
+      else if (base == 16)
+      {
+        fp_val = str_hex_to_bin(fp_val_sign) + str_hex_to_bin(fp_val_exp)
+                 + str_hex_to_bin(fp_val_sig);
+      }
+      else
+      {
+        fp_val = fp_val_sign + fp_val_exp + fp_val_sig;
+      }
     }
     else
     {
       fp_val = bzla_solver.get_solver()->get_fp_value(bzla_term, base);
+      if (base == 10)
+      {
+        fp_val = str_dec_to_bin(fp_val);
+      }
+      else if (base == 16)
+      {
+        fp_val = str_hex_to_bin(fp_val);
+      }
     }
     if (d_smgr.d_incremental)
     {
