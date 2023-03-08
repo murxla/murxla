@@ -130,7 +130,7 @@ class Cvc5Term : public AbsTerm
   inline static const Op::Kind OP_BV_ITE    = "cvc5-OP_BV_ITE";
   inline static const Op::Kind OP_INT_TO_BV = "cvc5-OP_INT_TO_BV";
   // Int
-  inline static const Op::Kind OP_BV_TO_NAT = "cvc5-OP_BV_TO_NAT ";
+  inline static const Op::Kind OP_BV_TO_NAT = "cvc5-OP_BV_TO_NAT";
   inline static const Op::Kind OP_INT_IAND  = "cvc5-OP_INT_IAND";
   inline static const Op::Kind OP_INT_POW2  = "cvc5-OP_INT_POW2";
   //  Strings
