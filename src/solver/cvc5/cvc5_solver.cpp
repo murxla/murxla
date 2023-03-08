@@ -3314,10 +3314,8 @@ class Cvc5ActionGetAbduct : public Action
   {
     MURXLA_TRACE << get_kind() << " " << term;
     d_smgr.reset_sat();
-    Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::Solver* cvc5      = solver.get_solver();
     ::cvc5::Term cvc5_res;
-    cvc5_res = cvc5->getAbduct(Cvc5Term::get_cvc5_term(term));
+    cvc5_res = TRACE_SOLVER_ACTION(getAbduct, Cvc5Term::get_cvc5_term(term));
     /* Note: We don't add the abduct to the term db for now, since this
      *       requires refactoring untrace to support optional results. In
      *       this case we would trace "return t(nil) s(nil)" when the
@@ -3328,7 +3326,7 @@ class Cvc5ActionGetAbduct : public Action
     {
       do
       {
-        cvc5_res = cvc5->getAbductNext();
+        cvc5_res = TRACE_SOLVER_ACTION(getAbductNext);
       } while (!cvc5_res.isNull() && d_rng.flip_coin());
     }
   }
