@@ -167,6 +167,46 @@ operator<<(Tracer<cvc5::Cvc5TracerData>& tracer, const Datatype& dt)
   return tracer;
 }
 
+Tracer<cvc5::Cvc5TracerData>&
+operator<<(Tracer<cvc5::Cvc5TracerData>& tracer, const ::cvc5::RoundingMode& m)
+{
+  switch (m)
+  {
+    case ::cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY:
+      tracer.get_trace() << "cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY";
+      break;
+    case ::cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN:
+      tracer.get_trace() << "cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN";
+      break;
+    case ::cvc5::RoundingMode::ROUND_TOWARD_ZERO:
+      tracer.get_trace() << "cvc5::RoundingMode::ROUND_TOWARD_ZERO";
+      break;
+    case ::cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE:
+      tracer.get_trace() << "cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE";
+      break;
+    case ::cvc5::RoundingMode::ROUND_TOWARD_POSITIVE:
+      tracer.get_trace() << "cvc5::RoundingMode::ROUND_TOWARD_POSITIVE";
+      break;
+  }
+  return tracer;
+}
+
+Tracer<cvc5::Cvc5TracerData>&
+operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
+           const ::cvc5::modes::BlockModelsMode& m)
+{
+  switch (m)
+  {
+    case ::cvc5::modes::BlockModelsMode::LITERALS:
+      tracer.get_trace() << "cvc5::modes::BlockModelsMode::LITERALS";
+      break;
+    case ::cvc5::modes::BlockModelsMode::VALUES:
+      tracer.get_trace() << "cvc5::modes::BlockModelsMode::VALUES";
+      break;
+  }
+  return tracer;
+}
+
 // new_id specializations
 template <>
 template <>

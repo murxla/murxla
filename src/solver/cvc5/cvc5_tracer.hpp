@@ -65,6 +65,11 @@ Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
                                          const ::cvc5::DatatypeSelector& sel);
 Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
                                          const ::cvc5::Datatype& dt);
+Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
+                                         const ::cvc5::RoundingMode& m);
+Tracer<cvc5::Cvc5TracerData>& operator<<(
+    Tracer<cvc5::Cvc5TracerData>& tracer,
+    const ::cvc5::modes::BlockModelsMode& m);
 
 }  // namespace murxla
 
