@@ -51,29 +51,14 @@ static bool g_errors_print_csv = false;
 static Statistics*
 initialize_statistics()
 {
-  int fd;
-  std::stringstream ss;
-  std::string shmfilename;
   Statistics* stats;
-
-  ss << "/tmp/murxla-shm-" << getpid();
-  shmfilename = ss.str();
-
-  MURXLA_EXIT_ERROR((fd = open(shmfilename.c_str(), O_RDWR | O_CREAT, S_IRWXU))
-                    < 0)
-      << "failed to create shared memory file for statistics";
-
   stats = static_cast<Statistics*>(mmap(0,
                                         sizeof(Statistics),
                                         PROT_READ | PROT_WRITE,
                                         MAP_ANONYMOUS | MAP_SHARED,
-                                        fd,
+                                        -1,
                                         0));
   memset(stats, 0, sizeof(Statistics));
-
-  MURXLA_EXIT_ERROR(close(fd))
-      << "failed to close shared memory file for statistics";
-  (void) unlink(shmfilename.c_str());
   return stats;
 }
 
