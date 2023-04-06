@@ -1990,6 +1990,9 @@ ActionMkTerm::generate()
             /* Do not create quantifiers since this would bind the variables
              * created above. */
             if (op_kind == Op::FORALL || op_kind == Op::EXISTS) continue;
+            // Skip set comprehension since it would also bind the variables
+            // created above.
+            if (op_kind == Op::SET_COMPREHENSION) continue;
             if (generate(op_kind)) n_terms_created += 1;
           }
           match_case_kind = Op::DT_MATCH_BIND_CASE;
