@@ -258,6 +258,12 @@ Smt2Sort::is_string() const
 }
 
 bool
+Smt2Sort::is_uninterpreted() const
+{
+  return d_kind == SORT_UNINTERPRETED;
+}
+
+bool
 Smt2Sort::is_reglan() const
 {
   return d_kind == SORT_REGLAN;
