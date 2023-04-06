@@ -183,8 +183,8 @@ SolverManager::add_value(Term& term,
 {
   assert(term.get());
 
-  add_input(term, sort, sort_kind);
   term->set_leaf_kind(AbsTerm::LeafKind::VALUE);
+  add_input(term, sort, sort_kind);
   term->set_special_value_kind(value_kind);
 }
 
@@ -210,8 +210,8 @@ SolverManager::add_var(Term& term, Sort& sort, SortKind sort_kind)
   assert(term.get());
 
   d_stats.vars += 1;
-  d_term_db.add_var(term, sort, sort_kind);
   term->set_leaf_kind(AbsTerm::LeafKind::VARIABLE);
+  d_term_db.add_var(term, sort, sort_kind);
 }
 
 void
@@ -220,8 +220,8 @@ SolverManager::add_const(Term& term, Sort& sort, SortKind sort_kind)
   assert(term.get());
 
   d_stats.vars += 1;
-  d_term_db.add_input(term, sort, sort_kind);
   term->set_leaf_kind(AbsTerm::LeafKind::CONSTANT);
+  d_term_db.add_input(term, sort, sort_kind);
 }
 
 void

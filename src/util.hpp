@@ -158,6 +158,13 @@ checked_cast(P* ptr)
 
 /* -------------------------------------------------------------------------- */
 
+/** Combine hash values (as done in boost::hash_combine). */
+template <class T>
+void hash_combine(size_t& hash, const T& v)
+{
+  hash ^= std::hash<T>{}(v) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+}
+
 }  // namespace murxla
 
 #endif

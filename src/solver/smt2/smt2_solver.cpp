@@ -20,6 +20,7 @@
 #include "exit.hpp"
 #include "murxla.hpp"
 #include "solver/smt2/profile.hpp"
+#include "util.hpp"
 
 namespace murxla {
 namespace smt2 {
@@ -395,7 +396,30 @@ Smt2Sort::get_set_element_sort() const
 size_t
 Smt2Term::hash() const
 {
-  return d_id;
+  size_t h = std::hash<std::string>{}(d_kind);
+  hash_combine(h, d_args.size());
+  hash_combine(h, d_indices.size());
+  hash_combine(h, get_leaf_kind());
+  if (get_kind() == Op::UNDEFINED)
+  {
+    hash_combine(h, d_repr);
+  }
+  else
+  {
+    for (const auto& arg : d_args)
+    {
+      hash_combine(h, arg->get_id());
+    }
+    for (const auto& arg : d_str_args)
+    {
+      hash_combine(h, arg);
+    }
+    for (const auto& idx: d_indices)
+    {
+      hash_combine(h, idx);
+    }
+  }
+  return h;
 }
 
 bool
