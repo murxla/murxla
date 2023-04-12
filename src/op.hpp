@@ -1019,6 +1019,59 @@ struct Op
   inline static const Kind DT_MATCH_BIND_CASE = "OP_DT_MATCH_BIND_CASE";
   // inline static const Kind DT_TUPLE_PROJECT   = "OP_DT_TUPLE_PROJECT";
 
+  //// FF
+  /**
+   * The operator kind representing the finite-field addition operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
+   * - **args**: `{SORT_FF, ...}`
+   * - **indices**: `{}`
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (ff.add <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind FINITE_FIELD_ADD = "OP_FINITE_FIELD_ADD";
+  /**
+   * The operator kind representing the finite-field multiplication operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: #MURXLA_MK_TERM_N_ARGS_BIN
+   * - **args**: `{SORT_FF, ...}`
+   * - **indices**: `{}`
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (ff.mul <term_1> ... <term_n>)
+   * \endverbatim
+   */
+  inline static const Kind FINITE_FIELD_MULT = "OP_FINITE_FIELD_MULT";
+  /**
+   * The operator kind representing the finite-field negation operator.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_FF}`
+   * - **indices**: `{}`
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (- <term>)
+   * \endverbatim
+   */
+  inline static const Kind FINITE_FIELD_NEG = "OP_FINITE_FIELD_NEG";
+
   //// FP
   /**
    * The operator kind representing the floating-point to floating-point

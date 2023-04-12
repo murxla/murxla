@@ -307,6 +307,13 @@ ActionSetLogic::generate()
     logic += "BV";
   }
 
+  it = enabled_theories.find(THEORY_FF);
+  if (it != enabled_theories.end())
+  {
+    enabled_theories.erase(THEORY_FF);
+    logic += "FF";
+  }
+
   it = enabled_theories.find(THEORY_FP);
   if (it != enabled_theories.end())
   {
@@ -693,6 +700,12 @@ ActionMkSort::generate()
     }
     break;
 
+    case SORT_FF:
+    {
+      run(SORT_FF, "17");
+    }
+    break;
+
     case SORT_FP:
     {
       // TODO: support arbitrary formats (for now we only support Float16,
@@ -933,6 +946,14 @@ ActionMkSort::untrace(const std::vector<std::string>& tokens)
     }
     break;
 
+    case SORT_FF:
+      MURXLA_CHECK_TRACE(theories.find(THEORY_FF) != theories.end()
+                         || theories.find(THEORY_FF) != theories.end())
+          << "solver does not support theory of finite-field arithmetic";
+      MURXLA_CHECK_TRACE_NTOKENS_OF_SORT(2, n_tokens, kind);
+      res = run(kind, tokens[1]);
+      break;
+
     case SORT_FP:
       MURXLA_CHECK_TRACE(theories.find(THEORY_FP) != theories.end()
                          || theories.find(THEORY_FP) != theories.end())
@@ -1040,9 +1061,21 @@ ActionMkSort::run(SortKind kind)
 std::vector<uint64_t>
 ActionMkSort::run(SortKind kind, const std::string& name)
 {
-  assert(kind == SORT_UNINTERPRETED);
+  assert(kind == SORT_UNINTERPRETED || kind == SORT_FF);
   MURXLA_TRACE << get_kind() << " " << kind << " " << name;
-  Sort res = d_solver.mk_sort(name);
+  Sort res;
+  if (kind == SORT_UNINTERPRETED)
+  {
+    res = d_solver.mk_sort(name);
+  }
+  else if (kind == SORT_FF)
+  {
+    res = d_solver.mk_sort(kind, name);
+  }
+  else
+  {
+    assert(false);
+  }
   d_smgr.add_sort(res, kind);
   check_sort(res);
   MURXLA_TRACE_RETURN << res;
@@ -2294,6 +2327,11 @@ ActionMkTerm::check_term(Term term)
   {
     MURXLA_TEST(term->is_dt());
   }
+  else if (sort->is_ff())
+  {
+    MURXLA_TEST(term->is_ff());
+    MURXLA_TEST(sort->get_ff_size() == term->get_ff_size());
+  }
   else if (sort->is_fp())
   {
     MURXLA_TEST(term->is_fp());
@@ -2643,6 +2681,16 @@ ActionMkValue::generate(Sort sort)
     }
     break;
 
+    case SORT_FF:
+    {
+      size_t digits = sort->get_ff_size().length();
+      uint32_t digits_small = (uint32_t) digits;
+      assert(digits == digits_small);
+      std::string val = d_rng.pick_dec_int_string(digits_small);
+      run(sort, val);
+    }
+    break;
+
     case SORT_FP:
     {
       uint32_t ew     = sort->get_fp_exp_size();
@@ -2862,6 +2910,10 @@ ActionMkValue::check_value(Term term)
   else if (term->is_bv())
   {
     MURXLA_TEST(term->is_bv_value());
+  }
+  else if (term->is_ff())
+  {
+    MURXLA_TEST(term->is_ff_value());
   }
   else if (term->is_fp())
   {

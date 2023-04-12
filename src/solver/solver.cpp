@@ -242,6 +242,12 @@ AbsSort::get_dt_cons_sel_names(const std::string& name) const
   return {};
 }
 
+std::string
+AbsSort::get_ff_size() const
+{
+  return "0";
+}
+
 uint32_t
 AbsSort::get_fp_exp_size() const
 {
@@ -429,6 +435,12 @@ AbsTerm::is_dt() const
 }
 
 bool
+AbsTerm::is_ff() const
+{
+  return get_sort()->is_ff();
+}
+
+bool
 AbsTerm::is_fp() const
 {
   return get_sort()->is_fp();
@@ -510,6 +522,12 @@ bool
 AbsTerm::is_dt_value() const
 {
   return get_leaf_kind() == LeafKind::VALUE && is_dt();
+}
+
+bool
+AbsTerm::is_ff_value() const
+{
+  return get_leaf_kind() == LeafKind::VALUE && is_ff();
 }
 
 bool
@@ -672,6 +690,12 @@ uint32_t
 AbsTerm::get_bv_size() const
 {
   return get_sort()->get_bv_size();
+}
+
+std::string
+AbsTerm::get_ff_size() const
+{
+  return get_sort()->get_ff_size();
 }
 
 uint32_t
@@ -866,6 +890,12 @@ Term
 Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 {
   return Term();
+}
+
+Sort
+Solver::mk_sort(SortKind kind, const std::string& size)
+{
+  return Sort();
 }
 
 Sort

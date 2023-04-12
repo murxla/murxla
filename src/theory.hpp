@@ -67,6 +67,13 @@ enum Theory
    */
   THEORY_DT,
   /**
+   * Theory of finite-field arithmetic, as defined in 
+   * <a href="https://eprint.iacr.org/2023/091">
+   *   this paper
+   * </a>.
+   */
+  THEORY_FF,
+  /**
    * Theory of
    * <a href="https://smtlib.cs.uiowa.edu/theories-FloatingPoint.shtml">
    *   floating-point arithmetic

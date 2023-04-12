@@ -21,6 +21,7 @@ operator<<(std::ostream& out, Theory theory)
     case THEORY_BOOL: out << "THEORY_BOOL"; break;
     case THEORY_BV: out << "THEORY_BV"; break;
     case THEORY_DT: out << "THEORY_DT"; break;
+    case THEORY_FF: out << "THEORY_FF"; break;
     case THEORY_FP: out << "THEORY_FP"; break;
     case THEORY_INT: out << "THEORY_INT"; break;
     case THEORY_QUANT: out << "THEORY_QUANT"; break;
