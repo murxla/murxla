@@ -127,35 +127,10 @@ mkdir -p "$deps_dir"
   then
     cd solvers/bitwuzla || exit 1
 
-    if [ "$reinstall" == "no" ]
-    then
-      ./contrib/setup-btor2tools.sh
-      ./contrib/setup-lingeling.sh
-      ./contrib/setup-cadical.sh
-      ./contrib/setup-symfpu.sh
-    else
-      if [[ ! -d solvers/bitwuzla/deps/btor2tools ]]
-      then
-        ./contrib/setup-btor2tools.sh
-      fi
-      if [[ ! -d solvers/bitwuzla/deps/lingeling ]]
-      then
-        ./contrib/setup-lingeling.sh
-      fi
-      if [[ ! -d solvers/bitwuzla/deps/cadical ]]
-      then
-        ./contrib/setup-cadical.sh
-      fi
-      if [[ ! -d solvers/bitwuzla/deps/symfpu ]]
-      then
-        ./contrib/setup-symfpu.sh
-      fi
-    fi
-
     cov=
     if [ "$coverage" == "yes" ]
     then
-      cov="--gcov"
+      cov="--coverage"
     fi
 
     as=
@@ -165,9 +140,9 @@ mkdir -p "$deps_dir"
     fi
 
     rm -rf build
-    ./configure.sh debug --prefix "$deps_dir" $cov $as --no-testing
+    ./configure.py debug --prefix "$deps_dir" $cov $as --no-testing
     cd build
-    make install -j $(nproc)
+    ninja install
   fi
 )
 

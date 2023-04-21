@@ -63,7 +63,7 @@ if(Boolector_FOUND)
 endif()
 
 if(Bitwuzla_FOUND)
-  target_link_libraries(murxla PRIVATE Bitwuzla::bitwuzla)
+  target_link_libraries(murxla PRIVATE PkgConfig::Bitwuzla)
   target_compile_definitions(murxla PUBLIC MURXLA_USE_BITWUZLA)
 endif()
 
