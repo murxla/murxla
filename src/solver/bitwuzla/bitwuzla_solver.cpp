@@ -1325,7 +1325,7 @@ BitwuzlaSolver::is_unsat_assumption(const Term& t) const
 void
 BitwuzlaSolver::set_opt(const std::string& opt, const std::string& value)
 {
-  if (opt == "produce-unsat-assumptions")
+  if (opt == "incremental")
   {
     /* always enabled in Bitwuzla, can not be configured via set_opt */
     return;
@@ -1356,25 +1356,11 @@ BitwuzlaSolver::set_opt(const std::string& opt, const std::string& value)
         value == "true"
             ? 1
             : (value == "false" ? 0 : static_cast<uint32_t>(std::stoul(value)));
-    //// TODO remove when prop solver supports incremental
-    if (val && bzla_opt == ::bitwuzla::Option::INCREMENTAL
-        && d_options->get_mode(::bitwuzla::Option::BV_SOLVER) == "prop")
-    {
-      throw MurxlaSolverOptionException("incompatible option");
-    }
-    ////
     d_options->set(bzla_opt, val);
     MURXLA_TEST(val == d_options->get(bzla_opt));
   }
   else
   {
-    //// TODO remove when prop solver supports incremental
-    if (bzla_opt == ::bitwuzla::Option::BV_SOLVER
-        && d_options->get(::bitwuzla::Option::INCREMENTAL) && value == "prop")
-    {
-      throw MurxlaSolverOptionException("incompatible option");
-    }
-    ////
     d_options->set(bzla_opt, value);
   }
 }
@@ -1382,6 +1368,7 @@ BitwuzlaSolver::set_opt(const std::string& opt, const std::string& value)
 std::string
 BitwuzlaSolver::get_option_name_incremental() const
 {
+  /* always enabled in Bitwuzla, cannot be configured via set_opt */
   return "incremental";
 }
 
@@ -1394,7 +1381,6 @@ BitwuzlaSolver::get_option_name_model_gen() const
 std::string
 BitwuzlaSolver::get_option_name_unsat_assumptions() const
 {
-  /* always enabled in Bitwuzla, can not be configured via set_opt */
   return "produce-unsat-assumptions";
 }
 
@@ -1407,7 +1393,8 @@ BitwuzlaSolver::get_option_name_unsat_cores() const
 bool
 BitwuzlaSolver::option_incremental_enabled() const
 {
-  return d_options->get(::bitwuzla::Option::INCREMENTAL);
+  /* always enabled in Bitwuzla, can not be configured via set_opt */
+  return true;
 }
 
 bool
@@ -1419,8 +1406,7 @@ BitwuzlaSolver::option_model_gen_enabled() const
 bool
 BitwuzlaSolver::option_unsat_assumptions_enabled() const
 {
-  /* always enabled in Bitwuzla, can not be configured via set_opt */
-  return true;
+  return d_options->get(::bitwuzla::Option::PRODUCE_UNSAT_ASSUMPTIONS);
 }
 
 bool
@@ -1546,18 +1532,17 @@ BitwuzlaSolver::configure_options(SolverManager* smgr) const
 /* FSM configuration.                                                         */
 /* -------------------------------------------------------------------------- */
 
-#if 0
-class BzlaActionGetArrayValue : public Action
+class BitwuzlaActionTermValue : public Action
 {
  public:
   /** The name of this action. */
-  inline static const Kind s_name = "bzla-get-array-value";
+  inline static const Kind s_name = "bitwuzla-term-value";
 
   /**
    * Constructor.
    * @param smgr  The associated solver manager.
    */
-  BzlaActionGetArrayValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
+  BitwuzlaActionTermValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
 
   bool generate() override
   {
@@ -1565,8 +1550,8 @@ class BzlaActionGetArrayValue : public Action
     if (!d_smgr.d_model_gen) return false;
     if (!d_smgr.d_sat_called) return false;
     if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_ARRAY, 0)) return false;
-    Term term = d_smgr.pick_term(SORT_ARRAY, 0);
+    if (!d_smgr.has_value()) return false;
+    Term term = d_smgr.pick_value();
     run(term);
     return true;
   }
@@ -1584,334 +1569,86 @@ class BzlaActionGetArrayValue : public Action
   void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
-    BitwuzlaSolver& bzla_solver       = dynamic_cast<BitwuzlaSolver&>(d_solver);
-    Bitwuzla* bzla                = bzla_solver.get_solver();
-    const BitwuzlaTerm* bzla_term = BitwuzlaTerm::get_bzla_term(term);
-    const BitwuzlaTerm **bzla_idxs, **bzla_vals, *bzla_default_val;
-    size_t size;
-
-    bitwuzla_get_array_value(
-        bzla, bzla_term, &bzla_idxs, &bzla_vals, &size, &bzla_default_val);
-
-    if (d_smgr.d_incremental)
-    {
-      /* assume assignment and check if result is still SAT */
-      std::vector<Term> assumptions;
-      for (size_t i = 0; i < size; ++i)
-      {
-        const BitwuzlaTerm* bzla_select = bitwuzla_mk_term2(
-            bzla, BITWUZLA_KIND_ARRAY_SELECT, bzla_term, bzla_idxs[i]);
-        const BitwuzlaTerm* bzla_eq = bitwuzla_mk_term2(
-            bzla, BITWUZLA_KIND_EQUAL, bzla_select, bzla_vals[i]);
-        assumptions.push_back(std::shared_ptr<BitwuzlaTerm>(new BitwuzlaTerm(bzla_eq)));
-      }
-      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
-                  == Solver::Result::SAT);
-    }
-  }
-};
-#endif
-
-class BitwuzlaActionGetBvValue : public Action
-{
- public:
-  /** The name of this action. */
-  inline static const Kind s_name = "bitwuzla-get-bv-value";
-
-  /**
-   * Constructor.
-   * @param smgr  The associated solver manager.
-   */
-  BitwuzlaActionGetBvValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
-
-  bool generate() override
-  {
-    assert(d_solver.is_initialized());
-    if (!d_smgr.d_model_gen) return false;
-    if (!d_smgr.d_sat_called) return false;
-    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_BV, 0)) return false;
-    Term term = d_smgr.pick_term(SORT_BV, 0);
-    run(term);
-    return true;
-  }
-
-  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
-  {
-    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
-    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    run(term);
-    return {};
-  }
-
- private:
-  void run(Term term)
-  {
-    MURXLA_TRACE << get_kind() << " " << term;
-    BitwuzlaSolver& bzla_solver       = dynamic_cast<BitwuzlaSolver&>(d_solver);
     const ::bitwuzla::Term& bzla_term = BitwuzlaTerm::get_bitwuzla_term(term);
-    std::string bv_val = bzla_solver.get_solver()->get_bv_value(bzla_term);
-    if (d_smgr.d_incremental)
+    uint8_t base =
+        d_rng.pick_from_set<std::vector<uint8_t>, uint8_t>({2, 10, 16});
+    ::bitwuzla::Term bzla_val_term;
+    if (bzla_term.sort().is_bool() && d_rng.flip_coin())
     {
-      /* assume assignment and check if result is still SAT */
-      Term term_bv_val =
-          d_solver.mk_value(term->get_sort(), bv_val, Solver::Base::BIN);
-      std::vector<Term> assumptions{
-          d_solver.mk_term(Op::EQUAL, {term, term_bv_val}, {})};
-      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
-                  == Solver::Result::SAT);
+      auto val      = bzla_term.value<bool>(base);
+      bzla_val_term = val ? ::bitwuzla::mk_true() : ::bitwuzla::mk_false();
     }
-  }
-};
-
-class BitwuzlaActionGetFpValue : public Action
-{
- public:
-  /** The name of this action. */
-  inline static const Kind s_name = "bitwuzla-get-fp-value";
-
-  /**
-   * Constructor.
-   * @param smgr  The associated solver manager.
-   */
-  BitwuzlaActionGetFpValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
-
-  bool generate() override
-  {
-    assert(d_solver.is_initialized());
-    if (!d_smgr.d_model_gen) return false;
-    if (!d_smgr.d_sat_called) return false;
-    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_FP, 0)) return false;
-    Term term = d_smgr.pick_term(SORT_FP, 0);
-    run(term);
-    return true;
-  }
-
-  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
-  {
-    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
-    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    run(term);
-    return {};
-  }
-
- private:
-  void run(Term term)
-  {
-    MURXLA_TRACE << get_kind() << " " << term;
-    BitwuzlaSolver& bzla_solver      = dynamic_cast<BitwuzlaSolver&>(d_solver);
-    const ::bitwuzla::Term bzla_term = BitwuzlaTerm::get_bitwuzla_term(term);
-
-    auto choice = d_rng.pick_one_of_three();
-    uint8_t base;
-    if (choice == RNGenerator::Choice::FIRST)
+    else if (bzla_term.sort().is_rm() && d_rng.flip_coin())
     {
-      base = 2;
+      auto val      = bzla_term.value<::bitwuzla::RoundingMode>(base);
+      bzla_val_term = ::bitwuzla::mk_rm_value(val);
     }
-    else if (choice == RNGenerator::Choice::SECOND)
+    else if (bzla_term.sort().is_fp() && d_rng.flip_coin())
     {
-      base = 10;
+      auto val =
+          bzla_term.value<std::tuple<std::string, std::string, std::string>>(
+              base);
+      uint64_t esize = bzla_term.sort().fp_exp_size();
+      uint64_t ssize = bzla_term.sort().fp_sig_size();
+      bzla_val_term  = ::bitwuzla::mk_fp_value(
+          ::bitwuzla::mk_bv_value(
+              ::bitwuzla::mk_bv_sort(1), std::get<0>(val), base),
+          ::bitwuzla::mk_bv_value(
+              ::bitwuzla::mk_bv_sort(esize), std::get<1>(val), base),
+          ::bitwuzla::mk_bv_value(
+              ::bitwuzla::mk_bv_sort(ssize - 1), std::get<2>(val), base));
     }
     else
     {
-      base = 16;
-    }
-
-    std::string fp_val;
-    if (d_rng.flip_coin())
-    {
-      std::string fp_val_sign, fp_val_exp, fp_val_sig;
-      bzla_solver.get_solver()->get_fp_value(
-          bzla_term, fp_val_sign, fp_val_exp, fp_val_sig, base);
-      if (base == 10)
+      auto val =
+          bzla_term.value<std::string>(bzla_term.sort().is_bv() ? base : 2);
+      if (bzla_term.sort().is_bool())
       {
-        fp_val = str_dec_to_bin(fp_val_sign) + str_dec_to_bin(fp_val_exp)
-                 + str_dec_to_bin(fp_val_sig);
+        bzla_val_term =
+            val == "true" ? ::bitwuzla::mk_true() : ::bitwuzla::mk_false();
       }
-      else if (base == 16)
+      else if (bzla_term.sort().is_rm())
       {
-        fp_val = str_hex_to_bin(fp_val_sign) + str_hex_to_bin(fp_val_exp)
-                 + str_hex_to_bin(fp_val_sig);
+        bzla_val_term =
+            val == "RNA"
+                ? ::bitwuzla::mk_rm_value(::bitwuzla::RoundingMode::RNA)
+                : (val == "RNE"
+                       ? ::bitwuzla::mk_rm_value(::bitwuzla::RoundingMode::RNE)
+                       : (val == "RTN"
+                              ? ::bitwuzla::mk_rm_value(
+                                  ::bitwuzla::RoundingMode::RTN)
+                              : (val == "RTP"
+                                     ? ::bitwuzla::mk_rm_value(
+                                         ::bitwuzla::RoundingMode::RTP)
+                                     : ::bitwuzla::mk_rm_value(
+                                         ::bitwuzla::RoundingMode::RTZ))));
       }
-      else
+      else if (bzla_term.sort().is_bv())
       {
-        fp_val = fp_val_sign + fp_val_exp + fp_val_sig;
-      }
-    }
-    else
-    {
-      fp_val = bzla_solver.get_solver()->get_fp_value(bzla_term, base);
-      if (base == 10)
-      {
-        fp_val = str_dec_to_bin(fp_val);
-      }
-      else if (base == 16)
-      {
-        fp_val = str_hex_to_bin(fp_val);
-      }
-    }
-    if (d_smgr.d_incremental)
-    {
-      /* assume assignment and check if result is still SAT */
-      Term term_fp_val = d_solver.mk_value(term->get_sort(), fp_val);
-      std::vector<Term> assumptions{
-          d_solver.mk_term(Op::EQUAL, {term, term_fp_val}, {})};
-      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
-                  == Solver::Result::SAT);
-    }
-  }
-};
-
-#if 0
-class BzlaActionGetFunValue : public Action
-{
- public:
-  /** The name of this action. */
-  inline static const Kind s_name = "bzla-get-fun-value";
-
-  /**
-   * Constructor.
-   * @param smgr  The associated solver manager.
-   */
-  BzlaActionGetFunValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
-
-  bool generate() override
-  {
-    assert(d_solver.is_initialized());
-    if (!d_smgr.d_model_gen) return false;
-    if (!d_smgr.d_sat_called) return false;
-    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_FUN, 0)) return false;
-    Term term = d_smgr.pick_term(SORT_FUN, 0);
-    run(term);
-    return true;
-  }
-
-  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
-  {
-    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
-    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    run(term);
-    return {};
-  }
-
- private:
-  void run(Term term)
-  {
-    MURXLA_TRACE << get_kind() << " " << term;
-    BitwuzlaSolver& bzla_solver       = dynamic_cast<BitwuzlaSolver&>(d_solver);
-    Bitwuzla* bzla                = bzla_solver.get_solver();
-    const BitwuzlaTerm* bzla_term = BitwuzlaTerm::get_bzla_term(term);
-    const BitwuzlaTerm ***bzla_args, **bzla_vals;
-    size_t arity, size;
-
-    bitwuzla_get_fun_value(
-        bzla, bzla_term, &bzla_args, &arity, &bzla_vals, &size);
-
-    if (d_smgr.d_incremental)
-    {
-      /* assume assignment and check if result is still SAT */
-      std::vector<Term> assumptions;
-      for (size_t i = 0; i < size; ++i)
-      {
-        std::vector<const BitwuzlaTerm*> fun_args;
-        fun_args.push_back(bzla_term);
-        for (size_t j = 0; j < arity; ++j)
-        {
-          fun_args.push_back(bzla_args[i][j]);
-        }
-        const BitwuzlaTerm* bzla_apply =
-            bitwuzla_mk_term(bzla,
-                             BITWUZLA_KIND_APPLY,
-                             static_cast<uint32_t>(fun_args.size()),
-                             fun_args.data());
-        const BitwuzlaTerm* bzla_eq = bitwuzla_mk_term2(
-            bzla, BITWUZLA_KIND_EQUAL, bzla_apply, bzla_vals[i]);
-        assumptions.push_back(std::shared_ptr<BitwuzlaTerm>(new BitwuzlaTerm(bzla_eq)));
-      }
-      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
-                  == Solver::Result::SAT);
-    }
-  }
-};
-#endif
-
-class BitwuzlaActionGetRmValue : public Action
-{
- public:
-  /** The name of this action. */
-  inline static const Kind s_name = "bitwuzla-get-rm-value";
-
-  /**
-   * Constructor.
-   * @param smgr  The associated solver manager.
-   */
-  BitwuzlaActionGetRmValue(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
-
-  bool generate() override
-  {
-    assert(d_solver.is_initialized());
-    if (!d_smgr.d_model_gen) return false;
-    if (!d_smgr.d_sat_called) return false;
-    if (d_smgr.d_sat_result != Solver::Result::SAT) return false;
-    if (!d_smgr.has_term(SORT_RM, 0)) return false;
-    Term term = d_smgr.pick_term(SORT_RM, 0);
-    run(term);
-    return true;
-  }
-
-  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
-  {
-    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
-    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
-    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
-    run(term);
-    return {};
-  }
-
- private:
-  void run(Term term)
-  {
-    MURXLA_TRACE << get_kind() << " " << term;
-    BitwuzlaSolver& bzla_solver       = dynamic_cast<BitwuzlaSolver&>(d_solver);
-    const ::bitwuzla::Term& bzla_term = BitwuzlaTerm::get_bitwuzla_term(term);
-    ::bitwuzla::RoundingMode rm_val =
-        bzla_solver.get_solver()->get_rm_value(bzla_term);
-    if (d_smgr.d_incremental)
-    {
-      AbsTerm::SpecialValueKind value;
-      if (rm_val == ::bitwuzla::RoundingMode::RNA)
-      {
-        value = AbsTerm::SPECIAL_VALUE_RM_RNA;
-      }
-      else if (rm_val == ::bitwuzla::RoundingMode::RNE)
-      {
-        value = AbsTerm::SPECIAL_VALUE_RM_RNE;
-      }
-      else if (rm_val == ::bitwuzla::RoundingMode::RTN)
-      {
-        value = AbsTerm::SPECIAL_VALUE_RM_RTN;
-      }
-      else if (rm_val == ::bitwuzla::RoundingMode::RTP)
-      {
-        value = AbsTerm::SPECIAL_VALUE_RM_RTP;
+        bzla_val_term = ::bitwuzla::mk_bv_value(
+            ::bitwuzla::mk_bv_sort(bzla_term.sort().bv_size()), val, base);
       }
       else
       {
-        assert(rm_val == ::bitwuzla::RoundingMode::RTZ);
-        value = AbsTerm::SPECIAL_VALUE_RM_RTZ;
+        assert(bzla_term.sort().is_fp());
+        uint64_t esize = bzla_term.sort().fp_exp_size();
+        uint64_t ssize = bzla_term.sort().fp_sig_size();
+        bzla_val_term  = ::bitwuzla::mk_fp_value(
+            ::bitwuzla::mk_bv_value(::bitwuzla::mk_bv_sort(1),
+                                    val.substr(0, 1)),
+            ::bitwuzla::mk_bv_value(::bitwuzla::mk_bv_sort(esize),
+                                    val.substr(1, esize)),
+            ::bitwuzla::mk_bv_value(::bitwuzla::mk_bv_sort(ssize - 1),
+                                    val.substr(1 + esize, ssize - 1)));
       }
-      /* assume assignment and check if result is still SAT */
-      Term term_rm_val = d_solver.mk_special_value(term->get_sort(), value);
-      std::vector<Term> assumptions{
-          d_solver.mk_term(Op::EQUAL, {term, term_rm_val}, {})};
-      MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
-                  == Solver::Result::SAT);
     }
+    /* assume assignment and check if result is still SAT */
+    Term val_term =
+        std::shared_ptr<BitwuzlaTerm>(new BitwuzlaTerm(bzla_val_term));
+    std::vector<Term> assumptions{
+        d_solver.mk_term(Op::EQUAL, {term, val_term}, {})};
+    MURXLA_TEST(d_solver.check_sat_assuming(assumptions)
+                == Solver::Result::SAT);
   }
 };
 
@@ -2281,21 +2018,9 @@ BitwuzlaSolver::configure_fsm(FSM* fsm) const
 
   /* Add solver-specific actions and reconfigure existing states. */
   s_decide_sat_unsat->add_action(t_default, 1, s_unknown);
-  // bitwuzla_get_array_value
-  // auto a_get_array_val = fsm->new_action<BzlaActionGetArrayValue>();
-  // s_sat->add_action(a_get_array_val, 2);
-  // bitwuzla_get_bv_value
-  auto a_get_bv_val = fsm->new_action<BitwuzlaActionGetBvValue>();
-  s_sat->add_action(a_get_bv_val, 2);
-  // bitwuzla_get_fp_value
-  auto a_get_fp_val = fsm->new_action<BitwuzlaActionGetFpValue>();
-  s_sat->add_action(a_get_fp_val, 2);
-  // bitwuzla_get_fun_value
-  // auto a_get_fun_val = fsm->new_action<BzlaActionGetFunValue>();
-  // s_sat->add_action(a_get_fun_val, 2);
-  // bitwuzla_get_rm_value
-  auto a_get_rm_val = fsm->new_action<BitwuzlaActionGetRmValue>();
-  s_sat->add_action(a_get_rm_val, 2);
+  // bitwuzla::Term::value()
+  auto a_term_val = fsm->new_action<BitwuzlaActionTermValue>();
+  s_sat->add_action(a_term_val, 2);
   // bitwuzla_is_unsat_assumption
   // auto a_failed = fsm->new_action<BitwuzlaActionIsUnsatAssumption>();
   // fsm->add_action_to_all_states(a_failed, 100);
@@ -2314,9 +2039,6 @@ BitwuzlaSolver::configure_fsm(FSM* fsm) const
   // bitwuzla_substitute_terms
   auto a_subst_term = fsm->new_action<BitwuzlaActionSubstituteTerm>();
   fsm->add_action_to_all_states(a_subst_term, 1000);
-  // bitwuzla_term_set_symbol
-  // auto a_set_symbol = fsm->new_action<BzlaActionTermSetSymbol>();
-  // fsm->add_action_to_all_states(a_set_symbol, 1000);
 
   auto a_misc = fsm->new_action<BitwuzlaActionMisc>();
   fsm->add_action_to_all_states(a_misc, 100000);
