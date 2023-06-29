@@ -14,6 +14,9 @@
 #ifdef MURXLA_USE_CVC5
 #include "solver/cvc5/cvc5_solver.hpp"
 #endif
+#ifdef MURXLA_USE_BITWUZLA
+#include "solver/bitwuzla/bitwuzla_solver.hpp"
+#endif
 #include "solver/solver.hpp"
 #include "theory.hpp"
 
@@ -379,6 +382,25 @@ class Smt2Term : public AbsTerm
       {Op::TRANS_SQRT, "sqrt"},
       /* UF */
       {Op::UF_APPLY, ""},
+#ifdef MURXLA_USE_BITWUZLA
+      /* bitwuzla-specific operator kinds */
+      {bitwuzla::BitwuzlaTerm::OP_BV_DEC, "bvdec"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_INC, "bvinc"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_REDAND, "bvredand"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_REDOR, "bvredor"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_REDXOR, "bvredxor"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_ROL, "bvrol"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_ROR, "bvror"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_SADDO, "bvsaddo"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_SDIVO, "bvsdivo"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_SMULO, "bvsmulo"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_SSUBO, "bvssubo"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_UADDO, "bvuaddo"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_UMULO, "bvumulo"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_USUBO, "busubo"},
+      {bitwuzla::BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL, "to_fp"},
+      {bitwuzla::BitwuzlaTerm::OP_IFF, "="},
+#endif
 #ifdef MURXLA_USE_CVC5
       /* cvc5-specific operator kinds */
       {cvc5::Cvc5Term::OP_BV_REDAND, "bvredand"},

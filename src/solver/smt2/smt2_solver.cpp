@@ -1650,7 +1650,7 @@ Smt2Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 Term
 Smt2Solver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
-                    const std::vector<uint32_t>& params)
+                    const std::vector<uint32_t>& idxs)
 {
   Smt2Term* res;
   if (kind == Op::BAG_COUNT || kind == Op::BAG_MAP)
@@ -1660,7 +1660,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     auto aargs = args;
     assert(aargs.size() == 2);
     std::swap(aargs[0], aargs[1]);
-    res = new Smt2Term(kind, {}, aargs, params, "");
+    res = new Smt2Term(kind, {}, aargs, idxs, "");
   }
   else if (kind == Op::SET_COMPREHENSION)
   {
@@ -1669,7 +1669,7 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     std::vector<Term> aargs{args.begin() + 2, args.end()};
     aargs.push_back(args[0]);
     aargs.push_back(args[1]);
-    res = new Smt2Term(kind, {}, aargs, params, "");
+    res = new Smt2Term(kind, {}, aargs, idxs, "");
   }
   else if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
   {
@@ -1677,11 +1677,11 @@ Smt2Solver::mk_term(const Op::Kind& kind,
      * { elem_1, ..., elem_n, set }  */
     std::vector<Term> aargs{args.begin() + 1, args.end()};
     aargs.push_back(args[0]);
-    res = new Smt2Term(kind, {}, aargs, params, "");
+    res = new Smt2Term(kind, {}, aargs, idxs, "");
   }
   else
   {
-    res = new Smt2Term(kind, {}, args, params, "");
+    res = new Smt2Term(kind, {}, args, idxs, "");
   }
   return std::shared_ptr<Smt2Term>(res);
 }
@@ -1719,12 +1719,49 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
   /* Compute sort for `term`. */
   Smt2Term* smt2_term                 = static_cast<Smt2Term*>(term.get());
   const std::vector<Term>& args       = smt2_term->get_args();
-  const std::vector<uint32_t>& params = smt2_term->get_indices_uint32();
+  const std::vector<uint32_t>& idxs   = smt2_term->get_indices_uint32();
   const Op::Kind kind                 = smt2_term->get_kind();
   uint32_t bv_size                    = 0;
   uint32_t sig_size                   = 0;
   std::string sort;
 
+#ifdef MURXLA_USE_BITWUZLA
+  /* bitwuzla solver-specific operators */
+  if (kind.rfind("bitwuzla-", 0) == 0)
+  {
+    if (kind == bitwuzla::BitwuzlaTerm::OP_BV_DEC
+        || kind == bitwuzla::BitwuzlaTerm::OP_BV_INC
+        || kind == bitwuzla::BitwuzlaTerm::OP_BV_ROL
+        || kind == bitwuzla::BitwuzlaTerm::OP_BV_ROR)
+    {
+      return args[0]->get_sort();
+    }
+    if (kind == bitwuzla::BitwuzlaTerm::OP_BV_REDAND
+        || kind == bitwuzla::BitwuzlaTerm::OP_BV_REDOR
+        || kind == bitwuzla::BitwuzlaTerm::OP_BV_REDXOR)
+    {
+      sort = get_bv_sort_string(1);
+    }
+    else if (kind == bitwuzla::BitwuzlaTerm::OP_BV_SADDO
+             || kind == bitwuzla::BitwuzlaTerm::OP_BV_SDIVO
+             || kind == bitwuzla::BitwuzlaTerm::OP_BV_SMULO
+             || kind == bitwuzla::BitwuzlaTerm::OP_BV_SSUBO
+             || kind == bitwuzla::BitwuzlaTerm::OP_BV_UADDO
+             || kind == bitwuzla::BitwuzlaTerm::OP_BV_UMULO
+             || kind == bitwuzla::BitwuzlaTerm::OP_BV_USUBO
+             || kind == bitwuzla::BitwuzlaTerm::OP_IFF)
+    {
+      sort = get_bool_sort_string();
+    }
+    else if (kind == bitwuzla::BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL)
+    {
+      sort = get_fp_sort_string(idxs[0], idxs[1]);
+    }
+    MURXLA_EXIT_ERROR_CONFIG(sort.empty())
+        << "operator " << kind << " not configured for SMT2 translation";
+    return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort, bv_size, sig_size));
+  }
+#endif
 #ifdef MURXLA_USE_CVC5
   /* cvc5 solver-specific operators */
   if (kind.rfind("cvc5-", 0) == 0)
@@ -1736,8 +1773,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
     }
     else if (kind == cvc5::Cvc5Term::OP_INT_TO_BV)
     {
-      assert(params.size() == 1);
-      sort = get_bv_sort_string(params[0]);
+      assert(idxs.size() == 1);
+      sort = get_bv_sort_string(idxs[0]);
     }
     else if (kind == cvc5::Cvc5Term::OP_BV_TO_NAT
              || kind == cvc5::Cvc5Term::OP_INT_IAND
@@ -1874,21 +1911,21 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
       }
       else if (kind == Op::BV_EXTRACT)
       {
-        assert(params.size() == 2);
-        assert(params[0] >= params[1]);
-        bv_size = params[0] - params[1] + 1;
+        assert(idxs.size() == 2);
+        assert(idxs[0] >= idxs[1]);
+        bv_size = idxs[0] - idxs[1] + 1;
         sort    = get_bv_sort_string(bv_size);
       }
       else if (kind == Op::BV_ZERO_EXTEND || kind == Op::BV_SIGN_EXTEND)
       {
         assert(args[0]->get_sort()->is_bv());
-        bv_size = args[0]->get_sort()->get_bv_size() + params[0];
+        bv_size = args[0]->get_sort()->get_bv_size() + idxs[0];
         sort    = get_bv_sort_string(bv_size);
       }
       else if (kind == Op::BV_REPEAT)
       {
         assert(args[0]->get_sort()->is_bv());
-        bv_size = args[0]->get_sort()->get_bv_size() * params[0];
+        bv_size = args[0]->get_sort()->get_bv_size() * idxs[0];
         sort    = get_bv_sort_string(bv_size);
       }
       else if (kind == Op::BV_COMP)
@@ -1899,8 +1936,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
       }
       else if (kind == Op::FP_TO_SBV || kind == Op::FP_TO_UBV)
       {
-        assert(params.size() == 1);
-        bv_size = params[0];
+        assert(idxs.size() == 1);
+        bv_size = idxs[0];
         sort    = get_bv_sort_string(bv_size);
       }
       else if (kind.rfind("OP_BV_", 0) == 0)
@@ -1917,9 +1954,9 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
           || kind == Op::FP_TO_FP_FROM_FP || kind == Op::FP_TO_FP_FROM_UBV
           || kind == Op::FP_TO_FP_FROM_REAL)
       {
-        assert(params.size() == 2);
-        bv_size  = params[0];
-        sig_size = params[1];
+        assert(idxs.size() == 2);
+        bv_size  = idxs[0];
+        sig_size = idxs[1];
         sort     = get_fp_sort_string(bv_size, sig_size);
       }
       else if (kind == Op::FP_FP)
