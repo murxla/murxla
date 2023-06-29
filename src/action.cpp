@@ -3097,6 +3097,17 @@ ActionMkSpecialValue::check_special_value(RNGenerator& rng,
           }
         }
       }
+      else if (size == 2 && kind == AbsTerm::SPECIAL_VALUE_BV_ONE)
+      {
+        if (special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED)
+        {
+          MURXLA_TEST(term->is_special_value(special_bv_value_kind));
+        }
+        else
+        {
+          MURXLA_TEST(!term->is_special_value(special_bv_value_kind));
+        }
+      }
       else
       {
         MURXLA_TEST(!term->is_special_value(special_bv_value_kind));
