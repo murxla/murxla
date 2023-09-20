@@ -8,6 +8,8 @@
  * See LICENSE for more information on using this software.
  */
 #include "sort.hpp"
+
+#include <cstdint>
 #include <iostream>
 
 namespace murxla {

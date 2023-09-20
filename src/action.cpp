@@ -702,7 +702,9 @@ ActionMkSort::generate()
 
     case SORT_FF:
     {
-      run(SORT_FF, "17");
+      const char* primes[10] = {
+          "7", "11", "13", "17", "19", "23", "29", "31", "37", "41"};
+      run(SORT_FF, primes[d_rng.pick<uint32_t>(0, 9)]);
     }
     break;
 
