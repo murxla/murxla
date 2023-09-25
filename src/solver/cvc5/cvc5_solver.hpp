@@ -59,6 +59,7 @@ class Cvc5Sort : public AbsSort
   bool is_dt() const override;
   bool is_dt_parametric() const override;
   bool is_dt_well_founded() const override;
+  bool is_ff() const override;
   bool is_fp() const override;
   bool is_fun() const override;
   bool is_int() const override;
@@ -70,6 +71,7 @@ class Cvc5Sort : public AbsSort
   bool is_string() const override;
   bool is_uninterpreted() const override;
   uint32_t get_bv_size() const override;
+  std::string get_ff_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
   std::string get_dt_name() const override;
@@ -160,6 +162,7 @@ class Cvc5Term : public AbsTerm
   std::string to_string() const override;
   bool is_bool_value() const override;
   bool is_bv_value() const override;
+  bool is_ff_value() const override;
   bool is_fp_value() const override;
   bool is_int_value() const override;
   bool is_real_value() const override;
@@ -172,6 +175,7 @@ class Cvc5Term : public AbsTerm
   size_t get_num_indices() const override;
   std::vector<std::string> get_indices() const override;
   uint32_t get_bv_size() const override;
+  std::string get_ff_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
   Sort get_array_index_sort() const override;
@@ -252,6 +256,7 @@ class Cvc5Solver : public Solver
   Sort mk_sort(const std::string& name) override;
   Sort mk_sort(SortKind kind) override;
   Sort mk_sort(SortKind kind, uint32_t size) override;
+  Sort mk_sort(SortKind kind, const std::string& size) override;
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
   std::vector<Sort> mk_sort(SortKind kind,

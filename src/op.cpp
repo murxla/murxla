@@ -164,6 +164,11 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::DT_MATCH, n, 0, SORT_ANY, {SORT_ANY}, THEORY_DT);
   // add_op_kind(Op::DT_TUPLE_PROJECT, 1, 0,
 
+  /* FF */
+  add_op_kind(Op::FINITE_FIELD_NEG, 1, 0, SORT_FF, {SORT_FF}, THEORY_FF);
+  add_op_kind(Op::FINITE_FIELD_ADD, n, 0, SORT_FF, {SORT_FF}, THEORY_FF);
+  add_op_kind(Op::FINITE_FIELD_MULT, n, 0, SORT_FF, {SORT_FF}, THEORY_FF);
+
   /* FP */
   add_op_kind(Op::FP_ABS, 1, 0, SORT_FP, {SORT_FP}, THEORY_FP);
   add_op_kind(Op::FP_ADD, 3, 0, SORT_FP, {SORT_RM, SORT_FP}, THEORY_FP);

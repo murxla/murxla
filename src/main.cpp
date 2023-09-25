@@ -607,6 +607,10 @@ parse_options(Options& options, int argc, char* argv[])
     {
       options.enabled_theories.push_back(THEORY_DT);
     }
+    else if (arg == "--ff")
+    {
+      options.enabled_theories.push_back(THEORY_FF);
+    }
     else if (arg == "--fp")
     {
       options.enabled_theories.push_back(THEORY_FP);
@@ -662,6 +666,10 @@ parse_options(Options& options, int argc, char* argv[])
     else if (arg == "--no-dt")
     {
       options.disabled_theories.insert(THEORY_DT);
+    }
+    else if (arg == "--no-ff")
+    {
+      options.disabled_theories.insert(THEORY_FF);
     }
     else if (arg == "--no-fp")
     {
