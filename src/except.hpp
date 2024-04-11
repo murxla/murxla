@@ -10,6 +10,7 @@
 #ifndef __MURXLA__EXCEPT_HPP_INCLUDED
 #define __MURXLA__EXCEPT_HPP_INCLUDED
 
+#include <cstdint>
 #include <sstream>
 
 #include "exit.hpp"
