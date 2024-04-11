@@ -81,6 +81,9 @@ endif()
 # Find enabled dependencies
 
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps")
+
+link_directories(AFTER "${PROJECT_SOURCE_DIR}/deps/lib")
+
 if(ENABLE_BOOLECTOR)
   find_package(Boolector QUIET)
 endif()
