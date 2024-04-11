@@ -190,7 +190,7 @@ mkdir -p "$deps_dir"
     fi
 
     rm -rf build
-    ./configure.sh debug --prefix="$deps_dir" --auto-download $cov $as
+    ./configure.sh debug --prefix="$deps_dir" --auto-download $cov $as --cocoa
     cd build
     make install -j $(nproc)
   fi

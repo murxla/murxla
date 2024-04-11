@@ -6,6 +6,7 @@
       "THEORY_BOOL",
       "THEORY_BV",
       "THEORY_DT",
+      "THEORY_FF",
       "THEORY_FP",
       "THEORY_INT",
       "THEORY_QUANT",

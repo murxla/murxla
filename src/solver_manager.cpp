@@ -1454,6 +1454,9 @@ SolverManager::get_sort_kind_data(const TheorySet& theories)
       case THEORY_REAL:
         sort_kinds.emplace(SORT_REAL, SortKindData(SORT_REAL, 0, THEORY_REAL));
         break;
+      case THEORY_FF:
+        sort_kinds.emplace(SORT_FF, SortKindData(SORT_FF, 0, THEORY_FF));
+        break;
       case THEORY_FP:
         sort_kinds.emplace(SORT_RM, SortKindData(SORT_RM, 0, THEORY_FP));
         sort_kinds.emplace(SORT_FP, SortKindData(SORT_FP, 0, THEORY_FP));

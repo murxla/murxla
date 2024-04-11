@@ -127,6 +127,11 @@ class AbsSort
    */
   virtual bool is_dt_parametric() const { return false; }
   /**
+   * Determine if this sort is a finite-field sort.
+   * @return  True if this sort is a finite-field sort.
+   */
+  virtual bool is_ff() const { return false; }
+  /**
    * Determine if this sort is a floating-point sort.
    * @return  True if this sort is a floating-point sort.
    */
@@ -238,6 +243,11 @@ class AbsSort
    */
   virtual std::vector<std::string> get_dt_cons_sel_names(
       const std::string& name) const;
+  /**
+   * Get the size of this finite-field sort.
+   * @return  The finite-field size of this finite-field sort, or 0 by default.
+   */
+  virtual std::string get_ff_size() const;
   /**
    * Get the floating-point exponent size of this sort.
    * @return  The exponent size of this floating-point sort, or 0 by default.
@@ -567,6 +577,7 @@ class ParamSort : public AbsSort
   bool is_bv() const override { return false; }
   bool is_dt() const override { return false; }
   bool is_dt_parametric() const override { return false; }
+  bool is_ff() const override { return false; }
   bool is_fp() const override { return false; }
   bool is_fun() const override { return false; }
   bool is_int() const override { return false; }
@@ -621,6 +632,7 @@ class UnresolvedSort : public AbsSort
   bool is_bv() const override { return false; }
   bool is_dt() const override { return false; }
   bool is_dt_parametric() const override { return false; }
+  bool is_ff() const override { return false; }
   bool is_fp() const override { return false; }
   bool is_fun() const override { return false; }
   bool is_int() const override { return false; }
@@ -689,6 +701,13 @@ class AbsTerm
   /** The kind of a term representing a bit-vector maximum signed value. */
   inline static const SpecialValueKind SPECIAL_VALUE_BV_MAX_SIGNED =
       "bv-max-signed";
+  // Special FF values
+  /** The kind of a term representing a finite-field zero value. */
+  inline static const SpecialValueKind SPECIAL_VALUE_FF_ZERO     = "ff.zero";
+  /** The kind of a term representing a finite-field zero value. */
+  inline static const SpecialValueKind SPECIAL_VALUE_FF_ONE      = "ff.one";
+  /** The kind of a term representing a finite-field zero value. */
+  inline static const SpecialValueKind SPECIAL_VALUE_FF_NEG_ONE  = "ff.negone";
   // Special FP values
   /** The kind of a term representing a floating-point not a number value. */
   inline static const SpecialValueKind SPECIAL_VALUE_FP_NAN      = "nan";
@@ -820,6 +839,11 @@ class AbsTerm
    */
   virtual bool is_dt() const;
   /**
+   * Determine if this term is a finite-field term.
+   * @return True if this term is a finite-field term.
+   */
+  virtual bool is_ff() const;
+  /**
    * Determine if this term is a floating-point term.
    * @return True if this term is a floating-point term.
    */
@@ -890,6 +914,11 @@ class AbsTerm
    * @return True if this term is a datatype value.
    */
   virtual bool is_dt_value() const;
+  /**
+   * Determine if this term is a finite-field value.
+   * @return True if this term is a finite-field value.
+   */
+  virtual bool is_ff_value() const;
   /**
    * Determine if this term is a floating-point value.
    * @return True if this term is a floating-point value.
@@ -1000,6 +1029,11 @@ class AbsTerm
    * @return  The size of this bit-vector term.
    */
   virtual uint32_t get_bv_size() const;
+  /**
+   * Get the size of this finite-field term's field.
+   * @return  The finite-field size of this finite-field term, or 0 by default.
+   */
+  virtual std::string get_ff_size() const;
   /**
    * Get the exponent bit width of this term.
    * Asserts that it is a floating-point term.
@@ -1729,6 +1763,17 @@ class Solver
   virtual Sort mk_sort(const std::string& name) { return nullptr; }
 
   /**
+   * Create sort with one string argument.
+   *
+   * This is mainly for creating finite-field sorts.
+   *
+   * @param kind  The kind of the sort.
+   * @param size  The size of the finite-field sort.
+   * @return  The created sort.
+   */
+  virtual Sort mk_sort(SortKind kind, const std::string& size);
+
+  /**
    * Create sort with one unsigned integer argument.
    *
    * This is mainly for creating bit-vector sorts.
@@ -1963,6 +2008,10 @@ class Solver
             AbsTerm::SPECIAL_VALUE_BV_ONES,
             AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED,
             AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED}},
+          {SORT_FF,
+           {AbsTerm::SPECIAL_VALUE_FF_ZERO,
+            AbsTerm::SPECIAL_VALUE_FF_ONE,
+            AbsTerm::SPECIAL_VALUE_FF_NEG_ONE}},
           {SORT_FP,
            {
                AbsTerm::SPECIAL_VALUE_FP_NAN,

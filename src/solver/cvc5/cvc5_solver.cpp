@@ -145,6 +145,12 @@ Cvc5Sort::is_dt_well_founded() const
 }
 
 bool
+Cvc5Sort::is_ff() const
+{
+  return d_sort.isFiniteField();
+}
+
+bool
 Cvc5Sort::is_fp() const
 {
   return d_sort.isFloatingPoint();
@@ -210,6 +216,14 @@ Cvc5Sort::get_bv_size() const
   assert(is_bv());
   uint32_t res = d_sort.getBitVectorSize();
   MURXLA_TEST(res);
+  return res;
+}
+
+std::string
+Cvc5Sort::get_ff_size() const
+{
+  assert(is_ff());
+  std::string res = d_sort.getFiniteFieldSize();
   return res;
 }
 
@@ -477,6 +491,11 @@ std::unordered_map<Op::Kind, ::cvc5::Kind> Cvc5Term::s_kinds_to_cvc5_kinds = {
     {Op::DT_MATCH_BIND_CASE, ::cvc5::Kind::MATCH_BIND_CASE},
     {Op::DT_MATCH_CASE, ::cvc5::Kind::MATCH_CASE},
 
+    /* FF */
+    {Op::FINITE_FIELD_ADD, ::cvc5::Kind::FINITE_FIELD_ADD},
+    {Op::FINITE_FIELD_MULT, ::cvc5::Kind::FINITE_FIELD_MULT},
+    {Op::FINITE_FIELD_NEG, ::cvc5::Kind::FINITE_FIELD_NEG},
+
     /* FP */
     {Op::FP_ABS, ::cvc5::Kind::FLOATINGPOINT_ABS},
     {Op::FP_ADD, ::cvc5::Kind::FLOATINGPOINT_ADD},
@@ -675,6 +694,7 @@ std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
     //{::cvc5::Kind::CONST_ARRAY, Op::CONST_ARRAY},
     {::cvc5::Kind::CONST_BOOLEAN, Op::VALUE},
     {::cvc5::Kind::CONST_BITVECTOR, Op::VALUE},
+    {::cvc5::Kind::CONST_FINITE_FIELD, Op::VALUE},
     {::cvc5::Kind::CONST_FLOATINGPOINT, Op::VALUE},
     {::cvc5::Kind::CONST_RATIONAL, Op::VALUE},
     {::cvc5::Kind::CONST_INTEGER, Op::VALUE},
@@ -747,6 +767,11 @@ std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
     {::cvc5::Kind::MATCH, Op::DT_MATCH},
     {::cvc5::Kind::MATCH_BIND_CASE, Op::DT_MATCH_BIND_CASE},
     {::cvc5::Kind::MATCH_CASE, Op::DT_MATCH_CASE},
+
+    /* FF */
+    {::cvc5::Kind::FINITE_FIELD_ADD, Op::FINITE_FIELD_ADD},
+    {::cvc5::Kind::FINITE_FIELD_MULT, Op::FINITE_FIELD_MULT},
+    {::cvc5::Kind::FINITE_FIELD_NEG, Op::FINITE_FIELD_NEG},
 
     /* FP */
     {::cvc5::Kind::FLOATINGPOINT_ABS, Op::FP_ABS},
@@ -1012,6 +1037,12 @@ Cvc5Term::is_bv_value() const
 }
 
 bool
+Cvc5Term::is_ff_value() const
+{
+  return d_term.isFiniteFieldValue();
+}
+
+bool
 Cvc5Term::is_fp_value() const
 {
   return d_term.isFloatingPointValue();
@@ -1105,6 +1136,13 @@ Cvc5Term::get_bv_size() const
 {
   assert(is_bv());
   return d_term.getSort().getBitVectorSize();
+}
+
+std::string
+Cvc5Term::get_ff_size() const
+{
+  assert(is_ff());
+  return d_term.getSort().getFiniteFieldSize();
 }
 
 uint32_t
@@ -1270,6 +1308,17 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t size)
       << "unsupported sort kind '" << kind
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_BV << "'";
   ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkBitVectorSort, size);
+  MURXLA_TEST(!cvc5_res.isNull());
+  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+}
+
+Sort
+Cvc5Solver::mk_sort(SortKind kind, const std::string& size)
+{
+  MURXLA_CHECK_CONFIG(kind == SORT_FF)
+      << "unsupported sort kind '" << kind
+      << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_FF << "'";
+  ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkFiniteFieldSort, size);
   MURXLA_TEST(!cvc5_res.isNull());
   return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
 }
@@ -1621,6 +1670,12 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
 
   switch (sort_kind)
   {
+    case SORT_FF:
+    {
+      cvc5_res = TRACE_SOLVER(mkFiniteFieldElem, value, Cvc5Sort::get_cvc5_sort(sort));
+    }
+    break;
+
     case SORT_FP:
     {
       uint32_t ew = sort->get_fp_exp_size();
@@ -1695,7 +1750,7 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
       MURXLA_CHECK_CONFIG(false)
           << "unexpected sort of kind '" << sort->get_kind()
           << "' as argument to "
-             "Cvc5Solver::mk_value, expected Integer, Real, Reglan or String "
+             "Cvc5Solver::mk_value, expected Integer, FF, Real, Reglan or String "
              "sort ";
   }
   MURXLA_TEST(!cvc5_res.isNull());
@@ -1857,6 +1912,24 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
                                bw,
                                bv_special_value_max_signed_str(bw).c_str(),
                                2);
+      }
+    }
+    break;
+
+    case SORT_FF:
+    {
+      if (value == AbsTerm::SPECIAL_VALUE_FF_ZERO)
+      {
+        cvc5_res = TRACE_SOLVER(mkFiniteFieldElem, "0", Cvc5Sort::get_cvc5_sort(sort));
+      }
+      else if (value == AbsTerm::SPECIAL_VALUE_FF_ONE)
+      {
+        cvc5_res = TRACE_SOLVER(mkFiniteFieldElem, "1", Cvc5Sort::get_cvc5_sort(sort));
+      }
+      else
+      {
+        assert(value == AbsTerm::SPECIAL_VALUE_FF_NEG_ONE);
+        cvc5_res = TRACE_SOLVER(mkFiniteFieldElem, "-1", Cvc5Sort::get_cvc5_sort(sort));
       }
     }
     break;

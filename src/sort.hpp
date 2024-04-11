@@ -25,6 +25,7 @@ enum SortKind
   SORT_BOOL,       ///< Boolean sort.
   SORT_BV,         ///< Bit-vector sort, parameterized over bit-width.
   SORT_DT,         ///< Datatype sort.
+  SORT_FF,         ///< Finite-field sort, parameterized over field size.
   SORT_FP,         ///< Floating-point sort, parameterized over exponent and
                    ///< signifcand size.
   SORT_FUN,        ///< Function sort, parameterized over domain sorts.
@@ -69,6 +70,7 @@ static std::unordered_map<SortKind, std::string> sort_kinds_to_str{
     {SORT_BOOL, "SORT_BOOL"},
     {SORT_BV, "SORT_BV"},
     {SORT_DT, "SORT_DT"},
+    {SORT_FF, "SORT_FF"},
     {SORT_FP, "SORT_FP"},
     {SORT_FUN, "SORT_FUN"},
     {SORT_INT, "SORT_INT"},
