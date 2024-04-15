@@ -1277,6 +1277,22 @@ Smt2Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
     }
     break;
 
+    case SORT_FF:
+      if (value == AbsTerm::SPECIAL_VALUE_FF_ZERO)
+      {
+        val << "#f0m" << sort->get_ff_size();
+      }
+      else if (value == AbsTerm::SPECIAL_VALUE_FF_ONE)
+      {
+        val << "#f1m" << sort->get_ff_size();
+      }
+      else
+      {
+        assert(value == AbsTerm::SPECIAL_VALUE_FF_NEG_ONE);
+        val << "#f-1m" << sort->get_ff_size();
+      }
+      break;
+
     case SORT_FP:
     {
       if (value == AbsTerm::SPECIAL_VALUE_FP_POS_INF)
