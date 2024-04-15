@@ -81,6 +81,14 @@ get_bv_sort_string(uint32_t size)
 }
 
 static std::string
+get_ff_sort_string(const std::string& size)
+{
+  std::stringstream sort;
+  sort << "(_ FiniteField " << size << ")";
+  return sort.str();
+}
+
+static std::string
 get_fp_sort_string(uint32_t esize, uint32_t ssize)
 {
   std::stringstream sort;
@@ -280,6 +288,12 @@ std::string
 Smt2Sort::get_dt_name() const
 {
   return d_repr;
+}
+
+std::string
+Smt2Sort::get_ff_size() const
+{
+  return d_ff_size;
 }
 
 uint32_t
@@ -1127,6 +1141,12 @@ Smt2Solver::mk_value(Sort sort, const std::string& value)
 
   switch (sort_kind)
   {
+    case SORT_FF:
+    {
+      val << "#f" << value << "m" << sort->get_ff_size();
+    }
+    break;
+
     case SORT_FP:
     {
       val << "(fp ";
@@ -1356,6 +1376,18 @@ Smt2Solver::mk_sort(SortKind kind)
     default: assert(false);
   }
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));
+}
+
+Sort
+Smt2Solver::mk_sort(SortKind kind, const std::string& size)
+{
+  std::string sort;
+  switch (kind)
+  {
+    case SORT_FF: sort = get_ff_sort_string(size); break;
+    default: assert(false);
+  }
+  return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort, size));
 }
 
 Sort
@@ -1861,6 +1893,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
         return args[0]->get_sort();
       }
       break;
+
+    case SORT_FF: return args[0]->get_sort();
 
     case SORT_FP:
       if (kind == Op::FP_TO_FP_FROM_BV || kind == Op::FP_TO_FP_FROM_SBV

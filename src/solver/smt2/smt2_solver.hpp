@@ -36,6 +36,10 @@ class Smt2Sort : public AbsSort
       : d_repr(repr), d_bv_size(bv_size), d_sig_size(sig_size)
   {
   }
+  Smt2Sort(std::string repr, const std::string& ff_size)
+      : d_repr(repr), d_ff_size(ff_size)
+  {
+  }
   ~Smt2Sort(){};
   size_t hash() const override;
   bool equals(const Sort& other) const override;
@@ -58,6 +62,7 @@ class Smt2Sort : public AbsSort
   bool is_reglan() const override;
   uint32_t get_bv_size() const override;
   std::string get_dt_name() const override;
+  std::string get_ff_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
   Sort get_array_index_sort() const override;
@@ -89,6 +94,8 @@ class Smt2Sort : public AbsSort
   uint32_t d_sig_size = 0;
   /** The symbol of this sort. Only for function sorts. */
   std::string d_symbol;
+  /** The finite field size of this sort. */
+  std::string d_ff_size;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -213,6 +220,11 @@ class Smt2Term : public AbsTerm
       {Op::DT_MATCH, "match"},
       {Op::DT_MATCH_BIND_CASE, ""},
       {Op::DT_MATCH_CASE, ""},
+
+      /* FF */
+      {Op::FINITE_FIELD_ADD, "ff.add"},
+      {Op::FINITE_FIELD_MULT, "ff.mul"},
+      {Op::FINITE_FIELD_NEG, "ff.neg"},
 
       /* FP */
       {Op::FP_TO_FP_FROM_BV, "to_fp"},
@@ -419,6 +431,7 @@ class Smt2Solver : public Solver
 
   Sort mk_sort(const std::string& name) override;
   Sort mk_sort(SortKind kind) override;
+  Sort mk_sort(SortKind kind, const std::string& size) override;
   Sort mk_sort(SortKind kind, uint32_t size) override;
   Sort mk_sort(SortKind kind, uint32_t esize, uint32_t ssize) override;
   Sort mk_sort(SortKind kind, const std::vector<Sort>& sorts) override;
