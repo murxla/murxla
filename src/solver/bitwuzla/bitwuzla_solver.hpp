@@ -16,7 +16,6 @@
 
 #include "fsm.hpp"
 #include "solver/solver.hpp"
-#include "theory.hpp"
 
 namespace murxla {
 namespace bitwuzla {
@@ -31,12 +30,12 @@ class BitwuzlaSort : public AbsSort
 
  public:
   /** Get wrapped Bitwuzla sort from Murxla Sort. */
-  static const ::bitwuzla::Sort& get_bitwuzla_sort(Sort sort);
+  static ::bitwuzla::Sort& get_bitwuzla_sort(Sort sort);
   /** Convert array of Bitwuzla sorts to Murxla sorts. */
   static std::vector<Sort> bitwuzla_sorts_to_sorts(
-      const std::vector<::bitwuzla::Sort>& sorts);
+      ::bitwuzla::TermManager* tm, const std::vector<::bitwuzla::Sort>& sorts);
 
-  BitwuzlaSort(const ::bitwuzla::Sort& sort);
+  BitwuzlaSort(::bitwuzla::TermManager* tm, const ::bitwuzla::Sort& sort);
   ~BitwuzlaSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
@@ -58,6 +57,7 @@ class BitwuzlaSort : public AbsSort
 
  private:
   ::bitwuzla::Sort d_sort;
+  ::bitwuzla::TermManager* d_tm;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -70,10 +70,12 @@ class BitwuzlaTerm : public AbsTerm
 
  public:
   /** Get wrapped Bitwuzla term from Murxla term. */
-  static const ::bitwuzla::Term& get_bitwuzla_term(Term term);
+  static ::bitwuzla::Term& get_bitwuzla_term(Term term);
+  /** Get associatred Bitwuzla term manager from Murxla term. */
+  static ::bitwuzla::TermManager* get_tm(Term term);
   /** Convert vector of Bitwuzla terms to vector of Murxla terms. */
   static std::vector<Term> bitwuzla_terms_to_terms(
-      const std::vector<::bitwuzla::Term>& terms);
+      ::bitwuzla::TermManager* tm, const std::vector<::bitwuzla::Term>& terms);
   /** Convert vector of Murxla terms to vector of Bitwuzla terms. */
   static std::vector<::bitwuzla::Term> terms_to_bitwuzla_terms(
       const std::vector<Term>& terms);
@@ -106,8 +108,9 @@ class BitwuzlaTerm : public AbsTerm
       "bitwuzla-OP_FP_TO_FP_FROM_REAL";
   inline static const Op::Kind OP_IFF = "bitwuzla-OP_IFF";
 
-  BitwuzlaTerm(const ::bitwuzla::Term& term);
+  BitwuzlaTerm(::bitwuzla::TermManager* tm, const ::bitwuzla::Term& term);
   ~BitwuzlaTerm() override;
+
   size_t hash() const override;
   std::string to_string() const override;
   bool equals(const Term& other) const override;
@@ -140,6 +143,7 @@ class BitwuzlaTerm : public AbsTerm
 
  private:
   ::bitwuzla::Term d_term;
+  ::bitwuzla::TermManager* d_tm;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -246,6 +250,7 @@ class BitwuzlaSolver : public Solver
   ::bitwuzla::Term mk_value_bv_int64(Sort sort, int64_t value);
 
   std::unique_ptr<::bitwuzla::Bitwuzla> d_solver;
+  std::unique_ptr<::bitwuzla::TermManager> d_tm;
   std::unique_ptr<::bitwuzla::Options> d_options;
   std::unordered_map<std::string, ::bitwuzla::Option> d_option_name_to_enum;
   std::unordered_map<std::string, ::bitwuzla::Kind> d_op_kinds;
