@@ -35,6 +35,7 @@ option(ENABLE_BITWUZLA "enable Bitwuzla" ON)
 option(ENABLE_CVC5 "enable cvc5" ON)
 option(ENABLE_YICES "enable Yices" ON)
 option(ASAN "compile with ASAN support" OFF)
+option(UBSAN "compile with UBSAN support" OFF)
 option(DOCS "build documentation" OFF)
 
 #-----------------------------------------------------------------------------#
@@ -62,6 +63,9 @@ if(ASAN)
   unset(CMAKE_REQUIRED_FLAGS)
   add_check_cxx_flag("-fno-omit-frame-pointer")
   add_required_cxx_flag("-fsanitize-recover=address")
+endif()
+if(UBSAN)
+  add_required_cxx_flag("-fsanitize=undefined")
 endif()
 
 #-----------------------------------------------------------------------------#
