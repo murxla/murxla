@@ -80,6 +80,17 @@ BitwuzlaSort::equals(const Sort& other) const
 }
 
 bool
+BitwuzlaSort::not_equals(const std::shared_ptr<AbsSort>& other) const
+{
+  BitwuzlaSort* bzla_sort = checked_cast<BitwuzlaSort*>(other.get());
+  if (bzla_sort)
+  {
+    return d_sort != bzla_sort->d_sort;
+  }
+  return false;
+}
+
+bool
 BitwuzlaSort::is_array() const
 {
   return d_sort.is_array();
@@ -115,6 +126,12 @@ bool
 BitwuzlaSort::is_rm() const
 {
   return d_sort.is_rm();
+}
+
+bool
+BitwuzlaSort::is_uninterpreted() const
+{
+  return d_sort.is_uninterpreted();
 }
 
 uint32_t
@@ -493,6 +510,13 @@ BitwuzlaTerm::equals(const Term& other) const
   return d_term == bzla_term->d_term;
 }
 
+bool
+BitwuzlaTerm::not_equals(const Term& other) const
+{
+  BitwuzlaTerm* bzla_term = checked_cast<BitwuzlaTerm*>(other.get());
+  return d_term != bzla_term->d_term;
+}
+
 std::string
 BitwuzlaTerm::to_string() const
 {
@@ -503,6 +527,12 @@ bool
 BitwuzlaTerm::is_array() const
 {
   return d_term.sort().is_array();
+}
+
+bool
+BitwuzlaTerm::is_bool() const
+{
+  return d_term.sort().is_bool();
 }
 
 bool
@@ -527,6 +557,12 @@ bool
 BitwuzlaTerm::is_rm() const
 {
   return d_term.sort().is_rm();
+}
+
+bool
+BitwuzlaTerm::is_uninterpreted() const
+{
+  return d_term.sort().is_uninterpreted();
 }
 
 bool

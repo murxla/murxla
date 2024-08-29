@@ -39,6 +39,7 @@ class BitwuzlaSort : public AbsSort
   ~BitwuzlaSort() override;
   size_t hash() const override;
   bool equals(const Sort& other) const override;
+  bool not_equals(const std::shared_ptr<AbsSort>& other) const override;
   std::string to_string() const override;
   bool is_array() const override;
   bool is_bool() const override;
@@ -46,6 +47,7 @@ class BitwuzlaSort : public AbsSort
   bool is_fp() const override;
   bool is_fun() const override;
   bool is_rm() const override;
+  bool is_uninterpreted() const override;
   uint32_t get_bv_size() const override;
   uint32_t get_fp_exp_size() const override;
   uint32_t get_fp_sig_size() const override;
@@ -114,11 +116,14 @@ class BitwuzlaTerm : public AbsTerm
   size_t hash() const override;
   std::string to_string() const override;
   bool equals(const Term& other) const override;
+  bool not_equals(const std::shared_ptr<AbsTerm>& other) const override;
   bool is_array() const override;
+  bool is_bool() const override;
   bool is_bv() const override;
   bool is_fp() const override;
   bool is_fun() const override;
   bool is_rm() const override;
+  bool is_uninterpreted() const override;
   bool is_bool_value() const override;
   bool is_bv_value() const override;
   bool is_fp_value() const override;
