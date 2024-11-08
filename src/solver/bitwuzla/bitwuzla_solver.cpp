@@ -327,8 +327,7 @@ std::unordered_map<Op::Kind, ::bitwuzla::Kind>
         {OP_BV_SDIVO, ::bitwuzla::Kind::BV_SDIV_OVERFLOW},
         {OP_IFF, ::bitwuzla::Kind::IFF},
         // Note: OP_FP_TO_FP_FROM_REAL needs special treatment, not a real
-        // Bitwuzla
-        //       kind
+        //       Bitwuzla kind
 };
 
 std::unordered_map<::bitwuzla::Kind, Op::Kind>
@@ -1221,12 +1220,18 @@ BitwuzlaSolver::mk_term(const Op::Kind& kind,
     /* Bitwuzla only supports a very restricted version of to_fp from Real:
      * only from strings representing real or rational values. */
 
+    // We only use the second argument (which is an FP term) to select an
+    // FP format to convert to. This is mainly for ease of use as Bitwuzla
+    // expects an FP sort and we cannot add special handling of solver-specific
+    // operator to solver-agnostic actions like ActionMkTerm.
     const ::bitwuzla::Sort& bzla_sort = bzla_args[1].sort();
+    // Create TO_FP from string representing a Real value.
     if (d_rng.flip_coin())
     {
       bzla_res =
           d_tm->mk_fp_value(bzla_sort, bzla_args[0], d_rng.pick_real_string());
     }
+    // Create TO_FP from string representing a Rational value.
     else
     {
       bzla_res =

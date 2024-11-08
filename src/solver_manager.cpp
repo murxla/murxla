@@ -185,6 +185,7 @@ SolverManager::add_value(Term& term,
 
   term->set_leaf_kind(AbsTerm::LeafKind::VALUE);
   add_input(term, sort, sort_kind);
+  assert(term->get_leaf_kind() == AbsTerm::LeafKind::VALUE);
   term->set_special_value_kind(value_kind);
 }
 
@@ -229,7 +230,6 @@ SolverManager::add_term(Term& term,
                         SortKind sort_kind,
                         const std::vector<Term>& args)
 {
-  d_stats.terms += 1;
   /* Query solver for sort of newly created term if term does not have a sort.
    * If the returned sort is not in d_sorts, i.e., sort == nullptr, we need to
    * do a lookup on d_sorts if we already have a matching sort. */
@@ -238,6 +238,18 @@ SolverManager::add_term(Term& term,
   {
     sort = d_solver->get_sort(term, sort_kind);
   }
+
+  // If term is actually a value, which can happen for some solver-specific
+  // cases, e.g., how Bitwuzla handles TO_FP_FROM_REAL, add as value instead.
+  if (term->is_value())
+  {
+    add_value(term, sort, sort_kind);
+    return;
+  }
+
+  // Else, add as term.
+
+  d_stats.terms += 1;
 
   /* If sort_kind is SORT_REAL, given sort can only be an Int sort when the
    * solver identifies it as an Int sort (since Int may be a subtype of Real).
