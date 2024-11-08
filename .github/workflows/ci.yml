@@ -42,6 +42,13 @@ jobs:
           sudo apt-get install gperf
           python3 -m pip install toml
 
+      - name: Setup Python Environment
+        run: |
+          python3 -m venv ~/.venv
+          source ~/.venv/bin/activate
+          python3 -m pip install meson pytest cython>=3.*
+          echo "$HOME/.venv/bin/" >> $GITHUB_PATH
+
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
