@@ -1477,7 +1477,7 @@ BitwuzlaSolver::check_term(Term term)
   // MURXLA_TEST(!(bzla_term > bzla_term));
   // MURXLA_TEST(!(bzla_term < bzla_term));
   MURXLA_TEST(bzla_term.symbol() == std::nullopt
-              || bzla_term.symbol() == std::nullopt);
+              || !bzla_term.symbol()->get().empty());
   MURXLA_TEST(term->is_indexed() || term->get_num_indices() == 0);
   MURXLA_TEST(bzla_term.id() != 0);
 }
