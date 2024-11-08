@@ -397,7 +397,7 @@ class Smt2Term : public AbsTerm
       {bitwuzla::BitwuzlaTerm::OP_BV_SSUBO, "bvssubo"},
       {bitwuzla::BitwuzlaTerm::OP_BV_UADDO, "bvuaddo"},
       {bitwuzla::BitwuzlaTerm::OP_BV_UMULO, "bvumulo"},
-      {bitwuzla::BitwuzlaTerm::OP_BV_USUBO, "busubo"},
+      {bitwuzla::BitwuzlaTerm::OP_BV_USUBO, "bvusubo"},
       {bitwuzla::BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL, "to_fp"},
       {bitwuzla::BitwuzlaTerm::OP_IFF, "="},
 #endif
