@@ -30,7 +30,6 @@
 
     "array-element": {
       "exclude": [
-        "SORT_ARRAY",
         "SORT_FUN"
       ]
     },
@@ -71,8 +70,7 @@
 
     "var": {
       "exclude": [
-        "SORT_FUN",
-        "SORT_ARRAY"
+        "SORT_FUN"
       ]
     }
   },
