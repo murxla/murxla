@@ -3,14 +3,17 @@
 set -e -o pipefail
 
 deps_dir=$(pwd)/deps
+src_dir="$deps_dir"/src
+bitwuzla_dir="$src_dir"/bitwuzla
+cvc5_dir="$src_dir"/cvc5
+yices_dir="$src_dir"/yices
 
 reinstall=no
 freshinstall=no
 coverage=no
 asan=no
 
-btor=yes
-bzla=yes
+bitwuzla=yes
 cvc5=yes
 yices=yes
 
@@ -31,8 +34,7 @@ where <option> is one of the following:
   -f, --fresh-install   install solvers from a fresh checkout
   -c, --coverage        compile solvers with support for coverage testing
   -a, --asan            build solvers with ASan instrumentation
-  --only-btor           only set up Boolector
-  --only-bzla           only set up Bitwuzla
+  --only-bitwuzla       only set up Bitwuzla
   --only-cvc5           only set up cvc5
   --only-yices          only set up Yices
 EOF
@@ -47,10 +49,9 @@ do
     -f|--fresh-install) freshinstall=yes;;
     -c|--coverage) coverage=yes;;
     -a|--asan) asan=yes;;
-    --only-btor) bzla=no; cvc5=no; yices=no;;
-    --only-cvc5) bzla=no; btor=no; yices=no;;
-    --only-yices) bzla=no; btor=no; cvc5=no;;
-    --only-bzla) btor=no; cvc5=no; yices=no;;
+    --only-cvc5) bitwuzla=no; yices=no;;
+    --only-yices) bitwuzla=no; cvc5=no;;
+    --only-bitwuzla) cvc5=no; yices=no;;
 
     -*) die "invalid option '$opt' (try '-h')";;
   esac
@@ -58,8 +59,6 @@ do
 done
 
 #--------------------------------------------------------------------------#
-
-git submodule update --init --recursive
 
 if [ "$freshinstall" == "yes" ]
 then
@@ -75,57 +74,17 @@ if [ -e "$deps_dir" ]; then
 fi
 
 mkdir -p "$deps_dir"
-
-# Setup Boolector
-(
-  if [ "$btor" == "yes" ]
-  then
-    cd solvers/boolector || exit 1
-
-    if [ "$reinstall" == "no" ]
-    then
-      ./contrib/setup-btor2tools.sh
-      ./contrib/setup-lingeling.sh
-      ./contrib/setup-cadical.sh
-    else
-      if [[ ! -d solvers/boolector/deps/btor2tools ]]
-      then
-        ./contrib/setup-btor2tools.sh
-      fi
-      if [[ ! -d solvers/boolector/deps/lingeling ]]
-      then
-        ./contrib/setup-lingeling.sh
-      fi
-      if [[ ! -d solvers/boolector/deps/cadical ]]
-      then
-        ./contrib/setup-cadical.sh
-      fi
-    fi
-
-    cov=
-    if [ "$coverage" == "yes" ]
-    then
-      cov="--gcov"
-    fi
-
-    as=
-    if [ "$asan" == "yes" ]
-    then
-      as="--asan"
-    fi
-
-    rm -rf build
-    ./configure.sh -g --prefix "$deps_dir" $cov $as --no-testing
-    cd build
-    make install -j $(nproc)
-  fi
-)
+mkdir -p "$src_dir"
 
 # Setup Bitwuzla
 (
-  if [ "$bzla" == "yes" ]
+  if [ "$bitwuzla" == "yes" ]
   then
-    cd solvers/bitwuzla || exit 1
+    if [ ! -d "$bitwuzla_dir" ]
+    then
+      git clone https://github.com/bitwuzla/bitwuzla.git "$bitwuzla_dir"
+    fi
+    cd "$bitwuzla_dir" || exit 1
 
     cov=
     if [ "$coverage" == "yes" ]
@@ -150,7 +109,11 @@ mkdir -p "$deps_dir"
 (
   if [ "$cvc5" == "yes" ]
   then
-    cd solvers/cvc5 || exit 1
+    if [ ! -d "$cvc5_dir" ]
+    then
+      git clone https://github.com/cvc5/cvc5.git "$cvc5_dir"
+    fi
+    cd "$cvc5_dir" || exit 1
 
     cov=
     if [ "$coverage" == "yes" ]
@@ -165,7 +128,7 @@ mkdir -p "$deps_dir"
     fi
 
     rm -rf build
-    ./configure.sh debug --prefix="$deps_dir" --auto-download $cov $as --cocoa
+    ./configure.sh debug --prefix="$deps_dir" --auto-download $cov $as --cocoa --gpl
     cd build
     make install -j $(nproc)
   fi
@@ -175,7 +138,11 @@ mkdir -p "$deps_dir"
 (
   if [ "$yices" == "yes" ]
   then
-    cd solvers/yices || exit 1
+    if [ ! -d "$yices_dir" ]
+    then
+      git clone https://github.com/SRI-CSL/yices2.git "$yices_dir"
+    fi
+    cd "$yices_dir" || exit 1
 
     rm -rf build
     autoconf

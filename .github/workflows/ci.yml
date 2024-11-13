@@ -9,12 +9,7 @@ jobs:
           - name: debug-bitwuzla
             os: ubuntu-22.04
             config: -DDOCS=off -DENABLE_BITWUZLA=on -DENABLE_BOOLECTOR=off -DENABLE_CVC5=off -DENABLE_YICES=off
-            depconfig: --only-bzla
-
-          - name: debug-boolector
-            os: ubuntu-22.04
-            config: -DDOCS=off -DENABLE_BITWUZLA=off -DENABLE_BOOLECTOR=on -DENABLE_CVC5=off -DENABLE_YICES=off
-            depconfig: --only-btor
+            depconfig: --only-bitwuzla
 
           - name: debug-cvc5
             os: ubuntu-22.04
@@ -29,7 +24,7 @@ jobs:
           - name: debug-bitwuzla-mac
             os: macos-12
             config: -DDOCS=off -DENABLE_BITWUZLA=on -DENABLE_BOOLECTOR=off -DENABLE_CVC5=off -DENABLE_YICES=off
-            depconfig: --only-bzla
+            depconfig: --only-bitwuzla
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -39,8 +34,13 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
+          sudo apt-get install -y libgmp-dev ninja-build
           sudo apt-get install gperf
           python3 -m pip install toml
+
+      - name: Install Packages (macOS)
+        if: runner.os == 'macOS'
+        run: brew install gmp pkgconfig ninja
 
       - name: Setup Python Environment
         run: |
@@ -50,8 +50,6 @@ jobs:
           echo "$HOME/.venv/bin/" >> $GITHUB_PATH
 
       - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
 
       - name: Setup Dependencies
         if: steps.restore-deps.outputs.cache-hit != 'true'

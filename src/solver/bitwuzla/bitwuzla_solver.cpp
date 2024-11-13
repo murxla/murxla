@@ -7,8 +7,8 @@
  *
  * See LICENSE for more information on using this software.
  */
-#include <bitwuzla/cpp/bitwuzla.h>
 #ifdef MURXLA_USE_BITWUZLA
+#include <bitwuzla/cpp/bitwuzla.h>
 
 #include <cassert>
 #include <cstdlib>
