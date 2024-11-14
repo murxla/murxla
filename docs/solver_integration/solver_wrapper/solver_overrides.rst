@@ -56,15 +56,3 @@ overriden by a solver wrapper.
 
    Optional overrides have default implementations, but should be overriden
    if supported by the solver.
-
-
-Solver: Functions Required to be Overriden
-------------------------------------------
-.. doxygengroup:: solver-must-override
-   :content-only:
-
-Solver: Functions to be Overriden Optionally
---------------------------------------------
-.. doxygengroup:: solver-may-override
-   :content-only:
-

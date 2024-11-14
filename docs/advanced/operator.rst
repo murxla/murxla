@@ -38,17 +38,27 @@ Configuration Macros
 .. doxygendefine:: MURXLA_MK_TERM_N_ARGS
 .. doxygendefine:: MURXLA_MK_TERM_N_ARGS_BIN
 
-Operator and Operator Kind
---------------------------
+Operator
+--------
+
+.. doxygenstruct:: murxla::Op
+    :members:
+    :undoc-members:
+
+Operator Kinds
+--------------
+
+Operator kinds are defined as static members of struct :cpp:struct:`murxla::Op`,
+see :doc:`the list of pre-defined operator kinds <operator_kinds>`.
+
+Operator Kind Datastructures
+----------------------------
 
 .. doxygentypedef:: murxla::OpKindVector
 .. doxygentypedef:: murxla::OpKindSet
 .. doxygentypedef:: murxla::OpKindMap
 .. doxygentypedef:: murxla::OpKinds
 
-.. doxygenstruct:: murxla::Op
-    :members:
-    :undoc-members:
 
 Operator Management
 -------------------

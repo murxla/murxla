@@ -62,11 +62,6 @@ class AbsSort
   /* ---------------------------------------------------------------------- */
 
   /**
-   * \addtogroup sort-must-override
-   * @{
-   */
-
-  /**
    * Get the hash value of this sort.
    * @return  The hash value of this sort.
    */
@@ -82,12 +77,6 @@ class AbsSort
    * @return  True if this sort is equal to the other sort.
    */
   virtual bool equals(const std::shared_ptr<AbsSort>& other) const = 0;
-
-  /**
-   * @}
-   * \addtogroup sort-may-override
-   * @{
-   */
 
   /**
    * Determine if this sort is not equal to the given sort.
@@ -284,8 +273,6 @@ class AbsSort
    * @return The element sort of this set sort, or a nullptr by default.
    */
   virtual Sort get_set_element_sort() const;
-
-  /** @} */
 
   /* Only to be overriden in shadow solver, murxla level.                   */
   /* ---------------------------------------------------------------------- */
@@ -778,11 +765,6 @@ class AbsTerm
   /* ---------------------------------------------------------------------- */
 
   /**
-   * \addtogroup term-must-override
-   * @{
-   */
-
-  /**
    * Get the hash value of this term.
    * @return  The hash value of this term.
    */
@@ -798,12 +780,6 @@ class AbsTerm
    * @return  True if this term is equal to the other term.
    */
   virtual bool equals(const std::shared_ptr<AbsTerm>& other) const = 0;
-
-  /**
-   * @}
-   * \addtogroup term-may-override
-   * @{
-   */
 
   /**
    * Determine if this term is not equal to the given term.
@@ -1076,8 +1052,6 @@ class AbsTerm
    */
   virtual std::vector<Sort> get_fun_domain_sorts() const;
 
-  /** @} */
-
   /* Only to be overriden in shadow solver, murxla level.                   */
   /* ---------------------------------------------------------------------- */
 
@@ -1254,11 +1228,6 @@ class Solver
 
   /* To be overriden, for testing the solver.                               */
   /* ---------------------------------------------------------------------- */
-
-  /**
-   * \addtogroup solver-must-override
-   * @{
-   */
 
   /** Create and initialize wrapped solver. */
   virtual void new_solver() = 0;
@@ -1629,12 +1598,6 @@ class Solver
    */
   virtual std::vector<Term> get_value(const std::vector<Term>& terms) = 0;
 
-  /**
-   * @}
-   * \addtogroup solver-may-override
-   * @{
-   */
-
   /** Return solver profile JSON string. */
   virtual const std::string get_profile() const { return "{}"; };
 
@@ -1928,8 +1891,6 @@ class Solver
   {
     return {};
   }
-
-  /** @} */
 
   /* NOT to be overriden, murxla level.                                     */
   /* ---------------------------------------------------------------------- */

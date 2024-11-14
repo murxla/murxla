@@ -32,7 +32,7 @@ struct Op
   using Kind = std::string;
 
   /**
-   * \addtogroup operator-kinds
+   * \addtogroup op-kinds-internal
    * @{
    */
 
@@ -40,6 +40,12 @@ struct Op
   inline static const Kind UNDEFINED = "OP_UNDEFINED";
   /** The operator kind representing an internal kind. */
   inline static const Kind INTERNAL = "OP_INTERNAL";
+
+  /**
+   * @}
+   * \addtogroup op-kinds-leafs
+   * @{
+   */
 
   //// Leaf kinds (only needed for Term::get_kind)
   /**
@@ -68,6 +74,12 @@ struct Op
    * Created with Solver::mk_fun().
    */
   inline static const Kind FUN = "OP_FUN";
+
+  /**
+   * @}
+   * \addtogroup op-kinds-special-cases
+   * @{
+   */
 
   //// Special cases
   /**
@@ -122,6 +134,12 @@ struct Op
    */
   inline static const Kind ITE = "OP_ITE";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-arrays
+   * @{
+   */
+
   //// Arrays
   /**
    * The operator kind representing the select operator on arrays.
@@ -160,6 +178,12 @@ struct Op
    * \endverbatim
    */
   inline static const Kind ARRAY_STORE = "OP_ARRAY_STORE";
+
+  /**
+   * @}
+   * \addtogroup op-kinds-boolean
+   * @{
+   */
 
   //// Boolean
   /**
@@ -264,6 +288,12 @@ struct Op
    * \endverbatim
    */
   inline static const Kind XOR = "OP_XOR";
+
+  /**
+   * @}
+   * \addtogroup op-kinds-bv
+   * @{
+   */
 
   //// BV
   /**
@@ -879,6 +909,12 @@ struct Op
    */
   inline static const Kind BV_XOR = "OP_BV_XOR";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-dt
+   * @{
+   */
+
   //// Datatypes
   /**
    * The operator kind representing the datatypes apply constructor operator.
@@ -1019,6 +1055,12 @@ struct Op
   inline static const Kind DT_MATCH_BIND_CASE = "OP_DT_MATCH_BIND_CASE";
   // inline static const Kind DT_TUPLE_PROJECT   = "OP_DT_TUPLE_PROJECT";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-ff
+   * @{
+   */
+
   //// FF
   /**
    * The operator kind representing the finite-field addition operator.
@@ -1071,6 +1113,12 @@ struct Op
    * \endverbatim
    */
   inline static const Kind FINITE_FIELD_NEG = "OP_FINITE_FIELD_NEG";
+
+  /**
+   * @}
+   * \addtogroup op-kinds-fp
+   * @{
+   */
 
   //// FP
   /**
@@ -1671,6 +1719,12 @@ struct Op
    */
   inline static const Kind FP_TO_REAL = "OP_FP_TO_REAL";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-ints
+   * @{
+   */
+
   //// Ints
   /**
    * The operator kind representing the integer divisible operator.
@@ -1894,6 +1948,12 @@ struct Op
    */
   inline static const Kind INT_TO_REAL = "OP_INT_TO_REAL";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-reals
+   * @{
+   */
+
   //// Reals
   /**
    * The operator kind representing the reals negation operator.
@@ -2083,6 +2143,12 @@ struct Op
    */
   inline static const Kind REAL_TO_INT = "OP_REAL_TO_INT";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-quants
+   * @{
+   */
+
   //// Quantifiers
   /**
    * The operator kind representing the a universal quantifier operator.
@@ -2118,6 +2184,12 @@ struct Op
    * \endverbatim
    */
   inline static const Kind EXISTS = "OP_EXISTS";
+
+  /**
+   * @}
+   * \addtogroup op-kinds-strings
+   * @{
+   */
 
   //// Strings
   /**
@@ -2726,6 +2798,12 @@ struct Op
    */
   inline static const Kind STR_TO_RE = "OP_STR_TO_RE";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-trans
+   * @{
+   */
+
   //// Transcendentals
   /**
    * The operator kind representing the transcendentals constant pi.
@@ -2854,6 +2932,12 @@ struct Op
    */
   inline static const Kind TRANS_SQRT = "OP_TRANS_SQRT";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-uf
+   * @{
+   */
+
   //// UF
   /**
    * The operator kind representing the function application operator.
@@ -2872,6 +2956,12 @@ struct Op
    * \endverbatim
    */
   inline static const Kind UF_APPLY = "OP_UF_APPLY";
+
+  /**
+   * @}
+   * \addtogroup op-kinds-bags
+   * @{
+   */
 
   /* Operators of non-standardized theories. */
   //// Bags
@@ -3019,6 +3109,12 @@ struct Op
    */
   inline static const Kind BAG_MAP = "OP_BAG_MAP";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-seq
+   * @{
+   */
+
   //// Sequences
   /**
    * The operator kind representing the sequence concatenation operator.
@@ -3147,6 +3243,12 @@ struct Op
    */
   inline static const Kind SEQ_NTH = "OP_SEQ_NTH";
 
+  /**
+   * @}
+   * \addtogroup op-kinds-sets
+   * @{
+   */
+
   //// Sets
   /**
    * The operator kind representing the set cardinality operator.
@@ -3256,6 +3358,12 @@ struct Op
    * - **indices**: `{}`
    */
   inline static const Kind SET_SUBSET = "OP_SET_SUBSET";
+
+  /**
+   * @}
+   * \addtogroup op-kinds-rels
+   * @{
+   */
 
   //// Relations
   /**

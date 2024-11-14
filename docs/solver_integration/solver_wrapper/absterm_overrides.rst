@@ -47,14 +47,3 @@ overriden by a solver wrapper.
 
    Optional overrides have default implementations, but should be overriden
    if supported by the solver.
-
-AbsTerm: Functions Required to be Overriden
--------------------------------------------
-.. doxygengroup:: term-must-override
-   :content-only:
-
-AbsTerm: Functions to be Overriden Optionally
----------------------------------------------
-.. doxygengroup:: term-may-override
-   :content-only:
-

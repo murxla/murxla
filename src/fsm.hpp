@@ -448,14 +448,15 @@ class FSM
    * From a decision state, we may only transition into the choice states that
    * represent the valid choices for this decision.
    *
-   * As an example, we use a decision state #DECIDE_SAT_UNSAT for handling
-   * different solver states after a satisfiability check in state #CHECK_SAT.
-   * From #CHECK_SAT, we transition into #DECIDE_SAT_UNSAT, from where we
-   * transition into either choice state #SAT (when the result is *sat* or
-   * *unknown*) or #UNSAT (when the result is *unsat*).
-   * Each choice state configure actions to make additional queries to the
-   * solver under the specific premise that a check-sat call has been issued and
-   * the satisfiability result is either sat or unsat.
+   * As an example, we use a decision state State::DECIDE_SAT_UNSAT for handling
+   * different solver states after a satisfiability check in state
+   * State::CHECK_SAT. From State::CHECK_SAT, we transition into
+   * State::DECIDE_SAT_UNSAT, from where we transition into either choice state
+   * State::SAT (when the result is *sat* or *unknown*) or State::UNSAT (when
+   * the result is *unsat*). Each choice state configure actions to make
+   * additional queries to the solver under the specific premise that a
+   * check-sat call has been issued and the satisfiability result is either sat
+   * or unsat.
    *
    * @note  A decision state is never final.
    *
@@ -475,7 +476,7 @@ class FSM
    * Choice states may only be transitioned into from their corresponding
    * decision state.
    *
-   * As an example, states #SAT and #UNSAT are choice states.
+   * As an example, states State::SAT and State::UNSAT are choice states.
    *
    * @note  A choice state can be final.
    *

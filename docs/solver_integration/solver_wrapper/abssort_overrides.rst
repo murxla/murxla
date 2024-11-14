@@ -38,14 +38,3 @@ overriden by a solver wrapper.
    Optional overrides have default implementations, but should be overriden
    if supported by the solver.
 
-AbsSort: Functions Required to be Overriden
--------------------------------------------
-
-.. doxygengroup:: sort-must-override
-   :content-only:
-
-AbsSort: Functions to be Overriden Optionally
----------------------------------------------
-.. doxygengroup:: sort-may-override
-   :content-only:
-
