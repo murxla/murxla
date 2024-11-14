@@ -99,14 +99,14 @@ class MurxlaUntraceException : public MurxlaException
   /**
    * Constructor.
    * @param trace_file_name The name of the trace file.
-   * @param nline The line number of the invalid trace line.
-   * @param msg The exception message given as a std::stringstream.
+   * @param nline           The line number of the invalid trace line.
+   * @param msg             The exception message given as a std::stringstream.
    */
   MurxlaUntraceException(const std::string& trace_file_name,
                          uint32_t nline,
-                         const std::stringstream& msg_stream)
+                         const std::stringstream& msg)
       : MurxlaException("untrace: " + trace_file_name + ":"
-                        + std::to_string(nline) + ": " + msg_stream.str())
+                        + std::to_string(nline) + ": " + msg.str())
   {
   }
 };
@@ -130,8 +130,8 @@ class MurxlaUntraceIdException : public MurxlaException
    * Constructor.
    * @param msg The exception message given as a std::stringstream.
    */
-  MurxlaUntraceIdException(const std::stringstream& stream)
-      : MurxlaException(stream)
+  MurxlaUntraceIdException(const std::stringstream& msg)
+      : MurxlaException(msg)
   {
   }
 };
@@ -158,8 +158,8 @@ class MurxlaActionUntraceException : public MurxlaException
    * Constructor.
    * @param msg The exception message given as a std::stringstream.
    */
-  MurxlaActionUntraceException(const std::stringstream& stream)
-      : MurxlaException(stream)
+  MurxlaActionUntraceException(const std::stringstream& msg)
+      : MurxlaException(msg)
   {
   }
 };
@@ -180,8 +180,8 @@ class MurxlaSolverOptionException : public MurxlaException
    * Constructor.
    * @param msg The exception message given as a std::stringstream.
    */
-  MurxlaSolverOptionException(const std::stringstream& stream)
-      : MurxlaException(stream)
+  MurxlaSolverOptionException(const std::stringstream& msg)
+      : MurxlaException(msg)
   {
   }
 };
@@ -468,7 +468,7 @@ class OstreamVoider
  * Check if given untraced term (matched to ``id``) is not null. If it is,
  * create a murxla::UntraceExceptionStream, which throws a
  * murxla::MurxlaActionUntraceException.
- * @param sort The term to check.
+ * @param term The term to check.
  * @param id The id of the sort.
  */
 #define MURXLA_CHECK_TRACE_TERM(term, id) \

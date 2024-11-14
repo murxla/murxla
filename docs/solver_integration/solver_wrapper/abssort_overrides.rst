@@ -7,7 +7,7 @@ required and optional member function overrides.
 
 Murxla uses naming convention ``<solver name (short)>Sort`` for solver wrapper
 sort implementations, e.g., the cvc5 implementation is called ``Cvc5Sort`` and
-the Bitwuzla implementation is called ``BzlaSort``.
+the Bitwuzla implementation is called ``BitwuzlaSort``.
 
 An example for a **required** override is member function
 :cpp:func:`murxla::AbsSort::equals()`, which determines if two given sorts
@@ -24,10 +24,10 @@ An example for an **optional** override is member function
 is a bit-vector sort. It is implemented in the solver wrapper for **Bitwuzla**
 (using its C API) as follows:
 
-.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bitwuzla/bitwuzla_solver.cpp
    :language: cpp
-   :start-after: docs-bzla-sort-is_bv start
-   :end-before: docs-bzla-sort-is_bv end
+   :start-after: docs-bitwuzla-sort-is_bv start
+   :end-before: docs-bitwuzla-sort-is_bv end
 
 The following list provides all the member functions of class
 :cpp:class:`murxla::AbsSort` that are required or optional to be

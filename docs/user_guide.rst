@@ -27,7 +27,7 @@ For example, testing Bitwuzla is done as follows.
 
 .. code-block:: bash
 
-   $ murxla --bzla
+   $ murxla --bitwuzla
 
 
 In continuous mode, Murxla prints overall **fuzzing statistics** while running.
@@ -123,8 +123,8 @@ Replaying a trace file with Murxla executes the exact same API call sequence
 that was executed when recording the trace and will trigger the same error
 behavior.
 
-In the above example,
-seed ``2287b2bd77a3b84c`` triggered an issue in Bitwuzla.
+In the example below,
+seed ``2287b2bd77a3b84c`` triggered an issue in Bitwuzla (prior to version 0.1).
 Murxla stores the API trace
 in ``1/murxla-2287b2bd77a3b84c.trace``, which can be replayed as follows.
 
@@ -133,7 +133,7 @@ in ``1/murxla-2287b2bd77a3b84c.trace``, which can be replayed as follows.
 
    $ murxla -u 1/murxla-2287b2bd77a3b84c.trace
 
-     set-murxla-options --bzla
+     set-murxla-options --bitwuzla
     1174 new
    97715 set-logic QF_UFBVFP
    15569 set-option produce-models true
@@ -227,7 +227,7 @@ It compares the results of two solvers after each ``(check-sat)`` or
 .. code-block:: bash
    :caption: Cross-checking Bitwuzla against cvc5
 
-   murxla --bzla -c cvc5
+   murxla --bitwuzla -c cvc5
 
 
 Murxla also allows to cross-check solver binaries used via the

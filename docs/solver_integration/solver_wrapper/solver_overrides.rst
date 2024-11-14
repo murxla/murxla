@@ -7,7 +7,7 @@ It further implements required and optional member function overrides.
 
 Murxla uses naming convention ``<solver name (short)>Solver`` for solver
 wrapper solver implementations, e.g., the cvc5 implementation is called
-``Cvc5Solver`` and the Bitwuzla implementation is called ``BzlaSolver``.
+``Cvc5Solver`` and the Bitwuzla implementation is called ``BitwuzlaSolver``.
 
 Note that the constructor of :cpp:class:`murxla::Solver` is not to be overriden.
 A solver instance is created and deleted via the required member function
@@ -43,10 +43,10 @@ terms representing the unsat core of the currently asserted formula.
 It is implemented in the solver wrapper for **Bitwuzla**
 (using its C API) as follows:
 
-.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bitwuzla/bitwuzla_solver.cpp
    :language: cpp
-   :start-after: docs-bzla-solver-get_unsat_core start
-   :end-before: docs-bzla-solver-get_unsat_core end
+   :start-after: docs-bitwuzla-solver-get_unsat_core start
+   :end-before: docs-bitwuzla-solver-get_unsat_core end
 
 The following list provides all the member functions of class
 :cpp:class:`murxla::Solver` that are required or optional to be

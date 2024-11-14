@@ -465,6 +465,7 @@ BitwuzlaTerm::get_bitwuzla_term(Term term)
   return checked_cast<BitwuzlaTerm*>(term.get())->d_term;
 }
 
+//! [docs-bitwuzla-term-bitwuzla_terms_to_terms start]
 std::vector<Term>
 BitwuzlaTerm::bitwuzla_terms_to_terms(
     ::bitwuzla::TermManager* tm, const std::vector<::bitwuzla::Term>& terms)
@@ -476,6 +477,7 @@ BitwuzlaTerm::bitwuzla_terms_to_terms(
   }
   return res;
 }
+//! [docs-bitwuzla-term-bitwuzla_terms_to_terms end]
 
 std::vector<::bitwuzla::Term>
 BitwuzlaTerm::terms_to_bitwuzla_terms(const std::vector<Term>& terms)
@@ -1735,6 +1737,7 @@ class BitwuzlaActionIsUnsatAssumption : public Action
   }
 
  private:
+  //! [docs-bitwuzla-action-isunsatassumption-run start]
   void run(Term term)
   {
     MURXLA_TRACE << get_kind() << " " << term;
@@ -1742,6 +1745,7 @@ class BitwuzlaActionIsUnsatAssumption : public Action
     (void) bzla_solver.get_solver()->is_unsat_assumption(
         BitwuzlaTerm::get_bitwuzla_term(term));
   }
+  //! [docs-bitwuzla-action-isunsatassumption-run end]
 };
 
 #if 0

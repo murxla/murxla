@@ -195,14 +195,14 @@ usually access the API of the solver under test directly, without going through
 the solver wrapper API.
 
 For example, Bitwuzla defines a solver-specific
-action ``BzlaActionTermIsEqualSort`` for comparing the sort of two terms,
-and its execution ``BzlaActionTermIsEqualSort::run(Term, Term)`` is implemented
+action ``BitwuzlaActionIsUnsatAssumption`` for comparing the sort of two terms,
+and its execution ``BitwuzlaActionIsUnsatAssumption::run(Term)`` is implemented
 follows:
 
-.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bitwuzla/bitwuzla_solver.cpp
    :language: cpp
-   :start-after: docs-bzla-action-termisequalsort-run start
-   :end-before: docs-bzla-action-termisequalsort-run end
+   :start-after: docs-bitwuzla-action-isunsatassumption-run start
+   :end-before: docs-bitwuzla-action-isunsatassumption-run end
 
 Tracing
 -------

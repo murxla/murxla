@@ -104,21 +104,21 @@ solver wrapper implementation of :cpp:class:`murxla::AbsTerm`.
 By convention, we prefix solver-specific operator kinds with the solver's
 (short) name.
 For example, the solver wrapper for Bitwuzla defines a bit-vector decrement
-operator as member of :cpp:class:`murxla::BzlaTerm` as
+operator as member of :cpp:class:`murxla::BitwuzlaTerm` as
 
-.. literalinclude:: ../../../src/solver/bzla/bzla_solver.hpp
+.. literalinclude:: ../../../src/solver/bitwuzla/bitwuzla_solver.hpp
    :language: cpp
-   :start-after: docs-bzla-op-bv_dec start
-   :end-before: docs-bzla-op-bv_dec end
+   :start-after: docs-bitwuzla-op-bv_dec start
+   :end-before: docs-bitwuzla-op-bv_dec end
 
 Solver-specific operator kinds are added to the
 :ref:`operator kind manager <advanced/operator:Operator Management>` via
 overriding :cpp:func:`murxla::Solver::configure_opmgr`, e.g.,
 
-.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bitwuzla/bitwuzla_solver.cpp
    :language: cpp
-   :start-after: docs-bzla-solver-configure_opmgr_bv_dec start
-   :end-before: docs-bzla-solver-configure_opmgr_bv_dec end
+   :start-after: docs-bitwuzla-solver-configure_opmgr_bv_dec start
+   :end-before: docs-bitwuzla-solver-configure_opmgr_bv_dec end
 
 
 Special Value Kinds
@@ -197,7 +197,7 @@ This makes adding options via overriding
 :cpp:func:`murxla::Solver::configure_options()`
 very easy since it allows to add options in an automated way:
 
-.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bitwuzla/bitwuzla_solver.cpp
    :language: cpp
-   :start-after: docs-bzla-solver-configure_options start
-   :end-before: docs-bzla-solver-configure_options end
+   :start-after: docs-bitwuzla-solver-configure_options start
+   :end-before: docs-bitwuzla-solver-configure_options end

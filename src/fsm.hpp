@@ -479,8 +479,9 @@ class FSM
    *
    * @note  A choice state can be final.
    *
-   * @param kind  The kind of the state.
-   * @param fun   The precondition for transitioning into the state.
+   * @param kind     The kind of the state.
+   * @param fun      The precondition for transitioning into the state.
+   * @param is_final True if state is a final state.
    * @return  The created choice state.
    */
   State* new_choice_state(const std::string& kind,

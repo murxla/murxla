@@ -7,7 +7,7 @@ required and optional member function overrides.
 
 Murxla uses naming convention ``<solver name (short)>Term`` for solver wrapper
 term implementations, e.g., the cvc5 implementation is called ``Cvc5Term`` and
-the Bitwuzla implementation is called ``BzlaTerm``.
+the Bitwuzla implementation is called ``BitwuzlaTerm``.
 
 An example for a **required** override is member function
 :cpp:func:`murxla::AbsTerm::hash()`, which returns a hash value for 
@@ -24,20 +24,20 @@ An example for an **optional** override is member function
 of a given term. It is implemented in the solver wrapper for **Bitwuzla**
 (using its C API) as follows:
 
-.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bitwuzla/bitwuzla_solver.cpp
    :language: cpp
-   :start-after: docs-bzla-term-get_children start
-   :end-before: docs-bzla-term-get_children end
+   :start-after: docs-bitwuzla-term-get_children start
+   :end-before: docs-bitwuzla-term-get_children end
 
 We use a helper function
-``std::vector<Term> BzlaTerm::bzla_terms_to_terms(const BitwuzlaTerm**, size_t)``
+``std::vector<Term> BitwuzlaTerm::bitwuzla_terms_to_terms(const BitwuzlaTerm**, size_t)``
 to convert Bitwuzla term objects to Bitwuzla solver wrapper term objects,
 which is defined as follows:
 
-.. literalinclude:: ../../../src/solver/bzla/bzla_solver.cpp
+.. literalinclude:: ../../../src/solver/bitwuzla/bitwuzla_solver.cpp
    :language: cpp
-   :start-after: docs-bzla-term-bzla_terms_to_terms start
-   :end-before: docs-bzla-term-bzla_terms_to_terms end
+   :start-after: docs-bitwuzla-term-bitwuzla_terms_to_terms start
+   :end-before: docs-bitwuzla-term-bitwuzla_terms_to_terms end
 
 The following list provides all the member functions of class
 :cpp:class:`murxla::AbsTerm` that are required or optional to be

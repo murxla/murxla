@@ -161,13 +161,14 @@ class SolverManager
    * Add input to term database.
    * @param term A term representing an input.
    * @param sort The sort of the term.
-   * @param sort_kind The sort of the sort of the term.
+   * @param sort_kind The kind of the sort of the term.
    */
   void add_input(Term& term, Sort& sort, SortKind sort_kind);
   /**
    * Add var to term database.
    * @param term A term representing a variable.
    * @param sort The sort of the term.
+   * @param sort_kind The kind of the sort of the term.
    */
   void add_var(Term& term, Sort& sort, SortKind sort_kind);
   /**
@@ -276,7 +277,7 @@ class SolverManager
    *
    * @param with_terms True to only pick operator kinds of already created
    *                   terms.
-   * @param The sort kind of terms of the operator kind to select.
+   * @param sort_kind  The sort kind of terms of the operator kind to select.
    * @return The operator kind.
    */
   Op::Kind pick_op_kind(bool with_terms = true, SortKind sort_kind = SORT_ANY);
@@ -352,6 +353,7 @@ class SolverManager
   /**
    * Pick any term from any level from the given level to the max level.
    * @note Requires that terms of any sort kind exist.
+   * @param sort  The sort of the term to pick.
    * @param level The scope level of the term to pick.
    * @return The term.
    */
@@ -477,7 +479,7 @@ class SolverManager
   /**
    * Determine if term database contains any term of one of the given sort
    * kinds.
-   * @param sort_kind The sort kind of the terms to query for.
+   * @param sort_kinds The sort kinds.
    * @return True if term database contains any term of one of the given sort
    *         kinds.
    */
@@ -910,16 +912,16 @@ class SolverManager
   /**
    * Map an id from a trace to an actual term ID.
    * @note Only used for untracing.
-   * @param untrace_id The id of the term in the replayed trace.
-   * @param term_id The id of the term.
+   * @param untraced_id The id of the term in the replayed trace.
+   * @param term_id     The id of the term.
    */
   void register_term(uint64_t untraced_id, uint64_t term_id);
 
   /**
    * Map an id from a trace to an actual sort ID.
    * @note Only used for untracing.
-   * @param untrace_id The id of the term in the replayed trace.
-   * @param term_id The id of the term.
+   * @param untraced_id The id of the term in the replayed trace.
+   * @param sort_id The id of the sort.
    * @return False if a sort with the given id does not exist.
    */
   bool register_sort(uint64_t untraced_id, uint64_t sort_id);

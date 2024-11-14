@@ -246,9 +246,9 @@ Default Profiles of Supported Solvers
 
    .. tab:: Bitwuzla
 
-      `src/solver/bzla/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/bzla/profile.json>`_
+      `src/solver/bitwuzla/profile.json <https://github.com/murxla/murxla/blob/main/src/solver/bzla/profile.json>`_
 
-      .. literalinclude:: ../../src/solver/bzla/profile.json
+      .. literalinclude:: ../../src/solver/bitwuzla/profile.json
          :language: JSON
 
    .. tab:: Boolector

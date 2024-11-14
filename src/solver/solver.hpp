@@ -479,7 +479,7 @@ class AbsSort
   SortKind d_kind = SORT_ANY;
   /**
    * The sort parameters for sorts parameterized over sorts (see set_sorts()).
-   * @Note  If this is an UnresolvedSort that refers to a parametric datatype,
+   * @note  If this is an UnresolvedSort that refers to a parametric datatype,
    *        this contains the set of sort parameters to instantiate the sort
    *        with.
    */
@@ -778,7 +778,6 @@ class AbsTerm
   /* ---------------------------------------------------------------------- */
 
   /**
-   * @}
    * \addtogroup term-must-override
    * @{
    */
@@ -1992,10 +1991,10 @@ class Solver
    * special values for BV (which don't have an SMT-LIB equivalent). The entry
    * for #SORT_ANY is a dummy entry for sort kinds with no special values.
    *
-   * Note that special values for BV must be converted to binary, decimal or
-   * hexadecimal strings or integer values if the solver does not provide
-   * dedicated API functions to generate these values. Utility functions for
-   * these conversions are provided in src/util.hpp.
+   * @note Special values for BV must be converted to binary, decimal or
+   *       hexadecimal strings or integer values if the solver does not provide
+   *       dedicated API functions to generate these values. Utility functions
+   *       for these conversions are provided in src/util.hpp.
    *
    * This map can be extended with solver-specific special values.
    */
