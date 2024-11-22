@@ -37,15 +37,12 @@
     "fun-sort-domain": {
       "exclude": [
         "SORT_ARRAY",
-        "SORT_FUN",
-        "SORT_FP",
-        "SORT_RM"
+        "SORT_FUN"
       ]
     },
 
     "fun-sort-codomain": {
       "exclude": [
-        "SORT_ARRAY",
         "SORT_FUN"
       ]
     },
@@ -53,18 +50,13 @@
     "fun-domain": {
       "exclude": [
         "SORT_ARRAY",
-        "SORT_FUN",
-        "SORT_FP",
-        "SORT_RM"
+        "SORT_FUN"
       ]
     },
 
     "fun-codomain": {
       "exclude": [
-        "SORT_ARRAY",
-        "SORT_FUN",
-        "SORT_FP",
-        "SORT_RM"
+        "SORT_FUN"
       ]
     },
 
