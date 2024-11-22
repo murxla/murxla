@@ -39,10 +39,6 @@ which is defined as follows:
    :start-after: docs-bitwuzla-term-bitwuzla_terms_to_terms start
    :end-before: docs-bitwuzla-term-bitwuzla_terms_to_terms end
 
-The following list provides all the member functions of class
-:cpp:class:`murxla::AbsTerm` that are required or optional to be
-overriden by a solver wrapper.
-
 .. note::
 
    Optional overrides have default implementations, but should be overriden

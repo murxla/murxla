@@ -11,7 +11,7 @@ The wrapper's interface defines **abstract classes** for sorts
 solver itself (:cpp:class:`murxla::Solver`).
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   ../../advanced/solver_wrapper_interface/abssort
   ../../advanced/solver_wrapper_interface/absterm
@@ -82,7 +82,7 @@ We only deal with :cpp:type:`Sort<murxla::Sort>` and
 and at the interface between Murxla and the solver wrapper.
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 1
 
   ../../advanced/sort
   ../../advanced/term

@@ -29,10 +29,6 @@ is a bit-vector sort. It is implemented in the solver wrapper for **Bitwuzla**
    :start-after: docs-bitwuzla-sort-is_bv start
    :end-before: docs-bitwuzla-sort-is_bv end
 
-The following list provides all the member functions of class
-:cpp:class:`murxla::AbsSort` that are required or optional to be
-overriden by a solver wrapper.
-
 .. note::
 
    Optional overrides have default implementations, but should be overriden

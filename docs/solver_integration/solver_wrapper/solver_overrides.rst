@@ -3,7 +3,7 @@ Solver Wrapper Implementation for Solver
 
 Solver wrappers derive a solver class from :cpp:class:`murxla::Solver`, which
 manages construction and destruction of an instance of the solver under test.
-It further implements required and optional member function overrides.
+It further implements **required** and **optional** member function overrides.
 
 Murxla uses naming convention ``<solver name (short)>Solver`` for solver
 wrapper solver implementations, e.g., the cvc5 implementation is called
@@ -47,10 +47,6 @@ It is implemented in the solver wrapper for **Bitwuzla**
    :language: cpp
    :start-after: docs-bitwuzla-solver-get_unsat_core start
    :end-before: docs-bitwuzla-solver-get_unsat_core end
-
-The following list provides all the member functions of class
-:cpp:class:`murxla::Solver` that are required or optional to be
-overriden by a solver wrapper.
 
 .. note::
 
