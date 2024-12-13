@@ -1403,19 +1403,26 @@ BitwuzlaSolver::set_opt(const std::string& opt, const std::string& value)
   }
 
   ::bitwuzla::OptionInfo info(*d_options, bzla_opt);
-
-  if (d_options->is_bool(bzla_opt) || d_options->is_numeric(bzla_opt))
+  try
   {
-    uint32_t val =
-        value == "true"
-            ? 1
-            : (value == "false" ? 0 : static_cast<uint32_t>(std::stoul(value)));
-    d_options->set(bzla_opt, val);
-    MURXLA_TEST(val == d_options->get(bzla_opt));
+    if (d_options->is_bool(bzla_opt) || d_options->is_numeric(bzla_opt))
+    {
+      uint32_t val =
+          value == "true"
+              ? 1
+              : (value == "false" ? 0
+                                  : static_cast<uint32_t>(std::stoul(value)));
+      d_options->set(bzla_opt, val);
+      MURXLA_TEST(val == d_options->get(bzla_opt));
+    }
+    else
+    {
+      d_options->set(bzla_opt, value);
+    }
   }
-  else
+  catch (::bitwuzla::option::Exception& e)
   {
-    d_options->set(bzla_opt, value);
+    throw MurxlaSolverOptionException("incompatible option");
   }
 }
 
