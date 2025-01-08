@@ -36,7 +36,6 @@
 
     "fun-sort-domain": {
       "exclude": [
-        "SORT_ARRAY",
         "SORT_FUN"
       ]
     },
@@ -49,7 +48,6 @@
 
     "fun-domain": {
       "exclude": [
-        "SORT_ARRAY",
         "SORT_FUN"
       ]
     },
