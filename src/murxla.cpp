@@ -417,7 +417,10 @@ Murxla::test()
       }
       else
       {
-        std::cout << std::endl;
+        if (d_options.verbosity > 0)
+        {
+          std::cout << std::endl;
+        }
         ++num_printed_lines;
       }
 
