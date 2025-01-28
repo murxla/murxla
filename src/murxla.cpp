@@ -420,8 +420,8 @@ Murxla::test()
         if (d_options.verbosity > 0)
         {
           std::cout << std::endl;
+          ++num_printed_lines;
         }
-        ++num_printed_lines;
       }
 
       /* Replay and trace on error.
