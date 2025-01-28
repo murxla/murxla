@@ -2156,7 +2156,16 @@ Smt2Solver::set_opt(const std::string& opt, const std::string& value)
   if (opt == get_option_name_incremental()) return;
 
   std::stringstream smt2;
-  smt2 << "(set-option :" << opt << " " << value << ")";
+  smt2 << "(set-option :" << opt << " ";
+  if (value == "true" || value == "false" || is_numeric(value))
+  {
+    smt2 << value;
+  }
+  else
+  {
+    smt2 << "\"" << value << "\"";
+  }
+  smt2 << ")";
   dump_smt2(smt2.str());
   if (opt == get_option_name_model_gen())
   {
