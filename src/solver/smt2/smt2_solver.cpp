@@ -1440,49 +1440,7 @@ Smt2Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
     case SORT_BAG: sort = get_bag_sort_string(sorts); break;
     case SORT_SEQ: sort = get_seq_sort_string(sorts); break;
     case SORT_SET: sort = get_set_sort_string(sorts); break;
-    case SORT_FUN:
-    {
-      std::string symbol = Smt2Sort::get_next_symbol();
-      std::unordered_map<Sort, std::string> sorts_map;
-      std::stringstream ssort, smt2, key;
-      key << "(->";
-      ssort << "(" << symbol << " ";
-      smt2 << "(define-sort " << symbol << " (";
-      for (auto it = sorts.begin(); it < sorts.end() - 1; ++it)
-      {
-        if (it > sorts.begin())
-        {
-          ssort << " ";
-          smt2 << " ";
-        }
-        if (sorts_map.find(*it) == sorts_map.end())
-        {
-          sorts_map[*it] = "_y" + std::to_string(d_define_sort_param_cnt++);
-        }
-        const auto& repr = static_cast<Smt2Sort*>(it->get())->get_repr();
-        ssort << repr;
-        smt2 << sorts_map.at(*it);
-        key << " " << repr;
-      }
-      ssort << ")";
-      smt2 << ") ";
-      Sort codomain        = sorts.back();
-      const auto smt2_sort = static_cast<Smt2Sort*>(codomain.get());
-      if (sorts_map.find(codomain) == sorts_map.end())
-      {
-        smt2 << smt2_sort->get_repr();
-      }
-      else
-      {
-        smt2 << sorts_map.at(codomain);
-      }
-      smt2 << ")";
-      key << " " << smt2_sort->get_repr() << ")";
-      dump_smt2(smt2.str());
-      sort = ssort.str();
-      d_sort_fun_map.emplace(key.str(), sort);
-    }
-    break;
+    case SORT_FUN: sort = get_fun_sort_string(sorts); break;
     default: assert(false);
   }
   return std::shared_ptr<Smt2Sort>(new Smt2Sort(sort));
