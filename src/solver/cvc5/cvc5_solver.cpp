@@ -2760,6 +2760,14 @@ Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
   {
     throw MurxlaSolverOptionException("incompatible option");
   }
+  catch (const ::cvc5::CVC5ApiException& e)
+  {
+    if (e.getMessage().find("safe-options") != std::string::npos)
+    {
+      throw MurxlaSolverOptionException("incompatible option");
+    }
+    throw;
+  }
 
   // TODO: remove after solver configuration refactor
   if ((opt == "assign-function-values" && value == "false"
