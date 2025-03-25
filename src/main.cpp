@@ -21,8 +21,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <numeric>
-#include <regex>
 #include <sstream>
 
 #include "dd.hpp"
@@ -306,13 +304,13 @@ is_valid_solver_str(const std::string& name)
 
 void
 get_options(Options& options,
-            int argc,
+            size_t argc,
             char* argv[],
             std::vector<std::string>& args)
 {
   /* Check if a trace file was specified. */
   std::string trace_file_name;
-  for (int32_t i = 1; i < argc; i++)
+  for (size_t i = 1; i < argc; i++)
   {
     std::string arg(argv[i]);
     if (arg == "-u" || arg == "--untrace")
@@ -346,7 +344,7 @@ void
 parse_options(Options& options, int argc, char* argv[])
 {
   std::vector<std::string> args, record_args;
-  get_options(options, argc, argv, args);
+  get_options(options, (size_t) argc, argv, args);
 
   for (size_t i = 0, size = args.size(); i < size; ++i)
   {
@@ -572,7 +570,7 @@ parse_options(Options& options, int argc, char* argv[])
     {
       i += 1;
       check_next_arg(arg, i, size);
-      options.max_runs = std::stoi(args[i]);
+      options.max_runs = (uint32_t) std::stoi(args[i]);
     }
     else if (arg == "-l" || arg == "--smt-lib")
     {

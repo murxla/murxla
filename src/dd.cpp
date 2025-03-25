@@ -64,8 +64,8 @@ split_superset(const std::vector<size_t> superset, size_t subset_size)
     size_t hi  = lo + subset_size;
     end        = hi > superset_size || (superset_size - hi) < subset_size
                      ? superset.end()
-                     : begin + hi;
-    std::vector<size_t> subset(begin + lo, end);
+                     : begin + ((std::ptrdiff_t) hi);
+    std::vector<size_t> subset(begin + ((std::ptrdiff_t) lo), end);
     subsets.push_back(subset);
   }
   assert(subsets.size() == (size_t) superset_size / subset_size);

@@ -16,7 +16,6 @@
 #include <sstream>
 
 #include "config.hpp"
-#include "except.hpp"
 #include "util.hpp"
 
 /* -------------------------------------------------------------------------- */
@@ -40,9 +39,9 @@ SeedGenerator::next()
 {
   uint64_t cur_seed;
   cur_seed = d_seed;
-  d_seed   = getpid();
+  d_seed   = (uint64_t) getpid();
   d_seed *= 129685499;
-  d_seed += time(nullptr);
+  d_seed += (uint64_t) time(nullptr);
   d_seed *= 233755607;
   d_seed += cur_seed;
   d_seed *= 38259643;
@@ -339,7 +338,7 @@ RNGenerator::pick_unicode_character()
   bool use_braces = true;
   if (len == 5)
   {
-    digits.push_back(pick<char>('0', '2'));
+    digits.push_back(pick_from_set<std::vector<char>, char>({'0', '1', '2'}));
   }
   else if (len == 4)
   {
