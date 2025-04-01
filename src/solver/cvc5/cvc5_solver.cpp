@@ -3067,7 +3067,7 @@ Cvc5Solver::get_required_options(Theory theory) const
   }
   else if (theory == THEORY_SET)
   {
-    reqopts.emplace("sets-ext", "true");
+    reqopts.emplace("sets-exp", "true");
   }
   else if (theory == THEORY_STRING || theory == THEORY_SEQ)
   {
