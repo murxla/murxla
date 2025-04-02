@@ -22,7 +22,7 @@ jobs:
             depconfig: --only-yices
 
           - name: debug-bitwuzla-mac
-            os: macos-12
+            os: macos-latest
             config: -DDOCS=off -DENABLE_BITWUZLA=on -DENABLE_BOOLECTOR=off -DENABLE_CVC5=off -DENABLE_YICES=off
             depconfig: --only-bitwuzla
 
