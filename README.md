@@ -19,7 +19,7 @@ https://github.com/murxla/murxla
 
 ## Required Dependencies
 
-- [CMake >= 3.5](https://cmake.org)
+- [CMake >= 3.10](https://cmake.org)
 - [Python](https://www.python.org)
 
 ## Installation
