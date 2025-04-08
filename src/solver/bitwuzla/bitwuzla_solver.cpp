@@ -1578,13 +1578,14 @@ BitwuzlaSolver::configure_options(SolverManager* smgr) const
                                         static_cast<uint32_t>(num.max),
                                         static_cast<uint32_t>(num.dflt)));
     }
-    else
+    else if (info.kind == ::bitwuzla::OptionInfo::Kind::MODE)
     {
-      assert(info.kind == ::bitwuzla::OptionInfo::Kind::MODE);
       const ::bitwuzla::OptionInfo::Mode& mode =
           std::get<::bitwuzla::OptionInfo::Mode>(info.values);
       smgr->add_option(new SolverOptionList(info.lng, mode.modes, mode.dflt));
     }
+    // String options are not set, since this mainly corresponds to filename
+    // for writing CNF/AIGER files.
   }
 }
 //! [docs-bitwuzla-solver-configure_options end]
