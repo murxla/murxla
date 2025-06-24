@@ -3997,7 +3997,43 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
 
   ::cvc5::Solver slv;
 
-  for (const auto& option : slv.getOptionNames())
+  bool safe_mode_enabled = false;
+  auto safe_mode_info = slv.getOptionInfo("safe-mode");
+
+  if (std::holds_alternative<OptionInfo::ModeInfo>(safe_mode_info.valueInfo)) {
+    safe_mode_enabled = true;
+    std::cout << "safe mode is enabled..." << std::endl;
+  }
+
+  auto all_options = slv.getOptionNames();
+  std::vector<std::string> options_to_process;
+
+  if (safe_mode_enabled) {
+    // Lambda to find first option of a specific category
+    auto find_first_of_category = [&](::cvc5::modes::OptionCategory category) -> std::optional<std::string> {
+      auto it = std::find_if(all_options.begin(), all_options.end(),
+        [&](const std::string& option) {
+          return slv.getOptionInfo(option).category == category;
+        });
+      return (it != all_options.end()) ? std::optional<std::string>(*it) : std::nullopt;
+    };
+
+    // Find first regular and common options
+    if (auto regular_opt = find_first_of_category(::cvc5::modes::OptionCategory::REGULAR)) {
+      options_to_process.push_back(*regular_opt);
+      std::cout << "Selected regular option: " << *regular_opt << std::endl;
+    }
+
+    if (auto common_opt = find_first_of_category(::cvc5::modes::OptionCategory::COMMON)) {
+      options_to_process.push_back(*common_opt);
+      std::cout << "Selected common option: " << *common_opt << std::endl;
+    }
+  } else {
+    // Copy all options if safe mode is disabled
+    options_to_process.assign(all_options.begin(), all_options.end());
+  }
+
+  for (const auto& option : options_to_process)
   {
     auto info = slv.getOptionInfo(option);
     if (std::holds_alternative<OptionInfo::ValueInfo<bool>>(info.valueInfo))
