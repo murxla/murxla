@@ -438,7 +438,8 @@ Tracer<cvc5::Cvc5TracerData>::init()
     *this << "#include <cvc5/cvc5.h>\n\n";
     *this << "using namespace cvc5;\n";
     *this << "int main(void)\n{\n";
-    *this << "Solver solver;\n";
+    *this << "TermManager tm;\n";
+    *this << "Solver solver(tm);\n";
   }
 }
 

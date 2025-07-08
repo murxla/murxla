@@ -34,16 +34,16 @@ class Cvc5Sort : public AbsSort
   /** Convert vector of cvc5 sorts to vector of Murxla sorts. */
   static std::vector<Sort> cvc5_sorts_to_sorts(
       Tracer<Cvc5TracerData>& tracer,
-      ::cvc5::Solver* cvc5,
+      ::cvc5::TermManager* tm,
       const std::vector<::cvc5::Sort>& sorts);
   /** Convert vector of Murxla sorts to vector of cvc5 sorts. */
   static std::vector<::cvc5::Sort> sorts_to_cvc5_sorts(
       const std::vector<Sort>& sorts);
 
   Cvc5Sort(Tracer<Cvc5TracerData>& tracer,
-           ::cvc5::Solver* cvc5,
+           ::cvc5::TermManager* tm,
            ::cvc5::Sort sort)
-      : d_tracer(tracer), d_solver(cvc5), d_sort(sort)
+      : d_tracer(tracer), d_tm(tm), d_sort(sort)
   {
   }
 
@@ -94,7 +94,9 @@ class Cvc5Sort : public AbsSort
 
  private:
   Tracer<Cvc5TracerData>& d_tracer;
-  ::cvc5::Solver* d_solver;
+  /** The associated cvc5 term manager instance. */
+  ::cvc5::TermManager* d_tm = nullptr;
+  /** The associated cvc5 sort. */
   ::cvc5::Sort d_sort;
 };
 
@@ -113,7 +115,7 @@ class Cvc5Term : public AbsTerm
   static std::vector<Term> cvc5_terms_to_terms(
       Tracer<Cvc5TracerData>& tracer,
       RNGenerator& rng,
-      ::cvc5::Solver* cvc5,
+      ::cvc5::TermManager* cvc5,
       const std::vector<::cvc5::Term>& terms);
   /** Convert vector of Murxla terms to vector of cvc5 terms. */
   static std::vector<::cvc5::Term> terms_to_cvc5_terms(
@@ -150,9 +152,9 @@ class Cvc5Term : public AbsTerm
 
   Cvc5Term(Tracer<Cvc5TracerData>& tracer,
            RNGenerator& rng,
-           ::cvc5::Solver* cvc5,
+           ::cvc5::TermManager* tm,
            ::cvc5::Term term)
-      : d_tracer(tracer), d_rng(rng), d_solver(cvc5), d_term(term)
+      : d_tracer(tracer), d_rng(rng), d_tm(tm), d_term(term)
   {
   }
 
@@ -188,8 +190,8 @@ class Cvc5Term : public AbsTerm
   Tracer<Cvc5TracerData>& d_tracer;
   /** The associated solver RNG. */
   RNGenerator& d_rng;
-  /** The associated cvc5 solver instance. */
-  ::cvc5::Solver* d_solver = nullptr;
+  /** The associated cvc5 term manager instance. */
+  ::cvc5::TermManager* d_tm = nullptr;
   /** The wrapped cvc5 term. */
   ::cvc5::Term d_term;
 };
@@ -214,6 +216,7 @@ class Cvc5Solver : public Solver
   void delete_solver() override;
 
   ::cvc5::Solver* get_solver();
+  ::cvc5::TermManager* get_tm();
 
   bool is_initialized() const override;
 
@@ -347,7 +350,8 @@ class Cvc5Solver : public Solver
                                        const std::string& sel_name);
 
   /** The wrapped cvc5 solver instance. */
-  ::cvc5::Solver* d_solver;
+  std::unique_ptr<::cvc5::Solver> d_solver;
+  std::unique_ptr<::cvc5::TermManager> d_tm;
 
   /** C++ API tracer. */
   Cvc5TracerData d_tracer_data;

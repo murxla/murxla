@@ -33,6 +33,13 @@ namespace cvc5 {
         return d_solver->FUNC(args...);                    \
       } __VA_OPT__(, ) __VA_ARGS__)
 
+#define TRACE_TM(FUNC, ...)                                  \
+  d_tracer([](Tracer<Cvc5TracerData>& tracer,                \
+              auto&&... args) { tracer << "tm." << #FUNC; }, \
+           [this](auto&&... args) {                          \
+             return d_tm->FUNC(args...);                     \
+           } __VA_OPT__(, ) __VA_ARGS__)
+
 #define TRACE_SOLVER_ACTION(FUNC, ...)                                     \
   static_cast<Cvc5Solver&>(d_smgr.get_solver())                            \
       .get_tracer()([](Tracer<Cvc5TracerData>& tracer,                     \
@@ -301,7 +308,7 @@ Cvc5Sort::get_array_index_sort() const
 {
   assert(is_array());
   ::cvc5::Sort cvc5_res = d_sort.getArrayIndexSort();
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_tm, cvc5_res));
   MURXLA_TEST(res);
   return res;
 }
@@ -311,7 +318,7 @@ Cvc5Sort::get_array_element_sort() const
 {
   assert(is_array());
   ::cvc5::Sort cvc5_res = d_sort.getArrayElementSort();
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_tm, cvc5_res));
   MURXLA_TEST(res);
   return res;
 }
@@ -320,7 +327,7 @@ Sort
 Cvc5Sort::get_bag_element_sort() const
 {
   ::cvc5::Sort cvc5_res = d_sort.getBagElementSort();
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_tm, cvc5_res));
   MURXLA_TEST(res);
   return res;
 }
@@ -337,7 +344,7 @@ Cvc5Sort::get_fun_codomain_sort() const
 {
   assert(is_fun());
   ::cvc5::Sort cvc5_res = d_sort.getFunctionCodomainSort();
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_tm, cvc5_res));
   MURXLA_TEST(res);
   return res;
 }
@@ -347,14 +354,14 @@ Cvc5Sort::get_fun_domain_sorts() const
 {
   assert(is_fun());
   std::vector<::cvc5::Sort> cvc5_res = d_sort.getFunctionDomainSorts();
-  return cvc5_sorts_to_sorts(d_tracer, d_solver, cvc5_res);
+  return cvc5_sorts_to_sorts(d_tracer, d_tm, cvc5_res);
 }
 
 Sort
 Cvc5Sort::get_seq_element_sort() const
 {
   ::cvc5::Sort cvc5_res = d_sort.getSequenceElementSort();
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_tm, cvc5_res));
   MURXLA_TEST(res);
   return res;
 }
@@ -363,7 +370,7 @@ Sort
 Cvc5Sort::get_set_element_sort() const
 {
   ::cvc5::Sort cvc5_res = d_sort.getSetElementSort();
-  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  std::shared_ptr<Cvc5Sort> res(new Cvc5Sort(d_tracer, d_tm, cvc5_res));
   MURXLA_TEST(res);
   return res;
 }
@@ -381,13 +388,13 @@ Cvc5Sort::sorts_to_cvc5_sorts(const std::vector<Sort>& sorts)
 
 std::vector<Sort>
 Cvc5Sort::cvc5_sorts_to_sorts(Tracer<Cvc5TracerData>& tracer,
-                              ::cvc5::Solver* cvc5,
+                              ::cvc5::TermManager* tm,
                               const std::vector<::cvc5::Sort>& sorts)
 {
   std::vector<Sort> res;
   for (auto& s : sorts)
   {
-    res.emplace_back(new Cvc5Sort(tracer, cvc5, s));
+    res.emplace_back(new Cvc5Sort(tracer, tm, s));
   }
   return res;
 }
@@ -979,14 +986,13 @@ Cvc5Term::get_cvc5_term(Term term)
 std::vector<Term>
 Cvc5Term::cvc5_terms_to_terms(Tracer<Cvc5TracerData>& tracer,
                               RNGenerator& rng,
-                              ::cvc5::Solver* cvc5,
+                              ::cvc5::TermManager* tm,
                               const std::vector<::cvc5::Term>& terms)
 {
   std::vector<Term> res;
   for (auto& t : terms)
   {
-    res.push_back(
-        std::shared_ptr<Cvc5Term>(new Cvc5Term(tracer, rng, cvc5, t)));
+    res.push_back(std::shared_ptr<Cvc5Term>(new Cvc5Term(tracer, rng, tm, t)));
   }
   return res;
 }
@@ -1090,7 +1096,7 @@ Cvc5Term::get_children() const
   std::vector<Term> res;
   for (const auto& c : d_term)
   {
-    res.emplace_back(new Cvc5Term(d_tracer, d_rng, d_solver, c));
+    res.emplace_back(new Cvc5Term(d_tracer, d_rng, d_tm, c));
   }
   return res;
 }
@@ -1164,7 +1170,7 @@ Cvc5Term::get_array_index_sort() const
 {
   assert(is_array());
   return std::shared_ptr<Cvc5Sort>(
-      new Cvc5Sort(d_tracer, d_solver, d_term.getSort().getArrayIndexSort()));
+      new Cvc5Sort(d_tracer, d_tm, d_term.getSort().getArrayIndexSort()));
 }
 
 Sort
@@ -1172,7 +1178,7 @@ Cvc5Term::get_array_element_sort() const
 {
   assert(is_array());
   return std::shared_ptr<Cvc5Sort>(
-      new Cvc5Sort(d_tracer, d_solver, d_term.getSort().getArrayElementSort()));
+      new Cvc5Sort(d_tracer, d_tm, d_term.getSort().getArrayElementSort()));
 }
 
 uint32_t
@@ -1186,8 +1192,8 @@ Sort
 Cvc5Term::get_fun_codomain_sort() const
 {
   assert(is_fun());
-  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(
-      d_tracer, d_solver, d_term.getSort().getFunctionCodomainSort()));
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_tracer, d_tm, d_term.getSort().getFunctionCodomainSort()));
 }
 
 std::vector<Sort>
@@ -1196,7 +1202,7 @@ Cvc5Term::get_fun_domain_sorts() const
   assert(is_fun());
   std::vector<::cvc5::Sort> cvc5_res =
       d_term.getSort().getFunctionDomainSorts();
-  return Cvc5Sort::cvc5_sorts_to_sorts(d_tracer, d_solver, cvc5_res);
+  return Cvc5Sort::cvc5_sorts_to_sorts(d_tracer, d_tm, cvc5_res);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1207,8 +1213,7 @@ Cvc5Solver::~Cvc5Solver()
 {
   if (d_solver)
   {
-    delete d_solver;
-    d_solver = nullptr;
+    d_solver.reset(nullptr);
   }
 }
 
@@ -1217,7 +1222,8 @@ void
 Cvc5Solver::new_solver()
 {
   assert(d_solver == nullptr);
-  d_solver = new ::cvc5::Solver();
+  d_tm.reset(new ::cvc5::TermManager());
+  d_solver.reset(new ::cvc5::Solver(*d_tm));
   d_tracer.init();
   // Incremental solving is enabled by default via cvc5's API. We disable it
   // when creating a new solver instance and explicitly enable it later on in
@@ -1230,16 +1236,20 @@ Cvc5Solver::new_solver()
 void
 Cvc5Solver::delete_solver()
 {
-  assert(d_solver != nullptr);
-  delete d_solver;
-  d_solver = nullptr;
+  d_solver.reset(nullptr);
 }
 //! [docs-cvc5-solver-delete_solver end]
 
 ::cvc5::Solver*
 Cvc5Solver::get_solver()
 {
-  return d_solver;
+  return d_solver.get();
+}
+
+::cvc5::TermManager*
+Cvc5Solver::get_tm()
+{
+  return d_tm.get();
 }
 
 bool
@@ -1273,8 +1283,8 @@ Cvc5Solver::is_unsat_assumption(const Term& t) const
 Sort
 Cvc5Solver::mk_sort(const std::string& name)
 {
-  ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkUninterpretedSort, name);
-  return std::make_shared<Cvc5Sort>(d_tracer, d_solver, cvc5_res);
+  ::cvc5::Sort cvc5_res = TRACE_TM(mkUninterpretedSort, name);
+  return std::make_shared<Cvc5Sort>(d_tracer, d_tm.get(), cvc5_res);
 }
 
 Sort
@@ -1283,12 +1293,12 @@ Cvc5Solver::mk_sort(SortKind kind)
   ::cvc5::Sort cvc5_res;
   switch (kind)
   {
-    case SORT_BOOL: cvc5_res = TRACE_SOLVER(getBooleanSort); break;
-    case SORT_INT: cvc5_res = TRACE_SOLVER(getIntegerSort); break;
-    case SORT_REAL: cvc5_res = TRACE_SOLVER(getRealSort); break;
-    case SORT_RM: cvc5_res = TRACE_SOLVER(getRoundingModeSort); break;
-    case SORT_REGLAN: cvc5_res = TRACE_SOLVER(getRegExpSort); break;
-    case SORT_STRING: cvc5_res = TRACE_SOLVER(getStringSort); break;
+    case SORT_BOOL: cvc5_res = TRACE_TM(getBooleanSort); break;
+    case SORT_INT: cvc5_res = TRACE_TM(getIntegerSort); break;
+    case SORT_REAL: cvc5_res = TRACE_TM(getRealSort); break;
+    case SORT_RM: cvc5_res = TRACE_TM(getRoundingModeSort); break;
+    case SORT_REGLAN: cvc5_res = TRACE_TM(getRegExpSort); break;
+    case SORT_STRING: cvc5_res = TRACE_TM(getStringSort); break;
 
     default:
       MURXLA_CHECK_CONFIG(false)
@@ -1298,7 +1308,8 @@ Cvc5Solver::mk_sort(SortKind kind)
           << "', '" << SORT_REGLAN << "' or '" << SORT_STRING << "'";
   }
   MURXLA_TEST(!cvc5_res.isNull());
-  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_tracer, d_tm.get(), cvc5_res));
 }
 
 Sort
@@ -1307,9 +1318,10 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t size)
   MURXLA_CHECK_CONFIG(kind == SORT_BV)
       << "unsupported sort kind '" << kind
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_BV << "'";
-  ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkBitVectorSort, size);
+  ::cvc5::Sort cvc5_res = TRACE_TM(mkBitVectorSort, size);
   MURXLA_TEST(!cvc5_res.isNull());
-  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_tracer, d_tm.get(), cvc5_res));
 }
 
 Sort
@@ -1318,9 +1330,10 @@ Cvc5Solver::mk_sort(SortKind kind, const std::string& size)
   MURXLA_CHECK_CONFIG(kind == SORT_FF)
       << "unsupported sort kind '" << kind
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_FF << "'";
-  ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkFiniteFieldSort, size);
+  ::cvc5::Sort cvc5_res = TRACE_TM(mkFiniteFieldSort, size);
   MURXLA_TEST(!cvc5_res.isNull());
-  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_tracer, d_tm.get(), cvc5_res));
 }
 
 Sort
@@ -1329,9 +1342,10 @@ Cvc5Solver::mk_sort(SortKind kind, uint32_t esize, uint32_t ssize)
   MURXLA_CHECK_CONFIG(kind == SORT_FP)
       << "unsupported sort kind '" << kind
       << "' as argument to Cvc5Solver::mk_sort, expected '" << SORT_FP << "'";
-  ::cvc5::Sort cvc5_res = TRACE_SOLVER(mkFloatingPointSort, esize, ssize);
+  ::cvc5::Sort cvc5_res = TRACE_TM(mkFloatingPointSort, esize, ssize);
   MURXLA_TEST(!cvc5_res.isNull());
-  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_tracer, d_tm.get(), cvc5_res));
 }
 
 Sort
@@ -1343,14 +1357,14 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
   {
     case SORT_ARRAY:
       assert(sorts.size() == 2);
-      cvc5_res = TRACE_SOLVER(mkArraySort,
-                              Cvc5Sort::get_cvc5_sort(sorts[0]),
-                              Cvc5Sort::get_cvc5_sort(sorts[1]));
+      cvc5_res = TRACE_TM(mkArraySort,
+                          Cvc5Sort::get_cvc5_sort(sorts[0]),
+                          Cvc5Sort::get_cvc5_sort(sorts[1]));
       break;
 
     case SORT_BAG:
       assert(sorts.size() == 1);
-      cvc5_res = TRACE_SOLVER(mkBagSort, Cvc5Sort::get_cvc5_sort(sorts[0]));
+      cvc5_res = TRACE_TM(mkBagSort, Cvc5Sort::get_cvc5_sort(sorts[0]));
       break;
 
     case SORT_FUN:
@@ -1364,24 +1378,23 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 
       if (codomain.isBoolean() && d_rng.flip_coin())
       {
-        cvc5_res = TRACE_SOLVER(mkPredicateSort, domain);
+        cvc5_res = TRACE_TM(mkPredicateSort, domain);
       }
       else
       {
-        cvc5_res = TRACE_SOLVER(mkFunctionSort, domain, codomain);
+        cvc5_res = TRACE_TM(mkFunctionSort, domain, codomain);
       }
       break;
     }
 
     case SORT_SEQ:
       assert(sorts.size() == 1);
-      cvc5_res =
-          TRACE_SOLVER(mkSequenceSort, Cvc5Sort::get_cvc5_sort(sorts[0]));
+      cvc5_res = TRACE_TM(mkSequenceSort, Cvc5Sort::get_cvc5_sort(sorts[0]));
       break;
 
     case SORT_SET:
       assert(sorts.size() == 1);
-      cvc5_res = TRACE_SOLVER(mkSetSort, Cvc5Sort::get_cvc5_sort(sorts[0]));
+      cvc5_res = TRACE_TM(mkSetSort, Cvc5Sort::get_cvc5_sort(sorts[0]));
       break;
 
     default:
@@ -1391,7 +1404,8 @@ Cvc5Solver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
                                  << SORT_ARRAY << "' or '" << SORT_FUN << "'";
   }
   MURXLA_TEST(!cvc5_res.isNull());
-  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_tracer, d_tm.get(), cvc5_res));
 }
 
 std::vector<Sort>
@@ -1422,15 +1436,15 @@ Cvc5Solver::mk_sort(
     {
       const std::string& symbol =
           checked_cast<ParamSort*>(s.get())->get_symbol();
-      ::cvc5::Sort cvc5_param_sort = TRACE_SOLVER(mkParamSort, symbol);
+      ::cvc5::Sort cvc5_param_sort = TRACE_TM(mkParamSort, symbol);
       cvc5_psorts.push_back(cvc5_param_sort);
       assert(symbol_to_cvc5_psorts.find(symbol) == symbol_to_cvc5_psorts.end());
       symbol_to_cvc5_psorts[symbol] = cvc5_param_sort;
     }
 
     ::cvc5::DatatypeDecl cvc5_dtypedecl =
-        is_parametric ? TRACE_SOLVER(mkDatatypeDecl, name, cvc5_psorts)
-                      : TRACE_SOLVER(mkDatatypeDecl, name);
+        is_parametric ? TRACE_TM(mkDatatypeDecl, name, cvc5_psorts)
+                      : TRACE_TM(mkDatatypeDecl, name);
     if (d_rng.pick_with_prob(10))
     {
       MURXLA_TEST(is_parametric == cvc5_dtypedecl.isParametric());
@@ -1444,7 +1458,7 @@ Cvc5Solver::mk_sort(
       const auto& sels  = c.second;
 
       ::cvc5::DatatypeConstructorDecl cvc5_cdecl =
-          TRACE_SOLVER(mkDatatypeConstructorDecl, cname);
+          TRACE_TM(mkDatatypeConstructorDecl, cname);
       cvc5_ctors.push_back(cvc5_cdecl);
 
       for (const auto& s : sels)
@@ -1479,7 +1493,7 @@ Cvc5Solver::mk_sort(
             if (it == symbol_to_cvc5_usorts.end())
             {
               cvc5_unres_sort =
-                  TRACE_SOLVER(mkUnresolvedDatatypeSort, symbol, arity);
+                  TRACE_TM(mkUnresolvedDatatypeSort, symbol, arity);
               symbol_to_cvc5_usorts[symbol] = cvc5_unres_sort;
             }
             else
@@ -1538,7 +1552,7 @@ Cvc5Solver::mk_sort(
     ::cvc5::Sort cvc5_res;
     if (!param_sorts[0].empty() || d_rng.flip_coin())
     {
-      cvc5_res = TRACE_SOLVER(mkDatatypeSort, cvc5_dtypedecls[0]);
+      cvc5_res = TRACE_TM(mkDatatypeSort, cvc5_dtypedecls[0]);
     }
     else
     {
@@ -1547,12 +1561,12 @@ Cvc5Solver::mk_sort(
     }
     MURXLA_TEST(!cvc5_res.isNull());
     MURXLA_TEST(!cvc5_res.getDatatype().isNull());
-    return {
-        std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res))};
+    return {std::shared_ptr<Cvc5Sort>(
+        new Cvc5Sort(d_tracer, d_tm.get(), cvc5_res))};
   }
 
   std::vector<::cvc5::Sort> cvc5_res =
-      TRACE_SOLVER(mkDatatypeSorts, cvc5_dtypedecls);
+      TRACE_TM(mkDatatypeSorts, cvc5_dtypedecls);
   size_t idx = d_rng.pick<size_t>(0, cvc5_res.size() - 1);
   MURXLA_TEST(!cvc5_res[idx].isNull());
   MURXLA_TEST(!cvc5_res[idx].getDatatype().isNull());
@@ -1560,7 +1574,7 @@ Cvc5Solver::mk_sort(
   std::transform(
       cvc5_res.begin(), cvc5_res.end(), res.begin(), [this](const auto& sort) {
         return std::shared_ptr<Cvc5Sort>(
-            new Cvc5Sort(d_tracer, d_solver, sort));
+            new Cvc5Sort(d_tracer, d_tm.get(), sort));
       });
   return res;
 }
@@ -1599,17 +1613,18 @@ Cvc5Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
       TRACE_METHOD(instantiate, cvc5_param_sort, cvc5_sorts);
 
   MURXLA_TEST(!cvc5_res.isNull());
-  return std::shared_ptr<Cvc5Sort>(new Cvc5Sort(d_tracer, d_solver, cvc5_res));
+  return std::shared_ptr<Cvc5Sort>(
+      new Cvc5Sort(d_tracer, d_tm.get(), cvc5_res));
 }
 
 Term
 Cvc5Solver::mk_const(Sort sort, const std::string& name)
 {
   ::cvc5::Term cvc5_res =
-      TRACE_SOLVER(mkConst, Cvc5Sort::get_cvc5_sort(sort), name);
+      TRACE_TM(mkConst, Cvc5Sort::get_cvc5_sort(sort), name);
   MURXLA_TEST(!cvc5_res.isNull());
   return std::shared_ptr<Cvc5Term>(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
 }
 
 Term
@@ -1623,17 +1638,16 @@ Cvc5Solver::mk_fun(const std::string& name,
   auto cvc5_res = TRACE_SOLVER(
       defineFun, name, cvc5_args, cvc5_body.getSort(), cvc5_body, true);
   return std::shared_ptr<Cvc5Term>(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
 }
 
 Term
 Cvc5Solver::mk_var(Sort sort, const std::string& name)
 {
-  ::cvc5::Term cvc5_res =
-      TRACE_SOLVER(mkVar, Cvc5Sort::get_cvc5_sort(sort), name);
+  ::cvc5::Term cvc5_res = TRACE_TM(mkVar, Cvc5Sort::get_cvc5_sort(sort), name);
   MURXLA_TEST(!cvc5_res.isNull());
   return std::shared_ptr<Cvc5Term>(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
 }
 
 Term
@@ -1648,15 +1662,15 @@ Cvc5Solver::mk_value(Sort sort, bool value)
 
   if (d_rng.flip_coin())
   {
-    cvc5_res = value ? TRACE_SOLVER(mkTrue) : TRACE_SOLVER(mkFalse);
+    cvc5_res = value ? TRACE_TM(mkTrue) : TRACE_TM(mkFalse);
   }
   else
   {
-    cvc5_res = TRACE_SOLVER(mkBoolean, value);
+    cvc5_res = TRACE_TM(mkBoolean, value);
   }
   MURXLA_TEST(!cvc5_res.isNull());
   std::shared_ptr<Cvc5Term> res(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
   assert(res);
   return res;
 }
@@ -1672,7 +1686,8 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
   {
     case SORT_FF:
     {
-      cvc5_res = TRACE_SOLVER(mkFiniteFieldElem, value, Cvc5Sort::get_cvc5_sort(sort));
+      cvc5_res =
+          TRACE_TM(mkFiniteFieldElem, value, Cvc5Sort::get_cvc5_sort(sort));
     }
     break;
 
@@ -1680,10 +1695,8 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
     {
       uint32_t ew = sort->get_fp_exp_size();
       uint32_t sw = sort->get_fp_sig_size();
-      cvc5_res    = TRACE_SOLVER(mkFloatingPoint,
-                              ew,
-                              sw,
-                              TRACE_SOLVER(mkBitVector, ew + sw, value, 2));
+      cvc5_res    = TRACE_TM(
+          mkFloatingPoint, ew, sw, TRACE_TM(mkBitVector, ew + sw, value, 2));
     }
     break;
 
@@ -1702,11 +1715,11 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
       }
       if (fits64 && d_rng.flip_coin())
       {
-        cvc5_res = TRACE_SOLVER(mkInteger, val64);
+        cvc5_res = TRACE_TM(mkInteger, val64);
       }
       else
       {
-        cvc5_res = TRACE_SOLVER(mkInteger, value);
+        cvc5_res = TRACE_TM(mkInteger, value);
       }
     }
     break;
@@ -1727,23 +1740,23 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
         }
         if (fits64 && d_rng.flip_coin())
         {
-          cvc5_res = TRACE_SOLVER(mkReal, val64);
+          cvc5_res = TRACE_TM(mkReal, val64);
         }
         else
         {
-          cvc5_res = TRACE_SOLVER(mkReal, value);
+          cvc5_res = TRACE_TM(mkReal, value);
         }
       }
       else
       {
-        cvc5_res = TRACE_SOLVER(mkReal, value);
+        cvc5_res = TRACE_TM(mkReal, value);
       }
       break;
 
     case SORT_REGLAN:
     case SORT_STRING:
       // TODO: test more mkString functions
-      cvc5_res = TRACE_SOLVER(mkString, value);
+      cvc5_res = TRACE_TM(mkString, value);
       break;
 
     default:
@@ -1755,7 +1768,7 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
   }
   MURXLA_TEST(!cvc5_res.isNull());
   std::shared_ptr<Cvc5Term> res(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
   assert(res);
   return res;
 }
@@ -1770,13 +1783,12 @@ Cvc5Solver::mk_value(Sort sort, const std::string& num, const std::string& den)
          "Cvc5Solver::mk_value, expected Real sort";
   ::cvc5::Term cvc5_res;
 
-  cvc5_res =
-      TRACE_SOLVER(mkReal,
-                   static_cast<int64_t>(strtoull(num.c_str(), nullptr, 10)),
-                   static_cast<int64_t>(strtoull(den.c_str(), nullptr, 10)));
+  cvc5_res = TRACE_TM(mkReal,
+                      static_cast<int64_t>(strtoull(num.c_str(), nullptr, 10)),
+                      static_cast<int64_t>(strtoull(den.c_str(), nullptr, 10)));
   MURXLA_TEST(!cvc5_res.isNull());
   std::shared_ptr<Cvc5Term> res(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
   assert(res);
   return res;
 }
@@ -1799,13 +1811,13 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value, Base base)
       if (bw <= 64 && d_rng.flip_coin())
       {
         cvc5_res =
-            TRACE_SOLVER(mkBitVector, bw, strtoull(value.c_str(), nullptr, 10));
+            TRACE_TM(mkBitVector, bw, strtoull(value.c_str(), nullptr, 10));
       }
       else
       {
         cvc5_res = d_rng.flip_coin()
-                       ? TRACE_SOLVER(mkBitVector, bw, value, 10)
-                       : TRACE_SOLVER(mkBitVector, bw, value.c_str(), 10);
+                       ? TRACE_TM(mkBitVector, bw, value, 10)
+                       : TRACE_TM(mkBitVector, bw, value.c_str(), 10);
       }
       break;
 
@@ -1813,13 +1825,13 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value, Base base)
       if (bw <= 64 && d_rng.flip_coin())
       {
         cvc5_res =
-            TRACE_SOLVER(mkBitVector, bw, strtoull(value.c_str(), nullptr, 16));
+            TRACE_TM(mkBitVector, bw, strtoull(value.c_str(), nullptr, 16));
       }
       else
       {
         cvc5_res = d_rng.flip_coin()
-                       ? TRACE_SOLVER(mkBitVector, bw, value, 16)
-                       : TRACE_SOLVER(mkBitVector, bw, value.c_str(), 16);
+                       ? TRACE_TM(mkBitVector, bw, value, 16)
+                       : TRACE_TM(mkBitVector, bw, value.c_str(), 16);
       }
       break;
 
@@ -1828,18 +1840,18 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value, Base base)
       if (bw <= 64 && d_rng.flip_coin())
       {
         cvc5_res =
-            TRACE_SOLVER(mkBitVector, bw, strtoull(value.c_str(), nullptr, 2));
+            TRACE_TM(mkBitVector, bw, strtoull(value.c_str(), nullptr, 2));
       }
       else
       {
         cvc5_res = d_rng.flip_coin()
-                       ? TRACE_SOLVER(mkBitVector, bw, value, 2)
-                       : TRACE_SOLVER(mkBitVector, bw, value.c_str(), 2);
+                       ? TRACE_TM(mkBitVector, bw, value, 2)
+                       : TRACE_TM(mkBitVector, bw, value.c_str(), 2);
       }
   }
   MURXLA_TEST(!cvc5_res.isNull());
   std::shared_ptr<Cvc5Term> res(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
   assert(res);
   return res;
 }
@@ -1857,7 +1869,7 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       const std::vector<Sort>& sorts = sort->get_sorts();
       assert(sorts.size() == 1);
       Sort element_sort = sorts[0];
-      cvc5_res = TRACE_SOLVER(mkEmptyBag, Cvc5Sort::get_cvc5_sort(sort));
+      cvc5_res          = TRACE_TM(mkEmptyBag, Cvc5Sort::get_cvc5_sort(sort));
     }
     break;
 
@@ -1868,50 +1880,52 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       {
         cvc5_res =
             d_rng.flip_coin()
-                ? TRACE_SOLVER(
-                    mkBitVector, bw, bv_special_value_zero_str(bw), 2)
-                : TRACE_SOLVER(
-                    mkBitVector, bw, bv_special_value_zero_str(bw).c_str(), 2);
+                ? TRACE_TM(mkBitVector, bw, bv_special_value_zero_str(bw), 2)
+                : TRACE_TM(mkBitVector,
+                           bw,
+                           bv_special_value_zero_str(bw).c_str(),
+                           2);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_BV_ONE)
       {
         cvc5_res =
             d_rng.flip_coin()
-                ? TRACE_SOLVER(mkBitVector, bw, bv_special_value_one_str(bw), 2)
-                : TRACE_SOLVER(
-                    mkBitVector, bw, bv_special_value_one_str(bw).c_str(), 2);
+                ? TRACE_TM(mkBitVector, bw, bv_special_value_one_str(bw), 2)
+                : TRACE_TM(
+                      mkBitVector, bw, bv_special_value_one_str(bw).c_str(), 2);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_BV_ONES)
       {
         cvc5_res =
             d_rng.flip_coin()
-                ? TRACE_SOLVER(
-                    mkBitVector, bw, bv_special_value_ones_str(bw), 2)
-                : TRACE_SOLVER(
-                    mkBitVector, bw, bv_special_value_ones_str(bw).c_str(), 2);
+                ? TRACE_TM(mkBitVector, bw, bv_special_value_ones_str(bw), 2)
+                : TRACE_TM(mkBitVector,
+                           bw,
+                           bv_special_value_ones_str(bw).c_str(),
+                           2);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_BV_MIN_SIGNED)
       {
         cvc5_res =
             d_rng.flip_coin()
-                ? TRACE_SOLVER(
-                    mkBitVector, bw, bv_special_value_min_signed_str(bw), 2)
-                : TRACE_SOLVER(mkBitVector,
-                               bw,
-                               bv_special_value_min_signed_str(bw).c_str(),
-                               2);
+                ? TRACE_TM(
+                      mkBitVector, bw, bv_special_value_min_signed_str(bw), 2)
+                : TRACE_TM(mkBitVector,
+                           bw,
+                           bv_special_value_min_signed_str(bw).c_str(),
+                           2);
       }
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED);
         cvc5_res =
             d_rng.flip_coin()
-                ? TRACE_SOLVER(
-                    mkBitVector, bw, bv_special_value_max_signed_str(bw), 2)
-                : TRACE_SOLVER(mkBitVector,
-                               bw,
-                               bv_special_value_max_signed_str(bw).c_str(),
-                               2);
+                ? TRACE_TM(
+                      mkBitVector, bw, bv_special_value_max_signed_str(bw), 2)
+                : TRACE_TM(mkBitVector,
+                           bw,
+                           bv_special_value_max_signed_str(bw).c_str(),
+                           2);
       }
     }
     break;
@@ -1920,16 +1934,19 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
     {
       if (value == AbsTerm::SPECIAL_VALUE_FF_ZERO)
       {
-        cvc5_res = TRACE_SOLVER(mkFiniteFieldElem, "0", Cvc5Sort::get_cvc5_sort(sort));
+        cvc5_res =
+            TRACE_TM(mkFiniteFieldElem, "0", Cvc5Sort::get_cvc5_sort(sort));
       }
       else if (value == AbsTerm::SPECIAL_VALUE_FF_ONE)
       {
-        cvc5_res = TRACE_SOLVER(mkFiniteFieldElem, "1", Cvc5Sort::get_cvc5_sort(sort));
+        cvc5_res =
+            TRACE_TM(mkFiniteFieldElem, "1", Cvc5Sort::get_cvc5_sort(sort));
       }
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_FF_NEG_ONE);
-        cvc5_res = TRACE_SOLVER(mkFiniteFieldElem, "-1", Cvc5Sort::get_cvc5_sort(sort));
+        cvc5_res =
+            TRACE_TM(mkFiniteFieldElem, "-1", Cvc5Sort::get_cvc5_sort(sort));
       }
     }
     break;
@@ -1940,24 +1957,24 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       uint32_t sw = sort->get_fp_sig_size();
       if (value == AbsTerm::SPECIAL_VALUE_FP_POS_INF)
       {
-        cvc5_res = TRACE_SOLVER(mkFloatingPointPosInf, ew, sw);
+        cvc5_res = TRACE_TM(mkFloatingPointPosInf, ew, sw);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_INF)
       {
-        cvc5_res = TRACE_SOLVER(mkFloatingPointNegInf, ew, sw);
+        cvc5_res = TRACE_TM(mkFloatingPointNegInf, ew, sw);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_FP_POS_ZERO)
       {
-        cvc5_res = TRACE_SOLVER(mkFloatingPointPosZero, ew, sw);
+        cvc5_res = TRACE_TM(mkFloatingPointPosZero, ew, sw);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_FP_NEG_ZERO)
       {
-        cvc5_res = TRACE_SOLVER(mkFloatingPointNegZero, ew, sw);
+        cvc5_res = TRACE_TM(mkFloatingPointNegZero, ew, sw);
       }
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_FP_NAN);
-        cvc5_res = TRACE_SOLVER(mkFloatingPointNaN, ew, sw);
+        cvc5_res = TRACE_TM(mkFloatingPointNaN, ew, sw);
       }
     }
     break;
@@ -1965,29 +1982,29 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
     case SORT_RM:
       if (value == AbsTerm::SPECIAL_VALUE_RM_RNE)
       {
-        cvc5_res = TRACE_SOLVER(
-            mkRoundingMode, ::cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
+        cvc5_res = TRACE_TM(mkRoundingMode,
+                            ::cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_EVEN);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_RM_RNA)
       {
-        cvc5_res = TRACE_SOLVER(
-            mkRoundingMode, ::cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
+        cvc5_res = TRACE_TM(mkRoundingMode,
+                            ::cvc5::RoundingMode::ROUND_NEAREST_TIES_TO_AWAY);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_RM_RTN)
       {
-        cvc5_res = TRACE_SOLVER(mkRoundingMode,
-                                ::cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE);
+        cvc5_res = TRACE_TM(mkRoundingMode,
+                            ::cvc5::RoundingMode::ROUND_TOWARD_NEGATIVE);
       }
       else if (value == AbsTerm::SPECIAL_VALUE_RM_RTP)
       {
-        cvc5_res = TRACE_SOLVER(mkRoundingMode,
-                                ::cvc5::RoundingMode::ROUND_TOWARD_POSITIVE);
+        cvc5_res = TRACE_TM(mkRoundingMode,
+                            ::cvc5::RoundingMode::ROUND_TOWARD_POSITIVE);
       }
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_RM_RTZ);
-        cvc5_res = TRACE_SOLVER(mkRoundingMode,
-                                ::cvc5::RoundingMode::ROUND_TOWARD_ZERO);
+        cvc5_res =
+            TRACE_TM(mkRoundingMode, ::cvc5::RoundingMode::ROUND_TOWARD_ZERO);
       }
       break;
 
@@ -1998,7 +2015,7 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       assert(sorts.size() == 1);
       Sort element_sort = sorts[0];
       cvc5_res =
-          TRACE_SOLVER(mkEmptySequence, Cvc5Sort::get_cvc5_sort(element_sort));
+          TRACE_TM(mkEmptySequence, Cvc5Sort::get_cvc5_sort(element_sort));
     }
     break;
 
@@ -2009,12 +2026,12 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
       Sort element_sort = sorts[0];
       if (value == AbsTerm::SPECIAL_VALUE_SET_EMPTY)
       {
-        cvc5_res = TRACE_SOLVER(mkEmptySet, Cvc5Sort::get_cvc5_sort(sort));
+        cvc5_res = TRACE_TM(mkEmptySet, Cvc5Sort::get_cvc5_sort(sort));
       }
       else
       {
         assert(value == AbsTerm::SPECIAL_VALUE_SET_UNIVERSE);
-        cvc5_res = TRACE_SOLVER(mkUniverseSet, Cvc5Sort::get_cvc5_sort(sort));
+        cvc5_res = TRACE_TM(mkUniverseSet, Cvc5Sort::get_cvc5_sort(sort));
       }
     }
     break;
@@ -2028,7 +2045,7 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
              "RoundingMode, Real, Reglan or Sequence sort";
   }
   std::shared_ptr<Cvc5Term> res(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
   assert(res);
   return res;
 }
@@ -2061,32 +2078,32 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     }
     ::cvc5::Term cvc5_bvl =
         d_rng.flip_coin()
-            ? TRACE_SOLVER(mkTerm, ::cvc5::Kind::VARIABLE_LIST, cvc5_vars)
-            : TRACE_SOLVER(mkTerm,
-                           TRACE_SOLVER(mkOp, ::cvc5::Kind::VARIABLE_LIST),
-                           cvc5_vars);
+            ? TRACE_TM(mkTerm, ::cvc5::Kind::VARIABLE_LIST, cvc5_vars)
+            : TRACE_TM(mkTerm,
+                       TRACE_TM(mkOp, ::cvc5::Kind::VARIABLE_LIST),
+                       cvc5_vars);
     ::cvc5::Term cvc5_body      = Cvc5Term::get_cvc5_term(args.back());
     cvc5_args                   = {cvc5_bvl, cvc5_body};
     n_args                      = static_cast<int32_t>(cvc5_args.size());
   }
   else if (kind == Op::RE_ALL)
   {
-    cvc5_res = TRACE_SOLVER(mkRegexpAll);
+    cvc5_res = TRACE_TM(mkRegexpAll);
     goto DONE;
   }
   else if (kind == Op::RE_ALLCHAR && d_rng.flip_coin())
   {
-    cvc5_res = TRACE_SOLVER(mkRegexpAllchar);
+    cvc5_res = TRACE_TM(mkRegexpAllchar);
     goto DONE;
   }
   else if (kind == Op::TRANS_PI && d_rng.flip_coin())
   {
-    cvc5_res = TRACE_SOLVER(mkPi);
+    cvc5_res = TRACE_TM(mkPi);
     goto DONE;
   }
   else if (kind == Op::RE_NONE && d_rng.flip_coin())
   {
-    cvc5_res = TRACE_SOLVER(mkRegexpNone);
+    cvc5_res = TRACE_TM(mkRegexpNone);
     goto DONE;
   }
 
@@ -2101,12 +2118,11 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       }
       if (kind == Op::INT_IS_DIV && d_rng.flip_coin())
       {
-        cvc5_opterm =
-            TRACE_SOLVER(mkOp, cvc5_kind, std::to_string(iindices[0]));
+        cvc5_opterm = TRACE_TM(mkOp, cvc5_kind, std::to_string(iindices[0]));
       }
       else
       {
-        cvc5_opterm = TRACE_SOLVER(mkOp, cvc5_kind, std::vector{iindices[0]});
+        cvc5_opterm = TRACE_TM(mkOp, cvc5_kind, std::vector{iindices[0]});
       }
       MURXLA_TEST(!cvc5_opterm.isNull());
       MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
@@ -2120,7 +2136,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     case 2:
     {
       cvc5_opterm =
-          TRACE_SOLVER(mkOp, cvc5_kind, std::vector{iindices[0], iindices[1]});
+          TRACE_TM(mkOp, cvc5_kind, std::vector{iindices[0], iindices[1]});
       MURXLA_TEST(!cvc5_opterm.isNull());
       MURXLA_TEST(!d_rng.pick_with_prob(1) || cvc5_opterm == cvc5_opterm);
       MURXLA_TEST(!d_rng.pick_with_prob(1) || !(cvc5_opterm != cvc5_opterm));
@@ -2134,7 +2150,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       assert(n_indices == 0);
       if (d_rng.flip_coin())
       {
-        cvc5_opterm = TRACE_SOLVER(mkOp, cvc5_kind);
+        cvc5_opterm = TRACE_TM(mkOp, cvc5_kind);
       }
   }
 
@@ -2147,9 +2163,9 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       uint32_t hi = d_rng.pick<uint32_t>(0, size - 1);
       uint32_t lo = hi;
-      ::cvc5::Op op = TRACE_SOLVER(
-          mkOp, ::cvc5::Kind::BITVECTOR_EXTRACT, std::vector{hi, lo});
-      cvc5_args[0] = TRACE_SOLVER(mkTerm, op, std::vector{cvc5_args[0]});
+      ::cvc5::Op op =
+          TRACE_TM(mkOp, ::cvc5::Kind::BITVECTOR_EXTRACT, std::vector{hi, lo});
+      cvc5_args[0] = TRACE_TM(mkTerm, op, std::vector{cvc5_args[0]});
     }
   }
   else if (kind == Op::SET_INSERT || kind == Op::SET_MEMBER)
@@ -2171,7 +2187,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     {
       vars.push_back(cvc5_args[i]);
     }
-    cvc5_args = {TRACE_SOLVER(mkTerm, ::cvc5::Kind::VARIABLE_LIST, vars),
+    cvc5_args = {TRACE_TM(mkTerm, ::cvc5::Kind::VARIABLE_LIST, vars),
                  cvc5_args[0],
                  cvc5_args[1]};
   }
@@ -2191,8 +2207,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     case 0:
       assert(!n_indices);
-      cvc5_res = cvc5_opterm.isNull() ? TRACE_SOLVER(mkTerm, cvc5_kind)
-                                      : TRACE_SOLVER(mkTerm, cvc5_opterm);
+      cvc5_res = cvc5_opterm.isNull() ? TRACE_TM(mkTerm, cvc5_kind)
+                                      : TRACE_TM(mkTerm, cvc5_opterm);
       break;
 
     case 1:
@@ -2204,8 +2220,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       else
       {
         cvc5_res = cvc5_opterm.isNull()
-                       ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args)
-                       : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
+                       ? TRACE_TM(mkTerm, cvc5_kind, cvc5_args)
+                       : TRACE_TM(mkTerm, cvc5_opterm, cvc5_args);
       }
       break;
 
@@ -2238,8 +2254,8 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       else
       {
         cvc5_res = cvc5_opterm.isNull()
-                       ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args)
-                       : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
+                       ? TRACE_TM(mkTerm, cvc5_kind, cvc5_args)
+                       : TRACE_TM(mkTerm, cvc5_opterm, cvc5_args);
       }
       break;
 
@@ -2254,16 +2270,16 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
       else
       {
         cvc5_res = cvc5_opterm.isNull()
-                       ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args)
-                       : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
+                       ? TRACE_TM(mkTerm, cvc5_kind, cvc5_args)
+                       : TRACE_TM(mkTerm, cvc5_opterm, cvc5_args);
       }
       break;
 
     default:
       assert(n_args == MURXLA_MK_TERM_N_ARGS_BIN || n_args > 3);
       cvc5_res = cvc5_opterm.isNull()
-                     ? TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args)
-                     : TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
+                     ? TRACE_TM(mkTerm, cvc5_kind, cvc5_args)
+                     : TRACE_TM(mkTerm, cvc5_opterm, cvc5_args);
   }
 DONE:
   MURXLA_TEST(!cvc5_res.isNull());
@@ -2272,7 +2288,7 @@ DONE:
               || (cvc5_res.getSort().isBoolean()
                   && cvc5_res.getKind() == ::cvc5::Kind::AND));
   return std::shared_ptr<Cvc5Term>(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
 }
 
 ::cvc5::DatatypeConstructor
@@ -2459,7 +2475,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   ::cvc5::Op cvc5_opterm;
   if (d_rng.flip_coin())
   {
-    cvc5_opterm = TRACE_SOLVER(mkOp, cvc5_kind);
+    cvc5_opterm = TRACE_TM(mkOp, cvc5_kind);
   }
 
   if (kind == Op::DT_APPLY_SEL)
@@ -2471,10 +2487,11 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
         getDatatypeSelectorTerm(cvc5_dt_sort, str_args[0], str_args[1]);
     cvc5_res =
         cvc5_opterm.isNull()
-            ? TRACE_SOLVER(
-                mkTerm, cvc5_kind, std::vector{cvc5_sel_term, cvc5_args[0]})
-            : TRACE_SOLVER(
-                mkTerm, cvc5_opterm, std::vector{cvc5_sel_term, cvc5_args[0]});
+            ? TRACE_TM(
+                  mkTerm, cvc5_kind, std::vector{cvc5_sel_term, cvc5_args[0]})
+            : TRACE_TM(mkTerm,
+                       cvc5_opterm,
+                       std::vector{cvc5_sel_term, cvc5_args[0]});
   }
   else
   {
@@ -2486,14 +2503,14 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
           getDatatypeConstructor(cvc5_dt_sort, str_args[0]);
       cvc5_res =
           cvc5_opterm.isNull()
-              ? TRACE_SOLVER(mkTerm,
-                             cvc5_kind,
-                             std::vector{TRACE_METHOD(getTesterTerm, cvc5_ctor),
-                                         cvc5_args[0]})
-              : TRACE_SOLVER(mkTerm,
-                             cvc5_opterm,
-                             std::vector{TRACE_METHOD(getTesterTerm, cvc5_ctor),
-                                         cvc5_args[0]});
+              ? TRACE_TM(mkTerm,
+                         cvc5_kind,
+                         std::vector{TRACE_METHOD(getTesterTerm, cvc5_ctor),
+                                     cvc5_args[0]})
+              : TRACE_TM(mkTerm,
+                         cvc5_opterm,
+                         std::vector{TRACE_METHOD(getTesterTerm, cvc5_ctor),
+                                     cvc5_args[0]});
     }
     else
     {
@@ -2505,16 +2522,16 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
           getDatatypeSelector(cvc5_dt_sort, str_args[0], str_args[1]);
       cvc5_res =
           cvc5_opterm.isNull()
-              ? TRACE_SOLVER(mkTerm,
-                             cvc5_kind,
-                             std::vector{TRACE_METHOD(getUpdaterTerm, cvc5_sel),
-                                         cvc5_args[0],
-                                         cvc5_args[1]})
-              : TRACE_SOLVER(mkTerm,
-                             cvc5_opterm,
-                             std::vector{TRACE_METHOD(getUpdaterTerm, cvc5_sel),
-                                         cvc5_args[0],
-                                         cvc5_args[1]});
+              ? TRACE_TM(mkTerm,
+                         cvc5_kind,
+                         std::vector{TRACE_METHOD(getUpdaterTerm, cvc5_sel),
+                                     cvc5_args[0],
+                                     cvc5_args[1]})
+              : TRACE_TM(mkTerm,
+                         cvc5_opterm,
+                         std::vector{TRACE_METHOD(getUpdaterTerm, cvc5_sel),
+                                     cvc5_args[0],
+                                     cvc5_args[1]});
     }
   }
   MURXLA_TEST(!cvc5_res.isNull());
@@ -2522,7 +2539,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
               || (cvc5_res.getSort().isBoolean()
                   && cvc5_res.getKind() == ::cvc5::Kind::AND));
   return std::shared_ptr<Cvc5Term>(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
 }
 
 Term
@@ -2548,10 +2565,10 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
     }
     ::cvc5::Term cvc5_bvl =
         d_rng.flip_coin()
-            ? TRACE_SOLVER(mkTerm, ::cvc5::Kind::VARIABLE_LIST, cvc5_vars)
-            : TRACE_SOLVER(mkTerm,
-                           TRACE_SOLVER(mkOp, ::cvc5::Kind::VARIABLE_LIST),
-                           cvc5_vars);
+            ? TRACE_TM(mkTerm, ::cvc5::Kind::VARIABLE_LIST, cvc5_vars)
+            : TRACE_TM(mkTerm,
+                       TRACE_TM(mkOp, ::cvc5::Kind::VARIABLE_LIST),
+                       cvc5_vars);
 
     if (str_args.size() == 1)
     {
@@ -2594,17 +2611,17 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
 
   if (d_rng.flip_coin())
   {
-    ::cvc5::Op cvc5_opterm      = TRACE_SOLVER(mkOp, cvc5_kind);
-    cvc5_res                    = TRACE_SOLVER(mkTerm, cvc5_opterm, cvc5_args);
+    ::cvc5::Op cvc5_opterm = TRACE_TM(mkOp, cvc5_kind);
+    cvc5_res               = TRACE_TM(mkTerm, cvc5_opterm, cvc5_args);
   }
   else
   {
-    cvc5_res = TRACE_SOLVER(mkTerm, cvc5_kind, cvc5_args);
+    cvc5_res = TRACE_TM(mkTerm, cvc5_kind, cvc5_args);
   }
   MURXLA_TEST(!cvc5_res.isNull());
   MURXLA_TEST(cvc5_kind == cvc5_res.getKind());
   return std::shared_ptr<Cvc5Term>(
-      new Cvc5Term(d_tracer, d_rng, d_solver, cvc5_res));
+      new Cvc5Term(d_tracer, d_rng, d_tm.get(), cvc5_res));
 }
 
 Sort
@@ -2613,7 +2630,7 @@ Cvc5Solver::get_sort(Term term, SortKind sort_kind)
   (void) sort_kind;
   ::cvc5::Term cvc5_term = Cvc5Term::get_cvc5_term(term);
   return std::shared_ptr<Cvc5Sort>(
-      new Cvc5Sort(d_tracer, d_solver, cvc5_term.getSort()));
+      new Cvc5Sort(d_tracer, d_tm.get(), cvc5_term.getSort()));
 }
 
 void
@@ -2669,7 +2686,7 @@ Cvc5Solver::get_unsat_assumptions()
 {
   std::vector<Term> res;
   std::vector<::cvc5::Term> cvc5_res = TRACE_SOLVER(getUnsatAssumptions);
-  return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_solver, cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_tm.get(), cvc5_res);
 }
 
 std::vector<Term>
@@ -2677,7 +2694,7 @@ Cvc5Solver::get_unsat_core()
 {
   std::vector<Term> res;
   std::vector<::cvc5::Term> cvc5_res = TRACE_SOLVER(getUnsatCore);
-  return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_solver, cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_tm.get(), cvc5_res);
 }
 
 std::vector<Term>
@@ -2698,7 +2715,7 @@ Cvc5Solver::get_value(const std::vector<Term>& terms)
       cvc5_res.push_back(d_solver->getValue(t));
     }
   }
-  return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_solver, cvc5_res);
+  return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_tm.get(), cvc5_res);
 }
 
 void
@@ -2729,8 +2746,7 @@ Cvc5Solver::set_logic(const std::string& logic)
 void
 Cvc5Solver::reset()
 {
-  delete d_solver;
-  d_solver = nullptr;
+  d_solver.reset(nullptr);
   new_solver();
 }
 
@@ -2744,7 +2760,7 @@ void
 Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
 {
   // Check if opt=value conflicts with already enabled options.
-  ::cvc5::Solver check_opt_slv;
+  ::cvc5::Solver check_opt_slv(*d_tm);
   for (const auto& [o, v] : d_enabled_options)
   {
     check_opt_slv.setOption(o, v);
@@ -2852,7 +2868,7 @@ Cvc5Solver::check_value(Term term)
   }
   if (cvc5_term.isStringValue())
   {
-    (void) cvc5_term.getStringValue();
+    (void) cvc5_term.getU32StringValue();
   }
   if (cvc5_term.isTupleValue())
   {
@@ -3720,11 +3736,11 @@ class Cvc5ActionSortSubstitute : public Action
     }
 
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::Solver* cvc5      = solver.get_solver();
+    ::cvc5::TermManager* tm   = solver.get_tm();
     for (const ::cvc5::Sort& cvc5_s : cvc5_res)
     {
       Sort s = std::shared_ptr<Cvc5Sort>(
-          new Cvc5Sort(solver.get_tracer(), cvc5, cvc5_s));
+          new Cvc5Sort(solver.get_tracer(), tm, cvc5_s));
       s      = d_smgr.find_sort(s);
       if (s->get_kind() == SORT_ANY) continue;
       res.push_back(s);
@@ -3932,15 +3948,15 @@ class Cvc5ActionTermSubstitute : public Action
     }
 
     Cvc5Solver& solver        = static_cast<Cvc5Solver&>(d_smgr.get_solver());
-    ::cvc5::Solver* cvc5      = solver.get_solver();
+    ::cvc5::TermManager* tm   = solver.get_tm();
     for (const ::cvc5::Term& cvc5_t : cvc5_res)
     {
       Sort s = std::shared_ptr<Cvc5Sort>(
-          new Cvc5Sort(solver.get_tracer(), cvc5, cvc5_t.getSort()));
+          new Cvc5Sort(solver.get_tracer(), tm, cvc5_t.getSort()));
       s      = d_smgr.find_sort(s);
       if (s->get_kind() == SORT_ANY) continue;
       Term t = std::shared_ptr<Cvc5Term>(
-          new Cvc5Term(solver.get_tracer(), d_rng, cvc5, cvc5_t));
+          new Cvc5Term(solver.get_tracer(), d_rng, tm, cvc5_t));
       t      = d_smgr.find_term(t, s, s->get_kind());
       if (t == nullptr) continue;
       res.push_back(t);
@@ -3999,7 +4015,8 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
 {
   using namespace ::cvc5;
 
-  ::cvc5::Solver slv;
+  ::cvc5::TermManager tm;
+  ::cvc5::Solver slv(tm);
 
   for (const auto& option : slv.getOptionNames())
   {
