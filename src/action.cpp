@@ -1418,7 +1418,7 @@ ActionMkTerm::generate(Op::Kind kind)
           d_n_args_weights.begin(), d_n_args_weights.end() - (min_arity - 1));
       arity += min_arity;
     }
-    assert(arity > 0);
+    assert(op.d_arity == 0 || arity > 0);
 
     /* Pick term arguments. */
     if (kind == Op::BV_CONCAT)
