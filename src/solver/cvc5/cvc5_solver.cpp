@@ -2766,6 +2766,10 @@ Cvc5Solver::set_opt(const std::string& opt, const std::string& value)
     {
       throw MurxlaSolverOptionException("incompatible option");
     }
+    if (e.getMessage().find("option parsing") != std::string::npos)
+    {
+      throw MurxlaSolverOptionException("incompatible option");
+    }
     throw;
   }
 
