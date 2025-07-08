@@ -168,6 +168,13 @@ operator<<(Tracer<cvc5::Cvc5TracerData>& tracer, const Datatype& dt)
 }
 
 Tracer<cvc5::Cvc5TracerData>&
+operator<<(Tracer<cvc5::Cvc5TracerData>& tracer, const ::cvc5::Kind& k)
+{
+  tracer.get_trace() << "Kind::" << std::to_string(k);
+  return tracer;
+}
+
+Tracer<cvc5::Cvc5TracerData>&
 operator<<(Tracer<cvc5::Cvc5TracerData>& tracer, const ::cvc5::RoundingMode& m)
 {
   switch (m)

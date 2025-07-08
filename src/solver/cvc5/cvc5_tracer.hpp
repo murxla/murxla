@@ -66,6 +66,8 @@ Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
 Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
                                          const ::cvc5::Datatype& dt);
 Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
+                                         const ::cvc5::Kind& k);
+Tracer<cvc5::Cvc5TracerData>& operator<<(Tracer<cvc5::Cvc5TracerData>& tracer,
                                          const ::cvc5::RoundingMode& m);
 Tracer<cvc5::Cvc5TracerData>& operator<<(
     Tracer<cvc5::Cvc5TracerData>& tracer,
