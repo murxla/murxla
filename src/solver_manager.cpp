@@ -1361,14 +1361,6 @@ SolverManager::pick_option(std::string name, std::string val)
             .pick_value_from_map<SolverOptions, std::unique_ptr<SolverOption>>(
                 d_solver_options)
             .get();
-    std::vector<SolverOption*> available;
-
-    for (auto const& opt : d_solver_options)
-    {
-      available.push_back(opt.second.get());
-    }
-
-    option = available[d_rng.pick<uint32_t>() % available.size()];
     name   = option->get_name();
   }
   else
