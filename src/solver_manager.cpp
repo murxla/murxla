@@ -391,8 +391,9 @@ SolverManager::pick_sort_kind(bool with_terms)
   {
     return d_term_db.pick_sort_kind();
   }
-  return d_rng.pick_from_map<std::unordered_map<SortKind, SortSet>, SortKind>(
-      d_sort_kind_to_sorts);
+  return d_rng
+      .pick_key_from_map<std::unordered_map<SortKind, SortSet>, SortKind>(
+          d_sort_kind_to_sorts);
 }
 
 SortKind
@@ -552,7 +553,7 @@ SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
       {
         do
         {
-          theory = d_rng.pick_from_map<decltype(kinds), Theory>(kinds);
+          theory = d_rng.pick_key_from_map<decltype(kinds), Theory>(kinds);
         } while (theory == THEORY_ALL || theory == THEORY_BOOL);
       }
       else if (have_bool && d_rng.flip_coin())
@@ -570,7 +571,8 @@ SolverManager::pick_op_kind(bool with_terms, SortKind sort_kind)
 
   if (sort_kind == SORT_ANY)
   {
-    return d_rng.pick_from_map<OpKindMap, Op::Kind>(d_opmgr->get_op_kinds());
+    return d_rng.pick_key_from_map<OpKindMap, Op::Kind>(
+        d_opmgr->get_op_kinds());
   }
 
   std::vector<Op::Kind> kinds;
@@ -1354,6 +1356,11 @@ SolverManager::pick_option(std::string name, std::string val)
     /* No options to configure available. */
     if (d_solver_options.empty()) return std::make_pair("", "");
 
+    option =
+        d_rng
+            .pick_value_from_map<SolverOptions, std::unique_ptr<SolverOption>>(
+                d_solver_options)
+            .get();
     std::vector<SolverOption*> available;
 
     for (auto const& opt : d_solver_options)

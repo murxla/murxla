@@ -821,7 +821,7 @@ TermDb::pick_sort(SortKind sort_kind) const
   assert(has_term(sort_kind));
 
   assert(d_term_db.find(sort_kind) != d_term_db.end());
-  Sort res = d_rng.pick_from_map<SortMap, Sort>(d_term_db.at(sort_kind));
+  Sort res = d_rng.pick_key_from_map<SortMap, Sort>(d_term_db.at(sort_kind));
   assert(res->get_id());
   assert(res->get_kind() != SORT_ANY);
   return res;

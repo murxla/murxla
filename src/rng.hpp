@@ -164,9 +164,12 @@ class RNGenerator
   /** Pick string literal (theory of strings) */
   std::string pick_string_literal(uint32_t len);
 
-  /* Pick random element from given map. */
+  /* Pick random key from given map. */
   template <typename TMap, typename TPicked>
-  TPicked pick_from_map(const TMap& data);
+  const TPicked& pick_key_from_map(const TMap& data);
+  /* Pick random value from given map. */
+  template <typename TMap, typename TPicked>
+  const TPicked& pick_value_from_map(const TMap& data);
   /* Pick random element from given set/vector. */
   template <typename TSet, typename TPicked>
   TPicked pick_from_set(const TSet& data);
@@ -223,13 +226,23 @@ class SolverSeedGenerator : public RNGenerator
 /* -------------------------------------------------------------------------- */
 
 template <typename TMap, typename TPicked>
-TPicked
-RNGenerator::pick_from_map(const TMap& map)
+const TPicked&
+RNGenerator::pick_key_from_map(const TMap& map)
 {
   assert(!map.empty());
   auto it = map.begin();
   std::advance(it, pick<uint32_t>() % map.size());
   return it->first;
+}
+
+template <typename TMap, typename TPicked>
+const TPicked&
+RNGenerator::pick_value_from_map(const TMap& map)
+{
+  assert(!map.empty());
+  auto it = map.begin();
+  std::advance(it, pick<uint32_t>() % map.size());
+  return it->second;
 }
 
 template <typename TSet, typename TPicked>
