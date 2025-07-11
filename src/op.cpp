@@ -147,6 +147,8 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::BV_ULT, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
   add_op_kind(Op::BV_UREM, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   add_op_kind(Op::BV_XNOR, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
+  add_op_kind(Op::BV_UBV_TO_INT, 1, 0, SORT_INT, {SORT_BV}, THEORY_BV);
+  add_op_kind(Op::BV_SBV_TO_INT, 1, 0, SORT_INT, {SORT_BV}, THEORY_BV);
   // indexed
   add_op_kind(Op::BV_EXTRACT, 1, 2, SORT_BV, {SORT_BV}, THEORY_BV);
   add_op_kind(Op::BV_REPEAT, 1, 1, SORT_BV, {SORT_BV}, THEORY_BV);
@@ -226,6 +228,7 @@ OpKindManager::add_op_kinds()
   add_op_kind(Op::INT_GTE, n, 0, SORT_BOOL, {SORT_INT}, THEORY_INT);
   // indexed
   add_op_kind(Op::INT_IS_DIV, 1, 1, SORT_BOOL, {SORT_INT}, THEORY_INT);
+  add_op_kind(Op::INT_TO_BV, 1, 1, SORT_BV, {SORT_INT}, THEORY_INT);
 
   /* Reals */
   add_op_kind(Op::REAL_NEG, 1, 0, SORT_REAL, {SORT_REAL}, THEORY_REAL);

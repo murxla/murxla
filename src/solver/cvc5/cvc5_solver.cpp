@@ -489,6 +489,9 @@ std::unordered_map<Op::Kind, ::cvc5::Kind> Cvc5Term::s_kinds_to_cvc5_kinds = {
     {Op::BV_SGT, ::cvc5::Kind::BITVECTOR_SGT},
     {Op::BV_SGE, ::cvc5::Kind::BITVECTOR_SGE},
 
+    {Op::BV_UBV_TO_INT, ::cvc5::Kind::BITVECTOR_UBV_TO_INT},
+    {Op::BV_SBV_TO_INT, ::cvc5::Kind::BITVECTOR_SBV_TO_INT},
+
     /* Datatypes */
     {Op::DT_APPLY_CONS, ::cvc5::Kind::APPLY_CONSTRUCTOR},
     {Op::DT_APPLY_SEL, ::cvc5::Kind::APPLY_SELECTOR},
@@ -551,6 +554,7 @@ std::unordered_map<Op::Kind, ::cvc5::Kind> Cvc5Term::s_kinds_to_cvc5_kinds = {
     {Op::INT_LTE, ::cvc5::Kind::LEQ},
     {Op::INT_GT, ::cvc5::Kind::GT},
     {Op::INT_GTE, ::cvc5::Kind::GEQ},
+    {Op::INT_TO_BV, ::cvc5::Kind::INT_TO_BITVECTOR},
     {Op::INT_TO_REAL, ::cvc5::Kind::TO_REAL},
 
     /* Reals */
@@ -683,9 +687,7 @@ std::unordered_map<Op::Kind, ::cvc5::Kind> Cvc5Term::s_kinds_to_cvc5_kinds = {
     {OP_BV_SLTBV, ::cvc5::Kind::BITVECTOR_SLTBV},
     {OP_BV_ITE, ::cvc5::Kind::BITVECTOR_ITE},
     // Int
-    {OP_BV_TO_NAT, ::cvc5::Kind::BITVECTOR_TO_NAT},
     {OP_INT_IAND, ::cvc5::Kind::IAND},
-    {OP_INT_TO_BV, ::cvc5::Kind::INT_TO_BITVECTOR},
     {OP_INT_POW2, ::cvc5::Kind::POW2},
     // Strings
     {OP_STRING_UPDATE, ::cvc5::Kind::STRING_UPDATE},
@@ -766,6 +768,8 @@ std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
     {::cvc5::Kind::BITVECTOR_SGT, Op::BV_SGT},
     {::cvc5::Kind::BITVECTOR_SGE, Op::BV_SGE},
 
+    {::cvc5::Kind::BITVECTOR_UBV_TO_INT, Op::BV_UBV_TO_INT},
+    {::cvc5::Kind::BITVECTOR_SBV_TO_INT, Op::BV_SBV_TO_INT},
     /* Datatypes */
     {::cvc5::Kind::APPLY_CONSTRUCTOR, Op::DT_APPLY_CONS},
     {::cvc5::Kind::APPLY_SELECTOR, Op::DT_APPLY_SEL},
@@ -828,6 +832,7 @@ std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
     {::cvc5::Kind::LEQ, Op::INT_LTE},
     {::cvc5::Kind::GT, Op::INT_GT},
     {::cvc5::Kind::GEQ, Op::INT_GTE},
+    {::cvc5::Kind::INT_TO_BITVECTOR, Op::INT_TO_BV},
     {::cvc5::Kind::TO_REAL, Op::INT_TO_REAL},
 
     /* Reals */
@@ -961,9 +966,7 @@ std::unordered_map<::cvc5::Kind, Op::Kind> Cvc5Term::s_cvc5_kinds_to_kinds = {
     {::cvc5::Kind::BITVECTOR_SLTBV, OP_BV_SLTBV},
     {::cvc5::Kind::BITVECTOR_ITE, OP_BV_ITE},
     // Int
-    {::cvc5::Kind::BITVECTOR_TO_NAT, OP_BV_TO_NAT},
     {::cvc5::Kind::IAND, OP_INT_IAND},
-    {::cvc5::Kind::INT_TO_BITVECTOR, OP_INT_TO_BV},
     {::cvc5::Kind::POW2, OP_INT_POW2},
     // Strings
     {::cvc5::Kind::STRING_UPDATE, OP_STRING_UPDATE},
@@ -2112,7 +2115,7 @@ Cvc5Solver::mk_term(const Op::Kind& kind,
   {
     case 1:
     {
-      if (kind == Cvc5Term::OP_INT_IAND || kind == Cvc5Term::OP_INT_TO_BV)
+      if (kind == Cvc5Term::OP_INT_IAND)
       {
         iindices[0] = uint32_to_value_in_range(iindices[0], 1, MURXLA_BW_MAX);
       }
@@ -3164,11 +3167,7 @@ Cvc5Solver::configure_opmgr(OpKindManager* opmgr) const
   opmgr->add_op_kind(
       Cvc5Term::OP_BV_SLTBV, 2, 0, SORT_BV, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(Cvc5Term::OP_BV_ITE, 3, 0, SORT_BV, {SORT_BV}, THEORY_BV);
-  opmgr->add_op_kind(
-      Cvc5Term::OP_BV_TO_NAT, 1, 0, SORT_INT, {SORT_BV}, THEORY_BV);
   // Int
-  opmgr->add_op_kind(
-      Cvc5Term::OP_INT_TO_BV, 1, 1, SORT_BV, {SORT_INT}, THEORY_INT);
   opmgr->add_op_kind(
       Cvc5Term::OP_INT_IAND, 2, 1, SORT_INT, {SORT_INT}, THEORY_INT);
   opmgr->add_op_kind(

@@ -908,6 +908,42 @@ struct Op
    * \endverbatim
    */
   inline static const Kind BV_XOR = "OP_BV_XOR";
+  /**
+   * The operator kind representing the bit-vector conversion from unsigned
+   * bit-vector to integer.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{}`
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (ubv_to_int <term>)
+   * \endverbatim
+   */
+  inline static const Kind BV_UBV_TO_INT = "OP_BV_UBV_TO_INT";
+  /**
+   * The operator kind representing the bit-vector conversion from signed
+   * bit-vector to integer.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{}`
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (sbv_to_int <term>)
+   * \endverbatim
+   */
+  inline static const Kind BV_SBV_TO_INT = "OP_BV_SBV_TO_INT";
 
   /**
    * @}
@@ -1947,6 +1983,23 @@ struct Op
    * \endverbatim
    */
   inline static const Kind INT_TO_REAL = "OP_INT_TO_REAL";
+  /**
+   * The operator kind representing the integer conversion to bit-vector.
+   *
+   * Created with Solver::mk_term() with
+   * - **arity**: 1
+   * - **args**: `{SORT_BV}`
+   * - **indices**: `{uint32_t}`
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((int_to_bv <bw>) <term>)
+   * \endverbatim
+   */
+  inline static const Kind INT_TO_BV = "OP_INT_TO_BV";
 
   /**
    * @}

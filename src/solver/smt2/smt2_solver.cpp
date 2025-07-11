@@ -1729,13 +1729,7 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
     {
       sort = get_bool_sort_string();
     }
-    else if (kind == cvc5::Cvc5Term::OP_INT_TO_BV)
-    {
-      assert(idxs.size() == 1);
-      sort = get_bv_sort_string(idxs[0]);
-    }
-    else if (kind == cvc5::Cvc5Term::OP_BV_TO_NAT
-             || kind == cvc5::Cvc5Term::OP_INT_IAND
+    else if (kind == cvc5::Cvc5Term::OP_INT_IAND
              || kind == cvc5::Cvc5Term::OP_INT_POW2)
     {
       sort = get_int_sort_string();
@@ -1892,7 +1886,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
         bv_size = 1;
         sort    = get_bv_sort_string(bv_size);
       }
-      else if (kind == Op::FP_TO_SBV || kind == Op::FP_TO_UBV)
+      else if (kind == Op::FP_TO_SBV || kind == Op::FP_TO_UBV
+               || kind == Op::INT_TO_BV)
       {
         assert(idxs.size() == 1);
         bv_size = idxs[0];

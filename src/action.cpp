@@ -1858,6 +1858,14 @@ ActionMkTerm::generate(Op::Kind kind)
           assert(sort_kind == SORT_BOOL);
           indices.push_back(d_rng.pick<uint32_t>(1, UINT32_MAX));
         }
+        else if (kind == Op::INT_TO_BV)
+        {
+          assert(n_indices == 1);
+          assert(args.size() == 1);
+          assert(args[0]->get_sort()->is_int());
+          assert(sort_kind == SORT_BV);
+          indices.push_back(d_rng.pick<uint32_t>(1, MURXLA_BW_MAX));
+        }
         else if (kind == Op::RE_LOOP)
         {
           assert(n_indices == 2);

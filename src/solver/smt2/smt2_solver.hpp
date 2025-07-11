@@ -216,6 +216,8 @@ class Smt2Term : public AbsTerm
       {Op::BV_UREM, "bvurem"},
       {Op::BV_XNOR, "bvxnor"},
       {Op::BV_XOR, "bvxor"},
+      {Op::BV_UBV_TO_INT, "ubv_to_int"},
+      {Op::BV_SBV_TO_INT, "sbv_to_int"},
 
       /* Datatypes */
       {Op::DT_APPLY_TESTER, "is"},
@@ -278,6 +280,7 @@ class Smt2Term : public AbsTerm
       {Op::INT_LTE, "<="},
       {Op::INT_GT, ">"},
       {Op::INT_GTE, ">="},
+      {Op::INT_TO_BV, "int_to_bv"},
 
       /* Reals */
       {Op::REAL_NEG, "-"},
@@ -405,8 +408,6 @@ class Smt2Term : public AbsTerm
       /* cvc5-specific operator kinds */
       {cvc5::Cvc5Term::OP_BV_REDAND, "bvredand"},
       {cvc5::Cvc5Term::OP_BV_REDOR, "bvredor"},
-      {cvc5::Cvc5Term::OP_INT_TO_BV, "int2bv"},
-      {cvc5::Cvc5Term::OP_BV_TO_NAT, "bv2nat"},
       {cvc5::Cvc5Term::OP_INT_IAND, "iand"},
       {cvc5::Cvc5Term::OP_INT_POW2, "int.pow2"},
       {cvc5::Cvc5Term::OP_STRING_UPDATE, "str.update"},
