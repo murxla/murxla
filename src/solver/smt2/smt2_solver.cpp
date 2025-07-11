@@ -219,6 +219,12 @@ Smt2Sort::is_dt_parametric() const
 }
 
 bool
+Smt2Sort::is_ff() const
+{
+  return d_kind == SORT_FF;
+}
+
+bool
 Smt2Sort::is_int() const
 {
   return d_kind == SORT_INT;
