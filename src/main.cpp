@@ -316,7 +316,7 @@ get_options(Options& options,
     if (arg == "-u" || arg == "--untrace")
     {
       i += 1;
-      check_next_arg(args.back(), i, argc);
+      check_next_arg(arg, i, argc);
       options.untrace_file_name = argv[i];
       continue;
     }
