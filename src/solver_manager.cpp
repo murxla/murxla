@@ -1349,40 +1349,7 @@ SolverManager::has_sort_dt_parametric() const
 std::pair<std::string, std::string>
 SolverManager::pick_option(std::string name, std::string val)
 {
-  SolverOption* option = nullptr;
-
-  if (name.empty())
-  {
-    /* No options to configure available. */
-    if (d_solver_options.empty()) return std::make_pair("", "");
-
-    option =
-        d_rng
-            .pick_value_from_map<SolverOptions, std::unique_ptr<SolverOption>>(
-                d_solver_options)
-            .get();
-    name   = option->get_name();
-  }
-  else
-  {
-    if (d_solver_options.find(name) != d_solver_options.end())
-    {
-      option = d_solver_options.at(name).get();
-    }
-  }
-
-  /* Only configure not yet configured options. */
-  if (is_option_used(name)) return std::make_pair("", "");
-
-  mark_option_used(name);
-
-  if (option && val.empty())
-  {
-    val = option->pick_value(d_rng);
-  }
-  assert(!val.empty());
-
-  return std::make_pair(name, val);
+  return d_solver->pick_option(this, name, val);
 }
 
 /* -------------------------------------------------------------------------- */

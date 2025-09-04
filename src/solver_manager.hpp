@@ -88,6 +88,12 @@ class SolverManager
   SolverSeedGenerator& get_sng();
 
   /**
+   * Get the associated map of available solver options.
+   * @return The solver options.
+   */
+  SolverOptions& solver_options() { return d_solver_options; }
+
+  /**
    * Get set of enabled theories.
    * @return The set of currently enabled theories.
    */
@@ -98,6 +104,13 @@ class SolverManager
    * @return A reference to the trace stream.
    */
   std::ostream& get_trace();
+
+  /**
+   * Return true if given option has already been configured.
+   * @param opt The option to query.
+   * @return True if the given option has already been configure.
+   */
+  bool is_option_used(const std::string& opt);
 
   /**
    * Mark given option as already configured.
@@ -862,13 +875,6 @@ class SolverManager
    *                         call sequences.
    */
   void initialize(bool smtlib_compliant);
-
-  /**
-   * Return true if given option has already been configured.
-   * @param opt The option to query.
-   * @return True if the given option has already been configure.
-   */
-  bool is_option_used(const std::string& opt);
 
   /**
    * Get sort kind data for specified theories.

@@ -1892,6 +1892,22 @@ class Solver
     return {};
   }
 
+  /* May be overriden (but does not have to be), murxla level.              */
+  /* ---------------------------------------------------------------------- */
+
+  /**
+   * Pick an option and an option value.
+   *
+   * If either are given, enforce option or value. If no option or the given
+   * option / value can be set, return empty pair.
+   *
+   * @param name The option name.
+   * @param value The option value.
+   * @return A pair of picked option name and value.
+   */
+  virtual std::pair<std::string, std::string> pick_option(
+      SolverManager* smgr, std::string name = "", std::string value = "");
+
   /* NOT to be overriden, murxla level.                                     */
   /* ---------------------------------------------------------------------- */
 

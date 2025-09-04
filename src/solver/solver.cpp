@@ -11,6 +11,8 @@
 
 #include <algorithm>
 
+#include "solver_manager.hpp"
+#include "solver_option.hpp"
 #include "theory.hpp"
 #include "util.hpp"
 
@@ -949,6 +951,45 @@ Solver::get_unsat_core()
   return std::vector<Term>();
 }
 
+std::pair<std::string, std::string>
+Solver::pick_option(SolverManager* smgr, std::string name, std::string val)
+{
+  SolverOption* option   = nullptr;
+  SolverOptions& options = smgr->solver_options();
+
+  if (name.empty())
+  {
+    /* No options to configure available. */
+    if (options.empty()) return std::make_pair("", "");
+
+    option =
+        d_rng
+            .pick_value_from_map<SolverOptions, std::unique_ptr<SolverOption>>(
+                options)
+            .get();
+    name = option->get_name();
+  }
+  else
+  {
+    if (options.find(name) != options.end())
+    {
+      option = options.at(name).get();
+    }
+  }
+
+  /* Only configure not yet configured options. */
+  if (smgr->is_option_used(name)) return std::make_pair("", "");
+
+  smgr->mark_option_used(name);
+
+  if (option && val.empty())
+  {
+    val = option->pick_value(d_rng);
+  }
+  assert(!val.empty());
+
+  return std::make_pair(name, val);
+}
 std::ostream&
 operator<<(std::ostream& out, const Solver::Result& r)
 {
