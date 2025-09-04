@@ -1788,8 +1788,8 @@ YicesSolver::check_sat()
   if (!d_context) d_context = yices_new_context(d_config);
   // TODO parameters?
   smt_status_t res = yices_check_context(d_context, nullptr);
-  if (res == STATUS_SAT) return Result::SAT;
-  if (res == STATUS_UNSAT) return Result::UNSAT;
+  if (res == YICES_STATUS_SAT) return Result::SAT;
+  if (res == YICES_STATUS_UNSAT) return Result::UNSAT;
   return Result::UNKNOWN;
 }
 
@@ -1805,8 +1805,8 @@ YicesSolver::check_sat_assuming(const std::vector<Term>& assumptions)
       nullptr,
       static_cast<uint32_t>(yices_assumptions.size()),
       yices_assumptions.data());
-  if (res == STATUS_SAT) return Result::SAT;
-  if (res == STATUS_UNSAT) return Result::UNSAT;
+  if (res == YICES_STATUS_SAT) return Result::SAT;
+  if (res == YICES_STATUS_UNSAT) return Result::UNSAT;
   return Result::UNKNOWN;
 }
 
