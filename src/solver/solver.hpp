@@ -1644,7 +1644,7 @@ class Solver
    * @param smgr  The solver manager maintaining the solver options to
    *              configure.
    */
-  virtual void configure_options(SolverManager* smgr) const {}
+  virtual void configure_options(SolverManager* smgr) {}
 
   /**
    * Reset solver state into assert mode.

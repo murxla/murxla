@@ -1555,7 +1555,7 @@ BitwuzlaSolver::configure_opmgr(OpKindManager* opmgr) const
 
 //! [docs-bitwuzla-solver-configure_options start]
 void
-BitwuzlaSolver::configure_options(SolverManager* smgr) const
+BitwuzlaSolver::configure_options(SolverManager* smgr)
 {
   ::bitwuzla::Options options;
   for (int32_t i = 0, n = static_cast<int32_t>(::bitwuzla::Option::NUM_OPTS);

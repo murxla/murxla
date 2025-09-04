@@ -2489,7 +2489,7 @@ BtorSolver::configure_fsm(FSM* fsm) const
 }
 
 void
-BtorSolver::configure_options(SolverManager* smgr) const
+BtorSolver::configure_options(SolverManager* smgr)
 {
   Btor* slv = boolector_new();
   for (auto o = boolector_first_opt(slv); boolector_has_opt(slv, o);

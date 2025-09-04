@@ -4007,10 +4007,11 @@ Cvc5Solver::configure_fsm(FSM* fsm) const
   s_sat->add_action(a_get_diff, 2);
   s_unsat->add_action(a_get_diff, 2);
 }
+
 /* -------------------------------------------------------------------------- */
 
 void
-Cvc5Solver::configure_options(SolverManager* smgr) const
+Cvc5Solver::configure_options(SolverManager* smgr)
 {
   using namespace ::cvc5;
 
@@ -4020,6 +4021,8 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
   for (const auto& option : slv.getOptionNames())
   {
     auto info = slv.getOptionInfo(option);
+    bool added = true;
+
     if (std::holds_alternative<OptionInfo::ValueInfo<bool>>(info.valueInfo))
     {
       smgr->add_option(new SolverOptionBool(option, info.boolValue()));
@@ -4061,9 +4064,83 @@ Cvc5Solver::configure_options(SolverManager* smgr) const
           num_info.maximum.value_or(std::numeric_limits<double>::max()),
           info.doubleValue()));
     }
+    else
+    {
+      added = false;
+    }
+    if (added)
+    {
+      d_categorized_options[info.category].push_back(option);
+    }
   }
 }
 
+std::pair<std::string, std::string>
+Cvc5Solver::pick_option(SolverManager* smgr, std::string name, std::string val)
+{
+  SolverOption* option   = nullptr;
+  SolverOptions& options = smgr->solver_options();
+  bool safe_mode         = smgr->is_option_used("safe-mode");
+
+  if (name.empty())
+  {
+    /* No options to configure available. */
+    if (options.empty()) return std::make_pair("", "");
+
+    if (safe_mode)
+    {
+      ::cvc5::modes::OptionCategory cat = ::cvc5::modes::OptionCategory::COMMON;
+      // any number of common options, at most one regular option
+      // no expert, no undocumented options
+      if (d_categorized_used_options.find(
+              ::cvc5::modes::OptionCategory::REGULAR)
+              == d_categorized_used_options.end()
+          && d_rng.flip_coin())
+      {
+        cat = ::cvc5::modes::OptionCategory::REGULAR;
+      }
+      auto it = d_categorized_options.find(cat);
+      assert(it != d_categorized_options.end());
+      name = d_rng.pick_from_set<std::vector<std::string>, std::string>(
+          it->second);
+      option = options.at(name).get();
+    }
+    else
+    {
+      option = d_rng
+                   .pick_value_from_map<SolverOptions,
+                                        std::unique_ptr<SolverOption>>(options)
+                   .get();
+    }
+    assert(option);
+    name = option->get_name();
+  }
+  else
+  {
+    if (options.find(name) != options.end())
+    {
+      option = options.at(name).get();
+    }
+  }
+
+  /* Only configure not yet configured options. */
+  if (smgr->is_option_used(name)) return std::make_pair("", "");
+
+  smgr->mark_option_used(name);
+
+  if (safe_mode)
+  {
+    auto info = d_solver->getOptionInfo(name);
+    d_categorized_used_options[info.category].insert(name);
+  }
+  if (option && val.empty())
+  {
+    val = option->pick_value(d_rng);
+  }
+  assert(!val.empty());
+
+  return std::make_pair(name, val);
+}
 }  // namespace cvc5
 }  // namespace murxla
 

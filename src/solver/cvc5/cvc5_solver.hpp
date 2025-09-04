@@ -224,7 +224,12 @@ class Cvc5Solver : public Solver
 
   void configure_fsm(FSM* fsm) const override;
   void configure_opmgr(OpKindManager* opmgr) const override;
-  void configure_options(SolverManager* smgr) const override;
+  void configure_options(SolverManager* smgr) override;
+
+  std::pair<std::string, std::string> pick_option(
+      SolverManager* smgr,
+      std::string name  = "",
+      std::string value = "") override;
 
   bool is_unsat_assumption(const Term& t) const override;
 
@@ -360,6 +365,16 @@ class Cvc5Solver : public Solver
 
   /** Logic set via set_logic(). */
   std::string d_logic = "";
+
+  /**
+   * cvc5 options divided into option categories. Maps category to list of
+   * option names of that category.
+   */
+  std::unordered_map<::cvc5::modes::OptionCategory, std::vector<std::string>>
+      d_categorized_options;
+  std::unordered_map<::cvc5::modes::OptionCategory,
+                     std::unordered_set<std::string>>
+      d_categorized_used_options;
 };
 
 }  // namespace cvc5
