@@ -3246,6 +3246,7 @@ ActionAssertFormula::run(Term assertion)
   MURXLA_TRACE << get_kind() << " " << assertion;
   reset_sat();
   d_solver.assert_formula(assertion);
+  d_smgr.add_assertion(assertion);
 }
 //! [docs-action-assertformula-run end]
 
@@ -3527,7 +3528,7 @@ ActionPush::run(uint32_t n_levels)
   MURXLA_TRACE << get_kind() << " " << n_levels;
   reset_sat();
   d_solver.push(n_levels);
-  d_smgr.d_n_push_levels += n_levels;
+  d_smgr.push(n_levels);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -3562,7 +3563,7 @@ ActionPop::run(uint32_t n_levels)
   MURXLA_TRACE << get_kind() << " " << n_levels;
   reset_sat();
   d_solver.pop(n_levels);
-  d_smgr.d_n_push_levels -= n_levels;
+  d_smgr.pop(n_levels);
 }
 
 /* -------------------------------------------------------------------------- */
