@@ -432,6 +432,17 @@ class SolverManager
    */
   Term pick_assumed_assumption();
 
+  /**
+   * Add given term to the set of currently active assertions.
+   * @param t The assertion to cache.
+   */
+  void add_assertion(Term t);
+
+  /** Push assertion levels. */
+  void push(uint32_t n_levels);
+  /** Pop assertion levels. */
+  void pop(uint32_t n_levels);
+
   /** Reset solver manager state into start mode. */
   void reset();
 
@@ -1052,6 +1063,20 @@ class SolverManager
 
   /** Map sort kind -> sorts. */
   std::unordered_map<SortKind, SortSet> d_sort_kind_to_sorts;
+
+  /**
+   * The set of current assertions, organized into assertion levels.
+   *
+   * This, together with d_assertions_control, maintains currently active
+   * assertions organized into assertion levels. Assertion levels are pushed
+   * via push() and popped via pop() when solving incrementally.
+   */
+  std::vector<Term> d_assertions;
+  /**
+   * The control stack for d_assertions. Maintains the start indices of
+   * assertion levels in d_assertions.
+   */
+  std::vector<size_t> d_assertions_control;
 
   /** The set of already assumed formulas. */
   std::unordered_set<Term> d_assumptions;

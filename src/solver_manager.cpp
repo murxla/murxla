@@ -82,6 +82,8 @@ SolverManager::clear()
   d_sorts_dt_parametric.clear();
   d_sorts_dt_non_well_founded.clear();
   d_sort_kind_to_sorts.clear();
+  d_assertions.clear();
+  d_assertions_control.clear();
   d_assumptions.clear();
   d_term_db.clear();
   d_string_char_values.clear();
@@ -753,6 +755,46 @@ void
 SolverManager::clear_assumptions()
 {
   d_assumptions.clear();
+}
+
+void
+SolverManager::add_assertion(Term t)
+{
+  d_assertions.push_back(t);
+}
+
+void
+SolverManager::push(uint32_t n_levels)
+{
+  if (n_levels > 0)
+  {
+    for (uint32_t i = 0; i < n_levels; ++i)
+    {
+      d_assertions_control.push_back(d_assertions.size());
+    }
+    d_n_push_levels += n_levels;
+  }
+}
+
+void
+SolverManager::pop(uint32_t n_levels)
+{
+  if (n_levels > 0)
+  {
+    for (uint32_t i = 0; i < n_levels; ++i)
+    {
+      if (d_assertions_control.size())
+      {
+        size_t topop = d_assertions.size() - d_assertions_control.back();
+        d_assertions_control.pop_back();
+        for (size_t i = 0; i < topop; ++i)
+        {
+          d_assertions.pop_back();
+        }
+      }
+    }
+    d_n_push_levels -= n_levels;
+  }
 }
 
 void
