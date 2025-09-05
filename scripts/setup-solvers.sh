@@ -99,7 +99,7 @@ mkdir -p "$src_dir"
     fi
 
     rm -rf build
-    ./configure.py debug --prefix "$deps_dir" $cov $as --no-testing
+    ./configure.py debug --prefix "$deps_dir" $cov $as --no-testing --shared
     cd build
     ninja install
   fi
