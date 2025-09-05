@@ -946,6 +946,12 @@ Solver::mk_term(const Op::Kind& kind,
 }
 
 std::vector<Term>
+Solver::get_assertions()
+{
+  return std::vector<Term>();
+}
+
+std::vector<Term>
 Solver::get_unsat_core()
 {
   return std::vector<Term>();

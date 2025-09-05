@@ -1828,6 +1828,21 @@ class Solver
   virtual void set_logic(const std::string& logic) {}
 
   /**
+   * Get the current set of assertions.
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     (get-assertions)
+   * \endverbatim
+   *
+   * @return The assertions.
+   */
+  virtual std::vector<Term> get_assertions();
+
+  /**
    * Retrieve the unsat core after an unsat check-sat call.
    *
    * SMT-LIB:

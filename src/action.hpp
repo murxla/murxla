@@ -913,6 +913,27 @@ class ActionGetValue : public Action
   SortKindSet d_exclude_sort_kinds;
 };
 
+/** The action to get the current set of assertions. */
+class ActionGetAssertions : public Action
+{
+ public:
+  /** The name of this action. */
+  inline static const Kind s_name = "get-assertions";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  ActionGetAssertions(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
+
+  bool generate() override;
+  std::vector<uint64_t> untrace(
+      const std::vector<std::string>& tokens) override;
+
+ private:
+  void run();
+};
+
 /** The action to push one or more context levels. */
 class ActionPush : public Action
 {

@@ -293,6 +293,8 @@ class Cvc5Solver : public Solver
   Result check_sat() override;
   Result check_sat_assuming(const std::vector<Term>& assumptions) override;
 
+  std::vector<Term> get_assertions() override;
+
   std::vector<Term> get_unsat_assumptions() override;
 
   std::vector<Term> get_unsat_core() override;

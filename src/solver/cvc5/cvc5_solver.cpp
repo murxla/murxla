@@ -2685,6 +2685,14 @@ Cvc5Solver::check_sat_assuming(const std::vector<Term>& assumptions)
 }
 
 std::vector<Term>
+Cvc5Solver::get_assertions()
+{
+  std::vector<Term> res;
+  std::vector<::cvc5::Term> cvc5_res = TRACE_SOLVER(getAssertions);
+  return Cvc5Term::cvc5_terms_to_terms(d_tracer, d_rng, d_tm.get(), cvc5_res);
+}
+
+std::vector<Term>
 Cvc5Solver::get_unsat_assumptions()
 {
   std::vector<Term> res;

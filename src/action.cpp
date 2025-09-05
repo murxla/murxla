@@ -3467,6 +3467,33 @@ ActionGetValue::run(const std::vector<Term>& terms)
 /* -------------------------------------------------------------------------- */
 
 bool
+ActionGetAssertions::generate()
+{
+  assert(d_solver.is_initialized());
+  run();
+  return true;
+}
+
+std::vector<uint64_t>
+ActionGetAssertions::untrace(const std::vector<std::string>& tokens)
+{
+  MURXLA_CHECK_TRACE_EMPTY(tokens);
+  run();
+  return {};
+}
+
+void
+ActionGetAssertions::run()
+{
+  MURXLA_TRACE << get_kind();
+  /* Note: The Terms in this vector are solver terms wrapped into Term,
+   *       without sort information! */
+  (void) d_solver.get_assertions();
+}
+
+/* -------------------------------------------------------------------------- */
+
+bool
 ActionPush::generate()
 {
   assert(d_solver.is_initialized());

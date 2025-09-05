@@ -1296,6 +1296,14 @@ BitwuzlaSolver::check_sat_assuming(const std::vector<Term>& assumptions)
 }
 
 std::vector<Term>
+BitwuzlaSolver::get_assertions()
+{
+  assert(d_solver != nullptr);
+  return BitwuzlaTerm::bitwuzla_terms_to_terms(d_tm.get(),
+                                               d_solver->get_assertions());
+}
+
+std::vector<Term>
 BitwuzlaSolver::get_unsat_assumptions()
 {
   assert(d_solver != nullptr);
