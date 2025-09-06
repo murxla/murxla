@@ -426,6 +426,12 @@ class SolverManager
   void add_assumption(Term t);
 
   /**
+   * Get the set of currently active assumptions.
+   * @return The assumptions.
+   */
+  const std::unordered_set<Term>& assumptions() const { return d_assumptions; }
+
+  /**
    * Pick assumption out of the set of currently assumed assumptions.
    * @note Requires that d_assumptions is not empty.
    * @return A term representing an assumptions.
@@ -437,6 +443,12 @@ class SolverManager
    * @param t The assertion to cache.
    */
   void add_assertion(Term t);
+
+  /**
+   * Get the set of currently active assumptions.
+   * @return The assumptions.
+   */
+  const std::vector<Term>& assertions() const { return d_assertions; }
 
   /** Push assertion levels. */
   void push(uint32_t n_levels);
