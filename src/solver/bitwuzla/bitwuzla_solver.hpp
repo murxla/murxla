@@ -246,6 +246,7 @@ class BitwuzlaSolver : public Solver
 
   void check_term(Term term) override;
 
+  const ::bitwuzla::Options* options() { return d_options.get(); }
   //
   // get_model()
   // get_proof()

@@ -2053,6 +2053,82 @@ class BitwuzlaActionMisc : public Action
   }
 };
 
+class BitwuzlaActionGetInterpolant : public Action
+{
+ public:
+  /** The name of this action. */
+  inline static const Kind s_name = "bitwuzla-get-interpolant";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BitwuzlaActionGetInterpolant(SolverManager& smgr) : Action(smgr, s_name, NONE)
+  {
+  }
+
+  bool generate() override
+  {
+    assert(d_solver.is_initialized());
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    if (!slv.options()->get(::bitwuzla::Option::PRODUCE_INTERPOLANTS))
+    {
+      d_disable = true;
+      return false;
+    }
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
+    // get-interpolant with check-sat-assuming is not supported
+    if (!d_smgr.assumptions().empty()) return false;
+
+    auto assertions = d_smgr.assertions();
+    // we need at least 2 assertions, von for A and one for B
+    if (assertions.size() < 2) return false;
+
+    std::unordered_set<Term> A;
+    size_t n = d_rng.pick<size_t>(1, assertions.size() - 1);
+    while (A.size() < n)
+    {
+      A.insert(d_rng.pick_from_set<std::vector<Term>, Term>(assertions));
+    }
+
+    run({A.begin(), A.end()});
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS_MIN(2, "", tokens.size());
+
+    uint32_t idx     = 0;
+    uint32_t n_terms = str_to_uint32(tokens[idx++]);
+    std::vector<Term> terms;
+    for (uint32_t i = 0; i < n_terms; ++i)
+    {
+      Term term = get_untraced_term(untrace_str_to_id(tokens[idx]));
+      MURXLA_CHECK_TRACE_TERM(term, tokens[idx]);
+      terms.push_back(term);
+      idx += 1;
+    }
+    run(terms);
+    return {};
+  }
+
+ private:
+  void run(const std::vector<Term>& terms)
+  {
+    MURXLA_TRACE << get_kind() << " " << terms.size() << terms;
+
+    std::vector<::bitwuzla::Term> bzla_terms =
+        BitwuzlaTerm::terms_to_bitwuzla_terms(terms);
+
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    ::bitwuzla::Bitwuzla* bitwuzla = slv.get_solver();
+
+    bitwuzla->get_interpolant(bzla_terms);
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -2068,8 +2144,8 @@ BitwuzlaSolver::configure_fsm(FSM* fsm) const
   // State* s_create_terms     = fsm->get_state(State::CREATE_TERMS);
   // State* s_opt              = fsm->get_state(State::OPT);
   // State* s_push_pop         = fsm->get_state(State::PUSH_POP);
-  State* s_sat = fsm->get_state(State::SAT);
-  // State* s_unsat            = fsm->get_state(State::UNSAT);
+  State* s_sat              = fsm->get_state(State::SAT);
+  State* s_unsat            = fsm->get_state(State::UNSAT);
   State* s_decide_sat_unsat = fsm->get_state(State::DECIDE_SAT_UNSAT);
 
   auto t_default = fsm->new_action<TransitionDefault>();
@@ -2110,6 +2186,9 @@ BitwuzlaSolver::configure_fsm(FSM* fsm) const
 
   auto a_misc = fsm->new_action<BitwuzlaActionMisc>();
   fsm->add_action_to_all_states(a_misc, 100000);
+
+  auto a_getinterpol = fsm->new_action<BitwuzlaActionGetInterpolant>();
+  s_unsat->add_action(a_getinterpol, 1);
 
   /* Configure solver-specific states. */
   s_unknown->add_action(t_default, 1, s_check_sat);
