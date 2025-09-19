@@ -3066,8 +3066,13 @@ ActionMkSpecialValue::check_special_value(RNGenerator& rng,
                               == AbsTerm::SPECIAL_VALUE_BV_ONES))
                || (kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED
                    && special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_ZERO)))
-          || (size == 2 && kind == AbsTerm::SPECIAL_VALUE_BV_ONE
-              && special_bv_value_kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED))
+          || (size == 2
+              && ((kind == AbsTerm::SPECIAL_VALUE_BV_ONE
+                   && special_bv_value_kind
+                          == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED)
+                  || (kind == AbsTerm::SPECIAL_VALUE_BV_MAX_SIGNED
+                      && special_bv_value_kind
+                             == AbsTerm::SPECIAL_VALUE_BV_ONE))))
       {
         MURXLA_TEST(term->is_special_value(special_bv_value_kind));
       }
