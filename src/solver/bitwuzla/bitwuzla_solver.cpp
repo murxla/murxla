@@ -2137,6 +2137,107 @@ class BitwuzlaActionGetInterpolant : public Action
   }
 };
 
+class BitwuzlaActionGetInterpolants : public Action
+{
+ public:
+  /** The name of this action. */
+  inline static const Kind s_name = "bitwuzla-get-interpolants";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BitwuzlaActionGetInterpolants(SolverManager& smgr)
+      : Action(smgr, s_name, NONE)
+  {
+  }
+
+  bool generate() override
+  {
+    assert(d_solver.is_initialized());
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    if (!slv.options()->get(::bitwuzla::Option::PRODUCE_INTERPOLANTS))
+    {
+      d_disable = true;
+      return false;
+    }
+    if (!d_smgr.d_sat_called) return false;
+    if (d_smgr.d_sat_result != Solver::Result::UNSAT) return false;
+    // get-interpolant with check-sat-assuming is not supported
+    if (!d_smgr.assumptions().empty()) return false;
+
+    auto assertions = d_smgr.assertions();
+    // we need at least 2 assertions, von for A and one for B
+    if (assertions.size() < 2) return false;
+
+    std::vector<std::vector<Term>> partitions;
+    size_t n = d_rng.pick<size_t>(1, assertions.size() - 1);
+    while (partitions.size() < n)
+    {
+      std::vector<Term> partition;
+      size_t size_part = d_rng.pick<size_t>(1, assertions.size() - 1);
+      for (size_t i = 0; i < size_part; ++i)
+      {
+        partition.push_back(
+            d_rng.pick_from_set<std::vector<Term>, Term>(assertions));
+      }
+      partitions.emplace_back(std::move(partition));
+    }
+
+    run(partitions);
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS_MIN(2, "", tokens.size());
+
+    uint32_t idx          = 0;
+    uint32_t n_partitions = str_to_uint32(tokens[idx++]);
+    std::vector<std::vector<Term>> partitions;
+    for (uint32_t i = 0; i < n_partitions; ++i)
+    {
+      uint32_t partition_size = str_to_uint32(tokens[idx++]);
+      std::vector<Term> partition;
+      for (uint32_t j = 0; j < partition_size; ++j)
+      {
+        Term term = get_untraced_term(untrace_str_to_id(tokens[idx]));
+        MURXLA_CHECK_TRACE_TERM(term, tokens[idx]);
+        partition.push_back(term);
+        idx += 1;
+      }
+      partitions.emplace_back(std::move(partition));
+    }
+    run(partitions);
+    return {};
+  }
+
+ private:
+  void run(const std::vector<std::vector<Term>>& partitions)
+  {
+    std::stringstream ss;
+
+    ss << get_kind() << " " << partitions.size();
+    for (const auto& p : partitions)
+    {
+      ss << " " << p.size() << p;
+    }
+
+    MURXLA_TRACE << ss.str();
+
+    std::vector<std::vector<::bitwuzla::Term>> bzla_terms;
+    for (const auto& p : partitions)
+    {
+      bzla_terms.push_back(BitwuzlaTerm::terms_to_bitwuzla_terms(p));
+    }
+
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    ::bitwuzla::Bitwuzla* bitwuzla = slv.get_solver();
+
+    bitwuzla->get_interpolants(bzla_terms);
+  }
+};
+
 /* -------------------------------------------------------------------------- */
 
 void
@@ -2199,6 +2300,9 @@ BitwuzlaSolver::configure_fsm(FSM* fsm) const
 
   auto a_getinterpol = fsm->new_action<BitwuzlaActionGetInterpolant>();
   s_unsat->add_action(a_getinterpol, 1);
+
+  auto a_getinterpols = fsm->new_action<BitwuzlaActionGetInterpolants>();
+  s_unsat->add_action(a_getinterpols, 1);
 
   /* Configure solver-specific states. */
   s_unknown->add_action(t_default, 1, s_check_sat);
