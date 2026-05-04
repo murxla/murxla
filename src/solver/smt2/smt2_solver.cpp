@@ -1719,7 +1719,9 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
     }
     else if (kind == bitwuzla::BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL)
     {
-      sort = get_fp_sort_string(idxs[0], idxs[1]);
+      std::stringstream ss;
+      ss << "operator kind '" << kind << "' cannot be converted to SMT2";
+      throw MurxlaConfigException(ss.str());
     }
     MURXLA_EXIT_ERROR_CONFIG(sort.empty())
         << "operator " << kind << " not configured for SMT2 translation";
