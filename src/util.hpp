@@ -67,8 +67,10 @@ std::string str_to_str(const std::string& s);
 
 /* -------------------------------------------------------------------------- */
 
+std::ostream& operator<<(std::ostream& out, const std::vector<uint32_t>& vec);
+
 std::ostream& operator<<(std::ostream& out,
-                         const std::vector<uint32_t>& vector);
+                         const std::vector<std::string>& vec);
 
 /* -------------------------------------------------------------------------- */
 

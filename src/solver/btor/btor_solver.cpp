@@ -816,8 +816,11 @@ BtorSolver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 Term
 BtorSolver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
-                    const std::vector<uint32_t>& indices)
+                    const std::vector<uint32_t>& indices,
+                    const std::vector<std::string>& special_args)
 {
+  (void) special_args;
+
   BoolectorNode* btor_res = nullptr;
   size_t n_args           = args.size();
   size_t n_indices        = indices.size();

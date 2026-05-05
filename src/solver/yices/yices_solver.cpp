@@ -923,8 +923,11 @@ YicesSolver::mk_sort(SortKind kind, const std::vector<Sort>& sorts)
 Term
 YicesSolver::mk_term(const std::string& kind,
                      const std::vector<Term>& args,
-                     const std::vector<uint32_t>& indices)
+                     const std::vector<uint32_t>& indices,
+                     const std::vector<std::string>& special_args)
 {
+  (void) special_args;
+
   term_t yices_res               = -1;
   uint32_t n_args                = static_cast<uint32_t>(args.size());
   size_t n_indices               = indices.size();

@@ -195,7 +195,8 @@ class YicesSolver : public Solver
 
   Term mk_term(const Op::Kind& kind,
                const std::vector<Term>& args,
-               const std::vector<uint32_t>& indices) override;
+               const std::vector<uint32_t>& indices,
+               const std::vector<std::string>& special_args = {}) override;
 
   Sort get_sort(Term term, SortKind sort_kind) override;
 

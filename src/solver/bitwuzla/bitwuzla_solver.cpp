@@ -1204,7 +1204,8 @@ BitwuzlaSolver::mk_special_value(Sort sort,
 Term
 BitwuzlaSolver::mk_term(const Op::Kind& kind,
                         const std::vector<Term>& args,
-                        const std::vector<uint32_t>& indices)
+                        const std::vector<uint32_t>& indices,
+                        const std::vector<std::string>& special_args)
 {
   MURXLA_CHECK_CONFIG(BitwuzlaTerm::s_kinds_to_bitwuzla_kinds.find(kind)
                           != BitwuzlaTerm::s_kinds_to_bitwuzla_kinds.end()
@@ -1216,6 +1217,7 @@ BitwuzlaSolver::mk_term(const Op::Kind& kind,
   std::vector<uint64_t> bzla_indices{indices.begin(), indices.end()};
   std::vector<::bitwuzla::Term> vars;
   ::bitwuzla::Term bzla_res;
+  std::vector<std::string> sargs = special_args;
 
   if (kind == BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL)
   {
@@ -1225,24 +1227,28 @@ BitwuzlaSolver::mk_term(const Op::Kind& kind,
     // We only use the second argument (which is an FP term) to select an
     // FP format to convert to. This is mainly for ease of use as Bitwuzla
     // expects an FP sort and we cannot add special handling of solver-specific
-    // operator to solver-agnostic actions like ActionMkTerm.
+    // operators to solver-agnostic actions like ActionMkTerm.
     const ::bitwuzla::Sort& bzla_sort = bzla_args[1].sort();
     // Create TO_FP from string representing a Real value.
     if (d_rng.flip_coin())
     {
-      bzla_res =
-          d_tm->mk_fp_value(bzla_sort, bzla_args[0], d_rng.pick_real_string());
+      if (sargs.empty())
+      {
+        sargs.push_back(d_rng.pick_real_string());
+      }
+      bzla_res = d_tm->mk_fp_value(bzla_sort, bzla_args[0], sargs[0]);
     }
     // Create TO_FP from string representing a Rational value.
     else
     {
-      bzla_res =
-          d_tm->mk_fp_value(bzla_sort,
-                            bzla_args[0],
-                            d_rng.pick_dec_int_string(d_rng.pick<uint32_t>(
-                                1, MURXLA_RATIONAL_LEN_MAX)),
-                            d_rng.pick_dec_int_string(d_rng.pick<uint32_t>(
-                                1, MURXLA_RATIONAL_LEN_MAX)));
+      if (sargs.empty())
+      {
+        sargs.push_back(d_rng.pick_dec_int_string(
+            d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
+        sargs.push_back(d_rng.pick_dec_int_string(
+            d_rng.pick<uint32_t>(1, MURXLA_RATIONAL_LEN_MAX)));
+      }
+      bzla_res = d_tm->mk_fp_value(bzla_sort, bzla_args[0], sargs[0], sargs[1]);
     }
   }
   else
@@ -1253,6 +1259,10 @@ BitwuzlaSolver::mk_term(const Op::Kind& kind,
   }
   MURXLA_TEST(!bzla_res.is_null());
   std::shared_ptr<BitwuzlaTerm> res(new BitwuzlaTerm(d_tm.get(), bzla_res));
+  if (!sargs.empty())
+  {
+    res->d_special_args = std::move(sargs);
+  }
   assert(res);
   return res;
 }
@@ -1540,12 +1550,12 @@ BitwuzlaSolver::configure_opmgr(OpKindManager* opmgr) const
   opmgr->add_op_kind(
       BitwuzlaTerm::OP_BV_SSUBO, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
 
-  /* Bitwuzla only supports a very restricted version of to_fp from Real:
-   * only from strings representing real or rational values. We thus define
-   * this as a solver-specific operator with two arguments: a rounding mode
-   * term, and an FP term (which is only needed to get an existing FP sort to
-   * convert to).  This is a workaround for this very special case (we don't)
-   * want to generalize it for all solvers because it is too special). */
+  // Bitwuzla only supports a very restricted version of to_fp from Real:
+  // only from strings representing real or rational values. We thus define
+  // this as a solver-specific operator with two arguments: a rounding mode
+  // term, and an FP term (which is only needed to get an existing FP sort to
+  // convert to).  This is a workaround for this very special case we don't
+  // want to generalize it for all solvers because it is too special).
   opmgr->add_op_kind(BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL,
                      2,
                      0,

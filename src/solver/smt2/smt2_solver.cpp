@@ -606,7 +606,11 @@ Smt2Term::get_repr() const
 
       size_t i = 0;
       if (cur->get_leaf_kind() != AbsTerm::LeafKind::NONE
-          || cur->get_kind() == Op::FUN)
+          || cur->get_kind() == Op::FUN
+#ifdef MURXLA_USE_BITWUZLA
+          || cur->get_kind() == bitwuzla::BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL
+#endif
+      )
       {
         assert(!cur->d_repr.empty());
         res << cur->d_repr;
@@ -1614,7 +1618,8 @@ Smt2Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 Term
 Smt2Solver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
-                    const std::vector<uint32_t>& idxs)
+                    const std::vector<uint32_t>& idxs,
+                    const std::vector<std::string>& special_args)
 {
   Smt2Term* res;
   if (kind == Op::BAG_COUNT || kind == Op::BAG_MAP)
@@ -1643,6 +1648,35 @@ Smt2Solver::mk_term(const Op::Kind& kind,
     aargs.push_back(args[0]);
     res = new Smt2Term(kind, {}, aargs, idxs, "");
   }
+#ifdef MURXLA_USE_BITWUZLA
+  /* bitwuzla solver-specific operators */
+  else if (kind.rfind("bitwuzla-", 0) == 0
+           && kind == bitwuzla::BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL)
+  {
+    assert(args.size() == 2);
+    std::stringstream repr;
+    repr << "((_ " << get_default(Smt2Term::d_op_kind_to_str, kind, kind);
+    auto sort = args[1]->get_sort();
+    repr << " " << sort->get_fp_exp_size() << " " << sort->get_fp_sig_size();
+    repr << ") " << to_smt2_term(args[0])->get_repr() << " ";
+    if (special_args.size() == 1)
+    {
+      repr << special_args[0];
+    }
+    else
+    {
+      assert(special_args.size() == 2);
+      repr << "(/ " << special_args[0] << " " << special_args[1] << ")";
+    }
+    repr << ")";
+    // 'args[1]' is a 'virtual' argument, it is only used to determine the
+    // floating-point sort to convert to via 'to_fp'. Thus, the resulting
+    // Smt2Term effectively only has one argument, 'args[0]', since we must
+    // not traverse down the virtual argument in get_repr().
+    res = new Smt2Term(kind, {}, {args[0]}, idxs, repr.str());
+    res->set_sort(args[1]->get_sort());
+  }
+#endif
   else
   {
     res = new Smt2Term(kind, {}, args, idxs, "");
@@ -1653,8 +1687,10 @@ Smt2Solver::mk_term(const Op::Kind& kind,
 Term
 Smt2Solver::mk_term(const Op::Kind& kind,
                     const std::vector<std::string>& str_args,
-                    const std::vector<Term>& args)
+                    const std::vector<Term>& args,
+                    const std::vector<std::string>& special_args)
 {
+  (void) special_args;
   return std::shared_ptr<Smt2Term>(new Smt2Term(kind, str_args, args, {}, ""));
 }
 
@@ -1662,8 +1698,10 @@ Term
 Smt2Solver::mk_term(const Op::Kind& kind,
                     Sort sort,
                     const std::vector<std::string>& str_args,
-                    const std::vector<Term>& args)
+                    const std::vector<Term>& args,
+                    const std::vector<std::string>& special_args)
 {
+  (void) special_args;
   Smt2Term* res = new Smt2Term(kind, str_args, args, {}, "");
   if (kind == Op::DT_APPLY_CONS) res->set_sort(sort);
   return std::shared_ptr<Smt2Term>(res);
@@ -1716,12 +1754,6 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
              || kind == bitwuzla::BitwuzlaTerm::OP_IFF)
     {
       sort = get_bool_sort_string();
-    }
-    else if (kind == bitwuzla::BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL)
-    {
-      std::stringstream ss;
-      ss << "operator kind '" << kind << "' cannot be converted to SMT2";
-      throw MurxlaConfigException(ss.str());
     }
     MURXLA_EXIT_ERROR_CONFIG(sort.empty())
         << "operator " << kind << " not configured for SMT2 translation";

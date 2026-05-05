@@ -931,7 +931,8 @@ Solver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 Term
 Solver::mk_term(const Op::Kind& kind,
                 const std::vector<std::string>& str_args,
-                const std::vector<Term>& args)
+                const std::vector<Term>& args,
+                const std::vector<std::string>& special_args)
 {
   return Term();
 }
@@ -940,7 +941,8 @@ Term
 Solver::mk_term(const Op::Kind& kind,
                 Sort sort,
                 const std::vector<std::string>& str_args,
-                const std::vector<Term>& args)
+                const std::vector<Term>& args,
+                const std::vector<std::string>& special_args)
 {
   return Term();
 }

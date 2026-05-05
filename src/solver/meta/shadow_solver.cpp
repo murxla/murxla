@@ -952,12 +952,14 @@ ShadowSolver::instantiate_sort(Sort param_sort, const std::vector<Sort>& sorts)
 Term
 ShadowSolver::mk_term(const Op::Kind& kind,
                       const std::vector<Term>& args,
-                      const std::vector<uint32_t>& indices)
+                      const std::vector<uint32_t>& indices,
+                      const std::vector<std::string>& special_args)
 {
   std::vector<Term> terms_orig, terms_shadow;
   get_terms_helper(args, terms_orig, terms_shadow);
-  Term t        = d_solver->mk_term(kind, terms_orig, indices);
-  Term t_shadow = d_solver_shadow->mk_term(kind, terms_shadow, indices);
+  Term t = d_solver->mk_term(kind, terms_orig, indices, special_args);
+  Term t_shadow =
+      d_solver_shadow->mk_term(kind, terms_shadow, indices, special_args);
   std::shared_ptr<ShadowTerm> res(new ShadowTerm(t, t_shadow));
   return res;
 }
@@ -965,12 +967,14 @@ ShadowSolver::mk_term(const Op::Kind& kind,
 Term
 ShadowSolver::mk_term(const Op::Kind& kind,
                       const std::vector<std::string>& str_args,
-                      const std::vector<Term>& args)
+                      const std::vector<Term>& args,
+                      const std::vector<std::string>& special_args)
 {
   std::vector<Term> terms_orig, terms_shadow;
   get_terms_helper(args, terms_orig, terms_shadow);
-  Term t        = d_solver->mk_term(kind, str_args, terms_orig);
-  Term t_shadow = d_solver_shadow->mk_term(kind, str_args, terms_shadow);
+  Term t = d_solver->mk_term(kind, str_args, terms_orig, special_args);
+  Term t_shadow =
+      d_solver_shadow->mk_term(kind, str_args, terms_shadow, special_args);
   std::shared_ptr<ShadowTerm> res(new ShadowTerm(t, t_shadow));
   return res;
 }
@@ -979,16 +983,18 @@ Term
 ShadowSolver::mk_term(const Op::Kind& kind,
                       Sort sort,
                       const std::vector<std::string>& str_args,
-                      const std::vector<Term>& args)
+                      const std::vector<Term>& args,
+                      const std::vector<std::string>& special_args)
 {
   ShadowSort* s_sort = checked_cast<ShadowSort*>(sort.get());
   Sort sort_orig     = s_sort->get_sort();
   Sort sort_shadow   = s_sort->get_sort_shadow();
   std::vector<Term> terms_orig, terms_shadow;
   get_terms_helper(args, terms_orig, terms_shadow);
-  Term t = d_solver->mk_term(kind, sort_orig, str_args, terms_orig);
-  Term t_shadow =
-      d_solver_shadow->mk_term(kind, sort_shadow, str_args, terms_shadow);
+  Term t =
+      d_solver->mk_term(kind, sort_orig, str_args, terms_orig, special_args);
+  Term t_shadow = d_solver_shadow->mk_term(
+      kind, sort_shadow, str_args, terms_shadow, special_args);
   std::shared_ptr<ShadowTerm> res(new ShadowTerm(t, t_shadow));
   return res;
 }

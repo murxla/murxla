@@ -58,7 +58,9 @@ class BitwuzlaSort : public AbsSort
   std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
+  /** The associated Bitwuzla sort. */
   ::bitwuzla::Sort d_sort;
+  /** The associated Bitwuzla term manager. */
   ::bitwuzla::TermManager* d_tm;
 };
 
@@ -147,7 +149,9 @@ class BitwuzlaTerm : public AbsTerm
   std::vector<Sort> get_fun_domain_sorts() const override;
 
  private:
+  /** The associated Bitwuzla term. */
   ::bitwuzla::Term d_term;
+  /** The associated Bitwuzla term manager. */
   ::bitwuzla::TermManager* d_tm;
 };
 
@@ -219,7 +223,8 @@ class BitwuzlaSolver : public Solver
 
   Term mk_term(const Op::Kind& kind,
                const std::vector<Term>& args,
-               const std::vector<uint32_t>& indices) override;
+               const std::vector<uint32_t>& indices,
+               const std::vector<std::string>& special_args = {}) override;
 
   Sort get_sort(Term term, SortKind sort_kind) override;
 

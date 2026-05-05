@@ -107,15 +107,19 @@ Action::TraceStream::TraceStream(SolverManager& smgr) : d_smgr(smgr)
 Action::TraceStream::~TraceStream() { flush(); }
 
 std::ostream&
-Action::TraceStream::stream()
+Action::TraceStream::stream(bool newline)
 {
+  d_newline = newline;
   return d_smgr.get_trace();
 }
 
 void
 Action::TraceStream::flush()
 {
-  stream() << std::endl;
+  if (d_newline)
+  {
+    stream() << std::endl;
+  }
   stream().flush();
 }
 
@@ -2093,7 +2097,7 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
   Sort sort;
 
   uint32_t n_args, n_str_args = 0, idx = 3;
-  std::vector<std::string> str_args;
+  std::vector<std::string> str_args, special_args;
 
   if (op_kind == Op::DT_APPLY_SEL || op_kind == Op::DT_APPLY_TESTER
       || op_kind == Op::DT_APPLY_UPDATER)
@@ -2133,39 +2137,65 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
     args.push_back(t);
   }
 
+  uint32_t n_indices      = 0;
+  uint32_t n_special_args = 0;
   if (idx < tokens.size())
   {
-    uint32_t n_indices = str_to_uint32(tokens[idx++]);
-    MURXLA_CHECK_TRACE(idx + n_indices == n_tokens)
-        << "expected " << n_args << " parameter(s) to create indexed term, got "
-        << n_tokens - 3 - n_args;
-    for (uint32_t i = 0; i < n_indices; ++i, ++idx)
+    n_indices = str_to_uint32(tokens[idx++]);
+    if (n_indices && tokens[idx][0] == '\"')
     {
-      uint32_t param = str_to_uint32(tokens[idx]);
-      indices.push_back(param);
+      n_special_args = n_indices;
+      n_indices      = 0;
+    }
+    else
+    {
+      MURXLA_CHECK_TRACE(idx + n_indices <= n_tokens)
+          << "expected " << n_indices
+          << " parameter(s) to create indexed term, got "
+          << n_tokens - 3 - n_args;
+      for (uint32_t i = 0; i < n_indices; ++i, ++idx)
+      {
+        indices.push_back(str_to_uint32(tokens[idx]));
+      }
+    }
+  }
+  if (idx < tokens.size())
+  {
+    if (n_special_args == 0)
+    {
+      n_special_args = str_to_uint32(tokens[idx++]);
+    }
+    MURXLA_CHECK_TRACE(idx + n_special_args == n_tokens)
+        << "expected " << n_special_args
+        << " parameter(s) as special arguments, got "
+        << n_tokens - 3 - n_args - n_indices;
+    for (uint32_t i = 0; i < n_special_args; ++i, ++idx)
+    {
+      special_args.push_back(str_to_str(tokens[idx]));
     }
   }
 
   if (op_kind == Op::DT_APPLY_SEL || op_kind == Op::DT_APPLY_TESTER
       || op_kind == Op::DT_APPLY_UPDATER)
   {
-    return run(op_kind, sort_kind, str_args, args);
+    return run(op_kind, sort_kind, str_args, args, special_args);
   }
 
   if (op_kind == Op::DT_APPLY_CONS || op_kind == Op::DT_MATCH_CASE
       || op_kind == Op::DT_MATCH_BIND_CASE)
   {
-    return run(op_kind, sort_kind, sort, str_args, args);
+    return run(op_kind, sort_kind, sort, str_args, args, special_args);
   }
 
-  return run(op_kind, sort_kind, args, indices);
+  return run(op_kind, sort_kind, args, indices, special_args);
 }
 
 std::vector<uint64_t>
 ActionMkTerm::run(Op::Kind kind,
                   SortKind sort_kind,
                   std::vector<Term>& args,
-                  const std::vector<uint32_t>& indices)
+                  const std::vector<uint32_t>& indices,
+                  const std::vector<std::string>& special_args)
 {
   std::stringstream trace_str;
   trace_str << " " << kind << " " << sort_kind;
@@ -2174,7 +2204,16 @@ ActionMkTerm::run(Op::Kind kind,
   {
     trace_str << " " << indices.size() << indices;
   }
-  MURXLA_TRACE << get_kind() << trace_str.str();
+  if (special_args.size())
+  {
+    trace_str << " " << special_args.size() << special_args;
+    MURXLA_TRACE << get_kind() << trace_str.str();
+  }
+  else
+  {
+    MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
+  }
+
   reset_sat();
 
   std::vector<Term> bargs;
@@ -2195,7 +2234,30 @@ ActionMkTerm::run(Op::Kind kind,
     }
   }
 
-  Term res = d_solver.mk_term(kind, args, indices);
+  // AbsTerm::d_special_args is populated by the solver during mk_term if
+  // applicable if not untracing, in which case `special_args` is empty
+  // (generate() does not populate this). Thus, we can only finish the
+  // trace line (adding the special args) after the call to Solver::mk_term().
+  // If untracing, special args are read from the trace, and thus `special_args`
+  // will not be empty. Hence, we can finish the trace line here in that case.
+  if (special_args.size())
+  {
+    MURXLA_TRACE_NEWLINE;
+  }
+  Term res = d_solver.mk_term(kind, args, indices, special_args);
+  if (special_args.empty())
+  {
+    if (res->d_special_args.size())
+    {
+      MURXLA_TRACE_NEWLINE << " " << res->d_special_args.size()
+                           << res->d_special_args;
+    }
+    else
+    {
+      MURXLA_TRACE_NEWLINE;
+    }
+  }
+
   // MURXLA_TEST(res->get_sort() == nullptr
   //             || d_solver.get_sort(res, sort_kind)->equals(res->get_sort()));
 
@@ -2232,20 +2294,47 @@ std::vector<uint64_t>
 ActionMkTerm::run(Op::Kind kind,
                   SortKind sort_kind,
                   const std::vector<std::string> str_args,
-                  const std::vector<Term>& args)
+                  const std::vector<Term>& args,
+                  const std::vector<std::string>& special_args)
 {
   std::stringstream trace_str;
   trace_str << " " << kind << " " << sort_kind;
-  trace_str << " " << str_args.size();
-  for (const auto& s : str_args)
-  {
-    trace_str << " \"" << s << "\" ";
-  }
+  trace_str << " " << str_args.size() << str_args;
   trace_str << " " << args.size() << args;
-  MURXLA_TRACE << get_kind() << trace_str.str();
+  if (special_args.size())
+  {
+    trace_str << " " << special_args.size() << special_args;
+    MURXLA_TRACE << get_kind() << trace_str.str();
+  }
+  else
+  {
+    MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
+  }
   reset_sat();
 
-  Term res = d_solver.mk_term(kind, str_args, args);
+  // AbsTerm::d_special_args is populated by the solver during mk_term if
+  // applicable if not untracing, in which case `special_args` is empty
+  // (generate() does not populate this). Thus, we can only finish the
+  // trace line (adding the special args) after the call to Solver::mk_term().
+  // If untracing, special args are read from the trace, and thus `special_args`
+  // will not be empty. Hence, we can finish the trace line here in that case.
+  if (special_args.size())
+  {
+    MURXLA_TRACE_NEWLINE;
+  }
+  Term res = d_solver.mk_term(kind, str_args, args, special_args);
+  if (special_args.empty())
+  {
+    if (res->d_special_args.size())
+    {
+      MURXLA_TRACE_NEWLINE << " " << res->d_special_args.size()
+                           << res->d_special_args;
+    }
+    else
+    {
+      MURXLA_TRACE_NEWLINE;
+    }
+  }
   d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
 
@@ -2259,17 +2348,22 @@ ActionMkTerm::run(Op::Kind kind,
                   SortKind sort_kind,
                   Sort sort,
                   const std::vector<std::string> str_args,
-                  std::vector<Term>& args)
+                  std::vector<Term>& args,
+                  const std::vector<std::string>& special_args)
 {
   std::stringstream trace_str;
   trace_str << " " << kind << " " << sort_kind << " " << sort;
-  trace_str << " " << str_args.size();
-  for (const auto& s : str_args)
-  {
-    trace_str << " \"" << s << "\" ";
-  }
+  trace_str << " " << str_args.size() << str_args;
   trace_str << " " << args.size() << args;
-  MURXLA_TRACE << get_kind() << trace_str.str();
+  if (special_args.size())
+  {
+    trace_str << " " << special_args.size() << special_args;
+    MURXLA_TRACE << get_kind() << trace_str.str();
+  }
+  else
+  {
+    MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
+  }
   reset_sat();
 
   /* Note: We pop the variable scopes in run instead of generate so that we
@@ -2282,9 +2376,31 @@ ActionMkTerm::run(Op::Kind kind,
     }
   }
 
-  Term res = d_solver.mk_term(kind, sort, str_args, args);
-  /* We do not add match case terms since they are specifically created for
-   * creating a match term and should not be used in any other terms. */
+  // AbsTerm::d_special_args is populated by the solver during mk_term if
+  // applicable if not untracing, in which case `special_args` is empty
+  // (generate() does not populate this). Thus, we can only finish the
+  // trace line (adding the special args) after the call to Solver::mk_term().
+  // If untracing, special args are read from the trace, and thus `special_args`
+  // will not be empty. Hence, we can finish the trace line here in that case.
+  if (special_args.size())
+  {
+    MURXLA_TRACE_NEWLINE;
+  }
+  Term res = d_solver.mk_term(kind, sort, str_args, args, special_args);
+  if (special_args.empty())
+  {
+    if (res->d_special_args.size())
+    {
+      MURXLA_TRACE_NEWLINE << " " << res->d_special_args.size()
+                           << res->d_special_args;
+    }
+    else
+    {
+      MURXLA_TRACE_NEWLINE;
+    }
+  }
+  // We do not add match case terms since they are specifically created for
+  // creating a match term and should not be used in any other terms.
   d_smgr.add_term(res, sort_kind, args);
   Sort res_sort = res->get_sort();
 

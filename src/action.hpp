@@ -36,7 +36,14 @@
                 << std::setw(5) << d_sng.seed() << " "
 //! @internal [docs-murxla_trace end]
 
+#define MURXLA_TRACE_NO_NEWLINE                       \
+  d_solver.get_rng().reseed(d_sng.seed()),            \
+      OstreamVoider()                                 \
+          & Action::TraceStream(d_smgr).stream(false) \
+                << std::setw(5) << d_sng.seed() << " "
 
+#define MURXLA_TRACE_NEWLINE \
+  OstreamVoider() & Action::TraceStream(d_smgr).stream()
 /**
  * The macro to be used for tracing the return value of an action's execution.
  *
@@ -158,13 +165,15 @@ class Action
      * Get the wrapped output stream.
      * @return  The output stream.
      */
-    std::ostream& stream();
+    std::ostream& stream(bool newline = true);
 
    private:
     /** Flush the output stream. */
     void flush();
     /** The associated solver manager. */
     SolverManager& d_smgr;
+    /** True to end the line with a newline. */
+    bool d_newline;
   };
 
   /** Disallow default constructor. */
@@ -593,16 +602,19 @@ class ActionMkTerm : public Action
   std::vector<uint64_t> run(Op::Kind kind,
                             SortKind sort_kind,
                             std::vector<Term>& args,
-                            const std::vector<uint32_t>& indices);
+                            const std::vector<uint32_t>& indices,
+                            const std::vector<std::string>& special_args = {});
   std::vector<uint64_t> run(Op::Kind kind,
                             SortKind sort_kind,
                             const std::vector<std::string> str_args,
-                            const std::vector<Term>& args);
+                            const std::vector<Term>& args,
+                            const std::vector<std::string>& special_args = {});
   std::vector<uint64_t> run(Op::Kind kind,
                             SortKind sort_kind,
                             Sort sort,
                             const std::vector<std::string> str_args,
-                            std::vector<Term>& args);
+                            std::vector<Term>& args,
+                            const std::vector<std::string>& special_args = {});
 
   /** Helper to create array store chains. */
   Term mk_store(const Sort& array_sort,

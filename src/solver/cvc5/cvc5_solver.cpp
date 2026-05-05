@@ -2056,8 +2056,11 @@ Cvc5Solver::mk_special_value(Sort sort, const AbsTerm::SpecialValueKind& value)
 Term
 Cvc5Solver::mk_term(const Op::Kind& kind,
                     const std::vector<Term>& args,
-                    const std::vector<uint32_t>& indices)
+                    const std::vector<uint32_t>& indices,
+                    const std::vector<std::string>& special_args)
 {
+  (void) special_args;
+
   MURXLA_CHECK_CONFIG(Cvc5Term::s_kinds_to_cvc5_kinds.find(kind)
                       != Cvc5Term::s_kinds_to_cvc5_kinds.end())
       << "Cvc5Solver: operator kind '" << kind << "' not configured";
@@ -2463,8 +2466,11 @@ Cvc5Solver::getDatatypeSelectorTerm(::cvc5::Sort dt_sort,
 Term
 Cvc5Solver::mk_term(const Op::Kind& kind,
                     const std::vector<std::string>& str_args,
-                    const std::vector<Term>& args)
+                    const std::vector<Term>& args,
+                    const std::vector<std::string>& special_args)
 {
+  (void) special_args;
+
   MURXLA_CHECK_CONFIG(Cvc5Term::s_kinds_to_cvc5_kinds.find(kind)
                       != Cvc5Term::s_kinds_to_cvc5_kinds.end())
       << "Cvc5Solver: operator kind '" << kind << "' not configured";
@@ -2549,8 +2555,10 @@ Term
 Cvc5Solver::mk_term(const Op::Kind& kind,
                     Sort sort,
                     const std::vector<std::string>& str_args,
-                    const std::vector<Term>& args)
+                    const std::vector<Term>& args,
+                    const std::vector<std::string>& special_args)
 {
+  (void) special_args;
   assert(sort);
   assert(sort->is_dt());
 

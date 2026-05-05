@@ -1119,6 +1119,13 @@ class AbsTerm
    */
   LeafKind get_leaf_kind() const;
 
+  /**
+   * Cache special arguments for solver-spefic operators that need special
+   * treatment, e.g., the real string and the numerator and denominator strings
+   * for BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL.
+   */
+  std::vector<std::string> d_special_args;
+
  protected:
   /** The id of this term. */
   uint64_t d_id = 0u;
@@ -1309,14 +1316,19 @@ class Solver
   /**
    * Create term with given term arguments and indices.
    *
-   * @param kind  The kind of the term (Op::Kind).
-   * @param args  The argument terms.
-   * @param indices  The index arguments.
+   * @param kind         The kind of the term (Op::Kind).
+   * @param args         The argument terms.
+   * @param indices      The index arguments.
+   * @param special_args Special arguments for solver-spefic operators that
+   *                     need special treatment, e.g., the real string and the
+   *                     numerator and denominator strings for
+   *                     BitwuzlaTerm::OP_FP_TO_FP_FROM_REAL.
    * @return  The created term.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<Term>& args,
-                       const std::vector<uint32_t>& indices) = 0;
+                       const std::vector<uint32_t>& indices,
+                       const std::vector<std::string>& special_args = {}) = 0;
 
   /**
    * Create term with given string and term arguments.
@@ -1333,10 +1345,14 @@ class Solver
    * @param kind  The kind of the term (Op::Kind).
    * @param str_args  The names of constructors/selectors as indicated above.
    * @param args  The argument terms.
+   * @param special_args Special arguments for solver-spefic operators that
+   *                     need special treatment.
+   * @return  The created term.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        const std::vector<std::string>& str_args,
-                       const std::vector<Term>& args);
+                       const std::vector<Term>& args,
+                       const std::vector<std::string>& special_args = {});
   /**
    * Create term with given Sort, string and term arguments.
    *
@@ -1353,12 +1369,15 @@ class Solver
    * @param sort  The datatype sort to apply the given kind on.
    * @param str_args  The names of constructors/selectors as indicated above.
    * @param args  The argument terms.
+   * @param special_args Special arguments for solver-spefic operators that
+   *                     need special treatment.
+   * @return  The created term.
    */
   virtual Term mk_term(const Op::Kind& kind,
                        Sort sort,
                        const std::vector<std::string>& str_args,
-                       const std::vector<Term>& args);
-
+                       const std::vector<Term>& args,
+                       const std::vector<std::string>& special_args = {});
   /**
    * Get a freshly wrapped solver sort of the given term.
    *

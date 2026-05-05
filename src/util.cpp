@@ -17,7 +17,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
-#include <limits>
 #include <sstream>
 #include <unordered_map>
 
@@ -374,9 +373,19 @@ str_to_str(const std::string& s)
 /* -------------------------------------------------------------------------- */
 
 std::ostream&
-operator<<(std::ostream& out, const std::vector<uint32_t>& vector)
+operator<<(std::ostream& out, const std::vector<uint32_t>& vec)
 {
-  for (const uint32_t v : vector) out << " " << v;
+  for (const uint32_t v : vec) out << " " << v;
+  return out;
+}
+
+std::ostream&
+operator<<(std::ostream& out, const std::vector<std::string>& vec)
+{
+  for (const auto& v : vec)
+  {
+    out << " \"" << v << "\"";
+  }
   return out;
 }
 
