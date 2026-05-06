@@ -519,6 +519,16 @@ class Smt2Solver : public Solver
 
   std::vector<Term> get_value(const std::vector<Term>& terms) override;
 
+  void configure_fsm(FSM* fsm) const override;
+
+#ifdef MURXLA_USE_BITWUZLA
+  /** Emit `(get-interpolant (<term> ...))` for the given list of formulas. */
+  void bitwuzla_get_interpolant(const std::vector<Term>& terms);
+  /** Emit `(get-interpolants (<term> ...) ...)` for the given partitions. */
+  void bitwuzla_get_interpolants(
+      const std::vector<std::vector<Term>>& partitions);
+#endif
+
  private:
   enum ResponseKind
   {

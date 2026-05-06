@@ -406,6 +406,9 @@ class FSM
   /** Get a reference to the associated solver manager. */
   SolverManager& get_smgr();
 
+  /** True if this FSM was created for replaying an API trace. */
+  bool is_in_untrace_replay_mode() const { return d_in_untrace_replay_mode; }
+
   /**
    * Return a mapping from Action id to Action kind.
    * Will be empty if not called after FSM::configure().
@@ -628,6 +631,8 @@ class FSM
   bool d_smtlib_compliant = false;
   /** True to enable option fuzzing. */
   bool d_fuzz_options = false;
+  /** True if the FSM was created for replaying an API trace. */
+  bool d_in_untrace_replay_mode = false;
   /** Filter options to be fuzzed. */
   std::string d_fuzz_options_filter;
 

@@ -2245,5 +2245,147 @@ Smt2Solver::get_value(const std::vector<Term>& terms)
   return terms;
 }
 
+#ifdef MURXLA_USE_BITWUZLA
+void
+Smt2Solver::bitwuzla_get_interpolant(const std::vector<Term>& terms)
+{
+  std::stringstream smt2;
+  smt2 << "(get-interpolant (";
+  for (size_t i = 0, n = terms.size(); i < n; ++i)
+  {
+    Smt2Term* smt2_term = static_cast<Smt2Term*>(terms[i].get());
+    if (i > 0) smt2 << " ";
+    smt2 << smt2_term->get_repr();
+  }
+  smt2 << "))";
+  dump_smt2(smt2.str(), ResponseKind::SMT2_SEXPR);
+}
+
+void
+Smt2Solver::bitwuzla_get_interpolants(
+    const std::vector<std::vector<Term>>& partitions)
+{
+  std::stringstream smt2;
+  smt2 << "(get-interpolants";
+  for (const auto& p : partitions)
+  {
+    smt2 << " (";
+    for (size_t i = 0, n = p.size(); i < n; ++i)
+    {
+      Smt2Term* smt2_term = static_cast<Smt2Term*>(p[i].get());
+      if (i > 0) smt2 << " ";
+      smt2 << smt2_term->get_repr();
+    }
+    smt2 << ")";
+  }
+  smt2 << ")";
+  dump_smt2(smt2.str(), ResponseKind::SMT2_SEXPR);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Bitwuzla-specific actions for SMT-LIBv2 emission.                          */
+/* -------------------------------------------------------------------------- */
+
+namespace {
+
+/**
+ * Emit `(get-interpolant (<term> ...))`.
+ *
+ * Mirrors the kind name of bitwuzla's get-interpolant action so that traces
+ * containing it can be replayed in --smt2 mode without requiring the bitwuzla
+ * solver to be the active solver.
+ */
+class Smt2BitwuzlaActionGetInterpolant : public Action
+{
+ public:
+  inline static const Kind s_name = "bitwuzla-get-interpolant";
+
+  Smt2BitwuzlaActionGetInterpolant(SolverManager& smgr)
+      : Action(smgr, s_name, NONE)
+  {
+  }
+
+  bool generate() override { return false; }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS_MIN(2, "", tokens.size());
+    uint32_t idx     = 0;
+    uint32_t n_terms = str_to_uint32(tokens[idx++]);
+    std::vector<Term> terms;
+    for (uint32_t i = 0; i < n_terms; ++i)
+    {
+      Term term = get_untraced_term(untrace_str_to_id(tokens[idx]));
+      MURXLA_CHECK_TRACE_TERM(term, tokens[idx]);
+      terms.push_back(term);
+      idx += 1;
+    }
+    static_cast<Smt2Solver&>(d_smgr.get_solver())
+        .bitwuzla_get_interpolant(terms);
+    return {};
+  }
+};
+
+/**
+ * Emit `(get-interpolants (<term> ...) ...)`.
+ *
+ * Mirrors the kind name of bitwuzla's get-interpolants action.
+ */
+class Smt2BitwuzlaActionGetInterpolants : public Action
+{
+ public:
+  inline static const Kind s_name = "bitwuzla-get-interpolants";
+
+  Smt2BitwuzlaActionGetInterpolants(SolverManager& smgr)
+      : Action(smgr, s_name, NONE)
+  {
+  }
+
+  bool generate() override { return false; }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS_MIN(2, "", tokens.size());
+    uint32_t idx          = 0;
+    uint32_t n_partitions = str_to_uint32(tokens[idx++]);
+    std::vector<std::vector<Term>> partitions;
+    for (uint32_t i = 0; i < n_partitions; ++i)
+    {
+      uint32_t partition_size = str_to_uint32(tokens[idx++]);
+      std::vector<Term> partition;
+      for (uint32_t j = 0; j < partition_size; ++j)
+      {
+        Term term = get_untraced_term(untrace_str_to_id(tokens[idx]));
+        MURXLA_CHECK_TRACE_TERM(term, tokens[idx]);
+        partition.push_back(term);
+        idx += 1;
+      }
+      partitions.emplace_back(std::move(partition));
+    }
+    static_cast<Smt2Solver&>(d_smgr.get_solver())
+        .bitwuzla_get_interpolants(partitions);
+    return {};
+  }
+};
+
+}  // namespace
+#endif
+
+void
+Smt2Solver::configure_fsm(FSM* fsm) const
+{
+  /* Only register solver-specific actions when replaying a trace. We do not
+   * want to generate them when fuzzing through the SMT2 solver. */
+  if (!fsm->is_in_untrace_replay_mode()) return;
+
+#ifdef MURXLA_USE_BITWUZLA
+  /* Register bitwuzla-specific actions so that traces containing them can be
+   * replayed in --smt2 mode. These actions are not added to any state since
+   * we only support emitting them via untrace replay. */
+  (void) fsm->new_action<Smt2BitwuzlaActionGetInterpolant>();
+  (void) fsm->new_action<Smt2BitwuzlaActionGetInterpolants>();
+#endif
+}
+
 }  // namespace smt2
 }  // namespace murxla
