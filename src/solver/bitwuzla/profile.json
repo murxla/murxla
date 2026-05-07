@@ -68,6 +68,10 @@
   "errors": {
     "exclude": [
       "\\[bitwuzla\\] bitwuzla_.*: .* is currently not supported with quantifiers"
+    ],
+    "exclude-lines": [
+      "^\\[bzla\\]",
+      "^\\(main\\)"
     ]
   }
 }

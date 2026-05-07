@@ -228,6 +228,26 @@ Error messages can be filtered out as follows.
 
 This will ignore all triggered error messages containing ``foo`` or ``bar``.
 
+Individual lines can also be stripped from the captured stderr output before
+it is treated as an error message. This is useful for solvers that print
+verbose or log output to stderr that should not be considered part of the
+actual error.
+
+.. code-block:: JSON
+
+  {
+     "errors": {
+      "exclude-lines": [
+        "^\\[bzla\\]",
+        "^\\(main\\)"
+      ]
+    }
+  }
+
+Each entry is a regex that is matched against each captured stderr line via
+``regex_search``. Matching lines are dropped before error matching, error
+filtering, and golden output comparison (for delta debugging) are performed.
+
 
 Customizing Solver Profiles
 ***************************

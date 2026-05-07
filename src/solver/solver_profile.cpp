@@ -333,6 +333,25 @@ SolverProfile::get_error_filters() const
   return filters;
 }
 
+std::vector<std::string>
+SolverProfile::get_excluded_error_lines() const
+{
+  std::vector<std::string> patterns;
+  auto it = d_json.find(KEY_ERRORS);
+  if (it != d_json.end())
+  {
+    auto itt = it->find("exclude-lines");
+    if (itt != it->end() && itt->is_array())
+    {
+      for (const auto& p : *itt)
+      {
+        patterns.emplace_back(p.get<std::string>());
+      }
+    }
+  }
+  return patterns;
+}
+
 void
 SolverProfile::parse()
 {

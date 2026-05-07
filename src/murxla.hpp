@@ -11,6 +11,7 @@
 #define __MURXLA__MURXLA_H
 
 #include <cstdint>
+#include <regex>
 #include <string>
 
 #include "action.hpp"
@@ -217,6 +218,12 @@ class Murxla
   /** Filter error messages based on filter regex provided in solver profile. */
   std::string filter_error(const std::string& err);
 
+  /**
+   * Returns true if the given stderr line matches any of the regex patterns
+   * configured via `errors::exclude-lines` in the solver profile.
+   */
+  bool is_excluded_error_line(const std::string& line) const;
+
   /** Register error to d_errors. */
   std::tuple<Murxla::ErrorKind, const std::string, uint64_t, uint64_t>
   add_error(const std::string& err, uint64_t seed);
@@ -237,6 +244,7 @@ class Murxla
 
   std::unordered_set<std::string> d_exclude_errors;
   std::vector<std::string> d_error_filters;
+  std::vector<std::regex> d_excluded_error_lines;
 
   std::unique_ptr<SolverProfile> d_solver_profile;
 

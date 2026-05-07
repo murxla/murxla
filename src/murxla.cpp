@@ -252,7 +252,19 @@ Murxla::run(uint64_t seed,
     tmp_out.close();
 
     std::ifstream tmp_err = open_input_file(tmp_file_err, true);
-    err << tmp_err.rdbuf();
+    if (d_excluded_error_lines.empty())
+    {
+      err << tmp_err.rdbuf();
+    }
+    else
+    {
+      std::string line;
+      while (std::getline(tmp_err, line))
+      {
+        if (is_excluded_error_line(line)) continue;
+        err << line << "\n";
+      }
+    }
     tmp_err.close();
 
     out.close();
@@ -930,6 +942,23 @@ Murxla::load_solver_profile()
   auto error_filters = d_solver_profile->get_error_filters();
   d_error_filters.insert(
       d_error_filters.end(), error_filters.begin(), error_filters.end());
+  for (const auto& re : d_solver_profile->get_excluded_error_lines())
+  {
+    d_excluded_error_lines.emplace_back(re);
+  }
+}
+
+bool
+Murxla::is_excluded_error_line(const std::string& line) const
+{
+  for (const auto& re : d_excluded_error_lines)
+  {
+    if (std::regex_search(line, re))
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 std::string

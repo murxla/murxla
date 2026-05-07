@@ -206,6 +206,13 @@ class SolverProfile
   /** Get list of error filters.*/
   std::vector<std::string> get_error_filters() const;
 
+  /**
+   * Get list of regex patterns matching stderr lines to be stripped before
+   * the error message is determined. Used to ignore solver verbose/log output
+   * that is not part of the actual error message.
+   */
+  std::vector<std::string> get_excluded_error_lines() const;
+
  private:
   static inline const std::string KEY_THEORIES = "theories";
   static inline const std::string KEY_THEORY_COMBINATIONS =
