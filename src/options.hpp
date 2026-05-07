@@ -35,6 +35,8 @@ struct Options
   double time = 1;
   /** The maximum number of test runs to perform. */
   uint32_t max_runs = 0;
+  /** The number of parallel fuzzing jobs (1 = no parallelism). */
+  uint32_t num_jobs = 1;
 
   /** True if seed is provided by user. */
   bool is_seeded = false;

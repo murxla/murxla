@@ -20,6 +20,14 @@ namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Mix a 64-bit value with the SplitMix64 finalizer. Used to derive
+ * non-overlapping starting seeds for parallel fuzzing workers.
+ */
+uint64_t splitmix64(uint64_t x);
+
+/* -------------------------------------------------------------------------- */
+
 class SeedGenerator
 {
  public:

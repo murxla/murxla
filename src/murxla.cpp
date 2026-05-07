@@ -9,12 +9,14 @@
  */
 #include "murxla.hpp"
 
+#include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -135,6 +137,82 @@ error_diff(const std::string& e1, const std::string& e2)
   size_t len  = std::max(e1.size(), e2.size());
   size_t diff = str_diff(e1, e2);
   return static_cast<double>(diff) / static_cast<double>(len);
+}
+
+/* -------------------------------------------------------------------------- */
+/* RPC pipe I/O helpers.                                                      */
+/*                                                                            */
+/* Used for `-j/--jobs` parallel fuzzing: workers communicate with the        */
+/* coordinator over pipe pairs. Messages are length-prefixed (4-byte little-  */
+/* endian) and writes/reads loop on EINTR (workers' solver/timeout children   */
+/* deliver SIGCHLD which interrupts pipe I/O).                                */
+/* -------------------------------------------------------------------------- */
+
+bool
+write_all(int fd, const void* buf, size_t n)
+{
+  const char* p = static_cast<const char*>(buf);
+  while (n > 0)
+  {
+    ssize_t w = ::write(fd, p, n);
+    if (w < 0)
+    {
+      if (errno == EINTR) continue;
+      return false;
+    }
+    if (w == 0) return false;
+    p += w;
+    n -= static_cast<size_t>(w);
+  }
+  return true;
+}
+
+bool
+read_all(int fd, void* buf, size_t n)
+{
+  char* p = static_cast<char*>(buf);
+  while (n > 0)
+  {
+    ssize_t r = ::read(fd, p, n);
+    if (r < 0)
+    {
+      if (errno == EINTR) continue;
+      return false;
+    }
+    if (r == 0) return false; /* EOF */
+    p += r;
+    n -= static_cast<size_t>(r);
+  }
+  return true;
+}
+
+bool
+write_msg(int fd, uint8_t type, const std::string& payload)
+{
+  if (payload.size() > 0xFFFFFFFFULL) return false;
+  uint32_t len = static_cast<uint32_t>(payload.size());
+  uint8_t hdr[5];
+  hdr[0] = type;
+  hdr[1] = (uint8_t) (len & 0xFF);
+  hdr[2] = (uint8_t) ((len >> 8) & 0xFF);
+  hdr[3] = (uint8_t) ((len >> 16) & 0xFF);
+  hdr[4] = (uint8_t) ((len >> 24) & 0xFF);
+  if (!write_all(fd, hdr, sizeof(hdr))) return false;
+  if (len == 0) return true;
+  return write_all(fd, payload.data(), payload.size());
+}
+
+bool
+read_msg(int fd, uint8_t& type, std::string& payload)
+{
+  uint8_t hdr[5];
+  if (!read_all(fd, hdr, sizeof(hdr))) return false;
+  type         = hdr[0];
+  uint32_t len = (uint32_t) hdr[1] | ((uint32_t) hdr[2] << 8)
+                 | ((uint32_t) hdr[3] << 16) | ((uint32_t) hdr[4] << 24);
+  payload.assign(len, '\0');
+  if (len == 0) return true;
+  return read_all(fd, payload.data(), len);
 }
 
 }  // namespace
@@ -289,6 +367,18 @@ Murxla::test()
 
   std::string err_file_name = get_tmp_file_path("tmp.err", d_tmp_dir);
   Terminal term;
+  bool is_worker = (d_role == Role::WORKER);
+
+  /* Workers funnel all stdout-bound output through `log_via_rpc` so the
+   * coordinator can interleave it with its own status line. We accumulate
+   * per-iteration output into `worker_out` and flush once per iteration. */
+  std::ostringstream worker_out;
+  auto put = [&](const std::string& s) {
+    if (is_worker)
+      worker_out << s;
+    else
+      std::cout << s;
+  };
 
   do
   {
@@ -296,33 +386,39 @@ Murxla::test()
 
     uint64_t seed = sg.next();
 
-    if (num_printed_lines % 100 == 0)
+    /* Per-iteration status line. The coordinator prints its own aggregate
+     * status line, so workers skip this entirely. */
+    if (!is_worker)
     {
-      std::cout << std::setw(16) << "seed";
-      std::cout << " " << std::setw(5) << "runs";
-      std::cout << " " << std::setw(8) << "r/s";
-      std::cout << " " << std::setw(5) << "sat";
-      std::cout << " " << std::setw(5) << "unsat";
-      std::cout << " " << std::setw(5) << "unknw";
-      std::cout << " " << std::setw(5) << "to";
-      std::cout << " " << std::setw(5) << "err";
+      if (num_printed_lines % 100 == 0)
+      {
+        std::cout << std::setw(16) << "seed";
+        std::cout << " " << std::setw(5) << "runs";
+        std::cout << " " << std::setw(8) << "r/s";
+        std::cout << " " << std::setw(5) << "sat";
+        std::cout << " " << std::setw(5) << "unsat";
+        std::cout << " " << std::setw(5) << "unknw";
+        std::cout << " " << std::setw(5) << "to";
+        std::cout << " " << std::setw(5) << "err";
 
-      std::cout << std::endl;
-      ++num_printed_lines;
+        std::cout << std::endl;
+        ++num_printed_lines;
+      }
+
+      std::cout << std::setw(16) << std::hex << seed << std::dec;
+      std::cout << " " << std::setw(5) << num_runs;
+      std::cout << " " << std::setw(8) << std::setprecision(2) << std::fixed;
+      std::cout << num_runs / (cur_time - start_time);
+      std::cout << " " << std::setw(5)
+                << d_stats->d_results[Solver::Result::SAT];
+      std::cout << " " << std::setw(5)
+                << d_stats->d_results[Solver::Result::UNSAT];
+      std::cout << " " << std::setw(5)
+                << d_stats->d_results[Solver::Result::UNKNOWN];
+      std::cout << " " << std::setw(5) << num_timeouts;
+      std::cout << " " << std::setw(5) << d_errors->size();
+      std::cout << std::flush;
     }
-
-    std::cout << std::setw(16) << std::hex << seed << std::dec;
-    std::cout << " " << std::setw(5) << num_runs;
-    std::cout << " " << std::setw(8) << std::setprecision(2) << std::fixed;
-    std::cout << num_runs / (cur_time - start_time);
-    std::cout << " " << std::setw(5) << d_stats->d_results[Solver::Result::SAT];
-    std::cout << " " << std::setw(5)
-              << d_stats->d_results[Solver::Result::UNSAT];
-    std::cout << " " << std::setw(5)
-              << d_stats->d_results[Solver::Result::UNKNOWN];
-    std::cout << " " << std::setw(5) << num_timeouts;
-    std::cout << " " << std::setw(5) << d_errors->size();
-    std::cout << std::flush;
     num_runs++;
 
     /* Note: If the selected solver is SOLVER_SMT2 and no online solver is
@@ -355,14 +451,17 @@ Murxla::test()
     /* report status */
     if (res == RESULT_OK)
     {
-      if (term.is_term())
+      if (!is_worker)
       {
-        term.erase(std::cout);
-      }
-      else
-      {
-        std::cout << std::endl;
-        ++num_printed_lines;
+        if (term.is_term())
+        {
+          term.erase(std::cout);
+        }
+        else
+        {
+          std::cout << std::endl;
+          ++num_printed_lines;
+        }
       }
     }
     else
@@ -379,12 +478,32 @@ Murxla::test()
         }
         if (res == RESULT_ERROR)
         {
-          std::tie(errkind, errmsg_filtered, error_id, error_nduplicates) =
-              add_error(errmsg, seed);
+          /* Run the local filter prologue (cheap, immutable solver-profile
+           * data is already in this process). For workers, send the dedup
+           * RPC to the coordinator so error_id assignment stays globally
+           * consistent. SOLO callers go straight through insert_error. */
+          auto [pre_kind, pre_filtered, pre_norm] = prefilter_error(errmsg);
+          errmsg_filtered                         = pre_filtered;
+          if (pre_kind == ErrorKind::FILTER)
+          {
+            errkind           = ErrorKind::FILTER;
+            error_id          = 0;
+            error_nduplicates = 0;
+          }
+          else if (is_worker)
+          {
+            std::tie(errkind, error_id, error_nduplicates) =
+                add_error_via_rpc(pre_filtered, pre_norm, seed);
+          }
+          else
+          {
+            std::tie(errkind, error_id, error_nduplicates) =
+                insert_error(pre_filtered, pre_norm, seed);
+          }
         }
         else if (res == RESULT_ERROR_CONFIG)
         {
-          term.erase(std::cout);
+          if (!is_worker) term.erase(std::cout);
           MURXLA_CHECK_CONFIG(false) << errmsg_filtered << " " << d_error_msg;
         }
         else
@@ -422,16 +541,17 @@ Murxla::test()
       }
       info << term.defaultcolor() << "]";
 
-      std::cout << info.str() << std::flush;
+      put(info.str());
+      if (!is_worker) std::cout << std::flush;
       if (res == RESULT_ERROR && errkind != ErrorKind::FILTER)
       {
-        std::cout << " ";
+        put(" ");
       }
       else
       {
         if (d_options.verbosity > 0)
         {
-          std::cout << std::endl;
+          put("\n");
           ++num_printed_lines;
         }
       }
@@ -446,8 +566,7 @@ Murxla::test()
         // No need to replay SMT2 since we already have the SMT2 problem.
         if (smt2_offline)
         {
-          std::cout << get_smt2_file_name(seed, api_trace_file_name)
-                    << std::endl;
+          put(get_smt2_file_name(seed, api_trace_file_name) + "\n");
         }
         else
         {
@@ -459,7 +578,7 @@ Murxla::test()
                                      api_trace_file_name,
                                      d_options.untrace_file_name);
 
-          std::cout << api_trace_file_name << std::endl;
+          put(api_trace_file_name + "\n");
 
           // Note: This may happen in few cases where the replay runs into a
           // timeout, but the original run does not.
@@ -472,8 +591,8 @@ Murxla::test()
       /* Print new error message after it was found. */
       if (res == RESULT_ERROR && errkind == ErrorKind::ERROR)
       {
-        std::cout << std::endl;
-        std::cout << rstrip(errmsg_filtered) << "\n" << std::endl;
+        put("\n");
+        put(rstrip(errmsg_filtered) + "\n\n");
         num_printed_lines = 0;  // print header again after error
 
         // If it is the first error, we also store the error message in a text
@@ -483,6 +602,28 @@ Murxla::test()
         std::string text_file = prepend_path(fp.parent_path(), "error.txt");
         std::ofstream os(text_file);
         os << errmsg_filtered << "\n";
+      }
+    }
+
+    /* Worker: flush per-iteration output and update shared counters. */
+    if (is_worker)
+    {
+      const std::string s = worker_out.str();
+      if (!s.empty())
+      {
+        log_via_rpc(s);
+      }
+      worker_out.str("");
+      worker_out.clear();
+
+      if (d_aggregate)
+      {
+        d_aggregate->num_runs.fetch_add(1, std::memory_order_relaxed);
+        if (res == RESULT_TIMEOUT)
+        {
+          d_aggregate->num_timeouts.fetch_add(1, std::memory_order_relaxed);
+        }
+        d_aggregate->last_seed.store(seed, std::memory_order_relaxed);
       }
     }
   } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
@@ -863,11 +1004,11 @@ Murxla::filter_error(const std::string& err)
   return res.empty() ? err : res;
 }
 
-std::tuple<Murxla::ErrorKind, const std::string, uint64_t, uint64_t>
-Murxla::add_error(const std::string& err, uint64_t seed)
+std::tuple<Murxla::ErrorKind, std::string, std::string>
+Murxla::prefilter_error(const std::string& err)
 {
   std::string filtered_err = filter_error(err);
-  std::string err_norm = normalize_asan_error(filtered_err);
+  std::string err_norm     = normalize_asan_error(filtered_err);
 
   /* Filter errors if specified in the solver profile. */
   for (const auto& e : d_exclude_errors)
@@ -876,17 +1017,25 @@ Murxla::add_error(const std::string& err, uint64_t seed)
     std::regex_search(filtered_err, sm, std::regex(e));
     if (!sm.empty())
     {
-      return std::make_tuple(ErrorKind::FILTER, filtered_err, 0, 0);
+      return std::make_tuple(ErrorKind::FILTER, filtered_err, std::string());
     }
 
     /* Errors are classified as the same error if they differ in at most 5% of
      * characters. */
     if (error_diff(err_norm, e) <= 0.05)
     {
-      return std::make_tuple(ErrorKind::FILTER, filtered_err, 0, 0);
+      return std::make_tuple(ErrorKind::FILTER, filtered_err, std::string());
     }
   }
 
+  return std::make_tuple(ErrorKind::ERROR, filtered_err, err_norm);
+}
+
+std::tuple<Murxla::ErrorKind, uint64_t, uint64_t>
+Murxla::insert_error(const std::string& filtered_err,
+                     const std::string& normalized_err,
+                     uint64_t seed)
+{
   for (auto& p : *d_errors)
   {
     const auto& e_norm = p.first;
@@ -894,15 +1043,15 @@ Murxla::add_error(const std::string& err, uint64_t seed)
 
     /* Errors are classified as the same error if they differ in at most 5% of
      * characters. */
-    if (error_diff(err_norm, e_norm) <= 0.05)
+    if (error_diff(normalized_err, e_norm) <= 0.05)
     {
       e_info.seeds.push_back(seed);
       return std::make_tuple(
-          ErrorKind::DUPLICATE, filtered_err, e_info.id, e_info.seeds.size());
+          ErrorKind::DUPLICATE, e_info.id, e_info.seeds.size());
     }
   }
 
-  d_errors->emplace(err_norm,
+  d_errors->emplace(normalized_err,
                     ErrorInfo(d_errors->size() + 1, filtered_err, {seed}));
 
   // Export errors to JSON file.
@@ -915,7 +1064,128 @@ Murxla::add_error(const std::string& err, uint64_t seed)
     o << std::setw(2) << j << std::endl;
   }
 
-  return std::make_tuple(ErrorKind::ERROR, filtered_err, d_errors->size(), 1);
+  return std::make_tuple(ErrorKind::ERROR, d_errors->size(), 1);
+}
+
+std::tuple<Murxla::ErrorKind, const std::string, uint64_t, uint64_t>
+Murxla::add_error(const std::string& err, uint64_t seed)
+{
+  auto [kind, filtered_err, err_norm] = prefilter_error(err);
+  if (kind == ErrorKind::FILTER)
+  {
+    return std::make_tuple(ErrorKind::FILTER, filtered_err, 0, 0);
+  }
+  auto [k, error_id, ndup] = insert_error(filtered_err, err_norm, seed);
+  return std::make_tuple(k, filtered_err, error_id, ndup);
+}
+
+/* -------------------------------------------------------------------------- */
+/* RPC: worker side (-j>1 parallel fuzzing).                                  */
+/* -------------------------------------------------------------------------- */
+
+void
+Murxla::set_parallel_role(Role role,
+                          int rpc_req_fd,
+                          int rpc_resp_fd,
+                          Aggregate* aggregate)
+{
+  d_role        = role;
+  d_rpc_req_fd  = rpc_req_fd;
+  d_rpc_resp_fd = rpc_resp_fd;
+  d_aggregate   = aggregate;
+}
+
+std::tuple<Murxla::ErrorKind, uint64_t, uint64_t>
+Murxla::add_error_via_rpc(const std::string& filtered_err,
+                          const std::string& normalized_err,
+                          uint64_t seed)
+{
+  /* Payload layout:
+   *   uint64_t seed
+   *   uint32_t filtered_err.size()
+   *   bytes    filtered_err
+   *   uint32_t normalized_err.size()
+   *   bytes    normalized_err
+   */
+  std::string payload;
+  payload.resize(sizeof(uint64_t) + sizeof(uint32_t) + filtered_err.size()
+                 + sizeof(uint32_t) + normalized_err.size());
+  size_t off = 0;
+  std::memcpy(&payload[off], &seed, sizeof(seed));
+  off += sizeof(seed);
+  uint32_t flen = static_cast<uint32_t>(filtered_err.size());
+  std::memcpy(&payload[off], &flen, sizeof(flen));
+  off += sizeof(flen);
+  std::memcpy(&payload[off], filtered_err.data(), flen);
+  off += flen;
+  uint32_t nlen = static_cast<uint32_t>(normalized_err.size());
+  std::memcpy(&payload[off], &nlen, sizeof(nlen));
+  off += sizeof(nlen);
+  std::memcpy(&payload[off], normalized_err.data(), nlen);
+
+  if (!write_msg(d_rpc_req_fd, (uint8_t) RpcMsg::ADD_ERROR, payload))
+  {
+    /* Coordinator died; nothing useful we can do. Treat as ERROR with id 0
+     * so the worker can still print and exit. */
+    return std::make_tuple(ErrorKind::ERROR, 0, 1);
+  }
+
+  RpcErrorReply reply{};
+  if (!read_all(d_rpc_resp_fd, &reply, sizeof(reply)))
+  {
+    return std::make_tuple(ErrorKind::ERROR, 0, 1);
+  }
+  return std::make_tuple(
+      static_cast<ErrorKind>(reply.kind), reply.error_id, reply.nduplicates);
+}
+
+void
+Murxla::log_via_rpc(const std::string& s)
+{
+  (void) write_msg(d_rpc_req_fd, (uint8_t) RpcMsg::LOG, s);
+}
+
+bool
+Murxla::serve_rpc_add_error(int req_fd, int resp_fd)
+{
+  /* Caller has already consumed the message header and verified the type
+   * is ADD_ERROR; this method reads the rest. (We don't take that path:
+   * the coordinator's main loop reads the header AND the payload via
+   * read_msg, then calls into a helper. So serve_rpc_add_error itself is
+   * driven by the coordinator's main loop in main.cpp - see below.)
+   *
+   * For symmetry with the API, we implement the version that reads the
+   * full message.
+   */
+  uint8_t type;
+  std::string payload;
+  if (!read_msg(req_fd, type, payload)) return false;
+  if (type != (uint8_t) RpcMsg::ADD_ERROR) return false;
+
+  if (payload.size() < sizeof(uint64_t) + sizeof(uint32_t)) return false;
+  size_t off = 0;
+  uint64_t seed;
+  std::memcpy(&seed, &payload[off], sizeof(seed));
+  off += sizeof(seed);
+  uint32_t flen;
+  std::memcpy(&flen, &payload[off], sizeof(flen));
+  off += sizeof(flen);
+  if (off + flen + sizeof(uint32_t) > payload.size()) return false;
+  std::string filtered_err(&payload[off], flen);
+  off += flen;
+  uint32_t nlen;
+  std::memcpy(&nlen, &payload[off], sizeof(nlen));
+  off += sizeof(nlen);
+  if (off + nlen > payload.size()) return false;
+  std::string normalized_err(&payload[off], nlen);
+
+  auto [kind, error_id, ndup] =
+      insert_error(filtered_err, normalized_err, seed);
+  RpcErrorReply reply;
+  reply.kind        = static_cast<uint8_t>(kind);
+  reply.error_id    = error_id;
+  reply.nduplicates = ndup;
+  return write_all(resp_fd, &reply, sizeof(reply));
 }
 
 void

@@ -10,6 +10,7 @@
 #ifndef __MURXLA__MURXLA_H
 #define __MURXLA__MURXLA_H
 
+#include <atomic>
 #include <cstdint>
 #include <regex>
 #include <string>
@@ -32,6 +33,20 @@ class Solver;
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Per-process aggregation counters for `-j/--jobs` parallel fuzzing.
+ *
+ * Lives in MAP_ANONYMOUS|MAP_SHARED memory so all worker processes and the
+ * coordinator see the same counters. Workers `fetch_add` after each iteration;
+ * the coordinator reads to render the aggregate status line.
+ */
+struct Aggregate
+{
+  std::atomic<uint64_t> num_runs;
+  std::atomic<uint64_t> num_timeouts;
+  std::atomic<uint64_t> last_seed;
+};
+
 struct ErrorInfo
 {
   ErrorInfo(uint64_t id,
@@ -49,11 +64,51 @@ class Murxla
  public:
   using ErrorMap = std::unordered_map<std::string, ErrorInfo>;
 
+  enum class ErrorKind
+  {
+    DUPLICATE, /* Error message is a duplicate since it was already reported. */
+    ERROR,     /* Error message is new. */
+    FILTER,    /* Error message filtered out. */
+  };
+
   enum TraceMode
   {
     NONE,
     TO_STDOUT,
     TO_FILE,
+  };
+
+  /**
+   * Role of this Murxla instance with respect to `-j/--jobs` parallel fuzzing.
+   *
+   * SOLO        : Single-process mode (default; behavior identical to before
+   *               the -j flag was added).
+   * COORDINATOR : This is the coordinator process; it owns the canonical
+   *               error map and stdout, and serves RPC requests from workers.
+   *               `Murxla::test()` is NOT called on a coordinator instance.
+   * WORKER      : Worker process forked from the coordinator. Runs its own
+   *               `test()` loop; reports errors and log lines via RPC pipes.
+   */
+  enum class Role
+  {
+    SOLO,
+    COORDINATOR,
+    WORKER,
+  };
+
+  /** RPC message types between workers and the coordinator. */
+  enum class RpcMsg : uint8_t
+  {
+    ADD_ERROR = 1,
+    LOG       = 2,
+  };
+
+  /** Reply payload from coordinator to worker for ADD_ERROR. */
+  struct RpcErrorReply
+  {
+    uint8_t kind; /* ErrorKind cast to uint8_t */
+    uint64_t error_id;
+    uint64_t nduplicates;
   };
 
   inline static const std::string API_TRACE = "tmp-api.trace";
@@ -100,6 +155,45 @@ class Murxla
   /** Continuous test run. */
   void test();
 
+  /**
+   * Set the role and the RPC pipe file descriptors for this Murxla instance.
+   *
+   * For workers: `rpc_req_fd` is the worker→coordinator request pipe and
+   * `rpc_resp_fd` is the coordinator→worker reply pipe (both write/read by
+   * this process respectively).
+   *
+   * For coordinators: file descriptors are unused (-1); the coordinator
+   * keeps its own bookkeeping in main.cpp.
+   *
+   * Also wires up the shared `Aggregate` struct used for cross-process
+   * status counters.
+   */
+  void set_parallel_role(Role role,
+                         int rpc_req_fd,
+                         int rpc_resp_fd,
+                         Aggregate* aggregate);
+
+  /**
+   * Coordinator-side handler for an ADD_ERROR request. Reads the request
+   * payload from `req_fd`, runs the canonical dedup against `g_errors`, and
+   * writes the reply to `resp_fd`. Returns true on success, false if the
+   * worker closed its end of the pipe (EOF).
+   */
+  bool serve_rpc_add_error(int req_fd, int resp_fd);
+
+  /**
+   * Coordinator-side dedup tail used by the parallel-fuzzing coordinator.
+   *
+   * This is the same logic as the non-FILTER tail of `add_error()`: walks
+   * `d_errors` for a fuzzy match and either appends the seed (DUPLICATE) or
+   * inserts a new entry (ERROR). The error message must already have been
+   * filtered/normalized via `prefilter_error()`.
+   */
+  std::tuple<Murxla::ErrorKind, uint64_t, uint64_t> insert_error(
+      const std::string& filtered_err,
+      const std::string& normalized_err,
+      uint64_t seed);
+
   /** Print the current configuration of the FSM to stdout. */
   void print_fsm() const;
 
@@ -128,13 +222,6 @@ class Murxla
   std::string d_error_msg;
 
  private:
-  enum class ErrorKind
-  {
-    DUPLICATE, /* Error message is a duplicate since it was already reported. */
-    ERROR,     /* Error message is new. */
-    FILTER,    /* Error message filtered out. */
-  };
-
   /**
    * Create solver.
    *
@@ -228,6 +315,36 @@ class Murxla
   std::tuple<Murxla::ErrorKind, const std::string, uint64_t, uint64_t>
   add_error(const std::string& err, uint64_t seed);
 
+  /**
+   * Filter prologue extracted from `add_error()`. Runs `filter_error` plus
+   * the immutable solver-profile exclude regexes / 5%-diff exclude check.
+   *
+   * Returns:
+   *   - `(FILTER, filtered_err, "")` if the error should be dropped, OR
+   *   - `(ERROR,  filtered_err, normalized_err)` otherwise (caller must
+   *     proceed to the dedup step, either locally for SOLO/COORDINATOR or
+   *     via RPC for WORKER).
+   */
+  std::tuple<Murxla::ErrorKind, std::string, std::string> prefilter_error(
+      const std::string& err);
+
+  /**
+   * Worker-side: send an ADD_ERROR RPC request to the coordinator and
+   * block on the reply. The coordinator runs the canonical dedup and
+   * returns the assigned error id.
+   */
+  std::tuple<Murxla::ErrorKind, uint64_t, uint64_t> add_error_via_rpc(
+      const std::string& filtered_err,
+      const std::string& normalized_err,
+      uint64_t seed);
+
+  /**
+   * Worker-side: send a LOG message to the coordinator. The coordinator
+   * writes the bytes verbatim to stdout (interleaved with its aggregate
+   * status line). Used so workers never write to stdout themselves.
+   */
+  void log_via_rpc(const std::string& s);
+
   /** Load solver profile of currently configured solver. */
   void load_solver_profile();
 
@@ -250,6 +367,15 @@ class Murxla
 
   /** Stores error messages to be exported when --export-errors is enabled. */
   std::vector<std::string> d_export_errors;
+
+  /** Role of this instance (SOLO unless `-j>1` is in effect). */
+  Role d_role = Role::SOLO;
+  /** Worker-side: write end of the worker→coordinator pipe. */
+  int d_rpc_req_fd = -1;
+  /** Worker-side: read end of the coordinator→worker pipe. */
+  int d_rpc_resp_fd = -1;
+  /** Pointer to shared Aggregate counters; null in SOLO mode. */
+  Aggregate* d_aggregate = nullptr;
 };
 
 /* -------------------------------------------------------------------------- */

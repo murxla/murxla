@@ -7,7 +7,9 @@
  *
  * See LICENSE for more information on using this software.
  */
+#include <errno.h>
 #include <fcntl.h>
+#include <poll.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <string.h>
@@ -16,10 +18,13 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
@@ -45,6 +50,20 @@ static Murxla::ErrorMap g_errors;
 static bool g_errors_print_csv = false;
 
 /* -------------------------------------------------------------------------- */
+/* Parallel fuzzing (`-j/--jobs`) globals.                                    */
+/*                                                                            */
+/* Populated only when num_jobs > 1. The SIGINT handler reads g_worker_pids   */
+/* to send SIGTERM to all live workers; access is signal-safe because we     */
+/* finish populating it before installing the signal handler.                 */
+/* -------------------------------------------------------------------------- */
+
+static constexpr size_t MAX_WORKERS = 1024;
+/** sig_atomic count of populated entries. */
+static volatile sig_atomic_t g_worker_pid_count = 0;
+/** Worker pids; only entries [0, g_worker_pid_count) are valid. */
+static volatile pid_t g_worker_pids[MAX_WORKERS];
+
+/* -------------------------------------------------------------------------- */
 
 static Statistics*
 initialize_statistics()
@@ -58,6 +77,24 @@ initialize_statistics()
                                         0));
   memset(stats, 0, sizeof(Statistics));
   return stats;
+}
+
+static Aggregate*
+initialize_aggregate()
+{
+  void* p = mmap(0,
+                 sizeof(Aggregate),
+                 PROT_READ | PROT_WRITE,
+                 MAP_ANONYMOUS | MAP_SHARED,
+                 -1,
+                 0);
+  MURXLA_EXIT_ERROR(p == MAP_FAILED)
+      << "failed to map shared memory for aggregate counters";
+  Aggregate* agg = new (p) Aggregate();
+  agg->num_runs.store(0, std::memory_order_relaxed);
+  agg->num_timeouts.store(0, std::memory_order_relaxed);
+  agg->last_seed.store(0, std::memory_order_relaxed);
+  return agg;
 }
 
 static bool
@@ -157,6 +194,25 @@ catch_signal_esummary(int32_t sig)
   static int32_t caught_signal = 0;
   if (!caught_signal)
   {
+    /* Send SIGTERM to each worker's process group so the worker AND its
+     * solver/timeout grandchildren all die together. Using async-signal-safe
+     * calls only. */
+    sig_atomic_t n = g_worker_pid_count;
+    for (sig_atomic_t i = 0; i < n; ++i)
+    {
+      pid_t p = g_worker_pids[i];
+      if (p > 0) kill(-p, SIGTERM);
+    }
+    /* Reap workers so their PIDs don't linger as zombies. */
+    for (sig_atomic_t i = 0; i < n; ++i)
+    {
+      pid_t p = g_worker_pids[i];
+      if (p > 0)
+      {
+        int status;
+        (void) waitpid(p, &status, 0);
+      }
+    }
     print_error_summary();
     caught_signal = sig;
   }
@@ -198,6 +254,7 @@ set_sigint_handler_stats(void)
   " Continuous mode options:\n"                                                \
   "  -t, --time <double>        time limit per test run\n"                     \
   "  -m, --max-runs <int>       limit number of test runs\n"                   \
+  "  -j, --jobs <int>           number of parallel fuzzing jobs\n"             \
   "  --csv                      print error summary in csv format\n"           \
   "  -e, --export-errors <out>  export found errors to JSON file <out>\n"      \
   "\n"                                                                         \
@@ -572,6 +629,15 @@ parse_options(Options& options, int argc, char* argv[])
       check_next_arg(arg, i, size);
       options.max_runs = (uint32_t) std::stoi(args[i]);
     }
+    else if (arg == "-j" || arg == "--jobs")
+    {
+      i += 1;
+      check_next_arg(arg, i, size);
+      int n = std::stoi(args[i]);
+      MURXLA_EXIT_ERROR(n < 1) << "invalid argument to option '" << arg
+                               << "': " << args[i] << " (must be >= 1)";
+      options.num_jobs = (uint32_t) n;
+    }
     else if (arg == "-l" || arg == "--smt-lib")
     {
       options.smtlib_compliant = true;
@@ -740,6 +806,265 @@ parse_options(Options& options, int argc, char* argv[])
 }
 
 /* ========================================================================== */
+/* Parallel fuzzing: coordinator main loop.                                   */
+/* ========================================================================== */
+
+namespace {
+
+bool
+read_all_fd(int fd, void* buf, size_t n)
+{
+  char* p = static_cast<char*>(buf);
+  while (n > 0)
+  {
+    ssize_t r = ::read(fd, p, n);
+    if (r < 0)
+    {
+      if (errno == EINTR) continue;
+      return false;
+    }
+    if (r == 0) return false;
+    p += r;
+    n -= static_cast<size_t>(r);
+  }
+  return true;
+}
+
+bool
+write_all_fd(int fd, const void* buf, size_t n)
+{
+  const char* p = static_cast<const char*>(buf);
+  while (n > 0)
+  {
+    ssize_t w = ::write(fd, p, n);
+    if (w < 0)
+    {
+      if (errno == EINTR) continue;
+      return false;
+    }
+    if (w == 0) return false;
+    p += w;
+    n -= static_cast<size_t>(w);
+  }
+  return true;
+}
+
+void
+print_aggregate_status_line(Aggregate* agg,
+                            statistics::Statistics* stats,
+                            uint64_t num_errors,
+                            double start_time,
+                            uint64_t& num_printed_lines,
+                            Terminal& term)
+{
+  uint64_t num_runs     = agg->num_runs.load(std::memory_order_relaxed);
+  uint64_t num_timeouts = agg->num_timeouts.load(std::memory_order_relaxed);
+  uint64_t last_seed    = agg->last_seed.load(std::memory_order_relaxed);
+  double cur_time       = get_cur_wall_time();
+  double rate = (cur_time > start_time)
+                    ? static_cast<double>(num_runs) / (cur_time - start_time)
+                    : 0.0;
+
+  if (term.is_term())
+  {
+    term.erase(std::cout);
+  }
+  if (num_printed_lines % 100 == 0)
+  {
+    std::cout << std::setw(16) << "seed";
+    std::cout << " " << std::setw(5) << "runs";
+    std::cout << " " << std::setw(8) << "r/s";
+    std::cout << " " << std::setw(5) << "sat";
+    std::cout << " " << std::setw(5) << "unsat";
+    std::cout << " " << std::setw(5) << "unknw";
+    std::cout << " " << std::setw(5) << "to";
+    std::cout << " " << std::setw(5) << "err";
+    std::cout << std::endl;
+    ++num_printed_lines;
+  }
+  std::cout << std::setw(16) << std::hex << last_seed << std::dec;
+  std::cout << " " << std::setw(5) << num_runs;
+  std::cout << " " << std::setw(8) << std::setprecision(2) << std::fixed
+            << rate;
+  std::cout << " " << std::setw(5) << stats->d_results[Solver::Result::SAT];
+  std::cout << " " << std::setw(5) << stats->d_results[Solver::Result::UNSAT];
+  std::cout << " " << std::setw(5) << stats->d_results[Solver::Result::UNKNOWN];
+  std::cout << " " << std::setw(5) << num_timeouts;
+  std::cout << " " << std::setw(5) << num_errors;
+  std::cout << std::flush;
+  if (!term.is_term())
+  {
+    std::cout << std::endl;
+    ++num_printed_lines;
+  }
+}
+
+/**
+ * Read one length-prefixed message from `fd`. Returns false on EOF or error.
+ */
+bool
+coord_read_msg(int fd, uint8_t& type, std::string& payload)
+{
+  uint8_t hdr[5];
+  if (!read_all_fd(fd, hdr, sizeof(hdr))) return false;
+  type         = hdr[0];
+  uint32_t len = (uint32_t) hdr[1] | ((uint32_t) hdr[2] << 8)
+                 | ((uint32_t) hdr[3] << 16) | ((uint32_t) hdr[4] << 24);
+  payload.assign(len, '\0');
+  if (len == 0) return true;
+  return read_all_fd(fd, payload.data(), len);
+}
+
+void
+run_coordinator_loop(Murxla& murxla,
+                     statistics::Statistics* stats,
+                     Aggregate* aggregate,
+                     std::vector<int>& req_fds,
+                     std::vector<int>& resp_fds,
+                     double start_time)
+{
+  size_t num_workers = req_fds.size();
+  std::vector<bool> alive(num_workers, true);
+  size_t num_alive           = num_workers;
+  uint64_t num_printed_lines = 0;
+  Terminal term;
+
+  auto last_status           = std::chrono::steady_clock::now();
+  const auto status_interval = std::chrono::milliseconds(250);
+  uint64_t last_num_runs     = 0;
+  uint64_t last_num_errors   = 0;
+  bool force_redraw          = true;
+
+  while (num_alive > 0)
+  {
+    std::vector<struct pollfd> pfds;
+    std::vector<size_t> idx;
+    pfds.reserve(num_workers);
+    idx.reserve(num_workers);
+    for (size_t i = 0; i < num_workers; ++i)
+    {
+      if (!alive[i]) continue;
+      struct pollfd p;
+      p.fd      = req_fds[i];
+      p.events  = POLLIN;
+      p.revents = 0;
+      pfds.push_back(p);
+      idx.push_back(i);
+    }
+
+    int rc = poll(pfds.data(), pfds.size(), 250);
+    if (rc < 0)
+    {
+      if (errno == EINTR) continue;
+      MURXLA_EXIT_ERROR(true) << "poll failed: " << strerror(errno);
+    }
+
+    if (rc > 0)
+    {
+      for (size_t k = 0; k < pfds.size(); ++k)
+      {
+        if (!(pfds[k].revents & (POLLIN | POLLHUP | POLLERR))) continue;
+        size_t i = idx[k];
+        uint8_t type;
+        std::string payload;
+        if (!coord_read_msg(req_fds[i], type, payload))
+        {
+          /* EOF or error: worker has exited. */
+          alive[i] = false;
+          --num_alive;
+          close(req_fds[i]);
+          close(resp_fds[i]);
+          continue;
+        }
+        if (type == (uint8_t) Murxla::RpcMsg::ADD_ERROR)
+        {
+          /* Decode payload, dedup centrally, reply. */
+          if (payload.size() < sizeof(uint64_t) + sizeof(uint32_t))
+          {
+            alive[i] = false;
+            --num_alive;
+            close(req_fds[i]);
+            close(resp_fds[i]);
+            continue;
+          }
+          size_t off = 0;
+          uint64_t seed;
+          std::memcpy(&seed, &payload[off], sizeof(seed));
+          off += sizeof(seed);
+          uint32_t flen;
+          std::memcpy(&flen, &payload[off], sizeof(flen));
+          off += sizeof(flen);
+          std::string filtered_err(&payload[off], flen);
+          off += flen;
+          uint32_t nlen;
+          std::memcpy(&nlen, &payload[off], sizeof(nlen));
+          off += sizeof(nlen);
+          std::string normalized_err(&payload[off], nlen);
+
+          auto [kind, error_id, ndup] =
+              murxla.insert_error(filtered_err, normalized_err, seed);
+          Murxla::RpcErrorReply reply;
+          reply.kind        = static_cast<uint8_t>(kind);
+          reply.error_id    = error_id;
+          reply.nduplicates = ndup;
+          if (!write_all_fd(resp_fds[i], &reply, sizeof(reply)))
+          {
+            alive[i] = false;
+            --num_alive;
+            close(req_fds[i]);
+            close(resp_fds[i]);
+          }
+        }
+        else if (type == (uint8_t) Murxla::RpcMsg::LOG)
+        {
+          /* Erase running status line, write the worker's text, redraw on
+           * next status tick. */
+          if (term.is_term()) term.erase(std::cout);
+          std::cout << payload << std::flush;
+          /* Force a redraw next tick. */
+          force_redraw = true;
+          last_status -= status_interval;
+        }
+        else
+        {
+          /* Unknown message type — protocol error; close worker. */
+          alive[i] = false;
+          --num_alive;
+          close(req_fds[i]);
+          close(resp_fds[i]);
+        }
+      }
+    }
+
+    auto now = std::chrono::steady_clock::now();
+    if (now - last_status >= status_interval)
+    {
+      uint64_t cur_runs   = aggregate->num_runs.load(std::memory_order_relaxed);
+      uint64_t cur_errors = g_errors.size();
+      bool changed        = force_redraw || cur_runs != last_num_runs
+                            || cur_errors != last_num_errors;
+      if (changed)
+      {
+        print_aggregate_status_line(
+            aggregate, stats, cur_errors, start_time, num_printed_lines, term);
+        last_num_runs   = cur_runs;
+        last_num_errors = cur_errors;
+        force_redraw    = false;
+      }
+      last_status = now;
+    }
+  }
+
+  /* Final status update + newline so the last line reflects the true totals
+   * and the prompt comes back on its own line. */
+  print_aggregate_status_line(
+      aggregate, stats, g_errors.size(), start_time, num_printed_lines, term);
+  std::cout << std::endl;
+}
+
+}  // namespace
+
+/* ========================================================================== */
 
 int
 main(int argc, char* argv[])
@@ -753,6 +1078,12 @@ main(int argc, char* argv[])
   bool is_untrace    = !options.untrace_file_name.empty();
   bool is_continuous = !options.is_seeded && !is_untrace;
   bool is_forked     = options.dd || is_continuous;
+
+  MURXLA_EXIT_ERROR(options.num_jobs > 1 && !is_continuous)
+      << "-j/--jobs > 1 requires continuous mode (no -s/--seed, no "
+         "-u/--untrace)";
+  MURXLA_EXIT_ERROR(options.num_jobs > MAX_WORKERS)
+      << "-j/--jobs exceeds maximum (" << MAX_WORKERS << ")";
 
   create_tmp_directory(options.tmp_dir);
 
@@ -774,8 +1105,165 @@ main(int argc, char* argv[])
 
     if (is_continuous)
     {
-      set_sigint_handler_stats();
-      murxla.test();
+      if (options.num_jobs > 1)
+      {
+        /* Parallel fuzzing: coordinator + N workers. The coordinator owns
+         * g_errors and stdout; workers run their own test() loops and
+         * report errors / log output via pipe RPC. */
+        const uint32_t num_jobs = options.num_jobs;
+        Aggregate* aggregate    = initialize_aggregate();
+
+        std::vector<int> req_r(num_jobs), req_w(num_jobs);
+        std::vector<int> resp_r(num_jobs), resp_w(num_jobs);
+        for (uint32_t i = 0; i < num_jobs; ++i)
+        {
+          int rp[2], sp[2];
+          MURXLA_EXIT_ERROR(pipe(rp) != 0)
+              << "pipe() failed: " << strerror(errno);
+          MURXLA_EXIT_ERROR(pipe(sp) != 0)
+              << "pipe() failed: " << strerror(errno);
+          req_r[i]  = rp[0];
+          req_w[i]  = rp[1];
+          resp_r[i] = sp[0];
+          resp_w[i] = sp[1];
+        }
+
+        /* Distribute max_runs across workers. */
+        uint32_t per_worker_max_runs = 0;
+        if (options.max_runs > 0)
+        {
+          per_worker_max_runs = (options.max_runs + num_jobs - 1) / num_jobs;
+        }
+
+        /* Block SIGINT during fork so the (still-default) handler can't
+         * fire while we're populating g_worker_pids. */
+        sigset_t mask, prev;
+        sigemptyset(&mask);
+        sigaddset(&mask, SIGINT);
+        sigprocmask(SIG_BLOCK, &mask, &prev);
+
+        double start_time = get_cur_wall_time();
+
+        for (uint32_t i = 0; i < num_jobs; ++i)
+        {
+          pid_t pid = fork();
+          MURXLA_EXIT_ERROR(pid < 0) << "fork() failed: " << strerror(errno);
+          if (pid == 0)
+          {
+            /* Put each worker in its own process group so the coordinator
+             * can take down the whole subtree (worker + its solver/timeout
+             * grandchildren) with `kill(-pgid, SIGTERM)`. */
+            (void) setpgid(0, 0);
+
+            /* Each worker needs its own tmp directory: tmp.err,
+             * run-tmp1.{out,err}, tmp-api.trace, tmp-smt2.smt2 are all per-run
+             * scratch files. Sharing one dir across workers causes concurrent
+             * solver children to clobber each other's stderr, which in turn
+             * corrupts the error message that the worker forwards to the
+             * coordinator (often appearing empty). */
+            {
+              std::filesystem::path worker_tmp(TMP_DIR);
+              worker_tmp /= "worker-" + std::to_string(i);
+              std::error_code ec;
+              std::filesystem::create_directories(worker_tmp, ec);
+              murxla.d_tmp_dir = worker_tmp.string();
+            }
+
+            /* Worker: close unused pipe ends, configure Murxla, run. */
+            for (uint32_t j = 0; j < num_jobs; ++j)
+            {
+              if (j != i)
+              {
+                close(req_r[j]);
+                close(req_w[j]);
+                close(resp_r[j]);
+                close(resp_w[j]);
+              }
+            }
+            close(req_r[i]);  /* worker doesn't read its own req */
+            close(resp_w[i]); /* worker doesn't write its own resp */
+
+            /* Reset SIGINT to default so workers die quickly on Ctrl+C
+             * and the coordinator's handler does the cleanup. */
+            signal(SIGINT, SIG_DFL);
+            sigprocmask(SIG_SETMASK, &prev, nullptr);
+
+            /* Each worker starts from a different seed so their fuzzing
+             * sequences don't overlap. SeedGenerator already mixes time
+             * and pid, so even with the same starting seed siblings
+             * naturally diverge — but we partition explicitly to keep
+             * `--seed S` reproducibility-friendly. */
+            if (options.is_seeded)
+            {
+              options.seed = splitmix64(
+                  options.seed ^ ((uint64_t) (i + 1) * 0x9E3779B97F4A7C15ULL));
+            }
+            options.max_runs = per_worker_max_runs;
+
+            murxla.set_parallel_role(
+                Murxla::Role::WORKER, req_w[i], resp_r[i], aggregate);
+
+            try
+            {
+              murxla.test();
+            }
+            catch (MurxlaConfigException& e)
+            {
+              /* Send a one-line LOG and exit. */
+              std::string s =
+                  std::string("config error: ") + e.get_msg() + "\n";
+              (void) ::write(req_w[i], s.data(), s.size());
+              _exit(EXIT_ERROR);
+            }
+            catch (MurxlaException& e)
+            {
+              std::string s = std::string("error: ") + e.get_msg() + "\n";
+              (void) ::write(req_w[i], s.data(), s.size());
+              _exit(EXIT_ERROR);
+            }
+            close(req_w[i]);
+            close(resp_r[i]);
+            _exit(0);
+          }
+
+          /* Parent: place the worker in its own process group (mirrors the
+           * setpgid in the child to avoid a race where SIGINT arrives
+           * before the child has set its own pgid). */
+          (void) setpgid(pid, pid);
+
+          /* Record pid and close unused pipe ends. */
+          g_worker_pids[g_worker_pid_count] = pid;
+          g_worker_pid_count                = g_worker_pid_count + 1;
+          close(req_w[i]);
+          close(resp_r[i]);
+        }
+
+        /* Now safe to install our SIGINT handler that knows about
+         * g_worker_pids. */
+        set_sigint_handler_stats();
+        sigprocmask(SIG_SETMASK, &prev, nullptr);
+
+        murxla.set_parallel_role(Murxla::Role::COORDINATOR, -1, -1, aggregate);
+
+        run_coordinator_loop(
+            murxla, stats, aggregate, req_r, resp_w, start_time);
+
+        /* Reap any remaining workers (most should already be reaped via
+         * pipe EOF detection in the coordinator loop, but harvest
+         * exit statuses to avoid zombies). */
+        for (sig_atomic_t i = 0; i < g_worker_pid_count; ++i)
+        {
+          int status;
+          (void) waitpid(g_worker_pids[i], &status, WNOHANG);
+        }
+
+        munmap(aggregate, sizeof(Aggregate));
+      }
+      else
+      {
+        set_sigint_handler_stats();
+        murxla.test();
+      }
     }
     else
     {
