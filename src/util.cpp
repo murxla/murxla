@@ -424,6 +424,12 @@ Terminal::erase(std::ostream& out) const
   }
 }
 const std::string
+Terminal::erase_chars(uint32_t n) const
+{
+  if (!d_is_terminal || n == 0) return "";
+  return "\33[" + std::to_string(n) + "D\33[K";
+}
+const std::string
 Terminal::blue() const
 {
   return code("\33[94m");

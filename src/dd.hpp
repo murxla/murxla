@@ -30,11 +30,12 @@ class DD
   /**
    * Constructor.
    *
-   * murxla: The associated Murxla instance.
-   * seed  : The seed for the RNG.
-   * time  : The time limit for one test run.
+   * murxla : The associated Murxla instance.
+   * seed   : The seed for the RNG.
+   * time   : The time limit for one test run.
+   * verbose: True to print the progress of the delta debugger.
    */
-  DD(Murxla* murxla, uint64_t seed);
+  DD(Murxla* murxla, uint64_t seed, bool verbose = true);
 
   /**
    * Delta debug a given api trace.
@@ -42,9 +43,12 @@ class DD
    * input_trace_file_name  : The name of the api trace file to minimize.
    * reduced_trace_file_name: The name of the resulting reduced trace, may be
    *                          empty.
+   *
+   * Returns the name of the minimized trace file, empty if the trace could
+   * not be reduced.
    */
-  void run(const std::string& input_trace_file_name,
-           std::string reduced_trace_file_name);
+  std::string run(const std::string& input_trace_file_name,
+                  std::string reduced_trace_file_name);
 
  private:
   bool minimize_lines(Result golden_exit,
@@ -108,6 +112,8 @@ class DD
   uint64_t d_seed;
   /** The time limit for one test run. */
   double d_time;
+  /** True to print the progress of the delta debugger. */
+  bool d_verbose;
 
   /** Number of tests performed while delta debugging. */
   uint64_t d_ntests = 0;

@@ -23,6 +23,18 @@ namespace murxla {
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Create a message stream for the delta debugger, which only prints if
+ * verbose output is enabled.
+ *
+ * Note: This may only be used in member functions of DD since it requires
+ *       member `d_verbose` to be in scope.
+ */
+#define MURXLA_MESSAGE_DD_VERBOSE \
+  !d_verbose ? (void) 0 : OstreamVoider() & MURXLA_MESSAGE_DD
+
+/* -------------------------------------------------------------------------- */
+
 namespace {
 /**
  * Remove subsets listed in 'excluded_sets' from the list of 'subsets'.
@@ -75,8 +87,8 @@ split_superset(const std::vector<size_t> superset, size_t subset_size)
 
 /* -------------------------------------------------------------------------- */
 
-DD::DD(Murxla* murxla, uint64_t seed)
-    : d_murxla(murxla), d_seed(seed), d_time(0)
+DD::DD(Murxla* murxla, uint64_t seed, bool verbose)
+    : d_murxla(murxla), d_seed(seed), d_time(0), d_verbose(verbose)
 {
   assert(d_murxla);
   d_gold_out_file_name =
@@ -87,7 +99,7 @@ DD::DD(Murxla* murxla, uint64_t seed)
       get_tmp_file_path("tmp-api-dd.trace", d_murxla->d_tmp_dir);
 }
 
-void
+std::string
 DD::run(const std::string& input_trace_file_name,
         std::string reduced_trace_file_name)
 {
@@ -100,8 +112,8 @@ DD::run(const std::string& input_trace_file_name,
   std::string tmp_input_trace_file_name =
       get_tmp_file_path("tmp-dd.trace", d_murxla->d_tmp_dir);
 
-  MURXLA_MESSAGE_DD << "start minimizing file '"
-                    << input_trace_file_name.c_str() << "'";
+  MURXLA_MESSAGE_DD_VERBOSE << "start minimizing file '"
+                            << input_trace_file_name.c_str() << "'";
 
   /* golden run */
   auto start = std::chrono::system_clock::now();
@@ -121,40 +133,41 @@ DD::run(const std::string& input_trace_file_name,
 
   MURXLA_EXIT_ERROR(gold_exit == RESULT_ERROR_UNTRACE) << d_murxla->d_error_msg;
 
-  MURXLA_MESSAGE_DD << "golden exit: " << gold_exit;
+  MURXLA_MESSAGE_DD_VERBOSE << "golden exit: " << gold_exit;
   {
     std::ifstream gold_out_file = open_input_file(d_gold_out_file_name, false);
     std::stringstream ss;
     ss << gold_out_file.rdbuf();
-    MURXLA_MESSAGE_DD << "golden stdout output: " << ss.str();
+    MURXLA_MESSAGE_DD_VERBOSE << "golden stdout output: " << ss.str();
     gold_out_file.close();
   }
   {
     std::ifstream gold_err_file = open_input_file(d_gold_err_file_name, false);
-    MURXLA_MESSAGE_DD << "golden stderr output: " << gold_err_file.rdbuf();
+    MURXLA_MESSAGE_DD_VERBOSE << "golden stderr output: "
+                              << gold_err_file.rdbuf();
     gold_err_file.close();
   }
   if (d_murxla->d_options.dd_ignore_out)
   {
-    MURXLA_MESSAGE_DD << "ignoring stdout output";
+    MURXLA_MESSAGE_DD_VERBOSE << "ignoring stdout output";
   }
   if (d_murxla->d_options.dd_ignore_err)
   {
-    MURXLA_MESSAGE_DD << "ignoring stderr output";
+    MURXLA_MESSAGE_DD_VERBOSE << "ignoring stderr output";
   }
   if (!d_murxla->d_options.dd_ignore_out
       && !d_murxla->d_options.dd_match_out.empty())
   {
-    MURXLA_MESSAGE_DD << "checking for occurrence of '"
-                      << d_murxla->d_options.dd_match_out.c_str()
-                      << "' in stdout output";
+    MURXLA_MESSAGE_DD_VERBOSE << "checking for occurrence of '"
+                              << d_murxla->d_options.dd_match_out.c_str()
+                              << "' in stdout output";
   }
   if (!d_murxla->d_options.dd_ignore_err
       && !d_murxla->d_options.dd_match_err.empty())
   {
-    MURXLA_MESSAGE_DD << "checking for occurrence of '"
-                      << d_murxla->d_options.dd_match_err.c_str()
-                      << "' in stderr output";
+    MURXLA_MESSAGE_DD_VERBOSE << "checking for occurrence of '"
+                              << d_murxla->d_options.dd_match_err.c_str()
+                              << "' in stderr output";
   }
 
   /* Start delta debugging */
@@ -236,9 +249,9 @@ DD::run(const std::string& input_trace_file_name,
         prepend_path(d_murxla->d_options.out_dir, reduced_trace_file_name);
   }
 
-  MURXLA_MESSAGE_DD;
-  MURXLA_MESSAGE_DD << d_ntests_success << " (of " << d_ntests
-                    << ") tests reduced successfully";
+  MURXLA_MESSAGE_DD_VERBOSE;
+  MURXLA_MESSAGE_DD_VERBOSE << d_ntests_success << " (of " << d_ntests
+                            << ") tests reduced successfully";
 
   if (std::filesystem::exists(d_tmp_trace_file_name))
   {
@@ -246,17 +259,18 @@ DD::run(const std::string& input_trace_file_name,
                           reduced_trace_file_name,
                           std::filesystem::copy_options::overwrite_existing);
 
-    MURXLA_MESSAGE_DD << "written to: " << reduced_trace_file_name.c_str();
-    MURXLA_MESSAGE_DD << "file reduced to "
-                      << (static_cast<double>(std::filesystem::file_size(
-                              reduced_trace_file_name))
-                          / static_cast<double>(size) * 100)
-                      << "\% of original size";
+    MURXLA_MESSAGE_DD_VERBOSE << "written to: "
+                              << reduced_trace_file_name.c_str();
+    MURXLA_MESSAGE_DD_VERBOSE
+        << "file reduced to "
+        << (static_cast<double>(
+                std::filesystem::file_size(reduced_trace_file_name))
+            / static_cast<double>(size) * 100)
+        << "\% of original size";
+    return reduced_trace_file_name;
   }
-  else
-  {
-    MURXLA_MESSAGE_DD << "unable to reduce api trace";
-  }
+  MURXLA_MESSAGE_DD_VERBOSE << "unable to reduce api trace";
+  return "";
 }
 
 bool
@@ -265,7 +279,7 @@ DD::minimize_lines(Result golden_exit,
                    std::vector<size_t>& included_lines,
                    const std::string& input_trace_file_name)
 {
-  MURXLA_MESSAGE_DD << "trying to minimize number of trace lines ...";
+  MURXLA_MESSAGE_DD_VERBOSE << "trying to minimize number of trace lines ...";
   size_t n_lines     = included_lines.size();
   size_t n_lines_cur = n_lines;
   size_t subset_size = n_lines_cur / 2;
@@ -307,11 +321,11 @@ DD::minimize_lines(Result golden_exit,
       included_lines = superset_cur;
       n_lines_cur    = included_lines.size();
       subset_size    = n_lines_cur / 2;
-      MURXLA_MESSAGE_DD << ">> number of lines reduced to " << std::fixed
-                        << std::setprecision(2)
-                        << (static_cast<double>(included_lines.size())
-                            / static_cast<double>(n_lines) * 100)
-                        << "% of original number";
+      MURXLA_MESSAGE_DD_VERBOSE << ">> number of lines reduced to "
+                                << std::fixed << std::setprecision(2)
+                                << (static_cast<double>(included_lines.size())
+                                    / static_cast<double>(n_lines) * 100)
+                                << "% of original number";
     }
   }
   return included_lines.size() < n_lines;
@@ -656,7 +670,8 @@ DD::substitute_terms(Result golden_exit,
                      std::vector<size_t>& included_lines,
                      const std::string& input_trace_file_name)
 {
-  MURXLA_MESSAGE_DD << "trying to minimize trace by substituting terms ...";
+  MURXLA_MESSAGE_DD_VERBOSE
+      << "trying to minimize trace by substituting terms ...";
 
   bool res = false;
 
@@ -741,9 +756,10 @@ DD::substitute_terms(Result golden_exit,
             superset    = superset_cur;
             n_lines_cur = superset.size();
             subset_size = n_lines_cur / 2;
-            MURXLA_MESSAGE_DD << ">> replaced term '" << term_id_to_substitute
-                              << "' with '" << term_id << "' in "
-                              << (n_lines - superset.size()) << " lines";
+            MURXLA_MESSAGE_DD_VERBOSE
+                << ">> replaced term '" << term_id_to_substitute << "' with '"
+                << term_id << "' in " << (n_lines - superset.size())
+                << " lines";
           }
         }
         if (superset.size() < n_lines)
@@ -838,11 +854,12 @@ DD::minimize_line_aux(Result golden_exit,
       line_superset = cur_line_superset;
       subset_size   = line_superset.size() / 2;
       res           = true;
-      MURXLA_MESSAGE_DD << ">> line " << line_idx_first << " reduced to "
-                        << std::fixed << std::setprecision(2)
-                        << (static_cast<double>(lines[line_idx_first][0].size())
-                            / static_cast<double>(line_size) * 100)
-                        << "% of original size";
+      MURXLA_MESSAGE_DD_VERBOSE
+          << ">> line " << line_idx_first << " reduced to " << std::fixed
+          << std::setprecision(2)
+          << (static_cast<double>(lines[line_idx_first][0].size())
+              / static_cast<double>(line_size) * 100)
+          << "% of original size";
     }
   }
   return res;
@@ -854,7 +871,7 @@ DD::minimize_line(Result golden_exit,
                   const std::vector<size_t>& included_lines,
                   const std::string& input_trace_file_name)
 {
-  MURXLA_MESSAGE_DD << "trying to minimize trace lines ...";
+  MURXLA_MESSAGE_DD_VERBOSE << "trying to minimize trace lines ...";
 
   bool res = false;
 
@@ -911,16 +928,18 @@ DD::minimize_line(Result golden_exit,
     {
       if (Action::get_sort_kind_from_str(tokens[0]) != SORT_FUN) continue;
 
-      MURXLA_MESSAGE_DD << "trying to minimize function sort on line "
-                        << (line_number - lines[line_idx].size() + 1) << " ...";
+      MURXLA_MESSAGE_DD_VERBOSE << "trying to minimize function sort on line "
+                                << (line_number - lines[line_idx].size() + 1)
+                                << " ...";
       n_args = n_tokens - 2;
       collect_to_minimize_lines_sort_fun(
           lines, included_lines, seed, line_idx, tokens, to_minimize);
     }
     else
     {
-      MURXLA_MESSAGE_DD << "trying to minimize line "
-                        << (line_number - lines[line_idx].size() + 1) << " ...";
+      MURXLA_MESSAGE_DD_VERBOSE << "trying to minimize line "
+                                << (line_number - lines[line_idx].size() + 1)
+                                << " ...";
       if (action == ActionMkTerm::s_name)
       {
         Op::Kind op_kind = tokens[0];

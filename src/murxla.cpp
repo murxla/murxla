@@ -572,13 +572,40 @@ Murxla::test()
         {
           assert(error_id > 0);
           api_trace_file_name = get_api_trace_file_name(seed, error_id);
+
+          /* At default verbosity the output of the delta debugger is
+           * suppressed. Instead, we mark the line as being delta debugged
+           * while minimization is in progress and replace the marker with the
+           * name of the minimized trace when done. */
+          const std::string marker = "[dd]";
+          bool quiet_dd            = d_options.dd && d_options.verbosity == 0;
+          bool print_marker        = quiet_dd && !is_worker && term.is_term();
+          if (print_marker)
+          {
+            std::cout << term.gray() << marker << term.defaultcolor()
+                      << std::flush;
+          }
+
+          std::string min_trace_file_name;
           Result res_replay = replay(seed,
                                      out_file_name,
                                      err_file_name,
                                      api_trace_file_name,
-                                     d_options.untrace_file_name);
+                                     d_options.untrace_file_name,
+                                     &min_trace_file_name);
 
-          put(api_trace_file_name + "\n");
+          if (print_marker)
+          {
+            std::cout << term.erase_chars(static_cast<uint32_t>(marker.size()));
+          }
+          if (quiet_dd && !min_trace_file_name.empty())
+          {
+            put(min_trace_file_name + "\n");
+          }
+          else
+          {
+            put(api_trace_file_name + "\n");
+          }
 
           // Note: This may happen in few cases where the replay runs into a
           // timeout, but the original run does not.
@@ -634,7 +661,8 @@ Murxla::replay(uint64_t seed,
                const std::string& out_file_name,
                const std::string& err_file_name,
                const std::string& api_trace_file_name,
-               const std::string& untrace_file_name)
+               const std::string& untrace_file_name,
+               std::string* min_trace_file_name)
 {
   Result res = run(seed,
                    0,
@@ -666,7 +694,14 @@ Murxla::replay(uint64_t seed,
       }
       dd_trace_file_name = replace_suffix_file_name(name, ".min.trace");
     }
-    DD(this, seed).run(api_trace_file_name, dd_trace_file_name);
+    /* Only print the progress of the delta debugger if verbose output is
+     * enabled, the caller reports the result of the minimization instead. */
+    std::string minimized = DD(this, seed, d_options.verbosity > 0)
+                                .run(api_trace_file_name, dd_trace_file_name);
+    if (min_trace_file_name)
+    {
+      *min_trace_file_name = minimized;
+    }
   }
   return res;
 }
@@ -850,6 +885,9 @@ Murxla::run_aux(uint64_t seed,
   /* If seeded, run in main process. */
   if (run_forked)
   {
+    /* Flush stdout to make sure that pending output of the parent process is
+     * not duplicated by the forked processes. */
+    std::cout << std::flush;
     pid_solver = fork();
 
     MURXLA_CHECK(pid_solver >= 0) << "forking solver process failed.";

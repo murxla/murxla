@@ -91,6 +91,11 @@ class Terminal
 
   const std::string cr() const;
   void erase(std::ostream& out) const;
+  /**
+   * Move the cursor `n` columns to the left and erase everything from the
+   * cursor to the end of the line.
+   */
+  const std::string erase_chars(uint32_t n) const;
   const std::string blue() const;
   const std::string defaultcolor() const;
   const std::string gray() const;
