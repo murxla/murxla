@@ -266,7 +266,9 @@ set_sigint_handler_stats(void)
   "  --solver-trace             print native solver API trace to stdout\n"     \
   "\n"                                                                         \
   " Trace minimizer:\n"                                                        \
-  "  -d, --dd                   enable delta debugging\n"                      \
+  "  -d, --dd                   enable delta debugging (in continuous\n"       \
+  "                             mode, only the first trace of an error\n"      \
+  "                             group is minimized)\n"                         \
   "  --dd-match-err <string>    check for occurrence of <string> in stderr\n"  \
   "                             output when delta debugging\n"                 \
   "  --dd-match-out <string>    check for occurrence of <string> in stdout\n"  \

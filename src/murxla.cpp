@@ -573,12 +573,17 @@ Murxla::test()
           assert(error_id > 0);
           api_trace_file_name = get_api_trace_file_name(seed, error_id);
 
+          /* Only minimize the first trace of an error group, minimizing
+           * duplicates of an already known error does not add any new
+           * information. */
+          bool minimize = d_options.dd && errkind != ErrorKind::DUPLICATE;
+
           /* At default verbosity the output of the delta debugger is
            * suppressed. Instead, we mark the line as being delta debugged
            * while minimization is in progress and replace the marker with the
            * name of the minimized trace when done. */
           const std::string marker = "[dd]";
-          bool quiet_dd            = d_options.dd && d_options.verbosity == 0;
+          bool quiet_dd            = minimize && d_options.verbosity == 0;
           bool print_marker        = quiet_dd && !is_worker && term.is_term();
           if (print_marker)
           {
@@ -592,6 +597,7 @@ Murxla::test()
                                      err_file_name,
                                      api_trace_file_name,
                                      d_options.untrace_file_name,
+                                     minimize,
                                      &min_trace_file_name);
 
           if (print_marker)
@@ -662,6 +668,7 @@ Murxla::replay(uint64_t seed,
                const std::string& err_file_name,
                const std::string& api_trace_file_name,
                const std::string& untrace_file_name,
+               bool minimize,
                std::string* min_trace_file_name)
 {
   Result res = run(seed,
@@ -674,7 +681,7 @@ Murxla::replay(uint64_t seed,
                    false,
                    TO_FILE);
 
-  if (d_options.dd)
+  if (d_options.dd && minimize)
   {
     std::string dd_trace_file_name = d_options.dd_trace_file_name;
     if (dd_trace_file_name.empty())

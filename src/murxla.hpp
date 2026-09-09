@@ -293,7 +293,11 @@ class Murxla
    * err_file_name      : The name of the file to write stderr output to.
    * api_trace_file_name: The name of the file to write the API trace to.
    * untrace_file_name  : The name of the trace file to replay.
-   * min_trace_file_name: If non-null and delta debugging is enabled, stores
+   * minimize           : True if the replayed trace should be delta debugged
+   *                      (if delta debugging is enabled). This should only be
+   *                      false for traces of errors we have already minimized
+   *                      a trace for, i.e., duplicates of a known error.
+   * min_trace_file_name: If non-null and the trace is delta debugged, stores
    *                      the name of the minimized trace file.
    *
    * Returns a result that indicates the status of the test run.
@@ -303,6 +307,7 @@ class Murxla
                 const std::string& err_file_name,
                 const std::string& api_trace_file_name,
                 const std::string& untrace_file_name,
+                bool minimize                    = true,
                 std::string* min_trace_file_name = nullptr);
 
   /** Filter error messages based on filter regex provided in solver profile. */
