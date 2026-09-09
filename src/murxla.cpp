@@ -648,7 +648,25 @@ Murxla::replay(uint64_t seed,
 
   if (d_options.dd)
   {
-    DD(this, seed).run(api_trace_file_name, d_options.dd_trace_file_name);
+    std::string dd_trace_file_name = d_options.dd_trace_file_name;
+    if (dd_trace_file_name.empty())
+    {
+      /* Write the minimized trace next to the trace we are minimizing. The
+       * api trace file name already includes the output directory, which
+       * DD::run() prepends again, hence strip it here. */
+      std::string name = api_trace_file_name;
+      if (!d_options.out_dir.empty())
+      {
+        std::filesystem::path rel =
+            std::filesystem::path(name).lexically_relative(d_options.out_dir);
+        if (!rel.empty() && *rel.begin() != "..")
+        {
+          name = rel.string();
+        }
+      }
+      dd_trace_file_name = replace_suffix_file_name(name, ".min.trace");
+    }
+    DD(this, seed).run(api_trace_file_name, dd_trace_file_name);
   }
   return res;
 }
