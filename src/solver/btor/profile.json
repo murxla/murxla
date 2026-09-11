@@ -16,6 +16,12 @@
     }
   },
 
+  "operators": {
+    "exclude": [
+      "OP_CONST_ARRAY"
+    ]
+  },
+
   "sorts": {
     "exclude": [
       "SORT_UNINTERPRETED"

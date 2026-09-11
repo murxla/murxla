@@ -1269,6 +1269,28 @@ BitwuzlaSolver::mk_term(const Op::Kind& kind,
   return res;
 }
 
+Term
+BitwuzlaSolver::mk_term(const Op::Kind& kind,
+                        Sort sort,
+                        const std::vector<std::string>& str_args,
+                        const std::vector<Term>& args,
+                        const std::vector<std::string>& special_args)
+{
+  (void) special_args;
+  MURXLA_CHECK_CONFIG(kind == Op::CONST_ARRAY)
+      << "BitwuzlaSolver: operator kind '" << kind << "' not configured";
+  assert(str_args.empty());
+  assert(args.size() == 1);
+
+  ::bitwuzla::Term bzla_res =
+      d_tm->mk_const_array(BitwuzlaSort::get_bitwuzla_sort(sort),
+                           BitwuzlaTerm::get_bitwuzla_term(args[0]));
+  MURXLA_TEST(!bzla_res.is_null());
+  std::shared_ptr<BitwuzlaTerm> res(new BitwuzlaTerm(d_tm.get(), bzla_res));
+  assert(res);
+  return res;
+}
+
 Sort
 BitwuzlaSolver::get_sort(Term term, SortKind sort_kind)
 {

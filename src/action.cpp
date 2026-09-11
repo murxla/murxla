@@ -1342,7 +1342,22 @@ ActionMkTerm::generate(Op::Kind kind)
 
   ++d_smgr.d_mbt_stats->d_ops[op.d_id];
 
-  if (kind == Op::DT_APPLY_CONS)
+  if (kind == Op::CONST_ARRAY)
+  {
+    assert(!n_indices);
+    if (!d_smgr.has_sort(SORT_ARRAY)) return false;
+    /* We don't require the array sort to have terms, creating a constant
+     * array is a way to create the first term of an array sort. */
+    Sort array_sort                = d_smgr.pick_sort(SORT_ARRAY, false);
+    const std::vector<Sort>& sorts = array_sort->get_sorts();
+    assert(sorts.size() == 2);
+    Sort element_sort = sorts[1];
+    if (!d_smgr.has_term(element_sort)) return false;
+    std::vector<Term> args{d_smgr.pick_term(element_sort)};
+    assert(sort_kind == SORT_ARRAY);
+    run(kind, sort_kind, array_sort, {}, args);
+  }
+  else if (kind == Op::DT_APPLY_CONS)
   {
     assert(!n_indices);
     if (!d_smgr.has_term(SORT_DT)) return false;
@@ -2109,8 +2124,8 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
     }
     n_args = str_to_uint32(tokens[idx++]);
   }
-  else if (op_kind == Op::DT_APPLY_CONS || op_kind == Op::DT_MATCH_CASE
-           || op_kind == Op::DT_MATCH_BIND_CASE)
+  else if (op_kind == Op::CONST_ARRAY || op_kind == Op::DT_APPLY_CONS
+           || op_kind == Op::DT_MATCH_CASE || op_kind == Op::DT_MATCH_BIND_CASE)
   {
     auto id     = untrace_str_to_id(tokens[2]);
     sort        = get_untraced_sort(id);
@@ -2181,8 +2196,8 @@ ActionMkTerm::untrace(const std::vector<std::string>& tokens)
     return run(op_kind, sort_kind, str_args, args, special_args);
   }
 
-  if (op_kind == Op::DT_APPLY_CONS || op_kind == Op::DT_MATCH_CASE
-      || op_kind == Op::DT_MATCH_BIND_CASE)
+  if (op_kind == Op::CONST_ARRAY || op_kind == Op::DT_APPLY_CONS
+      || op_kind == Op::DT_MATCH_CASE || op_kind == Op::DT_MATCH_BIND_CASE)
   {
     return run(op_kind, sort_kind, sort, str_args, args, special_args);
   }

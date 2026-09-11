@@ -26,6 +26,7 @@
       "OP_BAG_MAP",
       "OP_BAG_TO_SET",
       "OP_BAG_IS_SINGLETON",
+      "OP_CONST_ARRAY",
       "OP_IFF"
     ],
 

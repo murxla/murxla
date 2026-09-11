@@ -96,6 +96,7 @@ OpKindManager::add_op_kinds()
       Op::ITE, 3, 0, SORT_ANY, {SORT_BOOL, SORT_ANY, SORT_ANY}, THEORY_ALL);
 
   /* Arrays */
+  add_op_kind(Op::CONST_ARRAY, 1, 0, SORT_ARRAY, {SORT_ANY}, THEORY_ARRAY);
   add_op_kind(
       Op::ARRAY_SELECT, 2, 0, SORT_ANY, {SORT_ARRAY, SORT_ANY}, THEORY_ARRAY);
   add_op_kind(Op::ARRAY_STORE,

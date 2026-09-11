@@ -226,6 +226,11 @@ class BitwuzlaSolver : public Solver
                const std::vector<Term>& args,
                const std::vector<uint32_t>& indices,
                const std::vector<std::string>& special_args = {}) override;
+  Term mk_term(const Op::Kind& kind,
+               Sort sort,
+               const std::vector<std::string>& str_args,
+               const std::vector<Term>& args,
+               const std::vector<std::string>& special_args = {}) override;
 
   Sort get_sort(Term term, SortKind sort_kind) override;
 

@@ -11,6 +11,12 @@
     ]
   },
 
+  "operators": {
+    "exclude": [
+      "OP_CONST_ARRAY"
+    ]
+  },
+
   "sorts": {
 
     "array-index": {

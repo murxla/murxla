@@ -20,6 +20,10 @@
   },
 
   "operators": {
+    "exclude": [
+      "OP_CONST_ARRAY"
+    ],
+
     "sort-restrictions": {
       "OP_DISTINCT": [
         "SORT_FUN"

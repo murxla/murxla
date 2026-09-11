@@ -54,8 +54,6 @@ struct Op
    * Created with Solver::mk_const().
    */
   inline static const Kind CONSTANT = "OP_CONSTANT";
-  /** The operator kind representing a const array. */
-  inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
   /**
    * The operator kind representing a value.
    *
@@ -141,6 +139,26 @@ struct Op
    */
 
   //// Arrays
+  /**
+   * The operator kind representing a constant array, i.e., an array that maps
+   * every index to the same value.
+   *
+   * Created with Solver::mk_term() with
+   * - **sort**: the array sort of the constant array
+   * - **arity**: 1
+   * - **args**: `{SORT_ANY}`
+   *   - [0]: value term, of the element sort of the given array sort
+   * - **indices**: `{}`
+   *
+   * SMT-LIB:
+   *
+   * \verbatim embed:rst:leading-asterisk
+   * .. code:: smtlib
+   *
+   *     ((as const <array sort>) <value term>)
+   * \endverbatim
+   */
+  inline static const Kind CONST_ARRAY = "OP_CONST_ARRAY";
   /**
    * The operator kind representing the select operator on arrays.
    *

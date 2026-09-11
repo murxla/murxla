@@ -681,6 +681,12 @@ Smt2Term::get_repr() const
             res << to_smt2_term(cur->d_args[0])->get_repr();
             i += 1;
           }
+          else if (cur->d_kind == Op::CONST_ARRAY)
+          {
+            assert(cur->d_args.size() == 1);
+            Smt2Sort* smt2_sort = static_cast<Smt2Sort*>(cur->get_sort().get());
+            res << "(as const " << smt2_sort->get_repr() << ")";
+          }
           else if (cur->d_kind == Op::DT_APPLY_CONS)
           {
             assert(cur->get_str_args().size() == 1);
@@ -1703,7 +1709,10 @@ Smt2Solver::mk_term(const Op::Kind& kind,
 {
   (void) special_args;
   Smt2Term* res = new Smt2Term(kind, str_args, args, {}, "");
-  if (kind == Op::DT_APPLY_CONS) res->set_sort(sort);
+  if (kind == Op::CONST_ARRAY || kind == Op::DT_APPLY_CONS)
+  {
+    res->set_sort(sort);
+  }
   return std::shared_ptr<Smt2Term>(res);
 }
 
