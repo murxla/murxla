@@ -54,7 +54,17 @@ struct ErrorInfo
             const std::vector<uint64_t>& seeds)
       : id(id), errmsg(errmsg), seeds(seeds){};
 
+  /**
+   * Stable, content-derived id of this error group, see
+   * `Murxla::error_group_id()`. Doubles as the name of the directory the
+   * group's traces are written to, see `Murxla::error_group_dir()`.
+   */
   uint64_t id;
+  /**
+   * The representative error message of this group, i.e. the (filtered)
+   * message of the first error that was assigned to it. All further errors
+   * are matched against this message, and it alone determines `id`.
+   */
   std::string errmsg;
   std::vector<uint64_t> seeds;
 };
@@ -113,6 +123,51 @@ class Murxla
 
   inline static const std::string API_TRACE = "tmp-api.trace";
   inline static const std::string SMT2_FILE = "tmp-smt2.smt2";
+
+  /** Number of hex digits in an error group directory name. */
+  inline static constexpr size_t ERROR_GROUP_ID_DIGITS = 12;
+
+  /**
+   * Compute the stable id of the error group represented by `normalized_err`.
+   *
+   * Error grouping is fuzzy (see `insert_error()`), so the hash of an
+   * arbitrary group member is not a group identity. The id is therefore
+   * always derived from the group's *representative* message, i.e. the first
+   * message that was assigned to the group.
+   *
+   * The message is stripped of trailing whitespace before hashing. This is
+   * required for the id to survive a round-trip through `error.txt`, which
+   * stores the representative message stripped (see `test()`).
+   */
+  static uint64_t error_group_id(const std::string& normalized_err);
+
+  /**
+   * Name of the directory holding the traces of error group `id`, relative to
+   * the output directory.
+   */
+  static std::string error_group_dir(uint64_t id);
+
+  /**
+   * Rehydrate the error map from the error groups already present in the
+   * output directory, so that a new run continues where a previous one left
+   * off instead of re-reporting known errors into colliding directories.
+   *
+   * A group directory serializes its own state: `<group>/error.txt` holds
+   * the representative message (which yields both the map key and the group
+   * id) and the seeds are recoverable from the `murxla-<seed>.trace` file
+   * names. No separate state file is involved, which means deleting a group
+   * directory reliably forgets that error and merging output directories
+   * from several hosts is a plain copy of the group directories.
+   *
+   * Groups are keyed by content, not by directory name, so directories from
+   * older versions of Murxla (which named them `1`, `2`, ...) are picked up
+   * as well and their errors are recognized as known. Note that new traces
+   * for such a group are written to the content-derived directory, which
+   * never receives an `error.txt` of its own (that is only written for a
+   * newly discovered error), so those traces are not restored again later.
+   * Only the directory named after the group id is fully self-describing.
+   */
+  void load_state();
 
   /** Constructor. */
   Murxla(statistics::Statistics* stats,
@@ -324,6 +379,13 @@ class Murxla
   add_error(const std::string& err, uint64_t seed);
 
   /**
+   * Look up the error group `normalized_err` belongs to.
+   *
+   * Returns `d_errors->end()` if the message does not match any known group.
+   */
+  ErrorMap::iterator find_error(const std::string& normalized_err);
+
+  /**
    * Filter prologue extracted from `add_error()`. Runs `filter_error` plus
    * the immutable solver-profile exclude regexes / 5%-diff exclude check.
    *
@@ -355,6 +417,17 @@ class Murxla
 
   /** Load solver profile of currently configured solver. */
   void load_solver_profile();
+
+  /** Write the errors collected for --export-errors to their JSON file. */
+  void export_errors() const;
+
+  /**
+   * Add the error group stored in directory `dir` to `d_errors`.
+   *
+   * Returns false if `dir` does not hold an error group, i.e. if it has no
+   * readable, non-empty `error.txt`.
+   */
+  bool load_error_group(const std::string& dir);
 
   std::string get_smt2_file_name(uint64_t seed,
                                  const std::string& untrace_file_name) const;

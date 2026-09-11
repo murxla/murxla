@@ -43,14 +43,29 @@ instance.
 When an **issue** is encountered, it will also print the name of the recorded
 trace as well as the error message of the solver.
 Murxla groups error traces that trigger the same error message into
-subdirectories (1, 2, ...) and stores the corresponding error message in
-in a file called ``error.txt``.
+subdirectories and stores the corresponding error message in a file called
+``error.txt``.
+A subdirectory is named after the error group it holds, which is derived from
+the error message itself (for example ``aa0ee8a5e7de``).
+The same error therefore always ends up in the same subdirectory, no matter
+which Murxla run encountered it.
 
 Murxla stores all generated API traces (and subdirectories) in the current
 working directory.
 It is recommended to use option ``-O <dir>`` to specify an output directory to
-store all these files and directories in ``<dir>`` in order to separate them
-from previous Murxla runs.
+store all these files and directories in ``<dir>``.
+
+When starting up in continuous mode, Murxla restores the errors it already
+knows about from the error groups found in the output directory and prints a
+summary of them.
+Errors that are encountered again are then reported as duplicates of their
+existing group instead of being recorded a second time, which means a run can
+be interrupted and resumed later without losing what it found.
+Point Murxla at the same output directory to continue accumulating into it,
+and at a fresh one to start over.
+Since group directories are named after their error, output directories of
+several Murxla runs can also be merged by copying the group directories
+together.
 
 
 .. code-block:: none
@@ -64,7 +79,7 @@ from previous Murxla runs.
     aacf82a16bb98777   366    31.92   328   248     0     4     0 [timeout]
     f086b8bb42a62fc5   382    30.20   349   261     0     5     0 [timeout]
     ...
-    2287b2bd77a3b84c  1209    21.53  1033   825     0    23     0 [error:1] 1/murxla-2287b2bd77a3b84c.trace
+    2287b2bd77a3b84c  1209    21.53  1033   825     0    23     0 [error:3f9a2c1b7d04] 3f9a2c1b7d04/murxla-2287b2bd77a3b84c.trace
 
     [bzlachkmodel] bzla_check_model: invalid model
     ...
@@ -126,12 +141,13 @@ behavior.
 In the example below,
 seed ``2287b2bd77a3b84c`` triggered an issue in Bitwuzla (prior to version 0.1).
 Murxla stores the API trace
-in ``1/murxla-2287b2bd77a3b84c.trace``, which can be replayed as follows.
+in ``3f9a2c1b7d04/murxla-2287b2bd77a3b84c.trace``, which can be replayed as
+follows.
 
 .. code-block:: trace
    :caption: Example: Replaying API Traces
 
-   $ murxla -u 1/murxla-2287b2bd77a3b84c.trace
+   $ murxla -u 3f9a2c1b7d04/murxla-2287b2bd77a3b84c.trace
 
      set-murxla-options --bitwuzla
     1174 new
@@ -173,15 +189,16 @@ three phases:
 3. term substitution, where terms are replaced with simpler terms of the same
    sort
 
-For example, API trace ``1/murxla-2287b2bd77a3b84c.trace`` has 602 lines and
+For example, API trace ``3f9a2c1b7d04/murxla-2287b2bd77a3b84c.trace`` has 602
+lines and
 can be minimized with option ``-d`` as follows.
 
 .. code-block:: none
    :caption: Example: Minimizing API Traces
 
-   $ murxla -u 1/murxla-2287b2bd77a3b84c.trace -d
+   $ murxla -u 3f9a2c1b7d04/murxla-2287b2bd77a3b84c.trace -d
 
-   [murxla] dd: minimizing untraced file '1/murxla-2287b2bd77a3b84c.trace'
+   [murxla] dd: minimizing untraced file '3f9a2c1b7d04/murxla-2287b2bd77a3b84c.trace'
    [murxla] dd: start minimizing file '/tmp/murxla-63714/tmp.trace'
    [murxla] dd: golden exit: error
    [murxla] dd: golden stdout output:
@@ -198,7 +215,7 @@ can be minimized with option ``-d`` as follows.
    [murxla] dd: trying to minimize number of trace lines ...
    [murxla] dd:
    [murxla] dd: 276 (of 1491) tests reduced successfully
-   [murxla] dd: written to: 1/murxla-2287b2bd77a3b84c.min.trace
+   [murxla] dd: written to: 3f9a2c1b7d04/murxla-2287b2bd77a3b84c.min.trace
    [murxla] dd: file reduced to 7.50% of original size
 
 The minimized trace is 7.5% of the original trace (59 lines) but still triggers

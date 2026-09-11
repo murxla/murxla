@@ -18,6 +18,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -27,6 +28,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include "dd.hpp"
 #include "except.hpp"
@@ -139,45 +141,168 @@ escape_csv(const std::string& str)
   return s;
 }
 
+/**
+ * Collect the error groups, most frequently hit first, ties broken by group
+ * id. `g_errors` is unordered, so without this the order of both the resume
+ * overview and the error statistics would differ between runs on identical
+ * state.
+ */
+std::vector<const ErrorInfo*>
+sorted_errors()
+{
+  std::vector<const ErrorInfo*> res;
+  for (const auto& [e_norm, e_info] : g_errors)
+  {
+    res.push_back(&e_info);
+  }
+  std::sort(res.begin(), res.end(), [](const ErrorInfo* a, const ErrorInfo* b) {
+    if (a->seeds.size() != b->seeds.size())
+    {
+      return a->seeds.size() > b->seeds.size();
+    }
+    return a->id < b->id;
+  });
+  return res;
+}
+
+/**
+ * Print the `  <group> <n> seeds  ` line prefix shared by the resume overview
+ * and the error statistics, so that both read the same way.
+ */
+void
+print_error_group_prefix(const Terminal& term, const ErrorInfo& e_info)
+{
+  const size_t nseeds = e_info.seeds.size();
+  std::cout << "  " << term.red() << Murxla::error_group_dir(e_info.id)
+            << term.defaultcolor() << std::dec << std::setw(5) << nseeds
+            << (nseeds == 1 ? " seed " : " seeds") << "  ";
+}
+
+/** Print `errmsg` indented to line up with the group line above it. */
+void
+print_indented_errmsg(const std::string& errmsg)
+{
+  std::istringstream ss(errmsg);
+  std::string line;
+  while (std::getline(ss, line))
+  {
+    std::cout << "  " << line << "\n";
+  }
+}
+
+/**
+ * Print a compact overview of the error groups `Murxla::load_state()`
+ * restored from the output directory, so a resumed run does not silently
+ * start out with a non-zero error count.
+ *
+ * Only the first line of each error message is shown, truncated to keep the
+ * overview scannable; the full messages are printed by
+ * `print_error_summary()` at the end of the run, and are in the `error.txt`
+ * of the respective group directory.
+ */
+void
+print_restored_errors(const std::string& out_dir)
+{
+  if (g_errors.empty())
+  {
+    return;
+  }
+
+  /* Number of groups to list before summarizing the rest as a count. */
+  constexpr size_t max_groups = 10;
+  /* Budget for the error message so that a line fits into 80 columns. */
+  constexpr size_t max_msg_width = 52;
+
+  std::vector<const ErrorInfo*> infos = sorted_errors();
+
+  Terminal term;
+  std::cout << "\nResuming with " << infos.size() << " known error"
+            << (infos.size() == 1 ? "" : "s") << " from "
+            << (out_dir.empty() ? "." : out_dir) << ":\n\n";
+
+  for (size_t i = 0; i < infos.size(); ++i)
+  {
+    if (i == max_groups)
+    {
+      std::cout << "  ... and " << infos.size() - max_groups << " more\n";
+      break;
+    }
+
+    /* Reduce the message to its first non-empty line. Multi-line messages
+     * (a stack trace, or solver chatter preceding an assertion) would
+     * otherwise drown out the overview. */
+    const std::string& errmsg = infos[i]->errmsg;
+    size_t begin              = errmsg.find_first_not_of("\n");
+    if (begin == std::string::npos)
+    {
+      begin = 0;
+    }
+    size_t end      = errmsg.find('\n', begin);
+    std::string msg = errmsg.substr(
+        begin, end == std::string::npos ? std::string::npos : end - begin);
+    if (msg.size() > max_msg_width)
+    {
+      msg = msg.substr(0, max_msg_width - 3) + "...";
+    }
+
+    print_error_group_prefix(term, *infos[i]);
+    std::cout << msg << "\n";
+  }
+  std::cout << std::endl;
+}
+
 void
 print_error_summary()
 {
-  if (g_errors.size())
+  if (g_errors.empty())
   {
-    std::cout << "\nError statistics (" << g_errors.size() << " in total):\n"
-              << std::endl;
+    return;
+  }
 
-    if (g_errors_print_csv)
+  /* Number of seeds to list per group before eliding the rest. */
+  constexpr size_t max_seeds = 10;
+
+  std::vector<const ErrorInfo*> infos = sorted_errors();
+
+  std::cout << "\n\nError summary (" << infos.size() << " in total):\n"
+            << std::endl;
+
+  if (g_errors_print_csv)
+  {
+    for (const ErrorInfo* e_info : infos)
     {
-      for (const auto& [e_norm, e_info] : g_errors)
+      std::cout << "murxla:csv:" << std::dec << e_info->seeds.size() << ",";
+      std::cout << Murxla::error_group_dir(e_info->id) << ",";
+      std::cout << "\"" << escape_csv(e_info->errmsg) << "\",";
+      for (auto seed : e_info->seeds)
       {
-        std::cout << "murxla:csv:" << e_info.seeds.size() << ",";
-        std::cout << "\"" << escape_csv(e_info.errmsg) << "\",";
-        for (auto seed : e_info.seeds)
-        {
-          std::cout << std::hex << seed << " ";
-        }
-        std::cout << std::endl;
+        std::cout << std::hex << seed << " ";
       }
+      std::cout << std::dec << std::endl;
     }
-    else
+    return;
+  }
+
+  Terminal term;
+  for (const ErrorInfo* e_info : infos)
+  {
+    print_error_group_prefix(term, *e_info);
+    const size_t nseeds = e_info->seeds.size();
+    for (size_t i = 0; i < std::min(nseeds, max_seeds); ++i)
     {
-      Terminal term;
-      for (const auto& [e_norm, e_info] : g_errors)
+      if (i > 0)
       {
-        std::cout << term.red() << e_info.seeds.size()
-                  << " errors: " << term.defaultcolor();
-        for (size_t i = 0; i < std::min<size_t>(e_info.seeds.size(), 10); ++i)
-        {
-          if (i > 0)
-          {
-            std::cout << " ";
-          }
-          std::cout << std::hex << e_info.seeds[i] << std::dec;
-        }
-        std::cout << "\n" << e_info.errmsg << "\n" << std::endl;
+        std::cout << " ";
       }
+      std::cout << std::hex << e_info->seeds[i] << std::dec;
     }
+    if (nseeds > max_seeds)
+    {
+      std::cout << " ...";
+    }
+    std::cout << "\n";
+    print_indented_errmsg(e_info->errmsg);
+    std::cout << std::endl;
   }
 }
 
@@ -1107,6 +1232,13 @@ main(int argc, char* argv[])
 
     if (is_continuous)
     {
+      /* Pick up the error groups a previous run left in the output directory
+       * so known errors are reported as duplicates of their existing group
+       * instead of being written into a colliding new one. Done before the
+       * fork below so coordinator and workers agree on the initial state. */
+      murxla.load_state();
+      print_restored_errors(options.out_dir);
+
       if (options.num_jobs > 1)
       {
         /* Parallel fuzzing: coordinator + N workers. The coordinator owns

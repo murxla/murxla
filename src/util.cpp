@@ -471,6 +471,18 @@ get_tmp_file_path(const std::string& filename, const std::string& directory)
   return p.string();
 }
 
+uint64_t
+fnv1a64(const std::string& s)
+{
+  uint64_t hash = 0xcbf29ce484222325ULL;
+  for (unsigned char c : s)
+  {
+    hash ^= c;
+    hash *= 0x100000001b3ULL;
+  }
+  return hash;
+}
+
 std::string
 prepend_path(const std::string& prefix, const std::string& file_name)
 {

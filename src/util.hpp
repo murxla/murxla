@@ -171,6 +171,18 @@ checked_cast(P* ptr)
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * FNV-1a 64 bit hash of `s`.
+ *
+ * Unlike `std::hash<std::string>`, this is guaranteed to produce the same
+ * value across processes, standard library versions and machines. We rely on
+ * that stability to derive error group directory names from error messages,
+ * which is what makes those directories mergeable across runs and hosts.
+ */
+uint64_t fnv1a64(const std::string& s);
+
+/* -------------------------------------------------------------------------- */
+
 /** Combine hash values (as done in boost::hash_combine). */
 template <class T>
 void hash_combine(size_t& hash, const T& v)

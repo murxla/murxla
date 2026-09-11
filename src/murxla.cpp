@@ -16,12 +16,14 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <nlohmann/json.hpp>
 #include <regex>
+#include <set>
 
 #include "dd.hpp"
 #include "except.hpp"
@@ -520,11 +522,11 @@ Murxla::test()
         case RESULT_ERROR:
           if (errkind == ErrorKind::DUPLICATE)
           {
-            info << term.green() << "duplicate:" << error_id;
+            info << term.green() << "duplicate:" << error_group_dir(error_id);
           }
           else if (errkind == ErrorKind::ERROR)
           {
-            info << term.red() << "error:" << error_id;
+            info << term.red() << "error:" << error_group_dir(error_id);
           }
           else if (errkind == ErrorKind::FILTER)
           {
@@ -629,12 +631,17 @@ Murxla::test()
         num_printed_lines = 0;  // print header again after error
 
         // If it is the first error, we also store the error message in a text
-        // file.
+        // file. This is the representative message of the error group: it
+        // determines the group's id, and load_state() reads it back to
+        // recognize the error in later runs. Never clobber an existing one.
         assert(error_nduplicates == 1);
         std::filesystem::path fp(api_trace_file_name);
         std::string text_file = prepend_path(fp.parent_path(), "error.txt");
-        std::ofstream os(text_file);
-        os << errmsg_filtered << "\n";
+        if (!std::filesystem::exists(text_file))
+        {
+          std::ofstream os(text_file);
+          os << errmsg_filtered << "\n";
+        }
       }
     }
 
@@ -1071,7 +1078,11 @@ std::tuple<Murxla::ErrorKind, std::string, std::string>
 Murxla::prefilter_error(const std::string& err)
 {
   std::string filtered_err = filter_error(err);
-  std::string err_norm     = normalize_asan_error(filtered_err);
+  /* Strip trailing whitespace up front so that the message stored as a
+   * group's representative is byte-identical to what `error.txt` holds and
+   * what `load_error_group()` reads back. */
+  rstrip(filtered_err);
+  std::string err_norm = normalize_asan_error(filtered_err);
 
   /* Filter errors if specified in the solver profile. */
   for (const auto& e : d_exclude_errors)
@@ -1094,40 +1105,85 @@ Murxla::prefilter_error(const std::string& err)
   return std::make_tuple(ErrorKind::ERROR, filtered_err, err_norm);
 }
 
+uint64_t
+Murxla::error_group_id(const std::string& normalized_err)
+{
+  std::string s(normalized_err);
+  rstrip(s);
+  /* Mask down to what the directory name can represent so that id and
+   * directory name are in one-to-one correspondence. Shifting by the full
+   * width of the type is undefined, so the case of the name covering the
+   * whole hash needs to be spelled out. */
+  constexpr size_t bits = 4 * ERROR_GROUP_ID_DIGITS;
+  static_assert(bits <= 64, "error group id does not fit into uint64_t");
+  constexpr uint64_t mask = bits >= 64 ? UINT64_MAX : (1ULL << bits) - 1;
+  uint64_t id             = fnv1a64(s) & mask;
+  /* Id 0 is reserved to mean 'not part of an error group'. */
+  return id == 0 ? 1 : id;
+}
+
+std::string
+Murxla::error_group_dir(uint64_t id)
+{
+  std::stringstream ss;
+  ss << std::hex << std::setw(ERROR_GROUP_ID_DIGITS) << std::setfill('0') << id;
+  return ss.str();
+}
+
+Murxla::ErrorMap::iterator
+Murxla::find_error(const std::string& normalized_err)
+{
+  for (auto it = d_errors->begin(); it != d_errors->end(); ++it)
+  {
+    /* Errors are classified as the same error if they differ in at most 5% of
+     * characters. */
+    if (error_diff(normalized_err, it->first) <= 0.05)
+    {
+      return it;
+    }
+  }
+  return d_errors->end();
+}
+
 std::tuple<Murxla::ErrorKind, uint64_t, uint64_t>
 Murxla::insert_error(const std::string& filtered_err,
                      const std::string& normalized_err,
                      uint64_t seed)
 {
-  for (auto& p : *d_errors)
+  auto it = find_error(normalized_err);
+  if (it != d_errors->end())
   {
-    const auto& e_norm = p.first;
-    auto& e_info       = p.second;
-
-    /* Errors are classified as the same error if they differ in at most 5% of
-     * characters. */
-    if (error_diff(normalized_err, e_norm) <= 0.05)
-    {
-      e_info.seeds.push_back(seed);
-      return std::make_tuple(
-          ErrorKind::DUPLICATE, e_info.id, e_info.seeds.size());
-    }
+    auto& e_info = it->second;
+    e_info.seeds.push_back(seed);
+    return std::make_tuple(
+        ErrorKind::DUPLICATE, e_info.id, e_info.seeds.size());
   }
 
-  d_errors->emplace(normalized_err,
-                    ErrorInfo(d_errors->size() + 1, filtered_err, {seed}));
+  /* The new error becomes the representative of its group, hence it is the
+   * message the group's id is derived from. */
+  const uint64_t id = error_group_id(normalized_err);
+  d_errors->emplace(normalized_err, ErrorInfo(id, filtered_err, {seed}));
 
-  // Export errors to JSON file.
   if (!d_options.export_errors_filename.empty())
   {
     d_export_errors.push_back(filtered_err);
-    nlohmann::json j;
-    j["errors"]["exclude"] = d_export_errors;
-    std::ofstream o(d_options.export_errors_filename);
-    o << std::setw(2) << j << std::endl;
+    export_errors();
   }
 
-  return std::make_tuple(ErrorKind::ERROR, d_errors->size(), 1);
+  return std::make_tuple(ErrorKind::ERROR, id, 1);
+}
+
+void
+Murxla::export_errors() const
+{
+  if (d_options.export_errors_filename.empty())
+  {
+    return;
+  }
+  nlohmann::json j;
+  j["errors"]["exclude"] = d_export_errors;
+  std::ofstream o(d_options.export_errors_filename);
+  o << std::setw(2) << j << std::endl;
 }
 
 std::tuple<Murxla::ErrorKind, const std::string, uint64_t, uint64_t>
@@ -1140,6 +1196,138 @@ Murxla::add_error(const std::string& err, uint64_t seed)
   }
   auto [k, error_id, ndup] = insert_error(filtered_err, err_norm, seed);
   return std::make_tuple(k, filtered_err, error_id, ndup);
+}
+
+bool
+Murxla::load_error_group(const std::string& dir)
+{
+  std::error_code ec;
+  std::filesystem::path errfile = std::filesystem::path(dir) / "error.txt";
+  if (!std::filesystem::is_regular_file(errfile, ec))
+  {
+    return false;
+  }
+
+  /* Read error.txt verbatim. test() writes the representative message
+   * stripped of trailing whitespace, followed by a single newline, so
+   * stripping here recovers it byte for byte. */
+  std::ifstream is(errfile, std::ios::binary);
+  if (!is.is_open())
+  {
+    return false;
+  }
+  std::string errmsg((std::istreambuf_iterator<char>(is)),
+                     std::istreambuf_iterator<char>());
+  rstrip(errmsg);
+  if (errmsg.empty())
+  {
+    return false;
+  }
+
+  /* Skip groups that the solver profile excludes by now: the profile may
+   * have been extended since the group was recorded, and restoring an error
+   * that every new occurrence of is filtered would make the reported error
+   * count disagree with what the run actually does.
+   *
+   * Only the exclusion verdict is taken from prefilter_error(). The message
+   * in error.txt has already been through filter_error(), so deriving the
+   * map key or the group id from the filtered message it returns here would
+   * risk moving the group to a different directory. */
+  if (std::get<0>(prefilter_error(errmsg)) == ErrorKind::FILTER)
+  {
+    return false;
+  }
+
+  /* Recover the seeds of all runs recorded for this group from the trace
+   * file names. A seed with both a trace and a minimized trace is counted
+   * once, and the seeds are sorted so that the error summary of a resumed
+   * run does not depend on directory iteration order. */
+  std::set<uint64_t> seeds;
+  const std::regex re("murxla-([0-9a-fA-F]+)\\.(min\\.)?trace");
+  for (const auto& e : std::filesystem::directory_iterator(dir, ec))
+  {
+    std::smatch sm;
+    std::string name = e.path().filename().string();
+    if (!std::regex_match(name, sm, re))
+    {
+      continue;
+    }
+    try
+    {
+      seeds.insert(std::stoull(sm[1].str(), nullptr, 16));
+    }
+    catch (const std::exception&)
+    {
+      /* Seed does not fit into a uint64_t, so it is not a trace we wrote. */
+    }
+  }
+
+  std::string norm = normalize_asan_error(errmsg);
+
+  auto it = find_error(norm);
+  if (it != d_errors->end())
+  {
+    /* Some other directory already provided a group this message belongs to,
+     * e.g. a directory from an older version of Murxla sitting next to the
+     * content-derived directory the same error is written to now. Keep the
+     * representative we already have (it owns the group id) and only take
+     * over the seeds. */
+    auto& e_info = it->second;
+    e_info.seeds.insert(e_info.seeds.end(), seeds.begin(), seeds.end());
+    return true;
+  }
+
+  d_errors->emplace(
+      norm,
+      ErrorInfo(error_group_id(norm),
+                errmsg,
+                std::vector<uint64_t>(seeds.begin(), seeds.end())));
+  if (!d_options.export_errors_filename.empty())
+  {
+    d_export_errors.push_back(errmsg);
+  }
+  return true;
+}
+
+void
+Murxla::load_state()
+{
+  /* With no output directory configured, error groups are written to
+   * directories below the current working directory. */
+  std::string dir = d_options.out_dir.empty() ? "." : d_options.out_dir;
+
+  std::error_code ec;
+  if (!std::filesystem::is_directory(dir, ec))
+  {
+    return;
+  }
+
+  /* Sort the candidates so that which message ends up as a group's
+   * representative -- and hence which id the group gets -- does not depend on
+   * the order the file system happens to report the directories in. */
+  std::vector<std::string> dirs;
+  for (const auto& e : std::filesystem::directory_iterator(dir, ec))
+  {
+    if (e.is_directory(ec))
+    {
+      dirs.push_back(e.path().string());
+    }
+  }
+  std::sort(dirs.begin(), dirs.end());
+
+  size_t nrestored = 0;
+  for (const auto& d : dirs)
+  {
+    nrestored += load_error_group(d) ? 1 : 0;
+  }
+
+  /* Errors are exported as they are found, so a resumed run has to export
+   * what it restored -- otherwise the exported set would shrink to the
+   * errors of the most recent run. */
+  if (nrestored > 0)
+  {
+    export_errors();
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1344,9 +1532,8 @@ Murxla::get_api_trace_file_name(uint64_t seed, uint64_t error_id) const
     }
     if (error_id > 0)
     {
-      std::stringstream ss;
-      ss << error_id;
-      api_trace_file_name = prepend_path(ss.str(), api_trace_file_name);
+      api_trace_file_name =
+          prepend_path(error_group_dir(error_id), api_trace_file_name);
     }
     if (!d_options.out_dir.empty())
     {
