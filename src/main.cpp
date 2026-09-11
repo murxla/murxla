@@ -141,6 +141,9 @@ escape_csv(const std::string& str)
   return s;
 }
 
+/** Shown in place of the error message of a group that has none. */
+static const char* ERRMSG_EMPTY = "<no error output>";
+
 /**
  * Collect the error groups, most frequently hit first, ties broken by group
  * id. `g_errors` is unordered, so without this the order of both the resume
@@ -182,6 +185,11 @@ print_error_group_prefix(const Terminal& term, const ErrorInfo& e_info)
 void
 print_indented_errmsg(const std::string& errmsg)
 {
+  if (errmsg.empty())
+  {
+    std::cout << "  " << ERRMSG_EMPTY << "\n";
+    return;
+  }
   std::istringstream ss(errmsg);
   std::string line;
   while (std::getline(ss, line))
@@ -243,6 +251,10 @@ print_restored_errors(const std::string& out_dir)
     if (msg.size() > max_msg_width)
     {
       msg = msg.substr(0, max_msg_width - 3) + "...";
+    }
+    if (msg.empty())
+    {
+      msg = ERRMSG_EMPTY;
     }
 
     print_error_group_prefix(term, *infos[i]);

@@ -136,7 +136,14 @@ str_diff(const std::string& s1, const std::string& s2)
 double
 error_diff(const std::string& e1, const std::string& e2)
 {
-  size_t len  = std::max(e1.size(), e2.size());
+  size_t len = std::max(e1.size(), e2.size());
+  /* Two empty messages are the same message. Without this the division
+   * below is 0/0, and the resulting NaN compares false against any
+   * threshold, so an empty error message would not even match itself. */
+  if (len == 0)
+  {
+    return 0;
+  }
   size_t diff = str_diff(e1, e2);
   return static_cast<double>(diff) / static_cast<double>(len);
 }
@@ -1218,11 +1225,16 @@ Murxla::load_error_group(const std::string& dir)
   }
   std::string errmsg((std::istreambuf_iterator<char>(is)),
                      std::istreambuf_iterator<char>());
-  rstrip(errmsg);
+  /* A completely empty file means nothing was ever written, so there is no
+   * group here. An empty message on the other hand is a group like any
+   * other -- a solver that dies without writing to stderr is a failure mode
+   * worth keeping track of across runs -- and test() records it as the
+   * single newline it appends to the message. */
   if (errmsg.empty())
   {
     return false;
   }
+  rstrip(errmsg);
 
   /* Skip groups that the solver profile excludes by now: the profile may
    * have been extended since the group was recorded, and restoring an error
