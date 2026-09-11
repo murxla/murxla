@@ -322,51 +322,62 @@ print_error_summary()
 /* Signal handling                                                            */
 /* -------------------------------------------------------------------------- */
 
-/* Signal handler for printing error summary. */
-static void (*sig_int_handler_esummary)(int32_t);
-
+/**
+ * SIGINT handler.
+ *
+ * Restricted to async-signal-safe calls. It takes the workers down and
+ * records the signal in `Murxla::s_caught_signal`; the fuzzing loops poll
+ * that and return, after which `main()` prints the error summary and removes
+ * the temporary directory on its regular exit path. Doing that work here
+ * instead would mean allocating and using iostreams and std::filesystem from
+ * a signal handler, none of which is async-signal-safe -- a Ctrl+C arriving
+ * while the interrupted code happens to be inside the allocator can
+ * deadlock, and walking the error map while `insert_error()` is rehashing it
+ * is undefined.
+ */
 static void
-catch_signal_esummary(int32_t sig)
+catch_signal_esummary(int sig)
 {
-  static int32_t caught_signal = 0;
-  if (!caught_signal)
+  /* A second Ctrl+C means the graceful path is not making progress, so bail
+   * out immediately. _exit() is async-signal-safe, exit() is not. */
+  if (Murxla::s_caught_signal)
   {
-    /* Send SIGTERM to each worker's process group so the worker AND its
-     * solver/timeout grandchildren all die together. Using async-signal-safe
-     * calls only. */
-    sig_atomic_t n = g_worker_pid_count;
-    for (sig_atomic_t i = 0; i < n; ++i)
-    {
-      pid_t p = g_worker_pids[i];
-      if (p > 0) kill(-p, SIGTERM);
-    }
-    /* Reap workers so their PIDs don't linger as zombies. */
-    for (sig_atomic_t i = 0; i < n; ++i)
-    {
-      pid_t p = g_worker_pids[i];
-      if (p > 0)
-      {
-        int status;
-        (void) waitpid(p, &status, 0);
-      }
-    }
-    print_error_summary();
-    caught_signal = sig;
+    _exit(EXIT_ERROR);
   }
-  if (std::filesystem::exists(TMP_DIR))
-  {
-    std::filesystem::remove_all(TMP_DIR);
-  }
+  Murxla::s_caught_signal = sig;
 
-  (void) signal(SIGINT, sig_int_handler_esummary);
-  raise(sig);
-  exit(EXIT_ERROR);
+  /* Send SIGTERM to each worker's process group so the worker AND its
+   * solver/timeout grandchildren all die together. */
+  sig_atomic_t n = g_worker_pid_count;
+  for (sig_atomic_t i = 0; i < n; ++i)
+  {
+    pid_t p = g_worker_pids[i];
+    if (p > 0) kill(-p, SIGTERM);
+  }
+  /* Reap workers so their PIDs don't linger as zombies. */
+  for (sig_atomic_t i = 0; i < n; ++i)
+  {
+    pid_t p = g_worker_pids[i];
+    if (p > 0)
+    {
+      int status;
+      (void) waitpid(p, &status, 0);
+    }
+  }
 }
 
 static void
 set_sigint_handler_stats(void)
 {
-  sig_int_handler_esummary = signal(SIGINT, catch_signal_esummary);
+  struct sigaction act;
+  memset(&act, 0, sizeof(act));
+  act.sa_handler = catch_signal_esummary;
+  sigemptyset(&act.sa_mask);
+  /* Restart interrupted system calls. The loops check for the signal at
+   * their next iteration anyway, so there is nothing to be gained from
+   * having blocking calls fail with EINTR. */
+  act.sa_flags = SA_RESTART;
+  (void) sigaction(SIGINT, &act, nullptr);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1076,6 +1087,11 @@ run_coordinator_loop(Murxla& murxla,
 
   while (num_alive > 0)
   {
+    if (Murxla::s_caught_signal)
+    {
+      break;
+    }
+
     std::vector<struct pollfd> pfds;
     std::vector<size_t> idx;
     pfds.reserve(num_workers);
@@ -1487,6 +1503,15 @@ main(int argc, char* argv[])
   if (std::filesystem::exists(TMP_DIR))
   {
     std::filesystem::remove_all(TMP_DIR);
+  }
+
+  /* Terminate the way the signal would have, so that the exit status is the
+   * conventional one for a process killed by it. */
+  if (Murxla::s_caught_signal)
+  {
+    int sig = Murxla::s_caught_signal;
+    (void) signal(sig, SIG_DFL);
+    raise(sig);
   }
 
   return 0;

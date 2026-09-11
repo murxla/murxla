@@ -11,6 +11,7 @@
 #define __MURXLA__MURXLA_H
 
 #include <atomic>
+#include <csignal>
 #include <cstdint>
 #include <regex>
 #include <string>
@@ -126,6 +127,17 @@ class Murxla
 
   /** Number of hex digits in an error group directory name. */
   inline static constexpr size_t ERROR_GROUP_ID_DIGITS = 12;
+
+  /**
+   * The signal number recorded by the SIGINT handler, or 0.
+   *
+   * The handler restricts itself to async-signal-safe work and sets this
+   * instead of shutting down itself. The fuzzing loops poll it and return,
+   * so that printing the error summary and removing the temporary directory
+   * happen on the regular exit path, where allocating and doing I/O is
+   * actually allowed.
+   */
+  static volatile sig_atomic_t s_caught_signal;
 
   /**
    * Compute the stable id of the error group represented by `normalized_err`.

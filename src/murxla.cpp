@@ -228,6 +228,8 @@ read_msg(int fd, uint8_t& type, std::string& payload)
 
 /* -------------------------------------------------------------------------- */
 
+volatile sig_atomic_t Murxla::s_caught_signal = 0;
+
 Murxla::Murxla(statistics::Statistics* stats,
                const Options& options,
                SolverOptions* solver_options,
@@ -673,7 +675,8 @@ Murxla::test()
         d_aggregate->last_seed.store(seed, std::memory_order_relaxed);
       }
     }
-  } while (d_options.max_runs == 0 || num_runs < d_options.max_runs);
+  } while (!s_caught_signal
+           && (d_options.max_runs == 0 || num_runs < d_options.max_runs));
 }
 
 Result
