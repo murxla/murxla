@@ -219,6 +219,7 @@ read_msg(int fd, uint8_t& type, std::string& payload)
   type         = hdr[0];
   uint32_t len = (uint32_t) hdr[1] | ((uint32_t) hdr[2] << 8)
                  | ((uint32_t) hdr[3] << 16) | ((uint32_t) hdr[4] << 24);
+  if (len > Murxla::RPC_MAX_PAYLOAD) return false;
   payload.assign(len, '\0');
   if (len == 0) return true;
   return read_all(fd, payload.data(), len);

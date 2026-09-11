@@ -1060,6 +1060,7 @@ coord_read_msg(int fd, uint8_t& type, std::string& payload)
   type         = hdr[0];
   uint32_t len = (uint32_t) hdr[1] | ((uint32_t) hdr[2] << 8)
                  | ((uint32_t) hdr[3] << 16) | ((uint32_t) hdr[4] << 24);
+  if (len > Murxla::RPC_MAX_PAYLOAD) return false;
   payload.assign(len, '\0');
   if (len == 0) return true;
   return read_all_fd(fd, payload.data(), len);
@@ -1369,18 +1370,21 @@ main(int argc, char* argv[])
             {
               murxla.test();
             }
+            /* Report the reason the worker is giving up as a LOG message.
+             * This has to go through the same framing as every other RPC
+             * message: writing the bare text would make the coordinator read
+             * the first five characters as a message header, which yields a
+             * nonsensical type and a length of well over a gigabyte, so the
+             * message would be lost rather than shown. */
             catch (MurxlaConfigException& e)
             {
-              /* Send a one-line LOG and exit. */
-              std::string s =
-                  std::string("config error: ") + e.get_msg() + "\n";
-              (void) ::write(req_w[i], s.data(), s.size());
+              murxla.log_via_rpc(std::string("config error: ") + e.get_msg()
+                                 + "\n");
               _exit(EXIT_ERROR);
             }
             catch (MurxlaException& e)
             {
-              std::string s = std::string("error: ") + e.get_msg() + "\n";
-              (void) ::write(req_w[i], s.data(), s.size());
+              murxla.log_via_rpc(std::string("error: ") + e.get_msg() + "\n");
               _exit(EXIT_ERROR);
             }
             close(req_w[i]);

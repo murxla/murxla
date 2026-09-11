@@ -122,6 +122,25 @@ class Murxla
     uint64_t nduplicates;
   };
 
+  /**
+   * Upper bound on the payload size of an RPC message, chosen to be far
+   * beyond any real error message.
+   *
+   * The length is read from the message header, so a desynchronized pipe --
+   * a worker killed in the middle of writing a message, say -- would
+   * otherwise turn four arbitrary bytes into a multi-gigabyte allocation.
+   * A length above this bound is treated as a protocol error, which the
+   * readers report the same way as a closed pipe.
+   */
+  inline static constexpr uint32_t RPC_MAX_PAYLOAD = 16u * 1024 * 1024;
+
+  /**
+   * Worker-side: send a LOG message to the coordinator. The coordinator
+   * writes the bytes verbatim to stdout (interleaved with its aggregate
+   * status line). Used so workers never write to stdout themselves.
+   */
+  void log_via_rpc(const std::string& s);
+
   inline static const std::string API_TRACE = "tmp-api.trace";
   inline static const std::string SMT2_FILE = "tmp-smt2.smt2";
 
@@ -419,13 +438,6 @@ class Murxla
       const std::string& filtered_err,
       const std::string& normalized_err,
       uint64_t seed);
-
-  /**
-   * Worker-side: send a LOG message to the coordinator. The coordinator
-   * writes the bytes verbatim to stdout (interleaved with its aggregate
-   * status line). Used so workers never write to stdout themselves.
-   */
-  void log_via_rpc(const std::string& s);
 
   /** Load solver profile of currently configured solver. */
   void load_solver_profile();
