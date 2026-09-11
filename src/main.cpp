@@ -658,7 +658,7 @@ parse_options(Options& options, int argc, char* argv[])
     {
       record_args.push_back(arg);
       options.check_solver = true;
-      if (size > i && is_valid_solver_str(args[i + 1]))
+      if (size > i + 1 && is_valid_solver_str(args[i + 1]))
       {
         options.check_solver_name = args[i + 1];
         record_args.push_back(args[i + 1]);
