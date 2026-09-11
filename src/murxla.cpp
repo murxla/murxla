@@ -780,8 +780,11 @@ Murxla::create_fsm(RNGenerator& rng,
                    bool in_untrace_replay_mode) const
 {
   /* Dummy statistics object for the cases were we don't want to record
-   * statistics (replay, dd). */
-  statistics::Statistics dummy_stats;
+   * statistics (replay, dd). Must outlive the returned FSM, which keeps a
+   * pointer to it and writes into it from configure() AFTER this function has
+   * returned; a plain local here is a stack-use-after-return that corrupts the
+   * caller's stack (nondeterministic crashes on the replay/dd path). */
+  static statistics::Statistics dummy_stats;
 
   if (!d_options.cmd_line_trace.empty())
   {
