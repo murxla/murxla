@@ -325,6 +325,7 @@ std::unordered_map<Op::Kind, ::bitwuzla::Kind>
         {OP_BV_USUBO, ::bitwuzla::Kind::BV_USUB_OVERFLOW},
         {OP_BV_SSUBO, ::bitwuzla::Kind::BV_SSUB_OVERFLOW},
         {OP_BV_SDIVO, ::bitwuzla::Kind::BV_SDIV_OVERFLOW},
+        {OP_BV_NEGO, ::bitwuzla::Kind::BV_NEG_OVERFLOW},
         {OP_IFF, ::bitwuzla::Kind::IFF},
         // Note: OP_FP_TO_FP_FROM_REAL needs special treatment, not a real
         //       Bitwuzla kind
@@ -450,6 +451,7 @@ std::unordered_map<::bitwuzla::Kind, Op::Kind>
         {::bitwuzla::Kind::BV_USUB_OVERFLOW, BitwuzlaTerm::OP_BV_USUBO},
         {::bitwuzla::Kind::BV_SSUB_OVERFLOW, BitwuzlaTerm::OP_BV_SSUBO},
         {::bitwuzla::Kind::BV_SDIV_OVERFLOW, BitwuzlaTerm::OP_BV_SDIVO},
+        {::bitwuzla::Kind::BV_NEG_OVERFLOW, BitwuzlaTerm::OP_BV_NEGO},
         {::bitwuzla::Kind::IFF, BitwuzlaTerm::OP_IFF},
 };
 
@@ -1549,6 +1551,8 @@ BitwuzlaSolver::configure_opmgr(OpKindManager* opmgr) const
       BitwuzlaTerm::OP_BV_SMULO, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
   opmgr->add_op_kind(
       BitwuzlaTerm::OP_BV_SSUBO, 2, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
+  opmgr->add_op_kind(
+      BitwuzlaTerm::OP_BV_NEGO, 1, 0, SORT_BOOL, {SORT_BV}, THEORY_BV);
 
   // Bitwuzla only supports a very restricted version of to_fp from Real:
   // only from strings representing real or rational values. We thus define

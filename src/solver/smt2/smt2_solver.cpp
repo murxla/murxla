@@ -1744,7 +1744,8 @@ Smt2Solver::get_sort(Term term, SortKind sort_kind)
     {
       sort = get_bv_sort_string(1);
     }
-    else if (kind == bitwuzla::BitwuzlaTerm::OP_BV_SADDO
+    else if (kind == bitwuzla::BitwuzlaTerm::OP_BV_NEGO
+             || kind == bitwuzla::BitwuzlaTerm::OP_BV_SADDO
              || kind == bitwuzla::BitwuzlaTerm::OP_BV_SDIVO
              || kind == bitwuzla::BitwuzlaTerm::OP_BV_SMULO
              || kind == bitwuzla::BitwuzlaTerm::OP_BV_SSUBO

@@ -96,6 +96,7 @@ class BitwuzlaTerm : public AbsTerm
   inline static const Op::Kind OP_BV_DEC = "bitwuzla-OP_BV_DEC";
   //! [docs-bitwuzla-op-bv_dec end]
   inline static const Op::Kind OP_BV_INC    = "bitwuzla-OP_BV_INC";
+  inline static const Op::Kind OP_BV_NEGO   = "bitwuzla-OP_BV_NEGO";
   inline static const Op::Kind OP_BV_REDAND = "bitwuzla-OP_BV_REDAND";
   inline static const Op::Kind OP_BV_REDOR  = "bitwuzla-OP_BV_REDOR";
   inline static const Op::Kind OP_BV_REDXOR = "bitwuzla-OP_BV_REDXOR";

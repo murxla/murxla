@@ -379,6 +379,7 @@ class Smt2Term : public AbsTerm
           /* bitwuzla-specific operator kinds */
           {bitwuzla::BitwuzlaTerm::OP_BV_DEC, "bvdec"},
           {bitwuzla::BitwuzlaTerm::OP_BV_INC, "bvinc"},
+          {bitwuzla::BitwuzlaTerm::OP_BV_NEGO, "bvnego"},
           {bitwuzla::BitwuzlaTerm::OP_BV_REDAND, "bvredand"},
           {bitwuzla::BitwuzlaTerm::OP_BV_REDOR, "bvredor"},
           {bitwuzla::BitwuzlaTerm::OP_BV_REDXOR, "bvredxor"},
