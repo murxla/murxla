@@ -148,6 +148,120 @@ error_diff(const std::string& e1, const std::string& e2)
   return static_cast<double>(diff) / static_cast<double>(len);
 }
 
+/**
+ * Match the name of a trace file Murxla wrote, i.e. `murxla-<seed>.trace` or
+ * its minimized counterpart `murxla-<seed>.min.trace`.
+ *
+ * Returns false if `name` is not such a file, or if its seed does not fit
+ * into a uint64_t (in which case we did not write it either). Else, `seed` is
+ * set to the seed encoded in the name and `is_min` to whether it is the
+ * minimized trace.
+ */
+bool
+parse_trace_file_name(const std::string& name, uint64_t& seed, bool& is_min)
+{
+  static const std::regex re("murxla-([0-9a-fA-F]+)\\.(min\\.)?trace");
+  std::smatch sm;
+  if (!std::regex_match(name, sm, re))
+  {
+    return false;
+  }
+  try
+  {
+    seed = std::stoull(sm[1].str(), nullptr, 16);
+  }
+  catch (const std::exception&)
+  {
+    return false;
+  }
+  is_min = sm[2].matched;
+  return true;
+}
+
+/**
+ * Read the `set-murxla-options` line Murxla writes as the first line of a
+ * trace, which records the solver and the solver options the trace was
+ * recorded with. Minimized traces keep the line, see `DD::run()`.
+ *
+ * Returns an empty string if the trace has no such line.
+ */
+std::string
+trace_cmd_line(const std::string& trace_file_name)
+{
+  std::ifstream trace(trace_file_name);
+  std::string line;
+  if (!trace.good() || !std::getline(trace, line)
+      || line.rfind("set-murxla-options", 0) != 0)
+  {
+    return "";
+  }
+  rstrip(line);
+  return line;
+}
+
+/**
+ * Split the arguments of a `set-murxla-options` line into groups of an option
+ * and its values, e.g. `--cvc5 -o produce-models=true` into `{--cvc5}` and
+ * `{-o, produce-models=true}`.
+ *
+ * A group starts at each token beginning with `-`. No option value Murxla
+ * records starts with one -- the option parser only consumes a following
+ * token as a value if it does not -- so this recovers which value belongs to
+ * which option. The groups are sorted so that two lines that configure the
+ * same run compare equal no matter in which order the options were given on
+ * the command line.
+ */
+std::vector<std::vector<std::string>>
+normalize_cmd_line(const std::string& cmd_line)
+{
+  std::vector<std::vector<std::string>> res;
+  std::vector<std::string> tokens = split(cmd_line, ' ');
+  /* tokens[0] is `set-murxla-options` itself. */
+  for (size_t i = 1, n = tokens.size(); i < n; ++i)
+  {
+    if (tokens[i].empty()) continue;
+    if (tokens[i][0] == '-' || res.empty())
+    {
+      res.emplace_back();
+    }
+    res.back().push_back(tokens[i]);
+  }
+  std::sort(res.begin(), res.end());
+  return res;
+}
+
+/** Strip the `set-murxla-options` prefix off `cmd_line`, for reporting. */
+std::string
+cmd_line_args(const std::string& cmd_line)
+{
+  size_t pos = cmd_line.find(' ');
+  return pos == std::string::npos ? "no options" : cmd_line.substr(pos + 1);
+}
+
+/**
+ * Why a trace of an error group failed to clear it, ordered by how much the
+ * trace told us: a trace that was not replayed at all says the least, one
+ * that was replayed and still fails says the most.
+ *
+ * `recheck_error_group()` reports the strongest reason it ran into rather
+ * than the one of the trace it happened to look at last, so that the reason
+ * shown for a group with several traces does not depend on the order they
+ * are replayed in.
+ */
+enum class RecheckReason
+{
+  /** The trace ran through without an error. */
+  NONE,
+  /** Not replayed: recorded with options the current run does not use. */
+  SKIPPED,
+  /** Replayed, but it does not fit the current configuration anymore. */
+  UNREPLAYABLE,
+  /** Replayed, but cut short by the time limit, so it may still be failing. */
+  TIMEOUT,
+  /** Replayed, and still failing -- with an error of some other group. */
+  OTHER_ERROR,
+};
+
 /* -------------------------------------------------------------------------- */
 /* RPC pipe I/O helpers.                                                      */
 /*                                                                            */
@@ -1259,22 +1373,13 @@ Murxla::load_error_group(const std::string& dir)
    * once, and the seeds are sorted so that the error summary of a resumed
    * run does not depend on directory iteration order. */
   std::set<uint64_t> seeds;
-  const std::regex re("murxla-([0-9a-fA-F]+)\\.(min\\.)?trace");
   for (const auto& e : std::filesystem::directory_iterator(dir, ec))
   {
-    std::smatch sm;
-    std::string name = e.path().filename().string();
-    if (!std::regex_match(name, sm, re))
+    uint64_t seed;
+    bool is_min;
+    if (parse_trace_file_name(e.path().filename().string(), seed, is_min))
     {
-      continue;
-    }
-    try
-    {
-      seeds.insert(std::stoull(sm[1].str(), nullptr, 16));
-    }
-    catch (const std::exception&)
-    {
-      /* Seed does not fit into a uint64_t, so it is not a trace we wrote. */
+      seeds.insert(seed);
     }
   }
 
@@ -1287,17 +1392,24 @@ Murxla::load_error_group(const std::string& dir)
      * e.g. a directory from an older version of Murxla sitting next to the
      * content-derived directory the same error is written to now. Keep the
      * representative we already have (it owns the group id) and only take
-     * over the seeds. */
+     * over the seeds and the directory. */
     auto& e_info = it->second;
     e_info.seeds.insert(e_info.seeds.end(), seeds.begin(), seeds.end());
+    e_info.dirs.push_back(dir);
     return true;
   }
 
-  d_errors->emplace(
-      norm,
-      ErrorInfo(error_group_id(norm),
-                errmsg,
-                std::vector<uint64_t>(seeds.begin(), seeds.end())));
+  /* `find_error()` matches a message against itself, so the key cannot be
+   * in the map already and the emplace always inserts. */
+  ErrorInfo& e_info =
+      d_errors
+          ->emplace(
+              norm,
+              ErrorInfo(error_group_id(norm),
+                        errmsg,
+                        std::vector<uint64_t>(seeds.begin(), seeds.end())))
+          .first->second;
+  e_info.dirs.push_back(dir);
   if (!d_options.export_errors_filename.empty())
   {
     d_export_errors.push_back(errmsg);
@@ -1344,6 +1456,326 @@ Murxla::load_state()
   {
     export_errors();
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Rechecking restored error groups (--recheck).                              */
+/* -------------------------------------------------------------------------- */
+
+std::vector<std::pair<uint64_t, std::string>>
+Murxla::error_group_traces(const ErrorInfo& e_info) const
+{
+  /* (is_min, seed, path), sorted: minimized traces first, then by seed. */
+  std::vector<std::tuple<bool, uint64_t, std::string>> traces;
+  std::error_code ec;
+  for (const std::string& dir : e_info.dirs)
+  {
+    for (const auto& e : std::filesystem::directory_iterator(dir, ec))
+    {
+      uint64_t seed;
+      bool is_min;
+      if (parse_trace_file_name(e.path().filename().string(), seed, is_min))
+      {
+        traces.emplace_back(!is_min, seed, e.path().string());
+      }
+    }
+  }
+  std::sort(traces.begin(), traces.end());
+
+  std::vector<std::pair<uint64_t, std::string>> res;
+  for (const auto& t : traces)
+  {
+    res.emplace_back(std::get<1>(t), std::get<2>(t));
+  }
+  return res;
+}
+
+RecheckInfo
+Murxla::recheck_error_group(const ErrorInfo& e_info,
+                            const std::string& err_file_name)
+{
+  RecheckInfo res{e_info.id,
+                  e_info.errmsg,
+                  e_info.seeds.size(),
+                  0,
+                  RecheckStatus::FIXED,
+                  ""};
+
+  std::vector<std::pair<uint64_t, std::string>> traces =
+      error_group_traces(e_info);
+  if (traces.empty())
+  {
+    /* A group we restored from an `error.txt` whose traces have been deleted
+     * (or were never written, as for the offline SMT2 solver). There is
+     * nothing to replay, so we can't say anything about the error. */
+    res.status = RecheckStatus::INCONCLUSIVE;
+    res.detail = "no traces to replay";
+    return res;
+  }
+
+  /* The strongest reason a trace of this group did not clear it so far. */
+  RecheckReason reason = RecheckReason::NONE;
+  auto keep = [&res, &reason](RecheckReason r, const std::string& detail) {
+    res.status = RecheckStatus::INCONCLUSIVE;
+    if (r > reason)
+    {
+      reason     = r;
+      res.detail = detail;
+    }
+  };
+
+  for (const auto& [seed, trace] : traces)
+  {
+    if (s_caught_signal)
+    {
+      res.status = RecheckStatus::INCONCLUSIVE;
+      res.detail = "interrupted";
+      return res;
+    }
+
+    /* Replaying a trace with a configuration other than the one it was
+     * recorded with says nothing about the error it was recorded for -- and
+     * would happily declare the group fixed. This is the case that matters
+     * most here: pointing a recheck at the output directory of a different
+     * solver, or rechecking without the `-C`/`-c` the error needs, must not
+     * throw away what is in it.
+     *
+     * The trace records the options it was recorded with, but `untrace()`
+     * skips that line and the replay runs with the options of the *current*
+     * run, so every difference between the two is a reason not to judge the
+     * group. Only the options that shape a run are recorded (see
+     * `record_args` in `parse_options()`), hence e.g. a different `-t` or
+     * `-O` does not make a trace unjudgeable. */
+    std::string trace_cmd = trace_cmd_line(trace);
+    if (!trace_cmd.empty()
+        && normalize_cmd_line(trace_cmd)
+               != normalize_cmd_line(d_options.cmd_line_trace))
+    {
+      keep(RecheckReason::SKIPPED,
+           "trace was recorded with " + cmd_line_args(trace_cmd) + ", not "
+               + cmd_line_args(d_options.cmd_line_trace));
+      continue;
+    }
+
+    Result run_res = run(seed,
+                         d_options.time,
+                         DEVNULL,
+                         err_file_name,
+                         DEVNULL,
+                         trace,
+                         true,
+                         false,
+                         NONE);
+    res.nreplayed += 1;
+
+    if (run_res == RESULT_OK)
+    {
+      continue;
+    }
+    if (run_res == RESULT_TIMEOUT)
+    {
+      /* The trace may well still trigger the error, we just didn't wait long
+       * enough to see it. */
+      keep(RecheckReason::TIMEOUT, "replay timed out");
+      continue;
+    }
+    if (run_res == RESULT_ERROR_UNTRACE || run_res == RESULT_ERROR_CONFIG)
+    {
+      /* The trace does not fit the current Murxla or solver configuration
+       * anymore. Unlike `test()` we don't make this fatal -- a single stale
+       * trace should not take down a recheck of the whole output
+       * directory. */
+      keep(RecheckReason::UNREPLAYABLE,
+           run_res == RESULT_ERROR_UNTRACE
+               ? "trace can no longer be replayed"
+               : "trace does not fit the configuration");
+      continue;
+    }
+    if (run_res != RESULT_ERROR)
+    {
+      /* `run()` reports this when the replay neither exited nor was killed
+       * by a signal, which says nothing about the error either. */
+      assert(run_res == RESULT_UNKNOWN);
+      keep(RecheckReason::UNREPLAYABLE, "replay ended in an unknown state");
+      continue;
+    }
+
+    std::string errmsg;
+    {
+      std::ifstream errs = open_input_file(err_file_name, false);
+      std::string line;
+      while (std::getline(errs, line))
+      {
+        errmsg += line + "\n";
+      }
+    }
+
+    auto pre = prefilter_error(errmsg);
+    if (std::get<0>(pre) == ErrorKind::FILTER)
+    {
+      /* The solver profile excludes this error by now, so a fuzzing run would
+       * not report it either. Same as a clean run for our purposes. */
+      continue;
+    }
+
+    auto it = find_error(std::get<2>(pre));
+    if (it != d_errors->end() && it->second.id == e_info.id)
+    {
+      /* Still the same error, nothing to do for this group. No need to look
+       * at its remaining traces either. */
+      res.status = RecheckStatus::LIVE;
+      res.detail = "";
+      return res;
+    }
+
+    /* The trace still fails, but with an error that belongs to a different
+     * group (or to no known group at all). That is not this error being
+     * fixed, so we keep the group -- but we also don't record the new error:
+     * the trace that triggers it is already on disk, and the next fuzzing
+     * run that hits it records it with a trace of its own. */
+    keep(RecheckReason::OTHER_ERROR, "now triggers a different error");
+  }
+
+  return res;
+}
+
+bool
+Murxla::move_error_group_to_fixed(const ErrorInfo& e_info,
+                                  std::string& moved,
+                                  std::string& err) const
+{
+  std::string out_dir = d_options.out_dir.empty() ? "." : d_options.out_dir;
+  std::filesystem::path fixed_dir = std::filesystem::path(out_dir) / FIXED_DIR;
+
+  std::error_code ec;
+  std::filesystem::create_directories(fixed_dir, ec);
+  if (ec)
+  {
+    err = "cannot create '" + fixed_dir.string() + "': " + ec.message();
+    return false;
+  }
+
+  for (const std::string& dir : e_info.dirs)
+  {
+    std::filesystem::path src(dir);
+    std::string name          = src.filename().string();
+    std::filesystem::path dst = fixed_dir / name;
+    /* Don't clobber the traces an earlier recheck moved here. */
+    for (size_t i = 1; std::filesystem::exists(dst, ec); ++i)
+    {
+      if (i > 1000)
+      {
+        err = "'" + dst.string() + "' already exists";
+        return false;
+      }
+      dst = fixed_dir / (name + "." + std::to_string(i));
+    }
+    std::filesystem::rename(src, dst, ec);
+    if (ec)
+    {
+      err = "cannot move '" + src.string() + "' to '" + dst.string()
+            + "': " + ec.message();
+      return false;
+    }
+    if (!moved.empty())
+    {
+      moved += ", ";
+    }
+    moved += dst.string();
+  }
+  return true;
+}
+
+void
+Murxla::forget_error_group(const std::string& e_norm, const std::string& errmsg)
+{
+  d_errors->erase(e_norm);
+  auto it = std::find(d_export_errors.begin(), d_export_errors.end(), errmsg);
+  if (it != d_export_errors.end())
+  {
+    d_export_errors.erase(it);
+  }
+}
+
+std::vector<RecheckInfo>
+Murxla::recheck_state(const std::function<void(const RecheckInfo&)>& on_group)
+{
+  std::vector<RecheckInfo> res;
+  if (d_errors->empty())
+  {
+    return res;
+  }
+
+  /* Recheck the groups ordered by id so that the report does not depend on
+   * the iteration order of the (unordered) error map. */
+  std::vector<std::string> keys;
+  for (const auto& [e_norm, e_info] : *d_errors)
+  {
+    keys.push_back(e_norm);
+  }
+  std::sort(keys.begin(), keys.end(), [this](const auto& a, const auto& b) {
+    return d_errors->at(a).id < d_errors->at(b).id;
+  });
+
+  std::string err_file_name = get_tmp_file_path("recheck.err", d_tmp_dir);
+
+  /* Collected while rechecking, applied to the error map afterwards: erasing
+   * from it would invalidate the `ErrorInfo` references we hand out. */
+  std::vector<std::pair<std::string, std::string>> fixed;
+
+  for (const std::string& e_norm : keys)
+  {
+    if (s_caught_signal)
+    {
+      break;
+    }
+
+    const ErrorInfo& e_info = d_errors->at(e_norm);
+    RecheckInfo info        = recheck_error_group(e_info, err_file_name);
+
+    if (info.status == RecheckStatus::FIXED)
+    {
+      /* Keep the verdict even if the move fails -- the error is gone either
+       * way, and the group is dropped from this run's error map. The traces
+       * that were left behind then stay where they are, which means the next
+       * run without --recheck restores the group again. A group can be
+       * spread over several directories, so report both what was moved and
+       * what was not. */
+      std::string moved, err;
+      move_error_group_to_fixed(e_info, moved, err);
+      info.detail = std::to_string(info.nreplayed)
+                    + (info.nreplayed == 1 ? " trace" : " traces")
+                    + " ran clean";
+      if (!moved.empty())
+      {
+        info.detail += ", moved to " + moved;
+      }
+      if (!err.empty())
+      {
+        info.detail += ", but " + err;
+      }
+      fixed.emplace_back(e_norm, e_info.errmsg);
+    }
+
+    res.push_back(info);
+    if (on_group)
+    {
+      on_group(info);
+    }
+  }
+
+  for (const auto& [e_norm, errmsg] : fixed)
+  {
+    forget_error_group(e_norm, errmsg);
+  }
+  /* Errors are exported as they are found, so the export has to be rewritten
+   * for the groups we dropped to disappear from it. */
+  if (!fixed.empty())
+  {
+    export_errors();
+  }
+
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */

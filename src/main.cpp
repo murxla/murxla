@@ -169,16 +169,47 @@ sorted_errors()
 }
 
 /**
- * Print the `  <group> <n> seeds  ` line prefix shared by the resume overview
- * and the error statistics, so that both read the same way.
+ * Print the `  <group> <n> seeds  ` line prefix shared by the resume overview,
+ * the recheck report and the error statistics, so that all of them read the
+ * same way.
+ *
+ * Returns the number of columns printed, so that callers can line up
+ * continuation lines with it.
  */
-void
-print_error_group_prefix(const Terminal& term, const ErrorInfo& e_info)
+size_t
+print_error_group_prefix(const Terminal& term, uint64_t id, size_t nseeds)
 {
-  const size_t nseeds = e_info.seeds.size();
-  std::cout << "  " << term.red() << Murxla::error_group_dir(e_info.id)
+  std::cout << "  " << term.red() << Murxla::error_group_dir(id)
             << term.defaultcolor() << std::dec << std::setw(5) << nseeds
             << (nseeds == 1 ? " seed " : " seeds") << "  ";
+  return 2 + Murxla::ERROR_GROUP_ID_DIGITS + 5 + 6 + 2;
+}
+
+/**
+ * Reduce `errmsg` to its first non-empty line, truncated to `max_width`
+ * columns.
+ *
+ * Multi-line messages (a stack trace, or solver chatter preceding an
+ * assertion) would otherwise drown out the one-line-per-group listings. The
+ * full messages are printed by `print_error_summary()` at the end of the run,
+ * and are in the `error.txt` of the respective group directory.
+ */
+std::string
+errmsg_first_line(const std::string& errmsg, size_t max_width)
+{
+  size_t begin = errmsg.find_first_not_of("\n");
+  if (begin == std::string::npos)
+  {
+    begin = 0;
+  }
+  size_t end      = errmsg.find('\n', begin);
+  std::string msg = errmsg.substr(
+      begin, end == std::string::npos ? std::string::npos : end - begin);
+  if (msg.size() > max_width)
+  {
+    msg = msg.substr(0, max_width - 3) + "...";
+  }
+  return msg.empty() ? ERRMSG_EMPTY : msg;
 }
 
 /** Print `errmsg` indented to line up with the group line above it. */
@@ -204,9 +235,7 @@ print_indented_errmsg(const std::string& errmsg)
  * start out with a non-zero error count.
  *
  * Only the first line of each error message is shown, truncated to keep the
- * overview scannable; the full messages are printed by
- * `print_error_summary()` at the end of the run, and are in the `error.txt`
- * of the respective group directory.
+ * overview scannable.
  */
 void
 print_restored_errors(const std::string& out_dir)
@@ -236,31 +265,95 @@ print_restored_errors(const std::string& out_dir)
       break;
     }
 
-    /* Reduce the message to its first non-empty line. Multi-line messages
-     * (a stack trace, or solver chatter preceding an assertion) would
-     * otherwise drown out the overview. */
-    const std::string& errmsg = infos[i]->errmsg;
-    size_t begin              = errmsg.find_first_not_of("\n");
-    if (begin == std::string::npos)
-    {
-      begin = 0;
-    }
-    size_t end      = errmsg.find('\n', begin);
-    std::string msg = errmsg.substr(
-        begin, end == std::string::npos ? std::string::npos : end - begin);
-    if (msg.size() > max_msg_width)
-    {
-      msg = msg.substr(0, max_msg_width - 3) + "...";
-    }
-    if (msg.empty())
-    {
-      msg = ERRMSG_EMPTY;
-    }
-
-    print_error_group_prefix(term, *infos[i]);
-    std::cout << msg << "\n";
+    print_error_group_prefix(term, infos[i]->id, infos[i]->seeds.size());
+    std::cout << errmsg_first_line(infos[i]->errmsg, max_msg_width) << "\n";
   }
   std::cout << std::endl;
+}
+
+/**
+ * Recheck the error groups restored from the output directory and print what
+ * became of each of them, see `Murxla::recheck_state()`.
+ *
+ * Rechecking a group replays its traces, which costs up to the time limit
+ * (`-t`) per trace, so the verdicts are printed as they come in rather than
+ * as one block once everything is done.
+ */
+void
+recheck_errors(Murxla& murxla, const Options& options)
+{
+  /* Budget for the error message so that a line fits into 80 columns. */
+  constexpr size_t max_msg_width = 44;
+
+  const std::string out_dir = options.out_dir.empty() ? "." : options.out_dir;
+  const size_t nerrors      = g_errors.size();
+
+  if (nerrors == 0)
+  {
+    std::cout << "\nNo known errors in " << out_dir << " to recheck.\n"
+              << std::endl;
+    return;
+  }
+
+  Terminal term;
+  std::cout << "\nRechecking " << nerrors << " known error"
+            << (nerrors == 1 ? "" : "s") << " from " << out_dir
+            << " (replaying their traces):\n\n";
+
+  std::vector<RecheckInfo> infos =
+      murxla.recheck_state([&term](const RecheckInfo& info) {
+        size_t col = print_error_group_prefix(term, info.id, info.nseeds);
+
+        const char* label;
+        std::string color;
+        switch (info.status)
+        {
+          case RecheckStatus::LIVE:
+            label = "live ";
+            color = term.red();
+            break;
+          case RecheckStatus::FIXED:
+            label = "fixed";
+            color = term.green();
+            break;
+          default:
+            assert(info.status == RecheckStatus::INCONCLUSIVE);
+            label = "kept ";
+            color = term.gray();
+        }
+        std::cout << color << label << term.defaultcolor() << "  ";
+        col += 7;
+
+        std::cout << errmsg_first_line(info.errmsg, max_msg_width) << "\n";
+        if (!info.detail.empty())
+        {
+          std::cout << std::string(col, ' ') << term.gray() << info.detail
+                    << term.defaultcolor() << "\n";
+        }
+        std::cout << std::flush;
+      });
+
+  size_t nfixed = 0, nlive = 0, nkept = 0;
+  for (const RecheckInfo& info : infos)
+  {
+    switch (info.status)
+    {
+      case RecheckStatus::LIVE: ++nlive; break;
+      case RecheckStatus::FIXED: ++nfixed; break;
+      default: ++nkept;
+    }
+  }
+
+  std::cout << "\n  " << nfixed << " fixed, " << nlive << " still occurring";
+  if (nkept > 0)
+  {
+    std::cout << ", " << nkept << " inconclusive";
+  }
+  if (infos.size() < nerrors)
+  {
+    std::cout << ", " << nerrors - infos.size() << " not rechecked";
+  }
+  std::cout << "\n" << std::endl;
 }
 
 void
@@ -298,8 +391,8 @@ print_error_summary()
   Terminal term;
   for (const ErrorInfo* e_info : infos)
   {
-    print_error_group_prefix(term, *e_info);
     const size_t nseeds = e_info->seeds.size();
+    print_error_group_prefix(term, e_info->id, nseeds);
     for (size_t i = 0; i < std::min(nseeds, max_seeds); ++i)
     {
       if (i > 0)
@@ -405,6 +498,12 @@ set_sigint_handler_stats(void)
   "  -j, --jobs <int>           number of parallel fuzzing jobs\n"             \
   "  --csv                      print error summary in csv format\n"           \
   "  -e, --export-errors <out>  export found errors to JSON file <out>\n"      \
+  "  --recheck                  on start-up, replay the traces of the\n"       \
+  "                             known errors in the output directory and\n"    \
+  "                             forget the ones that no longer occur\n"        \
+  "                             (their traces are moved to <out-dir>/fixed)\n" \
+  "  --recheck-only             like --recheck, but exit afterwards\n"         \
+  "                             instead of fuzzing\n"                          \
   "\n"                                                                         \
   " One-shot mode options:\n"                                                  \
   "  -s, --seed <int>           seed for random number generator\n"            \
@@ -768,6 +867,15 @@ parse_options(Options& options, int argc, char* argv[])
       i += 1;
       check_next_arg(arg, i, size);
       options.export_errors_filename = args[i];
+    }
+    else if (arg == "--recheck")
+    {
+      options.recheck = true;
+    }
+    else if (arg == "--recheck-only")
+    {
+      options.recheck      = true;
+      options.recheck_only = true;
     }
     else if (arg == "--solver-trace")
     {
@@ -1238,6 +1346,8 @@ main(int argc, char* argv[])
   MURXLA_EXIT_ERROR(options.num_jobs > 1 && !is_continuous)
       << "-j/--jobs > 1 requires continuous mode (no -s/--seed, no "
          "-u/--untrace)";
+  MURXLA_EXIT_ERROR(options.recheck && !is_continuous)
+      << "--recheck requires continuous mode (no -s/--seed, no -u/--untrace)";
   MURXLA_EXIT_ERROR(options.num_jobs > MAX_WORKERS)
       << "-j/--jobs exceeds maximum (" << MAX_WORKERS << ")";
 
@@ -1266,169 +1376,188 @@ main(int argc, char* argv[])
        * instead of being written into a colliding new one. Done before the
        * fork below so coordinator and workers agree on the initial state. */
       murxla.load_state();
-      print_restored_errors(options.out_dir);
 
-      if (options.num_jobs > 1)
+      if (options.recheck)
       {
-        /* Parallel fuzzing: coordinator + N workers. The coordinator owns
-         * g_errors and stdout; workers run their own test() loops and
-         * report errors / log output via pipe RPC. */
-        const uint32_t num_jobs = options.num_jobs;
-        Aggregate* aggregate    = initialize_aggregate();
+        /* Install the handler before the recheck so that a Ctrl+C stops it
+         * rather than killing the process: the groups rechecked up to that
+         * point have already been acted on, and the summary at the end of
+         * the run should reflect that. */
+        set_sigint_handler_stats();
+        recheck_errors(murxla, options);
+      }
 
-        std::vector<int> req_r(num_jobs), req_w(num_jobs);
-        std::vector<int> resp_r(num_jobs), resp_w(num_jobs);
-        for (uint32_t i = 0; i < num_jobs; ++i)
+      /* --recheck-only is done at this point, and a Ctrl+C during the
+       * recheck means 'stop', not 'start fuzzing now'. Either way the
+       * error summary printed on the way out reports what is left. */
+      if (!options.recheck_only && !Murxla::s_caught_signal)
+      {
+        print_restored_errors(options.out_dir);
+
+        if (options.num_jobs > 1)
         {
-          int rp[2], sp[2];
-          MURXLA_EXIT_ERROR(pipe(rp) != 0)
-              << "pipe() failed: " << strerror(errno);
-          MURXLA_EXIT_ERROR(pipe(sp) != 0)
-              << "pipe() failed: " << strerror(errno);
-          req_r[i]  = rp[0];
-          req_w[i]  = rp[1];
-          resp_r[i] = sp[0];
-          resp_w[i] = sp[1];
-        }
+          /* Parallel fuzzing: coordinator + N workers. The coordinator owns
+           * g_errors and stdout; workers run their own test() loops and
+           * report errors / log output via pipe RPC. */
+          const uint32_t num_jobs = options.num_jobs;
+          Aggregate* aggregate    = initialize_aggregate();
 
-        /* Distribute max_runs across workers. */
-        uint32_t per_worker_max_runs = 0;
-        if (options.max_runs > 0)
-        {
-          per_worker_max_runs = (options.max_runs + num_jobs - 1) / num_jobs;
-        }
-
-        /* Block SIGINT during fork so the (still-default) handler can't
-         * fire while we're populating g_worker_pids. */
-        sigset_t mask, prev;
-        sigemptyset(&mask);
-        sigaddset(&mask, SIGINT);
-        sigprocmask(SIG_BLOCK, &mask, &prev);
-
-        double start_time = get_cur_wall_time();
-
-        for (uint32_t i = 0; i < num_jobs; ++i)
-        {
-          pid_t pid = fork();
-          MURXLA_EXIT_ERROR(pid < 0) << "fork() failed: " << strerror(errno);
-          if (pid == 0)
+          std::vector<int> req_r(num_jobs), req_w(num_jobs);
+          std::vector<int> resp_r(num_jobs), resp_w(num_jobs);
+          for (uint32_t i = 0; i < num_jobs; ++i)
           {
-            /* Put each worker in its own process group so the coordinator
-             * can take down the whole subtree (worker + its solver/timeout
-             * grandchildren) with `kill(-pgid, SIGTERM)`. */
-            (void) setpgid(0, 0);
-
-            /* Each worker needs its own tmp directory: tmp.err,
-             * run-tmp1.{out,err}, tmp-api.trace, tmp-smt2.smt2 are all per-run
-             * scratch files. Sharing one dir across workers causes concurrent
-             * solver children to clobber each other's stderr, which in turn
-             * corrupts the error message that the worker forwards to the
-             * coordinator (often appearing empty). */
-            {
-              std::filesystem::path worker_tmp(TMP_DIR);
-              worker_tmp /= "worker-" + std::to_string(i);
-              std::error_code ec;
-              std::filesystem::create_directories(worker_tmp, ec);
-              murxla.d_tmp_dir = worker_tmp.string();
-            }
-
-            /* Worker: close unused pipe ends, configure Murxla, run. */
-            for (uint32_t j = 0; j < num_jobs; ++j)
-            {
-              if (j != i)
-              {
-                close(req_r[j]);
-                close(req_w[j]);
-                close(resp_r[j]);
-                close(resp_w[j]);
-              }
-            }
-            close(req_r[i]);  /* worker doesn't read its own req */
-            close(resp_w[i]); /* worker doesn't write its own resp */
-
-            /* Reset SIGINT to default so workers die quickly on Ctrl+C
-             * and the coordinator's handler does the cleanup. */
-            signal(SIGINT, SIG_DFL);
-            sigprocmask(SIG_SETMASK, &prev, nullptr);
-
-            /* Each worker starts from a different seed so their fuzzing
-             * sequences don't overlap. SeedGenerator already mixes time
-             * and pid, so even with the same starting seed siblings
-             * naturally diverge — but we partition explicitly to keep
-             * `--seed S` reproducibility-friendly. */
-            if (options.is_seeded)
-            {
-              options.seed = splitmix64(
-                  options.seed ^ ((uint64_t) (i + 1) * 0x9E3779B97F4A7C15ULL));
-            }
-            options.max_runs = per_worker_max_runs;
-
-            murxla.set_parallel_role(
-                Murxla::Role::WORKER, req_w[i], resp_r[i], aggregate);
-
-            try
-            {
-              murxla.test();
-            }
-            /* Report the reason the worker is giving up as a LOG message.
-             * This has to go through the same framing as every other RPC
-             * message: writing the bare text would make the coordinator read
-             * the first five characters as a message header, which yields a
-             * nonsensical type and a length of well over a gigabyte, so the
-             * message would be lost rather than shown. */
-            catch (MurxlaConfigException& e)
-            {
-              murxla.log_via_rpc(std::string("config error: ") + e.get_msg()
-                                 + "\n");
-              _exit(EXIT_ERROR);
-            }
-            catch (MurxlaException& e)
-            {
-              murxla.log_via_rpc(std::string("error: ") + e.get_msg() + "\n");
-              _exit(EXIT_ERROR);
-            }
-            close(req_w[i]);
-            close(resp_r[i]);
-            _exit(0);
+            int rp[2], sp[2];
+            MURXLA_EXIT_ERROR(pipe(rp) != 0)
+                << "pipe() failed: " << strerror(errno);
+            MURXLA_EXIT_ERROR(pipe(sp) != 0)
+                << "pipe() failed: " << strerror(errno);
+            req_r[i]  = rp[0];
+            req_w[i]  = rp[1];
+            resp_r[i] = sp[0];
+            resp_w[i] = sp[1];
           }
 
-          /* Parent: place the worker in its own process group (mirrors the
-           * setpgid in the child to avoid a race where SIGINT arrives
-           * before the child has set its own pgid). */
-          (void) setpgid(pid, pid);
+          /* Distribute max_runs across workers. */
+          uint32_t per_worker_max_runs = 0;
+          if (options.max_runs > 0)
+          {
+            per_worker_max_runs = (options.max_runs + num_jobs - 1) / num_jobs;
+          }
 
-          /* Record pid and close unused pipe ends. */
-          g_worker_pids[g_worker_pid_count] = pid;
-          g_worker_pid_count                = g_worker_pid_count + 1;
-          close(req_w[i]);
-          close(resp_r[i]);
+          /* Block SIGINT during fork so the (still-default) handler can't
+           * fire while we're populating g_worker_pids. */
+          sigset_t mask, prev;
+          sigemptyset(&mask);
+          sigaddset(&mask, SIGINT);
+          sigprocmask(SIG_BLOCK, &mask, &prev);
+
+          double start_time = get_cur_wall_time();
+
+          for (uint32_t i = 0; i < num_jobs; ++i)
+          {
+            pid_t pid = fork();
+            MURXLA_EXIT_ERROR(pid < 0) << "fork() failed: " << strerror(errno);
+            if (pid == 0)
+            {
+              /* Put each worker in its own process group so the coordinator
+               * can take down the whole subtree (worker + its solver/timeout
+               * grandchildren) with `kill(-pgid, SIGTERM)`. */
+              (void) setpgid(0, 0);
+
+              /* Each worker needs its own tmp directory: tmp.err,
+               * run-tmp1.{out,err}, tmp-api.trace, tmp-smt2.smt2 are all
+               * per-run scratch files. Sharing one dir across workers causes
+               * concurrent solver children to clobber each other's stderr,
+               * which in turn corrupts the error message that the worker
+               * forwards to the coordinator (often appearing empty). */
+              {
+                std::filesystem::path worker_tmp(TMP_DIR);
+                worker_tmp /= "worker-" + std::to_string(i);
+                std::error_code ec;
+                std::filesystem::create_directories(worker_tmp, ec);
+                murxla.d_tmp_dir = worker_tmp.string();
+              }
+
+              /* Worker: close unused pipe ends, configure Murxla, run. */
+              for (uint32_t j = 0; j < num_jobs; ++j)
+              {
+                if (j != i)
+                {
+                  close(req_r[j]);
+                  close(req_w[j]);
+                  close(resp_r[j]);
+                  close(resp_w[j]);
+                }
+              }
+              close(req_r[i]);  /* worker doesn't read its own req */
+              close(resp_w[i]); /* worker doesn't write its own resp */
+
+              /* Reset SIGINT to default so workers die quickly on Ctrl+C
+               * and the coordinator's handler does the cleanup. */
+              signal(SIGINT, SIG_DFL);
+              sigprocmask(SIG_SETMASK, &prev, nullptr);
+
+              /* Each worker starts from a different seed so their fuzzing
+               * sequences don't overlap. SeedGenerator already mixes time
+               * and pid, so even with the same starting seed siblings
+               * naturally diverge — but we partition explicitly to keep
+               * `--seed S` reproducibility-friendly. */
+              if (options.is_seeded)
+              {
+                options.seed =
+                    splitmix64(options.seed
+                               ^ ((uint64_t) (i + 1) * 0x9E3779B97F4A7C15ULL));
+              }
+              options.max_runs = per_worker_max_runs;
+
+              murxla.set_parallel_role(
+                  Murxla::Role::WORKER, req_w[i], resp_r[i], aggregate);
+
+              try
+              {
+                murxla.test();
+              }
+              /* Report the reason the worker is giving up as a LOG message.
+               * This has to go through the same framing as every other RPC
+               * message: writing the bare text would make the coordinator read
+               * the first five characters as a message header, which yields a
+               * nonsensical type and a length of well over a gigabyte, so the
+               * message would be lost rather than shown. */
+              catch (MurxlaConfigException& e)
+              {
+                murxla.log_via_rpc(std::string("config error: ") + e.get_msg()
+                                   + "\n");
+                _exit(EXIT_ERROR);
+              }
+              catch (MurxlaException& e)
+              {
+                murxla.log_via_rpc(std::string("error: ") + e.get_msg() + "\n");
+                _exit(EXIT_ERROR);
+              }
+              close(req_w[i]);
+              close(resp_r[i]);
+              _exit(0);
+            }
+
+            /* Parent: place the worker in its own process group (mirrors the
+             * setpgid in the child to avoid a race where SIGINT arrives
+             * before the child has set its own pgid). */
+            (void) setpgid(pid, pid);
+
+            /* Record pid and close unused pipe ends. */
+            g_worker_pids[g_worker_pid_count] = pid;
+            g_worker_pid_count                = g_worker_pid_count + 1;
+            close(req_w[i]);
+            close(resp_r[i]);
+          }
+
+          /* Now safe to install our SIGINT handler that knows about
+           * g_worker_pids. */
+          set_sigint_handler_stats();
+          sigprocmask(SIG_SETMASK, &prev, nullptr);
+
+          murxla.set_parallel_role(
+              Murxla::Role::COORDINATOR, -1, -1, aggregate);
+
+          run_coordinator_loop(
+              murxla, stats, aggregate, req_r, resp_w, start_time);
+
+          /* Reap any remaining workers (most should already be reaped via
+           * pipe EOF detection in the coordinator loop, but harvest
+           * exit statuses to avoid zombies). */
+          for (sig_atomic_t i = 0; i < g_worker_pid_count; ++i)
+          {
+            int status;
+            (void) waitpid(g_worker_pids[i], &status, WNOHANG);
+          }
+
+          munmap(aggregate, sizeof(Aggregate));
         }
-
-        /* Now safe to install our SIGINT handler that knows about
-         * g_worker_pids. */
-        set_sigint_handler_stats();
-        sigprocmask(SIG_SETMASK, &prev, nullptr);
-
-        murxla.set_parallel_role(Murxla::Role::COORDINATOR, -1, -1, aggregate);
-
-        run_coordinator_loop(
-            murxla, stats, aggregate, req_r, resp_w, start_time);
-
-        /* Reap any remaining workers (most should already be reaped via
-         * pipe EOF detection in the coordinator loop, but harvest
-         * exit statuses to avoid zombies). */
-        for (sig_atomic_t i = 0; i < g_worker_pid_count; ++i)
+        else
         {
-          int status;
-          (void) waitpid(g_worker_pids[i], &status, WNOHANG);
+          set_sigint_handler_stats();
+          murxla.test();
         }
-
-        munmap(aggregate, sizeof(Aggregate));
-      }
-      else
-      {
-        set_sigint_handler_stats();
-        murxla.test();
       }
     }
     else

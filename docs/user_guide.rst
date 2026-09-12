@@ -67,6 +67,49 @@ Since group directories are named after their error, output directories of
 several Murxla runs can also be merged by copying the group directories
 together.
 
+Errors are restored without being verified, so an error that has been fixed
+in the solver since it was recorded is still reported as a known error for as
+long as the output directory is used.
+Option ``--recheck`` replays the traces of the restored error groups on
+start-up and forgets the groups whose error no longer occurs.
+Their traces are moved to the subdirectory ``fixed`` of the output directory,
+which means that later runs neither restore nor recheck them, and that an
+error which resurfaces is recorded from scratch.
+A group is only considered fixed if **all** of its traces run through without
+an error; if one of them times out, can no longer be replayed, or triggers a
+different error now, the group is kept.
+Option ``--recheck-only`` does the recheck and exits, which is a convenient
+way to find out which of the errors found so far still occur with the current
+version of the solver.
+
+
+.. code-block:: none
+   :caption: Example: Murxla recheck output
+
+    $ murxla --bitwuzla -O out --recheck-only
+
+    Rechecking 3 known errors from out (replaying their traces):
+
+      3f9a2c1b7d04    7 seeds  live   [bzlachkmodel] bzla_check_model: invali...
+      aa0ee8a5e7de    2 seeds  fixed  bzla_exp_bv_and: assertion 'bzla == bzl...
+                                      2 traces ran clean, moved to out/fixed/a...
+      c1d0a7b3e5f2    1 seed   kept   murxla: ERROR: solver does not support ...
+                                      trace was recorded with --cvc5, not --b...
+
+      1 fixed, 1 still occurring, 1 inconclusive
+
+
+.. note::
+
+   A recheck replays the traces with the solver and the options of the current
+   run, and it costs up to the time limit (``-t``) per trace, so it takes a
+   while on an output directory with many error groups.
+   Every trace records the solver and the solver options it was recorded with
+   (as its ``set-murxla-options`` line), and a trace that disagrees with the
+   current run about them is skipped rather than judged -- an error that needs
+   ``-C`` or ``-c`` to show up must not count as fixed just because the
+   recheck runs without them.
+
 
 .. code-block:: none
    :caption: Example: Murxla continuous mode output

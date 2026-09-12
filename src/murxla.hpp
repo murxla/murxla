@@ -13,6 +13,7 @@
 #include <atomic>
 #include <csignal>
 #include <cstdint>
+#include <functional>
 #include <regex>
 #include <string>
 
@@ -68,6 +69,54 @@ struct ErrorInfo
    */
   std::string errmsg;
   std::vector<uint64_t> seeds;
+  /**
+   * The output directories the group was restored from, see
+   * `Murxla::load_state()`. Empty for a group that was discovered by the
+   * current run. Usually a single directory (the one named after `id`), but
+   * a group can be spread over several, e.g. when a directory from an older
+   * version of Murxla holds the same error.
+   *
+   * Only used by `recheck_state()`, which needs to find the group's trace
+   * files and the directories to move when the error is gone.
+   */
+  std::vector<std::string> dirs;
+};
+
+/** The verdict `Murxla::recheck_state()` arrived at for an error group. */
+enum class RecheckStatus
+{
+  /** One of the group's traces still triggers an error of this group. */
+  LIVE,
+  /** All of the group's traces ran through without an error. */
+  FIXED,
+  /**
+   * Neither: no trace triggered an error of this group, but at least one did
+   * not run through cleanly either (it timed out, could not be replayed, now
+   * triggers a different error, or was recorded with a configuration the
+   * current run does not reproduce). The group is kept.
+   */
+  INCONCLUSIVE,
+};
+
+/** The outcome of rechecking a single error group. */
+struct RecheckInfo
+{
+  /** The id of the rechecked group. */
+  uint64_t id;
+  /** The representative error message of the group. */
+  std::string errmsg;
+  /** The number of seeds recorded for the group. */
+  size_t nseeds;
+  /** The number of traces that were replayed. */
+  size_t nreplayed;
+  /** The verdict. */
+  RecheckStatus status;
+  /**
+   * A short human-readable reason for the verdict, empty if there is nothing
+   * to add to it. For FIXED groups this is where the traces were moved to,
+   * for INCONCLUSIVE ones why the group is kept.
+   */
+  std::string detail;
 };
 
 class Murxla
@@ -144,6 +193,12 @@ class Murxla
   inline static const std::string API_TRACE = "tmp-api.trace";
   inline static const std::string SMT2_FILE = "tmp-smt2.smt2";
 
+  /**
+   * Name of the directory, relative to the output directory, that
+   * `recheck_state()` moves the traces of fixed error groups to.
+   */
+  inline static const std::string FIXED_DIR = "fixed";
+
   /** Number of hex digits in an error group directory name. */
   inline static constexpr size_t ERROR_GROUP_ID_DIGITS = 12;
 
@@ -199,6 +254,33 @@ class Murxla
    * Only the directory named after the group id is fully self-describing.
    */
   void load_state();
+
+  /**
+   * Replay the traces of the error groups `load_state()` restored and forget
+   * the groups whose error is gone, e.g. because the solver has been fixed
+   * since the group was recorded.
+   *
+   * A group's traces are replayed (minimized traces first) until one of them
+   * triggers an error that belongs to this group again, which leaves the
+   * group untouched. If none does, and all of them ran through without an
+   * error, the group is dropped from the error map and its directories are
+   * moved to `fixed/` below the output directory. `fixed/` is not itself an
+   * error group directory, so later runs neither restore nor recheck what
+   * ended up there, and if the error resurfaces it is recorded from scratch.
+   *
+   * Anything in between -- a trace that times out, one that can no longer be
+   * replayed, one that now triggers a *different* error, one that was
+   * recorded with solver options the current run does not use -- is not
+   * enough to call the error fixed, so the group is kept (`INCONCLUSIVE`).
+   *
+   * Must be called after `load_state()` and before fuzzing starts: groups
+   * discovered by the current run have no trace files on disk to replay yet.
+   * `on_group`, if set, is invoked with the outcome of each group as soon as
+   * it is available, so the caller can report progress; the outcomes are
+   * also returned, in the order the groups were rechecked.
+   */
+  std::vector<RecheckInfo> recheck_state(
+      const std::function<void(const RecheckInfo&)>& on_group = nullptr);
 
   /** Constructor. */
   Murxla(statistics::Statistics* stats,
@@ -452,6 +534,35 @@ class Murxla
    * readable, non-empty `error.txt`.
    */
   bool load_error_group(const std::string& dir);
+
+  /**
+   * Collect the trace files of the error group `e_info` as (seed, path)
+   * pairs, in the order `recheck_state()` replays them: minimized traces
+   * first (they are the cheapest to replay), then by seed, so that the
+   * recheck of a group does not depend on directory iteration order.
+   */
+  std::vector<std::pair<uint64_t, std::string>> error_group_traces(
+      const ErrorInfo& e_info) const;
+
+  /** Recheck a single error group, see `recheck_state()`. */
+  RecheckInfo recheck_error_group(const ErrorInfo& e_info,
+                                  const std::string& err_file_name);
+
+  /**
+   * Move the directories of error group `e_info` to `fixed/` below the output
+   * directory.
+   *
+   * Returns true if all of them were moved. `moved` is set to the paths the
+   * traces ended up in and `err` to why the first directory that could not be
+   * moved was left behind. A group can be spread over several directories, so
+   * both can be non-empty at once.
+   */
+  bool move_error_group_to_fixed(const ErrorInfo& e_info,
+                                 std::string& moved,
+                                 std::string& err) const;
+
+  /** Drop error group `e_norm` from the error map (and the exported errors). */
+  void forget_error_group(const std::string& e_norm, const std::string& errmsg);
 
   std::string get_smt2_file_name(uint64_t seed,
                                  const std::string& untrace_file_name) const;
