@@ -1004,8 +1004,21 @@ ShadowSolver::get_sort(Term term, SortKind sort_kind)
 {
   ShadowTerm* t = checked_cast<ShadowTerm*>(term.get());
   assert(t);
-  Sort s        = d_solver->get_sort(t->get_term(), sort_kind);
-  Sort s_shadow = d_solver_shadow->get_sort(t->get_term_shadow(), sort_kind);
+  /* Prefer the sort the underlying solver already recorded on the term. For
+   * some solvers (e.g. STP) get_sort() reconstructs array sorts from bit-widths
+   * alone and cannot recover FP/RM element types, so it returns a sort that
+   * differs from the one the array was created with (e.g. (Array BV FP) comes
+   * back as (Array BV BV)). That mismatched sort fails to deduplicate against
+   * the registered sort, its index/element children are lost, and reading them
+   * later crashes. The term itself carries the correct sort (set by mk_term),
+   * so use it when available and only fall back to get_sort() otherwise. */
+  Sort s = t->get_term()->get_sort();
+  if (s == nullptr) s = d_solver->get_sort(t->get_term(), sort_kind);
+  Sort s_shadow = t->get_term_shadow()->get_sort();
+  if (s_shadow == nullptr)
+  {
+    s_shadow = d_solver_shadow->get_sort(t->get_term_shadow(), sort_kind);
+  }
   std::shared_ptr<ShadowSort> res(new ShadowSort(s, s_shadow));
   return res;
 }
