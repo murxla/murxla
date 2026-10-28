@@ -2222,12 +2222,8 @@ ActionMkTerm::run(Op::Kind kind,
   if (special_args.size())
   {
     trace_str << " " << special_args.size() << special_args;
-    MURXLA_TRACE << get_kind() << trace_str.str();
   }
-  else
-  {
-    MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
-  }
+  MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
 
   reset_sat();
 
@@ -2319,12 +2315,8 @@ ActionMkTerm::run(Op::Kind kind,
   if (special_args.size())
   {
     trace_str << " " << special_args.size() << special_args;
-    MURXLA_TRACE << get_kind() << trace_str.str();
   }
-  else
-  {
-    MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
-  }
+  MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
   reset_sat();
 
   // AbsTerm::d_special_args is populated by the solver during mk_term if
@@ -2373,12 +2365,8 @@ ActionMkTerm::run(Op::Kind kind,
   if (special_args.size())
   {
     trace_str << " " << special_args.size() << special_args;
-    MURXLA_TRACE << get_kind() << trace_str.str();
   }
-  else
-  {
-    MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
-  }
+  MURXLA_TRACE_NO_NEWLINE << get_kind() << trace_str.str();
   reset_sat();
 
   /* Note: We pop the variable scopes in run instead of generate so that we
