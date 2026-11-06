@@ -10,6 +10,7 @@
 #ifdef MURXLA_USE_BITWUZLA
 #include <bitwuzla/cpp/bitwuzla.h>
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <string>
@@ -1870,30 +1871,53 @@ class BitwuzlaActionSubstituteTerm : public Action
     assert(d_solver.is_initialized());
     if (!d_smgr.has_term()) return false;
 
-    /* Pick terms. */
+    /* Pick terms to substitute in and collect their sub terms. */
     uint32_t n_terms = d_rng.pick<uint32_t>(1, MAX_N_TERMS);
     std::vector<Term> terms;
-    std::vector<Term> to_subst_terms;
-    std::vector<Term> subst_terms;
+    std::vector<std::vector<::bitwuzla::Term>> bzla_sub_terms;
+    /* Variables bound by a lambda in any of the picked terms. Bitwuzla can
+     * only rebuild a lambda if its first child is a variable, and the
+     * substitution map is applied to all terms, so these must never be
+     * substituted. */
+    std::unordered_set<::bitwuzla::Term> lambda_vars;
     for (uint32_t i = 0; i < n_terms; ++i)
     {
-      Term term = d_smgr.pick_term();
-      terms.push_back(term);
-      /* Pick term to substitute. */
-      std::vector<Term> sub_terms = get_sub_terms(term);
-      if (sub_terms.empty()) return false;
-      size_t n_subst_terms = d_rng.pick<size_t>(
-          1, std::min<size_t>(sub_terms.size(), MAX_N_SUBST_TERMS));
-      for (size_t j = 0; j < n_subst_terms; ++j)
+      terms.push_back(d_smgr.pick_term());
+      bzla_sub_terms.push_back(
+          get_sub_terms(BitwuzlaTerm::get_bitwuzla_term(terms.back())));
+      for (const ::bitwuzla::Term& t : bzla_sub_terms.back())
       {
-        Term to_subst_term =
-            d_rng.pick_from_set<decltype(sub_terms), Term>(sub_terms);
-        to_subst_terms.push_back(to_subst_term);
-        Sort to_subst_sort = to_subst_term->get_sort();
-        Term subst_term    = d_smgr.pick_term(to_subst_sort);
-        subst_terms.push_back(subst_term);
+        if (t.kind() == ::bitwuzla::Kind::LAMBDA)
+        {
+          lambda_vars.insert(t[0]);
+        }
       }
     }
+
+    /* Pick (distinct) terms to substitute and terms to substitute them with. */
+    ::bitwuzla::TermManager* tm = BitwuzlaTerm::get_tm(terms[0]);
+    std::vector<Term> to_subst_terms;
+    std::vector<Term> subst_terms;
+    std::unordered_set<::bitwuzla::Term> picked;
+    for (const auto& sub_terms : bzla_sub_terms)
+    {
+      std::vector<Term> candidates =
+          get_known_terms(tm, sub_terms, lambda_vars, picked);
+      if (candidates.empty()) continue;
+      size_t n_subst_terms = d_rng.pick<size_t>(
+          1, std::min<size_t>(candidates.size(), MAX_N_SUBST_TERMS));
+      for (size_t j = 0; j < n_subst_terms; ++j)
+      {
+        size_t idx         = d_rng.pick<size_t>(0, candidates.size() - 1);
+        Term to_subst_term = candidates[idx];
+        candidates[idx]    = candidates.back();
+        candidates.pop_back();
+        picked.insert(BitwuzlaTerm::get_bitwuzla_term(to_subst_term));
+        to_subst_terms.push_back(to_subst_term);
+        subst_terms.push_back(d_smgr.pick_term(to_subst_term->get_sort()));
+      }
+    }
+    if (to_subst_terms.empty()) return false;
 
     run(terms, to_subst_terms, subst_terms);
     return true;
@@ -1926,6 +1950,9 @@ class BitwuzlaActionSubstituteTerm : public Action
     }
 
     uint32_t n_subst_terms = str_to_uint32(tokens[idx++]);
+    MURXLA_CHECK_TRACE(n_subst_terms == n_to_subst_terms)
+        << "expected " << n_to_subst_terms << " terms to substitute with, got "
+        << n_subst_terms;
     std::vector<Term> subst_terms;
     for (size_t i = 0; i < n_subst_terms; ++i)
     {
@@ -1939,14 +1966,15 @@ class BitwuzlaActionSubstituteTerm : public Action
   }
 
  private:
-  void run(std::vector<Term> terms,
-           std::vector<Term> to_subst_terms,
-           std::vector<Term> subst_terms)
+  void run(const std::vector<Term>& terms,
+           const std::vector<Term>& to_subst_terms,
+           const std::vector<Term>& subst_terms)
   {
     MURXLA_TRACE << get_kind() << " " << terms.size() << terms << " "
                  << to_subst_terms.size() << to_subst_terms << " "
                  << subst_terms.size() << subst_terms;
-    d_smgr.reset_sat();
+    /* Note: Substitution does not change the solver state, the SAT state is
+     *       thus not reset. */
     std::vector<::bitwuzla::Term> bzla_terms =
         BitwuzlaTerm::terms_to_bitwuzla_terms(terms);
 
@@ -1957,56 +1985,84 @@ class BitwuzlaActionSubstituteTerm : public Action
                   BitwuzlaTerm::get_bitwuzla_term(subst_terms[i]));
     }
     ::bitwuzla::TermManager* tm = BitwuzlaTerm::get_tm(terms[0]);
-    if (bzla_terms.size() == 1 && d_rng.flip_coin())
+
+    /* Note: The substituted terms may or may not be already in the term DB.
+     *       Since we can't always compute the exact level, we can't add the
+     *       substituted terms to the term DB. */
+
+    /* Substitute in each term individually. */
+    std::vector<::bitwuzla::Term> expected;
+    for (const ::bitwuzla::Term& bzla_term : bzla_terms)
     {
-      ::bitwuzla::Term bzla_res = tm->substitute_term(bzla_terms[0], map);
-      /* Note: The substituted term 'bzla_res' may or may not be already in the
-       *       term DB. Since we can't always compute the exact level, we can't
-       *       add the substituted term to the term DB. */
+      ::bitwuzla::Term bzla_res = tm->substitute_term(bzla_term, map);
       MURXLA_TEST(!bzla_res.is_null());
+      MURXLA_TEST(bzla_res.sort() == bzla_term.sort());
+      expected.push_back(bzla_res);
     }
-    else
+
+    /* Substitute in all terms at once, must match individual substitution. */
+    tm->substitute_terms(bzla_terms, map);
+    MURXLA_TEST(bzla_terms.size() == expected.size());
+    for (size_t i = 0, n = bzla_terms.size(); i < n; ++i)
     {
-      tm->substitute_terms(bzla_terms, map);
+      MURXLA_TEST(bzla_terms[i] == expected[i]);
     }
   }
 
   /**
-   * Collect all known sub terms (terms registered in the term DB) of a given
-   * term. Performs a pre-order traversal over term.
+   * Collect all sub terms of a given term, including the term itself.
+   * Performs a traversal over the term DAG, each sub term is collected once.
    */
-  std::vector<Term> get_sub_terms(Term term)
+  std::vector<::bitwuzla::Term> get_sub_terms(const ::bitwuzla::Term& term)
   {
-    ::bitwuzla::TermManager* tm = BitwuzlaTerm::get_tm(term);
-    std::vector<Term> res;
-    std::unordered_set<::bitwuzla::Term> bzla_res;
-    const ::bitwuzla::Term bzla_term = BitwuzlaTerm::get_bitwuzla_term(term);
-    std::vector<::bitwuzla::Term> to_visit{bzla_term};
+    std::vector<::bitwuzla::Term> res;
+    std::unordered_set<::bitwuzla::Term> visited;
+    std::vector<::bitwuzla::Term> to_visit{term};
     while (!to_visit.empty())
     {
-      const ::bitwuzla::Term& bzla_vterm = to_visit.back();
+      ::bitwuzla::Term cur = to_visit.back();
       to_visit.pop_back();
-      for (const auto& ch : bzla_vterm.children())
+      if (!visited.insert(cur).second) continue;
+      res.push_back(cur);
+      for (const ::bitwuzla::Term& ch : cur.children())
       {
-        if (ch.is_const() && bzla_res.find(ch) == bzla_res.end())
-        {
-          bzla_res.insert(ch);
-          to_visit.push_back(ch);
-        }
+        to_visit.push_back(ch);
       }
     }
+    return res;
+  }
 
-    for (const ::bitwuzla::Term& bzla_t : bzla_res)
+  /**
+   * Get the terms registered in the term DB from a given set of Bitwuzla
+   * terms, skipping all terms in 'excluded1' and 'excluded2'. The result is
+   * ordered by term id.
+   */
+  std::vector<Term> get_known_terms(
+      ::bitwuzla::TermManager* tm,
+      const std::vector<::bitwuzla::Term>& bzla_terms,
+      const std::unordered_set<::bitwuzla::Term>& excluded1,
+      const std::unordered_set<::bitwuzla::Term>& excluded2)
+  {
+    std::vector<Term> res;
+    for (const ::bitwuzla::Term& bzla_t : bzla_terms)
     {
+      if (excluded1.find(bzla_t) != excluded1.end()
+          || excluded2.find(bzla_t) != excluded2.end())
+      {
+        continue;
+      }
       Sort s =
           std::shared_ptr<BitwuzlaSort>(new BitwuzlaSort(tm, bzla_t.sort()));
-      s      = d_smgr.find_sort(s);
+      s = d_smgr.find_sort(s);
       if (s->get_kind() == SORT_ANY) continue;
       Term t = std::shared_ptr<BitwuzlaTerm>(new BitwuzlaTerm(tm, bzla_t));
       t      = d_smgr.find_term(t, s, s->get_kind());
       if (t == nullptr) continue;
       res.push_back(t);
     }
+    std::sort(res.begin(), res.end(), [](const Term& a, const Term& b) {
+      return a->get_id() < b->get_id();
+    });
     return res;
   }
 };
@@ -2326,8 +2382,8 @@ BitwuzlaSolver::configure_fsm(FSM* fsm) const
   // s_sat->add_action(a_simplify, 10000, s_create_terms);
   // s_unsat->add_action(a_simplify, 10000, s_create_terms);
 
-  // bitwuzla::Term::substitute_term
-  // bitwuzla::Term::substitute_terms
+  // bitwuzla::TermManager::substitute_term
+  // bitwuzla::TermManager::substitute_terms
   auto a_subst_term = fsm->new_action<BitwuzlaActionSubstituteTerm>();
   fsm->add_action_to_all_states(a_subst_term, 1000);
 
@@ -2349,7 +2405,6 @@ BitwuzlaSolver::disable_unsupported_actions(FSM* fsm) const
 {
   fsm->disable_action(ActionResetAssertions::s_name);
   fsm->disable_action(ActionInstantiateSort::s_name);
-  fsm->disable_action(BitwuzlaActionSubstituteTerm::s_name);
 }
 
 }  // namespace bitwuzla
