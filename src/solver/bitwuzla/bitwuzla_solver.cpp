@@ -2010,6 +2010,119 @@ check_free_vars(
 }
 
 /**
+ * Determines if two terms are alpha-equivalent, i.e., equal modulo renaming of
+ * bound variables. Capture-avoiding substitution renames binders with fresh
+ * variables, the results of substituting the same term twice are thus
+ * alpha-equivalent but not necessarily equal.
+ */
+class AlphaEquivalence
+{
+ public:
+  /** Constructor, 'fv_cache' is used to compute free variables. */
+  AlphaEquivalence(FreeVarsCache& fv_cache) : d_fv_cache(fv_cache) {}
+
+  /** @return True if 'a' and 'b' are alpha-equivalent. */
+  bool operator()(const ::bitwuzla::Term& a, const ::bitwuzla::Term& b)
+  {
+    assert(d_env.empty());
+    return equal(a, b);
+  }
+
+ private:
+  using TermPair = std::pair<::bitwuzla::Term, ::bitwuzla::Term>;
+  struct TermPairHash
+  {
+    size_t operator()(const TermPair& p) const
+    {
+      std::hash<::bitwuzla::Term> h;
+      return h(p.first) * 31 + h(p.second);
+    }
+  };
+
+  /**
+   * @return True if the free variables of 'a' (if 'first') or 'b' (if not
+   *         'first') are bound in the current scope.
+   */
+  bool depends_on_env(const ::bitwuzla::Term& t, bool first)
+  {
+    for (const ::bitwuzla::Term& var : free_vars(t, d_fv_cache))
+    {
+      for (const TermPair& p : d_env)
+      {
+        if ((first ? p.first : p.second) == var) return true;
+      }
+    }
+    return false;
+  }
+
+  bool equal(const ::bitwuzla::Term& a, const ::bitwuzla::Term& b)
+  {
+    /* Results for terms that do not depend on the current scope are cached. */
+    bool cacheable = !depends_on_env(a, true) && !depends_on_env(b, false);
+    if (cacheable)
+    {
+      if (a == b) return true;
+      auto it = d_cache.find({a, b});
+      if (it != d_cache.end()) return it->second;
+    }
+    bool res = compare(a, b);
+    if (cacheable)
+    {
+      d_cache.emplace(TermPair{a, b}, res);
+    }
+    return res;
+  }
+
+  bool compare(const ::bitwuzla::Term& a, const ::bitwuzla::Term& b)
+  {
+    if (a.kind() != b.kind() || a.sort() != b.sort()
+        || a.num_children() != b.num_children()
+        || a.num_indices() != b.num_indices()
+        || (a.num_indices() > 0 && a.indices() != b.indices()))
+    {
+      return false;
+    }
+    if (a.is_variable())
+    {
+      /* Bound variables must be bound by corresponding binders (innermost
+       * binder first), free variables must be equal. */
+      for (auto it = d_env.rbegin(); it != d_env.rend(); ++it)
+      {
+        if (it->first == a || it->second == b)
+        {
+          return it->first == a && it->second == b;
+        }
+      }
+      return a == b;
+    }
+    if (a.num_children() == 0)
+    {
+      return a == b;
+    }
+    if (is_binder(a))
+    {
+      if (a[0].sort() != b[0].sort()) return false;
+      d_env.emplace_back(a[0], b[0]);
+      bool res = equal(a[1], b[1]);
+      d_env.pop_back();
+      return res;
+    }
+    for (size_t i = 0, n = a.num_children(); i < n; ++i)
+    {
+      if (!equal(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  /** The free variables cache. */
+  FreeVarsCache& d_fv_cache;
+  /** The pairs of variables of the binders of the current scope. */
+  std::vector<TermPair> d_env;
+  /** Cache for pairs of terms that do not depend on the current scope. */
+  std::unordered_map<TermPair, bool, TermPairHash> d_cache;
+};
+
+/**
  * Collect all sub terms of a given term, including the term itself.
  * Performs a traversal over the term DAG, each sub term is collected once.
  * The order of the result only depends on the structure of the term.
@@ -2071,8 +2184,8 @@ class BitwuzlaActionSubstituteTerm : public Action
     }
 
     /* Pick (distinct) terms to substitute and terms to substitute them with.
-     * Note: Bound variables are not in the term DB and are thus never
-     *       substituted. */
+     * Note: Bound variables are not in the term DB, binders are covered by
+     *       BitwuzlaActionSubstituteBinder. */
     ::bitwuzla::TermManager* tm = BitwuzlaTerm::get_tm(terms[0]);
     std::vector<Term> to_subst_terms;
     std::vector<Term> subst_terms;
@@ -2222,6 +2335,209 @@ class BitwuzlaActionSubstituteTerm : public Action
       return a->get_id() < b->get_id();
     });
     return res;
+  }
+};
+
+/**
+ * Substitute the variable of a binder (quantifier or lambda).
+ *
+ * Bound variables are not in the term DB, BitwuzlaActionSubstituteTerm thus
+ * never substitutes them. This action picks a term from the term DB and one
+ * of the binders in it (by index, see get_binders()), and substitutes the
+ * variable of the binder with a term from the term DB, or with the variable
+ * of another binder in the term, in the term and in the body of the binder.
+ */
+class BitwuzlaActionSubstituteBinder : public Action
+{
+ public:
+  /** The maximum number of tries to pick a term that contains a binder. */
+  static constexpr uint32_t MAX_TRIES = 5;
+  /** The name of this action. */
+  inline static const Kind s_name = "bitwuzla-substitute-binder";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BitwuzlaActionSubstituteBinder(SolverManager& smgr)
+      : Action(smgr, s_name, NONE)
+  {
+  }
+
+  bool generate() override
+  {
+    assert(d_solver.is_initialized());
+    if (!d_smgr.has_term()) return false;
+
+    for (uint32_t i = 0; i < MAX_TRIES; ++i)
+    {
+      Term term = d_smgr.pick_term();
+      std::vector<::bitwuzla::Term> binders =
+          get_binders(BitwuzlaTerm::get_bitwuzla_term(term));
+      if (binders.empty()) continue;
+
+      size_t idx                 = d_rng.pick<size_t>(0, binders.size() - 1);
+      const ::bitwuzla::Term var = binders[idx][0];
+
+      /* Binders whose variable can be substituted for 'var'. */
+      std::vector<size_t> var_binders;
+      for (size_t j = 0, n = binders.size(); j < n; ++j)
+      {
+        if (binders[j][0] != var && binders[j][0].sort() == var.sort())
+        {
+          var_binders.push_back(j);
+        }
+      }
+      ::bitwuzla::TermManager* tm = BitwuzlaTerm::get_tm(term);
+      Sort sort                   = d_smgr.find_sort(
+          std::shared_ptr<BitwuzlaSort>(new BitwuzlaSort(tm, var.sort())));
+      bool has_value = sort->get_kind() != SORT_ANY && d_smgr.has_term(sort);
+      if (!has_value && var_binders.empty()) continue;
+
+      if (has_value && (var_binders.empty() || d_rng.flip_coin()))
+      {
+        run(term, idx, d_smgr.pick_term(sort), 0);
+      }
+      else
+      {
+        run(term,
+            idx,
+            nullptr,
+            var_binders[d_rng.pick<size_t>(0, var_binders.size() - 1)]);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(3, tokens.size());
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    size_t idx = str_to_uint32(tokens[1]);
+    Term value;
+    size_t value_idx = 0;
+    if (tokens[2].size() > 1 && tokens[2][0] == 'b')
+    {
+      value_idx = str_to_uint32(tokens[2].substr(1));
+    }
+    else
+    {
+      value = get_untraced_term(untrace_str_to_id(tokens[2]));
+      MURXLA_CHECK_TRACE_TERM(value, tokens[2]);
+    }
+    run(term, idx, value, value_idx);
+    return {};
+  }
+
+ private:
+  /**
+   * Get the binders in a given term. The order of the binders only depends on
+   * the structure of the term (see get_sub_terms()), and thus identifies a
+   * binder by its index for untracing.
+   */
+  static std::vector<::bitwuzla::Term> get_binders(const ::bitwuzla::Term& term)
+  {
+    std::vector<::bitwuzla::Term> res;
+    for (const ::bitwuzla::Term& t : get_sub_terms(term))
+    {
+      if (is_binder(t)) res.push_back(t);
+    }
+    return res;
+  }
+
+  /**
+   * Substitute the variable of the binder at index 'idx' in 'term' with
+   * 'value', or, if 'value' is null, with the variable of the binder at index
+   * 'value_idx', in 'term' and in the body of the binder.
+   */
+  void run(Term term, size_t idx, Term value, size_t value_idx)
+  {
+    std::stringstream ss;
+    ss << get_kind() << " " << term << " " << idx << " ";
+    if (value)
+    {
+      ss << value;
+    }
+    else
+    {
+      ss << "b" << value_idx;
+    }
+    MURXLA_TRACE << ss.str();
+
+    ::bitwuzla::TermManager* tm       = BitwuzlaTerm::get_tm(term);
+    const ::bitwuzla::Term& bzla_term = BitwuzlaTerm::get_bitwuzla_term(term);
+    std::vector<::bitwuzla::Term> binders = get_binders(bzla_term);
+    MURXLA_CHECK_TRACE(idx < binders.size()) << "invalid binder index " << idx;
+    MURXLA_CHECK_TRACE(value || value_idx < binders.size())
+        << "invalid binder index " << value_idx;
+
+    const ::bitwuzla::Term binder = binders[idx];
+    const ::bitwuzla::Term var    = binder[0];
+    const ::bitwuzla::Term body   = binder[1];
+    const ::bitwuzla::Term bzla_value =
+        value ? BitwuzlaTerm::get_bitwuzla_term(value) : binders[value_idx][0];
+    MURXLA_CHECK_TRACE(bzla_value.sort() == var.sort())
+        << "expected value of sort " << var.sort();
+    std::unordered_map<::bitwuzla::Term, ::bitwuzla::Term> map{
+        {var, bzla_value}};
+
+    ::bitwuzla::Term res_term = tm->substitute_term(bzla_term, map);
+    ::bitwuzla::Term res_body = tm->substitute_term(body, map);
+    MURXLA_TEST(!res_term.is_null());
+    MURXLA_TEST(!res_body.is_null());
+    MURXLA_TEST(res_term.sort() == bzla_term.sort());
+    MURXLA_TEST(res_body.sort() == body.sort());
+
+    /* Substituting in both terms at once shares the substitution cache, which
+     * must not affect the results, in either order. Each call renames
+     * binders with fresh variables if needed to avoid capture, the results
+     * are thus only alpha-equivalent. */
+    FreeVarsCache fv_cache;
+    AlphaEquivalence alpha_equal(fv_cache);
+    std::vector<::bitwuzla::Term> terms{bzla_term, body};
+    tm->substitute_terms(terms, map);
+    MURXLA_TEST(alpha_equal(terms[0], res_term));
+    MURXLA_TEST(alpha_equal(terms[1], res_body));
+    terms = {body, bzla_term};
+    tm->substitute_terms(terms, map);
+    MURXLA_TEST(alpha_equal(terms[0], res_body));
+    MURXLA_TEST(alpha_equal(terms[1], res_term));
+
+    const std::unordered_set<::bitwuzla::Term> fv_values =
+        free_vars(bzla_value, fv_cache);
+    check_free_vars(bzla_term, res_term, map, fv_values, fv_cache);
+    check_free_vars(body, res_body, map, fv_values, fv_cache);
+
+    /* If the variable does not occur free in 'term', substituting it in 'term'
+     * only has an effect if the binder is in the top-level quantifier prefix
+     * of 'term', which instantiates it. Lambdas and nested quantifiers are not
+     * instantiated. */
+    if (free_vars(bzla_term, fv_cache).count(var)) return;
+    std::vector<::bitwuzla::Term> prefix;
+    for (::bitwuzla::Term cur = bzla_term; is_quant(cur); cur = cur[1])
+    {
+      prefix.push_back(cur);
+    }
+    auto it = std::find(prefix.begin(), prefix.end(), binder);
+    if (it == prefix.end())
+    {
+      MURXLA_TEST(res_term == bzla_term);
+    }
+    else if (value)
+    {
+      /* Instantiating the binder is substituting in its body, below the
+       * binders of the prefix above it. These binders do not bind variables
+       * of 'value', since 'value' is in the term DB. */
+      ::bitwuzla::Term expected = res_body;
+      while (it != prefix.begin())
+      {
+        --it;
+        expected = tm->mk_term(it->kind(), {(*it)[0], expected});
+      }
+      MURXLA_TEST(res_term == expected);
+    }
   }
 };
 
@@ -2544,6 +2860,9 @@ BitwuzlaSolver::configure_fsm(FSM* fsm) const
   // bitwuzla::TermManager::substitute_terms
   auto a_subst_term = fsm->new_action<BitwuzlaActionSubstituteTerm>();
   fsm->add_action_to_all_states(a_subst_term, 1000);
+
+  auto a_subst_binder = fsm->new_action<BitwuzlaActionSubstituteBinder>();
+  fsm->add_action_to_all_states(a_subst_binder, 1000);
 
   auto a_misc = fsm->new_action<BitwuzlaActionMisc>();
   fsm->add_action_to_all_states(a_misc, 100000);
