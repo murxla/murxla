@@ -1848,6 +1848,194 @@ class BzlaActionSimplify : public Action
 };
 #endif
 
+namespace {
+
+/** Maps a term to its free variables. */
+using FreeVarsCache =
+    std::unordered_map<::bitwuzla::Term, std::unordered_set<::bitwuzla::Term>>;
+
+/** @return True if the given term is a quantifier. */
+bool
+is_quant(const ::bitwuzla::Term& term)
+{
+  ::bitwuzla::Kind kind = term.kind();
+  return kind == ::bitwuzla::Kind::FORALL || kind == ::bitwuzla::Kind::EXISTS;
+}
+
+/** @return True if the given term is a binder (quantifier or lambda). */
+bool
+is_binder(const ::bitwuzla::Term& term)
+{
+  return is_quant(term) || term.kind() == ::bitwuzla::Kind::LAMBDA;
+}
+
+/** @return True if the given sets intersect. */
+bool
+intersects(const std::unordered_set<::bitwuzla::Term>& a,
+           const std::unordered_set<::bitwuzla::Term>& b)
+{
+  return std::any_of(
+      a.begin(), a.end(), [&b](const auto& t) { return b.find(t) != b.end(); });
+}
+
+/**
+ * Compute the free variables of a given term. Free variables are determined
+ * bottom-up per term, independently of the context the term occurs in.
+ * Binders are nested binary terms with the bound variable as their first
+ * child.
+ * @return A reference to the cache entry of the given term (references to
+ *         cache entries stay valid when the cache grows).
+ */
+const std::unordered_set<::bitwuzla::Term>&
+free_vars(const ::bitwuzla::Term& term, FreeVarsCache& cache)
+{
+  std::unordered_set<::bitwuzla::Term> expanded;
+  std::vector<::bitwuzla::Term> to_visit{term};
+  while (!to_visit.empty())
+  {
+    ::bitwuzla::Term cur = to_visit.back();
+    if (cache.find(cur) != cache.end())
+    {
+      to_visit.pop_back();
+      continue;
+    }
+    if (expanded.insert(cur).second)
+    {
+      for (const ::bitwuzla::Term& ch : cur.children())
+      {
+        to_visit.push_back(ch);
+      }
+      continue;
+    }
+    to_visit.pop_back();
+    std::unordered_set<::bitwuzla::Term> fvs;
+    if (cur.is_variable())
+    {
+      fvs.insert(cur);
+    }
+    for (const ::bitwuzla::Term& ch : cur.children())
+    {
+      const auto& ch_fvs = cache.at(ch);
+      fvs.insert(ch_fvs.begin(), ch_fvs.end());
+    }
+    if (is_binder(cur))
+    {
+      fvs.erase(cur[0]);
+    }
+    cache.emplace(cur, std::move(fvs));
+  }
+  return cache.at(term);
+}
+
+/**
+ * Check the free variables of the result of substituting 'map' in 'term'.
+ *
+ * These checks hold for simultaneous substitution of the free occurrences of
+ * the keys, where values are inserted as-is (no substitution in values), and
+ * for instantiating the binders of the top-level quantifier prefix:
+ * 1. no free variables are introduced other than those of the values
+ * 2. a variable that occurs free in 'term' does not occur free in the
+ *    result, unless a value contains it
+ * 3. the free variables of the value of a replaced occurrence are preserved,
+ *    i.e., no free variable of a value is captured by a binder
+ *
+ * Check 3 only considers occurrences of keys that are not below a binder
+ * that binds the key or a variable of the key, and skips keys that are not
+ * variables if their value contains a variable bound in 'term', since
+ * substituting a term that is not a variable is not capture-avoiding.
+ */
+void
+check_free_vars(
+    const ::bitwuzla::Term& term,
+    const ::bitwuzla::Term& res,
+    const std::unordered_map<::bitwuzla::Term, ::bitwuzla::Term>& map,
+    const std::unordered_set<::bitwuzla::Term>& fv_values,
+    FreeVarsCache& fv_cache)
+{
+  const auto& fv_term = free_vars(term, fv_cache);
+  const auto& fv_res  = free_vars(res, fv_cache);
+
+  /* 1. */
+  for (const ::bitwuzla::Term& var : fv_res)
+  {
+    MURXLA_TEST(fv_term.find(var) != fv_term.end()
+                || fv_values.find(var) != fv_values.end());
+  }
+
+  /* 2. */
+  for (const auto& [key, value] : map)
+  {
+    if (key.is_variable() && fv_term.find(key) != fv_term.end())
+    {
+      MURXLA_TEST(fv_res.find(key) == fv_res.end()
+                  || fv_values.find(key) != fv_values.end());
+    }
+  }
+
+  /* 3. Collect the keys replaced in 'term', the traversal stops at keys. */
+  std::unordered_set<::bitwuzla::Term> bound_vars;
+  std::unordered_set<::bitwuzla::Term> replaced;
+  std::unordered_set<::bitwuzla::Term> visited;
+  std::vector<::bitwuzla::Term> to_visit{term};
+  while (!to_visit.empty())
+  {
+    ::bitwuzla::Term cur = to_visit.back();
+    to_visit.pop_back();
+    if (!visited.insert(cur).second) continue;
+    if (map.find(cur) != map.end())
+    {
+      replaced.insert(cur);
+      continue;
+    }
+    if (is_binder(cur))
+    {
+      bound_vars.insert(cur[0]);
+    }
+    for (const ::bitwuzla::Term& ch : cur.children())
+    {
+      to_visit.push_back(ch);
+    }
+  }
+  for (const ::bitwuzla::Term& key : replaced)
+  {
+    if (bound_vars.find(key) != bound_vars.end()) continue;
+    if (intersects(free_vars(key, fv_cache), bound_vars)) continue;
+    const auto& fv_value = free_vars(map.at(key), fv_cache);
+    if (!key.is_variable() && intersects(fv_value, bound_vars)) continue;
+    for (const ::bitwuzla::Term& var : fv_value)
+    {
+      MURXLA_TEST(fv_res.find(var) != fv_res.end());
+    }
+  }
+}
+
+/**
+ * Collect all sub terms of a given term, including the term itself.
+ * Performs a traversal over the term DAG, each sub term is collected once.
+ * The order of the result only depends on the structure of the term.
+ */
+std::vector<::bitwuzla::Term>
+get_sub_terms(const ::bitwuzla::Term& term)
+{
+  std::vector<::bitwuzla::Term> res;
+  std::unordered_set<::bitwuzla::Term> visited;
+  std::vector<::bitwuzla::Term> to_visit{term};
+  while (!to_visit.empty())
+  {
+    ::bitwuzla::Term cur = to_visit.back();
+    to_visit.pop_back();
+    if (!visited.insert(cur).second) continue;
+    res.push_back(cur);
+    for (const ::bitwuzla::Term& ch : cur.children())
+    {
+      to_visit.push_back(ch);
+    }
+  }
+  return res;
+}
+
+}  // namespace
+
 class BitwuzlaActionSubstituteTerm : public Action
 {
  public:
@@ -1875,34 +2063,23 @@ class BitwuzlaActionSubstituteTerm : public Action
     uint32_t n_terms = d_rng.pick<uint32_t>(1, MAX_N_TERMS);
     std::vector<Term> terms;
     std::vector<std::vector<::bitwuzla::Term>> bzla_sub_terms;
-    /* Variables bound by a lambda in any of the picked terms. Bitwuzla can
-     * only rebuild a lambda if its first child is a variable, and the
-     * substitution map is applied to all terms, so these must never be
-     * substituted. */
-    std::unordered_set<::bitwuzla::Term> lambda_vars;
     for (uint32_t i = 0; i < n_terms; ++i)
     {
       terms.push_back(d_smgr.pick_term());
       bzla_sub_terms.push_back(
           get_sub_terms(BitwuzlaTerm::get_bitwuzla_term(terms.back())));
-      for (const ::bitwuzla::Term& t : bzla_sub_terms.back())
-      {
-        if (t.kind() == ::bitwuzla::Kind::LAMBDA)
-        {
-          lambda_vars.insert(t[0]);
-        }
-      }
     }
 
-    /* Pick (distinct) terms to substitute and terms to substitute them with. */
+    /* Pick (distinct) terms to substitute and terms to substitute them with.
+     * Note: Bound variables are not in the term DB and are thus never
+     *       substituted. */
     ::bitwuzla::TermManager* tm = BitwuzlaTerm::get_tm(terms[0]);
     std::vector<Term> to_subst_terms;
     std::vector<Term> subst_terms;
     std::unordered_set<::bitwuzla::Term> picked;
     for (const auto& sub_terms : bzla_sub_terms)
     {
-      std::vector<Term> candidates =
-          get_known_terms(tm, sub_terms, lambda_vars, picked);
+      std::vector<Term> candidates = get_known_terms(tm, sub_terms, picked);
       if (candidates.empty()) continue;
       size_t n_subst_terms = d_rng.pick<size_t>(
           1, std::min<size_t>(candidates.size(), MAX_N_SUBST_TERMS));
@@ -2019,193 +2196,19 @@ class BitwuzlaActionSubstituteTerm : public Action
     }
   }
 
-  /** Maps a term to its free variables. */
-  using FreeVarsCache =
-      std::unordered_map<::bitwuzla::Term,
-                         std::unordered_set<::bitwuzla::Term>>;
-
-  /** @return True if the given term is a binder (quantifier or lambda). */
-  static bool is_binder(const ::bitwuzla::Term& term)
-  {
-    ::bitwuzla::Kind kind = term.kind();
-    return kind == ::bitwuzla::Kind::FORALL || kind == ::bitwuzla::Kind::EXISTS
-           || kind == ::bitwuzla::Kind::LAMBDA;
-  }
-
-  /**
-   * Compute the free variables of a given term. Free variables are
-   * determined bottom-up per term, independently of the context the term
-   * occurs in. Binders are nested binary terms with the bound variable as
-   * their first child.
-   * @return A reference to the cache entry of the given term (references to
-   *         cache entries stay valid when the cache grows).
-   */
-  const std::unordered_set<::bitwuzla::Term>& free_vars(
-      const ::bitwuzla::Term& term, FreeVarsCache& cache)
-  {
-    std::unordered_set<::bitwuzla::Term> expanded;
-    std::vector<::bitwuzla::Term> to_visit{term};
-    while (!to_visit.empty())
-    {
-      ::bitwuzla::Term cur = to_visit.back();
-      if (cache.find(cur) != cache.end())
-      {
-        to_visit.pop_back();
-        continue;
-      }
-      if (expanded.insert(cur).second)
-      {
-        for (const ::bitwuzla::Term& ch : cur.children())
-        {
-          to_visit.push_back(ch);
-        }
-        continue;
-      }
-      to_visit.pop_back();
-      std::unordered_set<::bitwuzla::Term> fvs;
-      if (cur.is_variable())
-      {
-        fvs.insert(cur);
-      }
-      for (const ::bitwuzla::Term& ch : cur.children())
-      {
-        const auto& ch_fvs = cache.at(ch);
-        fvs.insert(ch_fvs.begin(), ch_fvs.end());
-      }
-      if (is_binder(cur))
-      {
-        fvs.erase(cur[0]);
-      }
-      cache.emplace(cur, std::move(fvs));
-    }
-    return cache.at(term);
-  }
-
-  /**
-   * Check the free variables of the result of substituting 'map' in 'term'.
-   *
-   * These checks hold for simultaneous substitution of the free occurrences of
-   * the keys, where values are inserted as-is (no substitution in values):
-   * 1. no free variables are introduced other than those of the values
-   * 2. a variable that occurs free in 'term' does not occur free in the
-   *    result, unless a value contains it
-   * 3. the free variables of the value of a replaced occurrence are preserved,
-   *    i.e., no free variable of a value is captured by a binder
-   *
-   * Check 3 only considers occurrences of keys that are not below a binder
-   * that binds a variable of the key or the key itself, since murxla does not
-   * generate such substitutions (bound variables are not in the term DB).
-   */
-  void check_free_vars(
-      const ::bitwuzla::Term& term,
-      const ::bitwuzla::Term& res,
-      const std::unordered_map<::bitwuzla::Term, ::bitwuzla::Term>& map,
-      const std::unordered_set<::bitwuzla::Term>& fv_values,
-      FreeVarsCache& fv_cache)
-  {
-    const auto& fv_term = free_vars(term, fv_cache);
-    const auto& fv_res  = free_vars(res, fv_cache);
-
-    /* 1. */
-    for (const ::bitwuzla::Term& var : fv_res)
-    {
-      MURXLA_TEST(fv_term.find(var) != fv_term.end()
-                  || fv_values.find(var) != fv_values.end());
-    }
-
-    /* 2. */
-    for (const auto& [key, value] : map)
-    {
-      if (key.is_variable() && fv_term.find(key) != fv_term.end())
-      {
-        MURXLA_TEST(fv_res.find(key) == fv_res.end()
-                    || fv_values.find(key) != fv_values.end());
-      }
-    }
-
-    /* 3. Collect the keys replaced in 'term', the traversal stops at keys. */
-    std::unordered_set<::bitwuzla::Term> bound_vars;
-    std::unordered_set<::bitwuzla::Term> replaced;
-    std::unordered_set<::bitwuzla::Term> visited;
-    std::vector<::bitwuzla::Term> to_visit{term};
-    while (!to_visit.empty())
-    {
-      ::bitwuzla::Term cur = to_visit.back();
-      to_visit.pop_back();
-      if (!visited.insert(cur).second) continue;
-      if (map.find(cur) != map.end())
-      {
-        replaced.insert(cur);
-        continue;
-      }
-      if (is_binder(cur))
-      {
-        bound_vars.insert(cur[0]);
-      }
-      for (const ::bitwuzla::Term& ch : cur.children())
-      {
-        to_visit.push_back(ch);
-      }
-    }
-    for (const ::bitwuzla::Term& key : replaced)
-    {
-      if (bound_vars.find(key) != bound_vars.end()) continue;
-      const auto& fv_key = free_vars(key, fv_cache);
-      if (std::any_of(fv_key.begin(), fv_key.end(), [&](const auto& v) {
-            return bound_vars.find(v) != bound_vars.end();
-          }))
-      {
-        continue;
-      }
-      for (const ::bitwuzla::Term& var : free_vars(map.at(key), fv_cache))
-      {
-        MURXLA_TEST(fv_res.find(var) != fv_res.end());
-      }
-    }
-  }
-
-  /**
-   * Collect all sub terms of a given term, including the term itself.
-   * Performs a traversal over the term DAG, each sub term is collected once.
-   */
-  std::vector<::bitwuzla::Term> get_sub_terms(const ::bitwuzla::Term& term)
-  {
-    std::vector<::bitwuzla::Term> res;
-    std::unordered_set<::bitwuzla::Term> visited;
-    std::vector<::bitwuzla::Term> to_visit{term};
-    while (!to_visit.empty())
-    {
-      ::bitwuzla::Term cur = to_visit.back();
-      to_visit.pop_back();
-      if (!visited.insert(cur).second) continue;
-      res.push_back(cur);
-      for (const ::bitwuzla::Term& ch : cur.children())
-      {
-        to_visit.push_back(ch);
-      }
-    }
-    return res;
-  }
-
   /**
    * Get the terms registered in the term DB from a given set of Bitwuzla
-   * terms, skipping all terms in 'excluded1' and 'excluded2'. The result is
-   * ordered by term id.
+   * terms, skipping all terms in 'excluded'. The result is ordered by term id.
    */
   std::vector<Term> get_known_terms(
       ::bitwuzla::TermManager* tm,
       const std::vector<::bitwuzla::Term>& bzla_terms,
-      const std::unordered_set<::bitwuzla::Term>& excluded1,
-      const std::unordered_set<::bitwuzla::Term>& excluded2)
+      const std::unordered_set<::bitwuzla::Term>& excluded)
   {
     std::vector<Term> res;
     for (const ::bitwuzla::Term& bzla_t : bzla_terms)
     {
-      if (excluded1.find(bzla_t) != excluded1.end()
-          || excluded2.find(bzla_t) != excluded2.end())
-      {
-        continue;
-      }
+      if (excluded.find(bzla_t) != excluded.end()) continue;
       Sort s =
           std::shared_ptr<BitwuzlaSort>(new BitwuzlaSort(tm, bzla_t.sort()));
       s = d_smgr.find_sort(s);
