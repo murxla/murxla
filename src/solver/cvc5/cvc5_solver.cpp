@@ -1728,8 +1728,20 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
     break;
 
     case SORT_REAL:
+    {
       assert(sort->is_real());
-      if (value.find('.') != std::string::npos)
+      /* Murxla spells a Real value three ways -- a decimal integer, a
+       * decimal, or a fraction -- and mkReal(int64_t) can carry only the
+       * first. std::stoll stops at the '.' or the '/' and reports no error
+       * for what follows, so the other two would be built from a prefix:
+       * "51.778" as 51, "5090/280376180" as 5090. So the test is what the
+       * string is, not which separator it happens to lack. */
+      const size_t first_digit = !value.empty() && value[0] == '-' ? 1 : 0;
+      const bool is_decimal_integer =
+          value.size() > first_digit
+          && value.find_first_not_of("0123456789", first_digit)
+                 == std::string::npos;
+      if (is_decimal_integer)
       {
         int64_t val64 = 0;
         bool fits64   = true;
@@ -1754,7 +1766,8 @@ Cvc5Solver::mk_value(Sort sort, const std::string& value)
       {
         cvc5_res = TRACE_TM(mkReal, value);
       }
-      break;
+    }
+    break;
 
     case SORT_REGLAN:
     case SORT_STRING:
