@@ -1809,45 +1809,6 @@ class BitwuzlaActionIsUnsatAssumption : public Action
   //! [docs-bitwuzla-action-isunsatassumption-run end]
 };
 
-#if 0
-class BzlaActionSimplify : public Action
-{
- public:
-  /** The name of this action. */
-  inline static const Kind s_name = "bzla-simplify";
-
-  /**
-   * Constructor.
-   * @param smgr  The associated solver manager.
-   */
-  BzlaActionSimplify(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
-
-  bool generate() override
-  {
-    assert(d_solver.is_initialized());
-    BitwuzlaSolver& solver = dynamic_cast<BitwuzlaSolver&>(d_solver);
-    if (solver.get_solver() == nullptr) return false;
-    run();
-    return true;
-  }
-
-  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
-  {
-    MURXLA_CHECK_TRACE_EMPTY(tokens);
-    run();
-    return {};
-  }
-
- private:
-  void run()
-  {
-    MURXLA_TRACE << get_kind();
-    reset_sat();
-    bitwuzla_simplify(dynamic_cast<BitwuzlaSolver&>(d_solver).get_solver());
-  }
-};
-#endif
-
 namespace {
 
 /** Maps a term to its free variables. */
@@ -2541,6 +2502,141 @@ class BitwuzlaActionSubstituteBinder : public Action
   }
 };
 
+class BitwuzlaActionSimplify : public Action
+{
+ public:
+  /** The name of this action. */
+  inline static const Kind s_name = "bitwuzla-simplify";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BitwuzlaActionSimplify(SolverManager& smgr) : Action(smgr, s_name, NONE) {}
+
+  bool generate() override
+  {
+    assert(d_solver.is_initialized());
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    /* Do not create the Bitwuzla instance here, options may still be set. */
+    if (slv.get_solver() == nullptr) return false;
+    run();
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_EMPTY(tokens);
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    MURXLA_CHECK_TRACE(slv.get_solver() != nullptr)
+        << "'" << get_kind() << "' before the solver was created";
+    run();
+    return {};
+  }
+
+ private:
+  void run()
+  {
+    MURXLA_TRACE << get_kind();
+    reset_sat();
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    slv.get_solver()->simplify();
+  }
+};
+
+class BitwuzlaActionSimplifyTerm : public Action
+{
+ public:
+  /** The name of this action. */
+  inline static const Kind s_name = "bitwuzla-simplify-term";
+
+  /**
+   * Constructor.
+   * @param smgr  The associated solver manager.
+   */
+  BitwuzlaActionSimplifyTerm(SolverManager& smgr)
+      : Action(smgr, s_name, ID_LIST)
+  {
+  }
+
+  bool generate() override
+  {
+    assert(d_solver.is_initialized());
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    /* Do not create the Bitwuzla instance here, options may still be set. */
+    if (slv.get_solver() == nullptr) return false;
+    if (!d_smgr.has_term()) return false;
+    run(d_smgr.pick_term());
+    return true;
+  }
+
+  std::vector<uint64_t> untrace(const std::vector<std::string>& tokens) override
+  {
+    MURXLA_CHECK_TRACE_NTOKENS(1, tokens.size());
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    MURXLA_CHECK_TRACE(slv.get_solver() != nullptr)
+        << "'" << get_kind() << "' before the solver was created";
+    Term term = get_untraced_term(untrace_str_to_id(tokens[0]));
+    MURXLA_CHECK_TRACE_TERM(term, tokens[0]);
+    return run(term);
+  }
+
+ private:
+  std::vector<uint64_t> run(Term term)
+  {
+    MURXLA_TRACE << get_kind() << " " << term;
+    reset_sat();
+
+    BitwuzlaSolver& slv = static_cast<BitwuzlaSolver&>(d_smgr.get_solver());
+    ::bitwuzla::TermManager* tm       = BitwuzlaTerm::get_tm(term);
+    const ::bitwuzla::Term& bzla_term = BitwuzlaTerm::get_bitwuzla_term(term);
+
+    ::bitwuzla::Term bzla_res = slv.get_solver()->simplify(bzla_term);
+    MURXLA_TEST(!bzla_res.is_null());
+    MURXLA_TEST(bzla_res.sort() == bzla_term.sort());
+    if (bzla_term.is_value())
+    {
+      MURXLA_TEST(bzla_res == bzla_term);
+    }
+
+    /* Simplification does not introduce free variables. This also ensures that
+     * the scope levels of 'term' are valid for the result. */
+    FreeVarsCache fv_cache;
+    const std::unordered_set<::bitwuzla::Term>& fv_term =
+        free_vars(bzla_term, fv_cache);
+    for (const auto& var : free_vars(bzla_res, fv_cache))
+    {
+      MURXLA_TEST(fv_term.find(var) != fv_term.end());
+    }
+
+    /* Rewriting is idempotent, also with an empty rewrite cache. */
+    {
+      ::bitwuzla::Bitwuzla fresh(*tm, *slv.options());
+      MURXLA_TEST(fresh.simplify(bzla_res) == bzla_res);
+    }
+
+    /* The result is equivalent to 'term', checked by a solver that neither
+     * rewrites nor preprocesses. Only closed terms can be asserted. */
+    if (bzla_res != bzla_term && fv_term.empty())
+    {
+      ::bitwuzla::Options opts;
+      opts.set(::bitwuzla::Option::REWRITE_LEVEL, uint64_t{0});
+      opts.set(::bitwuzla::Option::PREPROCESS, uint64_t{0});
+      opts.set(::bitwuzla::Option::TIME_LIMIT_PER, uint64_t{100});
+      ::bitwuzla::Bitwuzla checker(*tm, opts);
+      checker.assert_formula(
+          tm->mk_term(::bitwuzla::Kind::DISTINCT, {bzla_term, bzla_res}));
+      MURXLA_TEST(checker.check_sat() != ::bitwuzla::Result::SAT);
+    }
+
+    Term res = std::shared_ptr<BitwuzlaTerm>(new BitwuzlaTerm(tm, bzla_res));
+    d_smgr.add_term(res, term->get_sort()->get_kind(), {term});
+    Sort res_sort = res->get_sort();
+    MURXLA_TRACE_RETURN << res << " " << res_sort;
+    return {res->get_id(), res_sort->get_id()};
+  }
+};
+
 #if 0
 class BzlaActionTermSetSymbol : public Action
 {
@@ -2844,17 +2940,14 @@ BitwuzlaSolver::configure_fsm(FSM* fsm) const
   // bitwuzla_is_unsat_assumption
   // auto a_failed = fsm->new_action<BitwuzlaActionIsUnsatAssumption>();
   // fsm->add_action_to_all_states(a_failed, 100);
-  // bitwuzla_simplify
-  // auto a_simplify = fsm->new_action<BzlaActionSimplify>();
-  // s_assert->add_action(a_simplify, 10000);
-  // s_create_sorts->add_action(a_simplify, 10000);
-  // s_create_inputs->add_action(a_simplify, 10000);
-  // s_create_terms->add_action(a_simplify, 10000);
-  // s_opt->add_action(a_simplify, 10000);
-  // s_push_pop->add_action(a_simplify, 10000);
-  // s_check_sat->add_action(a_simplify, 10000, s_create_terms);
-  // s_sat->add_action(a_simplify, 10000, s_create_terms);
-  // s_unsat->add_action(a_simplify, 10000, s_create_terms);
+
+  // bitwuzla::Bitwuzla::simplify()
+  auto a_simplify = fsm->new_action<BitwuzlaActionSimplify>();
+  fsm->add_action_to_all_states(a_simplify, 10000);
+
+  // bitwuzla::Bitwuzla::simplify(const Term&)
+  auto a_simplify_term = fsm->new_action<BitwuzlaActionSimplifyTerm>();
+  fsm->add_action_to_all_states(a_simplify_term, 1000);
 
   // bitwuzla::TermManager::substitute_term
   // bitwuzla::TermManager::substitute_terms
