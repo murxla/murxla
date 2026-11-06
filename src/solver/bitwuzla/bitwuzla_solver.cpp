@@ -1990,6 +1990,15 @@ class BitwuzlaActionSubstituteTerm : public Action
      *       Since we can't always compute the exact level, we can't add the
      *       substituted terms to the term DB. */
 
+    /* The free variables of all values in the substitution map. */
+    FreeVarsCache fv_cache;
+    std::unordered_set<::bitwuzla::Term> fv_values;
+    for (const auto& [key, value] : map)
+    {
+      const auto& fvs = free_vars(value, fv_cache);
+      fv_values.insert(fvs.begin(), fvs.end());
+    }
+
     /* Substitute in each term individually. */
     std::vector<::bitwuzla::Term> expected;
     for (const ::bitwuzla::Term& bzla_term : bzla_terms)
@@ -1997,6 +2006,7 @@ class BitwuzlaActionSubstituteTerm : public Action
       ::bitwuzla::Term bzla_res = tm->substitute_term(bzla_term, map);
       MURXLA_TEST(!bzla_res.is_null());
       MURXLA_TEST(bzla_res.sort() == bzla_term.sort());
+      check_free_vars(bzla_term, bzla_res, map, fv_values, fv_cache);
       expected.push_back(bzla_res);
     }
 
@@ -2006,6 +2016,151 @@ class BitwuzlaActionSubstituteTerm : public Action
     for (size_t i = 0, n = bzla_terms.size(); i < n; ++i)
     {
       MURXLA_TEST(bzla_terms[i] == expected[i]);
+    }
+  }
+
+  /** Maps a term to its free variables. */
+  using FreeVarsCache =
+      std::unordered_map<::bitwuzla::Term,
+                         std::unordered_set<::bitwuzla::Term>>;
+
+  /** @return True if the given term is a binder (quantifier or lambda). */
+  static bool is_binder(const ::bitwuzla::Term& term)
+  {
+    ::bitwuzla::Kind kind = term.kind();
+    return kind == ::bitwuzla::Kind::FORALL || kind == ::bitwuzla::Kind::EXISTS
+           || kind == ::bitwuzla::Kind::LAMBDA;
+  }
+
+  /**
+   * Compute the free variables of a given term. Free variables are
+   * determined bottom-up per term, independently of the context the term
+   * occurs in. Binders are nested binary terms with the bound variable as
+   * their first child.
+   * @return A reference to the cache entry of the given term (references to
+   *         cache entries stay valid when the cache grows).
+   */
+  const std::unordered_set<::bitwuzla::Term>& free_vars(
+      const ::bitwuzla::Term& term, FreeVarsCache& cache)
+  {
+    std::unordered_set<::bitwuzla::Term> expanded;
+    std::vector<::bitwuzla::Term> to_visit{term};
+    while (!to_visit.empty())
+    {
+      ::bitwuzla::Term cur = to_visit.back();
+      if (cache.find(cur) != cache.end())
+      {
+        to_visit.pop_back();
+        continue;
+      }
+      if (expanded.insert(cur).second)
+      {
+        for (const ::bitwuzla::Term& ch : cur.children())
+        {
+          to_visit.push_back(ch);
+        }
+        continue;
+      }
+      to_visit.pop_back();
+      std::unordered_set<::bitwuzla::Term> fvs;
+      if (cur.is_variable())
+      {
+        fvs.insert(cur);
+      }
+      for (const ::bitwuzla::Term& ch : cur.children())
+      {
+        const auto& ch_fvs = cache.at(ch);
+        fvs.insert(ch_fvs.begin(), ch_fvs.end());
+      }
+      if (is_binder(cur))
+      {
+        fvs.erase(cur[0]);
+      }
+      cache.emplace(cur, std::move(fvs));
+    }
+    return cache.at(term);
+  }
+
+  /**
+   * Check the free variables of the result of substituting 'map' in 'term'.
+   *
+   * These checks hold for simultaneous substitution of the free occurrences of
+   * the keys, where values are inserted as-is (no substitution in values):
+   * 1. no free variables are introduced other than those of the values
+   * 2. a variable that occurs free in 'term' does not occur free in the
+   *    result, unless a value contains it
+   * 3. the free variables of the value of a replaced occurrence are preserved,
+   *    i.e., no free variable of a value is captured by a binder
+   *
+   * Check 3 only considers occurrences of keys that are not below a binder
+   * that binds a variable of the key or the key itself, since murxla does not
+   * generate such substitutions (bound variables are not in the term DB).
+   */
+  void check_free_vars(
+      const ::bitwuzla::Term& term,
+      const ::bitwuzla::Term& res,
+      const std::unordered_map<::bitwuzla::Term, ::bitwuzla::Term>& map,
+      const std::unordered_set<::bitwuzla::Term>& fv_values,
+      FreeVarsCache& fv_cache)
+  {
+    const auto& fv_term = free_vars(term, fv_cache);
+    const auto& fv_res  = free_vars(res, fv_cache);
+
+    /* 1. */
+    for (const ::bitwuzla::Term& var : fv_res)
+    {
+      MURXLA_TEST(fv_term.find(var) != fv_term.end()
+                  || fv_values.find(var) != fv_values.end());
+    }
+
+    /* 2. */
+    for (const auto& [key, value] : map)
+    {
+      if (key.is_variable() && fv_term.find(key) != fv_term.end())
+      {
+        MURXLA_TEST(fv_res.find(key) == fv_res.end()
+                    || fv_values.find(key) != fv_values.end());
+      }
+    }
+
+    /* 3. Collect the keys replaced in 'term', the traversal stops at keys. */
+    std::unordered_set<::bitwuzla::Term> bound_vars;
+    std::unordered_set<::bitwuzla::Term> replaced;
+    std::unordered_set<::bitwuzla::Term> visited;
+    std::vector<::bitwuzla::Term> to_visit{term};
+    while (!to_visit.empty())
+    {
+      ::bitwuzla::Term cur = to_visit.back();
+      to_visit.pop_back();
+      if (!visited.insert(cur).second) continue;
+      if (map.find(cur) != map.end())
+      {
+        replaced.insert(cur);
+        continue;
+      }
+      if (is_binder(cur))
+      {
+        bound_vars.insert(cur[0]);
+      }
+      for (const ::bitwuzla::Term& ch : cur.children())
+      {
+        to_visit.push_back(ch);
+      }
+    }
+    for (const ::bitwuzla::Term& key : replaced)
+    {
+      if (bound_vars.find(key) != bound_vars.end()) continue;
+      const auto& fv_key = free_vars(key, fv_cache);
+      if (std::any_of(fv_key.begin(), fv_key.end(), [&](const auto& v) {
+            return bound_vars.find(v) != bound_vars.end();
+          }))
+      {
+        continue;
+      }
+      for (const ::bitwuzla::Term& var : free_vars(map.at(key), fv_cache))
+      {
+        MURXLA_TEST(fv_res.find(var) != fv_res.end());
+      }
     }
   }
 
