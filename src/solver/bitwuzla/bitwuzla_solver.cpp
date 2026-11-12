@@ -1419,6 +1419,55 @@ BitwuzlaSolver::is_unsat_assumption(const Term& t) const
 
 /* -------------------------------------------------------------------------- */
 
+namespace {
+
+/**
+ * Check that the introspection functions of the given options agree with the
+ * given option info.
+ */
+void
+check_option_info(const ::bitwuzla::Options& options,
+                  const ::bitwuzla::OptionInfo& info)
+{
+  using Kind             = ::bitwuzla::OptionInfo::Kind;
+  ::bitwuzla::Option opt = info.opt;
+  const std::string lng  = info.lng;
+
+  MURXLA_TEST(options.lng(opt) == lng);
+  MURXLA_TEST(options.is_valid(lng));
+  MURXLA_TEST(options.option(lng.c_str()) == opt);
+  const char* shrt = options.shrt(opt);
+  MURXLA_TEST((shrt == nullptr) == (info.shrt == nullptr));
+  if (shrt)
+  {
+    MURXLA_TEST(std::string(shrt) == info.shrt);
+    MURXLA_TEST(options.is_valid(shrt));
+    MURXLA_TEST(options.option(shrt) == opt);
+  }
+  MURXLA_TEST(options.description(opt) != nullptr);
+  MURXLA_TEST(std::string(options.description(opt)) == info.description);
+  MURXLA_TEST(!std::string(info.description).empty());
+
+  MURXLA_TEST(options.is_bool(opt) == (info.kind == Kind::BOOL));
+  MURXLA_TEST(options.is_numeric(opt) == (info.kind == Kind::NUMERIC));
+  MURXLA_TEST(options.is_mode(opt) == (info.kind == Kind::MODE));
+  MURXLA_TEST(options.is_str(opt) == (info.kind == Kind::STRING));
+  if (info.kind == Kind::NUMERIC)
+  {
+    auto num = info.value<::bitwuzla::OptionInfo::Numeric>();
+    MURXLA_TEST(num.min <= num.dflt && num.dflt <= num.max);
+  }
+  else if (info.kind == Kind::MODE)
+  {
+    auto mode = info.value<::bitwuzla::OptionInfo::Mode>();
+    MURXLA_TEST(options.modes(opt) == mode.modes);
+    MURXLA_TEST(std::find(mode.modes.begin(), mode.modes.end(), mode.dflt)
+                != mode.modes.end());
+  }
+}
+
+}  // namespace
+
 void
 BitwuzlaSolver::set_opt(const std::string& opt, const std::string& value)
 {
@@ -1446,26 +1495,97 @@ BitwuzlaSolver::set_opt(const std::string& opt, const std::string& value)
   }
 
   ::bitwuzla::OptionInfo info(*d_options, bzla_opt);
+  check_option_info(*d_options, info);
+
+  const bool is_bool    = d_options->is_bool(bzla_opt);
+  const bool is_numeric = d_options->is_numeric(bzla_opt);
+  uint64_t val          = 0;
+  if (is_bool || is_numeric)
+  {
+    val = value == "true" ? 1 : (value == "false" ? 0 : std::stoull(value));
+  }
+  /* The string representation of the value for the string and command line
+   * interfaces. */
+  std::string str = value;
+  if (is_bool && d_rng.flip_coin())
+  {
+    str = val ? "1" : "0";
+  }
+  const std::string lng = info.lng;
+  using Args            = std::vector<std::string>;
+
   try
   {
-    if (d_options->is_bool(bzla_opt) || d_options->is_numeric(bzla_opt))
+    /* Bitwuzla has typed, string and command line interfaces to set options,
+     * which must all agree on valid values. */
+    switch (d_rng.pick<uint32_t>(0, 4))
     {
-      uint32_t val =
-          value == "true"
-              ? 1
-              : (value == "false" ? 0
-                                  : static_cast<uint32_t>(std::stoul(value)));
-      d_options->set(bzla_opt, val);
-      MURXLA_TEST(val == d_options->get(bzla_opt));
-    }
-    else
-    {
-      d_options->set(bzla_opt, value);
+      case 0:
+        if (is_bool || is_numeric)
+        {
+          d_options->set(bzla_opt, val);
+        }
+        else if (d_rng.flip_coin())
+        {
+          d_options->set(bzla_opt, value);
+        }
+        else
+        {
+          d_options->set(bzla_opt, value.c_str());
+        }
+        break;
+      case 1: d_options->set(lng, str); break;
+      case 2: d_options->set(Args{"--" + lng + "=" + str}); break;
+      case 3:
+        if (is_bool && d_rng.flip_coin())
+        {
+          d_options->set(Args{(val ? "--" : "--no-") + lng});
+        }
+        else if (!str.empty() && str[0] != '-')
+        {
+          d_options->set(Args{"--" + lng, str});
+        }
+        else
+        {
+          d_options->set(Args{"--" + lng + "=" + str});
+        }
+        break;
+      default:
+        if (info.shrt)
+        {
+          d_options->set(Args{std::string("-") + info.shrt + "=" + str});
+        }
+        else
+        {
+          d_options->set(lng, str);
+        }
     }
   }
   catch (::bitwuzla::option::Exception& e)
   {
     throw MurxlaSolverOptionException("incompatible option");
+  }
+
+  /* Read the value back. */
+  ::bitwuzla::OptionInfo cur(*d_options, bzla_opt);
+  switch (cur.kind)
+  {
+    case ::bitwuzla::OptionInfo::Kind::BOOL:
+      MURXLA_TEST(d_options->get(bzla_opt) == val);
+      MURXLA_TEST(cur.value<::bitwuzla::OptionInfo::Bool>().cur == (val != 0));
+      break;
+    case ::bitwuzla::OptionInfo::Kind::NUMERIC:
+      MURXLA_TEST(d_options->get(bzla_opt) == val);
+      MURXLA_TEST(cur.value<::bitwuzla::OptionInfo::Numeric>().cur == val);
+      break;
+    case ::bitwuzla::OptionInfo::Kind::MODE:
+      MURXLA_TEST(d_options->get_mode(bzla_opt) == value);
+      MURXLA_TEST(cur.value<::bitwuzla::OptionInfo::Mode>().cur == value);
+      break;
+    case ::bitwuzla::OptionInfo::Kind::STRING:
+      MURXLA_TEST(d_options->get_str(bzla_opt) == value);
+      MURXLA_TEST(cur.value<::bitwuzla::OptionInfo::String>().cur == value);
+      break;
   }
 }
 
